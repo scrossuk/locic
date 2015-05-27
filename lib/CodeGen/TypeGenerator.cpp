@@ -1,5 +1,6 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/Support/PrimitiveID.hpp>
 
 namespace locic {
 	

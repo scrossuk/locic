@@ -8,6 +8,7 @@
 namespace locic {
 	
 	class MethodID;
+	class PrimitiveID;
 	class SharedMaps;
 	class String;
 	class StringHost;
@@ -24,6 +25,8 @@ namespace locic {
 				const StringHost& stringHost() const;
 				
 				MethodID getMethodID(const String& name) const;
+				
+				PrimitiveID getPrimitiveID(const String& name) const;
 				
 				llvm::LLVMContext& llvmContext();
 				

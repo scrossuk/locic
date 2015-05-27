@@ -103,11 +103,7 @@ namespace locic {
 		}
 		
 		llvm::DIType genPrimitiveDebugType(Module& module, const SEM::Type* const type) {
-			const auto objectType = type->getObjectType();
-			
-			const auto primitiveKind = module.primitiveKind(objectType->name().last());
-			
-			switch (primitiveKind) {
+			switch (type->primitiveID()) {
 				case PrimitiveVoid:
 					return module.debugBuilder().createVoidType();
 				case PrimitiveNull:

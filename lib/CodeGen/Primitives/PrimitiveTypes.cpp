@@ -18,10 +18,7 @@ namespace locic {
 	namespace CodeGen {
 	
 		llvm::PointerType* getPrimitivePointerType(Module& module, const SEM::Type* const type) {
-			const auto& name = type->getObjectType()->name().last();
-			const auto kind = module.primitiveKind(name);
-			
-			switch (kind) {
+			switch (type->primitiveID()) {
 				case PrimitiveValueLval:
 				case PrimitiveFinalLval: {
 					return genPointerType(module, type->templateArguments().front().typeRefType());
@@ -52,10 +49,7 @@ namespace locic {
 		}
 		
 		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* const type) {
-			const auto& name = type->getObjectType()->name().last();
-			const auto kind = module.primitiveKind(name);
-			
-			switch (kind) {
+			switch (type->primitiveID()) {
 				case PrimitiveRef: {
 					const auto argType = type->templateArguments().front().typeRefType();
 					if (argType->isTemplateVar() && argType->getTemplateVar()->isVirtual()) {
@@ -106,14 +100,12 @@ namespace locic {
 					return genType(module, type->templateArguments().front().typeRefType());
 				}
 				default:
-					break;
+					return getBasicPrimitiveType(module, type->primitiveID());
 			}
-			
-			return getBasicPrimitiveType(module, kind);
 		}
 		
-		llvm_abi::IntegerKind primitiveABIIntegerKind(PrimitiveKind kind) {
-			switch (kind) {
+		llvm_abi::IntegerKind primitiveABIIntegerKind(const PrimitiveID id) {
+			switch (id) {
 				case PrimitiveCompareResult:
 					// Compare results represented with 8 bits.
 					return llvm_abi::Int8;
@@ -156,8 +148,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind) {
-			switch (kind) {
+		llvm::Type* getBasicPrimitiveType(Module& module, const PrimitiveID id) {
+			switch (id) {
 				case PrimitiveVoid:
 					return TypeGenerator(module).getVoidType();
 				case PrimitiveNull:
@@ -187,7 +179,7 @@ namespace locic {
 				case PrimitiveSize:
 				case PrimitiveSSize:
 				case PrimitivePtrDiff: {
-					const auto intAbiType = llvm_abi::Type::Integer(module.abiContext(), primitiveABIIntegerKind(kind));
+					const auto intAbiType = llvm_abi::Type::Integer(module.abiContext(), primitiveABIIntegerKind(id));
 					return TypeGenerator(module).getIntType(module.abi().typeSize(intAbiType) * 8);
 				}
 				case PrimitiveFloat:
@@ -238,13 +230,13 @@ namespace locic {
 		}
 		
 		llvm::Type* getNamedPrimitiveType(Module& module, const String& name) {
-			return getBasicPrimitiveType(module, module.primitiveKind(name));
+			return getBasicPrimitiveType(module, module.primitiveID(name));
 		}
 		
-		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveKind kind) {
+		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, const PrimitiveID id) {
 			auto& abiContext = module.abiContext();
 			
-			switch (kind) {
+			switch (id) {
 				case PrimitiveVoid:
 					// TODO: use a void type?
 					return llvm_abi::Type::Struct(abiContext, {});
@@ -305,7 +297,7 @@ namespace locic {
 				case PrimitiveSize:
 				case PrimitiveSSize:
 				case PrimitivePtrDiff:
-					return llvm_abi::Type::Integer(abiContext, primitiveABIIntegerKind(kind));
+					return llvm_abi::Type::Integer(abiContext, primitiveABIIntegerKind(id));
 				case PrimitiveFloat:
 					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Float);
 				case PrimitiveDouble:
@@ -318,19 +310,15 @@ namespace locic {
 		}
 		
 		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const String& name) {
-			return getBasicPrimitiveABIType(module, module.primitiveKind(name));
+			return getBasicPrimitiveABIType(module, module.primitiveID(name));
 		}
 		
 		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* const type) {
 			assert(isTypeSizeKnownInThisModule(module, type));
 			
-			const auto typeInstance = type->getObjectType();
-			const auto& name = typeInstance->name().last();
-			
 			auto& abiContext = module.abiContext();
-			const auto kind = module.primitiveKind(name);
 			
-			switch (kind) {
+			switch (type->primitiveID()) {
 				case PrimitiveRef: {
 					if (type->templateArguments().front().typeRefType()->isInterface()) {
 						return interfaceStructType(module).first;
@@ -346,7 +334,7 @@ namespace locic {
 				case PrimitiveTypename:
 					return typeInfoType(module).first;
 				default:
-					return getBasicPrimitiveABIType(module, kind);
+					return getBasicPrimitiveABIType(module, type->primitiveID());
 			}
 		}
 		

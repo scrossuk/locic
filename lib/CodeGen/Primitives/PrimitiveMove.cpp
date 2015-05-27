@@ -44,18 +44,14 @@ namespace locic {
 			(void) genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(arguments));
 		}
 		
-		bool primitiveTypeHasCustomMove(Module& module, const SEM::Type* type) {
-			assert(type->isPrimitive());
-			const auto& name = type->getObjectType()->name().first();
-			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveValueLval || kind == PrimitiveFinalLval) && typeHasCustomMove(module, type->templateArguments().front().typeRefType());
+		bool primitiveTypeHasCustomMove(Module& module, const SEM::Type* const type) {
+			const auto id = type->primitiveID();
+			return (id == PrimitiveValueLval || id == PrimitiveFinalLval) && typeHasCustomMove(module, type->templateArguments().front().typeRefType());
 		}
 		
-		bool primitiveTypeInstanceHasCustomMove(Module& module, const SEM::TypeInstance* typeInstance) {
-			assert(typeInstance->isPrimitive());
-			const auto& name = typeInstance->name().first();
-			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveValueLval || kind == PrimitiveFinalLval);
+		bool primitiveTypeInstanceHasCustomMove(Module& /*module*/, const SEM::TypeInstance* typeInstance) {
+			const auto id = typeInstance->primitiveID();
+			return (id == PrimitiveValueLval || id == PrimitiveFinalLval);
 		}
 		
 	}

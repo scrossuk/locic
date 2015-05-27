@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
 		// Perform semantic analysis.
 		printf("Performing semantic analysis...\n");
 		SEM::Context semContext;
-		SemanticAnalysis::Run(sharedMaps.stringHost(), astRootNamespaceList, semContext, debugModule);
+		SemanticAnalysis::Run(sharedMaps, astRootNamespaceList, semContext, debugModule);
 		
 		// Dump SEM tree information.
 		const auto semDebugFileName = testName + "_semdebug.txt";

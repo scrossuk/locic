@@ -20,8 +20,8 @@ namespace locic {
 		void genStorePrimitiveLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
 			assert(var->getType()->isPointerTy());
 			
-			const auto& typeName = varType->getObjectType()->name().last();
-			if (typeName == "value_lval" || typeName == "final_lval") {
+			const auto id = varType->primitiveID();
+			if (id == PrimitiveValueLval || id == PrimitiveFinalLval) {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				

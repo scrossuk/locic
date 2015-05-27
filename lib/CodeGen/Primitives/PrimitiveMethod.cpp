@@ -36,14 +36,9 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool isFloatType(Module& module, const SEM::Type* const rawType) {
+		bool isFloatType(Module& /*module*/, const SEM::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
-			assert(type->isPrimitive());
-			
-			const auto& typeName = type->getObjectType()->name().last();
-			const auto kind = module.primitiveKind(typeName);
-			
-			switch (kind) {
+			switch (type->primitiveID()) {
 				case PrimitiveFloat:
 				case PrimitiveDouble:
 				case PrimitiveLongDouble:
@@ -53,14 +48,9 @@ namespace locic {
 			}
 		}
 		
-		bool isSignedIntegerType(Module& module, const SEM::Type* const rawType) {
+		bool isSignedIntegerType(Module& /*module*/, const SEM::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
-			assert(type->isPrimitive());
-			
-			const auto& typeName = type->getObjectType()->name().last();
-			const auto kind = module.primitiveKind(typeName);
-			
-			switch (kind) {
+			switch (type->primitiveID()) {
 				case PrimitiveInt8:
 				case PrimitiveInt16:
 				case PrimitiveInt32:
@@ -78,14 +68,9 @@ namespace locic {
 			}
 		}
 		
-		bool isUnsignedIntegerType(Module& module, const SEM::Type* const rawType) {
+		bool isUnsignedIntegerType(Module& /*module*/, const SEM::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
-			assert(type->isPrimitive());
-			
-			const auto& typeName = type->getObjectType()->name().last();
-			const auto kind = module.primitiveKind(typeName);
-			
-			switch (kind) {
+			switch (type->primitiveID()) {
 				case PrimitiveUInt8:
 				case PrimitiveUInt16:
 				case PrimitiveUInt32:
@@ -249,13 +234,10 @@ namespace locic {
 			const auto functionType = methodInfo.functionType;
 			const auto& templateArgs = methodInfo.templateArgs;
 			
-			const auto& typeName = type->getObjectType()->name().last();
-			const auto kind = module.primitiveKind(typeName);
-			
 			ConstantGenerator constGen(module);
 			TypeGenerator typeGen(module);
 			
-			switch (kind) {
+			switch (type->primitiveID()) {
 				case PrimitiveVoid:
 					return genVoidPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
 				case PrimitiveCompareResult:
@@ -315,6 +297,7 @@ namespace locic {
 					return genRefPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
 			}
 			
+			const auto& typeName = type->getObjectType()->name().last();
 			printf("%s\n", typeName.c_str());
 			llvm_unreachable("Unknown trivial primitive function.");
 		}

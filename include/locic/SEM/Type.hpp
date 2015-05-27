@@ -12,6 +12,7 @@
 
 namespace locic {
 	
+	class PrimitiveID;
 	class String;
 	
 	namespace SEM {
@@ -75,7 +76,8 @@ namespace locic {
 				const SEM::TypeAlias* getTypeAlias() const;
 				const ValueArray& typeAliasArguments() const;
 				
-				bool isBuiltIn(const String& typeName) const;
+				PrimitiveID primitiveID() const;
+				
 				bool isBuiltInVoid() const;
 				bool isBuiltInBool() const;
 				bool isBuiltInFunctionPtr() const;

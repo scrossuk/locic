@@ -7,6 +7,7 @@
 
 #include <locic/Debug.hpp>
 #include <locic/Support/Map.hpp>
+#include <locic/Support/PrimitiveID.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/Debug.hpp>
@@ -28,133 +29,6 @@ namespace locic {
 #if LOCIC_LLVM_VERSION >= 304
 			module_->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
 #endif
-			
-			primitiveMap_.insert(std::make_pair(getCString("void_t"), PrimitiveVoid));
-			primitiveMap_.insert(std::make_pair(getCString("null_t"), PrimitiveNull));
-			primitiveMap_.insert(std::make_pair(getCString("bool"), PrimitiveBool));
-			primitiveMap_.insert(std::make_pair(getCString("float_t"), PrimitiveFloat));
-			primitiveMap_.insert(std::make_pair(getCString("double_t"), PrimitiveDouble));
-			primitiveMap_.insert(std::make_pair(getCString("longdouble_t"), PrimitiveLongDouble));
-			primitiveMap_.insert(std::make_pair(getCString("__ref"), PrimitiveRef));
-			primitiveMap_.insert(std::make_pair(getCString("__ptr"), PrimitivePtr));
-			primitiveMap_.insert(std::make_pair(getCString("ptr_lval"), PrimitivePtrLval));
-			primitiveMap_.insert(std::make_pair(getCString("value_lval"), PrimitiveValueLval));
-			primitiveMap_.insert(std::make_pair(getCString("final_lval"), PrimitiveFinalLval));
-			primitiveMap_.insert(std::make_pair(getCString("typename_t"), PrimitiveTypename));
-			primitiveMap_.insert(std::make_pair(getCString("compare_result_t"), PrimitiveCompareResult));
-			
-			primitiveMap_.insert(std::make_pair(getCString("function0_ptr_t"), PrimitiveFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("function1_ptr_t"), PrimitiveFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("function2_ptr_t"), PrimitiveFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("function3_ptr_t"), PrimitiveFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("function4_ptr_t"), PrimitiveFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("function5_ptr_t"), PrimitiveFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("function6_ptr_t"), PrimitiveFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("function7_ptr_t"), PrimitiveFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("function8_ptr_t"), PrimitiveFunctionPtr));
-			
-			primitiveMap_.insert(std::make_pair(getCString("interfacemethod0_t"), PrimitiveInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("interfacemethod1_t"), PrimitiveInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("interfacemethod2_t"), PrimitiveInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("interfacemethod3_t"), PrimitiveInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("interfacemethod4_t"), PrimitiveInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("interfacemethod5_t"), PrimitiveInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("interfacemethod6_t"), PrimitiveInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("interfacemethod7_t"), PrimitiveInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("interfacemethod8_t"), PrimitiveInterfaceMethod));
-			
-			primitiveMap_.insert(std::make_pair(getCString("method0_t"), PrimitiveMethod));
-			primitiveMap_.insert(std::make_pair(getCString("method1_t"), PrimitiveMethod));
-			primitiveMap_.insert(std::make_pair(getCString("method2_t"), PrimitiveMethod));
-			primitiveMap_.insert(std::make_pair(getCString("method3_t"), PrimitiveMethod));
-			primitiveMap_.insert(std::make_pair(getCString("method4_t"), PrimitiveMethod));
-			primitiveMap_.insert(std::make_pair(getCString("method5_t"), PrimitiveMethod));
-			primitiveMap_.insert(std::make_pair(getCString("method6_t"), PrimitiveMethod));
-			primitiveMap_.insert(std::make_pair(getCString("method7_t"), PrimitiveMethod));
-			primitiveMap_.insert(std::make_pair(getCString("method8_t"), PrimitiveMethod));
-			
-			primitiveMap_.insert(std::make_pair(getCString("methodfunction0_ptr_t"), PrimitiveMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("methodfunction1_ptr_t"), PrimitiveMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("methodfunction2_ptr_t"), PrimitiveMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("methodfunction3_ptr_t"), PrimitiveMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("methodfunction4_ptr_t"), PrimitiveMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("methodfunction5_ptr_t"), PrimitiveMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("methodfunction6_ptr_t"), PrimitiveMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("methodfunction7_ptr_t"), PrimitiveMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("methodfunction8_ptr_t"), PrimitiveMethodFunctionPtr));
-			
-			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod0_t"), PrimitiveStaticInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod1_t"), PrimitiveStaticInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod2_t"), PrimitiveStaticInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod3_t"), PrimitiveStaticInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod4_t"), PrimitiveStaticInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod5_t"), PrimitiveStaticInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod6_t"), PrimitiveStaticInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod7_t"), PrimitiveStaticInterfaceMethod));
-			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod8_t"), PrimitiveStaticInterfaceMethod));
-			
-			primitiveMap_.insert(std::make_pair(getCString("templatedfunction0_ptr_t"), PrimitiveTemplatedFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedfunction1_ptr_t"), PrimitiveTemplatedFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedfunction2_ptr_t"), PrimitiveTemplatedFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedfunction3_ptr_t"), PrimitiveTemplatedFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedfunction4_ptr_t"), PrimitiveTemplatedFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedfunction5_ptr_t"), PrimitiveTemplatedFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedfunction6_ptr_t"), PrimitiveTemplatedFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedfunction7_ptr_t"), PrimitiveTemplatedFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedfunction8_ptr_t"), PrimitiveTemplatedFunctionPtr));
-			
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethod0_t"), PrimitiveTemplatedMethod));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethod1_t"), PrimitiveTemplatedMethod));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethod2_t"), PrimitiveTemplatedMethod));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethod3_t"), PrimitiveTemplatedMethod));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethod4_t"), PrimitiveTemplatedMethod));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethod5_t"), PrimitiveTemplatedMethod));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethod6_t"), PrimitiveTemplatedMethod));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethod7_t"), PrimitiveTemplatedMethod));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethod8_t"), PrimitiveTemplatedMethod));
-			
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction0_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction1_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction2_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction3_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction4_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction5_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction6_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction7_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("templatedmethodfunction8_ptr_t"), PrimitiveTemplatedMethodFunctionPtr));
-			
-			primitiveMap_.insert(std::make_pair(getCString("varargfunction0_ptr_t"), PrimitiveVarArgFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("varargfunction1_ptr_t"), PrimitiveVarArgFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("varargfunction2_ptr_t"), PrimitiveVarArgFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("varargfunction3_ptr_t"), PrimitiveVarArgFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("varargfunction4_ptr_t"), PrimitiveVarArgFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("varargfunction5_ptr_t"), PrimitiveVarArgFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("varargfunction6_ptr_t"), PrimitiveVarArgFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("varargfunction7_ptr_t"), PrimitiveVarArgFunctionPtr));
-			primitiveMap_.insert(std::make_pair(getCString("varargfunction8_ptr_t"), PrimitiveVarArgFunctionPtr));
-			
-			primitiveMap_.insert(std::make_pair(getCString("int8_t"), PrimitiveInt8));
-			primitiveMap_.insert(std::make_pair(getCString("int16_t"), PrimitiveInt16));
-			primitiveMap_.insert(std::make_pair(getCString("int32_t"), PrimitiveInt32));
-			primitiveMap_.insert(std::make_pair(getCString("int64_t"), PrimitiveInt64));
-			primitiveMap_.insert(std::make_pair(getCString("byte_t"), PrimitiveByte));
-			primitiveMap_.insert(std::make_pair(getCString("short_t"), PrimitiveShort));
-			primitiveMap_.insert(std::make_pair(getCString("int_t"), PrimitiveInt));
-			primitiveMap_.insert(std::make_pair(getCString("long_t"), PrimitiveLong));
-			primitiveMap_.insert(std::make_pair(getCString("longlong_t"), PrimitiveLongLong));
-			primitiveMap_.insert(std::make_pair(getCString("ssize_t"), PrimitiveSSize));
-			primitiveMap_.insert(std::make_pair(getCString("ptrdiff_t"), PrimitivePtrDiff));
-			
-			primitiveMap_.insert(std::make_pair(getCString("uint8_t"), PrimitiveUInt8));
-			primitiveMap_.insert(std::make_pair(getCString("uint16_t"), PrimitiveUInt16));
-			primitiveMap_.insert(std::make_pair(getCString("uint32_t"), PrimitiveUInt32));
-			primitiveMap_.insert(std::make_pair(getCString("uint64_t"), PrimitiveUInt64));
-			primitiveMap_.insert(std::make_pair(getCString("ubyte_t"), PrimitiveUByte));
-			primitiveMap_.insert(std::make_pair(getCString("ushort_t"), PrimitiveUShort));
-			primitiveMap_.insert(std::make_pair(getCString("uint_t"), PrimitiveUInt));
-			primitiveMap_.insert(std::make_pair(getCString("ulong_t"), PrimitiveULong));
-			primitiveMap_.insert(std::make_pair(getCString("ulonglong_t"), PrimitiveULongLong));
-			primitiveMap_.insert(std::make_pair(getCString("size_t"), PrimitiveSize));
 		}
 		
 		InternalContext& Module::context() {
@@ -302,13 +176,8 @@ namespace locic {
 			return buildOptions_;
 		}
 		
-		PrimitiveKind Module::primitiveKind(const String& name) const {
-			const auto iterator = primitiveMap_.find(name);
-			if (iterator == primitiveMap_.end()) {
-				printf("%s\n", name.c_str());
-				llvm_unreachable("Failed to find primitive type.");
-			}
-			return iterator->second;
+		PrimitiveID Module::primitiveID(const String& name) const {
+			return context_.getPrimitiveID(name);
 		}
 		
 		void Module::verify() const {

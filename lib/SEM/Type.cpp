@@ -6,6 +6,7 @@
 
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Map.hpp>
+#include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/Context.hpp>
@@ -409,78 +410,61 @@ namespace locic {
 			return valueArray_;
 		}
 		
-		bool Type::isBuiltIn(const String& typeName) const {
-			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == typeName;
+		PrimitiveID Type::primitiveID() const {
+			assert(isPrimitive());
+			return getObjectType()->primitiveID();
 		}
 		
 		bool Type::isBuiltInVoid() const {
-			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "void_t";
+			return isPrimitive() && primitiveID() == PrimitiveVoid;
 		}
 		
 		bool Type::isBuiltInBool() const {
-			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "bool";
+			return isPrimitive() && primitiveID() == PrimitiveBool;
 		}
 		
 		bool Type::isBuiltInFunctionPtr() const {
-			return isObject() && getObjectType()->name().size() == 1 &&
-			       getObjectType()->name().last().starts_with("function") &&
-			       getObjectType()->name().last().ends_with("ptr_t");
+			return isPrimitive() && primitiveID() == PrimitiveFunctionPtr;
 		}
 		
 		bool Type::isBuiltInInterfaceMethod() const {
-			return isObject() && getObjectType()->name().size() == 1 &&
-			       getObjectType()->name().last().starts_with("interfacemethod") &&
-			       getObjectType()->name().last().ends_with("_t");
+			return isPrimitive() && primitiveID() == PrimitiveInterfaceMethod;
 		}
 		
 		bool Type::isBuiltInMethod() const {
-			return isObject() && getObjectType()->name().size() == 1 &&
-			       getObjectType()->name().last().starts_with("method") &&
-			       getObjectType()->name().last().ends_with("_t");
+			return isPrimitive() && primitiveID() == PrimitiveMethod;
 		}
 		
 		bool Type::isBuiltInMethodFunctionPtr() const {
-			return isObject() && getObjectType()->name().size() == 1 &&
-			       getObjectType()->name().last().starts_with("methodfunction") &&
-			       getObjectType()->name().last().ends_with("ptr_t");
+			return isPrimitive() && primitiveID() == PrimitiveMethodFunctionPtr;
 		}
 		
 		bool Type::isBuiltInReference() const {
-			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "__ref";
+			return isPrimitive() && primitiveID() == PrimitiveRef;
 		}
 		
 		bool Type::isBuiltInStaticInterfaceMethod() const {
-			return isObject() && getObjectType()->name().size() == 1 &&
-			       getObjectType()->name().last().starts_with("staticinterfacemethod") &&
-			       getObjectType()->name().last().ends_with("_t");
+			return isPrimitive() && primitiveID() == PrimitiveStaticInterfaceMethod;
 		}
 		
 		bool Type::isBuiltInTemplatedFunctionPtr() const {
-			return isObject() && getObjectType()->name().size() == 1 &&
-			       getObjectType()->name().last().starts_with("templatedfunction") &&
-			       getObjectType()->name().last().ends_with("ptr_t");
+			return isPrimitive() && primitiveID() == PrimitiveTemplatedFunctionPtr;
 		}
 		
 		bool Type::isBuiltInTemplatedMethod() const {
-			return isObject() && getObjectType()->name().size() == 1 &&
-			       getObjectType()->name().last().starts_with("templatedmethod") &&
-			       getObjectType()->name().last().ends_with("_t");
+			return isPrimitive() && primitiveID() == PrimitiveTemplatedMethod;
 		}
 		
 		bool Type::isBuiltInTemplatedMethodFunctionPtr() const {
-			return isObject() && getObjectType()->name().size() == 1 &&
-			       getObjectType()->name().last().starts_with("templatedmethodfunction") &&
-			       getObjectType()->name().last().ends_with("ptr_t");
+			return isPrimitive() && primitiveID() == PrimitiveTemplatedMethodFunctionPtr;
 		}
 		
 		bool Type::isBuiltInTypename() const {
-			return isObject() && getObjectType()->name().size() == 1 && getObjectType()->name().last() == "typename_t";
+			return isPrimitive() && primitiveID() == PrimitiveTypename;
 		}
 		
 		bool Type::isBuiltInVarArgFunctionPtr() const {
-			return isObject() && getObjectType()->name().size() == 1 &&
-			       getObjectType()->name().last().starts_with("varargfunction") &&
-			       getObjectType()->name().last().ends_with("ptr_t");
+			return isPrimitive() && primitiveID() == PrimitiveVarArgFunctionPtr;
 		}
 		
 		const TemplateVar* Type::getTemplateVar() const {
@@ -909,7 +893,6 @@ namespace locic {
 			switch (kind()) {
 				case AUTO:
 					return "Auto";
-					
 				case OBJECT: {
 					if (isBuiltInReference()) {
 						assert(templateArguments().size() == 1);

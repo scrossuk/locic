@@ -3,6 +3,8 @@
 #include <locic/SemanticAnalysis/ConvertModuleScope.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/Support/PrimitiveID.hpp>
+#include <locic/Support/SharedMaps.hpp>
 
 namespace locic {
 	
@@ -65,6 +67,10 @@ namespace locic {
 			
 			// Create a placeholder type instance.
 			std::unique_ptr<SEM::TypeInstance> semTypeInstance(new SEM::TypeInstance(context.semContext(), fullTypeName.copy(), typeInstanceKind, moduleScope.copy()));
+			
+			if (semTypeInstance->isPrimitive()) {
+				semTypeInstance->setPrimitiveID(context.sharedMaps().primitiveIDMap().getPrimitiveID(typeInstanceName));
+			}
 			
 			switch (moduleScope.kind()) {
 				case SEM::ModuleScope::INTERNAL: {

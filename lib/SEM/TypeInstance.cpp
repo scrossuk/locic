@@ -48,6 +48,17 @@ namespace locic {
 			return kind() == PRIMITIVE;
 		}
 		
+		void TypeInstance::setPrimitiveID(const PrimitiveID newPrimitiveID) {
+			assert(isPrimitive());
+			assert(!primitiveID_);
+			primitiveID_ = make_optional(newPrimitiveID);
+		}
+		
+		PrimitiveID TypeInstance::primitiveID() const {
+			assert(isPrimitive());
+			return *primitiveID_;
+		}
+		
 		bool TypeInstance::isEnum() const {
 			return kind() == ENUM;
 		}

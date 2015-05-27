@@ -12,6 +12,7 @@ namespace locic {
 	
 	template <typename T>
 	class Optional;
+	class SharedMaps;
 	class String;
 	class StringHost;
 	
@@ -41,8 +42,10 @@ namespace locic {
 		
 		class Context {
 			public:
-				Context(const StringHost& stringHost, Debug::Module& pDebugModule, SEM::Context& pSemContext);
+				Context(const SharedMaps& sharedMaps, Debug::Module& debugModule, SEM::Context& semContext);
 				~Context();
+				
+				const SharedMaps& sharedMaps() const;
 				
 				String getCString(const char* cString) const;
 				String getString(const std::string& string) const;

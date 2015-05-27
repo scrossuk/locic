@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
 		// Perform semantic analysis.
 		{
 			Timer timer;
-			SemanticAnalysis::Run(sharedMaps.stringHost(), astRootNamespaceList, semContext, debugModule);
+			SemanticAnalysis::Run(sharedMaps, astRootNamespaceList, semContext, debugModule);
 			
 			if (timingsEnabled) {
 				printf("Semantic Analysis: %f seconds.\n", timer.getTime());

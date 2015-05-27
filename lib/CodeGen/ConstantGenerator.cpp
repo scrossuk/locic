@@ -1,9 +1,8 @@
-#include <locic/CodeGen/LLVMIncludes.hpp>
-
-#include <locic/Support/String.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/Support/PrimitiveID.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 

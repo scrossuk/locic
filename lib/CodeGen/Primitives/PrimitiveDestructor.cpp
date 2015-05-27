@@ -17,7 +17,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void createPrimitiveDestructor(Module& module, const SEM::TypeInstance* typeInstance, llvm::Function& llvmFunction) {
+		void createPrimitiveDestructor(Module& module, const SEM::TypeInstance* const typeInstance, llvm::Function& llvmFunction) {
 			assert(llvmFunction.isDeclaration());
 			
 			Function functionGenerator(module, llvmFunction, destructorArgInfo(module, *typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
@@ -32,29 +32,24 @@ namespace locic {
 			functionGenerator.verify();
 		}
 		
-		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
+		void genPrimitiveDestructorCall(Function& function, const SEM::Type* const type, llvm::Value* value) {
 			assert(value->getType()->isPointerTy());
 			
-			const auto& typeName = type->getObjectType()->name().last();
-			
-			if (typeName == "value_lval" || typeName == "final_lval") {
+			const auto id = type->primitiveID();
+			if (id == PrimitiveValueLval || id == PrimitiveFinalLval) {
 				const auto targetType = type->templateArguments().front().typeRefType();
 				genDestructorCall(function, targetType, value);
 			}
 		}
 		
-		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* type) {
-			assert(type->isPrimitive());
-			const auto& name = type->getObjectType()->name().first();
-			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveValueLval || kind == PrimitiveFinalLval) && typeHasDestructor(module, type->templateArguments().front().typeRefType());
+		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* const type) {
+			const auto id = type->primitiveID();
+			return (id == PrimitiveValueLval || id == PrimitiveFinalLval) && typeHasDestructor(module, type->templateArguments().front().typeRefType());
 		}
 		
-		bool primitiveTypeInstanceHasDestructor(Module& module, const SEM::TypeInstance* typeInstance) {
-			assert(typeInstance->isPrimitive());
-			const auto& name = typeInstance->name().first();
-			const auto kind = module.primitiveKind(name);
-			return (kind == PrimitiveValueLval || kind == PrimitiveFinalLval);
+		bool primitiveTypeInstanceHasDestructor(Module& /*module*/, const SEM::TypeInstance* const typeInstance) {
+			const auto id = typeInstance->primitiveID();
+			return (id == PrimitiveValueLval || id == PrimitiveFinalLval);
 		}
 		
 	}

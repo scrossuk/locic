@@ -4,6 +4,7 @@
 #include <locic/AST.hpp>
 #include <locic/Debug.hpp>
 #include <locic/SEM/Context.hpp>
+#include <locic/Support/SharedMaps.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
@@ -15,10 +16,10 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void Run(const StringHost& stringHost, const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule) {
+		void Run(const SharedMaps& sharedMaps, const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule) {
 			try {
 				// Create 'context' to hold information about code structures.
-				Context context(stringHost, debugModule, semContext);
+				Context context(sharedMaps, debugModule, semContext);
 				
 				// Push root namespace on to the stack.
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semContext.rootNamespace()));

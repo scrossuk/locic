@@ -5,8 +5,9 @@
 
 #include <boost/functional/hash.hpp>
 
-#include <locic/Support/Array.hpp>
 #include <locic/Debug.hpp>
+#include <locic/Support/Array.hpp>
+#include <locic/Support/SharedMaps.hpp>
 #include <locic/Support/StableSet.hpp>
 #include <locic/Support/StringHost.hpp>
 
@@ -24,9 +25,13 @@ namespace locic {
 	
 		class ContextImpl {
 		public:
-			ContextImpl(const StringHost& argStringHost, Debug::Module& pDebugModule, SEM::Context& pSemContext)
-			: stringHost(argStringHost), debugModule(pDebugModule), semContext(pSemContext),
-			methodSetsComplete(false), templateRequirementsComplete(false) {
+			ContextImpl(const SharedMaps& argSharedMaps, Debug::Module& pDebugModule, SEM::Context& pSemContext)
+			: sharedMaps(argSharedMaps),
+			stringHost(sharedMaps.stringHost()),
+			debugModule(pDebugModule),
+			semContext(pSemContext),
+			methodSetsComplete(false),
+			templateRequirementsComplete(false) {
 				validVarArgTypes.insert(String(stringHost, "byte_t"));
 				validVarArgTypes.insert(String(stringHost, "ubyte_t"));
 				validVarArgTypes.insert(String(stringHost, "short_t"));
@@ -63,6 +68,7 @@ namespace locic {
 				}
 			};
 			
+			const SharedMaps& sharedMaps;
 			const StringHost& stringHost;
 			Debug::Module& debugModule;
 			ScopeStack scopeStack;
@@ -82,10 +88,14 @@ namespace locic {
 			std::vector<std::pair<const SEM::TemplateVar*, const SEM::Predicate*>> computingMethodSetTemplateVars;
 		};
 		
-		Context::Context(const StringHost& argStringHost, Debug::Module& pDebugModule, SEM::Context& pSemContext)
-		: impl_(new ContextImpl(argStringHost, pDebugModule, pSemContext)) { }
+		Context::Context(const SharedMaps& argSharedMaps, Debug::Module& argDebugModule, SEM::Context& argSemContext)
+		: impl_(new ContextImpl(argSharedMaps, argDebugModule, argSemContext)) { }
 		
 		Context::~Context() { }
+		
+		const SharedMaps& Context::sharedMaps() const {
+			return impl_->sharedMaps;
+		}
 		
 		String Context::getCString(const char* const cString) const {
 			return String(impl_->stringHost, cString);

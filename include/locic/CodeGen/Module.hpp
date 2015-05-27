@@ -21,6 +21,8 @@
 
 namespace locic {
 	
+	class PrimitiveID;
+	
 	namespace Debug {
 		
 		class Module;
@@ -77,7 +79,6 @@ namespace locic {
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
 		typedef FastMap<const SEM::Var*, size_t> MemberVarMap;
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MoveFunctionMap;
-		typedef std::unordered_map<String, PrimitiveKind> PrimitiveMap;
 		typedef FastMap<StandardTypeKind, TypePair> StandardTypeMap;
 		typedef FastMap<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
 		typedef FastMap<TemplateInst, llvm::Function*> TemplateRootFunctionMap;
@@ -160,7 +161,7 @@ namespace locic {
 				
 				const BuildOptions& buildOptions() const;
 				
-				PrimitiveKind primitiveKind(const String& name) const;
+				PrimitiveID primitiveID(const String& name) const;
 				
 				void verify() const;
 				
@@ -178,7 +179,6 @@ namespace locic {
 				MemberOffsetFunctionMap memberOffsetFunctionMap_;
 				MemberVarMap memberVarMap_;
 				MoveFunctionMap moveFunctionMap_;
-				PrimitiveMap primitiveMap_;
 				StandardTypeMap standardTypeMap_;
 				TemplateBuilderMap templateBuilderMap_;
 				TemplateRootFunctionMap templateRootFunctionMap_;

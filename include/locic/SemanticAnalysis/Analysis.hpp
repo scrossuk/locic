@@ -5,7 +5,7 @@
 
 namespace locic {
 	
-	class StringHost;
+	class SharedMaps;
 	
 	namespace Debug {
 		
@@ -30,7 +30,7 @@ namespace locic {
 		 * 
 		 * TODO: error handling needs to be improved!
 		 */
-		void Run(const StringHost& stringHost, const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule);
+		void Run(const SharedMaps& sharedMaps, const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule);
 		
 	}
 	

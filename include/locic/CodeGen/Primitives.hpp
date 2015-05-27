@@ -8,6 +8,7 @@
 
 namespace locic {
 	
+	class PrimitiveID;
 	class String;
 	
 	namespace SEM {
@@ -19,59 +20,6 @@ namespace locic {
 	}
 	
 	namespace CodeGen {
-		
-		enum PrimitiveKind {
-			PrimitiveVoid,
-			PrimitiveNull,
-			PrimitiveBool,
-			PrimitiveCompareResult,
-			
-			PrimitiveFunctionPtr,
-			PrimitiveMethodFunctionPtr,
-			PrimitiveTemplatedFunctionPtr,
-			PrimitiveTemplatedMethodFunctionPtr,
-			PrimitiveVarArgFunctionPtr,
-			
-			PrimitiveMethod,
-			PrimitiveTemplatedMethod,
-			PrimitiveInterfaceMethod,
-			PrimitiveStaticInterfaceMethod,
-			
-			PrimitiveInt8,
-			PrimitiveUInt8,
-			PrimitiveInt16,
-			PrimitiveUInt16,
-			PrimitiveInt32,
-			PrimitiveUInt32,
-			PrimitiveInt64,
-			PrimitiveUInt64,
-			
-			PrimitiveByte,
-			PrimitiveUByte,
-			PrimitiveShort,
-			PrimitiveUShort,
-			PrimitiveInt,
-			PrimitiveUInt,
-			PrimitiveLong,
-			PrimitiveULong,
-			PrimitiveLongLong,
-			PrimitiveULongLong,
-			
-			PrimitiveSize,
-			PrimitiveSSize,
-			
-			PrimitivePtrDiff,
-			
-			PrimitiveFloat,
-			PrimitiveDouble,
-			PrimitiveLongDouble,
-			PrimitiveRef,
-			PrimitivePtr,
-			PrimitivePtrLval,
-			PrimitiveValueLval,
-			PrimitiveFinalLval,
-			PrimitiveTypename
-		};
 		
 		class ArgInfo;
 		class Function;
@@ -100,12 +48,12 @@ namespace locic {
 		llvm::Value* genPrimitiveAlignMask(Function& function, const SEM::Type* type);
 		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* type);
 		
-		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveKind kind);
+		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveID id);
 		llvm::Type* getNamedPrimitiveType(Module& module, const String& name);
 		llvm::PointerType* getPrimitivePointerType(Module& module, const SEM::Type* type);
 		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* type);
 		
-		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveKind kind);
+		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveID id);
 		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const String& name);
 		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* type);
 		

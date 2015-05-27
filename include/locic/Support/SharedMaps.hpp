@@ -2,6 +2,7 @@
 #define LOCIC_SUPPORT_SHAREDMAPS_HPP
 
 #include <locic/Support/MethodIDMap.hpp>
+#include <locic/Support/PrimitiveIDMap.hpp>
 #include <locic/Support/StringHost.hpp>
 
 namespace locic {
@@ -10,7 +11,8 @@ namespace locic {
 	public:
 		SharedMaps()
 		: stringHost_(),
-		methodIDMap_(stringHost_) { }
+		methodIDMap_(stringHost_),
+		primitiveIDMap_(stringHost_) { }
 		
 		const StringHost& stringHost() const {
 			return stringHost_;
@@ -20,6 +22,10 @@ namespace locic {
 			return methodIDMap_;
 		}
 		
+		const PrimitiveIDMap& primitiveIDMap() const {
+			return primitiveIDMap_;
+		}
+		
 	private:
 		// Non-copyable.
 		SharedMaps(const SharedMaps&) = delete;
@@ -27,6 +33,7 @@ namespace locic {
 		
 		StringHost stringHost_;
 		MethodIDMap methodIDMap_;
+		PrimitiveIDMap primitiveIDMap_;
 		
 	};
 	

@@ -16,6 +16,7 @@
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/Optional.hpp>
+#include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
@@ -94,6 +95,10 @@ namespace locic {
 				const ModuleScope& moduleScope() const;
 				
 				bool isPrimitive() const;
+				
+				void setPrimitiveID(PrimitiveID primitiveID);
+				
+				PrimitiveID primitiveID() const;
 				
 				bool isEnum() const;
 				
@@ -307,6 +312,7 @@ namespace locic {
 				Name name_;
 				Kind kind_;
 				ModuleScope moduleScope_;
+				Optional<PrimitiveID> primitiveID_;
 				Optional<Debug::TypeInstanceInfo> debugInfo_;
 				
 				const TypeInstance* parent_;

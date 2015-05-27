@@ -5,6 +5,7 @@
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/TargetOptions.hpp>
 #include <locic/Support/MakeString.hpp>
+#include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/SharedMaps.hpp>
 
 namespace locic {
@@ -163,6 +164,10 @@ namespace locic {
 		
 		MethodID InternalContext::getMethodID(const String& name) const {
 			return sharedMaps_.methodIDMap().getMethodID(name);
+		}
+		
+		PrimitiveID InternalContext::getPrimitiveID(const String& name) const {
+			return sharedMaps_.primitiveIDMap().getPrimitiveID(name);
 		}
 		
 		llvm::LLVMContext& InternalContext::llvmContext() {
