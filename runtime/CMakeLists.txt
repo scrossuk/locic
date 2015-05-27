@@ -20,6 +20,7 @@ set(RUNTIME_FILES
 	int32_t.loci
 	int64_t.loci
 	int8_t.loci
+	interfacemethod_t.loci
 	int_t.loci
 	longdouble_t.loci
 	longlong_t.loci
@@ -35,6 +36,7 @@ set(RUNTIME_FILES
 	short_t.loci
 	size_t.loci
 	ssize_t.loci
+	staticinterfacemethod_t.loci
 	templatedfunction_ptr_t.loci
 	templatedmethodfunction_ptr_t.loci
 	templatedmethod_t.loci

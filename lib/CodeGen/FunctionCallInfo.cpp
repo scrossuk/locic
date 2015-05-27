@@ -272,7 +272,7 @@ namespace locic {
 		}
 		
 		VirtualMethodComponents genVirtualMethodComponents(Function& function, const SEM::Value& value) {
-			assert(value.type()->isInterfaceMethod() || value.type()->isStaticInterfaceMethod());
+			assert(value.type()->isBuiltInInterfaceMethod() || value.type()->isBuiltInStaticInterfaceMethod());
 			auto& module = function.module();
 			
 			switch (value.kind()) {
@@ -306,7 +306,7 @@ namespace locic {
 				}
 				
 				default: {
-					const bool isStatic = value.type()->isStaticInterfaceMethod();
+					const bool isStatic = value.type()->isBuiltInStaticInterfaceMethod();
 					return getVirtualMethodComponents(function, isStatic, genValue(function, value));
 				}
 			}

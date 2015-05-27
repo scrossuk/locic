@@ -420,7 +420,7 @@ namespace locic {
 					const auto& semCallValue = value.callValue();
 					const auto& semArgumentValues = value.callParameters();
 					
-					if (semCallValue.type()->isInterfaceMethod() || semCallValue.type()->isStaticInterfaceMethod()) {
+					if (semCallValue.type()->isBuiltInInterfaceMethod() || semCallValue.type()->isBuiltInStaticInterfaceMethod()) {
 						const auto methodComponents = genVirtualMethodComponents(function, semCallValue);
 						
 						llvm::SmallVector<llvm::Value*, 10> llvmArgs;

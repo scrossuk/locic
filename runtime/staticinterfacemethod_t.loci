@@ -1,0 +1,155 @@
+
+// TODO: implement variadic templates!
+
+template <bool IsNoExcept, typename ReturnType : movable>
+notag(ReturnType)
+__primitive staticinterfacemethod0_t {
+	static staticinterfacemethod0_t<IsNoExcept, ReturnType> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	staticinterfacemethod0_t<IsNoExcept, ReturnType> implicit_copy() const noexcept;
+	staticinterfacemethod0_t<IsNoExcept, ReturnType> copy() const noexcept;
+	
+	compare_result_t compare(const staticinterfacemethod0_t<IsNoExcept, ReturnType>& value) const noexcept;
+	
+	ReturnType call() const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0>
+notag(ReturnType)
+__primitive staticinterfacemethod1_t {
+	static staticinterfacemethod1_t<IsNoExcept, ReturnType, Arg0> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	staticinterfacemethod1_t<IsNoExcept, ReturnType, Arg0> implicit_copy() const noexcept;
+	staticinterfacemethod1_t<IsNoExcept, ReturnType, Arg0> copy() const noexcept;
+	
+	compare_result_t compare(const staticinterfacemethod1_t<IsNoExcept, ReturnType, Arg0>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1>
+notag(ReturnType)
+__primitive staticinterfacemethod2_t {
+	static staticinterfacemethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	staticinterfacemethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> implicit_copy() const noexcept;
+	staticinterfacemethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> copy() const noexcept;
+	
+	compare_result_t compare(const staticinterfacemethod2_t<IsNoExcept, ReturnType, Arg0, Arg1>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2>
+notag(ReturnType)
+__primitive staticinterfacemethod3_t {
+	static staticinterfacemethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	staticinterfacemethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> implicit_copy() const noexcept;
+	staticinterfacemethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> copy() const noexcept;
+	
+	compare_result_t compare(const staticinterfacemethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+notag(ReturnType)
+__primitive staticinterfacemethod4_t {
+	static staticinterfacemethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	staticinterfacemethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> implicit_copy() const noexcept;
+	staticinterfacemethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> copy() const noexcept;
+	
+	compare_result_t compare(const staticinterfacemethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+notag(ReturnType)
+__primitive staticinterfacemethod5_t {
+	static staticinterfacemethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	staticinterfacemethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> implicit_copy() const noexcept;
+	staticinterfacemethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> copy() const noexcept;
+	
+	compare_result_t compare(const staticinterfacemethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+notag(ReturnType)
+__primitive staticinterfacemethod6_t {
+	static staticinterfacemethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	staticinterfacemethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> implicit_copy() const noexcept;
+	staticinterfacemethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> copy() const noexcept;
+	
+	compare_result_t compare(const staticinterfacemethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+notag(ReturnType)
+__primitive staticinterfacemethod7_t {
+	static staticinterfacemethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	staticinterfacemethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> implicit_copy() const noexcept;
+	staticinterfacemethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> copy() const noexcept;
+	
+	compare_result_t compare(const staticinterfacemethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6) const noexcept(IsNoExcept);
+}
+
+template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+notag(ReturnType)
+__primitive staticinterfacemethod8_t {
+	static staticinterfacemethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> null() noexcept;
+	
+	void __set_dead() noexcept;
+	bool __is_live() const noexcept;
+	void __move_to(void* ptr, size_t position) noexcept;
+	
+	staticinterfacemethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> implicit_copy() const noexcept;
+	staticinterfacemethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> copy() const noexcept;
+	
+	compare_result_t compare(const staticinterfacemethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7>& value) const noexcept;
+	
+	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7) const noexcept(IsNoExcept);
+}

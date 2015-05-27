@@ -256,26 +256,29 @@ namespace locic {
 		Value Value::MethodObject(Value method, Value methodOwner, const Type* const methodType) {
 			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
+			assert(methodType->isBuiltInMethod() || methodType->isBuiltInTemplatedMethod());
 			Value value(METHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;
 		}
 		
-		Value Value::InterfaceMethodObject(Value method, Value methodOwner) {
+		Value Value::InterfaceMethodObject(Value method, Value methodOwner, const Type* const methodType) {
 			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			assert(methodOwner.type()->refTarget()->isInterface());
-			Value value(INTERFACEMETHODOBJECT, SEM::Type::InterfaceMethod(method.type()->asFunctionType()), method.exitStates() | methodOwner.exitStates());
+			assert(methodType->isBuiltInInterfaceMethod());
+			Value value(INTERFACEMETHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;
 		}
 		
-		Value Value::StaticInterfaceMethodObject(Value method, Value methodOwner) {
+		Value Value::StaticInterfaceMethodObject(Value method, Value methodOwner, const Type* const methodType) {
 			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
-			Value value(STATICINTERFACEMETHODOBJECT, SEM::Type::StaticInterfaceMethod(method.type()->asFunctionType()), method.exitStates() | methodOwner.exitStates());
+			assert(methodType->isBuiltInStaticInterfaceMethod());
+			Value value(STATICINTERFACEMETHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
 			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
 			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
 			return value;
@@ -965,9 +968,9 @@ namespace locic {
 				case Value::METHODOBJECT:
 					return Value::MethodObject(value.methodObject().copy(), value.methodOwner().copy(), value.type());
 				case Value::INTERFACEMETHODOBJECT:
-					return Value::InterfaceMethodObject(value.interfaceMethodObject().copy(), value.interfaceMethodOwner().copy());
+					return Value::InterfaceMethodObject(value.interfaceMethodObject().copy(), value.interfaceMethodOwner().copy(), value.type());
 				case Value::STATICINTERFACEMETHODOBJECT:
-					return Value::StaticInterfaceMethodObject(value.staticInterfaceMethodObject().copy(), value.staticInterfaceMethodOwner().copy());
+					return Value::StaticInterfaceMethodObject(value.staticInterfaceMethodObject().copy(), value.staticInterfaceMethodOwner().copy(), value.type());
 				case Value::CASTDUMMYOBJECT:
 					return Value::CastDummy(value.type());
 			}

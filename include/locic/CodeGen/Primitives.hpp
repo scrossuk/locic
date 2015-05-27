@@ -34,6 +34,8 @@ namespace locic {
 			
 			PrimitiveMethod,
 			PrimitiveTemplatedMethod,
+			PrimitiveInterfaceMethod,
+			PrimitiveStaticInterfaceMethod,
 			
 			PrimitiveInt8,
 			PrimitiveUInt8,

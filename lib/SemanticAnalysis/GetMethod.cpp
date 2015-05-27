@@ -80,7 +80,8 @@ namespace locic {
 				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function.get(), {}, functionRefType), location);
 				
 				if (targetType->isInterface()) {
-					return addDebugInfo(SEM::Value::StaticInterfaceMethodObject(std::move(functionRef), std::move(value)), location);
+					const auto interfaceMethodType = createStaticInterfaceMethodType(context, functionType);
+					return addDebugInfo(SEM::Value::StaticInterfaceMethodObject(std::move(functionRef), std::move(value), interfaceMethodType), location);
 				} else {
 					return functionRef;
 				}
@@ -221,7 +222,8 @@ namespace locic {
 				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function, std::move(templateArguments), functionRefType), location);
 				
 				if (type->isInterface()) {
-					return addDebugInfo(SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value)), location);
+					const auto interfaceMethodType = createInterfaceMethodType(context, functionType);
+					return addDebugInfo(SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value), interfaceMethodType), location);
 				} else {
 					const auto methodType = createMethodType(context, functionType);
 					return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);

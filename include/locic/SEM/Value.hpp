@@ -308,7 +308,7 @@ namespace locic {
 				 * reference and the parent interface instance value (must be
 				 * a reference to the interface).
 				 */
-				static Value InterfaceMethodObject(Value method, Value methodOwner);
+				static Value InterfaceMethodObject(Value method, Value methodOwner, const Type* const type);
 				
 				/**
 				 * \brief Static Interface Method Reference
@@ -316,7 +316,7 @@ namespace locic {
 				 * Refers to a static interface method by providing the method function
 				 * reference and the parent type reference value.
 				 */
-				static Value StaticInterfaceMethodObject(Value method, Value typeRef);
+				static Value StaticInterfaceMethodObject(Value method, Value typeRef, const Type* const type);
 				
 				/**
 				 * \brief Cast Dummy

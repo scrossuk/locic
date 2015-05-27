@@ -49,12 +49,12 @@ namespace locic {
 			} else if (targetType->isTemplateVar()) {
 				return TypeGenerator(module).getI8PtrType();
 			} else {
-				const auto pointerType = genType(module, targetType);
-				if (pointerType->isVoidTy()) {
+				const auto llvmTargetType = genType(module, targetType);
+				if (llvmTargetType->isVoidTy()) {
 					// LLVM doesn't support 'void *' => use 'int8_t *' instead.
 					return TypeGenerator(module).getI8PtrType();
 				} else {
-					return pointerType->getPointerTo();
+					return llvmTargetType->getPointerTo();
 				}
 			}
 		}
@@ -64,19 +64,9 @@ namespace locic {
 				case SEM::Type::OBJECT: {
 					return genObjectType(module, type);
 				}
-				
-				case SEM::Type::INTERFACEMETHOD: {
-					return interfaceMethodType(module).second;
-				}
-				
-				case SEM::Type::STATICINTERFACEMETHOD: {
-					return staticInterfaceMethodType(module).second;
-				}
-				
 				case SEM::Type::ALIAS: {
 					return genType(module, type->resolveAliases());
 				}
-				
 				default: {
 					llvm_unreachable("Unknown type enum for generating type.");
 				}
@@ -147,11 +137,21 @@ namespace locic {
 					return module.debugBuilder().createFunctionType(file, parameterTypes);
 				}
 				case PrimitiveMethod:
-				case PrimitiveTemplatedMethod:
+				case PrimitiveTemplatedMethod: {
 					// TODO!
 					return module.debugBuilder().createUnspecifiedType(module.getCString("method"));
-				default:
+				}
+				case PrimitiveInterfaceMethod: {
+					// TODO!
+					return module.debugBuilder().createUnspecifiedType(module.getCString("interfacemethod"));
+				}
+				case PrimitiveStaticInterfaceMethod: {
+					// TODO!
+					return module.debugBuilder().createUnspecifiedType(module.getCString("staticinterfacemethod"));
+				}
+				default: {
 					return genObjectDebugType(module, type);
+				}
 			}
 		}
 		
@@ -164,17 +164,6 @@ namespace locic {
 					
 					return genObjectDebugType(module, type);
 				}
-				
-				case SEM::Type::INTERFACEMETHOD: {
-					// TODO!
-					return module.debugBuilder().createUnspecifiedType(module.getCString("interfacemethod"));
-				}
-				
-				case SEM::Type::STATICINTERFACEMETHOD: {
-					// TODO!
-					return module.debugBuilder().createUnspecifiedType(module.getCString("staticinterfacemethod"));
-				}
-				
 				case SEM::Type::TEMPLATEVAR: {
 					const auto templateVar = type->getTemplateVar();
 					const auto debugInfo = templateVar->debugInfo();
@@ -188,11 +177,9 @@ namespace locic {
 						return module.debugBuilder().createUnspecifiedType(templateVar->name().last());
 					}
 				}
-				
 				case SEM::Type::ALIAS: {
 					return genDebugType(module, type->resolveAliases());
 				}
-				
 				default: {
 					llvm_unreachable("Unknown type enum for generating type.");
 				}

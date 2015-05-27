@@ -23,54 +23,6 @@ namespace locic {
 	
 		static const SEM::Type* ImplicitCastTypeFormatOnlyChain(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel = false);
 		
-		static Optional<SEM::FunctionType> ImplicitCastFunctionType(const SEM::FunctionType sourceFunctionType,
-		                                                  const SEM::FunctionType destFunctionType,
-		                                                  bool hasConstChain,
-		                                                  const Debug::SourceLocation& location) {
-			// Check return type.
-			auto returnType = ImplicitCastTypeFormatOnlyChain(sourceFunctionType.returnType(), destFunctionType.returnType(), hasConstChain, location);
-			if (returnType == nullptr) {
-				return None;
-			}
-			
-			const auto& sourceList = sourceFunctionType.parameterTypes();
-			const auto& destList = destFunctionType.parameterTypes();
-			
-			if (sourceList.size() != destList.size()) {
-				return None;
-			}
-			
-			SEM::TypeArray paramTypes;
-			paramTypes.reserve(sourceList.size());
-			
-			// Check contra-variance for argument types.
-			for (std::size_t i = 0; i < sourceList.size(); i++) {
-				auto paramType = ImplicitCastTypeFormatOnlyChain(sourceList.at(i), destList.at(i), hasConstChain, location);
-				if (paramType == nullptr) {
-					return None;
-				}
-				paramTypes.push_back(paramType);
-			}
-			
-			if (sourceFunctionType.attributes().isVarArg() != destFunctionType.attributes().isVarArg()) {
-				return None;
-			}
-			
-			if (!sourceFunctionType.attributes().noExceptPredicate().implies(destFunctionType.attributes().noExceptPredicate())) {
-				return None;
-			}
-			
-			if (sourceFunctionType.attributes().isMethod() != destFunctionType.attributes().isMethod()) {
-				return None;
-			}
-			
-			if (!sourceFunctionType.attributes().isTemplated() && destFunctionType.attributes().isTemplated()) {
-				return None;
-			}
-			
-			return make_optional(destFunctionType);
-		}
-		
 		static const SEM::Type* ImplicitCastTypeFormatOnlyChainCheckType(const SEM::Type* sourceType, const SEM::Type* destType, bool hasConstChain, const Debug::SourceLocation& location) {
 			if (sourceType == destType) {
 				return sourceType;
@@ -134,14 +86,6 @@ namespace locic {
 					}
 					
 					return SEM::Type::Object(sourceType->getObjectType(), std::move(templateArgs));
-				}
-				case SEM::Type::INTERFACEMETHOD: {
-					const auto functionType = ImplicitCastFunctionType(sourceType->asFunctionType(), destType->asFunctionType(), hasConstChain, location);
-					return functionType ? SEM::Type::InterfaceMethod(*functionType) : nullptr;
-				}
-				case SEM::Type::STATICINTERFACEMETHOD: {
-					const auto functionType = ImplicitCastFunctionType(sourceType->asFunctionType(), destType->asFunctionType(), hasConstChain, location);
-					return functionType ? SEM::Type::StaticInterfaceMethod(*functionType) : nullptr;
 				}
 				case SEM::Type::TEMPLATEVAR: {
 					if (sourceType->getTemplateVar() != destType->getTemplateVar()) {

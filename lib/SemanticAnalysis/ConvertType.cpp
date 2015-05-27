@@ -72,18 +72,18 @@ namespace locic {
 			return getBuiltInType(context, context.getCString("__ptr"), { varType });
 		}
 		
-		SEM::ValueArray getFunctionTemplateArgs(Context& context, const SEM::FunctionType builtInFunctionType) {
-			const auto& parameterTypes = builtInFunctionType.parameterTypes();
+		SEM::ValueArray getFunctionTemplateArgs(Context& context, const SEM::FunctionType functionType) {
+			const auto& parameterTypes = functionType.parameterTypes();
 			
 			SEM::ValueArray templateArgs;
 			templateArgs.reserve(1 + parameterTypes.size());
 			
 			const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
-			templateArgs.push_back(SEM::Value::PredicateExpr(builtInFunctionType.attributes().noExceptPredicate().copy(), boolType));
+			templateArgs.push_back(SEM::Value::PredicateExpr(functionType.attributes().noExceptPredicate().copy(), boolType));
 			
 			const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
 			
-			const auto returnType = builtInFunctionType.returnType();
+			const auto returnType = functionType.returnType();
 			templateArgs.push_back(SEM::Value::TypeRef(returnType, typenameType->createStaticRefType(returnType)));
 			
 			for (const auto& paramType: parameterTypes) {
@@ -93,70 +93,86 @@ namespace locic {
 			return templateArgs;
 		}
 		
-		const SEM::Type* createPrimitiveCallableType(Context& context, const SEM::FunctionType builtInFunctionType, const std::string& prefix, const std::string& suffix) {
-			const auto& parameterTypes = builtInFunctionType.parameterTypes();
+		const SEM::Type* createPrimitiveCallableType(Context& context, const SEM::FunctionType functionType, const std::string& prefix, const std::string& suffix) {
+			const auto& parameterTypes = functionType.parameterTypes();
 			const auto functionTypeName = makeString("%s%llu_%s", prefix.c_str(), static_cast<unsigned long long>(parameterTypes.size()), suffix.c_str());
-			return getBuiltInTypeWithValueArgs(context, context.getString(functionTypeName), getFunctionTemplateArgs(context, builtInFunctionType));
+			return getBuiltInTypeWithValueArgs(context, context.getString(functionTypeName), getFunctionTemplateArgs(context, functionType));
 		}
 		
-		const SEM::Type* createTrivialFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
-			return createPrimitiveCallableType(context, builtInFunctionType, "function", "ptr_t");
+		const SEM::Type* createTrivialFunctionPointerType(Context& context, const SEM::FunctionType functionType) {
+			return createPrimitiveCallableType(context, functionType, "function", "ptr_t");
 		}
 		
-		const SEM::Type* createTemplatedFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
-			return createPrimitiveCallableType(context, builtInFunctionType, "templatedfunction", "ptr_t");
+		const SEM::Type* createTemplatedFunctionPointerType(Context& context, const SEM::FunctionType functionType) {
+			return createPrimitiveCallableType(context, functionType, "templatedfunction", "ptr_t");
 		}
 		
-		const SEM::Type* createMethodFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
-			return createPrimitiveCallableType(context, builtInFunctionType, "methodfunction", "ptr_t");
+		const SEM::Type* createMethodFunctionPointerType(Context& context, const SEM::FunctionType functionType) {
+			return createPrimitiveCallableType(context, functionType, "methodfunction", "ptr_t");
 		}
 		
-		const SEM::Type* createTemplatedMethodFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
-			return createPrimitiveCallableType(context, builtInFunctionType, "templatedmethodfunction", "ptr_t");
+		const SEM::Type* createTemplatedMethodFunctionPointerType(Context& context, const SEM::FunctionType functionType) {
+			return createPrimitiveCallableType(context, functionType, "templatedmethodfunction", "ptr_t");
 		}
 		
-		const SEM::Type* createVarArgFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
-			return createPrimitiveCallableType(context, builtInFunctionType, "varargfunction", "ptr_t");
+		const SEM::Type* createVarArgFunctionPointerType(Context& context, const SEM::FunctionType functionType) {
+			return createPrimitiveCallableType(context, functionType, "varargfunction", "ptr_t");
 		}
 		
-		const SEM::Type* createFunctionPointerType(Context& context, const SEM::FunctionType builtInFunctionType) {
-			const auto& attributes = builtInFunctionType.attributes();
+		const SEM::Type* createFunctionPointerType(Context& context, const SEM::FunctionType functionType) {
+			const auto& attributes = functionType.attributes();
 			
 			if (attributes.isVarArg()) {
-				return createVarArgFunctionPointerType(context, builtInFunctionType);
+				return createVarArgFunctionPointerType(context, functionType);
 			} else if (attributes.isMethod()) {
 				if (attributes.isTemplated()) {
-					return createTemplatedMethodFunctionPointerType(context, builtInFunctionType);
+					return createTemplatedMethodFunctionPointerType(context, functionType);
 				} else {
-					return createMethodFunctionPointerType(context, builtInFunctionType);
+					return createMethodFunctionPointerType(context, functionType);
 				}
 			} else {
 				if (attributes.isTemplated()) {
-					return createTemplatedFunctionPointerType(context, builtInFunctionType);
+					return createTemplatedFunctionPointerType(context, functionType);
 				} else {
-					return createTrivialFunctionPointerType(context, builtInFunctionType);
+					return createTrivialFunctionPointerType(context, functionType);
 				}
 			}
 		}
 		
-		const SEM::Type* createTrivialMethodType(Context& context, const SEM::FunctionType builtInFunctionType) {
-			return createPrimitiveCallableType(context, builtInFunctionType, "method", "t");
+		const SEM::Type* createTrivialMethodType(Context& context, const SEM::FunctionType functionType) {
+			return createPrimitiveCallableType(context, functionType, "method", "t");
 		}
 		
-		const SEM::Type* createTemplatedMethodType(Context& context, const SEM::FunctionType builtInFunctionType) {
-			return createPrimitiveCallableType(context, builtInFunctionType, "templatedmethod", "t");
+		const SEM::Type* createTemplatedMethodType(Context& context, const SEM::FunctionType functionType) {
+			return createPrimitiveCallableType(context, functionType, "templatedmethod", "t");
 		}
 		
-		const SEM::Type* createMethodType(Context& context, const SEM::FunctionType builtInFunctionType) {
-			const auto& attributes = builtInFunctionType.attributes();
+		const SEM::Type* createMethodType(Context& context, const SEM::FunctionType functionType) {
+			const auto& attributes = functionType.attributes();
 			assert(!attributes.isVarArg());
 			assert(attributes.isMethod());
 			
 			if (attributes.isTemplated()) {
-				return createTemplatedMethodType(context, builtInFunctionType);
+				return createTemplatedMethodType(context, functionType);
 			} else {
-				return createTrivialMethodType(context, builtInFunctionType);
+				return createTrivialMethodType(context, functionType);
 			}
+		}
+		
+		const SEM::Type* createInterfaceMethodType(Context& context, const SEM::FunctionType functionType) {
+			const auto& attributes = functionType.attributes();
+			assert(!attributes.isVarArg());
+			assert(attributes.isMethod());
+			
+			return createPrimitiveCallableType(context, functionType, "interfacemethod", "t");
+		}
+		
+		const SEM::Type* createStaticInterfaceMethodType(Context& context, const SEM::FunctionType functionType) {
+			const auto& attributes = functionType.attributes();
+			assert(!attributes.isVarArg());
+			assert(!attributes.isMethod());
+			
+			return createPrimitiveCallableType(context, functionType, "staticinterfacemethod", "t");
 		}
 		
 		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {

@@ -37,20 +37,12 @@ namespace locic {
 					// ignored here.
 					return type->getObjectType()->isInterface() || isRootTypeList(arrayRef(type->templateArguments()));
 				}
-				
-				case SEM::Type::INTERFACEMETHOD: {
-					const auto functionType = type->asFunctionType();
-					return isRootType(functionType.returnType()) && isRootTypeList(arrayRef(functionType.parameterTypes()));
-				}
-				
 				case SEM::Type::TEMPLATEVAR: {
 					return false;
 				}
-				
 				case SEM::Type::ALIAS: {
 					return isRootType(type->resolveAliases());
 				}
-				
 				default: {
 					llvm_unreachable("Unknown SEM::Type kind in isRootType()");
 				}

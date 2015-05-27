@@ -53,6 +53,16 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair(getCString("function7_ptr_t"), PrimitiveFunctionPtr));
 			primitiveMap_.insert(std::make_pair(getCString("function8_ptr_t"), PrimitiveFunctionPtr));
 			
+			primitiveMap_.insert(std::make_pair(getCString("interfacemethod0_t"), PrimitiveInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("interfacemethod1_t"), PrimitiveInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("interfacemethod2_t"), PrimitiveInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("interfacemethod3_t"), PrimitiveInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("interfacemethod4_t"), PrimitiveInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("interfacemethod5_t"), PrimitiveInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("interfacemethod6_t"), PrimitiveInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("interfacemethod7_t"), PrimitiveInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("interfacemethod8_t"), PrimitiveInterfaceMethod));
+			
 			primitiveMap_.insert(std::make_pair(getCString("method0_t"), PrimitiveMethod));
 			primitiveMap_.insert(std::make_pair(getCString("method1_t"), PrimitiveMethod));
 			primitiveMap_.insert(std::make_pair(getCString("method2_t"), PrimitiveMethod));
@@ -72,6 +82,16 @@ namespace locic {
 			primitiveMap_.insert(std::make_pair(getCString("methodfunction6_ptr_t"), PrimitiveMethodFunctionPtr));
 			primitiveMap_.insert(std::make_pair(getCString("methodfunction7_ptr_t"), PrimitiveMethodFunctionPtr));
 			primitiveMap_.insert(std::make_pair(getCString("methodfunction8_ptr_t"), PrimitiveMethodFunctionPtr));
+			
+			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod0_t"), PrimitiveStaticInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod1_t"), PrimitiveStaticInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod2_t"), PrimitiveStaticInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod3_t"), PrimitiveStaticInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod4_t"), PrimitiveStaticInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod5_t"), PrimitiveStaticInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod6_t"), PrimitiveStaticInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod7_t"), PrimitiveStaticInterfaceMethod));
+			primitiveMap_.insert(std::make_pair(getCString("staticinterfacemethod8_t"), PrimitiveStaticInterfaceMethod));
 			
 			primitiveMap_.insert(std::make_pair(getCString("templatedfunction0_ptr_t"), PrimitiveTemplatedFunctionPtr));
 			primitiveMap_.insert(std::make_pair(getCString("templatedfunction1_ptr_t"), PrimitiveTemplatedFunctionPtr));

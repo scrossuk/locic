@@ -29,8 +29,6 @@ namespace locic {
 					AUTO,
 					ALIAS,
 					OBJECT,
-					INTERFACEMETHOD,
-					STATICINTERFACEMETHOD,
 					TEMPLATEVAR
 				};
 				
@@ -40,7 +38,6 @@ namespace locic {
 				static const Type* Alias(const TypeAlias* typeAlias, ValueArray templateArguments);
 				static const Type* Object(const TypeInstance* typeInstance, ValueArray templateArguments);
 				static const Type* TemplateVarRef(const TemplateVar* templateVar);
-				static const Type* InterfaceMethod(const FunctionType functionType);
 				static const Type* StaticInterfaceMethod(const FunctionType functionType);
 				
 				const Context& context() const;
@@ -82,17 +79,16 @@ namespace locic {
 				bool isBuiltInVoid() const;
 				bool isBuiltInBool() const;
 				bool isBuiltInFunctionPtr() const;
+				bool isBuiltInInterfaceMethod() const;
 				bool isBuiltInMethod() const;
 				bool isBuiltInMethodFunctionPtr() const;
 				bool isBuiltInReference() const;
+				bool isBuiltInStaticInterfaceMethod() const;
 				bool isBuiltInTemplatedFunctionPtr() const;
 				bool isBuiltInTemplatedMethod() const;
 				bool isBuiltInTemplatedMethodFunctionPtr() const;
 				bool isBuiltInTypename() const;
 				bool isBuiltInVarArgFunctionPtr() const;
-				
-				bool isInterfaceMethod() const;
-				bool isStaticInterfaceMethod() const;
 				
 				bool isObject() const;
 				const TypeInstance* getObjectType() const;
@@ -162,7 +158,6 @@ namespace locic {
 				const Type* refTarget_;
 				const Type* staticRefTarget_;
 				
-				FunctionType functionType_;
 				TypeArray typeArray_;
 				ValueArray valueArray_;
 				

@@ -95,6 +95,12 @@ namespace locic {
 					};
 					return TypeGenerator(module).getStructType(memberTypes);
 				}
+				case PrimitiveInterfaceMethod: {
+					return interfaceMethodType(module).second;
+				}
+				case PrimitiveStaticInterfaceMethod: {
+					return staticInterfaceMethodType(module).second;
+				}
 				case PrimitiveValueLval:
 				case PrimitiveFinalLval: {
 					return genType(module, type->templateArguments().front().typeRefType());
@@ -218,6 +224,12 @@ namespace locic {
 					};
 					return TypeGenerator(module).getStructType(memberTypes);
 				}
+				case PrimitiveInterfaceMethod: {
+					return interfaceMethodType(module).second;
+				}
+				case PrimitiveStaticInterfaceMethod: {
+					return staticInterfaceMethodType(module).second;
+				}
 				case PrimitiveTypename:
 					return typeInfoType(module).second;
 				default:
@@ -263,6 +275,12 @@ namespace locic {
 					types.push_back(llvm_abi::Type::Pointer(abiContext));
 					types.push_back(getBasicPrimitiveABIType(module, PrimitiveTemplatedMethodFunctionPtr));
 					return llvm_abi::Type::AutoStruct(abiContext, types);
+				}
+				case PrimitiveInterfaceMethod: {
+					return interfaceMethodType(module).first;
+				}
+				case PrimitiveStaticInterfaceMethod: {
+					return staticInterfaceMethodType(module).first;
 				}
 				case PrimitiveCompareResult:
 				case PrimitiveBool:
