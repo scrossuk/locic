@@ -161,6 +161,7 @@ namespace locic {
 		
 		const SEM::Type* createInterfaceMethodType(Context& context, const SEM::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
+			(void) attributes;
 			assert(!attributes.isVarArg());
 			assert(attributes.isMethod());
 			
@@ -169,6 +170,7 @@ namespace locic {
 		
 		const SEM::Type* createStaticInterfaceMethodType(Context& context, const SEM::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
+			(void) attributes;
 			assert(!attributes.isVarArg());
 			assert(!attributes.isMethod());
 			
