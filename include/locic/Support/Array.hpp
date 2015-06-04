@@ -12,6 +12,68 @@
 
 namespace locic{
 	
+	template <typename T, size_t BaseSize>
+	class ArrayStaticData {
+	public:
+		typedef typename std::aligned_storage<sizeof(T), alignof(T)>::type element_type;
+		typedef element_type array_type[BaseSize];
+		
+		inline ArrayStaticData()
+		: size_(0) { }
+		
+		void set_static_size(const size_t new_size) {
+			size_ = new_size;
+		}
+		
+		size_t get_static_size() const {
+			return size_;
+		}
+		
+		inline T& static_index(const size_t index) {
+			assert(index < BaseSize);
+			return castRef(array_[index]);
+		}
+		
+		inline const T& static_index(const size_t index) const {
+			assert(index < BaseSize);
+			return castRef(array_[index]);
+		}
+		
+	private:
+		static inline T& castRef(element_type& element) {
+			return *(reinterpret_cast<T*>(&element));
+		}
+		
+		static inline const T& castRef(const element_type& element) {
+			return *(reinterpret_cast<const T*>(&element));
+		}
+		
+		size_t size_;
+		array_type array_;
+		
+	};
+	
+	template <typename T>
+	class ArrayStaticData<T, 0> {
+	public:
+		void set_static_size(const size_t /*new_size*/) { }
+		
+		size_t get_static_size() const {
+			return 0;
+		}
+		
+		inline T& static_index(const size_t /*index*/) {
+			assert(false && "Invalid index for zero-sized static array.");
+			return *(static_cast<T*>(nullptr));
+		}
+		
+		inline const T& static_index(const size_t /*index*/) const {
+			assert(false && "Invalid index for zero-sized static array.");
+			return *(static_cast<T*>(nullptr));
+		}
+		
+	};
+	
 	/**
 	 * \brief Array Type
 	 * 
@@ -29,10 +91,8 @@ namespace locic{
 	 * terms of sizeof(T).
 	 */
 	template <typename T, size_t BaseSize>
-	class Array {
+	class Array: private ArrayStaticData<T, BaseSize> {
 		public:
-			typedef typename std::aligned_storage<sizeof(T), alignof(T)>::type StaticArrayElementType;
-			typedef StaticArrayElementType StaticArrayType[BaseSize];
 			typedef T value_type;
 			typedef T* iterator;
 			typedef const T* const_iterator;
@@ -40,10 +100,9 @@ namespace locic{
 			typedef T& reference;
 			typedef const T& const_reference;
 			
-			inline Array() : size_(0) { }
+			inline Array() { }
 			
-			Array(std::initializer_list<T> list)
-			: size_(0) {
+			Array(std::initializer_list<T> list) {
 				reserve(list.size());
 				for (auto& element: list) {
 					push_back(std::move(element));
@@ -54,30 +113,15 @@ namespace locic{
 				clear();
 			}
 			
-			Array(Array<T, BaseSize>&& other)
-			: size_(0) {
-				if (other.using_static_space()) {
-					for (size_t i = 0; i < other.size(); i++) {
-						push_back(std::move(other[i]));
-					}
-				} else {
-					vector_ = std::move(other.vector_);
-				}
-				size_ = other.size();
-				other.clear();
+			template <size_t OtherSize>
+			Array(Array<T, OtherSize>&& other) {
+				set_internal_data(std::move(other));
 			}
 			
-			Array<T, BaseSize>& operator=(Array<T, BaseSize>&& other) {
-				clear();
-				if (other.using_static_space()) {
-					for (size_t i = 0; i < other.size(); i++) {
-						push_back(std::move(other[i]));
-					}
-				} else {
-					vector_ = std::move(other.vector_);
-				}
-				size_ = other.size();
-				other.clear();
+			template <size_t OtherSize>
+			Array<T, BaseSize>& operator=(Array<T, OtherSize>&& other) {
+				assert(static_cast<void*>(this) != static_cast<void*>(&other));
+				set_internal_data(std::move(other));
 				return *this;
 			}
 			
@@ -90,16 +134,21 @@ namespace locic{
 			}
 			
 			inline bool using_static_space() const {
-				return size() <= BaseSize;
+				return this->get_static_size() > 0 ||
+					(BaseSize > 0 && vector_.empty());
 			}
 			
 			inline bool using_dynamic_space() const {
-				return size() > BaseSize;
+				return !using_static_space();
+			}
+			
+			std::vector<T>& internal_dynamic_array() {
+				return vector_;
 			}
 			
 			inline T* data() {
 				if (using_static_space()) {
-					return &(static_index(0));
+					return &(this->static_index(0));
 				} else {
 					return vector_.data();
 				}
@@ -107,14 +156,19 @@ namespace locic{
 			
 			inline const T* data() const {
 				if (using_static_space()) {
-					return &(static_index(0));
+					return &(this->static_index(0));
 				} else {
 					return vector_.data();
 				}
 			}
 			
 			inline size_t size() const {
-				return size_;
+				if (this->get_static_size() > 0) {
+					assert(this->get_static_size() <= BaseSize);
+					return this->get_static_size();
+				} else {
+					return vector_.size();
+				}
 			}
 			
 			inline size_t capacity() const {
@@ -151,7 +205,7 @@ namespace locic{
 				assert(index < size());
 				
 				if (using_static_space()) {
-					return static_index(index);
+					return this->static_index(index);
 				} else {
 					return vector_[index];
 				}
@@ -161,7 +215,7 @@ namespace locic{
 				assert(index < size());
 				
 				if (using_static_space()) {
-					return static_index(index);
+					return this->static_index(index);
 				} else {
 					return vector_[index];
 				}
@@ -210,62 +264,69 @@ namespace locic{
 			}
 			
 			void push_back(T value) {
-				if (size() == BaseSize) {
-					vector_.reserve(size() + 1);
+				const size_t old_size = size();
+				
+				if (old_size == BaseSize) {
+					vector_.reserve(old_size + 1);
 					
 					// Move all objects into vector.
-					for (size_t i = 0; i < size(); i++) {
-						vector_.push_back(std::move(static_index(i)));
+					for (size_t i = 0; i < old_size; i++) {
+						vector_.push_back(std::move(this->static_index(i)));
 					}
 					
 					// Destroy moved-from objects.
-					for (size_t i = 0; i < size(); i++) {
-						const size_t j = size() - i - 1;
-						static_index(j).~T();
+					for (size_t i = 0; i < old_size; i++) {
+						const size_t j = old_size - i - 1;
+						this->static_index(j).~T();
 					}
+					
+					this->set_static_size(0);
 				}
 				
-				if (size() < BaseSize) {
-					new (&(static_index(size()))) T(std::move(value));
+				if (old_size < BaseSize) {
+					new (&(this->static_index(old_size))) T(std::move(value));
+					this->set_static_size(old_size + 1);
 				} else {
+					assert(this->get_static_size() == 0);
 					vector_.push_back(std::move(value));
 				}
-				
-				size_++;
 			}
 			
 			void pop_back() {
 				assert(!empty());
-				if (size() <= BaseSize) {
-					static_index(size() - 1).~T();
+				const size_t old_size = size();
+				
+				if (old_size <= BaseSize) {
+					this->static_index(old_size - 1).~T();
+					this->set_static_size(old_size - 1);
 				} else {
+					assert(this->get_static_size() == 0);
 					vector_.pop_back();
 				}
 				
-				size_--;
+				const size_t new_size = old_size - 1;
 				
-				if (size() == BaseSize) {
+				if (new_size == BaseSize) {
 					// Move all objects into static space.
-					for (size_t i = 0; i < size(); i++) {
+					for (size_t i = 0; i < new_size; i++) {
 						// TODO: handle this throwing!
-						new(&(static_index(i))) T(std::move(vector_[i]));
+						new(&(this->static_index(i))) T(std::move(vector_[i]));
 					}
 					
 					// Destroy moved-from objects.
 					vector_.clear();
+					
+					this->set_static_size(new_size);
 				}
 			}
 			
 			void clear() {
-				if (using_static_space()) {
-					for (size_t i = 0; i < size(); i++) {
-						const size_t j = size() - i - 1;
-						static_index(j).~T();
-					}
-				} else {
-					vector_.clear();
+				for (size_t i = 0; i < this->get_static_size(); i++) {
+					const size_t j = this->get_static_size() - i - 1;
+					this->static_index(j).~T();
 				}
-				size_ = 0;
+				this->set_static_size(0);
+				vector_.clear();
 			}
 			
 			inline bool operator==(const Array<T, BaseSize>& other) const {
@@ -339,36 +400,46 @@ namespace locic{
 			}
 			
 		private:
-			Array(const Array<T, BaseSize>& other)
-			: size_(0) {
+			Array(const Array<T, BaseSize>& other) {
 				reserve(other.size());
 				for (size_t i = 0; i < other.size(); i++) {
 					push_back(copyObject(other[i]));
 				}
 			}
 			
+			template <size_t OtherSize>
+			void set_internal_data(Array<T, OtherSize>&& other) {
+				clear();
+				
+				assert(size() == 0);
+				assert(vector_.empty());
+				assert(this->get_static_size() == 0);
+				
+				const size_t other_size = other.size();
+				
+				const bool can_allocate_statically = other_size <= BaseSize;
+				if (other.using_static_space() || can_allocate_statically) {
+					if (can_allocate_statically) {
+						for (size_t i = 0; i < other_size; i++) {
+							push_back(std::move(other[i]));
+						}
+						this->set_static_size(other_size);
+						assert(vector_.empty());
+					} else {
+						vector_.reserve(other_size);
+						for (size_t i = 0; i < other_size; i++) {
+							vector_.push_back(std::move(other[i]));
+						}
+					}
+				} else {
+					vector_ = std::move(other.internal_dynamic_array());
+				}
+				assert(size() == other_size);
+				other.clear();
+			}
+			
 			Array<T, BaseSize>& operator=(const Array<T, BaseSize>&) = delete;
 			
-			inline T& static_index(const size_t index) {
-				assert(index < BaseSize);
-				return castRef(array_[index]);
-			}
-			
-			inline const T& static_index(const size_t index) const {
-				assert(index < BaseSize);
-				return castRef(array_[index]);
-			}
-			
-			static inline T& castRef(StaticArrayElementType& element) {
-				return *(reinterpret_cast<T*>(&element));
-			}
-			
-			static inline const T& castRef(const StaticArrayElementType& element) {
-				return *(reinterpret_cast<const T*>(&element));
-			}
-			
-			size_t size_;
-			StaticArrayType array_;
 			std::vector<T> vector_;
 			
 	};
