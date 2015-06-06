@@ -4,6 +4,7 @@
 #include <string>
 
 #include <locic/AST/Node.hpp>
+#include <locic/AST/Symbol.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/Support/String.hpp>
 
@@ -16,7 +17,7 @@ namespace locic {
 				enum Kind {
 					BRACKET,
 					TYPESPEC,
-					VARIABLE,
+					SYMBOL,
 					AND,
 					OR
 				};
@@ -25,7 +26,7 @@ namespace locic {
 				
 				static Predicate* TypeSpec(const Node<Type>& type, const Node<Type>& requireType);
 				
-				static Predicate* Variable(const String& name);
+				static Predicate* Symbol(const Node<AST::Symbol>& symbol);
 				
 				static Predicate* And(const Node<Predicate>& left, const Node<Predicate>& right);
 				
@@ -38,7 +39,7 @@ namespace locic {
 				const Node<Type>& typeSpecType() const;
 				const Node<Type>& typeSpecRequireType() const;
 				
-				const String& variableName() const;
+				const Node<AST::Symbol>& symbol() const;
 				
 				const Node<Predicate>& andLeft() const;
 				const Node<Predicate>& andRight() const;
@@ -51,6 +52,8 @@ namespace locic {
 			private:
 				Kind kind_;
 				
+				Node<AST::Symbol> symbol_;
+				
 				struct {
 					Node<Predicate> expr;
 				} bracket_;
@@ -59,10 +62,6 @@ namespace locic {
 					Node<Type> type;
 					Node<Type> requireType;
 				} typeSpec_;
-				
-				struct {
-					String name;
-				} variable_;
 				
 				struct {
 					Node<Predicate> left;

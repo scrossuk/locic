@@ -1,30 +1,30 @@
-#ifndef LOCIC_AST_TYPEALIAS_HPP
-#define LOCIC_AST_TYPEALIAS_HPP
+#ifndef LOCIC_AST_ALIAS_HPP
+#define LOCIC_AST_ALIAS_HPP
 
 #include <string>
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/Value.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
 
 	namespace AST {
 	
-		struct TypeAlias {
+		struct Alias {
 			String name;
 			Node<TemplateTypeVarList> templateVariables;
 			Node<RequireSpecifier> requireSpecifier;
-			AST::Node<AST::Type> value;
+			AST::Node<AST::Value> value;
 			
 			public:
-				TypeAlias(const String& pName, AST::Node<Type> pValue);
+				Alias(const String& pName, AST::Node<Value> pValue);
 				
 				void setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier);
 				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
-					
+				
 				std::string toString() const;
 				
 			private:

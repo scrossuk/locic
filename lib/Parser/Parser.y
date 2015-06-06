@@ -155,6 +155,7 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::Constant>* constant;
 	
 	// Structures.
+	locic::AST::Node<locic::AST::Alias>* alias;
 	locic::AST::Node<locic::AST::NamespaceData>* namespaceData;
 	locic::AST::Node<locic::AST::Namespace>* nameSpace;
 	locic::AST::Node<locic::AST::TypeInstance>* typeInstance;
@@ -162,7 +163,6 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::AST::Function>* function;
 	locic::AST::Node<locic::AST::FunctionList>* functionList;
 	locic::AST::Node<locic::AST::ModuleScope>* moduleScope;
-	locic::AST::Node<locic::AST::TypeAlias>* typeAlias;
 	
 	// Exception initializer.
 	locic::AST::Node<locic::AST::ExceptionInitializer>* exceptionInitializer;
@@ -356,8 +356,8 @@ const T& GETSYM(T* value) {
 %type <namespaceData> namespaceData
 %type <nameSpace> nameSpace
 
-%type <typeAlias> nonTemplatedTypeAlias
-%type <typeAlias> typeAlias
+%type <alias> nonTemplatedAlias
+%type <alias> alias
 
 %type <string> moduleNameComponent
 %type <stringList> moduleName
@@ -377,6 +377,8 @@ const T& GETSYM(T* value) {
 
 %type <function> nonTemplatedFunctionDecl
 %type <function> nonTemplatedFunctionDef
+%type <function> importedFunctionDecl
+%type <function> exportedFunctionDef
 %type <function> functionDecl
 %type <function> functionDef
 
@@ -529,9 +531,9 @@ namespaceData:
 		(GETSYM($1))->functions.push_back(GETSYM($2));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
-	| namespaceData typeAlias
+	| namespaceData alias
 	{
-		(GETSYM($1))->typeAliases.push_back(GETSYM($2));
+		(GETSYM($1))->aliases.push_back(GETSYM($2));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| namespaceData typeInstance
@@ -608,21 +610,21 @@ nameSpace:
 	}
 	;
 
-nonTemplatedTypeAlias:
-	USING NAME SETEQUAL type SEMICOLON
+nonTemplatedAlias:
+	USING NAME SETEQUAL value SEMICOLON
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::TypeAlias($2, GETSYM($4))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::Alias($2, GETSYM($4))));
 	}
 	;
 
-typeAlias:
-	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET requireSpecifier nonTemplatedTypeAlias
+alias:
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET requireSpecifier nonTemplatedAlias
 	{
 		(GETSYM($6))->setTemplateVariables(GETSYM($3));
 		(GETSYM($6))->setRequireSpecifier(GETSYM($5));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($6)).get()));
 	}
-	| nonTemplatedTypeAlias
+	| nonTemplatedAlias
 	{
 		$$ = $1;
 	}
@@ -668,9 +670,9 @@ predicateExpr_precedence0:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::TypeSpec(GETSYM($1), GETSYM($3))));
 	}
-	| NAME
+	| symbol
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::Variable($1)));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::Symbol(GETSYM($1))));
 	}
 	;
 

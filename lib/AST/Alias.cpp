@@ -2,29 +2,29 @@
 
 #include <locic/Support/String.hpp>
 
+#include <locic/AST/Alias.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
-#include <locic/AST/Type.hpp>
-#include <locic/AST/TypeAlias.hpp>
+#include <locic/AST/Value.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
-		TypeAlias::TypeAlias(const String& pName, AST::Node<Type> pValue)
+	namespace AST {
+		
+		Alias::Alias(const String& pName, AST::Node<Value> pValue)
 			: name(pName), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
 			requireSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
 			value(pValue) { }
 		
-		void TypeAlias::setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier) {
+		void Alias::setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier) {
 			requireSpecifier = pRequireSpecifier;
 		}
 		
-		void TypeAlias::setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables) {
+		void Alias::setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables) {
 			templateVariables = pTemplateVariables;
 		}
 		
-		std::string TypeAlias::toString() const {
+		std::string Alias::toString() const {
 			std::string templateVarString = "";
 			
 			bool isFirst = true;
@@ -38,7 +38,7 @@ namespace locic {
 				templateVarString += node.toString();
 			}
 			
-			return makeString("TypeAlias(name: %s, templateVariables: (%s), value: %s)",
+			return makeString("Alias(name: %s, templateVariables: (%s), value: %s)",
 				name.c_str(), templateVarString.c_str(), value->toString().c_str());
 		}
 		

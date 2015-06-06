@@ -3,6 +3,7 @@
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Predicate.hpp>
+#include <locic/AST/Symbol.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/Support/MakeString.hpp>
 
@@ -23,9 +24,9 @@ namespace locic {
 			return predicate;
 		}
 		
-		Predicate* Predicate::Variable(const String& name) {
-			Predicate* predicate = new Predicate(VARIABLE);
-			predicate->variable_.name = name;
+		Predicate* Predicate::Symbol(const Node<AST::Symbol>& symbol) {
+			Predicate* predicate = new Predicate(SYMBOL);
+			predicate->symbol_ = symbol;
 			return predicate;
 		}
 		
@@ -62,9 +63,9 @@ namespace locic {
 			return typeSpec_.requireType;
 		}
 		
-		const String& Predicate::variableName() const {
-			assert(kind() == VARIABLE);
-			return variable_.name;
+		const Node<AST::Symbol>& Predicate::symbol() const {
+			assert(kind() == SYMBOL);
+			return symbol_;
 		}
 		
 		const Node<Predicate>& Predicate::andLeft() const {
@@ -93,8 +94,8 @@ namespace locic {
 					return makeString("Bracket(%s)", bracketExpr().toString().c_str());
 				case TYPESPEC:
 					return makeString("TypeSpec(type: %s, require: %s)", typeSpecType().toString().c_str(), typeSpecRequireType().toString().c_str());
-				case VARIABLE:
-					return makeString("Variable(name: %s)", variableName().c_str());
+				case SYMBOL:
+					return makeString("Symbol(symbol: %s)", symbol().toString().c_str());
 				case AND:
 					return makeString("And(left: %s, right: %s)", andLeft().toString().c_str(), andRight().toString().c_str());
 				case OR:

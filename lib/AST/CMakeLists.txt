@@ -1,4 +1,5 @@
 add_library(locic-ast
+	Alias.cpp
 	ConstSpecifier.cpp
 	ExceptionInitializer.cpp
 	Function.cpp
@@ -7,7 +8,6 @@ add_library(locic-ast
 	RequireSpecifier.cpp
 	Symbol.cpp
 	Type.cpp
-	TypeAlias.cpp
 	TypeInstance.cpp
 	TypeVar.cpp
 	Value.cpp

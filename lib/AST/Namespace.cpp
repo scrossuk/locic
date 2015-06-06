@@ -3,6 +3,7 @@
 
 #include <locic/Support/String.hpp>
 
+#include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/Namespace.hpp>
@@ -17,6 +18,13 @@ namespace locic {
 			std::string s;
 			
 			bool isFirst = true;
+			
+			for(auto node : aliases) {
+				if(!isFirst) s += ", ";
+				
+				isFirst = false;
+				s += node.toString();
+			}
 			
 			for(auto node : functions) {
 				if(!isFirst) s += ", ";
@@ -50,7 +58,7 @@ namespace locic {
 		}
 		
 		Namespace::Namespace(const String& n, AST::Node<NamespaceData> d)
-				: name(n), data(d) { }
+		: name(n), data(d) { }
 		
 		std::string Namespace::toString() const {
 			return makeString("Namespace[name = %s](", name.c_str()) + data->toString() + ")";

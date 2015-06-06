@@ -1,6 +1,7 @@
 #ifndef LOCIC_AST_HPP
 #define LOCIC_AST_HPP
 
+#include <locic/AST/Alias.hpp>
 #include <locic/AST/CatchClause.hpp>
 #include <locic/AST/ConstSpecifier.hpp>
 #include <locic/AST/ExceptionInitializer.hpp>
@@ -17,7 +18,6 @@
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
 #include <locic/AST/Type.hpp>
-#include <locic/AST/TypeAlias.hpp>
 #include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/TypeVar.hpp>
 #include <locic/AST/Value.hpp>
