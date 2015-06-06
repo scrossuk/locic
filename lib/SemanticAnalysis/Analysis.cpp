@@ -24,35 +24,35 @@ namespace locic {
 				// Push root namespace on to the stack.
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semContext.rootNamespace()));
 				
-				// ---- Pass 1: Add namespaces, type names and template variables.
+				// ---- Add namespaces, type names and template variables.
 				AddGlobalStructuresPass(context, rootASTNamespaces);
 				
-				// ---- Pass 2: Add types of template variables.
+				// ---- Add types of template variables.
 				AddTemplateVariableTypesPass(context, rootASTNamespaces);
 				
-				// ---- Pass 3: Add alias values.
-				AddAliasValuesPass(context, rootASTNamespaces);
-				
-				// ---- Pass 4: Add type member variables.
+				// ---- Add type member variables.
 				AddTypeMemberVariablesPass(context, rootASTNamespaces);
 				
-				// ---- Pass 5: Create function declarations.
+				// ---- Create function declarations.
 				AddFunctionDeclsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 6: Complete type template variable requirements.
+				// ---- Complete type template variable requirements.
 				CompleteTypeTemplateVariableRequirementsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 7: Complete function template variable requirements.
+				// ---- Complete function template variable requirements.
 				CompleteFunctionTemplateVariableRequirementsPass(context, rootASTNamespaces);
 				
-				// ---- Pass 8: Generate default methods.
+				// ---- Generate default methods.
 				GenerateDefaultMethodsPass(context);
 				
-				// ---- Pass 9: Check all previous template instantiations are correct
-				//              (all methods created by this point).
+				// ---- Add alias values.
+				AddAliasValuesPass(context, rootASTNamespaces);
+				
+				// ---- Check all previous template instantiations are correct
+				//      (all methods created by this point).
 				CheckTemplateInstantiationsPass(context);
 				
-				// ---- Pass 10: Fill in function code.
+				// ---- Fill in function code.
 				ConvertNamespace(context, rootASTNamespaces);
 			} catch(const Exception& e) {
 				printf("Semantic Analysis Error: %s\n", formatMessage(e.toString()).c_str());

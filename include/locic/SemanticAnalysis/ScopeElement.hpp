@@ -1,18 +1,29 @@
 #ifndef LOCIC_SEMANTICANALYSIS_SCOPEELEMENT_HPP
 #define LOCIC_SEMANTICANALYSIS_SCOPEELEMENT_HPP
 
-#include <locic/SEM.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
-	namespace SemanticAnalysis {
 	
+	namespace SEM {
+		
+		class Alias;
+		class CatchClause;
+		class Function;
+		class Namespace;
+		class Scope;
+		class SwitchCase;
+		class TypeInstance;
+		
+	}
+	
+	namespace SemanticAnalysis {
+		
 		class ScopeElement {
 			public:
 				enum Kind {
 					NAMESPACE,
-					TYPEALIAS,
+					ALIAS,
 					TYPEINSTANCE,
 					FUNCTION,
 					SCOPE,
@@ -25,7 +36,7 @@ namespace locic {
 				
 				static ScopeElement Namespace(SEM::Namespace* nameSpace);
 				
-				static ScopeElement TypeAlias(SEM::TypeAlias* typeAlias);
+				static ScopeElement Alias(SEM::Alias* alias);
 				
 				static ScopeElement TypeInstance(SEM::TypeInstance* typeInstance);
 				
@@ -46,7 +57,7 @@ namespace locic {
 				Kind kind() const;
 				
 				bool isNamespace() const;
-				bool isTypeAlias() const;
+				bool isAlias() const;
 				bool isTypeInstance() const;
 				bool isFunction() const;
 				bool isScope() const;
@@ -57,7 +68,7 @@ namespace locic {
 				bool isTryScope() const;
 				
 				SEM::Namespace* nameSpace() const;
-				SEM::TypeAlias* typeAlias() const;
+				SEM::Alias* alias() const;
 				SEM::TypeInstance* typeInstance() const;
 				SEM::Function* function() const;
 				SEM::Scope* scope() const;
@@ -76,7 +87,7 @@ namespace locic {
 				union {
 					void* ptr;
 					SEM::Namespace* nameSpace;
-					SEM::TypeAlias* typeAlias;
+					SEM::Alias* alias;
 					SEM::TypeInstance* typeInstance;
 					SEM::Function* function;
 					SEM::Scope* scope;

@@ -1,30 +1,38 @@
 #ifndef LOCIC_SEMANTICANALYSIS_SEARCHRESULT_HPP
 #define LOCIC_SEMANTICANALYSIS_SEARCHRESULT_HPP
 
-#include <locic/SEM.hpp>
-
 namespace locic {
-
-	namespace SemanticAnalysis {
 	
+	namespace SEM {
+		
+		class Alias;
+		class Function;
+		class TemplateVar;
+		class TypeInstance;
+		class Var;
+		
+	}
+	
+	namespace SemanticAnalysis {
+		
 		class SearchResult {
 			public:
 				enum Kind {
 					NONE,
+					ALIAS,
 					FUNCTION,
 					TEMPLATEVAR,
-					TYPEALIAS,
 					TYPEINSTANCE,
 					VAR
 				};
 				
 				static SearchResult None();
 				
+				static SearchResult Alias(SEM::Alias* alias);
+				
 				static SearchResult Function(SEM::Function* function);
 				
 				static SearchResult TemplateVar(SEM::TemplateVar* templateVar);
-				
-				static SearchResult TypeAlias(SEM::TypeAlias* typeAlias);
 				
 				static SearchResult TypeInstance(SEM::TypeInstance* typeInstance);
 				
@@ -33,15 +41,15 @@ namespace locic {
 				Kind kind() const;
 				
 				bool isNone() const;
+				bool isAlias() const;
 				bool isFunction() const;
 				bool isTemplateVar() const;
-				bool isTypeAlias() const;
 				bool isTypeInstance() const;
 				bool isVar() const;
 				
+				SEM::Alias* alias() const;
 				SEM::Function* function() const;
 				SEM::TemplateVar* templateVar() const;
-				SEM::TypeAlias* typeAlias() const;
 				SEM::TypeInstance* typeInstance() const;
 				SEM::Var* var() const;
 				
@@ -52,9 +60,9 @@ namespace locic {
 				
 				union {
 					void* ptr;
+					SEM::Alias* alias;
 					SEM::Function* function;
 					SEM::TemplateVar* templateVar;
-					SEM::TypeAlias* typeAlias;
 					SEM::TypeInstance* typeInstance;
 					SEM::Var* var;
 				} data_;

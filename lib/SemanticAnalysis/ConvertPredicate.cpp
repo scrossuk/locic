@@ -7,6 +7,7 @@
 #include <locic/Debug.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/AliasTypeResolver.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
@@ -37,26 +38,48 @@ namespace locic {
 					
 					return SEM::Predicate::Satisfies(semType, semRequireType);
 				}
-				case AST::Predicate::VARIABLE: {
-					const auto& variableName = astPredicateNode->variableName();
+				case AST::Predicate::SYMBOL: {
+					const auto& astSymbolNode = astPredicateNode->symbol();
+					const Name name = astSymbolNode->createName();
 					
-					const auto searchResult = performSearch(context, Name::Relative() + variableName);
-					if (!searchResult.isTemplateVar()) {
-						throw ErrorException(makeString("Failed to find template var '%s' "
-							"in predicate, at position %s.",
-							variableName.c_str(),
-							location.toString().c_str()));
-					}
+					const auto searchResult = performSearch(context, name);
+					const auto templateVarMap = GenerateSymbolTemplateVarMap(context, astSymbolNode);
 					
-					const auto templateVar = searchResult.templateVar();
-					
-					if (templateVar->type()->isBuiltInBool()) {
+					if (searchResult.isAlias()) {
+						const auto alias = searchResult.alias();
+						(void) context.aliasTypeResolver().resolveAliasType(*alias);
+						
+						const auto aliasValue = alias->value().substitute(templateVarMap);
+						if (!aliasValue.type()->isBuiltInBool()) {
+							throw ErrorException(makeString("Alias '%s' has non-boolean type '%s' "
+								"and therefore cannot be used in predicate, at position %s.",
+								name.toString().c_str(),
+								aliasValue.type()->toString().c_str(),
+								location.toString().c_str()));
+						}
+						
+						return aliasValue.makePredicate();
+					} else if (searchResult.isTemplateVar()) {
+						const auto templateVar = searchResult.templateVar();
+						
+						if (!templateVar->type()->isBuiltInBool()) {
+							throw ErrorException(makeString("Template variable '%s' has non-boolean type '%s' "
+								"and therefore cannot be used in predicate, at position %s.",
+								name.toString().c_str(),
+								templateVar->type()->toString().c_str(),
+								location.toString().c_str()));
+						}
+						
 						return SEM::Predicate::Variable(templateVar);
+					} else if (!searchResult.isNone()) {
+						throw ErrorException(makeString("Invalid symbol '%s' "
+							"in predicate, at position %s.",
+							name.toString().c_str(),
+							location.toString().c_str()));
 					} else {
-						throw ErrorException(makeString("Template variable '%s' has non-boolean type '%s' "
-							"and therefore cannot be used in predicate, at position %s.",
-							variableName.c_str(),
-							templateVar->type()->toString().c_str(),
+						throw ErrorException(makeString("Failed to find symbol '%s' "
+							"in predicate, at position %s.",
+							name.toString().c_str(),
 							location.toString().c_str()));
 					}
 				}
@@ -238,14 +261,7 @@ namespace locic {
 					}
 					
 					const auto& templateValue = iterator->second;
-					
-					if (templateValue.isConstant()) {
-						assert(templateValue.constant().kind() == Constant::BOOLEAN);
-						return make_optional(templateValue.constant().boolValue());
-					} else {
-						// Unknown result since we don't know the variable's value.
-						return None;
-					}
+					return evaluatePredicate(context, templateValue.makePredicate(), variableAssignments);
 				}
 			}
 			

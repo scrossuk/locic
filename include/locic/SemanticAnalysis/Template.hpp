@@ -12,6 +12,11 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
+		void CheckTemplateInstantiation(Context& context,
+		                                const SEM::TemplatedObject& templatedObject,
+		                                const SEM::TemplateVarMap& variableAssignments,
+		                                const Debug::SourceLocation& location);
+		
 		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const SEM::TemplatedObject& templatedObject,
 			SEM::ValueArray values, const Debug::SourceLocation& location,
 			SEM::TemplateVarMap variableAssignments = SEM::TemplateVarMap());

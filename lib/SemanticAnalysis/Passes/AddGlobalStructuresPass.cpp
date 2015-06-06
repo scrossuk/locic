@@ -1,4 +1,5 @@
 #include <locic/AST.hpp>
+#include <locic/SemanticAnalysis/AliasTypeResolver.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertModuleScope.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
@@ -166,7 +167,7 @@ namespace locic {
 				
 				const auto iterator = semNamespace->items().find(childNamespaceName);
 				if (iterator == semNamespace->items().end()) {
-					std::unique_ptr<SEM::Namespace> childNamespace(new SEM::Namespace(semNamespace->name() + childNamespaceName));
+					std::unique_ptr<SEM::Namespace> childNamespace(new SEM::Namespace(semNamespace->name() + childNamespaceName, *semNamespace));
 					semChildNamespace = childNamespace.get();
 					semNamespace->items().insert(std::make_pair(childNamespaceName, SEM::NamespaceItem::Namespace(std::move(childNamespace))));
 				} else {
@@ -185,20 +186,20 @@ namespace locic {
 				AddNamespaceData(context, astModuleScopeNode->data, ConvertModuleScope(astModuleScopeNode));
 			}
 			
-			for (const auto& astTypeAliasNode: astNamespaceDataNode->typeAliases) {
-				const auto& typeAliasName = astTypeAliasNode->name;
-				const auto fullTypeName = semNamespace->name() + typeAliasName;
-				const auto iterator = semNamespace->items().find(typeAliasName);
+			for (const auto& astAliasNode: astNamespaceDataNode->aliases) {
+				const auto& aliasName = astAliasNode->name;
+				const auto fullTypeName = semNamespace->name() + aliasName;
+				const auto iterator = semNamespace->items().find(aliasName);
 				if (iterator != semNamespace->items().end()) {
 					throw ErrorException(makeString("Type alias name '%s' clashes with existing name, at position %s.",
-						fullTypeName.toString().c_str(), astTypeAliasNode.location().toString().c_str()));
+						fullTypeName.toString().c_str(), astAliasNode.location().toString().c_str()));
 				}
 				
-				std::unique_ptr<SEM::TypeAlias> semTypeAlias(new SEM::TypeAlias(context.semContext(), fullTypeName.copy()));
+				std::unique_ptr<SEM::Alias> semAlias(new SEM::Alias(context.semContext(), *semNamespace, fullTypeName.copy()));
 				
 				// Add template variables.
 				size_t templateVarIndex = 0;
-				for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
+				for (auto astTemplateVarNode: *(astAliasNode->templateVariables)) {
 					const auto& templateVarName = astTemplateVarNode->name;
 					
 					// TODO!
@@ -208,16 +209,19 @@ namespace locic {
 							fullTypeName + templateVarName,
 							templateVarIndex++, isVirtual);
 					
-					const auto templateVarIterator = semTypeAlias->namedTemplateVariables().find(templateVarName);
-					if (templateVarIterator != semTypeAlias->namedTemplateVariables().end()) {
+					const auto templateVarIterator = semAlias->namedTemplateVariables().find(templateVarName);
+					if (templateVarIterator != semAlias->namedTemplateVariables().end()) {
 						throw TemplateVariableClashException(fullTypeName.copy(), templateVarName);
 					}
 					
-					semTypeAlias->templateVariables().push_back(semTemplateVar);
-					semTypeAlias->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
+					semAlias->templateVariables().push_back(semTemplateVar);
+					semAlias->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
 				}
 				
-				semNamespace->items().insert(std::make_pair(typeAliasName, SEM::NamespaceItem::TypeAlias(std::move(semTypeAlias))));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(semAlias.get()));
+				context.aliasTypeResolver().addAlias(*semAlias, astAliasNode->value, context.scopeStack().copy());
+				
+				semNamespace->items().insert(std::make_pair(aliasName, SEM::NamespaceItem::Alias(std::move(semAlias))));
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {

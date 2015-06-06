@@ -101,6 +101,7 @@ namespace locic {
 				const Context& context_;
 				SEM::Predicate constPredicate_;
 				ElementSet elements_;
+				mutable Optional<size_t> cachedHashValue_;
 				
 		};
 		

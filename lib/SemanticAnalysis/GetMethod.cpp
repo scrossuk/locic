@@ -41,7 +41,7 @@ namespace locic {
 			auto value = derefOrBindValue(context, std::move(rawValue));
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
 			assert(value.type()->refTarget()->isStaticRef());
-			const auto targetType = value.type()->refTarget()->staticRefTarget();
+			const auto targetType = value.type()->refTarget()->staticRefTarget()->resolveAliases();
 			
 			if (!targetType->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Cannot get static method '%s' for non-object type '%s' at position %s.",

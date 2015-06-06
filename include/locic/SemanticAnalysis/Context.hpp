@@ -36,6 +36,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
+		class AliasTypeResolver;
 		class MethodSet;
 		class ScopeStack;
 		class TemplateInst;
@@ -45,6 +46,7 @@ namespace locic {
 				Context(const SharedMaps& sharedMaps, Debug::Module& debugModule, SEM::Context& semContext);
 				~Context();
 				
+				AliasTypeResolver& aliasTypeResolver();
 				const SharedMaps& sharedMaps() const;
 				
 				String getCString(const char* cString) const;

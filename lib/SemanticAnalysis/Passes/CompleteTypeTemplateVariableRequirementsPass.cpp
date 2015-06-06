@@ -1,4 +1,5 @@
 #include <locic/AST.hpp>
+#include <locic/SEM/Predicate.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
@@ -8,19 +9,19 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void CompleteTypeAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeAlias>& astTypeAliasNode) {
-			const auto typeAlias = context.scopeStack().back().typeAlias();
+		void CompleteAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::Alias>& astAliasNode) {
+			const auto alias = context.scopeStack().back().alias();
 			
 			// Add any requirements in require() specifier.
 			auto predicate =
-				(!astTypeAliasNode->requireSpecifier.isNull()) ?
-					ConvertRequireSpecifier(context, astTypeAliasNode->requireSpecifier) :
+				(!astAliasNode->requireSpecifier.isNull()) ?
+					ConvertRequireSpecifier(context, astAliasNode->requireSpecifier) :
 					SEM::Predicate::True();
 			
 			// Add requirements specified inline for template variables.
-			for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
+			for (auto astTemplateVarNode: *(astAliasNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = typeAlias->namedTemplateVariables().at(templateVarName);
+				const auto semTemplateVar = alias->namedTemplateVariables().at(templateVarName);
 				
 				const auto& astSpecType = astTemplateVarNode->specType;
 				
@@ -36,7 +37,7 @@ namespace locic {
 				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
 			
-			typeAlias->setRequiresPredicate(std::move(predicate));
+			alias->setRequiresPredicate(std::move(predicate));
 		}
 		
 		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
@@ -101,11 +102,11 @@ namespace locic {
 				CompleteNamespaceDataTypeTemplateVariableRequirements(context, astNamespaceNode->data);
 			}
 			
-			for (auto astTypeAliasNode: astNamespaceDataNode->typeAliases) {
-				auto& semChildTypeAlias = semNamespace->items().at(astTypeAliasNode->name).typeAlias();
+			for (auto astAliasNode: astNamespaceDataNode->aliases) {
+				auto& semChildAlias = semNamespace->items().at(astAliasNode->name).alias();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeAlias(&semChildTypeAlias));
-				CompleteTypeAliasTemplateVariableRequirements(context, astTypeAliasNode);
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(&semChildAlias));
+				CompleteAliasTemplateVariableRequirements(context, astAliasNode);
 			}
 			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {

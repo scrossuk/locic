@@ -210,6 +210,10 @@ namespace locic {
 		}
 		
 		std::size_t MethodSet::hash() const {
+			if (cachedHashValue_) {
+				return *cachedHashValue_;
+			}
+			
 			std::size_t seed = 0;
 			
 			boost::hash_combine(seed, constPredicate().hash());
@@ -219,6 +223,7 @@ namespace locic {
 				boost::hash_combine(seed, element.second.hash());
 			}
 			
+			cachedHashValue_ = make_optional(seed);
 			return seed;
 		}
 		

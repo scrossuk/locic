@@ -12,6 +12,7 @@
 #include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/AliasTypeResolver.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
@@ -136,7 +137,7 @@ namespace locic {
 		
 		SEM::Value MakeMemberAccess(Context& context, SEM::Value rawValue, const String& memberName, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
-			const auto derefType = getStaticDerefType(getDerefType(value.type()));
+			const auto derefType = getStaticDerefType(getDerefType(value.type()->resolveAliases()));
 			
 			if (!derefType->isObjectOrTemplateVar()) {
 				throw ErrorException(makeString("Can't access member '%s' of type '%s' at position %s.",
@@ -254,14 +255,11 @@ namespace locic {
 						const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
 						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(templateVarMap, typeInstance->templateVariables()));
 						return SEM::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
-					} else if (searchResult.isTypeAlias()) {
-						const auto typeAlias = searchResult.typeAlias();
-						auto templateArguments = GetTemplateValues(templateVarMap, typeAlias->templateVariables());
-						assert(templateArguments.size() == typeAlias->templateVariables().size());
-						
-						const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
-						const auto resolvedType = SEM::Type::Alias(typeAlias, std::move(templateArguments))->resolveAliases();
-						return SEM::Value::TypeRef(resolvedType, typenameType->createStaticRefType(resolvedType));
+					} else if (searchResult.isAlias()) {
+						const auto alias = searchResult.alias();
+						(void) context.aliasTypeResolver().resolveAliasType(*alias);
+						auto templateArguments = GetTemplateValues(templateVarMap, alias->templateVariables());
+						return alias->selfRefValue(std::move(templateArguments));
 					} else if (searchResult.isVar()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').

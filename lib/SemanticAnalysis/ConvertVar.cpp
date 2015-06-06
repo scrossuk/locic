@@ -182,12 +182,7 @@ namespace locic {
 							varName.c_str(), location.toString().c_str()));
 					}
 					
-					const auto varType = ConvertType(context, astTypeVarNode->namedType())->resolveAliases();
-					
-					if (varType->isBuiltInVoid()) {
-						throw ErrorException(makeString("Variable '%s' cannot have void type at position %s.",
-							varName.c_str(), location.toString().c_str()));
-					}
+					const auto varType = ConvertType(context, astTypeVarNode->namedType());
 					
 					// 'final' keyword uses a different lval type (which doesn't support
 					// moving or re-assignment).

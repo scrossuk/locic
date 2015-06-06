@@ -1,4 +1,5 @@
 add_library(locic-semanalysis
+	AliasTypeResolver.cpp
 	Analysis.cpp
 	CallValue.cpp
 	Cast.cpp

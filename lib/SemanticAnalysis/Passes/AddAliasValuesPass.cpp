@@ -1,6 +1,6 @@
 #include <locic/AST.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
+#include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 
 namespace locic {
@@ -9,6 +9,12 @@ namespace locic {
 		
 		void AddNamespaceDataAliasValues(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			const auto semNamespace = context.scopeStack().back().nameSpace();
+			
+			for (const auto& astAliasNode: astNamespaceDataNode->aliases) {
+				auto& semAlias = semNamespace->items().at(astAliasNode->name).alias();
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(&semAlias));
+				semAlias.setValue(ConvertValue(context, astAliasNode->value));
+			}
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
 				auto& semChildNamespace = semNamespace->items().at(astChildNamespaceNode->name).nameSpace();
@@ -19,12 +25,6 @@ namespace locic {
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
 				AddNamespaceDataAliasValues(context, astModuleScopeNode->data);
-			}
-			
-			for (const auto& astTypeAliasNode: astNamespaceDataNode->typeAliases) {
-				auto& semTypeAlias = semNamespace->items().at(astTypeAliasNode->name).typeAlias();
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeAlias(&semTypeAlias));
-				semTypeAlias.setValue(ConvertType(context, astTypeAliasNode->value));
 			}
 		}
 		

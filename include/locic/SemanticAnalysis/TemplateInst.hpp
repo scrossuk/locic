@@ -6,7 +6,6 @@
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
-#include <locic/Support/Name.hpp>
 
 namespace locic {
 	
@@ -20,12 +19,13 @@ namespace locic {
 		
 		class TemplateInst {
 		public:
-			TemplateInst(ScopeStack argScopeStack, SEM::TemplateVarMap argTemplateVarMap,
-				const SEM::TemplatedObject* argTemplatedObject, Name argName, Debug::SourceLocation argLocation)
+			TemplateInst(ScopeStack argScopeStack,
+			             SEM::TemplateVarMap argTemplateVarMap,
+			             const SEM::TemplatedObject& argTemplatedObject,
+			             Debug::SourceLocation argLocation)
 			: scopeStack_(std::move(argScopeStack)),
 			templateVarMap_(std::move(argTemplateVarMap)),
-			templatedObject_(std::move(argTemplatedObject)),
-			name_(std::move(argName)),
+			templatedObject_(&argTemplatedObject),
 			location_(std::move(argLocation)) { }
 			
 			TemplateInst(TemplateInst&&) = default;
@@ -39,12 +39,8 @@ namespace locic {
 				return templateVarMap_;
 			}
 			
-			const SEM::TemplatedObject* templatedObject() const {
-				return templatedObject_;
-			}
-			
-			const Name& name() const {
-				return name_;
+			const SEM::TemplatedObject& templatedObject() const {
+				return *templatedObject_;
 			}
 			
 			const Debug::SourceLocation& location() const {
@@ -58,7 +54,6 @@ namespace locic {
 			ScopeStack scopeStack_;
 			SEM::TemplateVarMap templateVarMap_;
 			const SEM::TemplatedObject* templatedObject_;
-			Name name_;
 			Debug::SourceLocation location_;
 			
 		};

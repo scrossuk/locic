@@ -6,11 +6,13 @@
 #include <boost/functional/hash.hpp>
 
 #include <locic/Debug.hpp>
+#include <locic/SEM/Predicate.hpp>
 #include <locic/Support/Array.hpp>
 #include <locic/Support/SharedMaps.hpp>
 #include <locic/Support/StableSet.hpp>
 #include <locic/Support/StringHost.hpp>
 
+#include <locic/SemanticAnalysis/AliasTypeResolver.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
@@ -25,8 +27,12 @@ namespace locic {
 	
 		class ContextImpl {
 		public:
-			ContextImpl(const SharedMaps& argSharedMaps, Debug::Module& pDebugModule, SEM::Context& pSemContext)
-			: sharedMaps(argSharedMaps),
+			ContextImpl(Context& context,
+			            const SharedMaps& argSharedMaps,
+			            Debug::Module& pDebugModule,
+			            SEM::Context& pSemContext)
+			: aliasTypeResolver(context),
+			sharedMaps(argSharedMaps),
 			stringHost(sharedMaps.stringHost()),
 			debugModule(pDebugModule),
 			semContext(pSemContext),
@@ -68,6 +74,7 @@ namespace locic {
 				}
 			};
 			
+			AliasTypeResolver aliasTypeResolver;
 			const SharedMaps& sharedMaps;
 			const StringHost& stringHost;
 			Debug::Module& debugModule;
@@ -89,9 +96,13 @@ namespace locic {
 		};
 		
 		Context::Context(const SharedMaps& argSharedMaps, Debug::Module& argDebugModule, SEM::Context& argSemContext)
-		: impl_(new ContextImpl(argSharedMaps, argDebugModule, argSemContext)) { }
+		: impl_(new ContextImpl(*this, argSharedMaps, argDebugModule, argSemContext)) { }
 		
 		Context::~Context() { }
+		
+		AliasTypeResolver& Context::aliasTypeResolver() {
+			return impl_->aliasTypeResolver;
+		}
 		
 		const SharedMaps& Context::sharedMaps() const {
 			return impl_->sharedMaps;

@@ -10,6 +10,12 @@ namespace locic {
 			return SearchResult(NONE);
 		}
 		
+		SearchResult SearchResult::Alias(SEM::Alias* alias) {
+			SearchResult element(ALIAS);
+			element.data_.alias = alias;
+			return element;
+		}
+		
 		SearchResult SearchResult::Function(SEM::Function* function) {
 			SearchResult element(FUNCTION);
 			element.data_.function = function;
@@ -19,12 +25,6 @@ namespace locic {
 		SearchResult SearchResult::TemplateVar(SEM::TemplateVar* templateVar) {
 			SearchResult element(TEMPLATEVAR);
 			element.data_.templateVar = templateVar;
-			return element;
-		}
-		
-		SearchResult SearchResult::TypeAlias(SEM::TypeAlias* typeAlias) {
-			SearchResult element(TYPEALIAS);
-			element.data_.typeAlias = typeAlias;
 			return element;
 		}
 		
@@ -48,16 +48,16 @@ namespace locic {
 			return kind() == NONE;
 		}
 		
+		bool SearchResult::isAlias() const {
+			return kind() == ALIAS;
+		}
+		
 		bool SearchResult::isFunction() const {
 			return kind() == FUNCTION;
 		}
 		
 		bool SearchResult::isTemplateVar() const {
 			return kind() == TEMPLATEVAR;
-		}
-		
-		bool SearchResult::isTypeAlias() const {
-			return kind() == TYPEALIAS;
 		}
 		
 		bool SearchResult::isTypeInstance() const {
@@ -68,6 +68,11 @@ namespace locic {
 			return kind() == VAR;
 		}
 		
+		SEM::Alias* SearchResult::alias() const {
+			assert(isAlias());
+			return data_.alias;
+		}
+		
 		SEM::Function* SearchResult::function() const {
 			assert(isFunction());
 			return data_.function;
@@ -76,11 +81,6 @@ namespace locic {
 		SEM::TemplateVar* SearchResult::templateVar() const {
 			assert(isTemplateVar());
 			return data_.templateVar;
-		}
-		
-		SEM::TypeAlias* SearchResult::typeAlias() const {
-			assert(isTypeAlias());
-			return data_.typeAlias;
 		}
 		
 		SEM::TypeInstance* SearchResult::typeInstance() const {

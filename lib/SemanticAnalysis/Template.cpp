@@ -27,10 +27,10 @@ namespace locic {
 			
 			SEM::TemplatedObject* getTemplatedObject(const SearchResult& searchResult) {
 				switch (searchResult.kind()) {
+					case SearchResult::ALIAS:
+						return searchResult.alias();
 					case SearchResult::FUNCTION:
 						return searchResult.function();
-					case SearchResult::TYPEALIAS:
-						return searchResult.typeAlias();
 					case SearchResult::TYPEINSTANCE:
 						return searchResult.typeInstance();
 					default:
@@ -40,15 +40,27 @@ namespace locic {
 			
 		}
 		
-		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const SEM::TemplatedObject& templatedObject,
-				SEM::ValueArray values, const Debug::SourceLocation& location, SEM::TemplateVarMap variableAssignments) {
-			const auto& templateVariables = templatedObject.templateVariables();
+		void CheckTemplateInstantiation(Context& context,
+		                                const SEM::TemplatedObject& templatedObject,
+		                                const SEM::TemplateVarMap& variableAssignments,
+		                                const Debug::SourceLocation& location) {
+			// Requires predicate is already known so check it immediately.
+			const auto& requiresPredicate = templatedObject.requiresPredicate();
 			
-			assert(templateVariables.size() == values.size());
+			// Conservatively assume require predicate is not satisified if result is undetermined.
+			const bool satisfiesRequiresDefault = false;
 			
-			for (size_t i = 0; i < templateVariables.size(); i++) {
-				const auto& templateVar = templateVariables[i];
-				auto& templateValue = values[i];
+			if (!evaluatePredicateWithDefault(context, requiresPredicate, variableAssignments, satisfiesRequiresDefault)) {
+				throw ErrorException(makeString("Template arguments do not satisfy "
+					"requires predicate '%s' of function or type '%s' at position %s.",
+					requiresPredicate.substitute(variableAssignments).toString().c_str(),
+					templatedObject.name().toString().c_str(),
+					location.toString().c_str()));
+			}
+			
+			for (const auto& assignment: variableAssignments) {
+				const auto& templateVar = assignment.first;
+				const auto& templateValue = assignment.second;
 				
 				if (templateVar->type() != templateValue.type()->withoutTags()) {
 					throw ErrorException(makeString("Template argument '%s' has type '%s', which doesn't match type '%s' of template variable '%s', at position %s.",
@@ -66,7 +78,7 @@ namespace locic {
 							throw ErrorException(makeString("Cannot use non-object and non-template type '%s' "
 								"as template parameter %llu for function or type '%s' at position %s.",
 								templateTypeValue->toString().c_str(),
-								(unsigned long long) i,
+								(unsigned long long) templateVar->index(),
 								templatedObject.name().toString().c_str(),
 								location.toString().c_str()));
 						}
@@ -75,13 +87,24 @@ namespace locic {
 							throw ErrorException(makeString("Cannot use abstract type '%s' "
 								"as template parameter %llu for function or type '%s' at position %s.",
 								templateTypeValue->getObjectType()->name().toString().c_str(),
-								(unsigned long long) i,
+								(unsigned long long) templateVar->index(),
 								templatedObject.name().toString().c_str(),
 								location.toString().c_str()));
 						}
 					}
 				}
-				
+			}
+		}
+		
+		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const SEM::TemplatedObject& templatedObject,
+				SEM::ValueArray values, const Debug::SourceLocation& location, SEM::TemplateVarMap variableAssignments) {
+			const auto& templateVariables = templatedObject.templateVariables();
+			
+			assert(templateVariables.size() == values.size());
+			
+			for (size_t i = 0; i < templateVariables.size(); i++) {
+				const auto& templateVar = templateVariables[i];
+				auto& templateValue = values[i];
 				variableAssignments.insert(std::make_pair(templateVar, std::move(templateValue)));
 			}
 			
@@ -95,23 +118,18 @@ namespace locic {
 			// This is then checked as part of a Semantic Analysis pass that runs when
 			// all the requires predicates are guaranteed to be known.
 			if (context.templateRequirementsComplete()) {
-				// Requires predicate is already known so check it immediately.
-				const auto& requiresPredicate = templatedObject.requiresPredicate();
+				CheckTemplateInstantiation(context,
+				                           templatedObject,
+				                           variableAssignments,
+				                           location);
 				
-				// Conservatively assume require predicate is not satisified if result is undetermined.
-				const bool satisfiesRequiresDefault = false;
-				
-				if (!evaluatePredicateWithDefault(context, requiresPredicate, variableAssignments, satisfiesRequiresDefault)) {
-					throw ErrorException(makeString("Template arguments do not satisfy "
-						"requires predicate '%s' of function or type '%s' at position %s.",
-						requiresPredicate.substitute(variableAssignments).toString().c_str(),
-						templatedObject.name().toString().c_str(),
-						location.toString().c_str()));
-				}
 			} else {
 				// Record this instantiation to be checked later.
 				context.templateInstantiations().push_back(
-					TemplateInst(context.scopeStack().copy(), variableAssignments.copy(), &templatedObject, templatedObject.name().copy(), location));
+					TemplateInst(context.scopeStack().copy(),
+					             variableAssignments.copy(),
+					             templatedObject,
+					             location));
 			}
 			
 			return variableAssignments;
@@ -134,7 +152,7 @@ namespace locic {
 				
 				const auto searchResult = performSearch(context, name);
 				
-				if (searchResult.isFunction() || searchResult.isTypeAlias() || searchResult.isTypeInstance()) {
+				if (searchResult.isFunction() || searchResult.isAlias() || searchResult.isTypeInstance()) {
 					const auto templatedObject = getTemplatedObject(searchResult);
 					const auto& templateVariables = templatedObject->templateVariables();
 					

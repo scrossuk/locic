@@ -12,9 +12,9 @@ namespace locic {
 			return element;
 		}
 		
-		ScopeElement ScopeElement::TypeAlias(SEM::TypeAlias* typeAlias) {
-			ScopeElement element(TYPEALIAS);
-			element.data_.typeAlias = typeAlias;
+		ScopeElement ScopeElement::Alias(SEM::Alias* alias) {
+			ScopeElement element(ALIAS);
+			element.data_.alias = alias;
 			return element;
 		}
 		
@@ -70,8 +70,8 @@ namespace locic {
 			return kind() == NAMESPACE;
 		}
 		
-		bool ScopeElement::isTypeAlias() const {
-			return kind() == TYPEALIAS;
+		bool ScopeElement::isAlias() const {
+			return kind() == ALIAS;
 		}
 		
 		bool ScopeElement::isTypeInstance() const {
@@ -111,9 +111,9 @@ namespace locic {
 			return data_.nameSpace;
 		}
 		
-		SEM::TypeAlias* ScopeElement::typeAlias() const {
-			assert(isTypeAlias());
-			return data_.typeAlias;
+		SEM::Alias* ScopeElement::alias() const {
+			assert(isAlias());
+			return data_.alias;
 		}
 		
 		SEM::TypeInstance* ScopeElement::typeInstance() const {
@@ -147,15 +147,15 @@ namespace locic {
 		}
 		
 		bool ScopeElement::hasName() const {
-			return (isNamespace() && !nameSpace()->name().empty()) || isTypeAlias() || isTypeInstance() || isFunction();
+			return (isNamespace() && !nameSpace()->name().empty()) || isAlias() || isTypeInstance() || isFunction();
 		}
 		
 		const String& ScopeElement::name() const {
 			assert(hasName());
 			if (isNamespace()) {
 				return nameSpace()->name().last();
-			} else if (isTypeAlias()) {
-				return typeAlias()->name().last();
+			} else if (isAlias()) {
+				return alias()->name().last();
 			} else if (isTypeInstance()) {
 				return typeInstance()->name().last();
 			} else if (isFunction()) {

@@ -8,20 +8,20 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void AddTypeAliasTemplateVariableTypes(Context& context, const AST::Node<AST::TypeAlias>& astTypeAliasNode) {
-			const auto typeAlias = context.scopeStack().back().typeAlias();
+		void AddAliasTemplateVariableTypes(Context& context, const AST::Node<AST::Alias>& astAliasNode) {
+			const auto alias = context.scopeStack().back().alias();
 			
 			// Add types of template variables.
-			for (auto astTemplateVarNode: *(astTypeAliasNode->templateVariables)) {
+			for (auto astTemplateVarNode: *(astAliasNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = typeAlias->namedTemplateVariables().at(templateVarName);
+				const auto semTemplateVar = alias->namedTemplateVariables().at(templateVarName);
 				
 				const auto& astVarType = astTemplateVarNode->varType;
 				const auto semVarType = ConvertType(context, astVarType);
 				
 				if (!semVarType->isBuiltInBool() && !semVarType->isBuiltInTypename()) {
 					throw ErrorException(makeString("Template variable '%s' in type alias '%s' has invalid type '%s', at position %s.",
-						templateVarName.c_str(), typeAlias->name().toString().c_str(),
+						templateVarName.c_str(), alias->name().toString().c_str(),
 						semVarType->toString().c_str(),
 						astTemplateVarNode.location().toString().c_str()));
 				}
@@ -66,11 +66,11 @@ namespace locic {
 				AddNamespaceDataTypeTemplateVariableTypes(context, astNamespaceNode->data);
 			}
 			
-			for (auto astTypeAliasNode: astNamespaceDataNode->typeAliases) {
-				auto& semChildTypeAlias = semNamespace->items().at(astTypeAliasNode->name).typeAlias();
+			for (auto astAliasNode: astNamespaceDataNode->aliases) {
+				auto& semChildAlias = semNamespace->items().at(astAliasNode->name).alias();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeAlias(&semChildTypeAlias));
-				AddTypeAliasTemplateVariableTypes(context, astTypeAliasNode);
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(&semChildAlias));
+				AddAliasTemplateVariableTypes(context, astAliasNode);
 			}
 			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {

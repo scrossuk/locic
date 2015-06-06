@@ -20,10 +20,10 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performTypeAliasSearch(SEM::TypeAlias& typeAlias, const Name& name, size_t pos) {
+		SearchResult performAliasSearch(SEM::Alias& alias, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
-			if (size == 0) return SearchResult::TypeAlias(&typeAlias);
+			if (size == 0) return SearchResult::Alias(&alias);
 			
 			return SearchResult::None();
 		}
@@ -57,8 +57,8 @@ namespace locic {
 					return performFunctionSearch(item.function(), name, pos + 1);
 				} else if (item.isNamespace()) {
 					return performNamespaceSearch(item.nameSpace(), name, pos + 1);
-				} else if (item.isTypeAlias()) {
-					return performTypeAliasSearch(item.typeAlias(), name, pos + 1);
+				} else if (item.isAlias()) {
+					return performAliasSearch(item.alias(), name, pos + 1);
 				} else if (item.isTypeInstance()) {
 					return performTypeInstanceSearch(item.typeInstance(), name, pos + 1);
 				}
@@ -89,11 +89,11 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performInnerTypeAliasSearch(SEM::TypeAlias& typeAlias, const Name& name) {
+		SearchResult performInnerAliasSearch(SEM::Alias& alias, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
-			const auto iterator = typeAlias.namedTemplateVariables().find(name.at(0));
-			if (iterator != typeAlias.namedTemplateVariables().end()) {
+			const auto iterator = alias.namedTemplateVariables().find(name.at(0));
+			if (iterator != alias.namedTemplateVariables().end()) {
 				return SearchResult::TemplateVar(iterator->second);
 			}
 			
@@ -149,8 +149,8 @@ namespace locic {
 				return performNamespaceSearch(*(element.nameSpace()), name, 0);
 			} else if (element.isFunction()) {
 				return performInnerFunctionSearch(*(element.function()), name);
-			} else if (element.isTypeAlias()) {
-				return performInnerTypeAliasSearch(*(element.typeAlias()), name);
+			} else if (element.isAlias()) {
+				return performInnerAliasSearch(*(element.alias()), name);
 			} else if (element.isTypeInstance()) {
 				return performInnerTypeInstanceSearch(*(element.typeInstance()), name);
 			} else if (element.isScope()) {
