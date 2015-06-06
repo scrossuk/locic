@@ -5,33 +5,34 @@
 #include <memory>
 #include <string>
 
+#include <locic/SEM/GlobalStructure.hpp>
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
+	
 	namespace SEM {
 		
+		class Alias;
 		class Function;
 		class Namespace;
-		class TypeAlias;
 		class TypeInstance;
 		
 		class NamespaceItem {
 			public:
 				enum Kind {
+					ALIAS,
 					FUNCTION,
 					NAMESPACE,
-					TYPEALIAS,
 					TYPEINSTANCE
 				};
+				
+				static NamespaceItem Alias(std::unique_ptr<Alias> alias);
 				
 				static NamespaceItem Function(std::unique_ptr<Function> function);
 				
 				static NamespaceItem Namespace(std::unique_ptr<Namespace> nameSpace);
-				
-				static NamespaceItem TypeAlias(std::unique_ptr<TypeAlias> typeAlias);
 				
 				static NamespaceItem TypeInstance(std::unique_ptr<TypeInstance> typeInstance);
 				
@@ -42,14 +43,14 @@ namespace locic {
 				
 				Kind kind() const;
 				
+				bool isAlias() const;
 				bool isFunction() const;
 				bool isNamespace() const;
-				bool isTypeAlias() const;
 				bool isTypeInstance() const;
 				
+				SEM::Alias& alias() const;
 				SEM::Function& function() const;
 				SEM::Namespace& nameSpace() const;
-				SEM::TypeAlias& typeAlias() const;
 				SEM::TypeInstance& typeInstance() const;
 				
 				std::string toString() const;
@@ -64,18 +65,25 @@ namespace locic {
 				
 				union {
 					void* ptr;
+					SEM::Alias* alias;
 					SEM::Function* function;
 					SEM::Namespace* nameSpace;
-					SEM::TypeAlias* typeAlias;
 					SEM::TypeInstance* typeInstance;
 				} data_;
 				
 		};
 		
-		class Namespace {
+		class Namespace: public GlobalStructure {
 			public:
-				Namespace(Name name);
-					
+				// Create root namespace.
+				Namespace();
+				
+				Namespace(Name name, GlobalStructure& parent);
+				
+				GlobalStructure& parent();
+				
+				const GlobalStructure& parent() const;
+				
 				const Name& name() const;
 				
 				FastMap<String, NamespaceItem>& items();
@@ -84,6 +92,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
+				GlobalStructure& parent_;
 				Name name_;
 				FastMap<String, NamespaceItem> items_;
 				

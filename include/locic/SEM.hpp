@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_HPP
 #define LOCIC_SEM_HPP
 
+#include <locic/SEM/Alias.hpp>
 #include <locic/SEM/CatchClause.hpp>
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/ExitStates.hpp>
@@ -15,7 +16,6 @@
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
-#include <locic/SEM/TypeAlias.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/SEM/Var.hpp>

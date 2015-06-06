@@ -9,6 +9,7 @@
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic {
 	
@@ -17,11 +18,11 @@ namespace locic {
 	
 	namespace SEM {
 		
+		class Alias;
 		class Context;
 		class FunctionType;
 		class TemplateVar;
 		class Type;
-		class TypeAlias;
 		class TypeInstance;
 		
 		class Type {
@@ -36,10 +37,9 @@ namespace locic {
 				static const ValueArray NO_TEMPLATE_ARGS;
 				
 				static const Type* Auto(const Context& context);
-				static const Type* Alias(const TypeAlias* typeAlias, ValueArray templateArguments);
+				static const Type* Alias(const Alias& alias, ValueArray templateArguments);
 				static const Type* Object(const TypeInstance* typeInstance, ValueArray templateArguments);
 				static const Type* TemplateVarRef(const TemplateVar* templateVar);
-				static const Type* StaticInterfaceMethod(const FunctionType functionType);
 				
 				const Context& context() const;
 				Kind kind() const;
@@ -73,8 +73,8 @@ namespace locic {
 				bool isAuto() const;
 				bool isAlias() const;
 				
-				const SEM::TypeAlias* getTypeAlias() const;
-				const ValueArray& typeAliasArguments() const;
+				const SEM::Alias& alias() const;
+				const ValueArray& aliasArguments() const;
 				
 				PrimitiveID primitiveID() const;
 				
@@ -165,17 +165,21 @@ namespace locic {
 				
 				union {
 					struct {
-						const TypeAlias* typeAlias;
+						const SEM::Alias* alias;
 					} aliasType;
 					
 					struct {
-						const TypeInstance* typeInstance;
+						const SEM::TypeInstance* typeInstance;
 					} objectType;
 					
 					struct {
-						const TemplateVar* templateVar;
+						const SEM::TemplateVar* templateVar;
 					} templateVarRef;
 				} data_;
+				
+				mutable const Type* cachedResolvedType_;
+				mutable const Type* cachedWithoutTagsType_;
+				mutable Optional<size_t> cachedHashValue_;
 				
 		};
 		

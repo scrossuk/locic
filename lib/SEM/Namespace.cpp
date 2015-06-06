@@ -5,16 +5,22 @@
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/String.hpp>
 
+#include <locic/SEM/Alias.hpp>
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/Scope.hpp>
-#include <locic/SEM/TypeAlias.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
-
-	namespace SEM {
 	
+	namespace SEM {
+		
+		NamespaceItem NamespaceItem::Alias(std::unique_ptr<SEM::Alias> alias) {
+			NamespaceItem item(ALIAS);
+			item.data_.alias = alias.release();
+			return item;
+		}
+		
 		NamespaceItem NamespaceItem::Function(std::unique_ptr<SEM::Function> function) {
 			NamespaceItem item(FUNCTION);
 			item.data_.function = function.release();
@@ -27,12 +33,6 @@ namespace locic {
 			return item;
 		}
 		
-		NamespaceItem NamespaceItem::TypeAlias(std::unique_ptr<SEM::TypeAlias> typeAlias) {
-			NamespaceItem item(TYPEALIAS);
-			item.data_.typeAlias = typeAlias.release();
-			return item;
-		}
-		
 		NamespaceItem NamespaceItem::TypeInstance(std::unique_ptr<SEM::TypeInstance> typeInstance) {
 			NamespaceItem item(TYPEINSTANCE);
 			item.data_.typeInstance = typeInstance.release();
@@ -41,14 +41,14 @@ namespace locic {
 		
 		NamespaceItem::~NamespaceItem() {
 			switch (kind()) {
+				case ALIAS:
+					//delete data_.typeAlias;
+					return;
 				case FUNCTION:
 					//delete data_.function;
 					return;
 				case NAMESPACE:
 					//delete data_.nameSpace;
-					return;
-				case TYPEALIAS:
-					//delete data_.typeAlias;
 					return;
 				case TYPEINSTANCE:
 					//delete data_.typeInstance;
@@ -60,6 +60,10 @@ namespace locic {
 			return kind_;
 		}
 		
+		bool NamespaceItem::isAlias() const {
+			return kind() == ALIAS;
+		}
+		
 		bool NamespaceItem::isFunction() const {
 			return kind() == FUNCTION;
 		}
@@ -68,12 +72,13 @@ namespace locic {
 			return kind() == NAMESPACE;
 		}
 		
-		bool NamespaceItem::isTypeAlias() const {
-			return kind() == TYPEALIAS;
-		}
-		
 		bool NamespaceItem::isTypeInstance() const {
 			return kind() == TYPEINSTANCE;
+		}
+		
+		Alias& NamespaceItem::alias() const {
+			assert(isAlias());
+			return *(data_.alias);
 		}
 		
 		Function& NamespaceItem::function() const {
@@ -86,11 +91,6 @@ namespace locic {
 			return *(data_.nameSpace);
 		}
 		
-		TypeAlias& NamespaceItem::typeAlias() const {
-			assert(isTypeAlias());
-			return *(data_.typeAlias);
-		}
-		
 		TypeInstance& NamespaceItem::typeInstance() const {
 			assert(isTypeInstance());
 			return *(data_.typeInstance);
@@ -98,12 +98,12 @@ namespace locic {
 		
 		std::string NamespaceItem::toString() const {
 			switch (kind()) {
+				case ALIAS:
+					return alias().toString();
 				case FUNCTION:
 					return function().toString();
 				case NAMESPACE:
 					return nameSpace().toString();
-				case TYPEALIAS:
-					return typeAlias().toString();
 				case TYPEINSTANCE:
 					return typeInstance().toString();
 			}
@@ -116,9 +116,21 @@ namespace locic {
 				data_.ptr = nullptr;
 			}
 		
-		Namespace::Namespace(Name n)
-			: name_(std::move(n)) { }
-			
+		Namespace::Namespace()
+			: parent_(*this),
+			name_(Name::Absolute()) { }
+		
+		Namespace::Namespace(Name n, GlobalStructure& argParent)
+			: parent_(argParent), name_(std::move(n)) { }
+		
+		GlobalStructure& Namespace::parent() {
+			return parent_;
+		}
+		
+		const GlobalStructure& Namespace::parent() const {
+			return parent_;
+		}
+		
 		const Name& Namespace::name() const {
 			return name_;
 		}

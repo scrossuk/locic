@@ -1,4 +1,5 @@
 add_library(locic-sem
+	Alias.cpp
 	CatchClause.cpp
 	Context.cpp
 	Function.cpp
@@ -13,7 +14,6 @@ add_library(locic-sem
 	TemplateVar.cpp
 	TemplateVarMap.cpp
 	Type.cpp
-	TypeAlias.cpp
 	TypeInstance.cpp
 	Value.cpp
 	Var.cpp

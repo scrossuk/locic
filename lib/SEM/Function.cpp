@@ -137,11 +137,11 @@ namespace locic {
 			scope_ = std::move(newScope);
 		}
 		
-		void Function::setDebugInfo(const Debug::FunctionInfo newDebugInfo) {
-			debugInfo_ = make_optional(newDebugInfo);
+		void Function::setDebugInfo(Debug::FunctionInfo newDebugInfo) {
+			debugInfo_ = make_optional(std::move(newDebugInfo));
 		}
 		
-		Optional<Debug::FunctionInfo> Function::debugInfo() const {
+		const Optional<Debug::FunctionInfo>& Function::debugInfo() const {
 			return debugInfo_;
 		}
 		

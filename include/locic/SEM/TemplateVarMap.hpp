@@ -5,7 +5,9 @@
 #include <cstddef>
 #include <string>
 
+#include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/SEM/Value.hpp>
+#include <locic/SEM/ValueArray.hpp>
 #include <locic/Support/Array.hpp>
 
 namespace locic {
@@ -37,6 +39,14 @@ namespace locic {
 				using const_iterator = ArrayType::const_iterator;
 				
 				TemplateVarMap() { }
+				
+				TemplateVarMap(TemplateVarArray variables,
+				               ValueArray values) {
+					assert(variables.size() == values.size());
+					for (size_t i = 0; i < variables.size(); i++) {
+						insert(std::make_pair(variables[i], std::move(values[i])));
+					}
+				}
 				
 				TemplateVarMap copy() const {
 					TemplateVarMap newMap;

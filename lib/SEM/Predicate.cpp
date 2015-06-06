@@ -148,17 +148,7 @@ namespace locic {
 					}
 					
 					const auto& templateValue = iterator->second;
-					
-					if (templateValue.isConstant()) {
-						assert(templateValue.constant().kind() == Constant::BOOLEAN);
-						return templateValue.constant().boolValue() ? Predicate::True() : Predicate::False();
-					} else if (templateValue.isPredicate()) {
-						return templateValue.predicate().copy();
-					} else if (templateValue.isTemplateVarRef()) {
-						return Predicate::Variable(const_cast<TemplateVar*>(templateValue.templateVar()));
-					} else {
-						throw std::logic_error(makeString("Unknown substitution value kind: %s.", templateValue.toString().c_str()));
-					}
+					return templateValue.makePredicate();
 				}
 			}
 			

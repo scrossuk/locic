@@ -42,6 +42,7 @@ namespace locic {
 			private:
 				Context& context_;
 				const Type* type_;
+				const Type* selfRefType_;
 				Name name_;
 				size_t index_;
 				bool isVirtual_;

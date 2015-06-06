@@ -1,21 +1,107 @@
+#include <memory>
+
 #include <locic/Constant.hpp>
+#include <locic/Debug/ValueInfo.hpp>
+#include <locic/SEM/Alias.hpp>
+#include <locic/SEM/ExitStates.hpp>
+#include <locic/SEM/Function.hpp>
+#include <locic/SEM/Predicate.hpp>
+#include <locic/SEM/Type.hpp>
+#include <locic/SEM/TypeInstance.hpp>
+#include <locic/SEM/Value.hpp>
+#include <locic/SEM/ValueArray.hpp>
+#include <locic/SEM/Var.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Hasher.hpp>
 #include <locic/Support/HeapArray.hpp>
 #include <locic/Support/Optional.hpp>
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/ExitStates.hpp>
-#include <locic/SEM/Function.hpp>
-#include <locic/SEM/Type.hpp>
-#include <locic/SEM/TypeInstance.hpp>
-#include <locic/SEM/Value.hpp>
-#include <locic/SEM/Var.hpp>
-
 namespace locic {
 
 	namespace SEM {
 	
+		class ValueImpl {
+		public:
+			ValueImpl()
+			: exitStates(ExitStates::None()) { }
+			
+			Value::Kind kind;
+			ExitStates exitStates;
+			const Type* type;
+			Optional<Debug::ValueInfo> debugInfo;
+			
+			Value value0, value1, value2;
+			Optional<Predicate> predicate;
+			TypeArray typeArray;
+			ValueArray valueArray;
+			
+			union {
+				locic::Constant constant;
+				const SEM::Alias* alias;
+				
+				struct {
+					const Var* var;
+				} localVar;
+				
+				struct {
+					const Type* targetType;
+				} sizeOf;
+				
+				struct {
+					const TypeInstance* typeInstance;
+				} unionDataOffset;
+				
+				struct {
+					const TypeInstance* typeInstance;
+					size_t memberIndex;
+				} memberOffset;
+				
+				struct {
+					const Type* targetType;
+				} cast;
+				
+				struct {
+					const Type* targetType;
+				} polyCast;
+				
+				struct {
+					const Type* targetType;
+				} makeLval;
+				
+				struct {
+					const Type* targetType;
+				} makeRef;
+				
+				struct {
+					const Type* targetType;
+				} makeStaticRef;
+				
+				struct {
+					const Var* memberVar;
+				} memberAccess;
+				
+				struct {
+					const Type* targetType;
+				} typeRef;
+				
+				struct {
+					const TemplateVar* templateVar;
+				} templateVarRef;
+				
+				struct {
+					const Type* parentType;
+					Function* function;
+				} functionRef;
+				
+				struct {
+					const Type* parentType;
+					String name;
+					const Type* functionType;
+				} templateFunctionRef;
+			} union_;
+		};
+		
 		Value Value::ZeroInitialise(const Type* const type) {
 			// Currently only works for unions.
 			assert(type->isUnion());
@@ -31,7 +117,7 @@ namespace locic {
 			assert(operand.type()->refTarget() == type);
 			
 			Value value(MEMCOPY, type, ExitStates::Normal());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
@@ -45,7 +131,17 @@ namespace locic {
 		
 		Value Value::Constant(const locic::Constant constant, const Type* const type) {
 			Value value(CONSTANT, type, ExitStates::Normal());
-			value.union_.constant_ = constant;
+			value.impl_->union_.constant = constant;
+			return value;
+		}
+		
+		Value Value::Alias(const SEM::Alias& alias,
+		                   ValueArray templateArguments) {
+			// TODO: fix exit states!
+			assert(alias.type() != nullptr);
+			Value value(ALIAS, alias.type(), ExitStates::Normal());
+			value.impl_->valueArray = std::move(templateArguments);
+			value.impl_->union_.alias = &alias;
 			return value;
 		}
 		
@@ -59,39 +155,39 @@ namespace locic {
 			}
 			
 			Value value(PREDICATE, boolType, ExitStates::Normal());
-			value.predicate_ = make_optional(std::move(predicate));
+			value.impl_->predicate = make_optional(std::move(predicate));
 			return value;
 		}
 		
 		Value Value::LocalVar(const Var& var, const Type* const type) {
 			assert(type->isRef() && type->isBuiltInReference());
 			Value value(LOCALVAR, type, ExitStates::Normal());
-			value.union_.localVar_.var = &var;
+			value.impl_->union_.localVar.var = &var;
 			return value;
 		}
 		
 		Value Value::SizeOf(const Type* const targetType, const Type* const sizeType) {
 			Value value(SIZEOF, sizeType, ExitStates::Normal());
-			value.union_.sizeOf_.targetType = targetType;
+			value.impl_->union_.sizeOf.targetType = targetType;
 			return value;
 		}
 		
 		Value Value::UnionDataOffset(const TypeInstance* const typeInstance, const Type* const sizeType) {
 			Value value(UNIONDATAOFFSET, sizeType, ExitStates::Normal());
-			value.union_.unionDataOffset_.typeInstance = typeInstance;
+			value.impl_->union_.unionDataOffset.typeInstance = typeInstance;
 			return value;
 		}
 		
 		Value Value::MemberOffset(const TypeInstance* const typeInstance, const size_t memberIndex, const Type* const sizeType) {
 			Value value(MEMBEROFFSET, sizeType, ExitStates::Normal());
-			value.union_.memberOffset_.typeInstance = typeInstance;
-			value.union_.memberOffset_.memberIndex = memberIndex;
+			value.impl_->union_.memberOffset.typeInstance = typeInstance;
+			value.impl_->union_.memberOffset.memberIndex = memberIndex;
 			return value;
 		}
 		
 		Value Value::Reinterpret(Value operand, const Type* const type) {
 			Value value(REINTERPRET, type, operand.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
@@ -99,79 +195,79 @@ namespace locic {
 			assert(operand.type()->isRef() && operand.type()->isBuiltInReference());
 			assert(operand.type()->refTarget()->isRef() && operand.type()->refTarget()->isBuiltInReference());
 			Value value(DEREF_REFERENCE, operand.type()->refTarget(), operand.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
 		Value Value::Ternary(Value condition, Value ifTrue, Value ifFalse) {
 			assert(ifTrue.type() == ifFalse.type());
 			Value value(TERNARY, ifTrue.type(), condition.exitStates() | ifTrue.exitStates() | ifFalse.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(condition)));
-			value.value1_ = std::unique_ptr<Value>(new Value(std::move(ifTrue)));
-			value.value2_ = std::unique_ptr<Value>(new Value(std::move(ifFalse)));
+			value.impl_->value0 = std::move(condition);
+			value.impl_->value1 = std::move(ifTrue);
+			value.impl_->value2 = std::move(ifFalse);
 			return value;
 		}
 		
 		Value Value::Cast(const Type* const targetType, Value operand) {
 			Value value(CAST, targetType, operand.exitStates());
-			value.union_.cast_.targetType = targetType;
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->union_.cast.targetType = targetType;
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
 		Value Value::PolyCast(const Type* const targetType, Value operand) {
 			Value value(POLYCAST, targetType, operand.exitStates());
-			value.union_.polyCast_.targetType = targetType;
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->union_.polyCast.targetType = targetType;
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
 		Value Value::Lval(const Type* const targetType, Value operand) {
 			Value value(LVAL, operand.type()->createLvalType(targetType), operand.exitStates());
-			value.union_.makeLval_.targetType = targetType;
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->union_.makeLval.targetType = targetType;
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
 		Value Value::NoLval(Value operand) {
 			Value value(NOLVAL, operand.type()->withoutLval(), operand.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
 		Value Value::Ref(const Type* const targetType, Value operand) {
 			Value value(REF, operand.type()->createRefType(targetType), operand.exitStates());
-			value.union_.makeRef_.targetType = targetType;
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->union_.makeRef.targetType = targetType;
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
 		Value Value::NoRef(Value operand) {
 			Value value(NOREF, operand.type()->withoutRef(), operand.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
 		Value Value::StaticRef(const Type* const targetType, Value operand) {
 			Value value(STATICREF, operand.type()->createStaticRefType(targetType), operand.exitStates());
-			value.union_.makeStaticRef_.targetType = targetType;
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->union_.makeStaticRef.targetType = targetType;
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
 		Value Value::NoStaticRef(Value operand) {
 			Value value(NOSTATICREF, operand.type()->withoutLvalOrRef(), operand.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
-		Value Value::InternalConstruct(const Type* const parentType, HeapArray<Value> parameters) {
+		Value Value::InternalConstruct(const Type* const parentType, ValueArray parameters) {
 			ExitStates exitStates = ExitStates::Normal();
 			for (const auto& param: parameters) {
 				exitStates |= param.exitStates();
 			}
 			Value value(INTERNALCONSTRUCT, parentType, exitStates);
-			value.valueArray_ = std::move(parameters);
+			value.impl_->valueArray = std::move(parameters);
 			return value;
 		}
 		
@@ -184,8 +280,8 @@ namespace locic {
 			//const auto memberType = derefType->isConst() ? var->type()->createConstType() : var->type();
 			//SEM::Type::Reference(memberType)->createRefType(memberType)
 			Value value(MEMBERACCESS, type, object.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(object)));
-			value.union_.memberAccess_.memberVar = &var;
+			value.impl_->value0 = std::move(object);
+			value.impl_->union_.memberAccess.memberVar = &var;
 			return value;
 		}
 		
@@ -193,7 +289,7 @@ namespace locic {
 			assert(type->isRef() && type->isBuiltInReference());
 			assert(operand.type() == type->refTarget());
 			Value value(BIND_REFERENCE, type, operand.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(operand)));
+			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
@@ -201,7 +297,7 @@ namespace locic {
 			assert(type->isStaticRef() && type->isBuiltInTypename());
 			
 			Value value(TYPEREF, type, ExitStates::Normal());
-			value.union_.typeRef_.targetType = targetType;
+			value.impl_->union_.typeRef.targetType = targetType;
 			return value;
 		}
 		
@@ -209,11 +305,11 @@ namespace locic {
 			assert(type->isBuiltInBool());
 			
 			Value value(TEMPLATEVARREF, type, ExitStates::Normal());
-			value.union_.templateVarRef_.templateVar = targetVar;
+			value.impl_->union_.templateVarRef.templateVar = targetVar;
 			return value;
 		}
 		
-		Value Value::Call(Value functionValue, HeapArray<Value> parameters) {
+		Value Value::Call(Value functionValue, ValueArray parameters) {
 			assert(functionValue.type()->isCallable());
 			const auto functionType = functionValue.type()->asFunctionType();
 			
@@ -228,18 +324,18 @@ namespace locic {
 			}
 			
 			Value value(CALL, functionType.returnType(), exitStates);
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(functionValue)));
-			value.valueArray_ = std::move(parameters);
+			value.impl_->value0 = std::move(functionValue);
+			value.impl_->valueArray = std::move(parameters);
 			return value;
 		}
 		
-		Value Value::FunctionRef(const Type* const parentType, Function* function, HeapArray<Value> templateArguments, const Type* const type) {
+		Value Value::FunctionRef(const Type* const parentType, Function* function, ValueArray templateArguments, const Type* const type) {
 			assert(parentType == NULL || parentType->isObject());
 			assert(type != NULL && type->isCallable());
 			Value value(FUNCTIONREF, type, ExitStates::Normal());
-			value.union_.functionRef_.parentType = parentType;
-			value.union_.functionRef_.function = function;
-			value.valueArray_ = std::move(templateArguments);
+			value.impl_->union_.functionRef.parentType = parentType;
+			value.impl_->union_.functionRef.function = function;
+			value.impl_->valueArray = std::move(templateArguments);
 			return value;
 		}
 		
@@ -247,9 +343,9 @@ namespace locic {
 			assert(parentType->isTemplateVar());
 			assert(functionType != NULL && functionType->isCallable());
 			Value value(TEMPLATEFUNCTIONREF, functionType, ExitStates::Normal());
-			value.union_.templateFunctionRef_.parentType = parentType;
-			value.union_.templateFunctionRef_.name = name;
-			value.union_.templateFunctionRef_.functionType = functionType;
+			value.impl_->union_.templateFunctionRef.parentType = parentType;
+			value.impl_->union_.templateFunctionRef.name = name;
+			value.impl_->union_.templateFunctionRef.functionType = functionType;
 			return value;
 		}
 		
@@ -258,8 +354,8 @@ namespace locic {
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			assert(methodType->isBuiltInMethod() || methodType->isBuiltInTemplatedMethod());
 			Value value(METHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
-			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
+			value.impl_->value0 = std::move(method);
+			value.impl_->value1 = std::move(methodOwner);
 			return value;
 		}
 		
@@ -269,8 +365,8 @@ namespace locic {
 			assert(methodOwner.type()->refTarget()->isInterface());
 			assert(methodType->isBuiltInInterfaceMethod());
 			Value value(INTERFACEMETHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
-			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
+			value.impl_->value0 = std::move(method);
+			value.impl_->value1 = std::move(methodOwner);
 			return value;
 		}
 		
@@ -279,8 +375,8 @@ namespace locic {
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			assert(methodType->isBuiltInStaticInterfaceMethod());
 			Value value(STATICINTERFACEMETHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
-			value.value0_ = std::unique_ptr<Value>(new Value(std::move(method)));
-			value.value1_ = std::unique_ptr<Value>(new Value(std::move(methodOwner)));
+			value.impl_->value0 = std::move(method);
+			value.impl_->value1 = std::move(methodOwner);
 			return value;
 		}
 		
@@ -288,28 +384,32 @@ namespace locic {
 			return Value(CASTDUMMYOBJECT, type, ExitStates::Normal());
 		}
 		
-		// Just set to something invalid to trigger later errors.
-		constexpr Value::Kind INVALID_KIND = static_cast<Value::Kind>(1000);
-		
-		Value::Value() : kind_(INVALID_KIND), exitStates_(ExitStates::None()), type_(NULL) { }
+		Value::Value() { }
 		
 		Value::Value(const Kind argKind, const Type* const argType, const ExitStates argExitStates)
-		: kind_(argKind), exitStates_(argExitStates), type_(argType) {
-			assert(type_ != NULL);
-			assert(exitStates_.hasNormalExit() || exitStates_.hasThrowExit());
+		: impl_(std::make_shared<ValueImpl>()) {
+			assert(argType != NULL);
+			assert(argExitStates.hasNormalExit() || argExitStates.hasThrowExit());
+			
+			impl_->kind = argKind;
+			impl_->exitStates = argExitStates;
+			impl_->type = argType;
 		}
 		
+		Value::~Value() { }
+		
 		Value::Kind Value::kind() const {
-			return kind_;
+			return impl_->kind;
 		}
 		
 		const Type* Value::type() const {
-			return type_;
+			return impl_->type;
 		}
 		
 		ExitStates Value::exitStates() const {
-			assert(exitStates_.hasNormalExit() || exitStates_.hasThrowExit());
-			return exitStates_;
+			assert(impl_->exitStates.hasNormalExit() ||
+				impl_->exitStates.hasThrowExit());
+			return impl_->exitStates;
 		}
 		
 		bool Value::isZeroInitialise() const {
@@ -322,7 +422,7 @@ namespace locic {
 		
 		const Value& Value::memCopyOperand() const {
 			assert(isMemCopy());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isSelf() const {
@@ -339,7 +439,21 @@ namespace locic {
 		
 		const locic::Constant& Value::constant() const {
 			assert(isConstant());
-			return union_.constant_;
+			return impl_->union_.constant;
+		}
+		
+		bool Value::isAlias() const {
+			return kind() == ALIAS;
+		}
+		
+		const SEM::Alias& Value::alias() const {
+			assert(isAlias());
+			return *(impl_->union_.alias);
+		}
+		
+		const ValueArray& Value::aliasTemplateArguments() const {
+			assert(isAlias());
+			return impl_->valueArray;
 		}
 		
 		bool Value::isPredicate() const {
@@ -348,7 +462,7 @@ namespace locic {
 		
 		const Predicate& Value::predicate() const {
 			assert(isPredicate());
-			return *predicate_;
+			return *(impl_->predicate);
 		}
 		
 		bool Value::isLocalVarRef() const {
@@ -357,7 +471,7 @@ namespace locic {
 		
 		const Var& Value::localVar() const {
 			assert(isLocalVarRef());
-			return *(union_.localVar_.var);
+			return *(impl_->union_.localVar.var);
 		}
 		
 		bool Value::isSizeOf() const {
@@ -366,7 +480,7 @@ namespace locic {
 		
 		const Type* Value::sizeOfType() const {
 			assert(isSizeOf());
-			return union_.sizeOf_.targetType;
+			return impl_->union_.sizeOf.targetType;
 		}
 		
 		bool Value::isUnionDataOffset() const {
@@ -375,7 +489,7 @@ namespace locic {
 		
 		const TypeInstance* Value::unionDataOffsetTypeInstance() const {
 			assert(isUnionDataOffset());
-			return union_.unionDataOffset_.typeInstance;
+			return impl_->union_.unionDataOffset.typeInstance;
 		}
 		
 		bool Value::isMemberOffset() const {
@@ -384,12 +498,12 @@ namespace locic {
 		
 		const TypeInstance* Value::memberOffsetTypeInstance() const {
 			assert(isMemberOffset());
-			return union_.memberOffset_.typeInstance;
+			return impl_->union_.memberOffset.typeInstance;
 		}
 		
 		size_t Value::memberOffsetMemberIndex() const {
 			assert(isMemberOffset());
-			return union_.memberOffset_.memberIndex;
+			return impl_->union_.memberOffset.memberIndex;
 		}
 		
 		bool Value::isReinterpret() const {
@@ -398,7 +512,7 @@ namespace locic {
 		
 		const Value& Value::reinterpretOperand() const {
 			assert(isReinterpret());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isDeref() const {
@@ -407,7 +521,7 @@ namespace locic {
 		
 		const Value& Value::derefOperand() const {
 			assert(isDeref());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isTernary() const {
@@ -416,17 +530,17 @@ namespace locic {
 		
 		const Value& Value::ternaryCondition() const {
 			assert(isTernary());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		const Value& Value::ternaryIfTrue() const {
 			assert(isTernary());
-			return *(value1_);
+			return impl_->value1;
 		}
 		
 		const Value& Value::ternaryIfFalse() const {
 			assert(isTernary());
-			return *(value2_);
+			return impl_->value2;
 		}
 		
 		bool Value::isCast() const {
@@ -435,12 +549,12 @@ namespace locic {
 		
 		const Type* Value::castTargetType() const {
 			assert(isCast());
-			return union_.cast_.targetType;
+			return impl_->union_.cast.targetType;
 		}
 		
 		const Value& Value::castOperand() const {
 			assert(isCast());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isPolyCast() const {
@@ -449,12 +563,12 @@ namespace locic {
 		
 		const Type* Value::polyCastTargetType() const {
 			assert(isPolyCast());
-			return union_.polyCast_.targetType;
+			return impl_->union_.polyCast.targetType;
 		}
 		
 		const Value& Value::polyCastOperand() const {
 			assert(isPolyCast());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isMakeLval() const {
@@ -463,12 +577,12 @@ namespace locic {
 		
 		const Type* Value::makeLvalTargetType() const {
 			assert(isMakeLval());
-			return union_.makeLval_.targetType;
+			return impl_->union_.makeLval.targetType;
 		}
 		
 		const Value& Value::makeLvalOperand() const {
 			assert(isMakeLval());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isMakeNoLval() const {
@@ -477,7 +591,7 @@ namespace locic {
 		
 		const Value& Value::makeNoLvalOperand() const {
 			assert(isMakeNoLval());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isMakeRef() const {
@@ -486,12 +600,12 @@ namespace locic {
 		
 		const Type* Value::makeRefTargetType() const {
 			assert(isMakeRef());
-			return union_.makeRef_.targetType;
+			return impl_->union_.makeRef.targetType;
 		}
 		
 		const Value& Value::makeRefOperand() const {
 			assert(isMakeRef());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isMakeNoRef() const {
@@ -500,7 +614,7 @@ namespace locic {
 		
 		const Value& Value::makeNoRefOperand() const {
 			assert(isMakeNoRef());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isMakeStaticRef() const {
@@ -509,12 +623,12 @@ namespace locic {
 		
 		const Type* Value::makeStaticRefTargetType() const {
 			assert(isMakeStaticRef());
-			return union_.makeStaticRef_.targetType;
+			return impl_->union_.makeStaticRef.targetType;
 		}
 		
 		const Value& Value::makeStaticRefOperand() const {
 			assert(isMakeStaticRef());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isMakeNoStaticRef() const {
@@ -523,16 +637,16 @@ namespace locic {
 		
 		const Value& Value::makeNoStaticRefOperand() const {
 			assert(isMakeNoStaticRef());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isInternalConstruct() const {
 			return kind() == INTERNALCONSTRUCT;
 		}
 		
-		const HeapArray<Value>& Value::internalConstructParameters() const {
+		const ValueArray& Value::internalConstructParameters() const {
 			assert(isInternalConstruct());
-			return valueArray_;
+			return impl_->valueArray;
 		}
 		
 		bool Value::isMemberAccess() const {
@@ -541,12 +655,12 @@ namespace locic {
 		
 		const Value& Value::memberAccessObject() const {
 			assert(isMemberAccess());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		const Var& Value::memberAccessVar() const {
 			assert(isMemberAccess());
-			return *(union_.memberAccess_.memberVar);
+			return *(impl_->union_.memberAccess.memberVar);
 		}
 		
 		bool Value::isBindReference() const {
@@ -555,7 +669,7 @@ namespace locic {
 		
 		const Value& Value::bindReferenceOperand() const {
 			assert(isBindReference());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		bool Value::isTypeRef() const {
@@ -564,7 +678,7 @@ namespace locic {
 		
 		const Type* Value::typeRefType() const {
 			assert(isTypeRef());
-			return union_.typeRef_.targetType;
+			return impl_->union_.typeRef.targetType;
 		}
 		
 		bool Value::isTemplateVarRef() const {
@@ -573,7 +687,7 @@ namespace locic {
 		
 		const TemplateVar* Value::templateVar() const {
 			assert(isTemplateVarRef());
-			return union_.templateVarRef_.templateVar;
+			return impl_->union_.templateVarRef.templateVar;
 		}
 		
 		bool Value::isCall() const {
@@ -582,12 +696,12 @@ namespace locic {
 		
 		const Value& Value::callValue() const {
 			assert(isCall());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
-		const HeapArray<Value>& Value::callParameters() const {
+		const ValueArray& Value::callParameters() const {
 			assert(isCall());
-			return valueArray_;
+			return impl_->valueArray;
 		}
 		
 		bool Value::isFunctionRef() const {
@@ -596,17 +710,17 @@ namespace locic {
 		
 		const Type* Value::functionRefParentType() const {
 			assert(isFunctionRef());
-			return union_.functionRef_.parentType;
+			return impl_->union_.functionRef.parentType;
 		}
 		
 		Function* Value::functionRefFunction() const {
 			assert(isFunctionRef());
-			return union_.functionRef_.function;
+			return impl_->union_.functionRef.function;
 		}
 		
-		const HeapArray<Value>& Value::functionRefTemplateArguments() const {
+		const ValueArray& Value::functionRefTemplateArguments() const {
 			assert(isFunctionRef());
-			return valueArray_;
+			return impl_->valueArray;
 		}
 		
 		bool Value::isTemplateFunctionRef() const {
@@ -615,17 +729,17 @@ namespace locic {
 		
 		const Type* Value::templateFunctionRefParentType() const {
 			assert(isTemplateFunctionRef());
-			return union_.templateFunctionRef_.parentType;
+			return impl_->union_.templateFunctionRef.parentType;
 		}
 		
 		const String& Value::templateFunctionRefName() const {
 			assert(isTemplateFunctionRef());
-			return union_.templateFunctionRef_.name;
+			return impl_->union_.templateFunctionRef.name;
 		}
 		
 		const Type* Value::templateFunctionRefFunctionType() const {
 			assert(isTemplateFunctionRef());
-			return union_.templateFunctionRef_.functionType;
+			return impl_->union_.templateFunctionRef.functionType;
 		}
 		
 		bool Value::isMethodObject() const {
@@ -634,12 +748,12 @@ namespace locic {
 		
 		const Value& Value::methodObject() const {
 			assert(isMethodObject());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		const Value& Value::methodOwner() const {
 			assert(isMethodObject());
-			return *(value1_);
+			return impl_->value1;
 		}
 		
 		bool Value::isInterfaceMethodObject() const {
@@ -648,12 +762,12 @@ namespace locic {
 		
 		const Value& Value::interfaceMethodObject() const {
 			assert(isInterfaceMethodObject());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		const Value& Value::interfaceMethodOwner() const {
 			assert(isInterfaceMethodObject());
-			return *(value1_);
+			return impl_->value1;
 		}
 		
 		bool Value::isStaticInterfaceMethodObject() const {
@@ -662,20 +776,20 @@ namespace locic {
 		
 		const Value& Value::staticInterfaceMethodObject() const {
 			assert(isStaticInterfaceMethodObject());
-			return *(value0_);
+			return impl_->value0;
 		}
 		
 		const Value& Value::staticInterfaceMethodOwner() const {
 			assert(isStaticInterfaceMethodObject());
-			return *(value1_);
+			return impl_->value1;
 		}
 		
-		void Value::setDebugInfo(const Debug::ValueInfo newDebugInfo) {
-			debugInfo_ = make_optional(newDebugInfo);
+		void Value::setDebugInfo(Debug::ValueInfo newDebugInfo) {
+			impl_->debugInfo = make_optional(std::move(newDebugInfo));
 		}
 		
-		Optional<Debug::ValueInfo> Value::debugInfo() const {
-			return debugInfo_;
+		const Optional<Debug::ValueInfo>& Value::debugInfo() const {
+			return impl_->debugInfo;
 		}
 		
 		size_t Value::hash() const {
@@ -695,6 +809,13 @@ namespace locic {
 					break;
 				case Value::CONSTANT:
 					hasher.add(constant());
+					break;
+				case Value::ALIAS:
+					hasher.add(&(alias()));
+					hasher.add(aliasTemplateArguments().size());
+					for (const auto& argument: aliasTemplateArguments()) {
+						hasher.add(argument);
+					}
 					break;
 				case Value::PREDICATE:
 					hasher.add(predicate());
@@ -830,6 +951,9 @@ namespace locic {
 					return true;
 				case Value::CONSTANT:
 					return constant() == value.constant();
+				case Value::ALIAS:
+					return &(alias()) == &(value.alias()) &&
+						aliasTemplateArguments() == value.aliasTemplateArguments();
 				case Value::PREDICATE:
 					return predicate() == value.predicate();
 				case Value::LOCALVAR:
@@ -893,96 +1017,9 @@ namespace locic {
 			throw std::logic_error("Unknown value kind.");
 		}
 		
-		static Value basicCopyValue(const Value& value) {
-			switch (value.kind()) {
-				case Value::ZEROINITIALISE:
-					return Value::ZeroInitialise(value.type());
-				case Value::MEMCOPY:
-					return Value::MemCopy(value.memCopyOperand().copy(), value.type());
-				case Value::SELF:
-					return Value::Self(value.type());
-				case Value::THIS:
-					return Value::This(value.type());
-				case Value::CONSTANT:
-					return Value::Constant(value.constant(), value.type());
-				case Value::PREDICATE:
-					return Value::PredicateExpr(value.predicate().copy(), value.type());
-				case Value::LOCALVAR:
-					return Value::LocalVar(value.localVar(), value.type());
-				case Value::SIZEOF:
-					return Value::SizeOf(value.sizeOfType(), value.type());
-				case Value::UNIONDATAOFFSET:
-					return Value::UnionDataOffset(value.unionDataOffsetTypeInstance(), value.type());
-				case Value::MEMBEROFFSET:
-					return Value::MemberOffset(value.memberOffsetTypeInstance(), value.memberOffsetMemberIndex(), value.type());
-				case Value::REINTERPRET:
-					return Value::Reinterpret(value.reinterpretOperand().copy(), value.type());
-				case Value::DEREF_REFERENCE:
-					return Value::DerefReference(value.derefOperand().copy());
-				case Value::TERNARY:
-					return Value::Ternary(value.ternaryCondition().copy(), value.ternaryIfTrue().copy(), value.ternaryIfFalse().copy());
-				case Value::CAST:
-					return Value::Cast(value.castTargetType(), value.castOperand().copy());
-				case Value::POLYCAST:
-					return Value::PolyCast(value.polyCastTargetType(), value.polyCastOperand().copy());
-				case Value::LVAL:
-					return Value::Lval(value.makeLvalTargetType(), value.makeLvalOperand().copy());
-				case Value::NOLVAL:
-					return Value::NoLval(value.makeNoLvalOperand().copy());
-				case Value::REF:
-					return Value::Ref(value.makeRefTargetType(), value.makeRefOperand().copy());
-				case Value::NOREF:
-					return Value::NoRef(value.makeNoRefOperand().copy());
-				case Value::STATICREF:
-					return Value::StaticRef(value.makeStaticRefTargetType(), value.makeStaticRefOperand().copy());
-				case Value::NOSTATICREF:
-					return Value::NoStaticRef(value.makeNoStaticRefOperand().copy());
-				case Value::INTERNALCONSTRUCT: {
-					HeapArray<Value> parameters;
-					parameters.reserve(value.internalConstructParameters().size());
-					for (const auto& parameter: value.internalConstructParameters()) {
-						parameters.push_back(parameter.copy());
-					}
-					return Value::InternalConstruct(value.type(), std::move(parameters));
-				}
-				case Value::MEMBERACCESS:
-					return Value::MemberAccess(value.memberAccessObject().copy(), value.memberAccessVar(), value.type());
-				case Value::BIND_REFERENCE:
-					return Value::BindReference(value.bindReferenceOperand().copy(), value.type());
-				case Value::TYPEREF:
-					return Value::TypeRef(value.typeRefType(), value.type());
-				case Value::TEMPLATEVARREF:
-					return Value::TemplateVarRef(value.templateVar(), value.type());
-				case Value::CALL: {
-					HeapArray<Value> parameters;
-					parameters.reserve(value.callParameters().size());
-					for (const auto& parameter: value.callParameters()) {
-						parameters.push_back(parameter.copy());
-					}
-					return Value::Call(value.callValue().copy(), std::move(parameters));
-				}
-				case Value::FUNCTIONREF:
-					return Value::FunctionRef(value.functionRefParentType(), value.functionRefFunction(), value.functionRefTemplateArguments().copy(), value.type());
-				case Value::TEMPLATEFUNCTIONREF:
-					return Value::TemplateFunctionRef(value.templateFunctionRefParentType(), value.templateFunctionRefName(), value.templateFunctionRefFunctionType());
-				case Value::METHODOBJECT:
-					return Value::MethodObject(value.methodObject().copy(), value.methodOwner().copy(), value.type());
-				case Value::INTERFACEMETHODOBJECT:
-					return Value::InterfaceMethodObject(value.interfaceMethodObject().copy(), value.interfaceMethodOwner().copy(), value.type());
-				case Value::STATICINTERFACEMETHODOBJECT:
-					return Value::StaticInterfaceMethodObject(value.staticInterfaceMethodObject().copy(), value.staticInterfaceMethodOwner().copy(), value.type());
-				case Value::CASTDUMMYOBJECT:
-					return Value::CastDummy(value.type());
-			}
-			
-			throw std::logic_error("Unknown value kind.");
-		}
-		
 		Value Value::copy() const {
-			auto copyValue = basicCopyValue(*this);
-			if (debugInfo()) {
-				copyValue.setDebugInfo(*debugInfo());
-			}
+			Value copyValue;
+			copyValue.impl_ = impl_;
 			return copyValue;
 		}
 		
@@ -1016,6 +1053,14 @@ namespace locic {
 			switch (kind()) {
 				case CONSTANT:
 					return copy();
+				case ALIAS: {
+					ValueArray arguments;
+					arguments.reserve(aliasTemplateArguments().size());
+					for (const auto& argument: aliasTemplateArguments()) {
+						arguments.push_back(argument.substitute(templateVarMap));
+					}
+					return Value::Alias(alias(), std::move(arguments));
+				}
 				case TYPEREF:
 					return SEM::Value::TypeRef(typeRefType()->substitute(templateVarMap), type()->substitute(templateVarMap));
 				case TEMPLATEVARREF: {
@@ -1026,8 +1071,52 @@ namespace locic {
 						return copy();
 					}
 				}
+				case CALL: {
+					auto value = callValue().substitute(templateVarMap);
+					ValueArray parameters;
+					parameters.reserve(callParameters().size());
+					
+					for (const auto& parameter: callParameters()) {
+						parameters.push_back(parameter.substitute(templateVarMap));
+					}
+					
+					return Call(std::move(value), std::move(parameters));
+				}
+				case FUNCTIONREF: {
+					ValueArray templateArguments;
+					templateArguments.reserve(functionRefTemplateArguments().size());
+					
+					for (const auto& templateArgument: functionRefTemplateArguments()) {
+						templateArguments.push_back(templateArgument.substitute(templateVarMap));
+					}
+					
+					return FunctionRef(functionRefParentType()->substitute(templateVarMap),
+					                   functionRefFunction(),
+					                   std::move(templateArguments),
+					                   type()->substitute(templateVarMap));
+				}
 				default:
 					throw std::logic_error(makeString("substitute() not implemented for: %s", toString().c_str()));
+			}
+		}
+		
+		Predicate Value::makePredicate() const {
+			switch (kind()) {
+				case CONSTANT:
+					assert(constant().kind() == Constant::BOOLEAN);
+					return constant().boolValue() ? Predicate::True() : Predicate::False();
+				case ALIAS: {
+					TemplateVarMap assignments(alias().templateVariables().copy(),
+					                           aliasTemplateArguments().copy());
+					return alias().value().substitute(assignments).makePredicate();
+				}
+				case PREDICATE:
+					return predicate().copy();
+				case TEMPLATEVARREF: {
+					return Predicate::Variable(const_cast<TemplateVar*>(templateVar()));
+				}
+				default:
+					throw std::logic_error(makeString("Invalid value for predicate: %s", toString().c_str()));
 			}
 		}
 		
@@ -1043,6 +1132,10 @@ namespace locic {
 					return "this";
 				case CONSTANT:
 					return makeString("Constant(%s)", constant().toString().c_str());
+				case ALIAS:
+					return makeString("Alias(alias: %s, templateArguments: %s)",
+					                  alias().toString().c_str(),
+					                  makeArrayString(aliasTemplateArguments()).c_str());
 				case PREDICATE:
 					return makeString("Predicate(%s)", predicate().toString().c_str());
 				case LOCALVAR:

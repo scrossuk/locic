@@ -16,6 +16,7 @@ namespace locic {
 		                         const bool argIsVirtual)
 			: context_(argContext),
 			  type_(nullptr),
+			  selfRefType_(nullptr),
 			  name_(std::move(argName)),
 			  index_(argIndex),
 			  isVirtual_(argIsVirtual) { }
@@ -38,6 +39,9 @@ namespace locic {
 		
 		void TemplateVar::setType(const Type* const argType) {
 			type_ = argType;
+			if (type_->isBuiltInTypename()) {
+				selfRefType_ = SEM::Type::TemplateVarRef(this);
+			}
 		}
 		
 		const Type* TemplateVar::type() const {
@@ -56,7 +60,7 @@ namespace locic {
 		
 		const Type* TemplateVar::selfRefType() const {
 			assert(type()->isBuiltInTypename());
-			return SEM::Type::TemplateVarRef(this);
+			return selfRefType_;
 		}
 		
 		void TemplateVar::setDebugInfo(const Debug::TemplateVarInfo newDebugInfo) {

@@ -12,7 +12,7 @@ namespace locic {
 		class ContextImpl {
 		public:
 			ContextImpl()
-			: rootNamespace(new SEM::Namespace(Name::Absolute())) { }
+			: rootNamespace(new SEM::Namespace()) { }
 			
 			std::unique_ptr<Namespace> rootNamespace;
 			mutable StableSet<FunctionTypeData> functionTypes;

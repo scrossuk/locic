@@ -1,33 +1,42 @@
-#ifndef LOCIC_SEM_TYPEALIAS_HPP
-#define LOCIC_SEM_TYPEALIAS_HPP
+#ifndef LOCIC_SEM_ALIAS_HPP
+#define LOCIC_SEM_ALIAS_HPP
 
 #include <string>
-#include <vector>
 
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
+#include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
+#include <locic/SEM/Value.hpp>
 
 namespace locic {
-
-	namespace SEM {
 	
-		class Context;
-		class Type;
-		class TypeAlias;
+	namespace SEM {
 		
-		class TypeAlias final: public TemplatedObject {
+		class Context;
+		class GlobalStructure;
+		class Type;
+		
+		class Alias final: public GlobalStructure, public TemplatedObject {
 			public:
-				TypeAlias(Context& context, Name name);
+				Alias(Context& context, GlobalStructure& parent, Name name);
+				
+				GlobalStructure& parent();
+				
+				const GlobalStructure& parent() const;
 				
 				Context& context() const;
 				
 				const Name& name() const;
+				
+				const Type* type() const;
+				
+				Value selfRefValue(ValueArray templateArguments) const;
 				
 				/**
 				 * \brief Get type of 'self'.
@@ -46,7 +55,7 @@ namespace locic {
 				 *     SomeAlias<A, B>
 				 * 
 				 */
-				const Type* selfType() const;
+				const Type* selfRefType(ValueArray templateArguments) const;
 				ValueArray selfTemplateArgs() const;
 				
 				TemplateVarArray& templateVariables();
@@ -57,18 +66,19 @@ namespace locic {
 				const Predicate& requiresPredicate() const;
 				void setRequiresPredicate(Predicate predicate);
 				
-				const Type* value() const;
-				void setValue(const Type* pValue);
+				const Value& value() const;
+				void setValue(Value value);
 				
 				std::string toString() const;
 				
 			private:
 				Context& context_;
+				GlobalStructure& parent_;
 				Name name_;
 				TemplateVarArray templateVars_;
 				FastMap<String, TemplateVar*> namedTemplateVariables_;
 				Predicate requiresPredicate_;
-				const Type* value_;
+				Optional<Value> value_;
 				
 		};
 		

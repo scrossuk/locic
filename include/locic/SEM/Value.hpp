@@ -1,12 +1,10 @@
 #ifndef LOCIC_SEM_VALUE_HPP
 #define LOCIC_SEM_VALUE_HPP
 
-#include <locic/Constant.hpp>
-#include <locic/Debug/ValueInfo.hpp>
-#include <locic/SEM/ExitStates.hpp>
-#include <locic/SEM/Predicate.hpp>
+#include <memory>
+
 #include <locic/SEM/TemplateVarArray.hpp>
-#include <locic/SEM/TypeArray.hpp>
+#include <locic/SEM/ValueArray.hpp>
 #include <locic/Support/HeapArray.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/Support/Optional.hpp>
@@ -14,10 +12,22 @@
 
 namespace locic {
 	
+	class Constant;
+	
+	namespace Debug {
+		
+		class ValueInfo;
+		
+	}
+	
 	namespace SEM {
 		
+		class Alias;
+		class ExitStates;
 		class Function;
+		class Predicate;
 		class TemplateVar;
+		class TemplateVarMap;
 		class Type;
 		class TypeInstance;
 		class Var;
@@ -30,6 +40,7 @@ namespace locic {
 					SELF,
 					THIS,
 					CONSTANT,
+					ALIAS,
 					PREDICATE,
 					LOCALVAR,
 					SIZEOF,
@@ -97,6 +108,14 @@ namespace locic {
 				 * A constant value (e.g. 0, 1.2, true etc.).
 				 */
 				static Value Constant(Constant constant, const Type* type);
+				
+				/**
+				 * \brief Alias
+				 * 
+				 * An alias value.
+				 */
+				static Value Alias(const SEM::Alias& alias,
+				                   ValueArray templateArguments);
 				
 				/**
 				 * \brief Predicate
@@ -236,7 +255,7 @@ namespace locic {
 				 * This creates an instance of the parent object type using
 				 * the 'internal constructor', a special auto-generated method.
 				 */
-				static Value InternalConstruct(const Type* parentType, HeapArray<Value> parameters);
+				static Value InternalConstruct(const Type* parentType, ValueArray parameters);
 				
 				/**
 				 * \brief Access member variable
@@ -274,7 +293,7 @@ namespace locic {
 				 * 
 				 * Calls a (callable) value with the given parameters.
 				 */
-				static Value Call(Value functionValue, HeapArray<Value> parameters);
+				static Value Call(Value functionValue, ValueArray parameters);
 				
 				/**
 				 * \brief Function Reference
@@ -283,7 +302,7 @@ namespace locic {
 				 * The function could be a method hence the parent type should be
 				 * set, otherwise it should be NULL.
 				 */
-				static Value FunctionRef(const Type* parentType, Function* function, HeapArray<Value> templateArguments, const Type* const type);
+				static Value FunctionRef(const Type* parentType, Function* function, ValueArray templateArguments, const Type* const type);
 				
 				/**
 				 * \brief Template Function Reference
@@ -326,6 +345,7 @@ namespace locic {
 				static Value CastDummy(const Type* type);
 				
 				Value();
+				~Value();
 				
 				Value(Value&&) = default;
 				Value& operator=(Value&&) = default;
@@ -348,6 +368,10 @@ namespace locic {
 				
 				bool isConstant() const;
 				const locic::Constant& constant() const;
+				
+				bool isAlias() const;
+				const SEM::Alias& alias() const;
+				const ValueArray& aliasTemplateArguments() const;
 				
 				bool isPredicate() const;
 				const Predicate& predicate() const;
@@ -406,7 +430,7 @@ namespace locic {
 				const Value& makeNoStaticRefOperand() const;
 				
 				bool isInternalConstruct() const;
-				const HeapArray<Value>& internalConstructParameters() const;
+				const ValueArray& internalConstructParameters() const;
 				
 				bool isMemberAccess() const;
 				const Value& memberAccessObject() const;
@@ -423,12 +447,12 @@ namespace locic {
 				
 				bool isCall() const;
 				const Value& callValue() const;
-				const HeapArray<Value>& callParameters() const;
+				const ValueArray& callParameters() const;
 				
 				bool isFunctionRef() const;
 				const Type* functionRefParentType() const;
 				Function* functionRefFunction() const;
-				const HeapArray<Value>& functionRefTemplateArguments() const;
+				const ValueArray& functionRefTemplateArguments() const;
 				
 				bool isTemplateFunctionRef() const;
 				const Type* templateFunctionRefParentType() const;
@@ -448,7 +472,7 @@ namespace locic {
 				const Value& staticInterfaceMethodOwner() const;
 				
 				void setDebugInfo(Debug::ValueInfo debugInfo);
-				Optional<Debug::ValueInfo> debugInfo() const;
+				const Optional<Debug::ValueInfo>& debugInfo() const;
 				
 				size_t hash() const;
 				
@@ -462,89 +486,20 @@ namespace locic {
 				bool dependsOnOnly(const TemplateVarArray& array) const;
 				
 				Value substitute(const TemplateVarMap& templateVarMap) const;
+				Predicate makePredicate() const;
 				
 				std::string toString() const;
 				
 			private:
-				Value(Kind k, const Type* t, ExitStates exitStates);
+				Value(Kind kind,
+				      const Type* type,
+				      ExitStates exitStates);
 				
 				// Non-copyable.
 				Value(const Value&) = delete;
 				Value& operator=(const Value&) = delete;
 				
-				Kind kind_;
-				ExitStates exitStates_;
-				const Type* type_;
-				Optional<Debug::ValueInfo> debugInfo_;
-				
-				std::unique_ptr<Value> value0_, value1_, value2_;
-				Optional<Predicate> predicate_;
-				TypeArray typeArray_;
-				HeapArray<Value> valueArray_;
-				
-				union {
-					locic::Constant constant_;
-					
-					struct {
-						const Var* var;
-					} localVar_;
-					
-					struct {
-						const Type* targetType;
-					} sizeOf_;
-					
-					struct {
-						const TypeInstance* typeInstance;
-					} unionDataOffset_;
-					
-					struct {
-						const TypeInstance* typeInstance;
-						size_t memberIndex;
-					} memberOffset_;
-					
-					struct {
-						const Type* targetType;
-					} cast_;
-					
-					struct {
-						const Type* targetType;
-					} polyCast_;
-					
-					struct {
-						const Type* targetType;
-					} makeLval_;
-					
-					struct {
-						const Type* targetType;
-					} makeRef_;
-					
-					struct {
-						const Type* targetType;
-					} makeStaticRef_;
-					
-					struct {
-						const Var* memberVar;
-					} memberAccess_;
-					
-					struct {
-						const Type* targetType;
-					} typeRef_;
-					
-					struct {
-						const TemplateVar* templateVar;
-					} templateVarRef_;
-					
-					struct {
-						const Type* parentType;
-						Function* function;
-					} functionRef_;
-					
-					struct {
-						const Type* parentType;
-						String name;
-						const Type* functionType;
-					} templateFunctionRef_;
-				} union_;
+				std::shared_ptr<class ValueImpl> impl_;
 				
 		};
 		

@@ -4,18 +4,19 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/Constant.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/String.hpp>
 
+#include <locic/SEM/Alias.hpp>
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
-#include <locic/SEM/TypeAlias.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
@@ -58,11 +59,11 @@ namespace locic {
 				}
 				case Type::ALIAS: {
 					ValueArray templateArgs;
-					templateArgs.reserve(type->typeAliasArguments().size());
+					templateArgs.reserve(type->aliasArguments().size());
 					
 					bool changed = false;
 					
-					for (const auto& templateArg : type->typeAliasArguments()) {
+					for (const auto& templateArg : type->aliasArguments()) {
 						if (templateArg.isTypeRef()) {
 							const auto appliedArg = applyType<CheckFunction, PreFunction, PostFunction>(templateArg.typeRefType(), checkFunction, preFunction, postFunction);
 							changed |= (appliedArg != templateArg.typeRefType());
@@ -73,7 +74,7 @@ namespace locic {
 					}
 					
 					if (changed) {
-						return Type::Alias(type->getTypeAlias(), std::move(templateArgs));
+						return Type::Alias(type->alias(), std::move(templateArgs));
 					} else {
 						return type;
 					}
@@ -118,12 +119,12 @@ namespace locic {
 			return context.getType(Type(context, AUTO));
 		}
 		
-		const Type* Type::Alias(const TypeAlias* const typeAlias, ValueArray templateArguments) {
-			assert(typeAlias->templateVariables().size() == templateArguments.size());
-			auto& context = typeAlias->context();
+		const Type* Type::Alias(const SEM::Alias& alias, ValueArray templateArguments) {
+			assert(alias.templateVariables().size() == templateArguments.size());
+			auto& context = alias.context();
 			
 			Type type(context, ALIAS);
-			type.data_.aliasType.typeAlias = typeAlias;
+			type.data_.aliasType.alias = &alias;
 			type.valueArray_ = std::move(templateArguments);
 			return context.getType(std::move(type));
 		}
@@ -139,7 +140,12 @@ namespace locic {
 		}
 		
 		const Type* Type::TemplateVarRef(const TemplateVar* const templateVar) {
-			assert(templateVar->type()->isObject() && templateVar->type()->getObjectType()->name().last() == "typename_t");
+			assert(templateVar->type()->isObject() && templateVar->type()->isBuiltInTypename());
+			const auto templateVarRefType = templateVar->selfRefType();
+			if (templateVarRefType) {
+				return templateVarRefType;
+			}
+			
 			auto& context = templateVar->context();
 			
 			Type type(context, TEMPLATEVAR);
@@ -150,7 +156,9 @@ namespace locic {
 		Type::Type(const Context& pContext, const Kind pKind) :
 			context_(pContext), kind_(pKind), isNoTag_(false),
 			constPredicate_(Predicate::False()), lvalTarget_(nullptr),
-			refTarget_(nullptr), staticRefTarget_(nullptr) { }
+			refTarget_(nullptr), staticRefTarget_(nullptr),
+			cachedResolvedType_(nullptr),
+			cachedWithoutTagsType_(nullptr) { }
 		
 		const Context& Type::context() const {
 			return context_;
@@ -381,7 +389,12 @@ namespace locic {
 		}
 		
 		const Type* Type::withoutTags() const {
+			if (cachedWithoutTagsType_ != nullptr) {
+				return cachedWithoutTagsType_;
+			}
+			
 			if (constPredicate().isFalse() && !isLval() && !isRef() && !isStaticRef()) {
+				cachedWithoutTagsType_ = this;
 				return this;
 			}
 			
@@ -391,7 +404,9 @@ namespace locic {
 			typeCopy.refTarget_ = nullptr;
 			typeCopy.staticRefTarget_ = nullptr;
 			
-			return context_.getType(std::move(typeCopy));
+			const auto result = context_.getType(std::move(typeCopy));
+			cachedWithoutTagsType_ = result;
+			return result;
 		}
 		
 		bool Type::isAuto() const {
@@ -402,11 +417,11 @@ namespace locic {
 			return kind() == ALIAS;
 		}
 		
-		const SEM::TypeAlias* Type::getTypeAlias() const {
-			return data_.aliasType.typeAlias;
+		const SEM::Alias& Type::alias() const {
+			return *(data_.aliasType.alias);
 		}
 		
-		const ValueArray& Type::typeAliasArguments() const {
+		const ValueArray& Type::aliasArguments() const {
 			return valueArray_;
 		}
 		
@@ -718,18 +733,18 @@ namespace locic {
 				}
 				case Type::ALIAS: {
 					ValueArray templateArgs;
-					templateArgs.reserve(type->typeAliasArguments().size());
+					templateArgs.reserve(type->aliasArguments().size());
 					
 					bool changed = false;
 					
-					for (const auto& templateArg : type->typeAliasArguments()) {
+					for (const auto& templateArg : type->aliasArguments()) {
 						auto appliedArg = templateArg.substitute(templateVarMap);
 						changed |= (appliedArg != templateArg);
 						templateArgs.push_back(std::move(appliedArg));
 					}
 					
 					if (changed) {
-						return Type::Alias(type->getTypeAlias(), std::move(templateArgs));
+						return Type::Alias(type->alias(), std::move(templateArgs));
 					} else {
 						return type->withoutTags();
 					}
@@ -778,7 +793,11 @@ namespace locic {
 		}
 		
 		const Type* Type::resolveAliases() const {
-			return applyType(this,
+			if (cachedResolvedType_ != nullptr) {
+				return cachedResolvedType_;
+			}
+			
+			const auto result = applyType(this,
 				[] (const Type* const) {
 					// Unknown whether the type contains aliases,
 					// so assume it does.
@@ -786,15 +805,15 @@ namespace locic {
 				},
 				[](const Type* const type) {
 					if (type->isAlias()) {
-						const auto& templateVars = type->getTypeAlias()->templateVariables();
-						const auto& templateArgs = type->typeAliasArguments();
+						const auto& templateVars = type->alias().templateVariables();
+						const auto& templateArgs = type->aliasArguments();
 						
 						TemplateVarMap templateVarMap;
 						for (size_t i = 0; i < templateVars.size(); i++) {
 							templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i).copy()));
 						}
 						
-						return type->getTypeAlias()->value()->substitute(templateVarMap)->resolveAliases();
+						return type->alias().value().substitute(templateVarMap).typeRefType()->resolveAliases();
 					} else {
 						return type;
 					}
@@ -802,6 +821,9 @@ namespace locic {
 				[](const Type* const type) {
 					return type;
 				});
+			
+			cachedResolvedType_ = result;
+			return result;
 		}
 		
 		bool Type::dependsOn(const TemplateVar* const templateVar) const {
@@ -925,15 +947,15 @@ namespace locic {
 					return "TemplateVarType(templateVar: [possible loop])";
 				}
 				case ALIAS: {
-					const auto aliasName = getTypeAlias()->name().toString(false);
-					if (typeAliasArguments().empty()) {
+					const auto aliasName = alias().name().toString(false);
+					if (aliasArguments().empty()) {
 						return aliasName;
 					} else {
 						std::stringstream stream;
 						stream << aliasName << "<";
 						
 						bool isFirst = true;
-						for (const auto& templateArg: typeAliasArguments()) {
+						for (const auto& templateArg: aliasArguments()) {
 							if (isFirst) {
 								isFirst = false;
 							} else {
@@ -996,15 +1018,15 @@ namespace locic {
 					                  getTemplateVar()->toString().c_str());
 				}
 				case ALIAS: {
-					const auto aliasName = getTypeAlias()->name().toString(false);
-					if (typeAliasArguments().empty()) {
+					const auto aliasName = alias().name().toString(false);
+					if (aliasArguments().empty()) {
 						return aliasName;
 					} else {
 						std::stringstream stream;
 						stream << aliasName << "<";
 						
 						bool isFirst = true;
-						for (const auto& templateArg: typeAliasArguments()) {
+						for (const auto& templateArg: aliasArguments()) {
 							if (isFirst) {
 								isFirst = false;
 							} else {
@@ -1054,6 +1076,10 @@ namespace locic {
 		}
 		
 		std::size_t Type::hash() const {
+			if (cachedHashValue_) {
+				return *cachedHashValue_;
+			}
+			
 			Hasher hasher;
 			hasher.add(kind());
 			hasher.add(isNoTag());
@@ -1067,10 +1093,10 @@ namespace locic {
 					break;
 				}
 				case ALIAS: {
-					hasher.add(typeAliasArguments().size());
+					hasher.add(aliasArguments().size());
 					
-					for (size_t i = 0; i < typeAliasArguments().size(); i++) {
-						hasher.add(typeAliasArguments().at(i).hash());
+					for (size_t i = 0; i < aliasArguments().size(); i++) {
+						hasher.add(aliasArguments().at(i).hash());
 					}
 					
 					break;
@@ -1090,7 +1116,8 @@ namespace locic {
 				}
 			}
 			
-			return hasher.get();
+			cachedHashValue_ = make_optional(hasher.get());
+			return *cachedHashValue_;
 		}
 		
 		Type Type::copy() const {
@@ -1101,8 +1128,8 @@ namespace locic {
 					break;
 				}
 				case ALIAS: {
-					type.data_.aliasType.typeAlias = getTypeAlias();
-					type.valueArray_ = typeAliasArguments().copy();
+					type.data_.aliasType.alias = &(alias());
+					type.valueArray_ = aliasArguments().copy();
 					break;
 				}
 				case OBJECT: {
@@ -1166,15 +1193,15 @@ namespace locic {
 					return true;
 				}
 				case ALIAS: {
-					if (getTypeAlias() != type.getTypeAlias()) {
+					if (&(alias()) != &(type.alias())) {
 						return false;
 					}
 					
-					if (typeAliasArguments().size() != type.typeAliasArguments().size()) {
+					if (aliasArguments().size() != type.aliasArguments().size()) {
 						return false;
 					}
 					
-					if (typeAliasArguments() != type.typeAliasArguments()) {
+					if (aliasArguments() != type.aliasArguments()) {
 						return false;
 					}
 					

@@ -108,7 +108,7 @@ namespace locic {
 				const Scope& scope() const;
 				
 				void setDebugInfo(Debug::FunctionInfo debugInfo);
-				Optional<Debug::FunctionInfo> debugInfo() const;
+				const Optional<Debug::FunctionInfo>& debugInfo() const;
 				
 				std::string toString() const;
 				
