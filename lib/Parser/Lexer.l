@@ -125,6 +125,7 @@ staticref               { return STATICREF; }
 noref                   { return NOREF; }
 notag                   { return NOTAG; }
 
+let                     { return LET; }
 using                   { return USING; }
 static                  { return STATIC; }
 import                  { return IMPORT; }
@@ -212,6 +213,7 @@ false                   { yylval->lexer_constant = locic::Constant::False(); ret
 "["                     { return LSQUAREBRACKET; }
 "]"                     { return RSQUAREBRACKET; }
 "."                     { return DOT; }
+"<<"                    { return DOUBLE_LTRIBRACKET; }
 "<"                     { return LTRIBRACKET; }
 ">"                     { return RTRIBRACKET; }
 "~"                     { return TILDA; }

@@ -117,24 +117,15 @@ const T& GETSYM(T* value) {
 // Ultimately it's unambiguous whether the expression is
 // a template type or a more-than expression but due to
 // limited lookahead shift/reduce conflicts occur.
-%expect 4
+%expect 5
 
-// Reduce-reduce conflicts occur due to the clash between
-// variable definitions and value assignments (resolved
-// by favouring the latter; see below for more information).
+// Reduce-reduce conflicts occur due to:
 // 
-// For example, you can have:
-// 
-// Type * var = value;
-// 
-// ...and:
-// 
-// value * value = value;
-// 
-// Obviously the former case will be preferred, but this
-// technical ambiguity generates reduce/reduce conflicts.
-// This applies for the following tokens: '*', '&', '(' and ')'.
-%expect-rr 7
+// 1. ref<>() and lval<>() - these will soon be removed.
+// 2. parser conflicts between reference types and bitwise-and,
+//    and between pointer types and multiply - this is fixable
+//    by merging these type structures into values.
+%expect-rr 4
 
 %lex-param {void * scanner}
 %lex-param {locic::Parser::Context * parserContext}
@@ -237,6 +228,7 @@ const T& GETSYM(T* value) {
 %token RSQUAREBRACKET
 %token LROUNDBRACKET
 %token RROUNDBRACKET
+%token DOUBLE_LTRIBRACKET
 %token LTRIBRACKET
 %token RTRIBRACKET
 
@@ -261,6 +253,7 @@ const T& GETSYM(T* value) {
 %token UNUSED_RESULT
 
 %token USING
+%token LET
 %token ENUM
 %token UNION
 %token CASE
@@ -418,6 +411,12 @@ const T& GETSYM(T* value) {
 %type <type> typePrecision2
 %type <type> typePrecision1
 %type <type> typePrecision0
+%type <type> typeValue
+
+%type <type> typePrecision4WithSymbol
+%type <type> typePrecision3WithSymbol
+%type <type> typePrecision1WithSymbol
+%type <type> typePrecision0WithSymbol
 %type <type> type
 
 %type <typeVar> patternTypeVar
@@ -436,7 +435,6 @@ const T& GETSYM(T* value) {
 %type <templateTypeVar> templateTypeVar
 %type <templateTypeVarList> templateTypeVarList
 
-%type <value> templateArgument
 %type <valueList> emptyTemplateArgumentList
 %type <valueList> templateArgumentList
 %type <valueList> templateValueList
@@ -469,20 +467,32 @@ const T& GETSYM(T* value) {
 
 %type <castKind> castKind
 %type <value> value
+%type <value> lvalue
+%type <value> templateValue
 %type <valueList> nonEmptyValueList
 %type <valueList> valueList
-%type <value> value_precedence0
-%type <value> value_precedence1
-%type <value> value_precedence2
-%type <value> value_precedence3
-%type <value> value_precedence4
-%type <value> value_precedence5
-%type <value> value_precedence6
-%type <value> value_precedence7
-%type <value> value_precedence8
-%type <value> value_precedence9
-%type <value> value_precedence10
-%type <value> value_precedence11
+%type <value> atomicValue
+%type <value> unaryValue
+%type <value> unaryValueOrNext
+%type <value> callValue
+%type <value> callValueOrNext
+%type <value> multiplyOperatorValue
+%type <value> multiplyOperatorValueOrNext
+%type <value> addOperatorValue
+%type <value> addOperatorValueOrNext
+%type <value> bitwiseAndValue
+%type <value> bitwiseAndValueOrNext
+%type <value> bitwiseOrValue
+%type <value> bitwiseOrValueOrNext
+%type <value> comparisonOperatorValue
+%type <value> comparisonOperatorValueOrNext
+%type <value> logicalAndValue
+%type <value> logicalAndValueOrNext
+%type <value> logicalOrValue
+%type <value> logicalOrValueOrNext
+%type <value> shiftOperatorValue
+%type <value> ternaryOperatorValue
+%type <value> ternaryOperatorValueOperand
 
 // ================ Rules ================
 %%
@@ -514,21 +524,9 @@ namespaceData:
 		(GETSYM($1))->functions.push_back(GETSYM($2));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
-	| namespaceData IMPORT functionDecl
-	{
-		(GETSYM($1))->functions.push_back(GETSYM($3));
-		GETSYM($3)->setImport();
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
-	}
 	| namespaceData functionDef
 	{
 		(GETSYM($1))->functions.push_back(GETSYM($2));
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
-	}
-	| namespaceData EXPORT functionDef
-	{
-		(GETSYM($1))->functions.push_back(GETSYM($3));
-		GETSYM($3)->setExport();
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
 	| namespaceData typeAlias
@@ -779,13 +777,25 @@ nonTemplatedFunctionDecl:
 	}
 	;
 
+importedFunctionDecl:
+	nonTemplatedFunctionDecl
+	{
+		$$ = $1;
+	}
+	| IMPORT nonTemplatedFunctionDecl
+	{
+		(GETSYM($2))->setImport();
+		$$ = $2;
+	}
+	;
+
 functionDecl:
-	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET nonTemplatedFunctionDecl
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET importedFunctionDecl
 	{
 		(GETSYM($5))->setTemplateVariables(GETSYM($3));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
 	}
-	| nonTemplatedFunctionDecl
+	| importedFunctionDecl
 	{
 		$$ = $1;
 	}
@@ -806,13 +816,25 @@ nonTemplatedFunctionDef:
 	}
 	;
 
+exportedFunctionDef:
+	nonTemplatedFunctionDef
+	{
+		$$ = $1;
+	}
+	| EXPORT nonTemplatedFunctionDef
+	{
+		(GETSYM($2))->setExport();
+		$$ = $2;
+	}
+	;
+
 functionDef:
-	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET nonTemplatedFunctionDef
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET exportedFunctionDef
 	{
 		(GETSYM($5))->setTemplateVariables(GETSYM($3));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
 	}
-	| nonTemplatedFunctionDef
+	| exportedFunctionDef
 	{
 		$$ = $1;
 	}
@@ -1282,10 +1304,6 @@ typePrecision4:
 	{
 		$$ = $1;
 	}
-	| objectType
-	{
-		$$ = $1;
-	}
 	| LROUNDBRACKET STAR RROUNDBRACKET LROUNDBRACKET type RROUNDBRACKET LROUNDBRACKET typeList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Function(GETSYM($5), GETSYM($8))));
@@ -1307,7 +1325,7 @@ typePrecision3:
 	{
 		$$ = $1;
 	}
-	| CONST typePrecision4
+	| CONST typePrecision4WithSymbol
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($2))));
 	}
@@ -1315,7 +1333,7 @@ typePrecision3:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Const(GETSYM($3))));
 	}
-	| CONST LTRIBRACKET predicateExpr RTRIBRACKET typePrecision4
+	| CONST LTRIBRACKET predicateExpr RTRIBRACKET typePrecision4WithSymbol
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::ConstPredicate(GETSYM($3), GETSYM($5))));
 	}
@@ -1323,7 +1341,7 @@ typePrecision3:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::ConstPredicate(GETSYM($3), GETSYM($6))));
 	}
-	| NOTAG typePrecision4
+	| NOTAG typePrecision4WithSymbol
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::NoTag(GETSYM($2))));
 	}
@@ -1338,7 +1356,7 @@ typePrecision2:
 	{
 		$$ = $1;
 	}
-	| LVAL LTRIBRACKET type RTRIBRACKET typePrecision3
+	| LVAL LTRIBRACKET type RTRIBRACKET typePrecision3WithSymbol
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Lval(GETSYM($3), GETSYM($5))));
 	}
@@ -1346,7 +1364,7 @@ typePrecision2:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Lval(GETSYM($3), GETSYM($6))));
 	}
-	| REF LTRIBRACKET type RTRIBRACKET typePrecision3
+	| REF LTRIBRACKET type RTRIBRACKET typePrecision3WithSymbol
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Ref(GETSYM($3), GETSYM($5))));
 	}
@@ -1354,7 +1372,7 @@ typePrecision2:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Ref(GETSYM($3), GETSYM($6))));
 	}
-	| STATICREF LTRIBRACKET type RTRIBRACKET typePrecision3
+	| STATICREF LTRIBRACKET type RTRIBRACKET typePrecision3WithSymbol
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::StaticRef(GETSYM($3), GETSYM($5))));
 	}
@@ -1365,11 +1383,11 @@ typePrecision2:
 	;
 
 pointerType:
-	typePrecision1 STAR
+	typePrecision1WithSymbol STAR
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Pointer(GETSYM($1))));
 	}
-	| typePrecision1 AMPERSAND
+	| typePrecision1WithSymbol AMPERSAND
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Reference(GETSYM($1))));
 	}
@@ -1393,8 +1411,59 @@ typePrecision0:
 	}
 	;
 
-type:
+typeValue:
 	typePrecision0
+	{
+		$$ = $1;
+	}
+	;
+
+typePrecision4WithSymbol:
+	typePrecision4
+	{
+		$$ = $1;
+	}
+	| objectType
+	{
+		$$ = $1;
+	}
+	;
+
+typePrecision3WithSymbol:
+	typePrecision3
+	{
+		$$ = $1;
+	}
+	| objectType
+	{
+		$$ = $1;
+	}
+	;
+
+typePrecision1WithSymbol:
+	typePrecision1
+	{
+		$$ = $1;
+	}
+	| objectType
+	{
+		$$ = $1;
+	}
+	;
+
+typePrecision0WithSymbol:
+	typePrecision0
+	{
+		$$ = $1;
+	}
+	| objectType
+	{
+		$$ = $1;
+	}
+	;
+
+type:
+	typePrecision0WithSymbol
 	{
 		$$ = $1;
 	}
@@ -1437,33 +1506,12 @@ emptyTemplateArgumentList:
 	}
 	;
 
-templateArgument:
-	/**
-	 * If a symbol is seen treat it as a value rather than a type.
-	 * 
-	 * (At some point this should be replaced with a solution that
-	 * doesn't generate parser conflicts.)
-	 */
-	symbol %dprec 2
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::SymbolRef(GETSYM($1))));
-	}
-	| type %dprec 1
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TypeRef(GETSYM($1))));
-	}
-	| constant
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Literal(parserContext->getCString(""), GETSYM($1))));
-	}
-	;
-
 templateArgumentList:
-	templateArgument
+	templateValue
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::ValueList(1, GETSYM($1))));
 	}
-	| templateArgumentList COMMA templateArgument
+	| templateArgumentList COMMA templateValue
 	{
 		(GETSYM($1))->push_back(GETSYM($3));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
@@ -1482,7 +1530,7 @@ templateValueList:
 	{
 		$$ = $2;
 	}
-	| LROUNDBRACKET templateArgumentList COMMA templateArgument RROUNDBRACKET
+	| LROUNDBRACKET templateArgumentList COMMA templateValue RROUNDBRACKET
 	{
 		(GETSYM($2))->push_back(GETSYM($4));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($2)).get()));
@@ -1495,7 +1543,7 @@ patternTypeVar:
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeVar::PatternVar(GETSYM($1), GETSYM($3))));
 	}
 	;
-
+	
 basicTypeVar:
 	type NAME
 	{
@@ -1755,66 +1803,47 @@ scopedStatement:
 	;
 	
 normalStatement:
-	/*
-	 * 'dprec 2' ensures that variable name definitions
-	 * are preferred over assignments when there is an
-	 * ambiguity.
-	 *
-	 * For example, 'T * p = null' is actually ambiguous,
-	 * since it could mean defining a variable p as a (null)
-	 * pointer to type 'T', or it could mean assigning
-	 * null to the lvalue result of 'T * p', where 'T' and 'p'
-	 * are both values of some kind.
-	 * 
-	 * Given that multiplication shouldn't return an l-value
-	 * (if it really must, use parentheses around it),
-	 * variable definitions always take precedence in this case.
-	 * 
-	 * A similar situation occurs for references; for example:
-	 * 
-	 *     T & r = value;
-	 * 
-	 * As above, this is assumed to be a variable definition.
-	 */
-	typeVar SETEQUAL value %dprec 2
+	unusedTypeVar SETEQUAL value
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::VarDecl(GETSYM($1), GETSYM($3))));
 	}
-	
-	| value SETEQUAL value %dprec 1
+	| LET patternTypeVar SETEQUAL value
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::VarDecl(GETSYM($2), GETSYM($4))));
+	}
+	| lvalue SETEQUAL value
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_DIRECT, GETSYM($1), GETSYM($3))));
 	}
-	
-	| value ADDEQUAL value
+	| lvalue ADDEQUAL value
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_ADD, GETSYM($1), GETSYM($3))));
 	}
-	| value SUBEQUAL value
+	| lvalue SUBEQUAL value
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_SUB, GETSYM($1), GETSYM($3))));
 	}
-	| value MULEQUAL value
+	| lvalue MULEQUAL value
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_MUL, GETSYM($1), GETSYM($3))));
 	}
-	| value DIVEQUAL value
+	| lvalue DIVEQUAL value
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_DIV, GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence3 PERCENTEQUAL value_precedence2
+	| lvalue PERCENTEQUAL value
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Assign(locic::AST::ASSIGN_MOD, GETSYM($1), GETSYM($3))));
 	}
-	| value DOUBLE_PLUS
+	| lvalue DOUBLE_PLUS
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Increment(GETSYM($1))));
 	}
-	| value DOUBLE_MINUS
+	| lvalue DOUBLE_MINUS
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::Decrement(GETSYM($1))));
 	}
-	| value
+	| unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Statement::ValueStmt(GETSYM($1))));
 	}
@@ -1882,7 +1911,7 @@ castKind:
 	}
 	;
 	
-value_precedence0:
+atomicValue:
 	LROUNDBRACKET value RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Bracket(GETSYM($2))));
@@ -1919,6 +1948,8 @@ value_precedence0:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Cast($1, GETSYM($3), GETSYM($5), GETSYM($8))));
 	}
+	
+	// TODO: Remove the following...
 	| LVAL LTRIBRACKET type RTRIBRACKET LROUNDBRACKET value RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Lval(GETSYM($3), GETSYM($6))));
@@ -1935,6 +1966,7 @@ value_precedence0:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::NoRef(GETSYM($3))));
 	}
+	
 	| SELF
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Self()));
@@ -1949,204 +1981,394 @@ value_precedence0:
 	}
 	;
 	
-value_precedence1:
-	value_precedence0
-	{
-		$$ = $1;
-	}
-	| value_precedence1 DOT functionNameElement
+callValue:
+	callValueOrNext DOT functionNameElement
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(GETSYM($1), $3)));
 	}
-	| value_precedence1 DOT functionNameElement LTRIBRACKET templateValueList RTRIBRACKET
+	| callValueOrNext DOT functionNameElement LTRIBRACKET templateValueList RTRIBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TemplatedMemberAccess(GETSYM($1), $3, GETSYM($5))));
 	}
-	| value_precedence1 PTRACCESS functionNameElement
+	| callValueOrNext PTRACCESS functionNameElement
 	{
 		const auto derefNode = locic::AST::makeNode(LOC(&@$), UnaryOp(parserContext->getCString("deref"), GETSYM($1)));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(derefNode, $3)));
 	}
-	| value_precedence1 LROUNDBRACKET valueList RROUNDBRACKET
+	| callValueOrNext LROUNDBRACKET valueList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::FunctionCall(GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence1 LSQUAREBRACKET value RSQUAREBRACKET
+	| callValueOrNext LSQUAREBRACKET value RSQUAREBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp(parserContext->getCString("index"), GETSYM($1), GETSYM($3))));
 	}
 	;
 	
-value_precedence2:
-	value_precedence1
+callValueOrNext:
+	callValue
 	{
 		$$ = $1;
 	}
-	| PLUS value_precedence2
+	| atomicValue
+	{
+		$$ = $1;
+	}
+	;
+	
+unaryValue:
+	PLUS unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_PLUS, GETSYM($2))));
 	}
-	| MINUS value_precedence2
+	| MINUS unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_MINUS, GETSYM($2))));
 	}
-	| EXCLAIMMARK value_precedence2
+	| EXCLAIMMARK unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_NOT, GETSYM($2))));
 	}
-	| AMPERSAND value_precedence2
+	| AMPERSAND unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_ADDRESS, GETSYM($2))));
 	}
-	| STAR value_precedence2
+	| STAR unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_DEREF, GETSYM($2))));
 	}
-	| MOVE value_precedence2
+	| MOVE unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::UnaryOp(locic::AST::OP_MOVE, GETSYM($2))));
 	}
 	;
 	
-value_precedence3:
-	value_precedence2
+unaryValueOrNext:
+	unaryValue
 	{
 		$$ = $1;
 	}
-	| value_precedence3 STAR value_precedence2
+	| callValueOrNext
+	{
+		$$ = $1;
+	}
+	;
+	
+multiplyOperatorValue:
+	multiplyOperatorValueOrNext STAR unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp(parserContext->getCString("multiply"), GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence3 FORWARDSLASH value_precedence2
+	| multiplyOperatorValueOrNext FORWARDSLASH unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp(parserContext->getCString("divide"), GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence3 PERCENT value_precedence2
+	| multiplyOperatorValueOrNext PERCENT unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), BinaryOp(parserContext->getCString("modulo"), GETSYM($1), GETSYM($3))));
 	}
 	;
 	
-value_precedence4:
-	value_precedence3
+multiplyOperatorValueOrNext:
+	multiplyOperatorValue
 	{
 		$$ = $1;
 	}
-	| value_precedence4 PLUS value_precedence3
+	| unaryValueOrNext
+	{
+		$$ = $1;
+	}
+	;
+	
+addOperatorValue:
+	addOperatorValueOrNext PLUS multiplyOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_ADD, GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence4 MINUS value_precedence3
+	| addOperatorValueOrNext MINUS multiplyOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_SUBTRACT, GETSYM($1), GETSYM($3))));
 	}
 	;
 	
-value_precedence5:
-	value_precedence4
+addOperatorValueOrNext:
+	addOperatorValue
 	{
 		$$ = $1;
 	}
-	| value_precedence5 LTRIBRACKET LTRIBRACKET value_precedence4
+	| multiplyOperatorValueOrNext
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LEFTSHIFT, GETSYM($1), GETSYM($4))));
+		$$ = $1;
 	}
-	| value_precedence5 RTRIBRACKET RTRIBRACKET value_precedence4
+	;
+	
+shiftOperatorValue:
+	unaryValueOrNext DOUBLE_LTRIBRACKET unaryValueOrNext
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LEFTSHIFT, GETSYM($1), GETSYM($3))));
+	}
+	| unaryValueOrNext RTRIBRACKET RTRIBRACKET unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_RIGHTSHIFT, GETSYM($1), GETSYM($4))));
 	}
 	;
 	
-value_precedence6:
-	value_precedence5
-	{
-		$$ = $1;
-	}
-	| value_precedence5 ISEQUAL value_precedence5
+comparisonOperatorValue:
+	addOperatorValueOrNext ISEQUAL addOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_ISEQUAL, GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence5 NOTEQUAL value_precedence5
+	| addOperatorValueOrNext NOTEQUAL addOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_NOTEQUAL, GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence5 LTRIBRACKET value_precedence5
+	| addOperatorValueOrNext LTRIBRACKET addOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LESSTHAN, GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence5 RTRIBRACKET value_precedence5
+	| addOperatorValueOrNext RTRIBRACKET addOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_GREATERTHAN, GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence5 LESSOREQUAL value_precedence5
+	| addOperatorValueOrNext LESSOREQUAL addOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LESSTHANOREQUAL, GETSYM($1), GETSYM($3))));
 	}
-	| value_precedence5 GREATEROREQUAL value_precedence5
+	| addOperatorValueOrNext GREATEROREQUAL addOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_GREATERTHANOREQUAL, GETSYM($1), GETSYM($3))));
 	}
 	;
-
-value_precedence7:
-	value_precedence6
+	
+comparisonOperatorValueOrNext:
+	comparisonOperatorValue
 	{
 		$$ = $1;
 	}
-	| value_precedence7 AMPERSAND value_precedence6
+	// Use a unary value as the next level down to avoid conditions like 'a + b'
+	// or 'a * b'.
+	| unaryValueOrNext
+	{
+		$$ = $1;
+	}
+	;
+	
+bitwiseAndValue:
+	bitwiseAndValueOrNext AMPERSAND unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_BITWISEAND, GETSYM($1), GETSYM($3))));
 	}
 	;
-
-value_precedence8:
-	value_precedence7
+	
+bitwiseAndValueOrNext:
+	bitwiseAndValue
 	{
 		$$ = $1;
 	}
-	| value_precedence8 VERTICAL_BAR value_precedence7
+	| unaryValueOrNext
+	{
+		$$ = $1;
+	}
+	;
+	
+bitwiseOrValue:
+	bitwiseOrValueOrNext VERTICAL_BAR unaryValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_BITWISEOR, GETSYM($1), GETSYM($3))));
 	}
 	;
-
-value_precedence9:
-	value_precedence8
+	
+bitwiseOrValueOrNext:
+	bitwiseOrValue
 	{
 		$$ = $1;
 	}
-	| value_precedence9 DOUBLE_AMPERSAND value_precedence8
+	| unaryValueOrNext
+	{
+		$$ = $1;
+	}
+	;
+	
+logicalAndValue:
+	logicalAndValueOrNext DOUBLE_AMPERSAND comparisonOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LOGICALAND, GETSYM($1), GETSYM($3))));
 	}
 	;
-
-value_precedence10:
-	value_precedence9
+	
+logicalAndValueOrNext:
+	logicalAndValue
 	{
 		$$ = $1;
 	}
-	| value_precedence10 DOUBLE_VERTICAL_BAR value_precedence9
+	| comparisonOperatorValueOrNext
+	{
+		$$ = $1;
+	}
+	;
+
+logicalOrValue:
+	logicalOrValueOrNext DOUBLE_VERTICAL_BAR comparisonOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LOGICALOR, GETSYM($1), GETSYM($3))));
 	}
 	;
 	
-value_precedence11:
-	value_precedence10
+logicalOrValueOrNext:
+	logicalOrValue
 	{
 		$$ = $1;
 	}
-	| value_precedence10 QUESTIONMARK value_precedence11 COLON value_precedence11
+	| comparisonOperatorValueOrNext
+	{
+		$$ = $1;
+	}
+	;
+	
+ternaryOperatorValueOperand:
+	atomicValue
+	{
+		$$ = $1;
+	}
+	| callValue
+	{
+		$$ = $1;
+	}
+	| unaryValue
+	{
+		$$ = $1;
+	}
+	| multiplyOperatorValue
+	{
+		$$ = $1;
+	}
+	| addOperatorValue
+	{
+		$$ = $1;
+	}
+	| shiftOperatorValue
+	{
+		$$ = $1;
+	}
+	| bitwiseAndValue
+	{
+		$$ = $1;
+	}
+	| bitwiseOrValue
+	{
+		$$ = $1;
+	}
+	;
+	
+ternaryOperatorValue:
+	comparisonOperatorValueOrNext QUESTIONMARK ternaryOperatorValueOperand COLON ternaryOperatorValueOperand
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::Ternary(GETSYM($1), GETSYM($3), GETSYM($5))));
 	}
 	;
 	
 value:
-	value_precedence11
+	atomicValue
 	{
 		$$ = $1;
+	}
+	| callValue
+	{
+		$$ = $1;
+	}
+	| unaryValue
+	{
+		$$ = $1;
+	}
+	| multiplyOperatorValue
+	{
+		$$ = $1;
+	}
+	| addOperatorValue
+	{
+		$$ = $1;
+	}
+	| comparisonOperatorValue
+	{
+		$$ = $1;
+	}
+	| shiftOperatorValue
+	{
+		$$ = $1;
+	}
+	| bitwiseAndValue
+	{
+		$$ = $1;
+	}
+	| bitwiseOrValue
+	{
+		$$ = $1;
+	}
+	| logicalAndValue
+	{
+		$$ = $1;
+	}
+	| logicalOrValue
+	{
+		$$ = $1;
+	}
+	| ternaryOperatorValue
+	{
+		$$ = $1;
+	}
+	| typeValue
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TypeRef(GETSYM($1))));
+	}
+	;
+	
+lvalue:
+	atomicValue
+	{
+		$$ = $1;
+	}
+	| callValue
+	{
+		$$ = $1;
+	}
+	| unaryValue
+	{
+		$$ = $1;
+	}
+	;
+	
+templateValue:
+	atomicValue
+	{
+		$$ = $1;
+	}
+	| callValue
+	{
+		$$ = $1;
+	}
+	| unaryValue
+	{
+		$$ = $1;
+	}
+	| multiplyOperatorValue
+	{
+		$$ = $1;
+	}
+	| addOperatorValue
+	{
+		$$ = $1;
+	}
+	| bitwiseAndValue
+	{
+		$$ = $1;
+	}
+	| bitwiseOrValue
+	{
+		$$ = $1;
+	}
+	| typeValue
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TypeRef(GETSYM($1))));
 	}
 	;
 	
