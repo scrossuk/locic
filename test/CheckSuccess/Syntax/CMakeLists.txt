@@ -1,0 +1,17 @@
+# Syntax tests.
+
+macro(test_check_success_syntax name)
+	add_test(NAME TestCheckSuccess${name}
+		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --parse-only --test-name TestCheckOutput${name} ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci)
+endmacro(test_check_success_syntax)
+
+test_check_success_syntax(ArithmeticOperatorCombinations)
+test_check_success_syntax(BitwiseShiftInTemplateSyntax)
+test_check_success_syntax(BracketedLvalues)
+test_check_success_syntax(BuiltInTypeRefValueSyntax)
+test_check_success_syntax(DoubleRightTriangleBracketSyntax)
+test_check_success_syntax(NestedTemplateArgumentsSyntax)
+test_check_success_syntax(PointerTypeVariableInitialiseSyntax)
+test_check_success_syntax(ReferenceTypeVariableInitialiseSyntax)
+test_check_success_syntax(TagTypeRefValueSyntax)
+test_check_success_syntax(TriangleBracketInTemplateSyntax)

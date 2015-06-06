@@ -1,0 +1,21 @@
+class TestClass() { }
+
+export staticref<const TestClass> typename getConstType() {
+	return const TestClass;
+}
+
+export staticref<lval<int> TestClass> typename getLvalType() {
+	return lval<int> TestClass;
+}
+
+export staticref<TestClass> typename getNoTagType() {
+	return notag(TestClass);
+}
+
+export staticref<ref<int> TestClass> typename getRefType() {
+	return ref<int> TestClass;
+}
+
+export staticref<staticref<int> TestClass> typename getStaticRefType() {
+	return staticref<int> TestClass;
+}

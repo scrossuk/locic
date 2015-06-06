@@ -1,0 +1,47 @@
+
+// The point here is that any confusing operator precedence combinations are
+// disallowed; users can specify parentheses (and this is much clearer).
+export int testArithmeticOperatorSequence(int value) {
+	// Check all possibilities!
+	value = value + value << value;
+	value = value + value >> value;
+	value = value + value & value; // C precedence would make this (value + value) & value, which is considered confusing.
+	value = value + value | value;
+	value = value + value && value; // 'value + value' isn't a valid condition.
+	value = value + value || value;
+	value = value + value ? value : value;
+	
+	value = value - value << value;
+	value = value - value >> value;
+	value = value - value & value;
+	value = value - value | value;
+	value = value - value && value;
+	value = value - value || value;
+	value = value - value ? value : value;
+	
+	value = value * value << value;
+	value = value * value >> value;
+	value = value * value & value;
+	value = value * value | value;
+	value = value * value && value;
+	value = value * value || value;
+	value = value * value ? value : value;
+	
+	value = value / value << value;
+	value = value / value >> value;
+	value = value / value & value;
+	value = value / value | value;
+	value = value / value && value;
+	value = value / value || value;
+	value = value / value ? value : value;
+	
+	value = value % value << value;
+	value = value % value >> value;
+	value = value % value & value;
+	value = value % value | value;
+	value = value % value && value;
+	value = value % value || value;
+	value = value % value ? value : value;
+	
+	return value;
+}

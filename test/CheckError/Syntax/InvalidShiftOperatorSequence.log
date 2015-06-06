@@ -1,0 +1,9 @@
+Parser Error: Failed to parse file '(.*)/InvalidShiftOperatorSequence\.loci' with 8 errors:
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidShiftOperatorSequence\.loci, range = \(line 5, column 25\) to \(line 5, column 27\)\)\): syntax error, unexpected DOUBLE_LTRIBRACKET, expecting SEMICOLON
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidShiftOperatorSequence\.loci, range = \(line 5, column 25\) to \(line 5, column 27\)\)\): Statement must be terminated with semicolon\.
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidShiftOperatorSequence\.loci, range = \(line 6, column 25\) to \(line 6, column 26\)\)\): syntax error, unexpected RTRIBRACKET, expecting SEMICOLON
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidShiftOperatorSequence\.loci, range = \(line 6, column 25\) to \(line 6, column 26\)\)\): Statement must be terminated with semicolon\.
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidShiftOperatorSequence\.loci, range = \(line 7, column 25\) to \(line 7, column 27\)\)\): syntax error, unexpected DOUBLE_LTRIBRACKET, expecting SEMICOLON
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidShiftOperatorSequence\.loci, range = \(line 7, column 25\) to \(line 7, column 27\)\)\): Statement must be terminated with semicolon\.
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidShiftOperatorSequence\.loci, range = \(line 8, column 25\) to \(line 8, column 26\)\)\): syntax error, unexpected RTRIBRACKET, expecting SEMICOLON
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidShiftOperatorSequence\.loci, range = \(line 8, column 25\) to \(line 8, column 26\)\)\): Statement must be terminated with semicolon\.

@@ -9,6 +9,7 @@ endmacro(test_check_success)
 add_subdirectory(Cast)
 add_subdirectory(Const)
 add_subdirectory(Exception)
+add_subdirectory(Syntax)
 add_subdirectory(Templates)
 add_subdirectory(Unused)
 

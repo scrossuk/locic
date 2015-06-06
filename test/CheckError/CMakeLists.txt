@@ -18,6 +18,7 @@ add_subdirectory(Move)
 add_subdirectory(NameRef)
 add_subdirectory(Require)
 add_subdirectory(StaticRef)
+add_subdirectory(Syntax)
 add_subdirectory(Templates)
 add_subdirectory(Unused)
 

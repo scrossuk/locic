@@ -1,0 +1,10 @@
+template <typename V>
+class C () { }
+
+import C<C<int>> testTwoJointDoubleRightTriangleBrackets();
+
+import C<C<int> > testTwoSplitDoubleRightTriangleBrackets();
+
+import C<C<C<int>>> testThreeJointDoubleRightTriangleBrackets();
+
+import C<C<C<int> > > testThreeSplitDoubleRightTriangleBrackets();

@@ -1,0 +1,23 @@
+export staticref<int> typename getIntType() {
+	return int;
+}
+
+export staticref<float> typename getFloatType() {
+	return float;
+}
+
+export staticref<int&> typename getReferenceType() {
+	return int&;
+}
+
+export staticref<int*> typename getPointerType() {
+	return int*;
+}
+
+export staticref<(*)(int)()> typename getFunctionType() {
+	return (*)(int)();
+}
+
+export staticref<(*)(int)(int, int)> typename getFunctionTwoArgsType() {
+	return (*)(int)(int, int);
+}

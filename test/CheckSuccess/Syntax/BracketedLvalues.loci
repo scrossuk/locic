@@ -1,0 +1,45 @@
+import {
+
+class C {
+	lval<int> ptr_lval<int> add(const C& other) const;
+	lval<int> ptr_lval<int> subtract(const C& other) const;
+	lval<int> ptr_lval<int> multiply(const C& other) const;
+	lval<int> ptr_lval<int> divide(const C& other) const;
+	lval<int> ptr_lval<int> modulo(const C& other) const;
+	lval<int> ptr_lval<int> left_shift(const C& other) const;
+	lval<int> ptr_lval<int> right_shift(const C& other) const;
+	lval<int> ptr_lval<int> bitwise_and(const C& other) const;
+	lval<int> ptr_lval<int> bitwise_or(const C& other) const;
+	lval<int> ptr_lval<int> equal(const C& other) const;
+	lval<int> ptr_lval<int> not_equal(const C& other) const;
+	lval<int> ptr_lval<int> less_than(const C& other) const;
+	lval<int> ptr_lval<int> less_than_or_equal(const C& other) const;
+	lval<int> ptr_lval<int> greater_than(const C& other) const;
+	lval<int> ptr_lval<int> greater_than_or_equal(const C& other) const;
+}
+
+}
+
+export void f(C value) {
+	// The following are extremely poor taste, but nevertheless expressions like
+	// this, when wrapped in parentheses, ought to be valid (from the point of
+	// view of the correctness of the parser).
+	(value + value) = 0;
+	(value - value) = 0;
+	(value * value) = 0;
+	(value / value) = 0;
+	(value % value) = 0;
+	(value << value) = 0;
+	(value >> value) = 0;
+	(value & value) = 0;
+	(value | value) = 0;
+	(value == value) = 0;
+	(value != value) = 0;
+	(value < value) = 0;
+	(value <= value) = 0;
+	(value > value) = 0;
+	(value >= value) = 0;
+	
+	int v = 0;
+	(true ? v : v) = 0;
+}

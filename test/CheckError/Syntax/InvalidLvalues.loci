@@ -1,0 +1,18 @@
+void f() {
+	value + value = value;
+	value - value = value;
+	value / value = value;
+	value % value = value;
+	value << value = value;
+	value >> value = value;
+	value | value = value;
+	value && value = value;
+	value || value = value;
+	value == value = value;
+	value != value = value;
+	value < value = value;
+	value <= value = value;
+	value > value = value;
+	value >= value = value;
+	true ? value : value = value; // Needs parentheses around the ternary.
+}

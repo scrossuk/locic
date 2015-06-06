@@ -1,0 +1,12 @@
+template <bool V>
+class C () { }
+
+template <int A, int B>
+import C< A<<B > testLeftShiftInTemplateArgument();
+
+template <int A, int B>
+import C< A>>B > testRightShiftInTemplateArgument();
+
+export void testLeftShiftInVariableTemplate(unused C< A<<B > value) { }
+
+export void testRightShiftInVariableTemplate(unused C< A>>B > value) { }
