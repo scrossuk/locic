@@ -49,8 +49,7 @@ static FILE* builtInTypesFile() {
 
 std::string testOutput;
 
-// This function will be called by the Loci
-// code being tested.
+// This function will be called by the Loci code being tested.
 extern "C" void testPrint(const char* format, ...) {
 	va_list varArgList;
 	
@@ -117,86 +116,129 @@ bool checkError(const std::string& testError, const std::string& expectedError) 
 	return boost::regex_match(testErrorCopy, expectedErrorRegex);
 }
 
-int main(int argc, char* argv[]) {
-	if (argc < 1) {
-		return EXIT_FAILURE;
+class TestFailedException: public std::exception { };
+
+class TestFailedToOpenFileException: public TestFailedException {
+public:
+	TestFailedToOpenFileException(const std::string& filename)
+	: error_(makeString("Failed to open file '%s'.", filename.c_str())) { }
+	
+	const char* what() const noexcept {
+		return error_.c_str();
 	}
 	
-	const auto programName = boost::filesystem::path(argv[0]).stem().string();
+private:
+	std::string error_;
 	
+};
+
+class TestUnexpectedErrorException: public TestFailedException {
+public:
+	TestUnexpectedErrorException(const std::string& actual,
+	                             const std::string& expected)
+	: error_(makeString("Actual error doesn't match expected error.\n"
+	                    "---Expected error:\n%s\n"
+	                    "---Actual error:\n%s\n",
+	                    expected.c_str(),
+	                    actual.c_str())) { }
+	
+	const char* what() const noexcept {
+		return error_.c_str();
+	}
+	
+private:
+	std::string error_;
+	
+};
+
+class TestUnexpectedFailureException: public TestFailedException {
+public:
+	TestUnexpectedFailureException(const std::string& error)
+	: error_(makeString("Compilation failed unexpectedly.\n"
+	                    "---Error:\n%s\n",
+	                    error.c_str())) { }
+	
+	const char* what() const noexcept {
+		return error_.c_str();
+	}
+	
+private:
+	std::string error_;
+	
+};
+
+class TestUnexpectedOutputException: public TestFailedException {
+public:
+	TestUnexpectedOutputException(const std::string& actual,
+	                              const std::string& expected)
+	: error_(makeString("Actual output doesn't match expected output.\n"
+	                    "---Expected output:\n%s\n"
+	                    "---Actual output:\n%s\n",
+	                    expected.c_str(),
+	                    actual.c_str())) { }
+	
+	const char* what() const noexcept {
+		return error_.c_str();
+	}
+	
+private:
+	std::string error_;
+	
+};
+
+class TestUnexpectedResultException: public TestFailedException {
+public:
+	TestUnexpectedResultException(const int actual,
+	                              const int expected)
+	: error_(makeString("Actual result doesn't match expected result.\n"
+	                    "---Expected result: %d\n"
+	                    "---Actual result: %d\n",
+	                    expected, actual)) { }
+	
+	const char* what() const noexcept {
+		return error_.c_str();
+	}
+	
+private:
+	std::string error_;
+	
+};
+
+class TestUnexpectedSuccessException: public TestFailedException {
+public:
+	TestUnexpectedSuccessException()
+	: error_("Program compiled successfully when it was expected to fail.") { }
+	
+	const char* what() const noexcept {
+		return error_.c_str();
+	}
+	
+private:
+	std::string error_;
+	
+};
+
+struct TestOptions {
+	bool dumpOutput;
+	bool isHelpRequested;
 	std::string testName;
 	std::vector<std::string> inputFileNames;
 	std::string entryPointName;
+	bool parseOnly;
 	std::string expectedErrorFileName;
 	std::string expectedOutputFileName;
-	int expectedResult = 0;
+	int expectedResult;
 	std::vector<std::string> dependencyModules;
 	std::vector<std::string> programArgs;
 	
-	po::options_description visibleOptions("Options");
-	visibleOptions.add_options()
-	("help,h", "Display help information")
-	("test-name", po::value<std::string>(&testName), "Set test name")
-	("entry-point", po::value<std::string>(&entryPointName)->default_value("testEntryPoint"), "Set entry point function name")
-	("expected-error", po::value<std::string>(&expectedErrorFileName), "Set expected error file name")
-	("expected-output", po::value<std::string>(&expectedOutputFileName), "Set expected output file name")
-	("expected-result", po::value<int>(&expectedResult)->default_value(0), "Set expected result")
-	("dependency-modules", po::value<std::vector<std::string>>(&dependencyModules)->multitoken(), "Set dependency module bitcode files")
-	("args", po::value<std::vector<std::string>>(&programArgs)->multitoken(), "Set program arguments")
-	;
-	
-	po::options_description hiddenOptions;
-	hiddenOptions.add_options()
-	("input-file", po::value<std::vector<std::string>>(&inputFileNames), "Set input file names")
-	;
-	
-	po::options_description allOptions;
-	allOptions.add(visibleOptions).add(hiddenOptions);
-	
-	po::positional_options_description optionsPositions;
-	optionsPositions.add("input-file", -1);
-	
-	po::variables_map variableMap;
-	
-	try {
-		po::store(po::command_line_parser(argc, argv).options(allOptions).positional(optionsPositions).run(), variableMap);
-		po::notify(variableMap);
-	} catch (const po::error& e) {
-		printf("%s: Command line parsing error: %s\n", programName.c_str(), e.what());
-		printf("Usage: %s [options] file...\n", programName.c_str());
-		std::cout << visibleOptions << std::endl;
-		return EXIT_FAILURE;
-	}
-	
-	if (!variableMap["help"].empty()) {
-		printf("Usage: %s [options] file...\n", programName.c_str());
-		std::cout << visibleOptions << std::endl;
-		return EXIT_FAILURE;
-	}
-	
-	if (testName.empty()) {
-		printf("%s: No test name specified.\n", programName.c_str());
-		printf("Usage: %s [options] file...\n", programName.c_str());
-		std::cout << visibleOptions << std::endl;
-		return EXIT_FAILURE;
-	}
-	
-	if (inputFileNames.empty()) {
-		printf("%s: No files provided.\n", programName.c_str());
-		printf("Usage: %s [options] file...\n", programName.c_str());
-		std::cout << visibleOptions << std::endl;
-		return EXIT_FAILURE;
-	}
-	
-	if (!expectedErrorFileName.empty() && !expectedOutputFileName.empty()) {
-		printf("%s: Cannot specify both an error filename and expected output filename.\n", programName.c_str());
-		printf("Usage: %s [options] file...\n", programName.c_str());
-		std::cout << visibleOptions << std::endl;
-		return EXIT_FAILURE;
-	}
-	
-	inputFileNames.push_back("BuiltInTypes.loci");
-	
+	TestOptions()
+	: dumpOutput(false),
+	isHelpRequested(false),
+	parseOnly(false),
+	expectedResult(0) { }
+};
+
+bool runTest(TestOptions& options) {
 	try {
 		AST::NamespaceList astRootNamespaceList;
 		
@@ -205,12 +247,11 @@ int main(int argc, char* argv[]) {
 		std::stringstream parseErrors;
 		
 		// Parse all source files.
-		for (const auto& filename: inputFileNames) {
+		for (const auto& filename: options.inputFileNames) {
 			FILE* file = (filename == "BuiltInTypes.loci") ? builtInTypesFile() : fopen(filename.c_str(), "rb");
 			
 			if (file == NULL) {
-				printf("Test FAILED: Failed to open file '%s'.\n", filename.c_str());
-				return EXIT_FAILURE;
+				throw TestFailedToOpenFileException(filename);
 			}
 			
 			Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList, file, filename);
@@ -229,23 +270,26 @@ int main(int argc, char* argv[]) {
 		
 		const auto parseErrorString = parseErrors.str();
 		if (!parseErrorString.empty()) {
-			if (!expectedErrorFileName.empty()) {
-				const auto expectedError = loadFile(expectedErrorFileName);
+			if (!options.expectedErrorFileName.empty()) {
+				const auto expectedError = loadFile(options.expectedErrorFileName);
 				if (checkError(parseErrorString, expectedError)) {
 					printf("Test PASSED (with expected error).\n");
 					printf("Error:\n%s\n", parseErrorString.c_str());
-					return EXIT_SUCCESS;
+					return true;
 				} else {
-					printf("Test FAILED: Actual error doesn't match expected error.\n");
-					printf("---Expected error:\n%s\n", expectedError.c_str());
-					printf("---Actual error:\n%s\n", parseErrorString.c_str());
-					return EXIT_FAILURE;
+					throw TestUnexpectedErrorException(parseErrorString, expectedError);
 				}
 			} else {
-				printf("Test FAILED: Compilation failed unexpectedly.\n");
-				printf("Error:\n%s\n", parseErrorString.c_str());
-				return EXIT_FAILURE;
+				throw TestUnexpectedFailureException(parseErrorString);
 			}
+		}
+		
+		if (options.parseOnly) {
+			if (!options.expectedErrorFileName.empty()) {
+				throw TestUnexpectedSuccessException();
+			}
+			printf("Test PASSED (successfully parsed source file).\n");
+			return true;
 		}
 		
 		// Build options.
@@ -257,13 +301,35 @@ int main(int argc, char* argv[]) {
 		
 		// Perform semantic analysis.
 		printf("Performing semantic analysis...\n");
-		SEM::Context semContext;
-		SemanticAnalysis::Run(sharedMaps, astRootNamespaceList, semContext, debugModule);
 		
-		// Dump SEM tree information.
-		const auto semDebugFileName = testName + "_semdebug.txt";
-		std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
-		ofs << formatMessage(semContext.rootNamespace()->toString());
+		SEM::Context semContext;
+		
+		// TODO: Clean up this try-catch!
+		try {
+			SemanticAnalysis::Run(sharedMaps, astRootNamespaceList, semContext, debugModule);
+		} catch (const Exception& e) {
+			if (!options.expectedErrorFileName.empty()) {
+				const auto testError = e.toString();
+				const auto expectedError = loadFile(options.expectedErrorFileName);
+				
+				if (checkError(testError, expectedError)) {
+					printf("Test PASSED.\n\n");
+					printf("Error:\n%s\n", testError.c_str());
+					return true;
+				} else {
+					throw TestUnexpectedErrorException(testError, expectedError);
+				}
+			} else {
+				throw TestUnexpectedFailureException(e.toString());
+			}
+		}
+		
+		if (options.dumpOutput) {
+			// Dump SEM tree information.
+			const auto semDebugFileName = options.testName + "_semdebug.txt";
+			std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
+			ofs << formatMessage(semContext.rootNamespace()->toString());
+		}
 		
 		// Perform code generation.
 		printf("Performing code generation...\n");
@@ -274,27 +340,27 @@ int main(int argc, char* argv[]) {
 		
 		codeGenerator.genNamespace(semContext.rootNamespace());
 		
-		// Dump LLVM IR.
-		const auto codeGenDebugFileName = testName + "_codegendebug.ll";
-		codeGenerator.dumpToFile(codeGenDebugFileName);
-		
-		if (!expectedErrorFileName.empty()) {
-			printf("Test FAILED: Program compiled successfully when it was expected to fail.\n");
-			return EXIT_FAILURE;
+		if (options.dumpOutput) {
+			// Dump LLVM IR.
+			const auto codeGenDebugFileName = options.testName + "_codegendebug.ll";
+			codeGenerator.dumpToFile(codeGenDebugFileName);
 		}
 		
-		if (expectedOutputFileName.empty()) {
+		if (!options.expectedErrorFileName.empty()) {
+			throw TestUnexpectedSuccessException();
+		}
+		
+		if (options.expectedOutputFileName.empty()) {
 			// No output file was specified, so we just needed to
 			// check that the input files can be compiled.
-			printf("Test PASSED.\n\n");
-			return EXIT_SUCCESS;
+			return true;
 		}
 		
 		CodeGen::Linker linker(codeGenContext, codeGenerator.releaseModule());
 		
 		printf("Linking...\n");
 		
-		for (const auto& dependencyModuleName: dependencyModules) {
+		for (const auto& dependencyModuleName: options.dependencyModules) {
 			linker.loadModule(dependencyModuleName);
 		}
 		
@@ -304,56 +370,138 @@ int main(int argc, char* argv[]) {
 		CodeGen::Interpreter interpreter(codeGenContext, linker.releaseModule());
 		
 		// Treat entry point function as if it is 'main'.
-		programArgs.insert(programArgs.begin(), "testProgram");
+		options.programArgs.insert(options.programArgs.begin(), "testProgram");
 		
 		printf("Running...\n");
 		
-		const int result = interpreter.runAsMain(entryPointName, programArgs);
+		const int result = interpreter.runAsMain(options.entryPointName,
+		                                         options.programArgs);
 		
-		if (result != expectedResult) {
-			printf("Test FAILED: Result '%d' doesn't match expected result '%d'.\n",
-				   result, expectedResult);
-			return EXIT_FAILURE;
+		if (result != options.expectedResult) {
+			throw TestUnexpectedResultException(result,
+			                                    options.expectedResult);
 		}
 		
 		printf("Analysing output...\n");
 		
-		std::ifstream expectedOutputFileStream(expectedOutputFileName.c_str());
-		std::stringstream expectedOutputBuffer;
-		expectedOutputBuffer << expectedOutputFileStream.rdbuf();
-		
-		const auto& expectedOutput = expectedOutputBuffer.str();
+		const auto expectedOutput = loadFile(options.expectedOutputFileName);
 		
 		if (testOutput != expectedOutput) {
-			printf("Test FAILED: Actual output doesn't match expected output.\n");
-			printf("---Expected output:\n%s\n", expectedOutput.c_str());
-			printf("---Actual output:\n%s\n", testOutput.c_str());
-			return EXIT_FAILURE;
+			throw TestUnexpectedOutputException(testOutput,
+			                                    expectedOutput);
 		}
 		
 		printf("Test PASSED.\n\n");
 		printf("Output:\n%s\n", testOutput.c_str());
+		return true;
+	} catch (const TestFailedException& e) {
+		printf("Test FAILED: %s\n", e.what());
+		return false;
+	}
+}
+
+class CommandLineParser {
+public:
+	CommandLineParser()
+	: visibleOptions_("Options") {
+		visibleOptions_.add_options()
+		("help,h", "Display help information")
+		("test-name", po::value<std::string>(), "Set test name")
+		("entry-point", po::value<std::string>()->default_value("testEntryPoint"), "Set entry point function name")
+		("parse-only", "Only perform parsing stage")
+		("expected-error", po::value<std::string>()->default_value(""), "Set expected error file name")
+		("expected-output", po::value<std::string>()->default_value(""), "Set expected output file name")
+		("expected-result", po::value<int>()->default_value(0), "Set expected result")
+		("dependency-modules", po::value<std::vector<std::string>>()->multitoken(), "Set dependency module bitcode files")
+		("args", po::value<std::vector<std::string>>()->multitoken(), "Set program arguments")
+		;
 		
-		return EXIT_SUCCESS;
-	} catch (const Exception& e) {
-		if (!expectedErrorFileName.empty()) {
-			const auto testError = e.toString();
-			const auto expectedError = loadFile(expectedErrorFileName);
-			
-			if (checkError(testError, expectedError)) {
-				printf("Test PASSED.\n\n");
-				printf("Error:\n%s\n", testError.c_str());
-				return EXIT_SUCCESS;
-			} else {
-				printf("Test FAILED: Actual error doesn't match expected error.\n");
-				printf("---Expected error:\n%s\n", expectedError.c_str());
-				printf("---Actual error:\n%s\n", testError.c_str());
-				return EXIT_FAILURE;
-			}
-		} else {
-			printf("Test FAILED: Compilation failed unexpectedly (errors should be shown above).\n");
-			return EXIT_FAILURE;
+		hiddenOptions_.add_options()
+		("input-file", po::value<std::vector<std::string>>(), "Set input file names")
+		;
+		
+		allOptions_.add(visibleOptions_).add(hiddenOptions_);
+	}
+	
+	void printUsage() {
+		printf("Usage: loci-test [options] file...\n");
+		std::cout << visibleOptions_ << std::endl;
+	}
+	
+	TestOptions parse(int argc, char* argv[]) {
+		po::positional_options_description optionsPositions;
+		optionsPositions.add("input-file", -1);
+		
+		po::variables_map variableMap;
+		try {
+			po::store(po::command_line_parser(argc, argv).options(allOptions_).positional(optionsPositions).run(), variableMap);
+		} catch (const po::error& e) {
+			throw std::runtime_error(makeString("Command line parsing error: %s", e.what()));
 		}
+		
+		TestOptions options;
+		options.isHelpRequested = !variableMap["help"].empty();
+		
+		options.testName = variableMap["test-name"].as<std::string>();
+		if (options.testName.empty()) {
+			throw std::runtime_error("No test name specified.");
+		}
+		
+		options.entryPointName = variableMap["entry-point"].as<std::string>();
+		options.parseOnly = !variableMap["parse-only"].empty();
+		options.expectedErrorFileName = variableMap["expected-error"].as<std::string>();
+		options.expectedOutputFileName = variableMap["expected-output"].as<std::string>();
+		
+		if (variableMap.count("dependency-modules") > 0) {
+			options.dependencyModules = variableMap["dependency-modules"].as<std::vector<std::string>>();
+		}
+		
+		if (variableMap.count("args") > 0) {
+			options.programArgs = variableMap["args"].as<std::vector<std::string>>();
+		}
+		
+		if (variableMap.count("input-file") > 0) {
+			options.inputFileNames = variableMap["input-file"].as<std::vector<std::string>>();
+		} else {
+			throw std::runtime_error("No source files provided.");
+		}
+		
+		if (!options.expectedErrorFileName.empty() &&
+		    !options.expectedOutputFileName.empty()) {
+			throw std::runtime_error("Cannot specify both an error filename and expected output filename.");
+		}
+		
+		return options;
+	}
+	
+private:
+	po::options_description visibleOptions_;
+	po::options_description hiddenOptions_;
+	po::options_description allOptions_;
+	
+};
+
+int main(int argc, char* argv[]) {
+	if (argc < 1) {
+		return EXIT_FAILURE;
+	}
+	
+	CommandLineParser commandLineParser;
+	
+	try {
+		TestOptions options = commandLineParser.parse(argc, argv);
+		options.inputFileNames.push_back("BuiltInTypes.loci");
+		
+		if (options.isHelpRequested) {
+			commandLineParser.printUsage();
+			return EXIT_SUCCESS;
+		}
+		
+		return runTest(options) ? EXIT_SUCCESS : EXIT_FAILURE;
+	} catch (const std::exception& e) {
+		printf("ERROR: %s\n", e.what());
+		commandLineParser.printUsage();
+		return EXIT_FAILURE;
 	}
 }
 
