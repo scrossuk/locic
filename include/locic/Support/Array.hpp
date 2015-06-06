@@ -321,12 +321,16 @@ namespace locic{
 			}
 			
 			void clear() {
-				for (size_t i = 0; i < this->get_static_size(); i++) {
-					const size_t j = this->get_static_size() - i - 1;
-					this->static_index(j).~T();
+				if (using_static_space()) {
+					for (size_t i = 0; i < this->get_static_size(); i++) {
+						const size_t j = this->get_static_size() - i - 1;
+						this->static_index(j).~T();
+					}
+					this->set_static_size(0);
+				} else {
+					assert(this->get_static_size() == 0);
+					vector_.clear();
 				}
-				this->set_static_size(0);
-				vector_.clear();
 			}
 			
 			inline bool operator==(const Array<T, BaseSize>& other) const {
@@ -408,7 +412,7 @@ namespace locic{
 			}
 			
 			template <size_t OtherSize>
-			void set_internal_data(Array<T, OtherSize>&& other) {
+			inline void set_internal_data(Array<T, OtherSize>&& other) {
 				clear();
 				
 				assert(size() == 0);
@@ -421,7 +425,7 @@ namespace locic{
 				if (other.using_static_space() || can_allocate_statically) {
 					if (can_allocate_statically) {
 						for (size_t i = 0; i < other_size; i++) {
-							push_back(std::move(other[i]));
+							new (&(this->static_index(i))) T(std::move(other[i]));
 						}
 						this->set_static_size(other_size);
 						assert(vector_.empty());

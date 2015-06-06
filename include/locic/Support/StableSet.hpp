@@ -180,7 +180,7 @@ namespace locic{
 			}
 		}
 		
-		std::pair<iterator, bool> insert(Value value) {
+		std::pair<iterator, bool> insert(Value&& value) {
 			const auto it = find(value);
 			if (it != end()) {
 				return std::make_pair(it, false);

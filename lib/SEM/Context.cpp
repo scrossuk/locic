@@ -36,7 +36,7 @@ namespace locic {
 			return FunctionType(*(result.first));
 		}
 		
-		const Type* Context::getType(Type type) const {
+		const Type* Context::getType(Type&& type) const {
 			const auto result = impl_->types.insert(std::move(type));
 			return &(*(result.first));
 		}

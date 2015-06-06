@@ -19,7 +19,7 @@ namespace locic {
 				
 				FunctionType getFunctionType(FunctionTypeData functionType) const;
 				
-				const Type* getType(Type type) const;
+				const Type* getType(Type&& type) const;
 				
 				Namespace* rootNamespace();
 				
