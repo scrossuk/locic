@@ -114,6 +114,15 @@ namespace locic {
 					}
 				}
 				
+				case SEM::Value::ALIAS: {
+					const auto& alias = value.alias();
+					
+					SEM::TemplateVarMap assignments(alias.templateVariables().copy(),
+					                                value.aliasTemplateArguments().copy());
+					auto resolvedValue = alias.value().substitute(assignments);
+					return genValue(function, std::move(resolvedValue), hintResultValue);
+				}
+				
 				case SEM::Value::LOCALVAR: {
 					const auto& var = value.localVar();
 					return function.getLocalVarMap().get(&var);

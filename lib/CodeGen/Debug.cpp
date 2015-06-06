@@ -149,7 +149,7 @@ namespace locic {
 		}
 		
 		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, SEM::Function* const function, llvm::Function* const llvmFunction) {
-			const auto debugInfo = function->debugInfo();
+			const auto& debugInfo = function->debugInfo();
 			
 			if (debugInfo) {
 				const auto debugSubprogramType = genDebugFunctionType(module, function->type());
@@ -179,7 +179,7 @@ namespace locic {
 		}
 		
 		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function, const SEM::Function& semFunction) {
-			const auto debugInfo = semFunction.debugInfo();
+			const auto& debugInfo = semFunction.debugInfo();
 			if (debugInfo) {
 				const auto debugSourceLocation = debugInfo->declLocation;
 				return make_optional(getDebugLocation(function, debugSourceLocation));

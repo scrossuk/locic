@@ -26,7 +26,6 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool isRootTypeList(llvm::ArrayRef<const SEM::Type*> templateArguments);
 		bool isRootTypeList(llvm::ArrayRef<SEM::Value> templateArguments);
 		
 		bool isRootType(const SEM::Type* type) {
@@ -47,15 +46,6 @@ namespace locic {
 					llvm_unreachable("Unknown SEM::Type kind in isRootType()");
 				}
 			}
-		}
-		
-		bool isRootTypeList(llvm::ArrayRef<const SEM::Type*> templateArguments) {
-			for (size_t i = 0; i < templateArguments.size(); i++) {
-				if (!isRootType(templateArguments[i])) {
-					return false;
-				}
-			}
-			return true;
 		}
 		
 		bool isRootTypeList(llvm::ArrayRef<SEM::Value> templateArguments) {

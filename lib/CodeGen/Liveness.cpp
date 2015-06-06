@@ -181,7 +181,8 @@ namespace locic {
 			}
 		}
 		
-		void genSetDeadState(Function& functionGenerator, const SEM::Type* const type, llvm::Value* const value) {
+		void genSetDeadState(Function& functionGenerator, const SEM::Type* const rawType, llvm::Value* const value) {
+			const auto type = rawType->resolveAliases();
 			auto& module = functionGenerator.module();
 			
 			// Call __setdead method.
