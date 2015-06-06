@@ -23,11 +23,9 @@ namespace locic {
 			declLocation(other.declLocation),
 			scopeLocation(other.scopeLocation) { }
 			
-			FunctionInfo& operator=(const FunctionInfo& other) {
-				FunctionInfo tmp(other);
-				std::swap(*this, tmp);
-				return *this;
-			}
+			FunctionInfo(FunctionInfo&&) = default;
+			
+			FunctionInfo& operator=(FunctionInfo&&) = default;
 		};
 		
 	}

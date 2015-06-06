@@ -19,14 +19,14 @@ namespace locic {
 			public:
 				static SourceLocation Null() {
 					const auto nullPosition = SourcePosition(0, 0);
-					return SourceLocation("<NULL>", SourceRange(nullPosition, nullPosition),
+					return SourceLocation("", SourceRange(nullPosition, nullPosition),
 						std::make_pair<size_t, size_t>(0, 0), std::make_pair<size_t, size_t>(0, 0));
 				}
 				
-				SourceLocation(const std::string& pFileName, SourceRange pRange,
+				SourceLocation(std::string pFileName, SourceRange pRange,
 						std::pair<size_t, size_t> pByteRange,
 						std::pair<size_t, size_t> pLineByteRange)
-					: fileName_(pFileName), range_(pRange),
+					: fileName_(std::move(pFileName)), range_(pRange),
 					byteRange_(pByteRange), lineByteRange_(pLineByteRange) { }
 					
 				const std::string& fileName() const {

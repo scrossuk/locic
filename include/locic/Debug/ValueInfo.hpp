@@ -7,7 +7,8 @@ namespace locic {
 
 	namespace Debug {
 		
-		struct ValueInfo {
+		class ValueInfo {
+		public:
 			SourceLocation location;
 			
 			ValueInfo() : location(SourceLocation::Null()) { }
