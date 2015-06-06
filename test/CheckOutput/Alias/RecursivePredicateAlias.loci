@@ -1,0 +1,24 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+using True0 = true;
+using True1 = True0;
+using True2 = True1;
+using True3 = True2;
+using SetConst = True3;
+
+class TestClass() {
+	static Create = default;
+	
+	void print() const(SetConst) {
+		testPrint(C"TestClass.print()");
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	const TestClass object = TestClass();
+	object.print();
+	return 0;
+}
+

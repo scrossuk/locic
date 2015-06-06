@@ -1,0 +1,9 @@
+class TestClass() {
+	static Create = default;
+}
+
+using TestClassAlias = TestClass;
+
+export TestClass createFromAlias() {
+	return TestClassAlias::Create();
+}

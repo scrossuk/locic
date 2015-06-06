@@ -1,0 +1,12 @@
+template <typename T : movable>
+class TestClass() {
+	static Create = default;
+}
+
+template <typename T : movable>
+using TestClassAlias = TestClass<T>;
+
+template <typename T : movable>
+export TestClass<T> createFromAlias() {
+	return TestClassAlias<T>::Create();
+}

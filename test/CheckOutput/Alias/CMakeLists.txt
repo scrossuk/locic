@@ -1,0 +1,13 @@
+# Type alias tests.
+
+test_check_output(BasicPredicateAlias)
+test_check_output(BasicTypeAlias)
+test_check_output(BasicValueAlias)
+test_check_output(RecursivePredicateAlias)
+test_check_output(RecursiveTypeAlias)
+test_check_output(RecursiveValueAlias)
+test_check_output(RecursiveTemplatedPredicateAlias)
+test_check_output(RecursiveTemplatedTypeAlias)
+test_check_output(TemplatedTypeAlias)
+test_check_output(TemplatedTypeAliasSpecType)
+

@@ -1,0 +1,11 @@
+using IntValue = 42;
+
+export int returnIntValue() {
+	return IntValue;
+}
+
+using IntCallValue = returnIntValue();
+
+export int returnIntCallValue() {
+	return IntCallValue;
+}

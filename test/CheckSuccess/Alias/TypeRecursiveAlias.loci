@@ -1,0 +1,42 @@
+class TestClass() { }
+
+using TestClassAlias0 = TestClass;
+using TestClassAlias1 = TestClassAlias0;
+using TestClassAlias2 = TestClassAlias1;
+using TestClassAlias3 = TestClassAlias2;
+using TestClassAlias = TestClassAlias3;
+
+export TestClass* pointerCastFromAlias(TestClassAlias* value) {
+	return value;
+}
+
+export TestClassAlias* pointerCastToAlias(TestClass* value) {
+	return value;
+}
+
+export TestClass& refCastFromAlias(TestClassAlias& value) {
+	return value;
+}
+
+export TestClassAlias& refCastToAlias(TestClass& value) {
+	return value;
+}
+
+export TestClass moveFromAlias(TestClassAlias value) {
+	return move value;
+}
+
+export TestClassAlias moveToAlias(TestClass value) {
+	return move value;
+}
+
+template <typename T>
+datatype TemplatedClass(T value);
+
+export TemplatedClass<TestClass> moveFromTemplatedAlias(TemplatedClass<TestClassAlias> value) {
+	return move value;
+}
+
+export TemplatedClass<TestClassAlias> moveToTemplatedAlias(TemplatedClass<TestClass> value) {
+	return move value;
+}

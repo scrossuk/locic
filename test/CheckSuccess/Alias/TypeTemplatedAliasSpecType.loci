@@ -1,0 +1,19 @@
+interface CanDoOneThing {
+	void doFirstThing();
+}
+
+interface CanDoTwoThings {
+	void doFirstThing();
+	void doSecondThing();
+}
+
+template <typename T : movable>
+require(T : CanDoOneThing)
+class TestClass() { }
+
+template <typename T : movable>
+require(T : CanDoTwoThings)
+using TestClassAlias = TestClass<T>;
+
+template <typename T>
+import TestClassAlias<T> checkAliasTypeIsValid() require(T : movable and T : CanDoTwoThings);

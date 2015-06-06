@@ -1,0 +1,11 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+using IntValue = 42;
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"IntValue = %d", IntValue);
+	return 0;
+}
+

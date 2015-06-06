@@ -1,0 +1,16 @@
+# Alias tests.
+
+test_check_success(PredicateBasicAlias)
+test_check_success(PredicateRecursiveAlias)
+test_check_success(PredicateRecursiveTemplatedAlias)
+test_check_success(TypeBasicAlias)
+test_check_success(TypeRecursiveAlias)
+test_check_success(TypeRecursiveTemplatedAlias)
+test_check_success(TypeTemplatedAlias)
+test_check_success(TypeTemplatedAliasSpecType)
+test_check_success(ValueBasicAlias)
+test_check_success(ValueRecursiveAlias)
+
+# FIXME: test_check_success(TypeBasicAliasSymbol)
+# FIXME: test_check_success(TypeTemplatedAliasSymbol)
+

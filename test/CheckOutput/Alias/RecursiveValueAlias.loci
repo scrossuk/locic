@@ -1,0 +1,15 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+using IntValue0 = 100;
+using IntValue1 = IntValue0;
+using IntValue2 = IntValue1;
+using IntValue3 = IntValue2;
+using IntValue = IntValue3;
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"IntValue = %d", IntValue);
+	return 0;
+}
+

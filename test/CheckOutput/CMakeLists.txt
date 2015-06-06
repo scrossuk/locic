@@ -6,6 +6,7 @@ macro(test_check_output name)
 		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name TestCheckOutput${name} --expected-output=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci)
 endmacro(test_check_output)
 
+add_subdirectory(Alias)
 add_subdirectory(Assert)
 add_subdirectory(Auto)
 add_subdirectory(BindingRef)
@@ -29,5 +30,4 @@ add_subdirectory(SizeOf)
 add_subdirectory(StaticRef)
 add_subdirectory(Switch)
 add_subdirectory(Templates)
-add_subdirectory(TypeAlias)
 

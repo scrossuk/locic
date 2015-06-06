@@ -1,0 +1,8 @@
+template <bool Value>
+require(Value)
+class CheckIsTrue() { }
+
+template <bool IsTrue>
+using AliasValue = IsTrue;
+
+import CheckIsTrue<AliasValueTrue<true>> checkAliasValueIsTrue();
