@@ -1,0 +1,21 @@
+
+export int testLogicOperatorSequence(int value) {
+	// Check all possibilities!
+	value = value && value || value;
+	value = value && value and value;
+	value = value && value or value;
+	
+	value = value || value && value;
+	value = value || value and value;
+	value = value || value or value;
+	
+	value = value and value && value;
+	value = value and value || value;
+	value = value and value or value;
+	
+	value = value or value && value;
+	value = value or value || value;
+	value = value or value and value;
+	
+	return value;
+}
