@@ -382,8 +382,8 @@ const T& GETSYM(T* value) {
 %type <function> functionDecl
 %type <function> functionDef
 
-%type <predicateExpr> predicateExpr_precedence0
-%type <predicateExpr> predicateExpr_precedence1
+%type <predicateExpr> predicateExprAtom
+%type <predicateExpr> predicateExprBinaryOperator
 %type <predicateExpr> predicateExpr
 
 %type <constSpecifier> constSpecifier
@@ -665,7 +665,7 @@ constSpecifier:
 	}
 	;
 
-predicateExpr_precedence0:
+predicateExprAtom:
 	LROUNDBRACKET predicateExpr RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::Bracket(GETSYM($2))));
@@ -680,23 +680,23 @@ predicateExpr_precedence0:
 	}
 	;
 
-predicateExpr_precedence1:
-	predicateExpr_precedence0
+predicateExprBinaryOperator:
+	predicateExprAtom
 	{
 		$$ = $1;
 	}
-	| predicateExpr_precedence1 AND predicateExpr_precedence0
+	| predicateExprBinaryOperator AND predicateExprAtom
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::And(GETSYM($1), GETSYM($3))));
 	}
-	| predicateExpr_precedence1 OR predicateExpr_precedence0
+	| predicateExprBinaryOperator OR predicateExprAtom
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::Or(GETSYM($1), GETSYM($3))));
 	}
 	;
 
 predicateExpr:
-	predicateExpr_precedence1
+	predicateExprBinaryOperator
 	{
 		$$ = $1;
 	}
