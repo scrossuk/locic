@@ -6,6 +6,7 @@ macro(test_check_error name)
 		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name TestCheckError${name} --expected-error=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci)
 endmacro(test_check_error)
 
+add_subdirectory(Alias)
 add_subdirectory(Cast)
 add_subdirectory(Class)
 add_subdirectory(Conditional)
