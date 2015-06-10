@@ -1,6 +1,10 @@
 # Alias tests.
 
 test_check_success(PredicateBasicAlias)
+test_check_success(PredicateCapabilityAlias)
+test_check_success(PredicateExpressionAlias)
+test_check_success(PredicateExpressionRecursiveAlias)
+test_check_success(PredicateLogicalOperatorAlias)
 test_check_success(PredicateRecursiveAlias)
 test_check_success(PredicateRecursiveTemplatedAlias)
 test_check_success(TypeBasicAlias)

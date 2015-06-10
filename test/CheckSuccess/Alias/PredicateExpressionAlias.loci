@@ -1,0 +1,12 @@
+template <bool Value>
+require(Value)
+class CheckIsTrue() { }
+
+template <bool A, bool B>
+using AliasValue = A or B;
+
+import CheckIsTrue<AliasValue<false, true>> checkAliasValueFalseOrTrue();
+
+import CheckIsTrue<AliasValue<true, false>> checkAliasValueTrueOrFalse();
+
+import CheckIsTrue<AliasValue<true, true>> checkAliasValueTrueOrTrue();
