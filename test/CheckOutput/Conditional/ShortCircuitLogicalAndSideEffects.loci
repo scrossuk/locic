@@ -7,7 +7,7 @@ bool evaluate(bool value) {
 }
 
 bool logicalAnd(bool first, bool second) {
-	return evaluate(first) and evaluate(second);
+	return evaluate(first) && evaluate(second);
 }
 
 // Entry point.

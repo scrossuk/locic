@@ -5,8 +5,6 @@ evaluate: value is false
 evaluate: value is true
 testEntryPoint: logicalOr(false, true) = true
 evaluate: value is true
-evaluate: value is false
 testEntryPoint: logicalOr(true, false) = true
-evaluate: value is true
 evaluate: value is true
 testEntryPoint: logicalOr(true, true) = true
