@@ -99,6 +99,11 @@ namespace locic {
 					String name;
 					const Type* functionType;
 				} templateFunctionRef;
+				
+				struct {
+					const Type* checkType;
+					const Type* capabilityType;
+				} capabilityTest;
 			} union_;
 		};
 		
@@ -377,6 +382,16 @@ namespace locic {
 			Value value(STATICINTERFACEMETHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
 			value.impl_->value0 = std::move(method);
 			value.impl_->value1 = std::move(methodOwner);
+			return value;
+		}
+		
+		Value Value::CapabilityTest(const Type* const checkType,
+		                            const Type* const capabilityType,
+		                            const Type* const boolType) {
+			assert(boolType->isBuiltInBool());
+			Value value(CAPABILITYTEST, boolType, ExitStates::Normal());
+			value.impl_->union_.capabilityTest.checkType = checkType;
+			value.impl_->union_.capabilityTest.capabilityType = capabilityType;
 			return value;
 		}
 		
@@ -784,6 +799,20 @@ namespace locic {
 			return impl_->value1;
 		}
 		
+		bool Value::isCapabilityTest() const {
+			return kind() == CAPABILITYTEST;
+		}
+		
+		const Type* Value::capabilityTestCheckType() const {
+			assert(isCapabilityTest());
+			return impl_->union_.capabilityTest.checkType;
+		}
+		
+		const Type* Value::capabilityTestCapabilityType() const {
+			assert(isCapabilityTest());
+			return impl_->union_.capabilityTest.capabilityType;
+		}
+		
 		void Value::setDebugInfo(Debug::ValueInfo newDebugInfo) {
 			impl_->debugInfo = make_optional(std::move(newDebugInfo));
 		}
@@ -924,6 +953,10 @@ namespace locic {
 					hasher.add(staticInterfaceMethodObject());
 					hasher.add(staticInterfaceMethodOwner());
 					break;
+				case Value::CAPABILITYTEST:
+					hasher.add(capabilityTestCheckType());
+					hasher.add(capabilityTestCapabilityType());
+					break;
 				case Value::CASTDUMMYOBJECT:
 					break;
 			}
@@ -1010,6 +1043,9 @@ namespace locic {
 					return interfaceMethodObject() == value.interfaceMethodObject() && interfaceMethodOwner() == value.interfaceMethodOwner();
 				case Value::STATICINTERFACEMETHODOBJECT:
 					return staticInterfaceMethodObject() == value.staticInterfaceMethodObject() && staticInterfaceMethodOwner() == value.staticInterfaceMethodOwner();
+				case Value::CAPABILITYTEST:
+					return capabilityTestCheckType() == value.capabilityTestCheckType() &&
+					       capabilityTestCapabilityType() == value.capabilityTestCapabilityType();
 				case Value::CASTDUMMYOBJECT:
 					return true;
 			}
@@ -1095,6 +1131,11 @@ namespace locic {
 					                   std::move(templateArguments),
 					                   type()->substitute(templateVarMap));
 				}
+				case CAPABILITYTEST: {
+					return CapabilityTest(capabilityTestCheckType()->substitute(templateVarMap),
+					                      capabilityTestCapabilityType()->substitute(templateVarMap),
+					                      type());
+				}
 				default:
 					throw std::logic_error(makeString("substitute() not implemented for: %s", toString().c_str()));
 			}
@@ -1114,6 +1155,10 @@ namespace locic {
 					return predicate().copy();
 				case TEMPLATEVARREF: {
 					return Predicate::Variable(const_cast<TemplateVar*>(templateVar()));
+				}
+				case CAPABILITYTEST: {
+					return Predicate::Satisfies(capabilityTestCheckType(),
+					                            capabilityTestCapabilityType());
 				}
 				default:
 					throw std::logic_error(makeString("Invalid value for predicate: %s", toString().c_str()));
@@ -1224,6 +1269,10 @@ namespace locic {
 					return makeString("StaticInterfaceMethodObject(method: %s, typeRef: %s)",
 						staticInterfaceMethodObject().toString().c_str(),
 						staticInterfaceMethodOwner().toString().c_str());
+				case CAPABILITYTEST:
+					return makeString("CapabilityTest(checkType: %s, capabilityType: %s)",
+					                  capabilityTestCheckType()->toString().c_str(),
+					                  capabilityTestCapabilityType()->toString().c_str());
 				case CASTDUMMYOBJECT:
 					return makeString("[CAST DUMMY OBJECT (FOR SEMANTIC ANALYSIS)](type: %s)",
 						type()->toString().c_str());

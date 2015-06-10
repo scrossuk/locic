@@ -68,6 +68,7 @@ namespace locic {
 					METHODOBJECT,
 					INTERFACEMETHODOBJECT,
 					STATICINTERFACEMETHODOBJECT,
+					CAPABILITYTEST,
 					
 					// Used by Semantic Analysis to create a 'dummy'
 					// value to test if types can be cast.
@@ -338,6 +339,16 @@ namespace locic {
 				static Value StaticInterfaceMethodObject(Value method, Value typeRef, const Type* const type);
 				
 				/**
+				 * \brief Capability Test
+				 * 
+				 * Query whether a type has the capabilities (methods) specified by
+				 * another type.
+				 */
+				static Value CapabilityTest(const Type* const checkType,
+				                            const Type* const capabilityType,
+				                            const Type* const boolType);
+				
+				/**
 				 * \brief Cast Dummy
 				 * 
 				 * A placeholder value for cast operations in the Semantic Analysis stage.
@@ -470,6 +481,10 @@ namespace locic {
 				bool isStaticInterfaceMethodObject() const;
 				const Value& staticInterfaceMethodObject() const;
 				const Value& staticInterfaceMethodOwner() const;
+				
+				bool isCapabilityTest() const;
+				const Type* capabilityTestCheckType() const;
+				const Type* capabilityTestCapabilityType() const;
 				
 				void setDebugInfo(Debug::ValueInfo debugInfo);
 				const Optional<Debug::ValueInfo>& debugInfo() const;

@@ -2140,6 +2140,10 @@ comparisonOperatorValue:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_GREATERTHANOREQUAL, GETSYM($1), GETSYM($3))));
 	}
+	| type COLON type
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::CapabilityTest(GETSYM($1), GETSYM($3))));
+	}
 	;
 	
 comparisonOperatorValueOrNext:

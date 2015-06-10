@@ -510,6 +510,7 @@ namespace locic {
 				
 				case SEM::Value::PREDICATE:
 				case SEM::Value::TEMPLATEVARREF:
+				case SEM::Value::CAPABILITYTEST:
 				case SEM::Value::CASTDUMMYOBJECT:
 					llvm_unreachable("Invalid value enum for code generation.");
 			}

@@ -69,7 +69,8 @@ namespace locic {
 				INTERNALCONSTRUCT,
 				MEMBERACCESS,
 				TEMPLATEDMEMBERACCESS,
-				FUNCTIONCALL
+				FUNCTIONCALL,
+				CAPABILITYTEST
 			} typeEnum;
 			
 			struct {
@@ -162,6 +163,11 @@ namespace locic {
 				Node<Value> functionValue;
 				Node<ValueList> parameters;
 			} functionCall;
+			
+			struct {
+				Node<Type> checkType;
+				Node<Type> capabilityType;
+			} capabilityTest;
 			
 			Value() : typeEnum(static_cast<TypeEnum>(-1)) { }
 			
@@ -296,6 +302,14 @@ namespace locic {
 				Value* value = new Value(FUNCTIONCALL);
 				value->functionCall.functionValue = functionValue;
 				value->functionCall.parameters = parameters;
+				return value;
+			}
+			
+			static Value* CapabilityTest(Node<Type> checkType,
+			                             Node<Type> capabilityType) {
+				Value* value = new Value(CAPABILITYTEST);
+				value->capabilityTest.checkType = checkType;
+				value->capabilityTest.capabilityType = capabilityType;
 				return value;
 			}
 			

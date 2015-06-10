@@ -652,6 +652,17 @@ namespace locic {
 					
 					return CallValue(context, std::move(functionValue), std::move(argumentValues), location);
 				}
+				case AST::Value::CAPABILITYTEST: {
+					const auto checkType = ConvertType(context,
+					                                   astValueNode->capabilityTest.checkType);
+					const auto capabilityType = ConvertType(context,
+					                                        astValueNode->capabilityTest.capabilityType);
+					const auto boolType = getBuiltInType(context,
+					                                     context.getCString("bool"), {});
+					return SEM::Value::CapabilityTest(checkType,
+					                                  capabilityType,
+					                                  boolType);
+				}
 			}
 			
 			std::terminate();
