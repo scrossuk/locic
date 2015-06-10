@@ -1,4 +1,4 @@
-# Require tests.
+# Capability tests.
 
 test_check_error(InferTemplateVarMethodSetIncorrectParamCount)
 test_check_error(InferTemplateVarMethodSetIncorrectParamType)
