@@ -1097,6 +1097,11 @@ namespace locic {
 					}
 					return Value::Alias(alias(), std::move(arguments));
 				}
+				case TERNARY: {
+					return Value::Ternary(ternaryCondition().substitute(templateVarMap),
+					                      ternaryIfTrue().substitute(templateVarMap),
+					                      ternaryIfFalse().substitute(templateVarMap));
+				}
 				case TYPEREF:
 					return SEM::Value::TypeRef(typeRefType()->substitute(templateVarMap), type()->substitute(templateVarMap));
 				case TEMPLATEVARREF: {
@@ -1155,6 +1160,12 @@ namespace locic {
 					return predicate().copy();
 				case TEMPLATEVARREF: {
 					return Predicate::Variable(const_cast<TemplateVar*>(templateVar()));
+				}
+				case TERNARY: {
+					// TODO: Remove this, because it isn't entirely correct.
+					return Predicate::Or(Predicate::And(ternaryCondition().makePredicate(),
+					                                    ternaryIfTrue().makePredicate()),
+					                     ternaryIfFalse().makePredicate());
 				}
 				case CAPABILITYTEST: {
 					return Predicate::Satisfies(capabilityTestCheckType(),

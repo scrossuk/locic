@@ -490,8 +490,12 @@ const T& GETSYM(T* value) {
 %type <value> comparisonOperatorValueOrNext
 %type <value> logicalAndValue
 %type <value> logicalAndValueOrNext
+%type <value> logicalAndShortCircuitValue
+%type <value> logicalAndShortCircuitValueOrNext
 %type <value> logicalOrValue
 %type <value> logicalOrValueOrNext
+%type <value> logicalOrShortCircuitValue
+%type <value> logicalOrShortCircuitValueOrNext
 %type <value> shiftOperatorValue
 %type <value> ternaryOperatorValue
 %type <value> ternaryOperatorValueOperand
@@ -2195,8 +2199,26 @@ bitwiseOrValueOrNext:
 	}
 	;
 	
+logicalAndShortCircuitValue:
+	logicalAndShortCircuitValueOrNext DOUBLE_AMPERSAND comparisonOperatorValueOrNext
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LOGICALAND, GETSYM($1), GETSYM($3))));
+	}
+	;
+
+logicalAndShortCircuitValueOrNext:
+	logicalAndShortCircuitValue
+	{
+		$$ = $1;
+	}
+	| comparisonOperatorValueOrNext
+	{
+		$$ = $1;
+	}
+	;
+
 logicalAndValue:
-	logicalAndValueOrNext DOUBLE_AMPERSAND comparisonOperatorValueOrNext
+	logicalAndValueOrNext AND comparisonOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LOGICALAND, GETSYM($1), GETSYM($3))));
 	}
@@ -2213,8 +2235,26 @@ logicalAndValueOrNext:
 	}
 	;
 
+logicalOrShortCircuitValue:
+	logicalOrShortCircuitValueOrNext DOUBLE_VERTICAL_BAR comparisonOperatorValueOrNext
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LOGICALOR, GETSYM($1), GETSYM($3))));
+	}
+	;
+
+logicalOrShortCircuitValueOrNext:
+	logicalOrShortCircuitValue
+	{
+		$$ = $1;
+	}
+	| comparisonOperatorValueOrNext
+	{
+		$$ = $1;
+	}
+	;
+
 logicalOrValue:
-	logicalOrValueOrNext DOUBLE_VERTICAL_BAR comparisonOperatorValueOrNext
+	logicalOrValueOrNext OR comparisonOperatorValueOrNext
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::BinaryOp(locic::AST::OP_LOGICALOR, GETSYM($1), GETSYM($3))));
 	}
@@ -2314,7 +2354,15 @@ value:
 	{
 		$$ = $1;
 	}
+	| logicalAndShortCircuitValue
+	{
+		$$ = $1;
+	}
 	| logicalOrValue
+	{
+		$$ = $1;
+	}
+	| logicalOrShortCircuitValue
 	{
 		$$ = $1;
 	}
