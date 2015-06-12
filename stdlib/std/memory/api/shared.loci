@@ -4,7 +4,7 @@ import std.memory 0.1.0 {
 		
 		template <typename T>
 		class shared_ptr {
-			static shared_ptr<T> create(T value) require(T : movable);
+			static shared_ptr<T> create(T value) require(is_movable<T>);
 			
 			static shared_ptr<T> from_ptr(T* ptr);
 			
@@ -16,7 +16,8 @@ import std.memory 0.1.0 {
 			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept;
 		}
 		
-		template <typename T : movable>
+		template <typename T>
+		require(is_movable<T>)
 		shared_ptr<T> new_shared(T value);
 		
 	}

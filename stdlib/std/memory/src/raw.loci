@@ -2,7 +2,8 @@ export std.memory 0.1.0 {
 	
 	namespace std {
 		
-		template <typename T : movable>
+		template <typename T>
+		require(is_movable<T>)
 		T* new_raw(T value) {
 			void* ptr = allocate(sizeof(T));
 			T* castPtr = reinterpret_cast<void*, T*>(ptr);

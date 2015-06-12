@@ -5,7 +5,7 @@ export std.memory 0.1.0 {
 		template <typename T>
 		// TODO: use atomic counter.
 		class shared_ptr(__override_const size_t* countField, T* ptr) {
-			static create(T value) require(T : movable) {
+			static create(T value) require(is_movable<T>) {
 				return @(new_raw<size_t>(1u), new_raw<T>(move value));
 			}
 			
@@ -55,7 +55,8 @@ export std.memory 0.1.0 {
 			}
 		}
 		
-		template <typename T : movable>
+		template <typename T>
+		require(is_movable<T>)
 		shared_ptr<T> new_shared(T value) {
 			return shared_ptr<T>::create(move value);
 		}
