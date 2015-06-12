@@ -1,0 +1,9 @@
+template <typename T>
+require(is_movable<T>)
+interface default_constructible {
+	static T create();
+}
+
+template <typename T>
+require(is_movable<T>)
+using is_default_constructible = is_movable<T> and T : default_constructible<T>;
