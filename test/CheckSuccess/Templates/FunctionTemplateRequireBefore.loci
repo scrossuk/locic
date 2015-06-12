@@ -1,0 +1,10 @@
+
+interface CanDoThing {
+	void doThing();
+}
+
+template <typename T>
+require(T : CanDoThing)
+void f(T& object) {
+	object.doThing();
+}

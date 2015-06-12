@@ -7,4 +7,7 @@ test_check_success(ClassBoolTemplateValue)
 test_check_success(ClassTypenameTemplate)
 test_check_success(ClassTypenameTemplateValue)
 test_check_success(CyclicTemplateRequirement)
+test_check_success(FunctionTemplate)
+test_check_success(FunctionTemplateRequireAfter)
+test_check_success(FunctionTemplateRequireBefore)
 
