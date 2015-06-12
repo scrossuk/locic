@@ -4,6 +4,12 @@ interface comparable {
 }
 
 template <typename T>
+using is_comparable = T : comparable<T>;
+
+template <typename T>
 interface noexcept_comparable {
 	compare_result_t compare(const T& other) const noexcept;
 }
+
+template <typename T>
+using is_noexcept_comparable = T : noexcept_comparable<T>;

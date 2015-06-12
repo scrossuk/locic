@@ -4,6 +4,12 @@ interface dissolvable {
 }
 
 template <typename T>
+using is_dissolvable = T : dissolvable<T>;
+
+template <typename T>
 interface const_dissolvable {
 	const T& dissolve() const;
 }
+
+template <typename T>
+using is_const_dissolvable = T : const_dissolvable<T>;

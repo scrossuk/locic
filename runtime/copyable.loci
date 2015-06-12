@@ -6,9 +6,17 @@ interface copyable {
 
 template <typename T>
 require(notag(T) : movable)
+using is_copyable = notag(T) : movable and T : copyable<T>;
+
+template <typename T>
+require(notag(T) : movable)
 interface implicit_copyable {
 	notag(T) implicit_copy() const;
 }
+
+template <typename T>
+require(notag(T) : movable)
+using is_implicit_copyable = notag(T) : movable and T : implicit_copyable<T>;
 
 template <typename T>
 require(notag(T) : movable)
@@ -18,6 +26,14 @@ interface noexcept_copyable {
 
 template <typename T>
 require(notag(T) : movable)
+using is_noexcept_copyable = notag(T) : movable and T : noexcept_copyable<T>;
+
+template <typename T>
+require(notag(T) : movable)
 interface noexcept_implicit_copyable {
 	notag(T) implicit_copy() const noexcept;
 }
+
+template <typename T>
+require(notag(T) : movable)
+using is_noexcept_implicit_copyable = notag(T) : movable and T : noexcept_implicit_copyable<T>;

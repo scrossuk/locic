@@ -1,3 +1,6 @@
 interface movable {
 	void __move_to(void* ptr, size_t position) noexcept;
 }
+
+template <typename T>
+using is_movable = T : movable;
