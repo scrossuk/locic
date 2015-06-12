@@ -1,0 +1,15 @@
+# Module tests.
+
+test_check_success(ExportedFunction)
+test_check_success(ExportedTemplateFunction)
+test_check_success(ExportedTemplateFunctionWithRequire)
+test_check_success(ImportedFunction)
+test_check_success(ImportedTemplateFunction)
+test_check_success(ImportedTemplateFunctionWithRequire)
+test_check_success(NameExportedFunction)
+test_check_success(NameExportedTemplateFunction)
+test_check_success(NameExportedTemplateFunctionWithRequire)
+test_check_success(NameImportedFunction)
+test_check_success(NameImportedTemplateFunction)
+test_check_success(NameImportedTemplateFunctionWithRequire)
+

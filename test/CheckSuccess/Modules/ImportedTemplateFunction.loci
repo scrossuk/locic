@@ -1,0 +1,3 @@
+
+template <typename T>
+import void f();

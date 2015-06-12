@@ -1,0 +1,8 @@
+
+export a.b.c 1.0.0 {
+	
+	template <typename T>
+	require(is_movable<T>)
+	void f() { }
+	
+}
