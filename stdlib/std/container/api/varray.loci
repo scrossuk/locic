@@ -15,7 +15,7 @@ import std.container 0.1.0 {
 			
 			size_t capacity() const noexcept;
 			
-			void resize(size_t size, T element) require(notag(T) : movable and T : copyable<T>);
+			void resize(size_t size, T element) require(is_copyable<T>);
 			
 			bool empty() const noexcept;
 			
@@ -29,11 +29,11 @@ import std.container 0.1.0 {
 			
 			void clear() noexcept;
 			
-			void push_back(T value) require (T : movable);
+			void push_back(T value) require (is_movable<T>);
 			
 			void pop_back() noexcept;
 			
-			varray<notag(T)> copy() const require(notag(T) : movable and T : copyable<T>);
+			varray<notag(T)> copy() const require(is_copyable<T>);
 			
 			template <bool IsConst>
 			varray_range<T, IsConst> all() const(IsConst) noexcept;

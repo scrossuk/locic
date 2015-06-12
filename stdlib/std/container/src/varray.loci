@@ -28,7 +28,7 @@ export std.container 0.1.0 {
 				return @data != null;
 			}
 			
-			void reserve(size_t size) require (T : movable) {
+			void reserve(size_t size) require (is_movable<T>) {
 				if (size <= self.capacity()) {
 					return;
 				}
@@ -49,7 +49,7 @@ export std.container 0.1.0 {
 				return @capacity;
 			}
 			
-			void resize(size_t size, const T element) require(notag(T) : movable and T : copyable<T>) {
+			void resize(size_t size, const T element) require(is_copyable<T>) {
 				self.reserve(size);
 				if (size < self.size()) {
 					for (auto i: reverse_counter<size_t>(self.size(), size, 1u)) {
@@ -89,7 +89,7 @@ export std.container 0.1.0 {
 				@size = 0u;
 			}
 			
-			void push_back(T value) require (T : movable) {
+			void push_back(T value) require (is_movable<T>) {
 				self.reserve(@size + 1u);
 				nolval(@data[@size]).__set_value(move value);
 				@size = @size + 1u;
@@ -101,7 +101,7 @@ export std.container 0.1.0 {
 				nolval(@data[@size]).__destroy_value();
 			}
 			
-			varray<notag(T)> copy() const require(notag(T) : movable and T : copyable<T>) {
+			varray<notag(T)> copy() const require(is_copyable<T>) {
 				auto array = varray<T>();
 				array.reserve(@size);
 				for (auto i: counter<size_t>(0u, @size, 1u)) {

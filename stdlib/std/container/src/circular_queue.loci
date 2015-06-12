@@ -95,7 +95,7 @@ export std.container 0.1.0 {
 				}
 			}
 			
-			void push_back(T value) noexcept require(T : movable) {
+			void push_back(T value) noexcept require(is_movable<T>) {
 				assert !self.full();
 				nolval(@data[@write_pos]).__set_value(move value);
 				@write_pos++;

@@ -55,7 +55,7 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(const T& value) const(IsConst) noexcept require(T : comparable<T>) {
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(const T& value) const(IsConst) noexcept require(is_noexcept_comparable<T>) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i] == value) {
 						return *(&(@array[i]));
@@ -64,7 +64,7 @@ export std.container 0.1.0 {
 				unreachable;
 			}
 			
-			void __sort() require(T : comparable<T> and T : movable) {
+			void __sort() require(is_noexcept_comparable<T> and is_movable<T>) {
 				// Bubble sort! TODO: fix this!
 				for (const size_t c: std::counter<size_t>(0u, @array.size(), 1u)) {
 					for (const size_t i: std::counter<size_t>(1u, @array.size(), 1u)) {
@@ -77,7 +77,7 @@ export std.container 0.1.0 {
 				}
 			}
 			
-			void insert(T value) require(T : comparable<T> and T : movable) {
+			void insert(T value) require(is_noexcept_comparable<T> and is_movable<T>) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					assert @array[i] != value;
 				}
@@ -85,7 +85,7 @@ export std.container 0.1.0 {
 				self.__sort();
 			}
 			
-			bool try_insert(T value) require(T : comparable<T> and T : movable) {
+			bool try_insert(T value) require(is_noexcept_comparable<T> and is_movable<T>) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i] == value) {
 						return false;
@@ -96,7 +96,7 @@ export std.container 0.1.0 {
 				return true;
 			}
 			
-			T& get_or_insert(const T& value) require(T : movable and T : comparable<T> and T : copyable<T> and T : default_constructible<T>) {
+			T& get_or_insert(const T& value) require(is_movable<T> and is_noexcept_comparable<T> and is_copyable<T> and is_default_constructible<T>) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i] == value) {
 						return @array[i];
@@ -107,7 +107,7 @@ export std.container 0.1.0 {
 				return self[value];
 			}
 			
-			void erase(const T& value) require(T : comparable<T> and T : movable) {
+			void erase(const T& value) require(is_noexcept_comparable<T> and is_movable<T>) {
 				auto array = std::varray<T>();
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i] != value) {

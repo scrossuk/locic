@@ -36,16 +36,6 @@ export std.container 0.1.0 {
 			}
 		}
 		
-		template <typename T>
-		interface comparable {
-			compare_result_t compare(const T& other) const noexcept;
-		}
-		
-		template <typename T : movable>
-		interface default_constructible {
-			static T create();
-		}
-		
 		/**
 		 * \brief Map.
 		 */
@@ -69,7 +59,7 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst>(Value)> ptr_lval<const<IsConst>(Value)> index(const Key& key) const(IsConst) noexcept require(Key : comparable<Key>) {
+			lval<const<IsConst>(Value)> ptr_lval<const<IsConst>(Value)> index(const Key& key) const(IsConst) noexcept require(is_noexcept_comparable<Key>) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i].first == key) {
 						return *(&(@array[i].second));
@@ -78,7 +68,7 @@ export std.container 0.1.0 {
 				unreachable;
 			}
 			
-			void __sort() require(Key : comparable<Key> and Key : movable and Value : movable) {
+			void __sort() require(is_noexcept_comparable<Key> and is_movable<Key> and is_movable<Value>) {
 				// Bubble sort! TODO: fix this!
 				for (const size_t c: std::counter<size_t>(0u, @array.size(), 1u)) {
 					for (const size_t i: std::counter<size_t>(1u, @array.size(), 1u)) {
@@ -91,7 +81,7 @@ export std.container 0.1.0 {
 				}
 			}
 			
-			void insert(pair<Key, Value> value) require(Key : comparable<Key> and Key : movable and Value : movable) {
+			void insert(pair<Key, Value> value) require(is_noexcept_comparable<Key> and is_movable<Key> and is_movable<Value>) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					assert @array[i].first != value.first;
 				}
@@ -99,7 +89,7 @@ export std.container 0.1.0 {
 				self.__sort();
 			}
 			
-			bool try_insert(pair<Key, Value> value) require(Key : comparable<Key> and Key : movable and Value : movable) {
+			bool try_insert(pair<Key, Value> value) require(is_noexcept_comparable<Key> and is_movable<Key> and is_movable<Value>) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i].first == value.first) {
 						return false;
@@ -110,7 +100,7 @@ export std.container 0.1.0 {
 				return true;
 			}
 			
-			Value& get_or_insert(const Key& key) require(Key : movable and Key : comparable<Key> and Key : copyable<Key> and Value : default_constructible<Value> and Value : movable) {
+			Value& get_or_insert(const Key& key) require(is_movable<Key> and is_noexcept_comparable<Key> and is_copyable<Key> and is_default_constructible<Value> and is_movable<Value>) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i].first == key) {
 						return @array[i].second;
@@ -121,7 +111,7 @@ export std.container 0.1.0 {
 				return self[key];
 			}
 			
-			void erase(const Key& key) require(Key : comparable<Key> and Key : movable and Value : movable) {
+			void erase(const Key& key) require(is_noexcept_comparable<Key> and is_movable<Key> and is_movable<Value>) {
 				auto array = std::varray<pair<Key, Value>>();
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i].first != key) {

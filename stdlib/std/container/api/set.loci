@@ -17,15 +17,15 @@ import std.container 0.1.0 {
 			void clear() noexcept;
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(const T& value) const(IsConst) noexcept require(T : comparable<T>);
+			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(const T& value) const(IsConst) noexcept require(is_noexcept_comparable<T>);
 			
-			void insert(T value) require(T : movable and T : comparable<T>);
+			void insert(T value) require(is_movable<T> and is_noexcept_comparable<T>);
 			
-			bool try_insert(T value) require(T : movable and T : comparable<T>);
+			bool try_insert(T value) require(is_movable<T> and is_noexcept_comparable<T>);
 			
-			T& get_or_insert(const T& value) require(T : movable and T : comparable<T> and T : copyable<T> and T : default_constructible<T>);
+			T& get_or_insert(const T& value) require(is_movable<T> and is_noexcept_comparable<T> and is_copyable<T> and is_default_constructible<T>);
 			
-			void erase(const T& value) require(T : movable and T : comparable<T>);
+			void erase(const T& value) require(is_movable<T> and is_noexcept_comparable<T>);
 			
 			template <bool IsConst>
 			set_range<T, IsConst> all() const(IsConst) noexcept;
