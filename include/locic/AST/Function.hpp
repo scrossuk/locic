@@ -60,7 +60,8 @@ namespace locic {
 				const Node<RequireSpecifier>& noexceptSpecifier() const;
 				const Node<RequireSpecifier>& requireSpecifier() const;
 				
-				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
+				void setTemplateVariables(const Node<TemplateTypeVarList>& templateVariables);
+				void setRequireSpecifier(const Node<RequireSpecifier>& requireSpecifier);
 				void setImport();
 				void setExport();
 				

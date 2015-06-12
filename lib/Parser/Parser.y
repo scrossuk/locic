@@ -796,10 +796,11 @@ importedFunctionDecl:
 	;
 
 functionDecl:
-	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET importedFunctionDecl
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET requireSpecifier importedFunctionDecl
 	{
-		(GETSYM($5))->setTemplateVariables(GETSYM($3));
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
+		(GETSYM($6))->setTemplateVariables(GETSYM($3));
+		(GETSYM($6))->setRequireSpecifier(GETSYM($5));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($6)).get()));
 	}
 	| importedFunctionDecl
 	{
@@ -835,10 +836,11 @@ exportedFunctionDef:
 	;
 
 functionDef:
-	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET exportedFunctionDef
+	TEMPLATE LTRIBRACKET templateTypeVarList RTRIBRACKET requireSpecifier exportedFunctionDef
 	{
-		(GETSYM($5))->setTemplateVariables(GETSYM($3));
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($5)).get()));
+		(GETSYM($6))->setTemplateVariables(GETSYM($3));
+		(GETSYM($6))->setRequireSpecifier(GETSYM($5));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($6)).get()));
 	}
 	| exportedFunctionDef
 	{

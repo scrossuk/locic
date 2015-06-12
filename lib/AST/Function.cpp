@@ -168,6 +168,13 @@ namespace locic {
 			templateVariables_ = pTemplateVariables;
 		}
 		
+		void Function::setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier) {
+			if (pRequireSpecifier->isNone()) {
+				return;
+			}
+			requireSpecifier_ = pRequireSpecifier;
+		}
+		
 		void Function::setImport() {
 			isImported_ = true;
 		}
