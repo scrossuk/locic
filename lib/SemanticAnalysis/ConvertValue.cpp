@@ -17,6 +17,7 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
+#include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/Literal.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>

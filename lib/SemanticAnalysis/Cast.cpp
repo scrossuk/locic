@@ -11,8 +11,10 @@
 #include <locic/SemanticAnalysis/CastException.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
+#include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>
+#include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>

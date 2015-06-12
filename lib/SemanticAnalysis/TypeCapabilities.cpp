@@ -4,7 +4,9 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
+#include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>
+#include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeCapabilities.hpp>
 

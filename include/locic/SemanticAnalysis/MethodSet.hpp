@@ -3,56 +3,17 @@
 
 #include <string>
 
+#include <locic/SEM/Predicate.hpp>
+#include <locic/SEM/TemplateVarArray.hpp>
+#include <locic/SemanticAnalysis/MethodSetElement.hpp>
 #include <locic/Support/Array.hpp>
-#include <locic/SEM.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
+	
 	namespace SemanticAnalysis {
 		
 		class Context;
-		
-		class MethodSetElement {
-			public:
-				MethodSetElement(Array<SEM::TemplateVar*, 8> templateVariables,
-					SEM::Predicate constPredicate, SEM::Predicate noexceptPredicate, SEM::Predicate requirePredicate,
-					bool isStatic, const SEM::Type* returnType, SEM::TypeArray parameterTypes);
-				
-				MethodSetElement(MethodSetElement&&) = default;
-				MethodSetElement& operator=(MethodSetElement&&) = default;
-				
-				MethodSetElement copy() const;
-				
-				MethodSetElement withRequirement(SEM::Predicate requirement) const;
-				
-				const SEM::TemplateVarArray& templateVariables() const;
-				const SEM::Predicate& constPredicate() const;
-				const SEM::Predicate& noexceptPredicate() const;
-				const SEM::Predicate& requirePredicate() const;
-				
-				bool isStatic() const;
-				const SEM::Type* returnType() const;
-				const SEM::TypeArray& parameterTypes() const;
-				
-				SEM::FunctionType createFunctionType(bool isTemplated) const;
-				
-				std::size_t hash() const;
-				
-				bool operator==(const MethodSetElement& methodSetElement) const;
-				
-				std::string toString() const;
-				
-			private:
-				SEM::TemplateVarArray templateVariables_;
-				SEM::Predicate constPredicate_;
-				SEM::Predicate noexceptPredicate_;
-				SEM::Predicate requirePredicate_;
-				bool isStatic_;
-				const SEM::Type* returnType_;
-				SEM::TypeArray parameterTypes_;
-				
-		};
 		
 		constexpr size_t MethodSetElementBaseSize = 32;
 		
@@ -105,31 +66,7 @@ namespace locic {
 				
 		};
 		
-		const MethodSet* getMethodSetForRequiresPredicate(SEM::TemplateVar* templateVar, const SEM::Predicate& requiresPredicate);
-		
-		const MethodSet* getMethodSetForObjectType(Context& context, const SEM::Type* objectType);
-		
-		const MethodSet* getTypeMethodSet(Context& context, const SEM::Type* type);
-		
-		const MethodSet* intersectMethodSets(const MethodSet* setA, const MethodSet* setB);
-		
-		const MethodSet* unionMethodSets(const MethodSet* setA, const MethodSet* setB);
-		
-		bool methodSetSatisfiesRequirement(Context& context, const MethodSet* checkSet, const MethodSet* requireSet);
-		
 	}
-	
-}
-
-namespace std {
-	
-	template <> struct hash<locic::SemanticAnalysis::MethodSet>
-	{
-		size_t operator()(const locic::SemanticAnalysis::MethodSet& value) const
-		{
-			return value.hash();
-		}
-	};
 	
 }
 
