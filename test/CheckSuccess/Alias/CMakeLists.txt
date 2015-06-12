@@ -1,5 +1,6 @@
 # Alias tests.
 
+test_check_success(PredicateAliasIndirectRequirement)
 test_check_success(PredicateBasicAlias)
 test_check_success(PredicateCapabilityAlias)
 test_check_success(PredicateExpressionAlias)
