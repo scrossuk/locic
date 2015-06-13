@@ -113,7 +113,7 @@ Consider a violation of this specifier:
 
 This code is not valid and will be **rejected** by the compiler, since the *noexcept* property is statically checked.
 
-You can use predicates in the *noexcept* specifier:
+You can use :ref:`predicates in the *noexcept* specifier <noexcept-predicates>`:
 
 .. code-block:: c++
 

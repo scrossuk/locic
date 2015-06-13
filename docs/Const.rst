@@ -15,7 +15,7 @@ As in C and C++ 'const' prevents modifications of values. For example, the follo
 		i = 1;
 	}
 
-In this case the compiler will complain that the underlying :doc:`lvalue <LvaluesAndRvalues>` has a :doc:`require predicate <Predicates>` for its 'assign' method that specifies the templated type must be movable; const types are NOT movable and therefore the assignment cannot occur.
+In this case the compiler will complain that the underlying :doc:`lvalue <LvaluesAndRvalues>` has a :ref:`require predicate <require-predicates>` for its 'assign' method that specifies the templated type must be movable; const types are NOT movable and therefore the assignment cannot occur.
 
 Here's another example of invalid code in both C++ and Loci:
 
@@ -29,7 +29,7 @@ Here's another example of invalid code in both C++ and Loci:
 
 Again the template type of the dereferenced pointer lvalue is const and hence not movable.
 
-It's possible to specify that a value is const based on the result of a :doc:`predicate <Predicates>`:
+It's possible to specify that a value is const based on the result of a :ref:`predicate <const-predicates>`:
 
 .. code-block:: c++
 
