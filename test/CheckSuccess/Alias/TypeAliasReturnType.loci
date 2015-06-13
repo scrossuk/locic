@@ -1,0 +1,7 @@
+class TestClass() {
+	TestClassAlias& getSelf() {
+		return self;
+	}
+}
+
+using TestClassAlias = TestClass;
