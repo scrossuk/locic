@@ -16,6 +16,3 @@ test_check_success(TypeTemplatedAliasSpecType)
 test_check_success(ValueBasicAlias)
 test_check_success(ValueRecursiveAlias)
 
-# FIXME: test_check_success(TypeBasicAliasSymbol)
-# FIXME: test_check_success(TypeTemplatedAliasSymbol)
-
