@@ -409,6 +409,7 @@ public:
 		("test-name", po::value<std::string>(), "Set test name")
 		("entry-point", po::value<std::string>()->default_value("testEntryPoint"), "Set entry point function name")
 		("parse-only", "Only perform parsing stage")
+		("dump-output", "Dump output from each compilation stage to a file")
 		("expected-error", po::value<std::string>()->default_value(""), "Set expected error file name")
 		("expected-output", po::value<std::string>()->default_value(""), "Set expected output file name")
 		("expected-result", po::value<int>()->default_value(0), "Set expected result")
@@ -449,6 +450,7 @@ public:
 		
 		options.entryPointName = variableMap["entry-point"].as<std::string>();
 		options.parseOnly = !variableMap["parse-only"].empty();
+		options.dumpOutput = !variableMap["dump-output"].empty();
 		options.expectedErrorFileName = variableMap["expected-error"].as<std::string>();
 		options.expectedOutputFileName = variableMap["expected-output"].as<std::string>();
 		
