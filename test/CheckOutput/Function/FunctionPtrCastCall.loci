@@ -1,0 +1,23 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+void function(int i) {
+	testPrint(C"i = %d", i);
+}
+
+template <typename T>
+require(is_movable<T>)
+void callFunction((*)(void)(T) f, T value) {
+	f(move value);
+}
+
+(*)(void)(int) getFunctionPtr() {
+	return function;
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	callFunction<int>(getFunctionPtr(), 42);
+	return 0;
+}
+

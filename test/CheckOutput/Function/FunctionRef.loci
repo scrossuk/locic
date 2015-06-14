@@ -1,0 +1,17 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+void function(int i) {
+	testPrint(C"i = %d", i);
+}
+
+(*)(void)(int) getFunctionPtr() {
+	return function;
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	getFunctionPtr()(42);
+	return 0;
+}
+
