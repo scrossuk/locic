@@ -8,15 +8,16 @@ Dependencies
 
 Before building and using the Loci Compiler Tools, it's first necessary to build and install their dependencies. This release depends on the following:
 
-* CMake (build system) - *debian package: cmake*
-* Boost Filesystem - *debian package: libboost-filesystem-dev*
-* Boost Program Options - *debian package: libboost-program-options-dev*
-* Boost Regex - *debian package: libboost-regex-dev*
-* Boost System - *debian package: libboost-system-dev*
-* LLVM 3.3/3.4/3.5/3.6 (development build) - *debian package: llvm-dev*
-* Clang 3.3/3.4/3.5/3.6 - *debian package: clang*
-* Sphinx (documentation) - *debian package: python-sphinx*
-* Bison (parser generator) - *debian package: bison*
+* CMake (build system) - *debian package: cmake, arch package: extra/cmake*
+* Boost Filesystem - *debian package: libboost-filesystem-dev, arch package: extra/boost*
+* Boost Program Options - *debian package: libboost-program-options-dev, arch package: extra/boost*
+* Boost Regex - *debian package: libboost-regex-dev, arch package: extra/boost*
+* Boost System - *debian package: libboost-system-dev, arch package: extra/boost*
+* LLVM 3.3/3.4/3.5/3.6 (development build) - *debian package: llvm-dev, arch package: extra/llvm*
+* Clang 3.3/3.4/3.5/3.6 - *debian package: clang, arch package: extra/clang*
+* Sphinx (documentation) - *debian package: python-sphinx, arch package: community/python-sphinx*
+* Bison (parser generator) - *debian package: bison, arch package: core/bison*
+* tinfo (ncurses library routines) - *debian package: libtinfo-dev, arch package: aur/libtinfo*
 
 Also, the following dependencies are optional:
 
