@@ -2,6 +2,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#if !defined(NDEBUG) && LOCIC_LLVM_VERSION >= 305
+#include <iostream> // for std::cerr
+#endif
 
 #include <llvm-abi/ABI.hpp>
 
