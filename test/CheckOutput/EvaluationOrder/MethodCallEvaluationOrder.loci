@@ -1,0 +1,26 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+class TestClass() {
+	static create = default;
+	
+	void method(unused int i, unused int j, unused int k) const {
+		testPrint(C"TestClass.method()");
+	}
+}
+
+TestClass getObject() {
+	testPrint(C"getObject()");
+	return TestClass();
+}
+
+int getValue(int value) {
+	testPrint(C"getValue(%d)", value);
+	return value;
+}
+
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	getObject().method(getValue(0), getValue(1), getValue(2));
+	return 0;
+}
+
