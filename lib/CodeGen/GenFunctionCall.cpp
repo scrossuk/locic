@@ -41,17 +41,25 @@ namespace locic {
 		}
 		
 		// TODO: merge the duplicated code in this function into genFunctionCall().
-		llvm::Value* genSEMFunctionCall(Function& function, const FunctionCallInfo callInfo, SEM::FunctionType functionType, llvm::ArrayRef<SEM::Value> args,
+		llvm::Value* genSEMFunctionCall(Function& function,
+		                                const SEM::Value& semCallValue,
+		                                llvm::ArrayRef<SEM::Value> args,
 		                                llvm::Value* const hintResultValue) {
-			assert(callInfo.functionPtr != nullptr);
-			
 			auto& module = function.module();
 			auto& abiContext = module.abiContext();
 			
+			const auto functionType = semCallValue.type()->asFunctionType();
 			const auto returnType = functionType.returnType();
 			
-			const auto llvmFunctionType = callInfo.functionPtr->getType()->getPointerElementType();
-			assert(llvmFunctionType->isFunctionTy());
+			llvm::SmallVector<llvm::Value*, 16> evaluatedArguments;
+			evaluatedArguments.reserve(args.size());
+			
+			// Make sure to evaluate arguments first.
+			for (const auto& param: args) {
+				evaluatedArguments.push_back(genValue(function, param));
+			}
+			
+			const auto callInfo = genFunctionCallInfo(function, semCallValue);
 			
 			std::vector<llvm::Value*> parameters;
 			parameters.reserve(3 + args.size());
@@ -84,21 +92,22 @@ namespace locic {
 			const auto intSize = module.abi().typeSize(getBasicPrimitiveABIType(module, PrimitiveInt));
 			const auto doubleSize = module.abi().typeSize(getBasicPrimitiveABIType(module, PrimitiveDouble));
 			
-			for (const auto& param: args) {
-				llvm::Value* argValue = genValue(function, param);
-				llvm_abi::Type* argABIType = genABIArgType(module, param.type());
+			for (size_t i = 0; i < args.size(); i++) {
+				const auto paramType = args[i].type();
+				auto argValue = evaluatedArguments[i];
+				llvm_abi::Type* argABIType = genABIArgType(module, paramType);
 				
 				// When calling var-args functions, all 'char' and 'short'
 				// values must be extended to 'int' values, and all 'float'
 				// values must be converted to 'double' values.
-				if (llvmFunctionType->isFunctionVarArg() && param.type()->isPrimitive()) {
+				if (functionType.attributes().isVarArg() && paramType->isPrimitive()) {
 					const auto typeSize = module.abi().typeSize(argABIType);
 					
 					if (argABIType->isInteger() && typeSize < intSize) {
-						if (isSignedIntegerType(module, param.type())) {
+						if (isSignedIntegerType(module, paramType)) {
 							// Need to extend to int (i.e. sign extend).
 							argValue = function.getBuilder().CreateSExt(argValue, intType);
-						} else if (isUnsignedIntegerType(module, param.type())) {
+						} else if (isUnsignedIntegerType(module, paramType)) {
 							// Need to extend to unsigned int (i.e. zero extend).
 							argValue = function.getBuilder().CreateZExt(argValue, intType);
 						}

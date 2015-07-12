@@ -24,8 +24,9 @@ namespace locic {
 		 * 
 		 * Calls the given function with the SEM::Value arguments.
 		 */
-		llvm::Value* genSEMFunctionCall(Function& function, FunctionCallInfo callInfo,
-		                                SEM::FunctionType functionType, llvm::ArrayRef<SEM::Value> args,
+		llvm::Value* genSEMFunctionCall(Function& function,
+		                                const SEM::Value& callValue,
+		                                llvm::ArrayRef<SEM::Value> args,
 		                                llvm::Value* hintResultValue = nullptr);
 		
 		/**

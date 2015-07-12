@@ -445,9 +445,7 @@ namespace locic {
 						return genTrivialFunctionCall(function, semCallValue, arrayRef(semArgumentValues), hintResultValue);
 					}
 					
-					const auto callInfo = genFunctionCallInfo(function, semCallValue);
-					const auto functionType = semCallValue.type()->asFunctionType();
-					return genSEMFunctionCall(function, callInfo, functionType, arrayRef(semArgumentValues), hintResultValue);
+					return genSEMFunctionCall(function, semCallValue, arrayRef(semArgumentValues), hintResultValue);
 				}
 				
 				case SEM::Value::FUNCTIONREF:
