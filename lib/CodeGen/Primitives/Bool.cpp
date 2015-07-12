@@ -46,8 +46,6 @@ namespace locic {
 			
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function);
-			
 			switch (methodID) {
 				case METHOD_CREATE: {
 					assert(args.empty());
@@ -55,11 +53,13 @@ namespace locic {
 				}
 				case METHOD_SETDEAD: {
 					// Do nothing.
+					(void) args[0].resolveWithoutBind(function);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_MOVETO: {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
+					const auto methodOwner = args[0].resolveWithoutBind(function);
 					
 					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
@@ -68,17 +68,24 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_IMPLICITCAST:
-				case METHOD_CAST:
+				case METHOD_CAST: {
+					const auto methodOwner = args[0].resolveWithoutBind(function);
 					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), hintResultValue);
+				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:
-					return methodOwner;
-				case METHOD_ISLIVE:
+					return args[0].resolveWithoutBind(function);
+				case METHOD_ISLIVE: {
+					(void) args[0].resolveWithoutBind(function);
 					return ConstantGenerator(module).getI1(false);
-				case METHOD_NOT:
+				}
+				case METHOD_NOT: {
+					const auto methodOwner = args[0].resolveWithoutBind(function);
 					return builder.CreateNot(methodOwner);
+				}
 				case METHOD_COMPARE: {
 					const auto operand = args[1].resolveWithoutBind(function);
+					const auto methodOwner = args[0].resolveWithoutBind(function);
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
 					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
@@ -89,10 +96,12 @@ namespace locic {
 				}
 				case METHOD_EQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
+					const auto methodOwner = args[0].resolveWithoutBind(function);
 					return builder.CreateICmpEQ(methodOwner, operand);
 				}
 				case METHOD_NOTEQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
+					const auto methodOwner = args[0].resolveWithoutBind(function);
 					return builder.CreateICmpNE(methodOwner, operand);
 				}
 				default:
