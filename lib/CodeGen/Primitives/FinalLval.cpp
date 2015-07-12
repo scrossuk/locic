@@ -45,8 +45,6 @@ namespace locic {
 			
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolve(function);
-			
 			switch (methodID) {
 				case METHOD_EMPTY: {
 					const auto objectVar = genAlloca(function, targetType, hintResultValue);
@@ -56,6 +54,7 @@ namespace locic {
 				case METHOD_MOVETO: {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
+					const auto methodOwner = args[0].resolve(function);
 					
 					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
 					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
@@ -66,10 +65,13 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_ADDRESS:
-				case METHOD_DISSOLVE:
+				case METHOD_DISSOLVE: {
+					const auto methodOwner = args[0].resolve(function);
 					return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+				}
 				case METHOD_SETVALUE: {
 					const auto operand = args[1].resolve(function);
+					const auto methodOwner = args[0].resolve(function);
 					
 					// Assign new value.
 					genMoveStore(function, operand, methodOwner, targetType);
@@ -77,9 +79,11 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_EXTRACTVALUE: {
+					const auto methodOwner = args[0].resolve(function);
 					return genMoveLoad(function, methodOwner, targetType);
 				}
 				case METHOD_DESTROYVALUE: {
+					const auto methodOwner = args[0].resolve(function);
 					// Destroy existing value.
 					genDestructorCall(function, targetType, methodOwner);
 					return ConstantGenerator(module).getVoidUndef();
