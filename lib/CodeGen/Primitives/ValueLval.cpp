@@ -52,9 +52,9 @@ namespace locic {
 			
 			const bool typeSizeIsKnown = isTypeSizeKnownInThisModule(module, targetType);
 			
-			const auto sourceValue = args[0].resolve(functionGenerator);
 			const auto destValue = args[1].resolve(functionGenerator);
 			const auto positionValue = args[2].resolve(functionGenerator);
+			const auto sourceValue = args[0].resolve(functionGenerator);
 			
 			const auto castType = typeSizeIsKnown ? genPointerType(module, targetType) : TypeGenerator(module).getI8PtrType();
 			const auto sourceObjectPointer = builder.CreatePointerCast(sourceValue, castType);
@@ -99,8 +99,8 @@ namespace locic {
 			auto& builder = functionGenerator.getBuilder();
 			auto& module = functionGenerator.module();
 			
-			const auto methodOwner = args[0].resolve(functionGenerator);
 			const auto operand = args[1].resolve(functionGenerator);
+			const auto methodOwner = args[0].resolve(functionGenerator);
 			
 			const auto targetPointer = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
 			
