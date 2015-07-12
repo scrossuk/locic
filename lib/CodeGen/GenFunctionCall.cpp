@@ -100,7 +100,7 @@ namespace locic {
 				// When calling var-args functions, all 'char' and 'short'
 				// values must be extended to 'int' values, and all 'float'
 				// values must be converted to 'double' values.
-				if (functionType.attributes().isVarArg() && paramType->isPrimitive()) {
+				if (functionType.isVarArg() && paramType->isPrimitive()) {
 					const auto typeSize = module.abi().typeSize(argABIType);
 					
 					if (argABIType->isInteger() && typeSize < intSize) {

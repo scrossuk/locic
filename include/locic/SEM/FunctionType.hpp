@@ -98,6 +98,10 @@ namespace locic {
 				return data_->attributes();
 			}
 			
+			bool isVarArg() const {
+				return attributes().isVarArg();
+			}
+			
 			const Type* returnType() const {
 				return data_->returnType();
 			}
