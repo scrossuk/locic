@@ -79,7 +79,9 @@ namespace locic {
 			templateArgs.reserve(1 + parameterTypes.size());
 			
 			const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
-			templateArgs.push_back(SEM::Value::PredicateExpr(functionType.attributes().noExceptPredicate().copy(), boolType));
+			
+			auto reducedNoexceptPredicate = reducePredicate(context, functionType.attributes().noExceptPredicate().copy());
+			templateArgs.push_back(SEM::Value::PredicateExpr(std::move(reducedNoexceptPredicate), boolType));
 			
 			const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
 			
