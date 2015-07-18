@@ -358,6 +358,7 @@ namespace locic {
 			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			assert(methodType->isBuiltInMethod() || methodType->isBuiltInTemplatedMethod());
+			
 			Value value(METHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
 			value.impl_->value0 = std::move(method);
 			value.impl_->value1 = std::move(methodOwner);
