@@ -361,7 +361,11 @@ namespace locic {
 					const bool result = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
 					
 					if (result) {
-						// Accept a true result.
+						// If the result is true then we
+						// know for sure that the check
+						// type satisfies the requirement,
+						// but a false result might just
+						// be a lack of information.
 						return SEM::Predicate::True();
 					}
 					
