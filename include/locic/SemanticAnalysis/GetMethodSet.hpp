@@ -3,7 +3,7 @@
 
 namespace locic {
 	
-	namespace {
+	namespace SEM {
 		
 		class Predicate;
 		class TemplateVar;
