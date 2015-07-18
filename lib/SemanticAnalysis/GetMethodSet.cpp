@@ -311,9 +311,13 @@ namespace locic {
 			// template variable supports.
 			const auto methodSet = getMethodSetForRequiresPredicate(context, templateVarType->getTemplateVar(), templatedObject.requiresPredicate());
 			
+			const auto noexceptMethodSet = getMethodSetForRequiresPredicate(context, templateVarType->getTemplateVar(), templatedObject.noexceptPredicate());
+			
 			// The template variable may be const, in which case add its predicate to
 			// the method set's const predicate.
-			return methodSet->withConstPredicate(templateVarType->constPredicate().copy());
+			return getMethodSetWithNoExceptSet(methodSet,
+			                                   noexceptMethodSet,
+			                                   templatedObject.noexceptPredicate())->withConstPredicate(templateVarType->constPredicate().copy());
 		}
 		
 		namespace {
