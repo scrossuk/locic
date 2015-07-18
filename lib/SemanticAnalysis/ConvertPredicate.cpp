@@ -227,6 +227,7 @@ namespace locic {
 					
 					if (substitutedCheckType->isAuto()) {
 						// Presumably this will work.
+						// TODO: fix this by removing auto type!
 						return make_optional(true);
 					}
 					
