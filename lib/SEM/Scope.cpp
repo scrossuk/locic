@@ -28,9 +28,9 @@ namespace locic {
 			
 			ExitStates scopeExitStates = ExitStates::None();
 			
-			// All states that aren't an exception state (e.g. UnwindStateThrow)
-			// can be blocked by a scope(success) block that always throws.
-			bool isNoThrowBlocked = false;
+			// All states that aren't an exception state can be
+			// blocked by a scope(success) block that always throws.
+			bool isBlockedByAlwaysThrowingScopeSuccess = false;
 			
 			// The pending states for scope(success) that occur if we have a no-throw exit.
 			ExitStates scopeSuccessPendingStates = ExitStates::None();
@@ -49,8 +49,20 @@ namespace locic {
 					scopeExitStates |= scopeSuccessPendingStates;
 				}
 				
-				// Also block other no-throw states as necessary.
-				if (isNoThrowBlocked) {
+				// If there's a scope(success) above this code
+				// which only throws then we need to block any
+				// non-throwing states. For example:
+				// 
+				// while (true) {
+				//     scope (success) {
+				//         throw SomeException();
+				//     }
+				//     break;
+				// }
+				// 
+				// In this case the only way to leave the scope
+				// is by throwing an exception.
+				if (isBlockedByAlwaysThrowingScopeSuccess) {
 					statementExitStates &= ~(ExitStates::Return() | ExitStates::Break() | ExitStates::Continue());
 				}
 				
@@ -67,7 +79,7 @@ namespace locic {
 						// so all subsequent statements will have no-throw
 						// exit states blocked (since they'd be filtered and
 						// transferred to throwing states by this statement).
-						isNoThrowBlocked = true;
+						isBlockedByAlwaysThrowingScopeSuccess = true;
 						
 						// Also reset pending scope(success) exit states
 						// since any outer scope(success) will never be reached
@@ -94,7 +106,7 @@ namespace locic {
 				scopeExitStates |= scopeSuccessPendingStates;
 			}
 			
-			if (isNoThrowBlocked) {
+			if (isBlockedByAlwaysThrowingScopeSuccess) {
 				lastStatementExitStates &= ~(ExitStates::Normal() | ExitStates::Return() | ExitStates::Break() | ExitStates::Continue());
 			}
 			
