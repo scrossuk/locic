@@ -110,6 +110,10 @@ namespace locic {
 			requiresPredicate_ = std::move(predicate);
 		}
 		
+		const Predicate& Function::noexceptPredicate() const {
+			return type().attributes().noExceptPredicate();
+		}
+		
 		void Function::setParameters(std::vector<Var*> pParameters) {
 			parameters_ = std::move(pParameters);
 		}

@@ -19,7 +19,8 @@ namespace locic {
 			: context_(argContext),
 			parent_(argParent),
 			name_(std::move(argName)),
-			requiresPredicate_(Predicate::True()) { }
+			requiresPredicate_(Predicate::True()),
+			noexceptPredicate_(Predicate::False()) { }
 		
 		Context& Alias::context() const {
 			return context_;
@@ -86,6 +87,10 @@ namespace locic {
 		
 		void Alias::setRequiresPredicate(Predicate predicate) {
 			requiresPredicate_ = std::move(predicate);
+		}
+		
+		const Predicate& Alias::noexceptPredicate() const {
+			return noexceptPredicate_;
 		}
 		
 		const Value& Alias::value() const {

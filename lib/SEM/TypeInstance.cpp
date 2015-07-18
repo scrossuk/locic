@@ -26,7 +26,8 @@ namespace locic {
 			moduleScope_(std::move(m)),
 			parent_(nullptr),
 			parentType_(nullptr),
-			requiresPredicate_(Predicate::True()) { }
+			requiresPredicate_(Predicate::True()),
+			noexceptPredicate_(Predicate::False()) { }
 		
 		Context& TypeInstance::context() const {
 			return context_;
@@ -145,6 +146,10 @@ namespace locic {
 		
 		void TypeInstance::setRequiresPredicate(Predicate predicate) {
 			requiresPredicate_ = std::move(predicate);
+		}
+		
+		const Predicate& TypeInstance::noexceptPredicate() const {
+			return noexceptPredicate_;
 		}
 		
 		std::vector<TypeInstance*>& TypeInstance::variants() {

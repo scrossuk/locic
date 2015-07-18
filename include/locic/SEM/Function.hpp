@@ -98,6 +98,8 @@ namespace locic {
 				const Predicate& requiresPredicate() const;
 				void setRequiresPredicate(Predicate predicate);
 				
+				const Predicate& noexceptPredicate() const;
+				
 				void setParameters(std::vector<Var*> pParameters);
 				const std::vector<Var*>& parameters() const;
 				

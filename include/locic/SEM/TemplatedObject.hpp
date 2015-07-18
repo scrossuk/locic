@@ -22,6 +22,8 @@ namespace locic {
 				
 				virtual const Predicate& requiresPredicate() const = 0;
 				
+				virtual const Predicate& noexceptPredicate() const = 0;
+				
 			protected:
 				~TemplatedObject() { }
 				

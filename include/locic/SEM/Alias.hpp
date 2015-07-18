@@ -66,6 +66,8 @@ namespace locic {
 				const Predicate& requiresPredicate() const;
 				void setRequiresPredicate(Predicate predicate);
 				
+				const Predicate& noexceptPredicate() const;
+				
 				const Value& value() const;
 				void setValue(Value value);
 				
@@ -78,6 +80,7 @@ namespace locic {
 				TemplateVarArray templateVars_;
 				FastMap<String, TemplateVar*> namedTemplateVariables_;
 				Predicate requiresPredicate_;
+				Predicate noexceptPredicate_;
 				Optional<Value> value_;
 				
 		};

@@ -215,6 +215,18 @@ namespace locic {
 				void setRequiresPredicate(Predicate predicate);
 				
 				/**
+				 * \brief Get noexcept predicate.
+				 * 
+				 * This currently doesn't mean anything for
+				 * type instances, but is planned for future. In
+				 * the meantime it's needed to comply with the
+				 * TemplatedObject interface.
+				 * 
+				 * \return Noexcept predicate.
+				 */
+				const Predicate& noexceptPredicate() const;
+				
+				/**
 				 * \brief Get name to member variable mapping.
 				 * 
 				 * This map supports looking up member variables
@@ -324,6 +336,7 @@ namespace locic {
 				FastMap<String, TemplateVar*> namedTemplateVariables_;
 				Optional<Predicate> movePredicate_;
 				Predicate requiresPredicate_;
+				Predicate noexceptPredicate_;
 				
 				std::vector<Var*> variables_;
 				FastMap<String, Var*> namedVariables_;
