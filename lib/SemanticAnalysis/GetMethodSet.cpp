@@ -197,6 +197,113 @@ namespace locic {
 			throw std::logic_error("Unknown predicate kind.");
 		}
 		
+		/**
+		 * \brief Add noexcepts to a method set as needed.
+		 * 
+		 * The outer requires predicate dictates what a method set must
+		 * contain, but the outer noexcept predicate can also specify
+		 * when methods are noexcept. For example, consider:
+		 * 
+		 * interface NormalCase {
+		 *     void method();
+		 * }
+		 * 
+		 * interface NoexceptCase {
+		 *     void method() noexcept;
+		 * }
+		 * 
+		 * template <typename T>
+		 * require(T : NormalCase)
+		 * void function(T& object) noexcept(T : NoexceptCase) {
+		 *     object.method();
+		 * }
+		 * 
+		 * In this case we know 'object' always has the method, but when
+		 * the outer noexcept predicate ('T : NoexceptCase') is true the
+		 * method is also noexcept. So the correct noexcept predicate
+		 * for the method in this context is 'T : NoexceptCase' since
+		 * the method is only guaranteed to be noexcept if that
+		 * predicate is true.
+		 * 
+		 * Note that we ignore any methods added by the noexcept
+		 * predicate. For example:
+		 * 
+		 * interface NormalCase {
+		 *     void method();
+		 * }
+		 * 
+		 * interface NoexceptCase {
+		 *     void method() noexcept;
+		 *     void method2() noexcept;
+		 * }
+		 * 
+		 * template <typename T>
+		 * require(T : NormalCase)
+		 * void function(T& object) noexcept(T : NoexceptCase) {
+		 *     object.method();
+		 *     object.method2();
+		 * }
+		 * 
+		 * The code is clearly wrong because 'function' can be
+		 * instantiated with a type that doesn't have both methods since
+		 * it only needs to comply with the requires predicate.
+		 */
+		const MethodSet* getMethodSetWithNoExceptSet(const MethodSet* methodSet,
+		                                             const MethodSet* noexceptMethodSet,
+		                                             const SEM::Predicate& outerNoexceptPredicate) {
+			if (noexceptMethodSet->empty()) {
+				// Try to avoid doing unnecessary work in common
+				// cases such as noexcept(true|false).
+				return methodSet;
+			}
+			
+			auto iterator = methodSet->begin();
+			auto noexceptIterator = noexceptMethodSet->begin();
+			
+			MethodSet::ElementSet elements;
+			
+			while (iterator != methodSet->end() && noexceptIterator != noexceptMethodSet->end()) {
+				const auto& element = iterator->second;
+				if (iterator->first == noexceptIterator->first) {
+					// TODO: check methods for compatibility!
+					
+					// Create expression:
+					//     method_normal_noexcept OR
+					//     (outer_noexcept AND method_noexcept_noexcept)
+					//
+					// In other words, the method as obtained from
+					// the outer requires predicate could be noexcept
+					// or the method obtained from the outer noexcept
+					// predicate could be noexcept. If we use the
+					// latter we also have to require that the
+					// outer noexcept predicate is true.
+					auto ifNoexceptPredicate = SEM::Predicate::And(outerNoexceptPredicate.copy(),
+					                                               noexceptIterator->second.noexceptPredicate().copy());
+					auto newPredicate = SEM::Predicate::Or(element.noexceptPredicate().copy(),
+					                                       std::move(ifNoexceptPredicate));
+					auto newElement = element.withNoExceptPredicate(std::move(newPredicate));
+					elements.push_back(std::make_pair(iterator->first, std::move(newElement)));
+					++iterator;
+					++noexceptIterator;
+				} else if (iterator->first < noexceptIterator->first) {
+					elements.push_back(std::make_pair(iterator->first, element.copy()));
+					++iterator;
+				} else {
+					++noexceptIterator;
+				}
+			}
+			
+			while (iterator != methodSet->end()) {
+				const auto& element = iterator->second;
+				elements.push_back(std::make_pair(iterator->first, element.copy()));
+				++iterator;
+			}
+			
+			return MethodSet::get(methodSet->context(),
+			                      methodSet->constPredicate().copy(),
+			                      std::move(elements));
+		}
+		
 		const MethodSet* getMethodSetForTemplateVarType(Context& context, const SEM::Type* const templateVarType, const SEM::TemplatedObject& templatedObject) {
 			assert(templateVarType->isTemplateVar());
 			
