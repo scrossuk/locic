@@ -32,7 +32,7 @@ namespace locic {
 		Context& TypeInstance::context() const {
 			return context_;
 		}
-			
+		
 		const Name& TypeInstance::name() const {
 			return name_;
 		}
