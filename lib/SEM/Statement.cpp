@@ -44,11 +44,8 @@ namespace locic {
 			
 			for (const auto& ifClause: ifClauses) {
 				const auto conditionExitStates = ifClause->condition().exitStates();
-				
-				if (conditionExitStates.hasThrowExit()) {
-					exitStates |= ExitStates::Throw();
-				}
-				
+				assert(conditionExitStates.onlyHasNormalOrThrowingStates());
+				exitStates |= conditionExitStates.throwingStates();
 				exitStates |= ifClause->scope().exitStates();
 			}
 			
@@ -62,12 +59,9 @@ namespace locic {
 		
 		Statement Statement::Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
 			assert(value.type()->isUnionDatatype() || (value.type()->isRef() && value.type()->isBuiltInReference() && value.type()->refTarget()->isUnionDatatype()));
-			ExitStates exitStates = ExitStates::None();
 			
-			const auto switchValueExitStates = value.exitStates();
-			if (switchValueExitStates.hasThrowExit()) {
-				exitStates |= ExitStates::Throw();
-			}
+			ExitStates exitStates = ExitStates::None();
+			exitStates |= value.exitStates().throwingStates();
 			
 			for (const auto& switchCase: caseList) {
 				exitStates |= switchCase->scope().exitStates();
@@ -143,9 +137,9 @@ namespace locic {
 		
 		Statement Statement::ScopeExit(const String& state, std::unique_ptr<Scope> scope) {
 			if (state == "exit" || state == "failure") {
-				assert((scope->exitStates() & ~(ExitStates::Normal())) == ExitStates::None());
+				assert(scope->exitStates().onlyHasNormalState());
 			} else {
-				assert((scope->exitStates() & ~(ExitStates::Normal() | ExitStates::Throw() | ExitStates::Rethrow())) == ExitStates::None());
+				assert(scope->exitStates().onlyHasNormalOrThrowingStates());
 			}
 			
 			// The exit actions here is for when we first visit this statement,
@@ -162,10 +156,10 @@ namespace locic {
 		}
 		
 		Statement Statement::Return(Value value) {
+			assert(value.exitStates().onlyHasNormalOrThrowingStates());
+			
 			ExitStates exitStates = ExitStates::Return();
-			if (value.exitStates().hasThrowExit()) {
-				exitStates |= ExitStates::Throw();
-			}
+			exitStates |= value.exitStates().throwingStates();
 			
 			Statement statement(RETURN, exitStates);
 			statement.returnStmt_.value = std::move(value);
