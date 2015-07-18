@@ -186,6 +186,10 @@ namespace locic {
 				return *this;
 			}
 			
+			void reset() {
+				*this = ExitStates::None();
+ 			}
+			
 			bool operator==(const ExitStates& other) const {
 				if (hasThrowExit() &&
 				    noexceptPredicate() != other.noexceptPredicate()) {
