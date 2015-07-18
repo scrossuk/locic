@@ -126,10 +126,6 @@ namespace locic {
 			
 			bool hasAnyStates(const ExitStates& other) const {
 				return (states_ & other.states_) != 0;
- 			}
-			
-			ExitStates remove(const ExitStates toRemove) const {
-				return *this & ~toRemove;
 			}
 			
 			bool onlyHasStates(const ExitStates& other) const {
@@ -160,12 +156,6 @@ namespace locic {
 				return *this & ExitStates::AllThrowing();
 			}
 			
-			ExitStates operator~() const {
-				ExitStates newStates;
-				newStates.states_ = ~states_;
-				return newStates;
-			}
-			
 			ExitStates operator&(const ExitStates& other) const {
 				ExitStates newStates;
 				newStates.states_ = states_ & other.states_;
@@ -182,19 +172,20 @@ namespace locic {
 				return newStates;
 			}
 			
-			ExitStates& operator&=(const ExitStates& other) {
-				*this = *this & other;
-				return *this;
+			void add(const ExitStates& other) {
+				*this = *this | other;
 			}
 			
-			ExitStates& operator|=(const ExitStates& other) {
-				*this = *this | other;
-				return *this;
+			void remove(const ExitStates& other) {
+				if (hasThrowExit() && other.hasThrowExit()) {
+					noexceptPredicate_ = Predicate::True();
+				}
+				states_ &= ~(other.states_);
 			}
 			
 			void reset() {
 				*this = ExitStates::None();
- 			}
+			}
 			
 			bool operator==(const ExitStates& other) const {
 				if (hasThrowExit() &&

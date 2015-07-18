@@ -269,7 +269,7 @@ namespace locic {
 		Value Value::InternalConstruct(const Type* const parentType, ValueArray parameters) {
 			ExitStates exitStates = ExitStates::Normal();
 			for (const auto& param: parameters) {
-				exitStates |= param.exitStates();
+				exitStates.add(param.exitStates());
 			}
 			Value value(INTERNALCONSTRUCT, parentType, exitStates);
 			value.impl_->valueArray = std::move(parameters);
@@ -319,12 +319,13 @@ namespace locic {
 			const auto functionType = functionValue.type()->asFunctionType();
 			
 			ExitStates exitStates = functionValue.exitStates();
+			
 			for (const auto& param: parameters) {
-				exitStates |= param.exitStates();
+				exitStates.add(param.exitStates());
 			}
 			
 			if (!functionType.attributes().noExceptPredicate().isTrue()) {
-				exitStates |= ExitStates::Throw(functionType.attributes().noExceptPredicate().copy());
+				exitStates.add(ExitStates::Throw(functionType.attributes().noExceptPredicate().copy()));
 			}
 			
 			Value value(CALL, functionType.returnType(), exitStates);

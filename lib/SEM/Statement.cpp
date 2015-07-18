@@ -45,11 +45,11 @@ namespace locic {
 			for (const auto& ifClause: ifClauses) {
 				const auto conditionExitStates = ifClause->condition().exitStates();
 				assert(conditionExitStates.onlyHasNormalOrThrowingStates());
-				exitStates |= conditionExitStates.throwingStates();
-				exitStates |= ifClause->scope().exitStates();
+				exitStates.add(conditionExitStates.throwingStates());
+				exitStates.add(ifClause->scope().exitStates());
 			}
 			
-			exitStates |= elseScope->exitStates();
+			exitStates.add(elseScope->exitStates());
 			
 			Statement statement(IF, exitStates);
 			statement.ifStmt_.clauseList = ifClauses;
@@ -61,14 +61,14 @@ namespace locic {
 			assert(value.type()->isUnionDatatype() || (value.type()->isRef() && value.type()->isBuiltInReference() && value.type()->refTarget()->isUnionDatatype()));
 			
 			ExitStates exitStates = ExitStates::None();
-			exitStates |= value.exitStates().throwingStates();
+			exitStates.add(value.exitStates().throwingStates());
 			
 			for (const auto& switchCase: caseList) {
-				exitStates |= switchCase->scope().exitStates();
+				exitStates.add(switchCase->scope().exitStates());
 			}
 			
 			if (defaultScope.get() != nullptr) {
-				exitStates |= defaultScope->exitStates();
+				exitStates.add(defaultScope->exitStates());
 			}
 			
 			Statement statement(SWITCH, exitStates);
@@ -86,24 +86,24 @@ namespace locic {
 			auto iterationScopeExitStates = iterationScope->exitStates();
 			
 			// Block any 'continue' exit state.
-			iterationScopeExitStates &= ~(ExitStates::Continue());
+			iterationScopeExitStates.remove(ExitStates::Continue());
 			
 			// A 'break' exit state means a normal return from the loop.
 			if (iterationScopeExitStates.hasBreakExit()) {
-				exitStates |= ExitStates::Normal();
-				iterationScopeExitStates &= ~(ExitStates::Break());
+				exitStates.add(ExitStates::Normal());
+				iterationScopeExitStates.remove(ExitStates::Break());
 			}
 			
-			exitStates |= iterationScopeExitStates;
+			exitStates.add(iterationScopeExitStates);
 			
 			auto advanceScopeExitStates = advanceScope->exitStates();
 			assert(!advanceScopeExitStates.hasBreakExit() && !advanceScopeExitStates.hasContinueExit());
 			
 			// Block 'normal' exit from advance scope, since this just
 			// goes back to the beginning of the loop.
-			advanceScopeExitStates &= ~(ExitStates::Normal());
+			advanceScopeExitStates.remove(ExitStates::Normal());
 			
-			exitStates |= advanceScopeExitStates;
+			exitStates.add(advanceScopeExitStates);
 			
 			Statement statement(LOOP, exitStates);
 			statement.loopStmt_.condition = std::move(condition);
@@ -115,18 +115,18 @@ namespace locic {
 		Statement Statement::Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList) {
 			ExitStates exitStates = ExitStates::None();
 			
-			exitStates |= scope->exitStates();
+			exitStates.add(scope->exitStates());
 			
 			for (const auto& catchClause: catchList) {
 				auto catchExitStates = catchClause->scope().exitStates();
 				
 				// Turn 'rethrow' into 'throw'.
 				if (catchExitStates.hasRethrowExit()) {
-					exitStates |= ExitStates::ThrowAlways();
-					catchExitStates &= ~(ExitStates::Rethrow());
+					exitStates.add(ExitStates::ThrowAlways());
+					catchExitStates.remove(ExitStates::Rethrow());
 				}
 				
-				exitStates |= catchExitStates;
+				exitStates.add(catchExitStates);
 			}
 			
 			Statement statement(TRY, exitStates);
@@ -159,7 +159,7 @@ namespace locic {
 			assert(value.exitStates().onlyHasNormalOrThrowingStates());
 			
 			ExitStates exitStates = ExitStates::Return();
-			exitStates |= value.exitStates().throwingStates();
+			exitStates.add(value.exitStates().throwingStates());
 			
 			Statement statement(RETURN, exitStates);
 			statement.returnStmt_.value = std::move(value);
@@ -192,9 +192,11 @@ namespace locic {
 		}
 		
 		Statement Statement::AssertNoExcept(std::unique_ptr<Scope> scope) {
-			assert(scope->exitStates().hasThrowExit() || scope->exitStates().hasRethrowExit());
+			ExitStates exitStates = scope->exitStates();
+			assert(exitStates.hasAnyThrowingStates());
 			
-			const auto exitStates = scope->exitStates().remove(ExitStates::AllThrowing());
+			exitStates.remove(ExitStates::AllThrowing());
+			
 			Statement statement(ASSERTNOEXCEPT, exitStates);
 			statement.assertNoExceptStmt_.scope = std::move(scope);
 			return statement;

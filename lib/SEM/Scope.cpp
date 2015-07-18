@@ -41,13 +41,13 @@ namespace locic {
 				
 				// Block 'normal' exit state until we
 				// reach the end of the scope.
-				statementExitStates &= ~(ExitStates::Normal());
+				statementExitStates.remove(ExitStates::Normal());
 				
 				// Add pending scope(success) exit states if there's
 				// a no-throw exit state from this statement (which
 				// isn't just continuing to the next statement).
 				if (!statementExitStates.onlyHasStates(ExitStates::AllThrowing() | ExitStates::Normal())) {
-					scopeExitStates |= scopeSuccessPendingStates;
+					scopeExitStates.add(scopeSuccessPendingStates);
 				}
 				
 				// If there's a scope(success) above this code
@@ -64,10 +64,11 @@ namespace locic {
 				// In this case the only way to leave the scope
 				// is by throwing an exception.
 				if (isBlockedByAlwaysThrowingScopeSuccess) {
-					statementExitStates &= ~(ExitStates::Return() | ExitStates::Break() | ExitStates::Continue());
+					statementExitStates.remove(ExitStates::AllNonThrowing());
 				}
 				
-				scopeExitStates |= statementExitStates;
+				assert(!statementExitStates.hasNormalExit());
+				scopeExitStates.add(statementExitStates);
 				
 				// Handle scope(success) specially, since these statements can
 				// be run in a 'normal' state
@@ -95,27 +96,21 @@ namespace locic {
 					// Add throw and rethrow to pending states so that if
 					// a no-throw exit state is encountered later then these
 					// states can be added.
-					if (scopeSuccessStates.hasThrowExit()) {
-						scopeSuccessPendingStates |= ExitStates::Throw();
-					}
-					
-					if (scopeSuccessStates.hasRethrowExit()) {
-						scopeSuccessPendingStates |= ExitStates::Rethrow();
-					}
+					scopeSuccessPendingStates.add(scopeSuccessStates.throwingStates());
 				}
 			}
 			
 			auto lastStatementExitStates = statementList.back().exitStates();
 			
 			if (lastStatementExitStates.hasAnyNonThrowingStates()) {
-				scopeExitStates |= scopeSuccessPendingStates;
+				scopeExitStates.add(scopeSuccessPendingStates);
 			}
 			
 			if (isBlockedByAlwaysThrowingScopeSuccess) {
-				lastStatementExitStates &= ~(ExitStates::Normal() | ExitStates::Return() | ExitStates::Break() | ExitStates::Continue());
+				lastStatementExitStates.remove(ExitStates::AllNonThrowing());
 			}
 			
-			scopeExitStates |= lastStatementExitStates;
+			scopeExitStates.add(lastStatementExitStates);
 			
 			return scopeExitStates;
 		}
