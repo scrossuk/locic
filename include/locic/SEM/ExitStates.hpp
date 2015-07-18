@@ -56,6 +56,30 @@ namespace locic {
 				return ExitStates(StateRethrow);
 			}
 			
+			static ExitStates AllNonThrowing() {
+				return ExitStates::Normal() |
+					ExitStates::Return() |
+					ExitStates::Break() |
+					ExitStates::Continue();
+			}
+			
+			static ExitStates AllThrowing() {
+				return ExitStates::Throw() |
+					ExitStates::Rethrow();
+			}
+			
+			static ExitStates NormalAndThrowing() {
+				return AllThrowing() | Normal();
+			}
+			
+			static ExitStates AllExceptNormal() {
+				return ExitStates::Return() |
+					ExitStates::Break() |
+					ExitStates::Continue() |
+					ExitStates::Throw() |
+					ExitStates::Rethrow();
+			}
+			
 			ExitStates(const ExitStates& other)
 			: states_(other.states_),
 			noexceptPredicate_(other.noexceptPredicate_.copy()) { }
@@ -94,8 +118,40 @@ namespace locic {
 				return noexceptPredicate_;
 			}
 			
+			bool hasAnyStates(const ExitStates& other) const {
+				return (states_ & other.states_) != 0;
+ 			}
+			
 			ExitStates remove(const ExitStates toRemove) const {
 				return *this & ~toRemove;
+			}
+			
+			bool onlyHasStates(const ExitStates& other) const {
+				return (states_ & other.states_) == states_;
+			}
+			
+			bool onlyHasNormalState() const {
+				return onlyHasStates(Normal());
+			}
+			
+			bool onlyHasNormalOrThrowingStates() const {
+				return onlyHasStates(NormalAndThrowing());
+			}
+			
+			bool hasAnyNormalOrThrowingStates() const {
+				return hasAnyStates(NormalAndThrowing());
+			}
+			
+			bool hasAnyThrowingStates() const {
+				return hasAnyStates(AllThrowing());
+			}
+			
+			bool hasAnyNonThrowingStates() const {
+				return !onlyHasStates(AllThrowing());
+			}
+			
+			ExitStates throwingStates() const {
+				return *this & ExitStates::AllThrowing();
 			}
 			
 			ExitStates operator~() const {
