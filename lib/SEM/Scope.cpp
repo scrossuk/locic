@@ -46,7 +46,7 @@ namespace locic {
 				// Add pending scope(success) exit states if there's
 				// a no-throw exit state from this statement (which
 				// isn't just continuing to the next statement).
-				if ((statementExitStates & (ExitStates::Return() | ExitStates::Break() | ExitStates::Continue())) != ExitStates::None()) {
+				if (!statementExitStates.onlyHasStates(ExitStates::AllThrowing() | ExitStates::Normal())) {
 					scopeExitStates |= scopeSuccessPendingStates;
 				}
 				
@@ -74,7 +74,10 @@ namespace locic {
 				if (statement.kind() == SEM::Statement::SCOPEEXIT &&
 				    statement.getScopeExitState() == "success") {
 					const auto scopeSuccessStates = statement.getScopeExitScope().exitStates();
-					assert((scopeSuccessStates & ~(ExitStates::Normal() | ExitStates::Throw() | ExitStates::Rethrow())) == ExitStates::None());
+					
+					// scope(success) can only be exited by
+					// normal return or by throwing.
+					assert(scopeSuccessStates.onlyHasNormalOrThrowingStates());
 					
 					if (!scopeSuccessStates.hasNormalExit()) {
 						// No way to return normally from this scope(success),
@@ -86,7 +89,7 @@ namespace locic {
 						// Also reset pending scope(success) exit states
 						// since any outer scope(success) will never be reached
 						// from here because we always throw.
-						scopeSuccessPendingStates = ExitStates::None();
+						scopeSuccessPendingStates.reset();
 					}
 					
 					// Add throw and rethrow to pending states so that if
@@ -104,7 +107,7 @@ namespace locic {
 			
 			auto lastStatementExitStates = statementList.back().exitStates();
 			
-			if ((lastStatementExitStates & (ExitStates::Normal() | ExitStates::Return() | ExitStates::Break() | ExitStates::Continue())) != ExitStates::None()) {
+			if (lastStatementExitStates.hasAnyNonThrowingStates()) {
 				scopeExitStates |= scopeSuccessPendingStates;
 			}
 			
