@@ -5,6 +5,7 @@
 #include <locic/Debug/Module.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
+#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertScope.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
@@ -147,9 +148,20 @@ namespace locic {
 			
 			DeadCodeSearchScope(context, *semScope);
 			
-			if (!functionType.attributes().noExceptPredicate().isFalse() && exitStates.hasThrowExit()) {
-				throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw, at location %s.",
+			const auto actualNoexceptPredicate = reducePredicate(context, exitStates.noexceptPredicate().copy());
+			const auto declaredNoexceptPredicate = reducePredicate(context, functionType.attributes().noExceptPredicate().copy());
+			
+			if (!declaredNoexceptPredicate.implies(actualNoexceptPredicate)) {
+				if (declaredNoexceptPredicate.isTrue() && actualNoexceptPredicate.isFalse()) {
+					throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw, at location %s.",
+					                                semFunction->name().toString().c_str(),
+					                                astFunctionNode.location().toString().c_str()));
+				}
+				
+				throw ErrorException(makeString("Function '%s' has noexcept predicate '%s' which isn't implied by explicitly declared noexcept predicate '%s', at location %s.",
 					semFunction->name().toString().c_str(),
+					exitStates.noexceptPredicate().toString().c_str(),
+					functionType.attributes().noExceptPredicate().toString().c_str(),
 					astFunctionNode.location().toString().c_str()));
 			}
 			
