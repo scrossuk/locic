@@ -268,7 +268,9 @@ namespace locic {
 			
 			auto argInfo = ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
 			
-			// Some functions will only be noexcept in certain cases but for
+			// Some functions will only be noexcept in certain cases (e.g.
+			// when they have a noexcept predicate that queries whether
+			// a templated type has a method that is marked noexcept) but for
 			// CodeGen purposes we're looking for a guarantee of noexcept
 			// in all cases, hence we look for always-true noexcept predicates.
 			if (!attributes.noExceptPredicate().isTrivialBool()) {
