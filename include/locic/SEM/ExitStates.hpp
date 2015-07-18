@@ -1,6 +1,8 @@
 #ifndef LOCIC_SEM_EXITSTATES_HPP
 #define LOCIC_SEM_EXITSTATES_HPP
 
+#include <locic/SEM/Predicate.hpp>
+
 namespace locic {
 
 	namespace SEM {
@@ -54,8 +56,15 @@ namespace locic {
 				return ExitStates(StateRethrow);
 			}
 			
-			ExitStates(const ExitStates&) = default;
-			ExitStates& operator=(const ExitStates&) = default;
+			ExitStates(const ExitStates& other)
+			: states_(other.states_),
+			noexceptPredicate_(other.noexceptPredicate_.copy()) { }
+			
+			ExitStates& operator=(const ExitStates& other) {
+				states_ = other.states_;
+				noexceptPredicate_ = other.noexceptPredicate_.copy();
+				return *this;
+			}
 			
 			bool hasNormalExit() const {
 				return test(StateNormal);
@@ -81,6 +90,10 @@ namespace locic {
 				return test(StateRethrow);
 			}
 			
+			const Predicate& noexceptPredicate() const {
+				return noexceptPredicate_;
+			}
+			
 			ExitStates remove(const ExitStates toRemove) const {
 				return *this & ~toRemove;
 			}
@@ -94,12 +107,16 @@ namespace locic {
 			ExitStates operator&(const ExitStates& other) const {
 				ExitStates newStates;
 				newStates.states_ = states_ & other.states_;
+				newStates.noexceptPredicate_ = Predicate::Or(noexceptPredicate_.copy(),
+				                                             other.noexceptPredicate_.copy());
 				return newStates;
 			}
 			
 			ExitStates operator|(const ExitStates& other) const {
 				ExitStates newStates;
 				newStates.states_ = states_ | other.states_;
+				newStates.noexceptPredicate_ = Predicate::And(noexceptPredicate_.copy(),
+				                                              other.noexceptPredicate_.copy());
 				return newStates;
 			}
 			
@@ -114,11 +131,15 @@ namespace locic {
 			}
 			
 			bool operator==(const ExitStates& other) const {
+				if (hasThrowExit() &&
+				    noexceptPredicate() != other.noexceptPredicate()) {
+					return false;
+				}
 				return states_ == other.states_;
 			}
 			
 			bool operator!=(const ExitStates& other) const {
-				return states_ != other.states_;
+				return !(*this == other);
 			}
 			
 		private:
@@ -132,16 +153,19 @@ namespace locic {
 			};
 			
 			ExitStates()
-			: states_(0) { }
+			: states_(0),
+			noexceptPredicate_(Predicate::True()) { }
 			
 			explicit ExitStates(const State state)
-			: states_(1 << static_cast<unsigned int>(state)) { }
+			: states_(1 << static_cast<unsigned int>(state)),
+			noexceptPredicate_(Predicate::True()) { }
 			
 			bool test(const unsigned int index) const {
 				return ((states_ >> index) & 0x01) == 0x01;
 			}
 			
 			unsigned char states_;
+			Predicate noexceptPredicate_;
 			
 		};
 		
