@@ -630,19 +630,6 @@ namespace locic {
 			return templateVarMap;
 		}
 		
-		Predicate getValuePredicate(const Value& value) {
-			if (value.isConstant()) {
-				assert(value.constant().kind() == Constant::BOOLEAN);
-				return value.constant().boolValue() ? Predicate::True() : Predicate::False();
-			} else if (value.isPredicate()) {
-				return value.predicate().copy();
-			} else if (value.isTemplateVarRef()) {
-				return Predicate::Variable(const_cast<TemplateVar*>(value.templateVar()));
-			} else {
-				throw std::logic_error(makeString("Unknown predicate value kind: %s.", value.toString().c_str()));
-			}
-		}
-		
 		bool Type::isCallable() const {
 			return isBuiltInFunctionPtr() ||
 				isBuiltInInterfaceMethod() ||
@@ -684,7 +671,7 @@ namespace locic {
 		
 		FunctionType Type::asFunctionType() const {
 			assert(isCallable());
-			Predicate noexceptPredicate = getValuePredicate(templateArguments()[0]);
+			Predicate noexceptPredicate = templateArguments()[0].makePredicate();
 			
 			SEM::TypeArray parameterTypes;
 			for (size_t i = 2; i < templateArguments().size(); i++) {
