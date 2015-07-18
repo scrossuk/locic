@@ -32,7 +32,8 @@ namespace locic {
 			// blocked by a scope(success) block that always throws.
 			bool isBlockedByAlwaysThrowingScopeSuccess = false;
 			
-			// The pending states for scope(success) that occur if we have a no-throw exit.
+			// The pending states for scope(success) that occur if
+			// we have a no-throw exit.
 			ExitStates scopeSuccessPendingStates = ExitStates::None();
 			
 			for (const auto& statement: statementList) {
@@ -43,8 +44,8 @@ namespace locic {
 				statementExitStates &= ~(ExitStates::Normal());
 				
 				// Add pending scope(success) exit states if there's
-				// a no-throw exit state from this statement (which isn't
-				// just continuing to the next statement).
+				// a no-throw exit state from this statement (which
+				// isn't just continuing to the next statement).
 				if ((statementExitStates & (ExitStates::Return() | ExitStates::Break() | ExitStates::Continue())) != ExitStates::None()) {
 					scopeExitStates |= scopeSuccessPendingStates;
 				}
@@ -70,7 +71,8 @@ namespace locic {
 				
 				// Handle scope(success) specially, since these statements can
 				// be run in a 'normal' state
-				if (statement.kind() == SEM::Statement::SCOPEEXIT && statement.getScopeExitState() == "success") {
+				if (statement.kind() == SEM::Statement::SCOPEEXIT &&
+				    statement.getScopeExitState() == "success") {
 					const auto scopeSuccessStates = statement.getScopeExitScope().exitStates();
 					assert((scopeSuccessStates & ~(ExitStates::Normal() | ExitStates::Throw() | ExitStates::Rethrow())) == ExitStates::None());
 					
