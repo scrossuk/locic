@@ -173,7 +173,7 @@ namespace locic {
 						// Hence we generate the method sets of both 'pair<T, T>' and
 						// 'movable', and then determine what must be true of 'pair<T, T>'
 						// to satisfy 'movable' by computing a new require() predicate,
-// 						// from which we can then calculate a method set.
+ 						// from which we can then calculate a method set.
 						const auto sourceSet = getTypeMethodSet(context, requiresPredicate.satisfiesType());
 						const auto requireSet = getTypeMethodSet(context, requiresPredicate.satisfiesRequirement());
 						
