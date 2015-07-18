@@ -69,6 +69,10 @@ namespace locic {
 			return elements_.end();
 		}
 		
+		bool MethodSet::empty() const {
+			return elements_.empty();
+		}
+		
 		size_t MethodSet::size() const {
 			return elements_.size();
 		}

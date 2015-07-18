@@ -40,6 +40,7 @@ namespace locic {
 				iterator begin() const;
 				iterator end() const;
 				
+				bool empty() const;
 				size_t size() const;
 				
 				iterator find(const String& name) const;
