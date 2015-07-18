@@ -251,7 +251,24 @@ namespace locic {
 					const auto sourceMethodSet = getTypeMethodSet(context, substitutedCheckType);
 					const auto requireMethodSet = getTypeMethodSet(context, substitutedRequireType);
 					
-					return make_optional(methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet));
+					const bool result = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
+					
+					if (result) {
+						// If the result is true then we
+						// know for sure that the check
+						// type satisfies the requirement,
+						// but a false result might just
+						// be a lack of information.
+						return make_optional(true);
+					}
+					
+					if (!checkType->dependsOnOnly({}) || !requireType->dependsOnOnly({})) {
+						// Types still depend on some template
+						// variables so result is unknown.
+						return None;
+					}
+					
+					return make_optional(false);
 				}
 				case SEM::Predicate::VARIABLE:
 				{
