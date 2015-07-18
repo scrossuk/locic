@@ -323,9 +323,8 @@ namespace locic {
 				exitStates |= param.exitStates();
 			}
 			
-			// TODO: this needs to store the noexcept predicate somehow...
 			if (!functionType.attributes().noExceptPredicate().isTrue()) {
-				exitStates |= ExitStates::Throw();
+				exitStates |= ExitStates::Throw(functionType.attributes().noExceptPredicate().copy());
 			}
 			
 			Value value(CALL, functionType.returnType(), exitStates);

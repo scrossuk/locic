@@ -48,8 +48,14 @@ namespace locic {
 				return ExitStates(StateContinue);
 			}
 			
-			static ExitStates Throw() {
-				return ExitStates(StateThrow);
+			static ExitStates Throw(Predicate noexceptPredicate) {
+				ExitStates exitStates(StateThrow);
+				exitStates.noexceptPredicate_ = std::move(noexceptPredicate);
+				return exitStates;
+			}
+			
+			static ExitStates ThrowAlways() {
+				return ExitStates::Throw(Predicate::False());
 			}
 			
 			static ExitStates Rethrow() {
@@ -64,7 +70,7 @@ namespace locic {
 			}
 			
 			static ExitStates AllThrowing() {
-				return ExitStates::Throw() |
+				return ExitStates::ThrowAlways() |
 					ExitStates::Rethrow();
 			}
 			
@@ -76,7 +82,7 @@ namespace locic {
 				return ExitStates::Return() |
 					ExitStates::Break() |
 					ExitStates::Continue() |
-					ExitStates::Throw() |
+					ExitStates::ThrowAlways() |
 					ExitStates::Rethrow();
 			}
 			

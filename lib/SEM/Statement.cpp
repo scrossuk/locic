@@ -122,7 +122,7 @@ namespace locic {
 				
 				// Turn 'rethrow' into 'throw'.
 				if (catchExitStates.hasRethrowExit()) {
-					exitStates |= ExitStates::Throw();
+					exitStates |= ExitStates::ThrowAlways();
 					catchExitStates &= ~(ExitStates::Rethrow());
 				}
 				
@@ -167,7 +167,7 @@ namespace locic {
 		}
 		
 		Statement Statement::Throw(Value value) {
-			Statement statement(THROW, ExitStates::Throw());
+			Statement statement(THROW, ExitStates::ThrowAlways());
 			statement.throwStmt_.value = std::move(value);
 			return statement;
 		}
@@ -194,7 +194,7 @@ namespace locic {
 		Statement Statement::AssertNoExcept(std::unique_ptr<Scope> scope) {
 			assert(scope->exitStates().hasThrowExit() || scope->exitStates().hasRethrowExit());
 			
-			const auto exitStates = scope->exitStates().remove(ExitStates::Throw() | ExitStates::Rethrow());
+			const auto exitStates = scope->exitStates().remove(ExitStates::AllThrowing());
 			Statement statement(ASSERTNOEXCEPT, exitStates);
 			statement.assertNoExceptStmt_.scope = std::move(scope);
 			return statement;
