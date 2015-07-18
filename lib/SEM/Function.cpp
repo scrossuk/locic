@@ -151,18 +151,20 @@ namespace locic {
 		
 		std::string Function::toString() const {
 			if (isDeclaration()) {
-				return makeString("FunctionDeclaration(name: %s, isMethod: %s, isStatic: %s, constSpecifier: %s, type: %s)",
+				return makeString("FunctionDeclaration(name: %s, isMethod: %s, isStatic: %s, constSpecifier: %s, requiresPredicate: %s, type: %s)",
 								  name().toString().c_str(),
 								  isMethod() ? "Yes" : "No",
 								  isStaticMethod() ? "Yes" : "No",
 								  constPredicate().toString().c_str(),
+								  requiresPredicate().toString().c_str(),
 								  type().toString().c_str());
 			} else {
-				return makeString("FunctionDefinition(name: %s, isMethod: %s, isStatic: %s, constSpecifier: %s, type: %s, scope: %s)",
+				return makeString("FunctionDefinition(name: %s, isMethod: %s, isStatic: %s, constSpecifier: %s, requiresPredicate: %s, type: %s, scope: %s)",
 								  name().toString().c_str(),
 								  isMethod() ? "Yes" : "No",
 								  isStaticMethod() ? "Yes" : "No",
 								  constPredicate().toString().c_str(),
+								  requiresPredicate().toString().c_str(),
 								  type().toString().c_str(),
 								  scope().toString().c_str());
 			}
