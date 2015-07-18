@@ -31,6 +31,7 @@ namespace locic {
 				MethodSetElement copy() const;
 				
 				MethodSetElement withRequirement(SEM::Predicate requirement) const;
+				MethodSetElement withNoExceptPredicate(SEM::Predicate newNoExceptPredicate) const;
 				
 				const SEM::TemplateVarArray& templateVariables() const;
 				const SEM::Predicate& constPredicate() const;

@@ -50,6 +50,13 @@ namespace locic {
 				isStatic(), returnType(), parameterTypes().copy());
 		}
 		
+		MethodSetElement MethodSetElement::withNoExceptPredicate(SEM::Predicate newNoExceptPredicate) const {
+			return MethodSetElement(templateVariables().copy(), constPredicate().copy(),
+				std::move(newNoExceptPredicate),
+				requirePredicate().copy(),
+				isStatic(), returnType(), parameterTypes().copy());
+		}
+		
 		const SEM::TemplateVarArray& MethodSetElement::templateVariables() const {
 			return templateVariables_;
 		}
