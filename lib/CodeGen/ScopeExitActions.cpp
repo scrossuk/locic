@@ -338,10 +338,10 @@ namespace locic {
 		}
 		
 		ScopeLifetime::ScopeLifetime(Function& function)
-			: function_(function),
-			scopeEndBB_(function.createBasicBlock("")) {
-				function_.pushUnwindAction(UnwindAction::ScopeMarker(scopeEndBB_));
-			}
+		: function_(function),
+		scopeEndBB_(function.createBasicBlock("")) {
+			function_.pushUnwindAction(UnwindAction::ScopeMarker(scopeEndBB_));
+		}
 		
 		ScopeLifetime::~ScopeLifetime() {
 			if (!function_.lastInstructionTerminates() && anyUnwindCleanupActions(function_, UnwindStateNormal)) {

@@ -179,7 +179,7 @@ namespace locic {
 		}
 		
 		namespace {
-		
+			
 			void genFunctionCode(Function& functionGenerator, SEM::Function* function) {
 				ScopeLifetime functionScopeLifetime(functionGenerator);
 				
