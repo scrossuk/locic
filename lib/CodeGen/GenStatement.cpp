@@ -28,14 +28,25 @@ namespace locic {
 	namespace CodeGen {
 	
 		void genScope(Function& function, const SEM::Scope& scope) {
-			ScopeLifetime scopeLifetime(function);
-			
-			for (const auto localVar : scope.variables()) {
-				genVarAlloca(function, localVar);
+			{
+				ScopeLifetime scopeLifetime(function);
+				
+				for (const auto localVar : scope.variables()) {
+					genVarAlloca(function, localVar);
+				}
+				
+				for (const auto& statement : scope.statements()) {
+					genStatement(function, statement);
+				}
 			}
 			
-			for (const auto& statement : scope.statements()) {
-				genStatement(function, statement);
+			if (!scope.exitStates().hasNormalExit() &&
+			    !function.lastInstructionTerminates()) {
+				// We can't exit this scope normally at run-time
+				// but the generated code doesn't end with a
+				// terminator; just create a loop to keep the
+				// control flow graph correct.
+				function.getBuilder().CreateBr(function.getBuilder().GetInsertBlock());
 			}
 		}
 		
