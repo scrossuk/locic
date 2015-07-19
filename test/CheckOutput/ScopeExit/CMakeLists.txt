@@ -8,4 +8,5 @@ test_check_output(ScopeExitInternalLoop)
 test_check_output(ScopeExitInternalLoopBreak)
 test_check_output(ScopeExitInternalLoopContinue)
 test_check_output(ScopeSuccessThrow)
+test_check_output(ScopeSuccessThrowFunction)
 
