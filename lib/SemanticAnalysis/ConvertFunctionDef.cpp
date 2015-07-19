@@ -78,6 +78,10 @@ namespace locic {
 		}
 		
 		void DeadCodeSearchScope(Context& context, const SEM::Scope& scope) {
+			const SEM::Statement* lastScopeExit = nullptr;
+			const SEM::Statement* lastScopeFailure = nullptr;
+			const SEM::Statement* lastScopeSuccess = nullptr;
+			
 			bool isNormalBlocked = false;
 			for (const auto& statement: scope.statements()) {
 				DeadCodeSearchStatement(context, statement);
@@ -89,10 +93,84 @@ namespace locic {
 						debugInfo->location.toString().c_str()));
 				}
 				
+				if (statement.isScopeExitStatement()) {
+					if (statement.getScopeExitState() == "exit") {
+						lastScopeExit = &statement;
+					} else if (statement.getScopeExitState() == "failure") {
+						lastScopeFailure = &statement;
+						
+						// Any previous scope(exit) will
+						// be reached after this
+						// scope(failure) has executed.
+						lastScopeExit = nullptr;
+					} else if (statement.getScopeExitState() == "success") {
+						const auto scopeExitStates = statement.getScopeExitScope().exitStates();
+						
+						if (!scopeExitStates.hasNormalExit()) {
+							// Any previous scope(failure) will
+							// be reached after this
+							// scope(success) has executed
+							// since we're guaranteeed to
+							// be throwing.
+							lastScopeFailure = nullptr;
+						}
+						
+						if (lastScopeSuccess != nullptr &&
+						    !scopeExitStates.hasNormalExit()) {
+							throw ErrorException(makeString("scope(success) is unreachable, at position %s, due to later always throwing scope(success), at position %s.",
+								lastScopeSuccess->debugInfo()->location.toString().c_str(),
+								statement.debugInfo()->location.toString().c_str()));
+						}
+						
+						lastScopeSuccess = &statement;
+						
+						// Any previous scope(exit) will
+						// be reached after this
+						// scope(success) has executed.
+						lastScopeExit = nullptr;
+					} else {
+						throw std::logic_error("Unknown scope exit state.");
+					}
+				}
+				
 				const auto exitStates = statement.exitStates();
 				if (!exitStates.hasNormalExit()) {
 					isNormalBlocked = true;
 				}
+				
+				if (exitStates.hasAnyStates(SEM::ExitStates::AllExceptNormal())) {
+					// TODO: only the most recent
+					// scope(exit) will be reached!
+					
+					// Scope exits will be reached by
+					// anything other than continuing to the
+					// next statement, such as an exception
+					// being thrown.
+					lastScopeExit = nullptr;
+					
+					if (exitStates.hasAnyNonThrowingStates()) {
+						lastScopeSuccess = nullptr;
+					}
+					
+					if (exitStates.hasAnyThrowingStates()) {
+						lastScopeFailure = nullptr;
+					}
+				}
+			}
+			
+			if (isNormalBlocked && lastScopeExit != nullptr) {
+				throw ErrorException(makeString("scope(exit) is unreachable, at position %s.",
+					lastScopeExit->debugInfo()->location.toString().c_str()));
+			}
+			
+			if (lastScopeFailure != nullptr) {
+				throw ErrorException(makeString("scope(failure) is unreachable, at position %s.",
+					lastScopeFailure->debugInfo()->location.toString().c_str()));
+			}
+			
+			if (isNormalBlocked && lastScopeSuccess != nullptr) {
+				throw ErrorException(makeString("scope(success) is unreachable, at position %s.",
+					lastScopeSuccess->debugInfo()->location.toString().c_str()));
 			}
 		}
 		
