@@ -1,11 +1,12 @@
 # Exception tests.
 
 test_check_error(AssertNoExceptAroundNoExcept)
+test_check_error(CallMethodOnlySpecifiedInNoExceptPredicate)
 test_check_error(CircularInheritedException)
+test_check_error(NoExceptPredicateReverseImplication)
 test_check_error(RethrowInsideTry)
 test_check_error(SelfInheritedException)
 test_check_error(ThrowInDestructor)
 test_check_error(ThrowInNoExcept)
 test_check_error(ThrowInNoExceptIndirectly)
 test_check_error(ThrowInNoExceptViaOperator)
-

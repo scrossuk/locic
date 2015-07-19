@@ -1,0 +1,30 @@
+interface CanDoThing {
+	void doThing();
+}
+
+interface CanDoThingNoExcept {
+	void doThing() noexcept;
+	void doOtherThing() noexcept;
+}
+
+template <typename T>
+void doThing(T& object) noexcept(T : CanDoThingNoExcept) require(T : CanDoThing) {
+	object.doThing();
+	object.doOtherThing();
+}
+
+class TestClass() {
+	void doThing() { }
+}
+
+class TestClassNoExcept() {
+	void doThing() noexcept { }
+}
+
+void callDoThing(TestClass& object) {
+	doThing<TestClass>(object);
+}
+
+void callDoThingNoExcept(TestClassNoExcept& object) noexcept {
+	doThing<TestClassNoExcept>(object);
+}
