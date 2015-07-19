@@ -255,6 +255,7 @@ namespace locic {
 			const auto actionBB = function.createBasicBlock("");
 			function.selectBasicBlock(actionBB);
 			performScopeExitAction(function, position, unwindState);
+			assert(function.lastInstructionTerminates());
 			topUnwindAction.setActionBlock(unwindState, BasicBlockRange(actionBB, nullptr));
 			return actionBB;
 		}
