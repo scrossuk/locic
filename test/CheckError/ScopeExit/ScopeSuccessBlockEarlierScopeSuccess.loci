@@ -1,0 +1,13 @@
+
+exception TestError();
+
+void f() {
+	{
+		scope(success) {
+			throw TestError();
+		}
+		scope(success) {
+			throw TestError();
+		}
+	}
+}

@@ -1,0 +1,8 @@
+import void g() noexcept;
+
+void f() {
+	scope(failure) {
+		g();
+	}
+	g();
+}

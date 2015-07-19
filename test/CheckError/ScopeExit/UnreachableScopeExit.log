@@ -1,0 +1,1 @@
+scope\(exit\) is unreachable, at position SourceLocation\(filename = (.*)/UnreachableScopeExit\.loci, range = \(line 4, column 2\) to \(line 6, column 3\)\)\.
