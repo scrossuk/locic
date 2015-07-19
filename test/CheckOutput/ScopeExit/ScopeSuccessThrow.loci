@@ -10,21 +10,13 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 			testPrint(C"testEntryPoint: Exiting try scope.");
 		}
 		
-		scope (success) {
-			testPrint(C"testEntryPoint: Success case #1.");
-		}
-		
 		scope (failure) {
-			testPrint(C"testEntryPoint: Failure case #1.");
+			testPrint(C"testEntryPoint: Failure case.");
 		}
 		
 		scope (success) {
-			testPrint(C"testEntryPoint: Success case #2; throwing exception.");
+			testPrint(C"testEntryPoint: Success case; throwing exception.");
 			throw TestError();
-		}
-		
-		scope (failure) {
-			testPrint(C"testEntryPoint: Failure case #2.");
 		}
 		
 		testPrint(C"testEntryPoint: Returning 1.");
