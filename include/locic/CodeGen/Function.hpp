@@ -138,6 +138,8 @@ namespace locic {
 				
 				void selectBasicBlock(llvm::BasicBlock* basicBlock);
 				
+				bool lastInstructionTerminates() const;
+				
 				void verify() const;
 				
 				AlignMaskMap& alignMaskMap();

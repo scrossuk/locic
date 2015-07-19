@@ -161,7 +161,7 @@ namespace locic {
 							function.selectBasicBlock(thenBB);
 							genScope(function, ifClause->scope());
 							
-							if (lastInstructionTerminates(function)) {
+							if (function.lastInstructionTerminates()) {
 								thenClauseTerminated = true;
 								// The 'then' clause finished with a terminator (e.g. a 'return'),
 								// but we need a new basic block for the unwinding operations
@@ -177,7 +177,7 @@ namespace locic {
 							}
 						}
 						
-						if (!lastInstructionTerminates(function)) {
+						if (!function.lastInstructionTerminates()) {
 							if (conditionHasUnwindActions) {
 								if (thenClauseTerminated) {
 									// The 'then' clause terminated, so we can just jump straight
@@ -204,7 +204,7 @@ namespace locic {
 					if (hasElseScope) {
 						genScope(function, statement.getIfElseScope());
 						
-						if (!lastInstructionTerminates(function)) {
+						if (!function.lastInstructionTerminates()) {
 							allTerminate = false;
 							function.getBuilder().CreateBr(mergeBB);
 						}
@@ -288,7 +288,7 @@ namespace locic {
 							genScope(function, switchCase->scope());
 						}
 						
-						if (!lastInstructionTerminates(function)) {
+						if (!function.lastInstructionTerminates()) {
 							allTerminate = false;
 							function.getBuilder().CreateBr(endBB);
 						}
@@ -299,7 +299,7 @@ namespace locic {
 					if (statement.getSwitchDefaultScope() != nullptr) {
 						genScope(function, *(statement.getSwitchDefaultScope()));
 						
-						if (!lastInstructionTerminates(function)) {
+						if (!function.lastInstructionTerminates()) {
 							allTerminate = false;
 							function.getBuilder().CreateBr(endBB);
 						}
@@ -347,7 +347,7 @@ namespace locic {
 					// At the end of a loop iteration, branch to
 					// the advance block to update any data for
 					// the next iteration.
-					if (!lastInstructionTerminates(function)) {
+					if (!function.lastInstructionTerminates()) {
 						function.getBuilder().CreateBr(loopAdvanceBB);
 					}
 					
@@ -356,7 +356,7 @@ namespace locic {
 					genScope(function, statement.getLoopAdvanceScope());
 					
 					// Now branch back to the start to re-check the condition.
-					if (!lastInstructionTerminates(function)) {
+					if (!function.lastInstructionTerminates()) {
 						function.getBuilder().CreateBr(loopConditionBB);
 					}
 					
@@ -437,7 +437,7 @@ namespace locic {
 					
 					bool allTerminate = true;
 					
-					if (!lastInstructionTerminates(function)) {
+					if (!function.lastInstructionTerminates()) {
 						// No exception thrown; continue normal execution.
 						allTerminate = false;
 						function.getBuilder().CreateBr(afterCatchBB);
@@ -496,7 +496,7 @@ namespace locic {
 							}
 							
 							// Exception was handled, so re-commence normal execution.
-							if (!lastInstructionTerminates(function)) {
+							if (!function.lastInstructionTerminates()) {
 								allTerminate = false;
 								function.getBuilder().CreateBr(afterCatchBB);
 							}

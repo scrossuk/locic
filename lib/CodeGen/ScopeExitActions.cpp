@@ -56,16 +56,6 @@ namespace locic {
 			
 		}
 		
-		bool lastInstructionTerminates(Function& function) {
-			if (!function.getBuilder().GetInsertBlock()->empty()) {
-				auto iterator = function.getBuilder().GetInsertPoint();
-				--iterator;
-				return iterator->isTerminator();
-			} else {
-				return false;
-			}
-		}
-		
 		void performScopeExitAction(Function& function, const size_t position, const UnwindState unwindState) {
 			const auto& unwindAction = function.unwindStack().at(position);
 			
@@ -140,8 +130,7 @@ namespace locic {
 					function.pushUnwindStack(position);
 					genScope(function, *(unwindAction.scopeExitScope()));
 					function.popUnwindStack();
-					
-					if (lastInstructionTerminates(function)) {
+					if (function.lastInstructionTerminates()) {
 						function.selectBasicBlock(function.createBasicBlock(""));
 					}
 					return;
@@ -355,7 +344,7 @@ namespace locic {
 			}
 		
 		ScopeLifetime::~ScopeLifetime() {
-			if (!lastInstructionTerminates(function_) && anyUnwindCleanupActions(function_, UnwindStateNormal)) {
+			if (!function_.lastInstructionTerminates() && anyUnwindCleanupActions(function_, UnwindStateNormal)) {
 				genUnwind(function_, UnwindStateNormal);
 				function_.selectBasicBlock(scopeEndBB_);
 			} else {

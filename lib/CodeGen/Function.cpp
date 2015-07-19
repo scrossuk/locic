@@ -283,6 +283,16 @@ namespace locic {
 			builder_.SetInsertPoint(basicBlock);
 		}
 		
+		bool Function::lastInstructionTerminates() const {
+			if (!getBuilder().GetInsertBlock()->empty()) {
+				auto iterator = getBuilder().GetInsertPoint();
+				--iterator;
+				return iterator->isTerminator();
+			} else {
+				return false;
+			}
+		}
+		
 		void Function::verify() const {
 			// Only verify functions when built in debug mode.
 #if !defined(NDEBUG)
