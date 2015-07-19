@@ -265,7 +265,15 @@ namespace locic {
 			return entryBuilder_;
 		}
 		
+		const llvm::IRBuilder<>& Function::getEntryBuilder() const {
+			return const_cast<Function&>(*this).getEntryBuilder();
+		}
+		
 		llvm::IRBuilder<>& Function::getBuilder() {
+			return useEntryBuilder_ ? getEntryBuilder() : builder_;
+		}
+		
+		const llvm::IRBuilder<>& Function::getBuilder() const {
 			return useEntryBuilder_ ? getEntryBuilder() : builder_;
 		}
 		

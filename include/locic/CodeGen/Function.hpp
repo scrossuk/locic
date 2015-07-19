@@ -129,8 +129,10 @@ namespace locic {
 				// Returns an 'entry' builder for creating instructions
 				// in the first ('entry') basic block.
 				llvm::IRBuilder<>& getEntryBuilder();
+				const llvm::IRBuilder<>& getEntryBuilder() const;
 				
 				llvm::IRBuilder<>& getBuilder();
+				const llvm::IRBuilder<>& getBuilder() const;
 				
 				bool setUseEntryBuilder(bool useEntryBuilder);
 				
