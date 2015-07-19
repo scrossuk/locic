@@ -130,9 +130,6 @@ namespace locic {
 					function.pushUnwindStack(position);
 					genScope(function, *(unwindAction.scopeExitScope()));
 					function.popUnwindStack();
-					if (function.lastInstructionTerminates()) {
-						function.selectBasicBlock(function.createBasicBlock(""));
-					}
 					return;
 				}
 				case UnwindAction::RETHROWSCOPE: {
@@ -316,7 +313,10 @@ namespace locic {
 					performScopeExitAction(function, i, unwindState);
 					
 					const auto actionEndBB = function.getBuilder().GetInsertBlock();
-					function.getBuilder().CreateBr(nextBB);
+					
+					if (!function.lastInstructionTerminates()) {
+						function.getBuilder().CreateBr(nextBB);
+					}
 					
 					unwindAction.setActionBlock(unwindState, BasicBlockRange(actionStartBB, actionEndBB));
 					
