@@ -36,45 +36,62 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* /*type*/,
+		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type,
 		                                                 const String& methodName, SEM::FunctionType /*functionType*/,
 		                                                 PendingResultArray args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
+			
 			const auto lessThanValue = ConstantGenerator(module).getI8(-1);
 			const auto equalValue = ConstantGenerator(module).getI8(0);
 			const auto greaterThanValue = ConstantGenerator(module).getI8(1);
 			
-			if (methodName == "less_than") {
-				assert(args.empty());
-				return lessThanValue;
-			} else if (methodName == "equal") {
-				assert(args.empty());
-				return equalValue;
-			} else if (methodName == "greater_than") {
-				assert(args.empty());
-				return greaterThanValue;
-			}
-			
-			const auto methodOwner = args[0].resolveWithoutBind(function);
-			
-			if (methodName == "implicit_copy" || methodName == "copy") {
-				return methodOwner;
-			} else if (methodName == "is_equal") {
-				return builder.CreateICmpEQ(methodOwner, equalValue);
-			} else if (methodName == "is_not_equal") {
-				return builder.CreateICmpNE(methodOwner, equalValue);
-			} else if (methodName == "is_less_than") {
-				return builder.CreateICmpEQ(methodOwner, lessThanValue);
-			} else if (methodName == "is_less_than_or_equal") {
-				return builder.CreateICmpNE(methodOwner, greaterThanValue);
-			} else if (methodName == "is_greater_than") {
-				return builder.CreateICmpEQ(methodOwner, greaterThanValue);
-			} else if (methodName == "is_greater_than_or_equal") {
-				return builder.CreateICmpNE(methodOwner, lessThanValue);
-			} else {
-				llvm_unreachable("Unknown compare_result_t method.");
+			switch (methodID) {
+				case METHOD_ALIGNMASK:
+					return genAlignMask(function, type);
+				case METHOD_SIZEOF:
+					return genSizeOf(function, type);
+				case METHOD_LESSTHAN:
+					assert(args.empty());
+					return lessThanValue;
+				case METHOD_EQUAL:
+					assert(args.empty());
+					return equalValue;
+				case METHOD_GREATERTHAN:
+					assert(args.empty());
+					return greaterThanValue;
+				case METHOD_IMPLICITCOPY:
+				case METHOD_COPY:
+					return args[0].resolveWithoutBind(function);
+				case METHOD_ISEQUAL: {
+					const auto methodOwner = args[0].resolveWithoutBind(function);
+					return builder.CreateICmpEQ(methodOwner, equalValue);
+				}
+				case METHOD_ISNOTEQUAL: {
+					const auto methodOwner = args[0].resolveWithoutBind(function);
+					return builder.CreateICmpNE(methodOwner, equalValue);
+				}
+				case METHOD_ISLESSTHAN: {
+					const auto methodOwner = args[0].resolveWithoutBind(function);
+					return builder.CreateICmpEQ(methodOwner, lessThanValue);
+				}
+				case METHOD_ISLESSTHANOREQUAL: {
+					const auto methodOwner = args[0].resolveWithoutBind(function);
+					return builder.CreateICmpNE(methodOwner, greaterThanValue);
+				}
+				case METHOD_ISGREATERTHAN: {
+					const auto methodOwner = args[0].resolveWithoutBind(function);
+					return builder.CreateICmpEQ(methodOwner, greaterThanValue);
+				}
+				case METHOD_ISGREATERTHANOREQUAL: {
+					const auto methodOwner = args[0].resolveWithoutBind(function);
+					return builder.CreateICmpNE(methodOwner, lessThanValue);
+				}
+				default:
+					printf("%s\n", methodName.c_str());
+					llvm_unreachable("Unknown compare_result_t method.");
 			}
 		}
 		
