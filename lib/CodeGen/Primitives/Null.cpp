@@ -3,6 +3,7 @@
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/PendingResult.hpp>
+#include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/Support/MethodID.hpp>
@@ -23,6 +24,12 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_CREATE:
 					return ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
+				case METHOD_ALIGNMASK: {
+					return genAlignMask(functionGenerator, type);
+				}
+				case METHOD_SIZEOF: {
+					return genSizeOf(functionGenerator, type);
+				}
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST:
 					return callRawCastMethod(functionGenerator, nullptr, type, module.getCString("null"), templateArgs.front().typeRefType(), hintResultValue);
