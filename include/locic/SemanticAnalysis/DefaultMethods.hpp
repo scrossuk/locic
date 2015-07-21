@@ -29,6 +29,10 @@ namespace locic {
 		
 		std::unique_ptr<SEM::Function> CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
 		
+		std::unique_ptr<SEM::Function> CreateDefaultAlignMaskDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		
+		std::unique_ptr<SEM::Function> CreateDefaultSizeOfDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		
 		std::unique_ptr<SEM::Function> CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
 		
 		std::unique_ptr<SEM::Function> CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);

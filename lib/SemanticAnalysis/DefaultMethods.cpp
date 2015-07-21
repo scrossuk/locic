@@ -29,6 +29,26 @@ namespace locic {
 			return functionInfo;
 		}
 		
+		SEM::Predicate getDefaultSizedTypePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+			auto requirePredicate = SEM::Predicate::True();
+			
+			const auto sizedType = getBuiltInType(context, context.getCString("sized_type"), {});
+			
+			// All member variables need to be sized.
+			for (const auto& var: typeInstance->variables()) {
+				const auto varType = var->constructType();
+				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, sizedType));
+			}
+			
+			// All variants need to be sized.
+			for (const auto& variantTypeInstance: typeInstance->variants()) {
+				const auto varType = variantTypeInstance->selfType();
+				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, sizedType));
+			}
+			
+			return requirePredicate;
+		}
+		
 		SEM::Predicate getAutoDefaultMovePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
 			auto requirePredicate = SEM::Predicate::True();
 			
@@ -178,6 +198,52 @@ namespace locic {
 			
 			semFunction->setParameters(std::move(argVars));
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), typeInstance->selfType(), std::move(constructTypes)));
+			return semFunction;
+		}
+		
+		std::unique_ptr<SEM::Function> CreateDefaultAlignMaskDecl(Context& context, SEM::TypeInstance* const typeInstance, const Name& name) {
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(name.copy(), typeInstance->moduleScope().copy()));
+			semFunction->setDefault(true);
+			
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
+			
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultSizedTypePredicate(context, typeInstance)));
+			
+			semFunction->setMethod(true);
+			semFunction->setStaticMethod(true);
+			
+			const bool isVarArg = false;
+			const bool isDynamicMethod = false;
+			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
+			
+			// alignmask never throws.
+			auto noExceptPredicate = SEM::Predicate::True();
+			
+			const auto sizeType = getBuiltInType(context, context.getCString("size_t"), {});
+			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), sizeType, {}));
+			return semFunction;
+		}
+		
+		std::unique_ptr<SEM::Function> CreateDefaultSizeOfDecl(Context& context, SEM::TypeInstance* const typeInstance, const Name& name) {
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(name.copy(), typeInstance->moduleScope().copy()));
+			semFunction->setDefault(true);
+			
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
+			
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultSizedTypePredicate(context, typeInstance)));
+			
+			semFunction->setMethod(true);
+			semFunction->setStaticMethod(true);
+			
+			const bool isVarArg = false;
+			const bool isDynamicMethod = false;
+			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
+			
+			// sizeof never throws.
+			auto noExceptPredicate = SEM::Predicate::True();
+			
+			const auto sizeType = getBuiltInType(context, context.getCString("size_t"), {});
+			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), sizeType, {}));
 			return semFunction;
 		}
 		
