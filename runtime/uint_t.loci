@@ -5,6 +5,9 @@ __primitive uint_t {
 	
 	static uint_t cast_int_t(int_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	uint_t implicit_copy() const noexcept;
 	uint_t copy() const noexcept;
 	

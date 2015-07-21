@@ -6,6 +6,9 @@ notag(ReturnType)
 __primitive interfacemethod0_t {
 	static interfacemethod0_t<IsNoExcept, ReturnType> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
@@ -22,6 +25,9 @@ template <bool IsNoExcept, typename ReturnType : movable, typename Arg0>
 notag(ReturnType)
 __primitive interfacemethod1_t {
 	static interfacemethod1_t<IsNoExcept, ReturnType, Arg0> null() noexcept;
+	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
 	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
@@ -40,6 +46,9 @@ notag(ReturnType)
 __primitive interfacemethod2_t {
 	static interfacemethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
@@ -56,6 +65,9 @@ template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typenam
 notag(ReturnType)
 __primitive interfacemethod3_t {
 	static interfacemethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> null() noexcept;
+	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
 	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
@@ -74,6 +86,9 @@ notag(ReturnType)
 __primitive interfacemethod4_t {
 	static interfacemethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
@@ -90,6 +105,9 @@ template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typenam
 notag(ReturnType)
 __primitive interfacemethod5_t {
 	static interfacemethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> null() noexcept;
+	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
 	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
@@ -108,6 +126,9 @@ notag(ReturnType)
 __primitive interfacemethod6_t {
 	static interfacemethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
@@ -125,6 +146,9 @@ notag(ReturnType)
 __primitive interfacemethod7_t {
 	static interfacemethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
@@ -141,6 +165,9 @@ template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typenam
 notag(ReturnType)
 __primitive interfacemethod8_t {
 	static interfacemethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> null() noexcept;
+	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
 	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;

@@ -9,6 +9,9 @@ __primitive int_t {
 	static int_t cast_ssize_t(ssize_t value) noexcept;
 	static int_t cast_size_t(size_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	int_t implicit_copy() const noexcept;
 	int_t copy() const noexcept;
 	

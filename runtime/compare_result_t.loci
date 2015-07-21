@@ -3,6 +3,9 @@ __primitive compare_result_t {
 	static compare_result_t less_than() noexcept;
 	static compare_result_t greater_than() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	compare_result_t implicit_copy() const noexcept;
 	compare_result_t copy() const noexcept;
 	

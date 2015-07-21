@@ -8,6 +8,9 @@ __primitive longlong_t {
 	static longlong_t implicit_cast_int_t(int_t value) noexcept;
 	static longlong_t implicit_cast_long_t(long_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	longlong_t implicit_copy() const noexcept;
 	longlong_t copy() const noexcept;
 	

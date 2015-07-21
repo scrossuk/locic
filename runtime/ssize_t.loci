@@ -4,6 +4,9 @@ __primitive ssize_t {
 	static ssize_t implicit_cast_byte_t(byte_t value) noexcept;
 	static ssize_t implicit_cast_short_t(short_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	ssize_t implicit_copy() const noexcept;
 	ssize_t copy() const noexcept;
 	

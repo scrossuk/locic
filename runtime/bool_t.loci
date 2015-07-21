@@ -1,4 +1,7 @@
 __primitive bool {
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	bool implicit_copy() const noexcept;
 	bool copy() const noexcept;
 	

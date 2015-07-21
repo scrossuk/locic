@@ -2,6 +2,9 @@ __primitive ushort_t {
 	static ushort_t implicit_cast_uint8_t(uint8_t value) noexcept;
 	static ushort_t implicit_cast_uint16_t(uint16_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	ushort_t implicit_copy() const noexcept;
 	ushort_t copy() const noexcept;
 	

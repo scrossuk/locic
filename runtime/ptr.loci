@@ -2,6 +2,9 @@ template <typename T>
 __primitive __ptr {
 	static __ptr<T> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	__ptr<T> implicit_copy() const noexcept;
 	
 	void __set_dead() noexcept;

@@ -16,6 +16,9 @@ __primitive size_t {
 	static size_t cast_double_t(double_t value) noexcept;
 	static size_t cast_longdouble_t(longdouble_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	size_t implicit_copy() const noexcept;
 	size_t copy() const noexcept;
 	

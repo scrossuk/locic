@@ -12,6 +12,9 @@ __primitive uint8_t {
 	static uint8_t cast_float_t(float_t value) noexcept;
 	static uint8_t cast_double_t(double_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	uint8_t implicit_copy() const noexcept;
 	uint8_t copy() const noexcept;
 		

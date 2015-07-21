@@ -2,6 +2,9 @@ __primitive int32_t {
 	static int32_t implicit_cast_int8_t(int8_t value) noexcept;
 	static int32_t implicit_cast_int16_t(int16_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	int32_t implicit_copy() const noexcept;
 	int32_t copy() const noexcept;
 	

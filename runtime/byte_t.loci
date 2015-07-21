@@ -3,6 +3,9 @@ __primitive byte_t {
 	
 	static byte_t cast_int_t(int_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	byte_t implicit_copy() const noexcept;
 	byte_t copy() const noexcept;
 	

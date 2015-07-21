@@ -6,6 +6,9 @@ notag(ReturnType)
 __primitive templatedmethodfunction0_ptr_t {
 	static templatedmethodfunction0_ptr_t<IsNoExcept, ReturnType> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
@@ -22,6 +25,9 @@ template <bool IsNoExcept, typename ReturnType : movable, typename Arg0>
 notag(ReturnType)
 __primitive templatedmethodfunction1_ptr_t {
 	static templatedmethodfunction1_ptr_t<IsNoExcept, ReturnType, Arg0> null() noexcept;
+	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
 	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
@@ -40,6 +46,9 @@ notag(ReturnType)
 __primitive templatedmethodfunction2_ptr_t {
 	static templatedmethodfunction2_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
@@ -56,6 +65,9 @@ template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typenam
 notag(ReturnType)
 __primitive templatedmethodfunction3_ptr_t {
 	static templatedmethodfunction3_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> null() noexcept;
+	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
 	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
@@ -74,6 +86,9 @@ notag(ReturnType)
 __primitive templatedmethodfunction4_ptr_t {
 	static templatedmethodfunction4_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
@@ -90,6 +105,9 @@ template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typenam
 notag(ReturnType)
 __primitive templatedmethodfunction5_ptr_t {
 	static templatedmethodfunction5_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> null() noexcept;
+	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
 	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
@@ -108,6 +126,9 @@ notag(ReturnType)
 __primitive templatedmethodfunction6_ptr_t {
 	static templatedmethodfunction6_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
@@ -125,6 +146,9 @@ notag(ReturnType)
 __primitive templatedmethodfunction7_ptr_t {
 	static templatedmethodfunction7_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> null() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
@@ -141,6 +165,9 @@ template <bool IsNoExcept, typename ReturnType : movable, typename Arg0, typenam
 notag(ReturnType)
 __primitive templatedmethodfunction8_ptr_t {
 	static templatedmethodfunction8_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> null() noexcept;
+	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
 	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;

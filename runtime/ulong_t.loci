@@ -5,6 +5,9 @@ __primitive ulong_t {
 	static ulong_t implicit_cast_ushort_t(ushort_t value) noexcept;
 	static ulong_t implicit_cast_uint_t(uint_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	ulong_t implicit_copy() const noexcept;
 	ulong_t copy() const noexcept;
 	

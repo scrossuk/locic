@@ -16,6 +16,9 @@ __primitive ulonglong_t {
 	static ulonglong_t cast_ulong_t(ulong_t value) noexcept;
 	static ulonglong_t cast_size_t(size_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	ulonglong_t implicit_copy() const noexcept;
 	ulonglong_t copy() const noexcept;
 	

@@ -3,6 +3,9 @@ __primitive int64_t {
 	static int64_t implicit_cast_int16_t(int16_t value) noexcept;
 	static int64_t implicit_cast_int32_t(int32_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	int64_t implicit_copy() const noexcept;
 	int64_t copy() const noexcept;
 	

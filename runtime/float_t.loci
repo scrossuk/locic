@@ -15,6 +15,9 @@ __primitive float_t {
 	static float_t cast_double_t(double_t value) noexcept;
 	static float_t cast_longdouble_t(longdouble_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	float_t implicit_copy() const noexcept;
 	float_t copy() const noexcept;
 	

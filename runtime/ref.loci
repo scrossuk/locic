@@ -1,5 +1,8 @@
 template <typename T>
 __primitive __ref {
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	__ref<T> implicit_copy() const noexcept;
 	__ref<T> copy() const noexcept;
 	

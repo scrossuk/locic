@@ -1,6 +1,9 @@
 __primitive null_t {
 	static null_t create() noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	null_t implicit_copy() const noexcept;
 	null_t copy() const noexcept;
 	

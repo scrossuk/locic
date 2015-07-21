@@ -8,6 +8,9 @@ __primitive ptrdiff_t {
 	
 	static ptrdiff_t cast_size_t(size_t value) noexcept;
 	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
 	ptrdiff_t implicit_copy() const noexcept;
 	ptrdiff_t copy() const noexcept;
 	
