@@ -50,6 +50,12 @@ namespace locic {
 		METHOD_ISLIVE,
 		METHOD_SETINVALID,
 		METHOD_ISVALID,
+		METHOD_ISEQUAL,
+		METHOD_ISNOTEQUAL,
+		METHOD_ISLESSTHAN,
+		METHOD_ISLESSTHANOREQUAL,
+		METHOD_ISGREATERTHAN,
+		METHOD_ISGREATERTHANOREQUAL,
 		
 		// Binary methods.
 		METHOD_ADD,
@@ -197,6 +203,18 @@ namespace locic {
 					return "__setinvalid";
 				case METHOD_ISVALID:
 					return "__isvalid";
+				case METHOD_ISEQUAL:
+					return "isequal";
+				case METHOD_ISNOTEQUAL:
+					return "isnotequal";
+				case METHOD_ISLESSTHAN:
+					return "islessthan";
+				case METHOD_ISLESSTHANOREQUAL:
+					return "islessthanorequal";
+				case METHOD_ISGREATERTHAN:
+					return "isgreaterthan";
+				case METHOD_ISGREATERTHANOREQUAL:
+					return "isgreaterthanorequal";
 				
 				case METHOD_ADD:
 					return "add";

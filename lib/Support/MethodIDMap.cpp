@@ -65,6 +65,12 @@ namespace locic {
 		impl_->add(METHOD_ISLIVE);
 		impl_->add(METHOD_SETINVALID);
 		impl_->add(METHOD_ISVALID);
+		impl_->add(METHOD_ISEQUAL);
+		impl_->add(METHOD_ISNOTEQUAL);
+		impl_->add(METHOD_ISLESSTHAN);
+		impl_->add(METHOD_ISLESSTHANOREQUAL);
+		impl_->add(METHOD_ISGREATERTHAN);
+		impl_->add(METHOD_ISGREATERTHANOREQUAL);
 		
 		impl_->add(METHOD_ADD);
 		impl_->add(METHOD_SUBTRACT);
