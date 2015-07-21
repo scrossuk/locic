@@ -301,7 +301,18 @@ namespace locic {
 					return createMemberVarRef(context, std::move(selfValue), *(variableIterator->second));
 				}
 				case AST::Value::ALIGNOF: {
-					throw std::logic_error("TODO");
+					const auto type = ConvertType(context, astValueNode->alignOf.type);
+					const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+					auto typeRefValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
+					
+					auto alignMaskMethod = GetStaticMethod(context, std::move(typeRefValue), context.getCString("__alignmask"), location);
+					auto alignMaskValue = CallValue(context, std::move(alignMaskMethod), {}, location);
+					
+					const auto sizeType = getBuiltInType(context, context.getCString("size_t"), {});
+					
+					auto alignMaskValueAddMethod = GetMethod(context, std::move(alignMaskValue), context.getCString("add"), location);
+					auto oneValue = SEM::Value::Constant(Constant::Integer(1), sizeType);
+					return CallValue(context, std::move(alignMaskValueAddMethod), makeHeapArray( std::move(oneValue) ), location);
 				}
 				case AST::Value::SIZEOF: {
 					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context, context.getCString("size_t"), {}));
