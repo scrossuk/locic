@@ -46,6 +46,12 @@ namespace locic {
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			switch (methodID) {
+				case METHOD_ALIGNMASK: {
+					return genAlignMask(function, type);
+				}
+				case METHOD_SIZEOF: {
+					return genSizeOf(function, type);
+				}
 				case METHOD_MOVETO: {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
