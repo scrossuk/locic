@@ -1,0 +1,14 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+template <typename T: sized_type>
+size_t getTypeSize() {
+	return sizeof(T);
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"getTypeSize<int>() = %llu", getTypeSize<int>().cast<ulonglong_t>());
+	return 0;
+}
+
