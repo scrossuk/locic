@@ -45,10 +45,6 @@ namespace locic {
 				} localVar;
 				
 				struct {
-					const Type* targetType;
-				} sizeOf;
-				
-				struct {
 					const TypeInstance* typeInstance;
 				} unionDataOffset;
 				
@@ -168,12 +164,6 @@ namespace locic {
 			assert(type->isRef() && type->isBuiltInReference());
 			Value value(LOCALVAR, type, ExitStates::Normal());
 			value.impl_->union_.localVar.var = &var;
-			return value;
-		}
-		
-		Value Value::SizeOf(const Type* const targetType, const Type* const sizeType) {
-			Value value(SIZEOF, sizeType, ExitStates::Normal());
-			value.impl_->union_.sizeOf.targetType = targetType;
 			return value;
 		}
 		
@@ -488,15 +478,6 @@ namespace locic {
 		const Var& Value::localVar() const {
 			assert(isLocalVarRef());
 			return *(impl_->union_.localVar.var);
-		}
-		
-		bool Value::isSizeOf() const {
-			return kind() == SIZEOF;
-		}
-		
-		const Type* Value::sizeOfType() const {
-			assert(isSizeOf());
-			return impl_->union_.sizeOf.targetType;
 		}
 		
 		bool Value::isUnionDataOffset() const {
@@ -853,9 +834,6 @@ namespace locic {
 				case Value::LOCALVAR:
 					hasher.add(&(localVar()));
 					break;
-				case Value::SIZEOF:
-					hasher.add(sizeOfType());
-					break;
 				case Value::UNIONDATAOFFSET:
 					hasher.add(unionDataOffsetTypeInstance());
 					break;
@@ -992,8 +970,6 @@ namespace locic {
 					return predicate() == value.predicate();
 				case Value::LOCALVAR:
 					return &(localVar()) == &(value.localVar());
-				case Value::SIZEOF:
-					return sizeOfType() == value.sizeOfType();
 				case Value::UNIONDATAOFFSET:
 					return unionDataOffsetTypeInstance() == value.unionDataOffsetTypeInstance();
 				case Value::MEMBEROFFSET:
@@ -1197,8 +1173,6 @@ namespace locic {
 					return makeString("Predicate(%s)", predicate().toString().c_str());
 				case LOCALVAR:
 					return makeString("LocalVar(%s)", localVar().toString().c_str());
-				case SIZEOF:
-					return makeString("SizeOf(type: %s)", sizeOfType()->toString().c_str());
 				case UNIONDATAOFFSET:
 					return makeString("UnionDataOffset(%s)", unionDataOffsetTypeInstance()->name().toString().c_str());
 				case MEMBEROFFSET:

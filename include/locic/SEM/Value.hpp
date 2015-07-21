@@ -43,7 +43,6 @@ namespace locic {
 					ALIAS,
 					PREDICATE,
 					LOCALVAR,
-					SIZEOF,
 					UNIONDATAOFFSET,
 					MEMBEROFFSET,
 					REINTERPRET,
@@ -131,13 +130,6 @@ namespace locic {
 				 * A reference to a local variable.
 				 */
 				static Value LocalVar(const Var& var, const Type* type);
-				
-				/**
-				 * \brief Size Of
-				 * 
-				 * The size of the given type.
-				 */
-				static Value SizeOf(const Type* targetType, const Type* sizeType);
 				
 				/**
 				 * \brief Union data offset
@@ -389,9 +381,6 @@ namespace locic {
 				
 				bool isLocalVarRef() const;
 				const Var& localVar() const;
-				
-				bool isSizeOf() const;
-				const Type* sizeOfType() const;
 				
 				bool isUnionDataOffset() const;
 				const TypeInstance* unionDataOffsetTypeInstance() const;

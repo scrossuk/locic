@@ -141,10 +141,6 @@ namespace locic {
 					return genMoveLoad(function, refValue, value.type());
 				}
 				
-				case SEM::Value::SIZEOF: {
-					return genSizeOf(function, value.sizeOfType());
-				}
-				
 				case SEM::Value::UNIONDATAOFFSET: {
 					// Offset of union datatype data is equivalent to its
 					// alignment size.
