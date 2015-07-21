@@ -89,8 +89,8 @@ namespace locic {
 			if (!typeInstance.isPrimitive()) {
 				(void) genMoveFunctionDef(module, &typeInstance);
 				(void) genDestructorFunctionDef(module, typeInstance);
-				(void) genAlignMaskFunction(module, &typeInstance);
-				(void) genSizeOfFunction(module, &typeInstance);
+				(void) genAlignMaskFunctionDef(module, &typeInstance);
+				(void) genSizeOfFunctionDef(module, &typeInstance);
 				(void) genSetDeadDefaultFunctionDef(module, &typeInstance);
 				(void) genIsLiveDefaultFunctionDef(module, &typeInstance);
 				

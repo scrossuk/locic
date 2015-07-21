@@ -48,24 +48,27 @@ namespace locic {
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
-		llvm::Function* genAlignMaskFunction(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto mangledName = mangleModuleScope(module, typeInstance->moduleScope()) +
-				mangleMethodName(module, typeInstance, module.getCString("__alignmask"));
-			const auto iterator = module.getFunctionMap().find(mangledName);
-			
-			if (iterator != module.getFunctionMap().end()) {
-				return iterator->second;
-			}
-			
-			const auto argInfo = alignMaskArgInfo(module, typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, getTypeInstanceLinkage(typeInstance), mangledName);
-			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
-			
+		llvm::Function* genAlignMaskFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
+			const auto semFunction = typeInstance->functions().at(module.getCString("__alignmask")).get();
+			return genFunctionDecl(module, typeInstance, semFunction);
+		}
+		
+		llvm::Function* genAlignMaskFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
 			assert(!typeInstance->isInterface());
 			
-			// For class declarations, the alignof() function
+			const auto semFunction = typeInstance->functions().at(module.getCString("__alignmask")).get();
+			const auto llvmFunction = genFunctionDecl(module, typeInstance, semFunction);
+			
+			// For class declarations, the __alignmask function
 			// will be implemented in another module.
-			if (typeInstance->isClassDecl()) return llvmFunction;
+			if (typeInstance->isClassDecl()) {
+				return llvmFunction;
+			}
+			
+			if (semFunction->isDefinition()) {
+				// Custom method; generated in genFunctionDef().
+				return llvmFunction;
+			}
 			
 			// Always inline this function.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
@@ -75,6 +78,7 @@ namespace locic {
 				return llvmFunction;
 			}
 			
+			const auto argInfo = alignMaskArgInfo(module, typeInstance);
 			Function function(module, *llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
 			const auto zero = ConstantGenerator(module).getSizeTValue(0);
@@ -133,7 +137,7 @@ namespace locic {
 					}
 					
 					const auto callName = makeString("alignmask__%s", type->getObjectType()->name().last().c_str());
-					const auto alignMaskFunction = genAlignMaskFunction(module, type->getObjectType());
+					const auto alignMaskFunction = genAlignMaskFunctionDecl(module, type->getObjectType());
 					
 					const bool hasTemplate = !type->templateArguments().empty();
 					const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)) } : std::vector<llvm::Value*>{};
@@ -164,24 +168,27 @@ namespace locic {
 			return alignMaskValue;
 		}
 		
-		llvm::Function* genSizeOfFunction(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto mangledName = mangleModuleScope(module, typeInstance->moduleScope()) +
-				mangleMethodName(module, typeInstance, module.getCString("__sizeof"));
-			const auto iterator = module.getFunctionMap().find(mangledName);
-			
-			if (iterator != module.getFunctionMap().end()) {
-				return iterator->second;
-			}
-			
-			const auto argInfo = sizeOfArgInfo(module, typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, getTypeInstanceLinkage(typeInstance), mangledName);
-			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
-			
+		llvm::Function* genSizeOfFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
+			const auto semFunction = typeInstance->functions().at(module.getCString("__sizeof")).get();
+			return genFunctionDecl(module, typeInstance, semFunction);
+		}
+		
+		llvm::Function* genSizeOfFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
 			assert(!typeInstance->isInterface());
+			
+			const auto semFunction = typeInstance->functions().at(module.getCString("__sizeof")).get();
+			const auto llvmFunction = genFunctionDecl(module, typeInstance, semFunction);
 			
 			// For class declarations, the sizeof() function
 			// will be implemented in another module.
-			if (typeInstance->isClassDecl()) return llvmFunction;
+			if (typeInstance->isClassDecl()) {
+				return llvmFunction;
+			}
+			
+			if (semFunction->isDefinition()) {
+				// Custom method; generated in genFunctionDef().
+				return llvmFunction;
+			}
 			
 			// Always inline this function.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
@@ -191,6 +198,8 @@ namespace locic {
 				createPrimitiveSizeOf(module, typeInstance, *llvmFunction);
 				return llvmFunction;
 			}
+			
+			const auto argInfo = sizeOfArgInfo(module, typeInstance);
 			
 			// Since the member variables are known, generate
 			// the contents of the sizeof() function to sum
@@ -284,7 +293,7 @@ namespace locic {
 					}
 					
 					const auto callName = makeString("sizeof__%s", type->getObjectType()->name().last().c_str());
-					const auto sizeOfFunction = genSizeOfFunction(module, type->getObjectType());
+					const auto sizeOfFunction = genSizeOfFunctionDecl(module, type->getObjectType());
 					
 					const bool hasTemplate = !type->templateArguments().empty();
 					const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)) } : std::vector<llvm::Value*>{};
