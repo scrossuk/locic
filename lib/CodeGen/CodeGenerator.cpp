@@ -67,6 +67,12 @@ namespace locic {
 				return;
 			}
 			
+			if (typeInstance.isOpaqueStruct()) {
+				// Opaque structs don't have any methods.
+				assert(typeInstance.functions().empty());
+				return;
+			}
+			
 			const auto& functions = typeInstance.functions();
 			
 			for (const auto& functionPair: functions) {
