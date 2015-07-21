@@ -315,7 +315,12 @@ namespace locic {
 					return CallValue(context, std::move(alignMaskValueAddMethod), makeHeapArray( std::move(oneValue) ), location);
 				}
 				case AST::Value::SIZEOF: {
-					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context, context.getCString("size_t"), {}));
+					const auto type = ConvertType(context, astValueNode->sizeOf.type);
+					const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+					auto typeRefValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
+					
+					auto sizeOfMethod = GetStaticMethod(context, std::move(typeRefValue), context.getCString("__sizeof"), location);
+					return CallValue(context, std::move(sizeOfMethod), {}, location);
 				}
 				case AST::Value::UNARYOP: {
 					const auto unaryOp = astValueNode->unaryOp.kind;
