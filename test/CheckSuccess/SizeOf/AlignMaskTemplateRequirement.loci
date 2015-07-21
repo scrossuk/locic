@@ -1,7 +1,7 @@
 class TestClass() { }
 
 interface HasAlignMask {
-	static size_t __alignmask() const noexcept;
+	static size_t __alignmask() noexcept;
 }
 
 template <typename T : HasAlignMask>
