@@ -2,4 +2,5 @@
 
 test_check_error(FinalLvalAssign)
 test_check_error(FinalLvalMove)
+test_check_error(MoveNonMovableTemplateType)
 
