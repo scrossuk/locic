@@ -132,6 +132,7 @@ import                  { return IMPORT; }
 export                  { return EXPORT; }
 
 move                    { return MOVE; }
+alignof                 { return ALIGNOF; }
 sizeof                  { return SIZEOF; }
 
 const_cast              { return CONST_CAST; }

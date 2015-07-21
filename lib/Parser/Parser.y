@@ -268,6 +268,7 @@ const T& GETSYM(T* value) {
 %token SCOPE
 %token NOEXCEPT
 
+%token ALIGNOF
 %token SIZEOF
 %token TYPEOF
 %token TYPEID
