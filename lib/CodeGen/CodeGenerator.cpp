@@ -91,23 +91,25 @@ namespace locic {
 				(void) genFunctionDef(module, &typeInstance, function.get());
 			}
 			
-			// Only generate primitives as needed.
-			if (!typeInstance.isPrimitive()) {
-				(void) genMoveFunctionDef(module, &typeInstance);
-				(void) genDestructorFunctionDef(module, typeInstance);
-				(void) genAlignMaskFunctionDef(module, &typeInstance);
-				(void) genSizeOfFunctionDef(module, &typeInstance);
-				(void) genSetDeadDefaultFunctionDef(module, &typeInstance);
-				(void) genIsLiveDefaultFunctionDef(module, &typeInstance);
+			if (typeInstance.isPrimitive()) {
+				// Only generate primitives as needed.
+				return;
+			}
+			
+			(void) genMoveFunctionDef(module, &typeInstance);
+			(void) genDestructorFunctionDef(module, typeInstance);
+			(void) genAlignMaskFunctionDef(module, &typeInstance);
+			(void) genSizeOfFunctionDef(module, &typeInstance);
+			(void) genSetDeadDefaultFunctionDef(module, &typeInstance);
+			(void) genIsLiveDefaultFunctionDef(module, &typeInstance);
+			
+			if (!typeInstance.templateVariables().empty()) {
+				auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(&typeInstance));
+				(void) genTemplateIntermediateFunction(module, TemplatedObject::TypeInstance(&typeInstance), templateBuilder);
 				
-				if (!typeInstance.templateVariables().empty()) {
-					auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(&typeInstance));
-					(void) genTemplateIntermediateFunction(module, TemplatedObject::TypeInstance(&typeInstance), templateBuilder);
-					
-					// Update all instructions needing the bits required value
-					// with the correct value (now it is known).
-					templateBuilder.updateAllInstructions(module);
-				}
+				// Update all instructions needing the bits required value
+				// with the correct value (now it is known).
+				templateBuilder.updateAllInstructions(module);
 			}
 		}
 		
