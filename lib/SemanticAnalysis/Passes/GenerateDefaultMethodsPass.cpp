@@ -15,6 +15,11 @@ namespace locic {
 				return;
 			}
 			
+			if (typeInstance.isOpaqueStruct()) {
+				// Opaque structs don't have any methods.
+				return;
+			}
+			
 			// Add default __alignmask method.
 			const bool hasDefaultAlignMask = HasDefaultAlignMask(context, &typeInstance);
 			if (hasDefaultAlignMask) {
