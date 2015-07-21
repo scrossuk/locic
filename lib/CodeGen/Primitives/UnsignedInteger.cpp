@@ -120,6 +120,12 @@ namespace locic {
 						return builder.CreateZExtOrTrunc(operand, selfType);
 					}
 				}
+				case METHOD_ALIGNMASK: {
+					return genAlignMask(function, type);
+				}
+				case METHOD_SIZEOF: {
+					return genSizeOf(function, type);
+				}
 					
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST:
