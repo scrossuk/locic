@@ -1,1 +1,4 @@
-(TODO)
+Parser Error: Failed to parse file '(.*)/ConstStaticMethod\.loci' with 3 errors:
+Parser Error \(at SourceLocation\(filename = (.*)/ConstStaticMethod\.loci, range = \(line 3, column 24\) to \(line 3, column 29\)\)\): syntax error, unexpected CONST, expecting LCURLYBRACKET
+Parser Error \(at SourceLocation\(filename = (.*)/ConstStaticMethod\.loci, range = \(line 2, column 1\) to \(line 3, column 29\)\)\): Invalid struct, class, function or other\.
+Parser Error \(at SourceLocation\(filename = (.*)/ConstStaticMethod\.loci, range = \(line 3, column 24\) to \(line 3, column 31\)\)\): Invalid struct, class, function or other\.
