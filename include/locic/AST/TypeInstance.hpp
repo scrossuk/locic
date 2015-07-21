@@ -32,6 +32,7 @@ namespace locic {
 				PRIMITIVE,
 				ENUM,
 				STRUCT,
+				OPAQUE_STRUCT,
 				UNION,
 				CLASSDECL,
 				CLASSDEF,
@@ -58,6 +59,8 @@ namespace locic {
 				static TypeInstance* Enum(const String& name, const Node<StringList>& constructors);
 				
 				static TypeInstance* Struct(const String& name, const Node<TypeVarList>& variables);
+				
+				static TypeInstance* OpaqueStruct(const String& name);
 				
 				static TypeInstance* Union(const String& name, const Node<TypeVarList>& variables);
 				

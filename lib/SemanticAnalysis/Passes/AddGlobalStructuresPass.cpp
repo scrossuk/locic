@@ -28,6 +28,8 @@ namespace locic {
 					return SEM::TypeInstance::ENUM;
 				case AST::TypeInstance::STRUCT:
 					return SEM::TypeInstance::STRUCT;
+				case AST::TypeInstance::OPAQUE_STRUCT:
+					throw std::logic_error("TODO");
 				case AST::TypeInstance::UNION:
 					return SEM::TypeInstance::UNION;
 				case AST::TypeInstance::CLASSDECL:
