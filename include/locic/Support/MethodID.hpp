@@ -18,6 +18,8 @@ namespace locic {
 		METHOD_TRAILINGZEROES,
 		METHOD_IMPLICITCASTFROM,
 		METHOD_CASTFROM,
+		METHOD_ALIGNMASK,
+		METHOD_SIZEOF,
 		
 		// Unary methods.
 		METHOD_IMPLICITCAST,
@@ -134,6 +136,10 @@ namespace locic {
 					return "implicitcast_?";
 				case METHOD_CASTFROM:
 					return "cast_?";
+				case METHOD_ALIGNMASK:
+					return "__alignmask";
+				case METHOD_SIZEOF:
+					return "__sizeof";
 				
 				case METHOD_IMPLICITCAST:
 					return "implicitcast";

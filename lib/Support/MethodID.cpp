@@ -18,6 +18,8 @@ namespace locic {
 			case METHOD_TRAILINGZEROES:
 			case METHOD_IMPLICITCASTFROM:
 			case METHOD_CASTFROM:
+			case METHOD_ALIGNMASK:
+			case METHOD_SIZEOF:
 				return CONSTRUCTOR;
 			
 			case METHOD_IMPLICITCAST:
