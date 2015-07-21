@@ -273,7 +273,8 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Value* genSizeOfValue(Function& function, const SEM::Type* const type) {
+		llvm::Value* genSizeOfValue(Function& function, const SEM::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
 			auto& module = function.module();
