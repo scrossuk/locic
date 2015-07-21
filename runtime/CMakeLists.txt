@@ -36,6 +36,7 @@ set(RUNTIME_FILES
 	ref.loci
 	short_t.loci
 	size_t.loci
+	sized_type.loci
 	ssize_t.loci
 	staticinterfacemethod_t.loci
 	templatedfunction_ptr_t.loci
