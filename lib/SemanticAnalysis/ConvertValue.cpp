@@ -300,6 +300,9 @@ namespace locic {
 					
 					return createMemberVarRef(context, std::move(selfValue), *(variableIterator->second));
 				}
+				case AST::Value::ALIGNOF: {
+					throw std::logic_error("TODO");
+				}
 				case AST::Value::SIZEOF: {
 					return SEM::Value::SizeOf(ConvertType(context, astValueNode->sizeOf.type), getBuiltInType(context, context.getCString("size_t"), {}));
 				}

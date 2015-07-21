@@ -57,6 +57,7 @@ namespace locic {
 				SYMBOLREF,
 				TYPEREF,
 				MEMBERREF,
+				ALIGNOF,
 				SIZEOF,
 				UNARYOP,
 				BINARYOP,
@@ -93,6 +94,10 @@ namespace locic {
 			struct {
 				String name;
 			} memberRef;
+			
+			struct {
+				Node<Type> type;
+			} alignOf;
 			
 			struct {
 				Node<Type> type;
@@ -209,6 +214,12 @@ namespace locic {
 			static Value* MemberRef(const String& name) {
 				Value* value = new Value(MEMBERREF);
 				value->memberRef.name = name;
+				return value;
+			}
+			
+			static Value* AlignOf(const Node<Type>& type) {
+				Value* value = new Value(ALIGNOF);
+				value->alignOf.type = type;
 				return value;
 			}
 			
