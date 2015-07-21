@@ -55,11 +55,23 @@ namespace locic {
 				const MethodSetElement& checkFunctionElement, const MethodSetElement& requireFunctionElement) {
 			const auto satisfyTemplateVarMap = generateSatisfyTemplateVarMap(checkFunctionElement, requireFunctionElement);
 			
+			// Can't cast between static/non-static methods.
+			if (checkFunctionElement.isStatic() != requireFunctionElement.isStatic()) {
+				if (DEBUG_METHOD_SET_ELEMENT) {
+					printf("\nStatic-ness doesn't match for '%s'.\n    Source: %s\n    Require: %s\n\n",
+					       functionName.c_str(),
+					       checkFunctionElement.isStatic() ? "static" : "not static",
+					       requireFunctionElement.isStatic() ? "static" : "not static"
+					);
+				}
+				return false;
+			}
+			
 			const auto reducedConstPredicate = reducePredicate(context, checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap));
 			
 			// The method set's const predicate needs to imply the method's
 			// const predicate.
-			if (!checkConstPredicate.implies(reducedConstPredicate)) {
+			if (!checkFunctionElement.isStatic() && !checkConstPredicate.implies(reducedConstPredicate)) {
 				if (DEBUG_METHOD_SET_ELEMENT) {
 					printf("\nConst parent predicate implication failed for '%s'.\n    Parent: %s\n    Method: %s\n\n",
 					       functionName.c_str(),
@@ -109,18 +121,6 @@ namespace locic {
 					       functionName.c_str(),
 					       reducedNoexceptPredicate.toString().c_str(),
 					       requireFunctionElement.noexceptPredicate().toString().c_str()
-					);
-				}
-				return false;
-			}
-			
-			// Can't cast between static/non-static methods.
-			if (checkFunctionElement.isStatic() != requireFunctionElement.isStatic()) {
-				if (DEBUG_METHOD_SET_ELEMENT) {
-					printf("\nStatic-ness doesn't match for '%s'.\n    Source: %s\n    Require: %s\n\n",
-					       functionName.c_str(),
-					       checkFunctionElement.isStatic() ? "static" : "not static",
-					       requireFunctionElement.isStatic() ? "static" : "not static"
 					);
 				}
 				return false;
