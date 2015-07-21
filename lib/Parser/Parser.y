@@ -1984,6 +1984,10 @@ atomicValue:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::This()));
 	}
+	| ALIGNOF LROUNDBRACKET type RROUNDBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::AlignOf(GETSYM($3))));
+	}
 	| SIZEOF LROUNDBRACKET type RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::SizeOf(GETSYM($3))));
