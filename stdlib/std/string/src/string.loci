@@ -186,7 +186,7 @@ export std.string 0.1.0 {
 			return std::string.cstring(bytes.data());
 		}
 		
-		template <typename T>
+		template <typename T : sized_type>
 		class ptr_range (T* ptr) {
 			static create = default;
 			

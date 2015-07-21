@@ -7,6 +7,7 @@ import std.container 0.1.0 {
 		 * \brief Set.
 		 */
 		template <typename T>
+		require(T : sized_type)
 		class set {
 			static set<T> create();
 			
@@ -32,6 +33,7 @@ import std.container 0.1.0 {
 		}
 		
 		template <typename T, bool IsSetConst>
+		require(T : sized_type)
 		class set_range {
 			set_range<T, IsSetConst> implicit_copy() const noexcept;
 			
