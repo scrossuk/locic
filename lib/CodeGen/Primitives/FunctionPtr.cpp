@@ -8,6 +8,7 @@
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/SizeOf.hpp>
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {
@@ -98,6 +99,10 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_NULL:
 					return genFunctionPtrNullMethod(function, type);
+				case METHOD_ALIGNMASK:
+					return genAlignMask(function, type);
+				case METHOD_SIZEOF:
+					return genSizeOf(function, type);
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY:
 					return genFunctionPtrCopyMethod(function, std::move(args));
