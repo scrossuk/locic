@@ -91,6 +91,14 @@ namespace locic {
 		MethodID(const MethodIDEnum value)
 		: value_(value) { }
 		
+		bool operator==(const MethodIDEnum other) const {
+			return value_ == other;
+		}
+		
+		bool operator!=(const MethodIDEnum other) const {
+			return value_ != other;
+		}
+		
 		bool operator==(const MethodID& other) const {
 			return value_ == other.value_;
 		}
