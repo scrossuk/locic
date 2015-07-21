@@ -1,0 +1,8 @@
+# Sizeof tests.
+
+test_check_success(AlignMaskTemplateRequirement)
+test_check_success(AlignOfMovableTemplateType)
+test_check_success(AlignOfPrimitives)
+test_check_success(SizeOfMovableTemplateType)
+test_check_success(SizeOfPrimitives)
+test_check_success(SizeOfTemplateRequirement)

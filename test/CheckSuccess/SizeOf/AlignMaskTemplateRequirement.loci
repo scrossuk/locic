@@ -1,0 +1,15 @@
+class TestClass() { }
+
+interface HasAlignMask {
+	static size_t __alignmask() const noexcept;
+}
+
+template <typename T : HasAlignMask>
+size_t getAlignOf() {
+	return alignof(T);
+}
+
+template <typename T : HasAlignMask>
+size_t getAlignMask() {
+	return T.__alignmask();
+}
