@@ -1,0 +1,4 @@
+template <typename T>
+size_t getTypeSize() {
+	return sizeof(T);
+}

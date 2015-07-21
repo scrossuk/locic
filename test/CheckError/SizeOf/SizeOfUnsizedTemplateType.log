@@ -1,0 +1,1 @@
+Cannot find static method '__sizeof' for type 'TemplateVarType\(templateVar: TemplateVar\(name = ::getTypeSize::T, index = 0\)\)' at position SourceLocation\(filename = (.*)/SizeOfUnsizedTemplateType\.loci, range = \(line 3, column 9\) to \(line 3, column 18\)\)\.
