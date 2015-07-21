@@ -34,6 +34,19 @@ namespace locic {
 						const Node<RequireSpecifier>& noexceptSpecifier,
 						const Node<RequireSpecifier>& requireSpecifier);
 				
+				static Function* StaticDecl(const Node<Type>& returnType,
+				                            const Node<Name>& name,
+				                            const Node<TypeVarList>& parameters,
+				                            const Node<RequireSpecifier>& noexceptSpecifier,
+				                            const Node<RequireSpecifier>& requireSpecifier);
+				
+				static Function* StaticDef(const Node<Type>& returnType,
+				                           const Node<Name>& name,
+				                           const Node<TypeVarList>& parameters,
+				                           const Node<Scope>& scope,
+				                           const Node<RequireSpecifier>& noexceptSpecifier,
+				                           const Node<RequireSpecifier>& requireSpecifier);
+				
 				static Function* DefaultStaticMethodDef(const Node<Name>& name, const Node<RequireSpecifier>& requireSpecifier);
 				
 				static Function* DefaultMethodDef(const Node<Name>& name, const Node<RequireSpecifier>& requireSpecifier);

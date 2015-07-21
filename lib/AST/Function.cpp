@@ -55,6 +55,42 @@ namespace locic {
 			return function;
 		}
 		
+		Function* Function::StaticDecl(const Node<Type>& returnType,
+		                               const Node<Name>& name,
+		                               const Node<TypeVarList>& parameters,
+		                               const Node<RequireSpecifier>& noexceptSpecifier,
+		                               const Node<RequireSpecifier>& requireSpecifier) {
+			Function* function = new Function(name);
+			function->isDefinition_ = false;
+			function->isDefaultDefinition_ = false;
+			function->isVarArg_ = false;
+			function->isStatic_ = true;
+			function->returnType_ = returnType;
+			function->parameters_ = parameters;
+			function->noexceptSpecifier_ = noexceptSpecifier;
+			function->requireSpecifier_ = requireSpecifier;
+			return function;
+		}
+		
+		Function* Function::StaticDef(const Node<Type>& returnType,
+		                              const Node<Name>& name,
+		                              const Node<TypeVarList>& parameters,
+		                              const Node<Scope>& scope,
+		                              const Node<RequireSpecifier>& noexceptSpecifier,
+		                              const Node<RequireSpecifier>& requireSpecifier) {
+			Function* function = new Function(name);
+			function->isDefinition_ = true;
+			function->isDefaultDefinition_ = false;
+			function->isVarArg_ = false;
+			function->isStatic_ = true;
+			function->returnType_ = returnType;
+			function->parameters_ = parameters;
+			function->scope_ = scope;
+			function->noexceptSpecifier_ = noexceptSpecifier;
+			function->requireSpecifier_ = requireSpecifier;
+			return function;
+		}
+		
 		Function* Function::DefaultStaticMethodDef(const Node<Name>& name,
 				const Node<RequireSpecifier>& requireSpecifier) {
 			Function* function = new Function(name);
