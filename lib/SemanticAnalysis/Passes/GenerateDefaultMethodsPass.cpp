@@ -15,6 +15,20 @@ namespace locic {
 				return;
 			}
 			
+			// Add default __alignmask method.
+			const bool hasDefaultAlignMask = HasDefaultAlignMask(context, &typeInstance);
+			if (hasDefaultAlignMask) {
+				auto methodDecl = CreateDefaultAlignMaskDecl(context, &typeInstance, typeInstance.name() + context.getCString("__alignmask"));
+				typeInstance.functions().insert(std::make_pair(context.getCString("__alignmask"), std::move(methodDecl)));
+			}
+			
+			// Add default __sizeof method.
+			const bool hasDefaultSizeOf = HasDefaultSizeOf(context, &typeInstance);
+			if (hasDefaultSizeOf) {
+				auto methodDecl = CreateDefaultSizeOfDecl(context, &typeInstance, typeInstance.name() + context.getCString("__sizeof"));
+				typeInstance.functions().insert(std::make_pair(context.getCString("__sizeof"), std::move(methodDecl)));
+			}
+			
 			// Add default __moveto method.
 			const bool hasDefaultMove = HasDefaultMove(context, &typeInstance);
 			if (hasDefaultMove) {
