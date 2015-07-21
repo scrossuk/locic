@@ -1,0 +1,5 @@
+struct OpaqueStruct;
+
+OpaqueStruct& derefPointer(OpaqueStruct* value) {
+	return *value;
+}

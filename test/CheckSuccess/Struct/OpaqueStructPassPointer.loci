@@ -1,0 +1,5 @@
+struct OpaqueStruct;
+
+OpaqueStruct* pass(OpaqueStruct* value) {
+	return value;
+}
