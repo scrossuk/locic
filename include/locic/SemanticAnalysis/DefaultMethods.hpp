@@ -49,6 +49,10 @@ namespace locic {
 		
 		bool HasDefaultConstructor(Context& context, SEM::TypeInstance* typeInstance);
 		
+		bool HasDefaultAlignMask(Context& context, SEM::TypeInstance* typeInstance);
+		
+		bool HasDefaultSizeOf(Context& context, SEM::TypeInstance* typeInstance);
+		
 		bool HasDefaultMove(Context& context, SEM::TypeInstance* typeInstance);
 		
 		bool HasDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance);

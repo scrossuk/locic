@@ -486,6 +486,26 @@ namespace locic {
 				typeInstance->isUnion();
 		}
 		
+		bool HasDefaultAlignMask(Context& context, SEM::TypeInstance* const typeInstance) {
+			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
+				return false;
+			}
+			
+			// There's only a default method if the user
+			// hasn't specified a custom method.
+			return typeInstance->functions().find(context.getCString("__alignmask")) == typeInstance->functions().end();
+		}
+		
+		bool HasDefaultSizeOf(Context& context, SEM::TypeInstance* const typeInstance) {
+			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
+				return false;
+			}
+			
+			// There's only a default method if the user
+			// hasn't specified a custom method.
+			return typeInstance->functions().find(context.getCString("__sizeof")) == typeInstance->functions().end();
+		}
+		
 		bool HasDefaultMove(Context& context, SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
