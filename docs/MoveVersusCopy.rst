@@ -77,6 +77,8 @@ Here’s an example of "*copy* by choice":
 
 Here the programmer of the class has decided to include a *copy* method, which makes it possible to create a *copy* of the Resource instance. This example therefore shows the creation of two instances.
 
+.. _implicit_copy_methods:
+
 Implicit copy
 -------------
 

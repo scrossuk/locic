@@ -59,6 +59,8 @@ The organisation is somewhat different to many languages, and member variables a
 
 Another detail is that instance member variables are referred to using the @ symbol, which provides a clean alternative to the various C++ conventions for naming such variables (for example: 'mValue' or 'value\_').
 
+.. _class_constructors:
+
 Constructors
 ------------
 

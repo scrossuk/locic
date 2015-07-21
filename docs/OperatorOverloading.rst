@@ -41,6 +41,8 @@ Loci supports operator overloading as a useful way to provide a clean syntax for
 
 Operator Overloading is purely syntactic sugar for method calls, so there are no relevant implementation considerations.
 
+.. _compare_methods:
+
 Compare Method
 --------------
 

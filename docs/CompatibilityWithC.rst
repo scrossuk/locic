@@ -3,13 +3,14 @@ Compatibility with C
 
 Loci is highly related and compatible with C. It therefore supports:
 
-* Primitive types (e.g. 'int').
+* :doc:`Primitive types <PrimitiveObjects>` (e.g. 'int').
 * Pointer types.
-* Struct types.
-* Enum types.
-* Union types.
+* :ref:`Struct types <structs>`.
+* :ref:`Enum types <enums>`.
+* :ref:`Union types <unions>`.
 * Function pointer types.
-* C's calling convention, so it can call and be called from C functions.
+* :ref:`C's calling convention, so it can call and be called from C functions <calling_to_from_c>`.
+* :ref:`C Strings <c_strings>`.
 
 Syntax
 ------
@@ -151,6 +152,40 @@ This facilities code like the following:
 		Example(int x, _) = value;
 	}
 
+.. _structs:
+
+Structs
+-------
+
+As shown above, Loci supports C's struct types. For example:
+
+.. code-block:: c
+
+	struct Point {
+		int x;
+		int y;
+	}
+
+Like everything else, structs are actually just objects, the practical impact being that structs have:
+
+* A default :ref:`constructor <class_constructors>`: ``auto point = Point(1, 2);``
+* A default :ref:`implicit copy method <implicit_copy_methods>`: ``auto point = other_point;``
+* A default :ref:`compare method <compare_methods>`: ``if (point == other_point) { ... }``
+* Other obvious requirements, such as having alignment/size.
+
+Opaque Structs
+~~~~~~~~~~~~~~
+
+Opaque structs can be defined similar to C:
+
+.. code-block:: c
+
+	struct OpaqueStruct;
+
+Unlike normal structs opaque structs don't have any methods and can only be passed around by pointer/reference. This is typically useful as a well-typed alternative to ``void*`` when handling an externally created and managed struct.
+
+.. _enums:
+
 Enums
 -----
 
@@ -172,6 +207,8 @@ This actually effectively builds an object type (in Loci all values are essentia
 		return Color.RED();
 		// Or: Color::Red() if you prefer that.
 	}
+
+.. _unions:
 
 Unions
 ------
@@ -196,6 +233,8 @@ In this case there is a default ('create') constructor that zero-initialises the
 	}
 
 This feature exists for compatibility with C and it is **strongly** advised in the vast majority of cases to use :doc:`Algebraic Datatypes <AlgebraicDatatypes>` as a safer alternative.
+
+.. _calling_to_from_c:
 
 Calling to/from C
 -----------------
@@ -286,6 +325,8 @@ The C code then must allocate the necessary space for the class and pass a point
 An alignment mask is just the alignment (which is always a power of 2) minus one, which is useful because calculating the maximum alignment of a set of fields (e.g. when computing the alignment of a class) just involves a bitwise OR of the alignment masks and then adding one.
 
 It's worth noting at this point that the mangling and method names are not yet fully standardised but that it is expected this will occur soon (i.e. version 1.3).
+
+.. _c_strings:
 
 C Strings
 ---------
