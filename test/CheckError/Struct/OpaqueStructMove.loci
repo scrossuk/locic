@@ -1,0 +1,5 @@
+struct OpaqueStruct;
+
+void f(OpaqueStruct* ptr) {
+	unused_result move *ptr;
+}

@@ -1,0 +1,1 @@
+Cannot find static method '__sizeof' for type 'OpaqueStruct' at position SourceLocation\(filename = (.*)/OpaqueStructSizeOf\.loci, range = \(line 4, column 9\) to \(line 4, column 29\)\)\.

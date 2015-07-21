@@ -1,0 +1,1 @@
+Return type 'OpaqueStruct' of function '::f' is not movable, at position SourceLocation\(filename = (.*)/OpaqueStructFunctionReturnType\.loci, range = \(line 3, column 8\) to \(line 3, column 25\)\)\.

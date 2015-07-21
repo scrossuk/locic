@@ -1,0 +1,5 @@
+struct OpaqueStruct;
+
+size_t f() {
+	return alignof(OpaqueStruct);
+}

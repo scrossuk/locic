@@ -1,0 +1,1 @@
+Template arguments do not satisfy require predicate 'satisfies\(type: OpaqueStruct, requirement: movable\)' of method 'move' at position SourceLocation\(filename = (.*)/OpaqueStructMove\.loci, range = \(line 4, column 16\) to \(line 4, column 25\)\)\.

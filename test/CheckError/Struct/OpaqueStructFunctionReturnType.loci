@@ -1,0 +1,3 @@
+struct OpaqueStruct;
+
+import OpaqueStruct f();
