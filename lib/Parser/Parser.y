@@ -1048,6 +1048,10 @@ nonTemplatedTypeInstance:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Enum($2, GETSYM($4))));
 	}
+	| STRUCT NAME SEMICOLON
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::OpaqueStruct($2)));
+	}
 	| STRUCT NAME LCURLYBRACKET cTypeVarList RCURLYBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::TypeInstance::Struct($2, GETSYM($4))));
