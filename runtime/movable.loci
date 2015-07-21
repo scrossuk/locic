@@ -1,4 +1,6 @@
 interface movable {
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
 	void __move_to(void* ptr, size_t position) noexcept;
 }
 
