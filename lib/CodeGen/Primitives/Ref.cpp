@@ -191,6 +191,32 @@ namespace locic {
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			switch (methodID) {
+				case METHOD_ALIGNMASK: {
+					return genRefPrimitiveMethodForVirtualCases(function, type,
+						[&](llvm::Type* const llvmType) {
+							if (llvmType->isPointerTy()) {
+								const auto nonVirtualAlign = module.abi().typeAlign(llvm_abi::Type::Pointer(module.abiContext()));
+								return ConstantGenerator(module).getSizeTValue(nonVirtualAlign - 1);
+							} else {
+								const auto virtualAlign = module.abi().typeAlign(interfaceStructType(module).first);
+								return ConstantGenerator(module).getSizeTValue(virtualAlign - 1);
+							}
+						}
+					);
+				}
+				case METHOD_SIZEOF: {
+					return genRefPrimitiveMethodForVirtualCases(function, type,
+						[&](llvm::Type* const llvmType) {
+							if (llvmType->isPointerTy()) {
+								const auto nonVirtualSize = module.abi().typeSize(llvm_abi::Type::Pointer(module.abiContext()));
+								return ConstantGenerator(module).getSizeTValue(nonVirtualSize);
+							} else {
+								const auto virtualSize = module.abi().typeSize(interfaceStructType(module).first);
+								return ConstantGenerator(module).getSizeTValue(virtualSize);
+							}
+						}
+					);
+				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY: {
 					// If the virtualness of the reference is known, we
