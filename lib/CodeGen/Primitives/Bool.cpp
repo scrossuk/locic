@@ -51,6 +51,12 @@ namespace locic {
 					assert(args.empty());
 					return ConstantGenerator(module).getI1(false);
 				}
+				case METHOD_ALIGNMASK: {
+					return genAlignMask(function, type);
+				}
+				case METHOD_SIZEOF: {
+					return genSizeOf(function, type);
+				}
 				case METHOD_SETDEAD: {
 					// Do nothing.
 					(void) args[0].resolveWithoutBind(function);
