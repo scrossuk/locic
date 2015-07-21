@@ -24,7 +24,7 @@ namespace locic {
 			const auto& functions = typeInstance->functions();
 			
 			for (const auto& functionPair: functions) {
-				if (functionPair.first.starts_with("__")) {
+				if (functionPair.first.starts_with("__") && functionPair.first != "__alignmask" && functionPair.first != "__sizeof") {
 					// Don't add 'special' methods to vtable.
 					continue;
 				}
