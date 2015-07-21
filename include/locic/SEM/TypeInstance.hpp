@@ -51,6 +51,7 @@ namespace locic {
 					PRIMITIVE,
 					ENUM,
 					STRUCT,
+					OPAQUE_STRUCT,
 					UNION,
 					CLASSDECL,
 					CLASSDEF,
@@ -103,6 +104,8 @@ namespace locic {
 				bool isEnum() const;
 				
 				bool isStruct() const;
+				
+				bool isOpaqueStruct() const;
 				
 				bool isUnion() const;
 				

@@ -68,6 +68,10 @@ namespace locic {
 			return kind() == STRUCT;
 		}
 		
+		bool TypeInstance::isOpaqueStruct() const {
+			return kind() == OPAQUE_STRUCT;
+		}
+		
 		bool TypeInstance::isUnion() const {
 			return kind() == UNION;
 		}
@@ -244,6 +248,10 @@ namespace locic {
 					return makeString("Struct(name: %s)",
 									  name().toString().c_str());
 									  
+				case OPAQUE_STRUCT:
+					return makeString("OpaqueStruct(name: %s)",
+									  name().toString().c_str());
+				
 				case UNION:
 					return makeString("Union(name: %s)",
 									  name().toString().c_str());

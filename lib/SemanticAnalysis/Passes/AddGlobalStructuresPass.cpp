@@ -29,7 +29,7 @@ namespace locic {
 				case AST::TypeInstance::STRUCT:
 					return SEM::TypeInstance::STRUCT;
 				case AST::TypeInstance::OPAQUE_STRUCT:
-					throw std::logic_error("TODO");
+					return SEM::TypeInstance::OPAQUE_STRUCT;
 				case AST::TypeInstance::UNION:
 					return SEM::TypeInstance::UNION;
 				case AST::TypeInstance::CLASSDECL:
