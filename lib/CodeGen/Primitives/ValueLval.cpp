@@ -12,6 +12,7 @@
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 #include <locic/Support/MethodID.hpp>
@@ -122,6 +123,10 @@ namespace locic {
 					return genValueLvalEmptyMethod(functionGenerator, targetType, hintResultValue);
 				case METHOD_CREATE:
 					return genValueLvalCreateMethod(functionGenerator, targetType, std::move(args), hintResultValue);
+				case METHOD_ALIGNMASK:
+					return genAlignMask(functionGenerator, type);
+				case METHOD_SIZEOF:
+					return genSizeOf(functionGenerator, type);
 				case METHOD_SETDEAD:
 					return genValueLvalSetDeadMethod(functionGenerator, targetType, std::move(args));
 				case METHOD_MOVETO:
