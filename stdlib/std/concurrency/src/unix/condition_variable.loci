@@ -1,18 +1,3 @@
-import {
-	// Potentially not correct!
-	using pthread_cond_t = uint64_t;
-	
-	int pthread_cond_init(pthread_cond_t* cond, void* ptr) noexcept;
-	
-	int pthread_cond_destroy(pthread_cond_t* cond) noexcept;
-	
-	int pthread_cond_signal(pthread_cond_t* cond) noexcept;
-	
-	int pthread_cond_broadcast(pthread_cond_t* cond) noexcept;
-	
-	int pthread_cond_wait(pthread_cond_t* cond, pthread_mutex_t* mutex) noexcept;
-}
-
 export std.concurrency 0.1.0 {
 
 	namespace std {
@@ -25,31 +10,34 @@ export std.concurrency 0.1.0 {
 			
 			exception create_condition_failed(int result);
 			
-			class condition_variable(pthread_cond_t conditionObject) {
+			class condition_variable(pthread_cond_t condition_object) {
 				static create() {
-					pthread_cond_t conditionObject = 0u;
-					final int result = pthread_cond_init(&conditionObject, null);
+					pthread_cond_t condition_object = null;
+					const int result = condition_object.init(null);
 					if (result != 0) {
 						throw create_condition_failed(result);
 					}
-					
-					return @(conditionObject);
+					return @(move condition_object);
 				}
 				
 				~ {
-					unused_result pthread_cond_destroy(&@conditionObject);
+					const int result = @condition_object.destroy();
+					assert result == 0;
 				}
 				
 				void notify_one() noexcept {
-					unused_result pthread_cond_signal(&@conditionObject);
+					const int result = @condition_object.signal();
+					assert result == 0;
 				}
 				
 				void notify_all() noexcept {
-					unused_result pthread_cond_broadcast(&@conditionObject);
+					const int result = @condition_object.broadcast();
+					assert result == 0;
 				}
 				
 				void wait(mutex_locker& locker) {
-					unused_result pthread_cond_wait(&@conditionObject, locker.internal_mutex().__handle());
+					const int result = @condition_object.wait(locker.internal_mutex().__handle());
+					assert result == 0;
 				}
 			}
 			
