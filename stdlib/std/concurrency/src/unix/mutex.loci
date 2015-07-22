@@ -24,7 +24,7 @@ export std.concurrency 0.1.0 {
 					assert result == 0;
 				}
 				
-				pthread_mutex_t* __handle() noexcept {
+				pthread_mutex_t* get_pthread_mutex() noexcept {
 					return &@mutex_object;
 				}
 				

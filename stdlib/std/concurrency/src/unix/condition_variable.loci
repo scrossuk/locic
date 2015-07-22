@@ -36,7 +36,7 @@ export std.concurrency 0.1.0 {
 				}
 				
 				void wait(mutex_locker& locker) {
-					const int result = @condition_object.wait(locker.internal_mutex().__handle());
+					const int result = @condition_object.wait(locker.internal_mutex().get_pthread_mutex());
 					assert result == 0;
 				}
 			}
