@@ -1,0 +1,30 @@
+import {
+	
+	/**
+	 * \brief Pthread Thread
+	 * 
+	 * This class is implemented in C code and calls the usual pthread APIs;
+	 * the wrapper allows the alignment/size to be determined in C from the
+	 * pthread headers and then provided via the __alignmask() and
+	 * __sizeof() class methods.
+	 */
+	class pthread_t {
+		/**
+		 * \brief Create null pthread object.
+		 */
+		static pthread_t null() noexcept;
+		
+		/**
+		 * \brief Call pthread_create().
+		 */
+		int create(void* attr,
+		           (*)(void*)(void*) start_routine,
+		           void* arg) noexcept;
+		
+		/**
+		 * \brief Call pthread_join().
+		 */
+		int join(void** retval) noexcept;
+	}
+	
+}
