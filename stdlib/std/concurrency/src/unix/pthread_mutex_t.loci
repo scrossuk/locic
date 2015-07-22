@@ -1,0 +1,38 @@
+import {
+	
+	/**
+	 * \brief Pthread Mutex
+	 * 
+	 * This class is implemented in C code and calls the usual pthread APIs;
+	 * the wrapper allows the alignment/size to be determined in C from the
+	 * pthread headers and then provided via the __alignmask() and
+	 * __sizeof() class methods.
+	 */
+	class pthread_mutex_t {
+		/**
+		 * \brief Create null pthread mutex object.
+		 */
+		static pthread_mutex_t null() noexcept;
+		
+		/**
+		 * \brief Call pthread_mutex_init().
+		 */
+		int init(void* ptr) noexcept;
+		
+		/**
+		 * \brief Call pthread_mutex_destroy().
+		 */
+		int destroy() noexcept;
+		
+		/**
+		 * \brief Call pthread_mutex_lock().
+		 */
+		int lock() noexcept;
+		
+		/**
+		 * \brief Call pthread_mutex_unlock().
+		 */
+		int unlock() noexcept;
+	}
+	
+}
