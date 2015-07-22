@@ -5,6 +5,8 @@ loci_module(std.concurrency std_concurrency.bc ""
 	src/unix/mutex.loci
 	src/unix/pthread_cond_t.c
 	src/unix/pthread_cond_t.loci
+	src/unix/pthread_mutex_t.c
+	src/unix/pthread_mutex_t.loci
 	src/unix/thread.loci
 	${STD_CONTAINER_API_FILES}
 	${STD_EVENT_API_FILES}
