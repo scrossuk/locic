@@ -1,0 +1,43 @@
+import {
+	
+	/**
+	 * \brief Pthread Conditional Variable
+	 * 
+	 * This class is implemented in C code and calls the usual pthread APIs;
+	 * the wrapper allows the alignment/size to be determined in C from the
+	 * pthread headers and then provided via the __alignmask() and
+	 * __sizeof() class methods.
+	 */
+	class pthread_cond_t {
+		/**
+		 * \brief Create null pthread cond object.
+		 */
+		static pthread_cond_t null() noexcept;
+		
+		/**
+		 * \brief Call pthread_cond_init().
+		 */
+		int init(void* ptr) noexcept;
+		
+		/**
+		 * \brief Call pthread_cond_destroy().
+		 */
+		int destroy() noexcept;
+		
+		/**
+		 * \brief Call pthread_cond_signal().
+		 */
+		int signal() noexcept;
+		
+		/**
+		 * \brief Call pthread_cond_broadcast().
+		 */
+		int broadcast() noexcept;
+		
+		/**
+		 * \brief Call pthread_cond_wait().
+		 */
+		int wait(pthread_mutex_t* mutex) noexcept;
+	}
+	
+}
