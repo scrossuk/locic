@@ -43,15 +43,8 @@ namespace locic {
 		void ConvertTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
 			const auto semTypeInstance = context.scopeStack().back().typeInstance();
 			
-			bool createdMove = false;
-			const auto moveString = context.getCString("__moveto");
-			
 			for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
 				const auto methodName = CanonicalizeMethodName(astFunctionNode->name()->last());
-				
-				if (methodName == moveString) {
-					createdMove = true;
-				}
 				
 				auto& semChildFunction = semTypeInstance->functions().at(methodName);
 				
@@ -67,13 +60,6 @@ namespace locic {
 					CreateEnumConstructorMethod(context, semTypeInstance,
 						*(semTypeInstance->functions().at(canonicalMethodName)), enumValue++);
 				}
-			}
-			
-			// Generate default move for applicable types.
-			if ((semTypeInstance->isClassDef() || semTypeInstance->isException() || semTypeInstance->isStruct() ||
-					semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype() ||
-					semTypeInstance->isEnum() || semTypeInstance->isUnion()) && !createdMove) {
-				(void) CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at(moveString).get(), astTypeInstanceNode.location());
 			}
 			
 			// Generate default constructor for applicable types.
