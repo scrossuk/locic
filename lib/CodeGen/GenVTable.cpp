@@ -2,7 +2,6 @@
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
-#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>

@@ -9,13 +9,13 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -381,11 +381,15 @@ namespace locic {
 			return ArgInfo::Basic(module, typeInfoArrayType(module), argTypes).withNoMemoryAccess().withNoExcept();
 		}
 		
-		static llvm::GlobalValue::LinkageTypes getTemplatedObjectLinkage(TemplatedObject templatedObject) {
+		static llvm::GlobalValue::LinkageTypes
+		getTemplatedObjectLinkage(Module& module,
+		                          TemplatedObject templatedObject) {
+			auto& semFunctionGenerator = module.semFunctionGenerator();
 			if (templatedObject.isTypeInstance()) {
-				return getTypeInstanceLinkage(templatedObject.typeInstance());
+				return semFunctionGenerator.getTypeLinkage(*(templatedObject.typeInstance()));
 			} else {
-				return getFunctionLinkage(templatedObject.parentTypeInstance(), templatedObject.function());
+				return semFunctionGenerator.getLinkage(templatedObject.parentTypeInstance(),
+				                                       *(templatedObject.function()));
 			}
 		}
 		

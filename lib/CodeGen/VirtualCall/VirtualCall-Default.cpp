@@ -8,7 +8,6 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
@@ -17,6 +16,7 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -311,7 +311,10 @@ namespace locic {
 					function.selectBasicBlock(callMethodBasicBlock);
 					
 					const auto argInfo = getFunctionArgInfo(module, semMethod->type());
-					const auto llvmMethod = genFunctionDecl(module, typeInstance, semMethod);
+					
+					auto& semFunctionGenerator = module.semFunctionGenerator();
+					const auto llvmMethod = semFunctionGenerator.getCallableDecl(typeInstance,
+					                                                             *semMethod);
 					
 					const auto functionType = semMethod->type();
 					const auto returnType = functionType.returnType();

@@ -5,7 +5,6 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/FunctionTranslationStub.hpp>
-#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
@@ -14,6 +13,7 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -29,11 +29,14 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Function* genFunctionDeclRef(Module& module, const SEM::Type* parentType, SEM::Function* function) {
+		llvm::Function* genFunctionDeclRef(Module& module, const SEM::Type* const parentType, SEM::Function* function) {
+			auto& semFunctionGenerator = module.semFunctionGenerator();
 			if (parentType == nullptr) {
-				return genFunctionDecl(module, nullptr, function);
+				return semFunctionGenerator.getCallableDecl(nullptr,
+				                                            *function);
 			} else if (parentType->isObject()) {
-				return genFunctionDecl(module, parentType->getObjectType(), function);
+				return semFunctionGenerator.getCallableDecl(parentType->getObjectType(),
+				                                            *function);
 			} else {
 				llvm_unreachable("Unknown parent type in function ref.");
 			}
@@ -186,7 +189,11 @@ namespace locic {
 					// a virtual call to the actual call. Since the virtual call mechanism
 					// doesn't actually allow us to get a pointer to the function we want
 					// to call, we need to create the stub and refer to that instead.
-					const auto functionRefPtr = genTemplateFunctionStub(module, parentType->getTemplateVar(), functionName, functionType, function.getDebugLoc());
+					auto& semFunctionGenerator = module.semFunctionGenerator();
+					const auto functionRefPtr = semFunctionGenerator.genTemplateFunctionStub(parentType->getTemplateVar(),
+					                                                                         functionName,
+					                                                                         functionType,
+					                                                                         function.getDebugLoc());
 					callInfo.functionPtr = genTranslatedFunctionPointer(function, functionRefPtr, functionType, value.type()->asFunctionType());
 					
 					// The stub will extract the template variable's value for the

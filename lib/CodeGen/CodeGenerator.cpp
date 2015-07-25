@@ -17,7 +17,6 @@
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenTypeInstance.hpp>
@@ -28,6 +27,7 @@
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Optimisations.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
@@ -73,6 +73,8 @@ namespace locic {
 				return;
 			}
 			
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			
 			const auto& functions = typeInstance.functions();
 			
 			for (const auto& functionPair: functions) {
@@ -88,7 +90,8 @@ namespace locic {
 					continue;
 				}
 				
-				(void) genFunctionDef(module, &typeInstance, function.get());
+				(void) semFunctionGenerator.genDef(&typeInstance,
+				                                   *function);
 			}
 			
 			if (typeInstance.isPrimitive()) {
@@ -117,8 +120,9 @@ namespace locic {
 			for (const auto& itemPair: nameSpace.items()) {
 				const auto& item = itemPair.second;
 				if (item.isFunction()) {
-					const auto parent = nullptr;
-					(void) genFunctionDef(module, parent, &(item.function()));
+					auto& semFunctionGenerator = module.semFunctionGenerator();
+					(void) semFunctionGenerator.genDef(/*parent=*/nullptr,
+					                                   item.function());
 				} else if (item.isTypeInstance()) {
 					genTypeInstanceFunctions(module, item.typeInstance());
 				} else if (item.isNamespace()) {

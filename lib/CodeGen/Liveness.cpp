@@ -2,13 +2,13 @@
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -128,8 +128,10 @@ namespace locic {
 		}
 		
 		llvm::Function* genSetDeadFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto semFunction = typeInstance->functions().at(module.getCString("__setdead")).get();
-			return genFunctionDecl(module, typeInstance, semFunction);
+			const auto& function = typeInstance->functions().at(module.getCString("__setdead"));
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			return semFunctionGenerator.getCallableDecl(typeInstance,
+			                                            *function);
 		}
 		
 		llvm::Value* getLivenessByteOffset(Function& function, const SEM::TypeInstance& typeInstance, const LivenessIndicator livenessIndicator) {
@@ -301,8 +303,10 @@ namespace locic {
 		}
 		
 		llvm::Function* genIsLiveFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto semFunction = typeInstance->functions().at(module.getCString("__islive")).get();
-			return genFunctionDecl(module, typeInstance, semFunction);
+			const auto& function = typeInstance->functions().at(module.getCString("__islive"));
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			return semFunctionGenerator.getCallableDecl(typeInstance,
+			                                            *function);
 		}
 		
 		llvm::Function* genIsLiveDefaultFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {

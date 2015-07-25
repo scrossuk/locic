@@ -3,7 +3,6 @@
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Liveness.hpp>
@@ -13,6 +12,7 @@
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
+#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -238,8 +238,11 @@ namespace locic {
 			}
 			
 			// Use custom 'moveto' method if available.
-			const auto semFunction = typeInstance->functions().at(module.getCString("__moveto")).get();
-			const auto llvmFunction = genFunctionDecl(module, typeInstance, semFunction);
+			const auto& function = typeInstance->functions().at(module.getCString("__moveto"));
+			
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			const auto llvmFunction = semFunctionGenerator.getCallableDecl(typeInstance,
+			                                                               *function);
 			
 			const auto argInfo = moveArgInfo(module, typeInstance);
 			if (argInfo.hasTemplateGeneratorArgument()) {
@@ -318,7 +321,9 @@ namespace locic {
 			const auto semFunction = typeInstance.functions().at(module.getCString("__moveto")).get();
 			assert(!semFunction->isPrimitive());
 			
-			const auto llvmFunction = genUserFunctionDecl(module, &typeInstance, semFunction);
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			const auto llvmFunction = semFunctionGenerator.getUserDecl(&typeInstance,
+			                                                           *semFunction);
 			
 			// Always inline user move functions (they need to be inlined
 			// into the 'outer' generated __moveto method).

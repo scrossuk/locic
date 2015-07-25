@@ -6,13 +6,13 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
+#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -242,7 +242,7 @@ namespace locic {
 			}
 			
 			const auto argInfo = destructorArgInfo(module, typeInstance);
-			const auto linkage = getTypeInstanceLinkage(&typeInstance);
+			const auto linkage = module.semFunctionGenerator().getTypeLinkage(typeInstance);
 			
 			const auto mangledName = mangleModuleScope(module, typeInstance.moduleScope()) + mangleDestructorName(module, &typeInstance);
 			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, mangledName);
@@ -307,7 +307,9 @@ namespace locic {
 			const auto methodIterator = typeInstance.functions().find(module.getCString("__destructor"));
 			
 			if (methodIterator != typeInstance.functions().end()) {
-				const auto customDestructor = genFunctionDecl(module, &typeInstance, methodIterator->second.get());
+				auto& semFunctionGenerator = module.semFunctionGenerator();
+				const auto customDestructor = semFunctionGenerator.getCallableDecl(&typeInstance,
+				                                                                   *(methodIterator->second));
 				const auto args = argInfo.hasTemplateGeneratorArgument() ?
 							std::vector<llvm::Value*> { function.getTemplateGenerator(), contextValue } :
 							std::vector<llvm::Value*> { contextValue };

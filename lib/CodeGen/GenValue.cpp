@@ -13,7 +13,6 @@
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
-#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>

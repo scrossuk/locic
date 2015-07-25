@@ -2,7 +2,6 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenFunction.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
@@ -12,6 +11,7 @@
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -49,15 +49,19 @@ namespace locic {
 		}
 		
 		llvm::Function* genAlignMaskFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto semFunction = typeInstance->functions().at(module.getCString("__alignmask")).get();
-			return genFunctionDecl(module, typeInstance, semFunction);
+			const auto& function = typeInstance->functions().at(module.getCString("__alignmask"));
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			return semFunctionGenerator.getCallableDecl(typeInstance,
+			                                            *function);
 		}
 		
 		llvm::Function* genAlignMaskFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
 			assert(!typeInstance->isInterface());
 			
-			const auto semFunction = typeInstance->functions().at(module.getCString("__alignmask")).get();
-			const auto llvmFunction = genFunctionDecl(module, typeInstance, semFunction);
+			const auto& semFunction = *(typeInstance->functions().at(module.getCString("__alignmask")));
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			const auto llvmFunction = semFunctionGenerator.getCallableDecl(typeInstance,
+			                                                               semFunction);
 			
 			// For class declarations, the __alignmask function
 			// will be implemented in another module.
@@ -65,7 +69,7 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			if (semFunction->isDefinition()) {
+			if (semFunction.isDefinition()) {
 				// Custom method; generated in genFunctionDef().
 				return llvmFunction;
 			}
@@ -169,15 +173,19 @@ namespace locic {
 		}
 		
 		llvm::Function* genSizeOfFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto semFunction = typeInstance->functions().at(module.getCString("__sizeof")).get();
-			return genFunctionDecl(module, typeInstance, semFunction);
+			const auto& function = typeInstance->functions().at(module.getCString("__sizeof"));
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			return semFunctionGenerator.getCallableDecl(typeInstance,
+			                                            *function);
 		}
 		
 		llvm::Function* genSizeOfFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
 			assert(!typeInstance->isInterface());
 			
-			const auto semFunction = typeInstance->functions().at(module.getCString("__sizeof")).get();
-			const auto llvmFunction = genFunctionDecl(module, typeInstance, semFunction);
+			const auto& semFunction = *(typeInstance->functions().at(module.getCString("__sizeof")));
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			const auto llvmFunction = semFunctionGenerator.getCallableDecl(typeInstance,
+			                                                               semFunction);
 			
 			// For class declarations, the sizeof() function
 			// will be implemented in another module.
@@ -185,7 +193,7 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			if (semFunction->isDefinition()) {
+			if (semFunction.isDefinition()) {
 				// Custom method; generated in genFunctionDef().
 				return llvmFunction;
 			}
@@ -353,7 +361,11 @@ namespace locic {
 			
 			const auto mangledName = mangleMethodName(module, typeInstance, module.getCString("__memberoffset"));
 			const auto argInfo = memberOffsetArgInfo(module, typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, getTypeInstanceLinkage(typeInstance), mangledName);
+			
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			const auto llvmFunction = createLLVMFunction(module, argInfo,
+			                                             semFunctionGenerator.getTypeLinkage(*typeInstance),
+			                                             mangledName);
 			
 			module.memberOffsetFunctionMap().insert(std::make_pair(typeInstance, llvmFunction));
 			
