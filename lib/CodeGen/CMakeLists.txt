@@ -60,6 +60,7 @@ add_library(locic-codegen
 	Primitives/Void.cpp
 	Routines.cpp
 	ScopeExitActions.cpp
+	SEMCodeEmitter.cpp
 	SizeOf.cpp
 	Support.cpp
 	Template.cpp
