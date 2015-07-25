@@ -24,6 +24,7 @@ add_library(locic-codegen
 	Interface.cpp
 	InternalContext.cpp
 	Interpreter.cpp
+	IREmitter.cpp
 	Linker.cpp
 	Liveness.cpp
 	LivenessIndicator.cpp
