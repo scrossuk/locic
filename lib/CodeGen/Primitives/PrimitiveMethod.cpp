@@ -234,9 +234,6 @@ namespace locic {
 			const auto functionType = methodInfo.functionType;
 			const auto& templateArgs = methodInfo.templateArgs;
 			
-			ConstantGenerator constGen(module);
-			TypeGenerator typeGen(module);
-			
 			switch (type->primitiveID()) {
 				case PrimitiveVoid:
 					return genVoidPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
