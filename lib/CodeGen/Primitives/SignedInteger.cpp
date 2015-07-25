@@ -66,6 +66,8 @@ namespace locic {
 				return genAlignMask(function, type);
 			} else if (methodID == METHOD_SIZEOF) {
 				return genSizeOf(function, type);
+			} else if (methodID == METHOD_IMPLICITCOPY || methodID == METHOD_COPY) {
+				return methodOwner;
 			} else if (methodName == "__move_to") {
 				const auto moveToPtr = args[1].resolve(function);
 				const auto moveToPosition = args[2].resolve(function);
@@ -93,7 +95,7 @@ namespace locic {
 			} else if (isUnaryOp(methodName)) {
 				if (methodName == "implicit_cast" || methodName == "cast") {
 					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), hintResultValue);
-				} else if (methodName == "implicit_copy" || methodName == "copy" || methodName == "plus") {
+				} else if (methodName == "plus") {
 					return methodOwner;
 				} else if (methodName == "minus") {
 					return builder.CreateNeg(methodOwner);
