@@ -84,7 +84,7 @@ namespace locic {
 		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType,
 			llvm::Function* function, bool isInternal, bool isDefinition);
 		
-		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, SEM::Function* function, llvm::Function* llvmFunction);
+		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, const SEM::Function* function, llvm::Function* llvmFunction);
 		
 		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue);
 		

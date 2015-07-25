@@ -148,7 +148,7 @@ namespace locic {
 				isDefinition, functionInfo.name, functionType, function);
 		}
 		
-		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, SEM::Function* const function, llvm::Function* const llvmFunction) {
+		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, const SEM::Function* const function, llvm::Function* const llvmFunction) {
 			const auto& debugInfo = function->debugInfo();
 			
 			if (debugInfo) {
