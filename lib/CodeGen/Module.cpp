@@ -24,7 +24,8 @@ namespace locic {
 		Module::Module(InternalContext& argContext, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
 			: context_(argContext), module_(new llvm::Module(name.c_str(), context_.llvmContext())),
 			  abi_(llvm_abi::createABI(module_.get(), context_.targetTriple())),
-			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions) {
+			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions),
+			  semFunctionGenerator_(*this) {
 			
 			module_->setDataLayout(context_.dataLayout().getStringRepresentation());
 			module_->setTargetTriple(context_.targetTriple().getTriple());
@@ -181,6 +182,10 @@ namespace locic {
 		
 		PrimitiveID Module::primitiveID(const String& name) const {
 			return context_.getPrimitiveID(name);
+		}
+		
+		SEMFunctionGenerator& Module::semFunctionGenerator() {
+			return semFunctionGenerator_;
 		}
 		
 		void Module::verify() const {
