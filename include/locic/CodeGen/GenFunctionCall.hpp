@@ -8,6 +8,7 @@ namespace locic {
 	
 	namespace SEM {
 		
+		class FunctionType;
 		class Type;
 		class Value;
 		
