@@ -643,11 +643,13 @@ namespace locic {
 		}
 		
 		bool CreateDefaultExplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
-			if (!typeInstance->isClassDef() && !supportsExplicitCopy(context, typeInstance->selfType())) {
-				// Can't actually do copy (presumably member types don't support it).
-				// We still try to generate the method for class definitions since the user
-				// requested these to be generated and hence will want to see the error.
-				return false;
+			if (!supportsExplicitCopy(context, typeInstance->selfType())) {
+				if (!typeInstance->isClassDef()) {
+					// Auto-generated, so ignore the problem.
+					return false;
+				}
+				throw ErrorException(makeString("Failed to generate explicit copy since members don't support it, at location %s.",
+				                                location.toString().c_str()));
 			}
 			CreateDefaultCopy(context, context.getCString("copy"), typeInstance, function, location);
 			return true;
