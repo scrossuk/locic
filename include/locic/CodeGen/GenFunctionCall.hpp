@@ -1,5 +1,5 @@
-#ifndef LOCIC_CODEGEN_FUNCTIONCALL_HPP
-#define LOCIC_CODEGEN_FUNCTIONCALL_HPP
+#ifndef LOCIC_CODEGEN_GENFUNCTIONCALL_HPP
+#define LOCIC_CODEGEN_GENFUNCTIONCALL_HPP
 
 #include <locic/CodeGen/PendingResult.hpp>
 #include <locic/Support/Optional.hpp>
