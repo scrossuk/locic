@@ -410,7 +410,10 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto llvmFunction = createLLVMFunction(module, intermediateFunctionArgInfo(module), getTemplatedObjectLinkage(templatedObject), mangledName);
+			const auto llvmFunction = createLLVMFunction(module,
+			                                             intermediateFunctionArgInfo(module),
+			                                             getTemplatedObjectLinkage(module, templatedObject),
+			                                             mangledName);
 			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
 			return llvmFunction;
 		}
