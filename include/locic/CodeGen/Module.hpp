@@ -74,7 +74,7 @@ namespace locic {
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> DestructorMap;
 		typedef FastMap<String, llvm::Function*> FunctionMap;
 		typedef FastMap<std::pair<llvm::Function*, llvm::FunctionType*>, llvm::Function*> FunctionPtrStubMap;
-		typedef std::unordered_map<SEM::Function*, llvm::Function*> FunctionDeclMap;
+		typedef std::unordered_map<const SEM::Function*, llvm::Function*> FunctionDeclMap;
 		typedef std::unordered_map<std::pair<String, Name>, String, hashPair<String, Name>> MangledNameMap;
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
 		typedef FastMap<const SEM::Var*, size_t> MemberVarMap;
