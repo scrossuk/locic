@@ -657,11 +657,13 @@ namespace locic {
 		
 		bool CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			assert(!typeInstance->isUnion());
-			if (!typeInstance->isClassDef() && !supportsCompare(context, typeInstance->selfType())) {
-				// Can't actually do compare (presumably member types don't support it).
-				// We still try to generate the method for class definitions since the user
-				// requested these to be generated and hence will want to see the error.
-				return false;
+			if (!supportsCompare(context, typeInstance->selfType())) {
+				if (!typeInstance->isClassDef()) {
+					// Auto-generated, so ignore the problem.
+					return false;
+				}
+				throw ErrorException(makeString("Failed to generate compare since members don't support it, at location %s.",
+				                                location.toString().c_str()));
 			}
 			
 			const auto selfValue = createSelfRef(context, typeInstance->selfType());
