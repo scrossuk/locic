@@ -61,6 +61,7 @@ add_library(locic-codegen
 	Routines.cpp
 	ScopeExitActions.cpp
 	SEMCodeEmitter.cpp
+	SEMFunctionGenerator.cpp
 	SizeOf.cpp
 	Support.cpp
 	Template.cpp
