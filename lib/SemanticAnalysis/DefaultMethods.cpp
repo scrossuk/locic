@@ -589,46 +589,6 @@ namespace locic {
 			}
 		}
 		
-		void CreateDefaultCopy(Context& context, const String& functionName, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
-			const auto selfType = typeInstance->selfType();
-			const auto selfValue = createSelfRef(context, selfType);
-			
-			auto functionScope = SEM::Scope::Create();
-			
-			if (typeInstance->isUnion()) {
-				functionScope->statements().push_back(SEM::Statement::Return(SEM::Value::MemCopy(selfValue.copy(), selfType)));
-			} else if (typeInstance->isUnionDatatype()) {
-				std::vector<SEM::SwitchCase*> switchCases;
-				for (const auto variantTypeInstance: typeInstance->variants()) {
-					const auto variantType = variantTypeInstance->selfType();
-					const auto caseVar = SEM::Var::Basic(variantType, variantType);
-					auto caseVarValue = createLocalVarRef(context, *caseVar);
-					
-					auto caseScope = SEM::Scope::Create();
-					auto copyResult = CallValue(context, GetSpecialMethod(context, std::move(caseVarValue), functionName, location), {}, location);
-					auto copyResultCast = SEM::Value::Cast(selfType, std::move(copyResult));
-					caseScope->statements().push_back(SEM::Statement::Return(std::move(copyResultCast)));
-					
-					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
-				}
-				functionScope->statements().push_back(SEM::Statement::Switch(selfValue.copy(), std::move(switchCases), nullptr));
-			} else {
-				HeapArray<SEM::Value> copyValues;
-				copyValues.reserve(typeInstance->variables().size());
-				
-				for (const auto memberVar: typeInstance->variables()) {
-					auto selfMember = tryDissolveValue(context, createMemberVarRef(context, selfValue.copy(), *memberVar), location);
-					auto copyResult = CallValue(context, GetSpecialMethod(context, std::move(selfMember), functionName, location), {}, location);
-					copyValues.push_back(std::move(copyResult));
-				}
-				
-				auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance->selfType(), std::move(copyValues));
-				functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
-			}
-			
-			function->setScope(std::move(functionScope));
-		}
-		
 		bool CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
 			if (!supportsImplicitCopy(context, typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
@@ -638,7 +598,7 @@ namespace locic {
 				throw ErrorException(makeString("Failed to generate implicit copy since members don't support it, at location %s.",
 				                                location.toString().c_str()));
 			}
-			CreateDefaultCopy(context, context.getCString("implicitcopy"), typeInstance, function, location);
+			
 			return true;
 		}
 		
@@ -651,7 +611,7 @@ namespace locic {
 				throw ErrorException(makeString("Failed to generate explicit copy since members don't support it, at location %s.",
 				                                location.toString().c_str()));
 			}
-			CreateDefaultCopy(context, context.getCString("copy"), typeInstance, function, location);
+			
 			return true;
 		}
 		
