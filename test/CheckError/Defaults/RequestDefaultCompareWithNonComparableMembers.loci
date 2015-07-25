@@ -1,0 +1,7 @@
+class TestClass() {
+	// Not comparable.
+}
+
+class ComparableClass(TestClass member) {
+	compare = default;
+}

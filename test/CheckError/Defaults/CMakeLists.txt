@@ -1,0 +1,5 @@
+# Default method tests.
+
+test_check_error(RequestDefaultCompareWithNonComparableMembers)
+test_check_error(RequestDefaultExplicitCopyWithNonCopyableMembers)
+test_check_error(RequestDefaultImplicitCopyWithNonCopyableMembers)
