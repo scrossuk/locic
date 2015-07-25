@@ -8,6 +8,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -38,6 +39,18 @@ namespace locic {
 			const auto targetPtr = builder.CreatePointerCast(objectVar, genPointerType(module, targetType));
 			genMoveStore(functionGenerator, operand, targetPtr, targetType);
 			return genMoveLoad(functionGenerator, objectVar, targetType);
+		}
+		
+		llvm::Value* genValueLvalCopyMethod(Function& functionGenerator,
+		                                    const MethodID methodID,
+		                                    const SEM::Type* const targetType,
+		                                    PendingResultArray args,
+		                                    llvm::Value* const hintResultValue) {
+			IREmitter irEmitter(functionGenerator);
+			return irEmitter.emitCopyCall(methodID,
+			                              args[0].resolve(functionGenerator),
+			                              targetType,
+			                              hintResultValue);
 		}
 		
 		llvm::Value* genValueLvalSetDeadMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
@@ -123,6 +136,9 @@ namespace locic {
 					return genValueLvalEmptyMethod(functionGenerator, targetType, hintResultValue);
 				case METHOD_CREATE:
 					return genValueLvalCreateMethod(functionGenerator, targetType, std::move(args), hintResultValue);
+				case METHOD_IMPLICITCOPY:
+				case METHOD_COPY:
+					return genValueLvalCopyMethod(functionGenerator, methodID, targetType, std::move(args), hintResultValue);
 				case METHOD_ALIGNMASK:
 					return genAlignMask(functionGenerator, type);
 				case METHOD_SIZEOF:
