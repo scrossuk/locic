@@ -5,13 +5,12 @@ __primitive __ptr {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	// FIXME: This needs to use const-passthrough once we have virtual templates.
 	__ptr<T> implicit_copy() const noexcept;
+	__ptr<T> copy() const noexcept;
 	
 	void __set_dead() noexcept;
 	bool __is_live() const noexcept;
-	
-	template <bool IsConst>
-	__ptr<const<IsConst>(T)> copy() const(IsConst) noexcept;
 	
 	template <bool IsConst>
 	lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept;
