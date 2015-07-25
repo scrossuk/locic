@@ -589,7 +589,7 @@ namespace locic {
 			}
 		}
 		
-		bool CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+		bool CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
 			if (!supportsImplicitCopy(context, typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
 					// Auto-generated, so ignore the problem.
@@ -602,7 +602,7 @@ namespace locic {
 			return true;
 		}
 		
-		bool CreateDefaultExplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+		bool CreateDefaultExplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
 			if (!supportsExplicitCopy(context, typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
 					// Auto-generated, so ignore the problem.

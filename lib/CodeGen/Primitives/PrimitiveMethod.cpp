@@ -227,8 +227,6 @@ namespace locic {
 		                                            PendingResultArray args);
 		
 		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args, llvm::Value* const hintResultValue) {
-			auto& module = function.module();
-			
 			const auto type = methodInfo.parentType;
 			const auto methodName = methodInfo.name;
 			const auto functionType = methodInfo.functionType;
