@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <locic/CodeGen/UnwindAction.hpp>
+
 #include <locic/Support/Map.hpp>
 
 #include <llvm-abi/ABI.hpp>
