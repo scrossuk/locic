@@ -17,6 +17,10 @@ namespace locic {
 			// Add any requirements specified by parent.
 			auto predicate = parentRequiresPredicate.copy();
 			
+			// Add previous requirements added by default methods.
+			predicate = SEM::Predicate::And(std::move(predicate),
+			                                function->requiresPredicate().copy());
+			
 			// Add any requirements in require() specifier.
 			if (!astFunctionNode->requireSpecifier().isNull()) {
 				predicate = SEM::Predicate::And(std::move(predicate), ConvertRequireSpecifier(context, astFunctionNode->requireSpecifier()));
