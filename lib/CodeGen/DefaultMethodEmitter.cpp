@@ -211,6 +211,11 @@ namespace locic {
 					                        resultPtr,
 					                        memberType);
 				}
+				
+				// Set object into live state (e.g. set gap byte to 1).
+				setOuterLiveState(functionGenerator_,
+				                  typeInstance,
+				                  resultValue);
 			}
 			
 			return irEmitter.emitMoveLoad(resultValue, type);
