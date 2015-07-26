@@ -27,10 +27,7 @@ namespace locic {
 		void
 		SEMCodeEmitter::emitFunctionCode(const SEM::TypeInstance* typeInstance,
 		                                 const SEM::Function& function) {
-			const auto methodName = CanonicalizeMethodName(function.name().last());
-			if (function.isDefault() &&
-			    (methodName.ends_with("copy") ||
-			     methodName == "compare")) {
+			if (function.isDefault()) {
 				assert(typeInstance != nullptr);
 				emitDefaultFunctionCode(*typeInstance,
 				                        function);
