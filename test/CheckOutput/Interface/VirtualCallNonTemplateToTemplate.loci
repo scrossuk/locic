@@ -1,0 +1,37 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+interface IntReceiver {
+	void send(int object);
+}
+
+void passToMethod(IntReceiver& receiver, int value) {
+	receiver.send(value);
+}
+
+template <typename T : movable>
+class ValueReceiver(T object) {
+	static create(T object) {
+		return @(move object);
+	}
+	
+	void send(T object) {
+		@object = move object;
+	}
+	
+	const T& get() const {
+		return @object;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	auto valueReceiver = ValueReceiver<int>(20);
+	
+	passToMethod(valueReceiver, 42);
+	
+	testPrint(C"Value is %d", valueReceiver.get());
+	
+	return 0;
+}
+

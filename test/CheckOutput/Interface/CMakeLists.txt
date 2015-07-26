@@ -5,5 +5,7 @@ test_check_output(CaseInsensitiveInterface)
 test_check_output(CastBetweenInterfaces)
 test_check_output(PrimitiveInterface)
 test_check_output(TemplatedInterface)
+test_check_output(VirtualCallNonTemplateToTemplate)
+test_check_output(VirtualCallTemplateToNonTemplate)
 test_check_output(VTableClash)
 
