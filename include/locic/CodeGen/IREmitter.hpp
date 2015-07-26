@@ -65,6 +65,13 @@ namespace locic {
 			             const SEM::Type* type,
 			             llvm::Value* hintResultValue = nullptr);
 			
+			llvm::Value*
+			emitCompareCall(llvm::Value* leftValue,
+			                llvm::Value* rightValue,
+			                const SEM::Type* compareResultType,
+			                const SEM::Type* thisType,
+			                const SEM::Type* thisRefType);
+			
 		private:
 			Function& functionGenerator_;
 			

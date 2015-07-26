@@ -154,6 +154,43 @@ namespace locic {
 			                     hintResultValue);
 		}
 		
+		llvm::Value*
+		IREmitter::emitCompareCall(llvm::Value* const leftValue,
+		                           llvm::Value* const rightValue,
+		                           const SEM::Type* const compareResultType,
+		                           const SEM::Type* const rawThisType,
+		                           const SEM::Type* const rawThisRefType) {
+			const auto& module = functionGenerator_.module();
+			
+			const auto thisType = rawThisType->resolveAliases();
+			const auto thisRefType = rawThisRefType->resolveAliases();
+			
+			const bool isTemplated = thisType->isObject() &&
+			                         !thisType->templateArguments().empty();
+			
+			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			                                   /*isMethod=*/true,
+			                                   isTemplated,
+			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			
+			SEM::FunctionType functionType(std::move(attributes),
+			                               compareResultType,
+			                               { thisRefType });
+			
+			MethodInfo methodInfo(thisType,
+			                      module.getCString("compare"),
+			                      functionType,
+			                      {});
+			
+			RefPendingResult leftValuePendingResult(leftValue, thisType);
+			RefPendingResult rightValuePendingResult(rightValue, thisType);
+			
+			return genMethodCall(functionGenerator_,
+			                     methodInfo,
+			                     Optional<PendingResult>(leftValuePendingResult),
+			                     /*args=*/{ rightValuePendingResult });
+		}
+		
 	}
 	
 }
