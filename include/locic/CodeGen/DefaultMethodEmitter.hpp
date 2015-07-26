@@ -38,6 +38,12 @@ namespace locic {
 			           llvm::Value* hintResultValue);
 			
 			llvm::Value*
+			emitCreateConstructor(const SEM::Type* type,
+			                      SEM::FunctionType functionType,
+			                      PendingResultArray args,
+			                      llvm::Value* hintResultValue);
+			
+			llvm::Value*
 			emitImplicitCopy(const SEM::Type* type,
 			                 SEM::FunctionType functionType,
 			                 PendingResultArray args,

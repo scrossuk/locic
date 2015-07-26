@@ -1,7 +1,9 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/DefaultMethodEmitter.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
+#include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -29,7 +31,10 @@ namespace locic {
 		                                 llvm::Value* const hintResultValue) {
 			switch (methodID) {
 				case METHOD_CREATE:
-					llvm_unreachable("TODO!");
+					return emitCreateConstructor(type,
+					                             functionType,
+					                             std::move(args),
+					                             hintResultValue);
 				case METHOD_ALIGNMASK:
 				case METHOD_SIZEOF:
 				case METHOD_MOVETO:
@@ -53,6 +58,47 @@ namespace locic {
 				default:
 					llvm_unreachable("Unknown default function.");
 			}
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitCreateConstructor(const SEM::Type* const type,
+		                                            const SEM::FunctionType /*functionType*/,
+		                                            PendingResultArray args,
+		                                            llvm::Value* const hintResultValue) {
+			const auto& typeInstance = *(type->getObjectType());
+			assert(!typeInstance.isUnionDatatype());
+			
+			auto& module = functionGenerator_.module();
+			
+			if (typeInstance.isUnion()) {
+				assert(hintResultValue == nullptr);
+				return ConstantGenerator(module).getNull(genType(module, type));
+			}
+			
+			IREmitter irEmitter(functionGenerator_);
+			
+			const auto resultValue = irEmitter.emitAlloca(type,
+			                                              hintResultValue);
+			
+			for (size_t i = 0; i < typeInstance.variables().size(); i++) {
+				const auto& memberVar = typeInstance.variables()[i];
+				const size_t memberIndex = module.getMemberVarMap().at(memberVar);
+				
+				const auto memberType = memberVar->constructType()->resolveAliases();
+				
+				const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberIndex);
+				
+				irEmitter.emitMoveStore(args[i].resolve(functionGenerator_),
+				                        resultPtr,
+				                        memberType);
+			}
+			
+			// Set object into live state (e.g. set gap byte to 1).
+			setOuterLiveState(functionGenerator_,
+			                  typeInstance,
+			                  resultValue);
+			
+			return irEmitter.emitMoveLoad(resultValue, type);
 		}
 		
 		llvm::Value*
