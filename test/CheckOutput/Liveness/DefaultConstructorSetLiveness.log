@@ -1,0 +1,3 @@
+object.islive: YES
+After move: object.islive: NO
+Destructor called with value=0.
