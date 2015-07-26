@@ -615,7 +615,7 @@ namespace locic {
 			return true;
 		}
 		
-		bool CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location) {
+		bool CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
 			assert(!typeInstance->isUnion());
 			if (!supportsCompare(context, typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
@@ -626,81 +626,6 @@ namespace locic {
 				                                location.toString().c_str()));
 			}
 			
-			const auto selfValue = createSelfRef(context, typeInstance->selfType());
-			
-			const auto compareResultType = getBuiltInType(context, context.getCString("compare_result_t"), {});
-			
-			const auto operandVar = function->parameters().at(0);
-			const auto operandValue = createLocalVarRef(context, *operandVar);
-			
-			auto functionScope = SEM::Scope::Create();
-			
-			if (typeInstance->isUnionDatatype()) {
-				std::vector<SEM::SwitchCase*> switchCases;
-				for (size_t i = 0; i < typeInstance->variants().size(); i++) {
-					const auto variantTypeInstance = typeInstance->variants().at(i);
-					const auto variantType = variantTypeInstance->selfType();
-					const auto caseVar = SEM::Var::Basic(variantType, variantType);
-					const auto caseVarValue = createLocalVarRef(context, *caseVar);
-					
-					auto caseScope = SEM::Scope::Create();
-					
-					std::vector<SEM::SwitchCase*> subSwitchCases;
-					for (size_t j = 0; j < typeInstance->variants().size(); j++) {
-						const auto subVariantTypeInstance = typeInstance->variants().at(j);
-						const auto subVariantType = subVariantTypeInstance->selfType();
-						const auto subCaseVar = SEM::Var::Basic(subVariantType, subVariantType);
-						auto subCaseVarValue = createLocalVarRef(context, *subCaseVar);
-						
-						auto subCaseScope = SEM::Scope::Create();
-						auto minusOneConstant = SEM::Value::Constant(Constant::Integer(-1), compareResultType);
-						auto plusOneConstant = SEM::Value::Constant(Constant::Integer(1), compareResultType);
-						if (i < j) {
-							subCaseScope->statements().push_back(SEM::Statement::Return(std::move(minusOneConstant)));
-						} else if (i > j) {
-							subCaseScope->statements().push_back(SEM::Statement::Return(std::move(plusOneConstant)));
-						} else {
-							auto compareResult = CallValue(context, GetMethod(context, caseVarValue.copy(), context.getCString("compare"), location), makeHeapArray( std::move(subCaseVarValue) ), location);
-							subCaseScope->statements().push_back(SEM::Statement::Return(std::move(compareResult)));
-						}
-						
-						subSwitchCases.push_back(new SEM::SwitchCase(subCaseVar, std::move(subCaseScope)));
-					}
-					
-					caseScope->statements().push_back(SEM::Statement::Switch(derefValue(operandValue.copy()), subSwitchCases, nullptr));
-					
-					switchCases.push_back(new SEM::SwitchCase(caseVar, std::move(caseScope)));
-				}
-				
-				functionScope->statements().push_back(SEM::Statement::Switch(selfValue.copy(), switchCases, nullptr));
-			} else {
-				auto currentScope = functionScope.get();
-				
-				for (const auto memberVar: typeInstance->variables()) {
-					auto selfMember = createMemberVarRef(context, selfValue.copy(), *memberVar);
-					auto operandMember = createMemberVarRef(context, operandValue.copy(), *memberVar);
-					
-					auto compareResult = CallValue(context, GetMethod(context, std::move(selfMember), context.getCString("compare"), location), makeHeapArray( std::move(operandMember) ), location);
-					auto isEqual = CallValue(context, GetMethod(context, compareResult.copy(), context.getCString("isEqual"), location), {}, location);
-					
-					auto ifTrueScope = SEM::Scope::Create();
-					auto ifFalseScope = SEM::Scope::Create();
-					
-					const auto nextScope = ifTrueScope.get();
-					
-					ifFalseScope->statements().push_back(SEM::Statement::Return(std::move(compareResult)));
-					
-					auto ifStatement = SEM::Statement::If({ new SEM::IfClause(std::move(isEqual), std::move(ifTrueScope)) }, std::move(ifFalseScope));
-					currentScope->statements().push_back(std::move(ifStatement));
-					
-					currentScope = nextScope;
-				}
-				
-				auto zeroConstant = SEM::Value::Constant(Constant::Integer(0), compareResultType);
-				currentScope->statements().push_back(SEM::Statement::Return(std::move(zeroConstant)));
-			}
-			
-			function->setScope(std::move(functionScope));
 			return true;
 		}
 		
