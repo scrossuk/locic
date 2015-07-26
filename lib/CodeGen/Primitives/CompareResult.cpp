@@ -37,7 +37,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type,
-		                                                 const String& methodName, SEM::FunctionType /*functionType*/,
+		                                                 const String& methodName,
 		                                                 PendingResultArray args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();

@@ -124,8 +124,11 @@ namespace locic {
 			return ConstantGenerator(module).getVoidUndef();
 		}
 		
-		llvm::Value* genValueLvalPrimitiveMethodCall(Function& functionGenerator, const SEM::Type* type, const String& methodName, SEM::FunctionType /*functionType*/,
-				PendingResultArray args, llvm::Value* const hintResultValue) {
+		llvm::Value* genValueLvalPrimitiveMethodCall(Function& functionGenerator,
+		                                             const SEM::Type* type,
+		                                             const String& methodName,
+		                                             PendingResultArray args,
+		                                             llvm::Value* const hintResultValue) {
 			auto& module = functionGenerator.module();
 			
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));

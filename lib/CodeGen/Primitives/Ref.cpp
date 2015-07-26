@@ -182,7 +182,6 @@ namespace locic {
 		llvm::Value* genRefPrimitiveMethodCall(Function& function,
 		                                       const SEM::Type* const type,
 		                                       const String& methodName,
-		                                       SEM::FunctionType /*functionType*/,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) {
 			auto& builder = function.getBuilder();

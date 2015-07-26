@@ -9,7 +9,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genVoidPrimitiveMethodCall(Function& functionGenerator, const SEM::Type*, const String& methodName, SEM::FunctionType /*functionType*/, PendingResultArray /*args*/) {
+		llvm::Value* genVoidPrimitiveMethodCall(Function& functionGenerator, const SEM::Type*, const String& methodName, PendingResultArray /*args*/) {
 			auto& module = functionGenerator.module();
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			

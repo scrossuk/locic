@@ -36,7 +36,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType /*functionType*/,
+		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
 				PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();

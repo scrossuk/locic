@@ -91,7 +91,7 @@ namespace locic {
 			return genFunctionCall(function, type->asFunctionType(), callInfo, std::move(callArgs), hintResultValue);
 		}
 		
-		llvm::Value* genFunctionPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType /*functionType*/,
+		llvm::Value* genFunctionPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
 				PendingResultArray args, llvm::Value* hintResultValue) {
 			auto& module = function.module();
 			

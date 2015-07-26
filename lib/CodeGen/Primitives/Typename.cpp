@@ -12,7 +12,6 @@ namespace locic {
 		llvm::Value* genTypenamePrimitiveMethodCall(Function& functionGenerator,
 		                                            const SEM::Type* type,
 		                                            const String& methodName,
-		                                            SEM::FunctionType /*functionType*/,
 		                                            PendingResultArray args) {
 			auto& module = functionGenerator.module();
 			

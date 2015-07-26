@@ -177,16 +177,16 @@ namespace locic {
 			return callRawCastMethod(function, castFromValue, castFromType, targetMethodName, castToType, hintResultValue);
 		}
 		
-		llvm::Value* genVoidPrimitiveMethodCall(Function& function, const SEM::Type*, const String& methodName, SEM::FunctionType functionType, PendingResultArray args);
+		llvm::Value* genVoidPrimitiveMethodCall(Function& function, const SEM::Type*, const String& methodName, PendingResultArray args);
 		
 		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type,
-		                                                 const String& methodName, SEM::FunctionType functionType,
+		                                                 const String& methodName,
 		                                                 PendingResultArray args);
 		
 		llvm::Value* genNullPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, llvm::ArrayRef<SEM::Value> templateArgs,
 				PendingResultArray args, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genBoolPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType functionType,
+		llvm::Value* genBoolPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
 				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue);
 		
 		llvm::Value* genSignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType functionType,
@@ -198,32 +198,30 @@ namespace locic {
 		llvm::Value* genFloatPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType functionType,
 				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genFunctionPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType functionType,
+		llvm::Value* genFunctionPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
 				PendingResultArray args, llvm::Value* hintResultValue);
 		
-		llvm::Value* genPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType functionType,
+		llvm::Value* genPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
 				PendingResultArray args);
 		
-		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType functionType,
+		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
 				PendingResultArray args, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType functionType,
+		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
 				PendingResultArray args, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType functionType,
+		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
 				PendingResultArray args, llvm::Value* const hintResultValue);
 		
 		llvm::Value* genRefPrimitiveMethodCall(Function& function,
 		                                       const SEM::Type* const type,
 		                                       const String& methodName,
-		                                       SEM::FunctionType functionType,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue);
 		
 		llvm::Value* genTypenamePrimitiveMethodCall(Function& function,
 		                                            const SEM::Type* type,
 		                                            const String& methodName,
-		                                            SEM::FunctionType functionType,
 		                                            PendingResultArray args);
 		
 		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args, llvm::Value* const hintResultValue) {
@@ -234,21 +232,21 @@ namespace locic {
 			
 			switch (type->primitiveID()) {
 				case PrimitiveVoid:
-					return genVoidPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
+					return genVoidPrimitiveMethodCall(function, type, methodName, std::move(args));
 				case PrimitiveCompareResult:
-					return genCompareResultPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
+					return genCompareResultPrimitiveMethodCall(function, type, methodName, std::move(args));
 				case PrimitiveNull:
 					return genNullPrimitiveMethodCall(function, type, methodName, arrayRef(templateArgs), std::move(args), hintResultValue);
 				case PrimitiveBool:
-					return genBoolPrimitiveMethodCall(function, type, methodName, functionType, arrayRef(templateArgs), std::move(args), hintResultValue);
+					return genBoolPrimitiveMethodCall(function, type, methodName, arrayRef(templateArgs), std::move(args), hintResultValue);
 				case PrimitiveValueLval:
-					return genValueLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
+					return genValueLvalPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
 				case PrimitiveFinalLval:
-					return genFinalLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
+					return genFinalLvalPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
 				case PrimitivePtrLval:
-					return genPtrLvalPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
+					return genPtrLvalPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
 				case PrimitivePtr:
-					return genPtrPrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
+					return genPtrPrimitiveMethodCall(function, type, methodName, std::move(args));
 				case PrimitiveFunctionPtr:
 				case PrimitiveMethodFunctionPtr:
 				case PrimitiveTemplatedFunctionPtr:
@@ -258,7 +256,7 @@ namespace locic {
 				case PrimitiveTemplatedMethod:
 				case PrimitiveInterfaceMethod:
 				case PrimitiveStaticInterfaceMethod:
-					return genFunctionPtrPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
+					return genFunctionPtrPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
 				case PrimitiveInt8:
 				case PrimitiveInt16:
 				case PrimitiveInt32:
@@ -287,9 +285,9 @@ namespace locic {
 				case PrimitiveLongDouble:
 					return genFloatPrimitiveMethodCall(function, type, methodName, functionType, arrayRef(templateArgs), std::move(args), hintResultValue);
 				case PrimitiveTypename:
-					return genTypenamePrimitiveMethodCall(function, type, methodName, functionType, std::move(args));
+					return genTypenamePrimitiveMethodCall(function, type, methodName, std::move(args));
 				case PrimitiveRef:
-					return genRefPrimitiveMethodCall(function, type, methodName, functionType, std::move(args), hintResultValue);
+					return genRefPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
 			}
 			
 			const auto& typeName = type->getObjectType()->name().last();
