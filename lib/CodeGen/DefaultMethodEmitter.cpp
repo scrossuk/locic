@@ -108,7 +108,9 @@ namespace locic {
 				irEmitter.emitStoreDatatypeTag(loadedTag, resultValue);
 				
 				const auto endBB = functionGenerator_.createBasicBlock("end");
-				const auto switchInstruction = functionGenerator_.getBuilder().CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
+				const auto switchInstruction = functionGenerator_.getBuilder().CreateSwitch(loadedTag,
+				                                                                            endBB,
+				                                                                            typeInstance.variants().size());
 				
 				// Start from 1 so that 0 can represent 'empty'.
 				uint8_t tag = 1;
