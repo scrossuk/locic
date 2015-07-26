@@ -294,6 +294,10 @@ bool runTest(TestOptions& options) {
 		
 		// Build options.
 		BuildOptions buildOptions;
+		
+		// Zero all stack allocations to try to ensure deterministic failure.
+		buildOptions.zeroAllAllocas = true;
+		
 		buildOptions.unsafe = false;
 		
 		// Debug information.

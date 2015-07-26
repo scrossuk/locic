@@ -63,7 +63,7 @@ namespace locic {
 			                                      type,
 			                                      hintResultValue);
 			
-			if (shouldZeroAlloca) {
+			if (shouldZeroAlloca && hintResultValue == nullptr) {
 				const auto typeSizeValue = genSizeOf(function, type);
 				const auto allocaCastValue = function.getBuilder().CreatePointerCast(allocaValue,
 				                                                                     TypeGenerator(module).getI8PtrType());
