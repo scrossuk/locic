@@ -6,9 +6,11 @@ namespace locic{
 	class BuildOptions {
 	public:
 		bool unsafe;
+		bool zeroAllAllocas;
 		
 		BuildOptions()
-			: unsafe(false) { }
+		: unsafe(false),
+		zeroAllAllocas(false) { }
 	};
 
 }
