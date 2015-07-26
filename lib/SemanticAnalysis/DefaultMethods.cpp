@@ -565,28 +565,10 @@ namespace locic {
 			return typeInstance->functions().find(context.getCString("__islive")) == typeInstance->functions().end();
 		}
 		
-		void CreateDefaultConstructor(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
+		void CreateDefaultConstructor(Context& /*context*/, SEM::TypeInstance* const typeInstance, SEM::Function* const /*function*/, const Debug::SourceLocation& /*location*/) {
 			assert(!typeInstance->isUnionDatatype());
 			
-			auto functionScope = SEM::Scope::Create();
-			
-			if (typeInstance->isUnion()) {
-				functionScope->statements().push_back(SEM::Statement::Return(SEM::Value::ZeroInitialise(typeInstance->selfType())));
-				function->setScope(std::move(functionScope));
-			} else {
-				HeapArray<SEM::Value> constructValues;
-				constructValues.reserve(function->parameters().size());
-				
-				for (const auto& argVar: function->parameters()) {
-					auto argVarValue = createLocalVarRef(context, *argVar);
-					constructValues.push_back(CallValue(context, GetSpecialMethod(context, std::move(argVarValue), context.getCString("move"), location), {}, location));
-				}
-				
-				auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance->selfType(), std::move(constructValues));
-				functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
-				
-				function->setScope(std::move(functionScope));
-			}
+			// TODO: Need to check if default constructor can be created.
 		}
 		
 		bool CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
