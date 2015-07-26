@@ -45,6 +45,8 @@ namespace locic {
 		}
 		
 		void Function::setDefault(const bool pIsDefault) {
+			assert(!(pIsDefault && isDefinition()) &&
+			       "Functions can't be marked default and have definitions.");
 			isDefault_ = pIsDefault;
 		}
 		
@@ -138,6 +140,8 @@ namespace locic {
 		void Function::setScope(std::unique_ptr<Scope> newScope) {
 			assert(scope_.get() == nullptr);
 			assert(newScope.get() != nullptr);
+			assert(!isDefault() &&
+			       "Functions can't be marked default and have definitions.");
 			scope_ = std::move(newScope);
 		}
 		
