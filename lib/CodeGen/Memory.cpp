@@ -6,6 +6,7 @@
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
@@ -17,7 +18,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genAlloca(Function& function, const SEM::Type* const type, llvm::Value* const hintResultValue) {
+		llvm::Value* genRawAlloca(Function& function, const SEM::Type* const type, llvm::Value* const hintResultValue) {
 			if (hintResultValue != nullptr) {
 				assert(hintResultValue->getType()->isPointerTy());
 				assert(hintResultValue->getType() == genPointerType(function.module(), type));
@@ -52,6 +53,27 @@ namespace locic {
 					throw std::runtime_error("Unknown type enum for generating alloca.");
 				}
 			}
+		}
+		
+		llvm::Value* genAlloca(Function& function, const SEM::Type* const type, llvm::Value* const hintResultValue) {
+			auto& module = function.module();
+			const bool shouldZeroAlloca = module.buildOptions().zeroAllAllocas;
+			
+			const auto allocaValue = genRawAlloca(function,
+			                                      type,
+			                                      hintResultValue);
+			
+			if (shouldZeroAlloca) {
+				const auto typeSizeValue = genSizeOf(function, type);
+				const auto allocaCastValue = function.getBuilder().CreatePointerCast(allocaValue,
+				                                                                     TypeGenerator(module).getI8PtrType());
+				function.getBuilder().CreateMemSet(allocaCastValue,
+				                                   ConstantGenerator(module).getI8(0),
+				                                   typeSizeValue,
+				                                   /*align=*/1);
+			}
+			
+			return allocaValue;
 		}
 		
 		llvm::Value* genLoad(Function& function, llvm::Value* const var, const SEM::Type* const type) {
