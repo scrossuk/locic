@@ -4,6 +4,7 @@
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
+#include <locic/CodeGen/TypeGenerator.hpp>
 
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/FunctionType.hpp>
@@ -29,8 +30,6 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_CREATE:
 					llvm_unreachable("TODO!");
-				case METHOD_COMPARE:
-					llvm_unreachable("TODO!");
 				case METHOD_ALIGNMASK:
 				case METHOD_SIZEOF:
 				case METHOD_MOVETO:
@@ -47,6 +46,10 @@ namespace locic {
 					                        functionType,
 					                        std::move(args),
 					                        hintResultValue);
+				case METHOD_COMPARE:
+					return emitCompare(type,
+					                   functionType,
+					                   std::move(args));
 				default:
 					llvm_unreachable("Unknown default function.");
 			}
@@ -163,6 +166,180 @@ namespace locic {
 			}
 			
 			return irEmitter.emitMoveLoad(resultValue, type);
+		}
+		
+		static const SEM::Type*
+		createRefType(const SEM::Type* const refTargetType,
+		              const SEM::TypeInstance& refTypeInstance,
+		              const SEM::Type* const typenameType) {
+			auto typeRef = SEM::Value::TypeRef(refTargetType,
+			                                   typenameType->createStaticRefType(refTargetType));
+			SEM::ValueArray templateArguments;
+			templateArguments.push_back(std::move(typeRef));
+			return SEM::Type::Object(&refTypeInstance,
+			                         std::move(templateArguments))->createRefType(refTargetType);
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitCompare(const SEM::Type* const type,
+		                                  const SEM::FunctionType functionType,
+		                                  PendingResultArray args) {
+			const auto& typeInstance = *(type->getObjectType());
+			assert(!typeInstance.isUnion() &&
+			       "Unions don't support default compare");
+			
+			const auto otherPointer = args[1].resolve(functionGenerator_);
+			const auto thisPointer = args[0].resolve(functionGenerator_);
+			
+			IREmitter irEmitter(functionGenerator_);
+			
+			auto& module = functionGenerator_.module();
+			const auto i8Type = TypeGenerator(module).getI8Type();
+			
+			const auto compareResultType = functionType.returnType();
+			const auto& refTypeInstance = *(functionType.parameterTypes()[0]->getObjectType());
+			const auto typenameType = refTypeInstance.templateVariables()[0]->type();
+			
+			if (typeInstance.isUnionDatatype()) {
+				const auto thisTag = irEmitter.emitLoadDatatypeTag(thisPointer);
+				const auto otherTag = irEmitter.emitLoadDatatypeTag(otherPointer);
+				
+				const auto isTagNotEqual = functionGenerator_.getBuilder().CreateICmpNE(thisTag,
+				                                                                        otherTag);
+				
+				const auto isTagLessThan = functionGenerator_.getBuilder().CreateICmpSLT(thisTag,
+				                                                                         otherTag);
+				
+				const auto tagCompareResult = functionGenerator_.getBuilder().CreateSelect(isTagLessThan,
+				                                                                           ConstantGenerator(module).getI8(-1),
+				                                                                           ConstantGenerator(module).getI8(1));
+				
+				const auto startCompareBB = functionGenerator_.createBasicBlock("startCompare");
+				
+				const auto endBB = functionGenerator_.createBasicBlock("end");
+				
+				const auto phiNode = llvm::PHINode::Create(i8Type,
+				                                           typeInstance.variants().size(),
+				                                           "compare_result",
+				                                           endBB);
+				
+				phiNode->addIncoming(tagCompareResult,
+				                     functionGenerator_.getBuilder().GetInsertBlock());
+				
+				functionGenerator_.getBuilder().CreateCondBr(isTagNotEqual,
+				                                             endBB,
+				                                             startCompareBB);
+				
+				functionGenerator_.selectBasicBlock(startCompareBB);
+				
+				const auto unreachableBB = functionGenerator_.createBasicBlock("");
+				
+				const auto switchInstruction = functionGenerator_.getBuilder().CreateSwitch(thisTag,
+				                                                                            unreachableBB,
+				                                                                            typeInstance.variants().size());
+				
+				functionGenerator_.selectBasicBlock(unreachableBB);
+				
+				functionGenerator_.getBuilder().CreateUnreachable();
+				
+				// Start from 1 so that 0 can represent 'empty'.
+				uint8_t tag = 1;
+				
+				for (const auto variantTypeInstance : typeInstance.variants()) {
+					const auto matchBB = functionGenerator_.createBasicBlock("tagMatch");
+					const auto tagValue = ConstantGenerator(module).getI8(tag++);
+					
+					switchInstruction->addCase(tagValue, matchBB);
+					
+					functionGenerator_.selectBasicBlock(matchBB);
+					
+					const auto variantType = SEM::Type::Object(variantTypeInstance, type->templateArguments().copy());
+					const auto variantRefType = createRefType(variantType,
+					                                          refTypeInstance,
+					                                          typenameType);
+					
+					const auto thisValuePtr = irEmitter.emitGetDatatypeVariantPtr(thisPointer,
+					                                                              type,
+					                                                              variantType);
+					
+					const auto otherValuePtr = irEmitter.emitGetDatatypeVariantPtr(otherPointer,
+					                                                               type,
+					                                                               variantType);
+					
+					const auto compareResult = irEmitter.emitCompareCall(thisValuePtr,
+					                                                     otherValuePtr,
+					                                                     compareResultType,
+					                                                     variantType,
+					                                                     variantRefType);
+					
+					phiNode->addIncoming(compareResult,
+					                     matchBB);
+					
+					functionGenerator_.getBuilder().CreateBr(endBB);
+				}
+				
+				functionGenerator_.selectBasicBlock(endBB);
+				return phiNode;
+			} else {
+				if (typeInstance.variables().empty()) {
+					// Return equal result for empty objects.
+					return ConstantGenerator(module).getI8(0);
+				}
+				
+				const auto endBB = functionGenerator_.createBasicBlock("end");
+				
+				const auto phiNode = llvm::PHINode::Create(i8Type,
+				                                           typeInstance.variables().size(),
+				                                           "compare_result",
+				                                           endBB);
+				
+				for (size_t i = 0; i < typeInstance.variables().size(); i++) {
+					const auto& memberVar = typeInstance.variables()[i];
+					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
+					const auto thisMemberPtr = genMemberPtr(functionGenerator_,
+					                                        thisPointer,
+					                                        type,
+					                                        memberIndex);
+					const auto otherMemberPtr = genMemberPtr(functionGenerator_,
+					                                         otherPointer,
+					                                         type,
+					                                         memberIndex);
+					
+					const auto memberType = memberVar->constructType()->resolveAliases();
+					const auto memberRefType = createRefType(memberType,
+					                                         refTypeInstance,
+					                                         typenameType);
+					
+					const auto compareResult = irEmitter.emitCompareCall(thisMemberPtr,
+					                                                     otherMemberPtr,
+					                                                     compareResultType,
+					                                                     memberType,
+					                                                     memberRefType);
+					
+					phiNode->addIncoming(compareResult,
+					                     functionGenerator_.getBuilder().GetInsertBlock());
+					
+					if (i != (typeInstance.variables().size() - 1)) {
+						const auto nextCompareBB = functionGenerator_.createBasicBlock("nextCompare");
+						
+						const auto zeroValue = ConstantGenerator(module).getI8(0);
+						
+						const auto isEqualResult = functionGenerator_.getBuilder().CreateICmpEQ(compareResult,
+						                                                                        zeroValue);
+						
+						functionGenerator_.getBuilder().CreateCondBr(isEqualResult,
+						                                             nextCompareBB,
+						                                             endBB);
+						
+						functionGenerator_.selectBasicBlock(nextCompareBB);
+					} else {
+						functionGenerator_.getBuilder().CreateBr(endBB);
+					}
+				}
+				
+				functionGenerator_.selectBasicBlock(endBB);
+				return phiNode;
+			}
 		}
 		
 	}

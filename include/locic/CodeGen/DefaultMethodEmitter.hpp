@@ -56,6 +56,11 @@ namespace locic {
 			               PendingResultArray args,
 			               llvm::Value* hintResultValue);
 			
+			llvm::Value*
+			emitCompare(const SEM::Type* type,
+			            SEM::FunctionType functionType,
+			            PendingResultArray args);
+			
 		private:
 			Function& functionGenerator_;
 			
