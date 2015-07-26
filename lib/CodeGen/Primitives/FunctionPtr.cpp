@@ -9,6 +9,7 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
+
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {

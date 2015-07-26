@@ -5,7 +5,9 @@
 #include <locic/CodeGen/PendingResult.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+
 #include <locic/SEM/Value.hpp>
+
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {

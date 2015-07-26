@@ -2,6 +2,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/Module.hpp>
+
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {

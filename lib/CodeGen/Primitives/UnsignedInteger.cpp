@@ -23,8 +23,8 @@
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
-#include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
+
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {
