@@ -371,8 +371,8 @@ namespace locic {
 				case LivenessIndicator::GAP_BYTE: {
 					const auto bytePtr = getLivenessBytePtr(functionGenerator, *typeInstance, livenessIndicator, contextValue);
 					const auto byteValue = builder.CreateLoad(bytePtr);
-					// Live if suffix/gap byte != 0.
-					builder.CreateRet(builder.CreateICmpNE(byteValue, ConstantGenerator(module).getI8(0)));
+					// Live if suffix/gap byte == 1.
+					builder.CreateRet(builder.CreateICmpEQ(byteValue, ConstantGenerator(module).getI8(1)));
 					break;
 				}
 			}
