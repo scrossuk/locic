@@ -103,25 +103,6 @@ namespace locic {
 			} union_;
 		};
 		
-		Value Value::ZeroInitialise(const Type* const type) {
-			// Currently only works for unions.
-			assert(type->isUnion());
-			
-			return Value(ZEROINITIALISE, type, ExitStates::Normal());
-		}
-		
-		Value Value::MemCopy(Value operand, const Type* const type) {
-			// Currently only works for unions.
-			assert(type->isUnion());
-			
-			assert(operand.type()->isRef() && operand.type()->isBuiltInReference());
-			assert(operand.type()->refTarget() == type);
-			
-			Value value(MEMCOPY, type, ExitStates::Normal());
-			value.impl_->value0 = std::move(operand);
-			return value;
-		}
-		
 		Value Value::Self(const Type* const type) {
 			return Value(SELF, type, ExitStates::Normal());
 		}
@@ -416,19 +397,6 @@ namespace locic {
 			assert(impl_->exitStates.hasNormalExit() ||
 				impl_->exitStates.hasThrowExit());
 			return impl_->exitStates;
-		}
-		
-		bool Value::isZeroInitialise() const {
-			return kind() == ZEROINITIALISE;
-		}
-		
-		bool Value::isMemCopy() const {
-			return kind() == MEMCOPY;
-		}
-		
-		const Value& Value::memCopyOperand() const {
-			assert(isMemCopy());
-			return impl_->value0;
 		}
 		
 		bool Value::isSelf() const {
@@ -809,11 +777,6 @@ namespace locic {
 			hasher.add(type());
 			
 			switch (kind()) {
-				case Value::ZEROINITIALISE:
-					break;
-				case Value::MEMCOPY:
-					hasher.add(memCopyOperand());
-					break;
 				case Value::SELF:
 					break;
 				case Value::THIS:
@@ -953,10 +916,6 @@ namespace locic {
 			}
 			
 			switch (value.kind()) {
-				case Value::ZEROINITIALISE:
-					return true;
-				case Value::MEMCOPY:
-					return memCopyOperand() == value.memCopyOperand();
 				case Value::SELF:
 					return true;
 				case Value::THIS:
@@ -1155,10 +1114,6 @@ namespace locic {
 		
 		std::string Value::toString() const {
 			switch (kind()) {
-				case ZEROINITIALISE:
-					return makeString("ZeroInitialise(type: %s)", type()->toString().c_str());
-				case MEMCOPY:
-					return makeString("MemCopy(operand: %s)", memCopyOperand().toString().c_str());
 				case SELF:
 					return "self";
 				case THIS:
