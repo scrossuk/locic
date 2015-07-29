@@ -143,14 +143,10 @@ namespace locic {
 			return moveBasicArgInfo(module, !typeInstance->templateVariables().empty());
 		}
 		
-		namespace {
-			
-			void genBasicMove(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue) {
-				const auto destValue = makeMoveDest(function, startDestValue, positionValue, type);
-				const auto loadedValue = genLoad(function, sourceValue, type);
-				genStore(function, loadedValue, destValue, type);
-			}
-			
+		void genBasicMove(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue) {
+			const auto destValue = makeMoveDest(function, startDestValue, positionValue, type);
+			const auto loadedValue = genLoad(function, sourceValue, type);
+			genStore(function, loadedValue, destValue, type);
 		}
 		
 		void genMoveCall(Function& function, const SEM::Type* const type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {

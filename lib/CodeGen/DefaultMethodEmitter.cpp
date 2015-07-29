@@ -4,7 +4,9 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
+#include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
@@ -35,9 +37,12 @@ namespace locic {
 					                             functionType,
 					                             std::move(args),
 					                             hintResultValue);
+				case METHOD_MOVETO:
+					return emitMoveTo(type,
+					                  functionType,
+					                  std::move(args));
 				case METHOD_ALIGNMASK:
 				case METHOD_SIZEOF:
-				case METHOD_MOVETO:
 				case METHOD_ISLIVE:
 				case METHOD_SETDEAD:
 					llvm_unreachable("Generated elsewhere.");
@@ -99,6 +104,91 @@ namespace locic {
 			                  resultValue);
 			
 			return irEmitter.emitMoveLoad(resultValue, type);
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitMoveTo(const SEM::Type* const type,
+		                                 const SEM::FunctionType /*functionType*/,
+		                                 PendingResultArray args) {
+			const auto& typeInstance = *(type->getObjectType());
+			auto& module = functionGenerator_.module();
+			
+			const auto destValue = args[1].resolve(functionGenerator_);
+			const auto positionValue = args[2].resolve(functionGenerator_);
+			const auto sourceValue = args[0].resolve(functionGenerator_);
+			
+			const auto livenessIndicator = getLivenessIndicator(module,
+			                                                    typeInstance);
+			
+			if (livenessIndicator.isNone()) {
+				// No liveness indicator so just move the member values.
+				genCallUserMoveFunction(functionGenerator_,
+				                        typeInstance,
+				                        sourceValue,
+				                        destValue,
+				                        positionValue);
+			} else {
+				auto& builder = functionGenerator_.getBuilder();
+				
+				const auto destPtr = builder.CreateInBoundsGEP(destValue,
+				                                               positionValue);
+				const auto castedDestPtr = builder.CreatePointerCast(destPtr,
+				                                                     genPointerType(module, type));
+				
+				const auto isLiveBB = functionGenerator_.createBasicBlock("is_live");
+				const auto isNotLiveBB = functionGenerator_.createBasicBlock("is_not_live");
+				const auto setSourceDeadBB = functionGenerator_.createBasicBlock("set_source_dead");
+				
+				// Check whether the source object is in a 'live' state and
+				// only perform the move if it is.
+				const auto isLive = genIsLive(functionGenerator_,
+				                              type,
+				                              sourceValue);
+				builder.CreateCondBr(isLive,
+				                     isLiveBB,
+				                     isNotLiveBB);
+				
+				functionGenerator_.selectBasicBlock(isLiveBB);
+				
+				// Move member values.
+				genCallUserMoveFunction(functionGenerator_,
+				                        typeInstance,
+				                        sourceValue,
+				                        destValue,
+				                        positionValue);
+				
+				// Set dest object to be valid (e.g. may need to set gap byte to 1).
+				setOuterLiveState(functionGenerator_,
+				                  typeInstance,
+				                  castedDestPtr);
+				
+				builder.CreateBr(setSourceDeadBB);
+				
+				functionGenerator_.selectBasicBlock(isNotLiveBB);
+				
+				// If the source object is dead, just copy it straight to the destination.
+				// 
+				// Note that the *entire* object is copied since the object could have
+				// a custom __islive method and hence it may not actually be dead (the
+				// __setdead method is only required to set the object to a dead state,
+				// which may lead to undefined behaviour if used).
+				genBasicMove(functionGenerator_,
+				             type,
+				             sourceValue,
+				             destValue,
+				             positionValue);
+				
+				builder.CreateBr(setSourceDeadBB);
+				
+				functionGenerator_.selectBasicBlock(setSourceDeadBB);
+				
+				// Set the source object to dead state.
+				genSetDeadState(functionGenerator_,
+				                type,
+				                sourceValue);
+			}
+			
+			return ConstantGenerator(module).getVoidUndef();
 		}
 		
 		llvm::Value*

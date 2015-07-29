@@ -87,9 +87,21 @@ namespace locic {
 		
 		ArgInfo moveArgInfo(Module& module, const SEM::TypeInstance* typeInstance);
 		
+		void genBasicMove(Function& function,
+		                  const SEM::Type* type,
+		                  llvm::Value* sourceValue,
+		                  llvm::Value* startDestValue,
+		                  llvm::Value* positionValue);
+		
 		void genMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
 		
 		void genUnionMove(Function& function, const SEM::TypeInstance* typeInstance);
+		
+		void genCallUserMoveFunction(Function& functionGenerator,
+		                             const SEM::TypeInstance& typeInstance,
+		                             llvm::Value* const sourceValue,
+		                             llvm::Value* const destValue,
+		                             llvm::Value* const positionValue);
 		
 		llvm::Function* genVTableMoveFunction(Module& module, const SEM::TypeInstance* typeInstance);
 		
