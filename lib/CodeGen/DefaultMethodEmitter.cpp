@@ -192,6 +192,84 @@ namespace locic {
 		}
 		
 		llvm::Value*
+		DefaultMethodEmitter::emitInnerMoveTo(const SEM::Type* const type,
+		                                      const SEM::FunctionType /*functionType*/,
+		                                      PendingResultArray args) {
+			auto& module = functionGenerator_.module();
+			auto& builder = functionGenerator_.getBuilder();
+			const auto& typeInstance = *(type->getObjectType());
+			
+			const auto destValue = args[1].resolve(functionGenerator_);
+			const auto positionValue = args[2].resolve(functionGenerator_);
+			const auto sourceValue = args[0].resolve(functionGenerator_);
+			
+			if (typeInstance.isUnion()) {
+				// Basically just do a memcpy.
+				genBasicMove(functionGenerator_, type, sourceValue, destValue, positionValue);
+			} else if (typeInstance.isUnionDatatype()) {
+				const auto unionDatatypePointers = getUnionDatatypePointers(functionGenerator_,
+				                                                            type,
+				                                                            sourceValue);
+				const auto loadedTag = builder.CreateLoad(unionDatatypePointers.first);
+				
+				// Store tag.
+				builder.CreateStore(loadedTag, makeRawMoveDest(functionGenerator_, destValue, positionValue));
+				
+				// Set previous tag to zero.
+				builder.CreateStore(ConstantGenerator(module).getI8(0), unionDatatypePointers.first);
+				
+				// Offset of union datatype data is equivalent to its alignment size.
+				const auto unionDataOffset = genAlignOf(functionGenerator_, type);
+				const auto adjustedPositionValue = builder.CreateAdd(positionValue, unionDataOffset);
+				
+				const auto endBB = functionGenerator_.createBasicBlock("end");
+				const auto switchInstruction = builder.CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
+				
+				// Start from 1 so that 0 can represent 'empty'.
+				uint8_t tag = 1;
+				
+				for (const auto& variantTypeInstance: typeInstance.variants()) {
+					const auto matchBB = functionGenerator_.createBasicBlock("tagMatch");
+					const auto tagValue = ConstantGenerator(module).getI8(tag++);
+					
+					switchInstruction->addCase(tagValue, matchBB);
+					
+					functionGenerator_.selectBasicBlock(matchBB);
+					
+					const auto variantType = variantTypeInstance->selfType();
+					const auto unionValueType = genType(module, variantType);
+					const auto castedUnionValuePtr = builder.CreatePointerCast(unionDatatypePointers.second,
+					                                                           unionValueType->getPointerTo());
+					
+					genMoveCall(functionGenerator_,
+					            variantType,
+					            castedUnionValuePtr,
+					            destValue,
+					            adjustedPositionValue);
+					
+					builder.CreateBr(endBB);
+				}
+				
+				functionGenerator_.selectBasicBlock(endBB);
+			} else {
+				// Move member variables.
+				for (const auto& memberVar: typeInstance.variables()) {
+					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
+					const auto ptrToMember = genMemberPtr(functionGenerator_, sourceValue, type, memberIndex);
+					const auto memberOffsetValue = genMemberOffset(functionGenerator_, type, memberIndex);
+					const auto adjustedPositionValue = builder.CreateAdd(positionValue, memberOffsetValue);
+					genMoveCall(functionGenerator_,
+					            memberVar->type(),
+					            ptrToMember,
+					            destValue,
+					            adjustedPositionValue);
+				}
+			}
+			
+			return ConstantGenerator(module).getVoidUndef();
+		}
+		
+		llvm::Value*
 		DefaultMethodEmitter::emitImplicitCopy(const SEM::Type* const type,
 		                                       const SEM::FunctionType functionType,
 		                                       PendingResultArray args,

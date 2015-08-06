@@ -49,6 +49,11 @@ namespace locic {
 			           PendingResultArray args);
 			
 			llvm::Value*
+			emitInnerMoveTo(const SEM::Type* type,
+			                SEM::FunctionType functionType,
+			                PendingResultArray args);
+			
+			llvm::Value*
 			emitImplicitCopy(const SEM::Type* type,
 			                 SEM::FunctionType functionType,
 			                 PendingResultArray args,
