@@ -19,10 +19,12 @@ namespace locic {
 			SEMCodeEmitter(Function& functionGenerator);
 			
 			void emitFunctionCode(const SEM::TypeInstance* typeInstance,
-			                      const SEM::Function& function);
+			                      const SEM::Function& function,
+			                      bool isInnerMethod);
 			
 			void emitDefaultFunctionCode(const SEM::TypeInstance& typeInstance,
-			                             const SEM::Function& function);
+			                             const SEM::Function& function,
+			                             bool isInnerMethod);
 			
 			void emitUserFunctionCode(const SEM::Function& function);
 			

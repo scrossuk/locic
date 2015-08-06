@@ -99,7 +99,6 @@ namespace locic {
 				return;
 			}
 			
-			(void) genMoveFunctionDef(module, &typeInstance);
 			(void) genDestructorFunctionDef(module, typeInstance);
 			(void) genAlignMaskFunctionDef(module, &typeInstance);
 			(void) genSizeOfFunctionDef(module, &typeInstance);

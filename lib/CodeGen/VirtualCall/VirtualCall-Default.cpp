@@ -313,8 +313,8 @@ namespace locic {
 					const auto argInfo = getFunctionArgInfo(module, semMethod->type());
 					
 					auto& semFunctionGenerator = module.semFunctionGenerator();
-					const auto llvmMethod = semFunctionGenerator.getCallableDecl(typeInstance,
-					                                                             *semMethod);
+					const auto llvmMethod = semFunctionGenerator.getDecl(typeInstance,
+					                                                     *semMethod);
 					
 					const auto functionType = semMethod->type();
 					const auto returnType = functionType.returnType();

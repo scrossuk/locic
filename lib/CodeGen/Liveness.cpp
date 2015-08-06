@@ -130,8 +130,8 @@ namespace locic {
 		llvm::Function* genSetDeadFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto& function = typeInstance->functions().at(module.getCString("__setdead"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
-			return semFunctionGenerator.getCallableDecl(typeInstance,
-			                                            *function);
+			return semFunctionGenerator.getDecl(typeInstance,
+			                                    *function);
 		}
 		
 		llvm::Value* getLivenessByteOffset(Function& function, const SEM::TypeInstance& typeInstance, const LivenessIndicator livenessIndicator) {
@@ -305,8 +305,8 @@ namespace locic {
 		llvm::Function* genIsLiveFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto& function = typeInstance->functions().at(module.getCString("__islive"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
-			return semFunctionGenerator.getCallableDecl(typeInstance,
-			                                            *function);
+			return semFunctionGenerator.getDecl(typeInstance,
+			                                    *function);
 		}
 		
 		llvm::Function* genIsLiveDefaultFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {

@@ -51,8 +51,8 @@ namespace locic {
 		llvm::Function* genAlignMaskFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto& function = typeInstance->functions().at(module.getCString("__alignmask"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
-			return semFunctionGenerator.getCallableDecl(typeInstance,
-			                                            *function);
+			return semFunctionGenerator.getDecl(typeInstance,
+			                                    *function);
 		}
 		
 		llvm::Function* genAlignMaskFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
@@ -60,8 +60,8 @@ namespace locic {
 			
 			const auto& semFunction = *(typeInstance->functions().at(module.getCString("__alignmask")));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
-			const auto llvmFunction = semFunctionGenerator.getCallableDecl(typeInstance,
-			                                                               semFunction);
+			const auto llvmFunction = semFunctionGenerator.getDecl(typeInstance,
+			                                                       semFunction);
 			
 			// For class declarations, the __alignmask function
 			// will be implemented in another module.
@@ -175,8 +175,8 @@ namespace locic {
 		llvm::Function* genSizeOfFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
 			const auto& function = typeInstance->functions().at(module.getCString("__sizeof"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
-			return semFunctionGenerator.getCallableDecl(typeInstance,
-			                                            *function);
+			return semFunctionGenerator.getDecl(typeInstance,
+			                                    *function);
 		}
 		
 		llvm::Function* genSizeOfFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
@@ -184,8 +184,8 @@ namespace locic {
 			
 			const auto& semFunction = *(typeInstance->functions().at(module.getCString("__sizeof")));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
-			const auto llvmFunction = semFunctionGenerator.getCallableDecl(typeInstance,
-			                                                               semFunction);
+			const auto llvmFunction = semFunctionGenerator.getDecl(typeInstance,
+			                                                       semFunction);
 			
 			// For class declarations, the sizeof() function
 			// will be implemented in another module.

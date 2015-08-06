@@ -308,8 +308,8 @@ namespace locic {
 			
 			if (methodIterator != typeInstance.functions().end()) {
 				auto& semFunctionGenerator = module.semFunctionGenerator();
-				const auto customDestructor = semFunctionGenerator.getCallableDecl(&typeInstance,
-				                                                                   *(methodIterator->second));
+				const auto customDestructor = semFunctionGenerator.getDecl(&typeInstance,
+				                                                           *(methodIterator->second));
 				const auto args = argInfo.hasTemplateGeneratorArgument() ?
 							std::vector<llvm::Value*> { function.getTemplateGenerator(), contextValue } :
 							std::vector<llvm::Value*> { contextValue };

@@ -26,11 +26,16 @@ namespace locic {
 		
 		void
 		SEMCodeEmitter::emitFunctionCode(const SEM::TypeInstance* typeInstance,
-		                                 const SEM::Function& function) {
-			if (function.isDefault()) {
+		                                 const SEM::Function& function,
+		                                 const bool isInnerMethod) {
+			// TODO: remove this horrible code...
+			const bool isOuterMethod = function.name().last().starts_with("__move") &&
+			                           !isInnerMethod;
+			if (function.isDefault() || isOuterMethod) {
 				assert(typeInstance != nullptr);
 				emitDefaultFunctionCode(*typeInstance,
-				                        function);
+				                        function,
+				                        isInnerMethod);
 			} else {
 				emitUserFunctionCode(function);
 			}
@@ -38,14 +43,10 @@ namespace locic {
 		
 		void
 		SEMCodeEmitter::emitDefaultFunctionCode(const SEM::TypeInstance& typeInstance,
-		                                        const SEM::Function& function) {
-			assert(function.isDefault());
+		                                        const SEM::Function& function,
+		                                        const bool isInnerMethod) {
+			//assert(function.isDefault());
 			auto& module = functionGenerator_.module();
-			
-			SEM::ValueArray templateArgs;
-			for (const auto& templateVar: function.templateVariables()) {
-				templateArgs.push_back(templateVar->selfRefValue());
-			}
 			
 			const auto& argInfo = functionGenerator_.getArgInfo();
 			
@@ -78,6 +79,7 @@ namespace locic {
 			DefaultMethodEmitter defaultMethodEmitter(functionGenerator_);
 			
 			const auto result = defaultMethodEmitter.emitMethod(methodID,
+			                                                    isInnerMethod,
 			                                                    typeInstance.selfType(),
 			                                                    function.type(),
 			                                                    std::move(args),

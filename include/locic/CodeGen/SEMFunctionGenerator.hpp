@@ -60,32 +60,16 @@ namespace locic {
 			                 SEM::FunctionType type,
 			                 llvm::GlobalValue::LinkageTypes linkage);
 			
-			String
-			mangleUserFunctionName(const SEM::TypeInstance* typeInstance,
-			                       const SEM::Function& function);
-			
 			/**
-			 * \brief Get callable function declaration.
+			 * \brief Get LLVM function for SEM function.
 			 * 
-			 * This gets a declaration which can be used to call the
-			 * given function.
+			 * This gets the LLVM function that corresponds to the
+			 * given SEM function.
 			 */
 			llvm::Function*
-			getCallableDecl(const SEM::TypeInstance* typeInstance,
-			                const SEM::Function& function);
-			
-			/**
-			 * \brief Get user function declaration.
-			 * 
-			 * This returns a declaration for the function's
-			 * user-specified 'inner' function. For example, some
-			 * built-in methods such as destructors have an outer
-			 * callable function which calls the user's inner
-			 * function.
-			 */
-			llvm::Function*
-			getUserDecl(const SEM::TypeInstance* typeInstance,
-			            const SEM::Function& function);
+			getDecl(const SEM::TypeInstance* typeInstance,
+			        const SEM::Function& function,
+			        bool isInnerMethod = false);
 			
 			/**
 			 * \brief Generate function definition.
@@ -95,7 +79,8 @@ namespace locic {
 			 */
 			llvm::Function*
 			genDef(const SEM::TypeInstance* typeInstance,
-			       const SEM::Function& function);
+			       const SEM::Function& function,
+			       bool isInnerMethod = false);
 			
 			/**
 			 * \brief Create template function stub.

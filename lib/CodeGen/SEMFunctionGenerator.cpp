@@ -117,8 +117,9 @@ namespace locic {
 		}
 		
 		llvm::Function*
-		SEMFunctionGenerator::getCallableDecl(const SEM::TypeInstance* typeInstance,
-		                                      const SEM::Function& function) {
+		SEMFunctionGenerator::getDecl(const SEM::TypeInstance* typeInstance,
+		                              const SEM::Function& function,
+		                              const bool isInnerMethod) {
 			if (function.isMethod()) {
 				assert(typeInstance != nullptr);
 			} else {
@@ -127,7 +128,7 @@ namespace locic {
 			
 			assert(!function.requiresPredicate().isFalse());
 			
-			{
+			if (!isInnerMethod) {
 				const auto iterator = module_.getFunctionDeclMap().find(&function);
 				
 				if (iterator != module_.getFunctionDeclMap().end()) {
@@ -139,7 +140,8 @@ namespace locic {
 				mangleModuleScope(module_, function.moduleScope()) +
 				(function.isMethod() ?
 				 mangleMethodName(module_, typeInstance, function.name().last()) :
-				 mangleFunctionName(module_, function.name()));
+				 mangleFunctionName(module_, function.name())) +
+				(isInnerMethod ? "_internal" : "");
 			
 			const auto linkage = getLinkage(typeInstance, function);
 			const auto llvmFunction = getNamedFunction(mangledName,
@@ -160,63 +162,36 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		static bool isInnerMethodFunction(const String& name) {
-			return name == "__moveto" || name == "__move_to";
-		}
-		
-		String
-		SEMFunctionGenerator::mangleUserFunctionName(const SEM::TypeInstance* typeInstance,
-		                                             const SEM::Function& function) {
-			if (isInnerMethodFunction(function.name().last())) {
-				assert(function.isMethod());
-				return mangleModuleScope(module_, function.moduleScope()) +
-					mangleMethodName(module_, typeInstance, function.name().last() + "_internal");
-			} else {
-				return mangleModuleScope(module_, function.moduleScope()) +
-					(function.isMethod() ?
-						mangleMethodName(module_, typeInstance, function.name().last()) :
-						mangleFunctionName(module_, function.name()));
-			}
-		}
-		
-		llvm::Function*
-		SEMFunctionGenerator::getUserDecl(const SEM::TypeInstance* typeInstance,
-		                                  const SEM::Function& function) {
-			if (function.isMethod()) {
-				assert(typeInstance != nullptr);
-			} else {
-				assert(typeInstance == nullptr);
-			}
-			
-			assert(!function.requiresPredicate().isFalse());
-			
-			const auto mangledName = mangleUserFunctionName(typeInstance,
-			                                                function);
-			const auto linkage = getLinkage(typeInstance, function);
-			return getNamedFunction(mangledName, function.type(), linkage);
-		}
-		
 		llvm::Function*
 		SEMFunctionGenerator::genDef(const SEM::TypeInstance* typeInstance,
-		                             const SEM::Function& function) {
-			const auto llvmFunction = getUserDecl(typeInstance,
-			                                      function);
+		                             const SEM::Function& function,
+		                             const bool isInnerMethod) {
+			assert(!isInnerMethod || function.name().last().starts_with("__move"));
+			const auto llvmFunction = getDecl(typeInstance,
+			                                  function,
+			                                  isInnerMethod);
 			
 			if (function.isPrimitive()) {
 				// Already generated in genFunctionDecl().
+				assert(!isInnerMethod);
 				return llvmFunction;
 			}
 			
+			const bool isClassDecl = typeInstance != nullptr &&
+			                         typeInstance->isClassDecl();
+			
 			if (function.isDeclaration() &&
-			    !function.isDefault()) {
+			    (!function.isDefault() || isClassDecl)) {
 				// A declaration, so it has no associated code.
+				assert(!isInnerMethod);
 				return llvmFunction;
 			}
 			
 			// FIXME: Remove!
 			if (function.isDefault()) {
 				const auto methodName = CanonicalizeMethodName(function.name().last());
-				if (methodName.starts_with("__")) {
+				if (methodName.starts_with("__") &&
+				    !methodName.starts_with("__move")) {
 					return llvmFunction;
 				}
 			}
@@ -238,6 +213,10 @@ namespace locic {
 				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			}
 			
+			if (isInnerMethod) {
+				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+			}
+			
 			const auto debugSubprogram = genDebugFunctionInfo(module_,
 			                                                  &function,
 			                                                  llvmFunction);
@@ -248,7 +227,8 @@ namespace locic {
 			
 			SEMCodeEmitter codeEmitter(functionGenerator);
 			codeEmitter.emitFunctionCode(typeInstance,
-			                             function);
+			                             function,
+			                             isInnerMethod);
 			
 			if (!function.templateVariables().empty()) {
 				(void) genTemplateIntermediateFunction(module_,

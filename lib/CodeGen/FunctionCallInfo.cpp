@@ -32,11 +32,11 @@ namespace locic {
 		llvm::Function* genFunctionDeclRef(Module& module, const SEM::Type* const parentType, SEM::Function* function) {
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			if (parentType == nullptr) {
-				return semFunctionGenerator.getCallableDecl(nullptr,
-				                                            *function);
+				return semFunctionGenerator.getDecl(nullptr,
+				                                    *function);
 			} else if (parentType->isObject()) {
-				return semFunctionGenerator.getCallableDecl(parentType->getObjectType(),
-				                                            *function);
+				return semFunctionGenerator.getDecl(parentType->getObjectType(),
+				                                    *function);
 			} else {
 				llvm_unreachable("Unknown parent type in function ref.");
 			}

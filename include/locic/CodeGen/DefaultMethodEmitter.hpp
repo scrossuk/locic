@@ -32,6 +32,7 @@ namespace locic {
 			
 			llvm::Value*
 			emitMethod(MethodID methodID,
+			           bool isInnerMethod,
 			           const SEM::Type* type,
 			           SEM::FunctionType functionType,
 			           PendingResultArray args,
@@ -44,9 +45,9 @@ namespace locic {
 			                      llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitMoveTo(const SEM::Type* type,
-			           SEM::FunctionType functionType,
-			           PendingResultArray args);
+			emitOuterMoveTo(const SEM::Type* type,
+			                SEM::FunctionType functionType,
+			                PendingResultArray args);
 			
 			llvm::Value*
 			emitInnerMoveTo(const SEM::Type* type,

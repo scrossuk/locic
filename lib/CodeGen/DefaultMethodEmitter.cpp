@@ -27,10 +27,18 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitMethod(const MethodID methodID,
+		                                 const bool isInnerMethod,
 		                                 const SEM::Type* const type,
 		                                 const SEM::FunctionType functionType,
 		                                 PendingResultArray args,
 		                                 llvm::Value* const hintResultValue) {
+			if (isInnerMethod) {
+				assert(methodID == METHOD_MOVETO);
+				return emitInnerMoveTo(type,
+				                       functionType,
+				                       std::move(args));
+			}
+			
 			switch (methodID) {
 				case METHOD_CREATE:
 					return emitCreateConstructor(type,
@@ -38,9 +46,9 @@ namespace locic {
 					                             std::move(args),
 					                             hintResultValue);
 				case METHOD_MOVETO:
-					return emitMoveTo(type,
-					                  functionType,
-					                  std::move(args));
+					return emitOuterMoveTo(type,
+					                       functionType,
+					                       std::move(args));
 				case METHOD_ALIGNMASK:
 				case METHOD_SIZEOF:
 				case METHOD_ISLIVE:
@@ -107,9 +115,9 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitMoveTo(const SEM::Type* const type,
-		                                 const SEM::FunctionType /*functionType*/,
-		                                 PendingResultArray args) {
+		DefaultMethodEmitter::emitOuterMoveTo(const SEM::Type* const type,
+		                                      const SEM::FunctionType /*functionType*/,
+		                                      PendingResultArray args) {
 			const auto& typeInstance = *(type->getObjectType());
 			auto& module = functionGenerator_.module();
 			
