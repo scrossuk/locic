@@ -53,11 +53,6 @@ namespace locic {
 		void genSetInvalidState(Function& function, const SEM::Type* type, llvm::Value* const objectPointerValue);
 		
 		/**
-		 * \brief Create __dead function definition.
-		 */
-		llvm::Function* genSetDeadDefaultFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance);
-		
-		/**
 		 * \brief Determine whether an object is live.
 		 */
 		llvm::Value* genIsLive(Function& function, const SEM::Type* type, llvm::Value* value);
