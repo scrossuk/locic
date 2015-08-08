@@ -26,6 +26,12 @@ namespace locic {
 			IREmitter(Function& functionGenerator);
 			
 			llvm::Value*
+			emitAlignMask(const SEM::Type* type);
+			
+			llvm::Value*
+			emitSizeOf(const SEM::Type* type);
+			
+			llvm::Value*
 			emitAlloca(const SEM::Type* type,
 			           llvm::Value* hintResultValue = nullptr);
 			

@@ -21,6 +21,16 @@ namespace locic {
 		: functionGenerator_(functionGenerator) { }
 		
 		llvm::Value*
+		IREmitter::emitAlignMask(const SEM::Type* const type) {
+			return genAlignMask(functionGenerator_, type);
+		}
+		
+		llvm::Value*
+		IREmitter::emitSizeOf(const SEM::Type* const type) {
+			return genSizeOf(functionGenerator_, type);
+		}
+		
+		llvm::Value*
 		IREmitter::emitAlloca(const SEM::Type* const type,
 		                      llvm::Value* const hintResultValue) {
 			return genAlloca(functionGenerator_,
