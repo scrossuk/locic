@@ -61,6 +61,11 @@ namespace locic {
 			emitSizeOf(const SEM::Type* type);
 			
 			llvm::Value*
+			emitIsLive(const SEM::Type* type,
+			           SEM::FunctionType functionType,
+			           PendingResultArray args);
+			
+			llvm::Value*
 			emitImplicitCopy(const SEM::Type* type,
 			                 SEM::FunctionType functionType,
 			                 PendingResultArray args,

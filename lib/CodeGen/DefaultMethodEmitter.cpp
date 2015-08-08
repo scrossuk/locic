@@ -1,6 +1,7 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/DefaultMethodEmitter.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
@@ -54,6 +55,9 @@ namespace locic {
 				case METHOD_SIZEOF:
 					return emitSizeOf(type);
 				case METHOD_ISLIVE:
+					return emitIsLive(type,
+					                  functionType,
+					                  std::move(args));
 				case METHOD_SETDEAD:
 					llvm_unreachable("Generated elsewhere.");
 				case METHOD_IMPLICITCOPY:
@@ -396,6 +400,55 @@ namespace locic {
 				classSize = functionGenerator_.getBuilder().CreateSelect(isZero, one, classSize);
 				
 				return makeAligned(functionGenerator_, classSize, classAlignMask);
+			}
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitIsLive(const SEM::Type* const type,
+		                                 const SEM::FunctionType functionType,
+		                                 PendingResultArray args) {
+			auto& module = functionGenerator_.module();
+			auto& builder = functionGenerator_.getBuilder();
+			
+			const auto& typeInstance = *(type->getObjectType());
+			
+			const auto contextValue = args[0].resolve(functionGenerator_);
+			
+			const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
+			
+			IREmitter irEmitter(functionGenerator_);
+			
+			switch (livenessIndicator.kind()) {
+				case LivenessIndicator::NONE: {
+					// Always consider object to be live.
+					return ConstantGenerator(module).getI1(true);
+				}
+				case LivenessIndicator::MEMBER_INVALID_STATE: {
+					// Query whether member has invalid state.
+					const auto& memberVar = livenessIndicator.memberVar();
+					const auto memberIndex = module.getMemberVarMap().at(&memberVar);
+					const auto memberPtr = genMemberPtr(functionGenerator_,
+					                                    contextValue,
+					                                    type,
+					                                    memberIndex);
+					const auto memberType = memberVar.constructType();
+					const MethodInfo methodInfo(memberType, module.getCString("__isvalid"), functionType, {});
+					const auto contextArg = RefPendingResult(memberPtr, memberType);
+					return genDynamicMethodCall(functionGenerator_, methodInfo, contextArg, {});
+				}
+				case LivenessIndicator::CUSTOM_METHODS: {
+					llvm_unreachable("No custom __islive method exists for liveness indicator that references custom methods!");
+				}
+				case LivenessIndicator::SUFFIX_BYTE:
+				case LivenessIndicator::GAP_BYTE: {
+					const auto bytePtr = getLivenessBytePtr(functionGenerator_,
+					                                        typeInstance,
+					                                        livenessIndicator,
+					                                        contextValue);
+					const auto byteValue = builder.CreateLoad(bytePtr);
+					// Live if suffix/gap byte == 1.
+					return builder.CreateICmpEQ(byteValue, ConstantGenerator(module).getI8(1));
+				}
 			}
 		}
 		
