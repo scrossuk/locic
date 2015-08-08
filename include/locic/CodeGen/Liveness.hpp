@@ -58,11 +58,6 @@ namespace locic {
 		llvm::Value* genIsLive(Function& function, const SEM::Type* type, llvm::Value* value);
 		
 		/**
-		 * \brief Create __islive function definition.
-		 */
-		llvm::Function* genIsLiveDefaultFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance);
-		
-		/**
 		 * \brief Get pointer to liveness byte.
 		 */
 		llvm::Value* getLivenessBytePtr(Function& function,
