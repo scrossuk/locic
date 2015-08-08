@@ -19,8 +19,6 @@ namespace locic {
 		
 		llvm::Function* genAlignMaskFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genAlignMaskFunctionDef(Module& module, const SEM::TypeInstance* typeInstance);
-		
 		llvm::Value* genAlignOf(Function& function, const SEM::Type* type);
 		
 		llvm::Value* genAlignMask(Function& function, const SEM::Type* type);

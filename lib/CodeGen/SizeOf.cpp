@@ -55,69 +55,6 @@ namespace locic {
 			                                    *function);
 		}
 		
-		llvm::Function* genAlignMaskFunctionDef(Module& module, const SEM::TypeInstance* const typeInstance) {
-			assert(!typeInstance->isInterface());
-			
-			const auto& semFunction = *(typeInstance->functions().at(module.getCString("__alignmask")));
-			auto& semFunctionGenerator = module.semFunctionGenerator();
-			const auto llvmFunction = semFunctionGenerator.getDecl(typeInstance,
-			                                                       semFunction);
-			
-			// For class declarations, the __alignmask function
-			// will be implemented in another module.
-			if (typeInstance->isClassDecl()) {
-				return llvmFunction;
-			}
-			
-			if (semFunction.isDefinition()) {
-				// Custom method; generated in genFunctionDef().
-				return llvmFunction;
-			}
-			
-			// Always inline this function.
-			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
-			
-			if (typeInstance->isPrimitive()) {
-				createPrimitiveAlignOf(module, typeInstance, *llvmFunction);
-				return llvmFunction;
-			}
-			
-			const auto argInfo = alignMaskArgInfo(module, typeInstance);
-			Function function(module, *llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
-			
-			const auto zero = ConstantGenerator(module).getSizeTValue(0);
-			
-			if (typeInstance->isUnionDatatype()) {
-				// Calculate maximum alignment mask of all variants,
-				// which is just a matter of OR-ing them together
-				// (the tag byte has an alignment of 1 and hence an
-				// alignment mask of 0).
-				llvm::Value* maxVariantAlignMask = zero;
-				
-				for (const auto variantTypeInstance: typeInstance->variants()) {
-					const auto variantAlignMask = genAlignMask(function, variantTypeInstance->selfType());
-					maxVariantAlignMask = function.getBuilder().CreateOr(maxVariantAlignMask, variantAlignMask);
-				}
-				
-				function.getBuilder().CreateRet(maxVariantAlignMask);
-			} else {
-				// Calculate maximum alignment mask of all variables,
-				// which is just a matter of OR-ing them together.
-				llvm::Value* classAlignMask = zero;
-				
-				for (const auto& var: typeInstance->variables()) {
-					const auto varAlignMask = genAlignMask(function, var->type());
-					classAlignMask = function.getBuilder().CreateOr(classAlignMask, varAlignMask);
-				}
-				
-				function.getBuilder().CreateRet(classAlignMask);
-			}
-			
-			function.verify();
-			
-			return llvmFunction;
-		}
-		
 		llvm::Value* genAlignOf(Function& function, const SEM::Type* type) {
 			const auto alignMask = genAlignMask(function, type);
 			const auto name = makeString("alignof__%s", type->isObject() ? type->getObjectType()->name().last().c_str() : "");
