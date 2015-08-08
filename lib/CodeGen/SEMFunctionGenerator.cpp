@@ -187,15 +187,6 @@ namespace locic {
 				return llvmFunction;
 			}
 			
-			// FIXME: Remove!
-			if (function.isDefault()) {
-				const auto methodName = CanonicalizeMethodName(function.name().last());
-				if (methodName.starts_with("__") &&
-				    !methodName.starts_with("__move")) {
-					return llvmFunction;
-				}
-			}
-			
 			const auto templatedObject =
 				!function.templateVariables().empty() || typeInstance == nullptr ?
 					TemplatedObject::Function(typeInstance,

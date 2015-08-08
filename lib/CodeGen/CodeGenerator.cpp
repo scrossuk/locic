@@ -100,10 +100,6 @@ namespace locic {
 			}
 			
 			(void) genDestructorFunctionDef(module, typeInstance);
-			(void) genAlignMaskFunctionDef(module, &typeInstance);
-			(void) genSizeOfFunctionDef(module, &typeInstance);
-			(void) genSetDeadDefaultFunctionDef(module, &typeInstance);
-			(void) genIsLiveDefaultFunctionDef(module, &typeInstance);
 			
 			if (!typeInstance.templateVariables().empty()) {
 				auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(&typeInstance));
