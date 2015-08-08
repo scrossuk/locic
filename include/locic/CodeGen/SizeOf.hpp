@@ -25,8 +25,6 @@ namespace locic {
 		
 		llvm::Function* genSizeOfFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance);
 		
-		llvm::Function* genSizeOfFunctionDef(Module& module, const SEM::TypeInstance* typeInstance);
-		
 		llvm::Value* genSizeOf(Function& function, const SEM::Type* type);
 		
 		llvm::Value* makeAligned(Function& function, llvm::Value* size, llvm::Value* alignMask);
