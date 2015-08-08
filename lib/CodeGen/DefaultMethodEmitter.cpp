@@ -50,6 +50,7 @@ namespace locic {
 					                       functionType,
 					                       std::move(args));
 				case METHOD_ALIGNMASK:
+					return emitAlignMask(type);
 				case METHOD_SIZEOF:
 				case METHOD_ISLIVE:
 				case METHOD_SETDEAD:
@@ -275,6 +276,45 @@ namespace locic {
 			}
 			
 			return ConstantGenerator(module).getVoidUndef();
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitAlignMask(const SEM::Type* const type) {
+			auto& module = functionGenerator_.module();
+			const auto& typeInstance = *(type->getObjectType());
+			
+			IREmitter irEmitter(functionGenerator_);
+			
+			const auto zero = ConstantGenerator(module).getSizeTValue(0);
+			
+			if (typeInstance.isUnionDatatype()) {
+				// Calculate maximum alignment mask of all variants,
+				// which is just a matter of OR-ing them together
+				// (the tag byte has an alignment of 1 and hence an
+				// alignment mask of 0).
+				llvm::Value* maxVariantAlignMask = zero;
+				
+				for (const auto variantTypeInstance: typeInstance.variants()) {
+					const auto variantType = SEM::Type::Object(variantTypeInstance,
+					                                           type->templateArguments().copy());
+					const auto variantAlignMask = irEmitter.emitAlignMask(variantType);
+					maxVariantAlignMask = functionGenerator_.getBuilder().CreateOr(maxVariantAlignMask, variantAlignMask);
+				}
+				
+				return maxVariantAlignMask;
+			} else {
+				// Calculate maximum alignment mask of all variables,
+				// which is just a matter of OR-ing them together.
+				llvm::Value* classAlignMask = zero;
+				
+				for (const auto& var: typeInstance.variables()) {
+					const auto varType = var->type()->substitute(type->generateTemplateVarMap());
+					const auto varAlignMask = irEmitter.emitAlignMask(varType);
+					classAlignMask = functionGenerator_.getBuilder().CreateOr(classAlignMask, varAlignMask);
+				}
+				
+				return classAlignMask;
+			}
 		}
 		
 		llvm::Value*
