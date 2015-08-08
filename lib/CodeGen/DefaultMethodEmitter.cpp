@@ -1,5 +1,6 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/DefaultMethodEmitter.hpp>
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -59,7 +60,9 @@ namespace locic {
 					                  functionType,
 					                  std::move(args));
 				case METHOD_SETDEAD:
-					llvm_unreachable("Generated elsewhere.");
+					return emitSetDead(type,
+					                   functionType,
+					                   std::move(args));
 				case METHOD_IMPLICITCOPY:
 					return emitImplicitCopy(type,
 					                        functionType,
@@ -401,6 +404,63 @@ namespace locic {
 				
 				return makeAligned(functionGenerator_, classSize, classAlignMask);
 			}
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitSetDead(const SEM::Type* const type,
+		                                  const SEM::FunctionType /*functionType*/,
+		                                  PendingResultArray args) {
+			auto& module = functionGenerator_.module();
+			auto& builder = functionGenerator_.getBuilder();
+			
+			const auto& typeInstance = *(type->getObjectType());
+			
+			const auto contextValue = args[0].resolve(functionGenerator_);
+			
+			const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
+			
+			IREmitter irEmitter(functionGenerator_);
+			
+			switch (livenessIndicator.kind()) {
+				case LivenessIndicator::NONE: {
+					// Set member values to dead state; this only needs to
+					// occur if any of the members have custom destructors
+					// or custom move methods.
+					if (typeInstanceHasDestructor(module, typeInstance) ||
+					    typeInstanceHasCustomMove(module, &typeInstance)) {
+						for (const auto& memberVar: typeInstance.variables()) {
+							const auto memberIndex = module.getMemberVarMap().at(memberVar);
+							const auto memberPtr = genMemberPtr(functionGenerator_, contextValue, type, memberIndex);
+							genSetDeadState(functionGenerator_, memberVar->type(), memberPtr);
+						}
+					}
+					break;
+				}
+				case LivenessIndicator::MEMBER_INVALID_STATE: {
+					// Set the relevant member into an invalid state.
+					const auto memberVar = &(livenessIndicator.memberVar());
+					const auto memberIndex = module.getMemberVarMap().at(memberVar);
+					const auto memberPtr = genMemberPtr(functionGenerator_, contextValue, type, memberIndex);
+					genSetInvalidState(functionGenerator_, memberVar->constructType(), memberPtr);
+					break;
+				}
+				case LivenessIndicator::CUSTOM_METHODS: {
+					llvm_unreachable("Shouldn't reach custom __setdead method invocation inside auto-generated method.");
+					break;
+				}
+				case LivenessIndicator::SUFFIX_BYTE:
+				case LivenessIndicator::GAP_BYTE: {
+					// Store zero into suffix/gap byte to represent dead state.
+					const auto bytePtr = getLivenessBytePtr(functionGenerator_,
+					                                        typeInstance,
+					                                        livenessIndicator,
+					                                        contextValue);
+					builder.CreateStore(ConstantGenerator(module).getI8(0), bytePtr);
+					break;
+				}
+			}
+			
+			return ConstantGenerator(module).getVoidUndef();
 		}
 		
 		llvm::Value*
