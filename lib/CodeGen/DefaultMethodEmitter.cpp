@@ -52,6 +52,7 @@ namespace locic {
 				case METHOD_ALIGNMASK:
 					return emitAlignMask(type);
 				case METHOD_SIZEOF:
+					return emitSizeOf(type);
 				case METHOD_ISLIVE:
 				case METHOD_SETDEAD:
 					llvm_unreachable("Generated elsewhere.");
@@ -314,6 +315,87 @@ namespace locic {
 				}
 				
 				return classAlignMask;
+			}
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitSizeOf(const SEM::Type* const type) {
+			auto& module = functionGenerator_.module();
+			const auto& typeInstance = *(type->getObjectType());
+			
+			IREmitter irEmitter(functionGenerator_);
+			
+			const auto zero = ConstantGenerator(module).getSizeTValue(0);
+			const auto one = ConstantGenerator(module).getSizeTValue(1);
+			
+			if (typeInstance.isUnionDatatype()) {
+				// Calculate maximum alignment and size of all variants.
+				llvm::Value* maxVariantAlignMask = zero;
+				llvm::Value* maxVariantSize = zero;
+				
+				for (const auto variantTypeInstance: typeInstance.variants()) {
+					const auto variantType = SEM::Type::Object(variantTypeInstance,
+					                                           type->templateArguments().copy());
+					const auto variantAlignMask = irEmitter.emitAlignMask(variantType);
+					const auto variantSize = irEmitter.emitSizeOf(variantType);
+					
+					maxVariantAlignMask = functionGenerator_.getBuilder().CreateOr(maxVariantAlignMask, variantAlignMask);
+					
+					const auto compareResult = functionGenerator_.getBuilder().CreateICmpUGT(variantSize, maxVariantSize);
+					maxVariantSize = functionGenerator_.getBuilder().CreateSelect(compareResult, variantSize, maxVariantSize);
+				}
+				
+				// Add one byte for the tag.
+				llvm::Value* classSize = one;
+				
+				// Align for most alignment variant type.
+				classSize = makeAligned(functionGenerator_, classSize, maxVariantAlignMask);
+				
+				// Add can't overflow.
+				const bool hasNoUnsignedWrap = true;
+				const bool hasNoSignedWrap = false;
+				classSize = functionGenerator_.getBuilder().CreateAdd(classSize,
+				                                                      maxVariantSize,
+				                                                      "",
+				                                                      hasNoUnsignedWrap,
+				                                                      hasNoSignedWrap);
+				
+				return makeAligned(functionGenerator_, classSize, maxVariantAlignMask);
+			} else {
+				const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
+				
+				// Add up all member variable sizes.
+				llvm::Value* classSize = livenessIndicator.isSuffixByte() ? one : zero;
+				
+				// Also need to calculate class alignment so the
+				// correct amount of padding is added at the end.
+				llvm::Value* classAlignMask = zero;
+				
+				for (const auto& var: typeInstance.variables()) {
+					const auto varType = var->type()->substitute(type->generateTemplateVarMap());
+					const auto memberAlignMask = irEmitter.emitAlignMask(varType);
+					const auto memberSize = irEmitter.emitSizeOf(varType);
+					
+					classAlignMask = functionGenerator_.getBuilder().CreateOr(classAlignMask,
+					                                                          memberAlignMask);
+					
+					classSize = makeAligned(functionGenerator_, classSize, memberAlignMask);
+					
+					// Add can't overflow.
+					const bool hasNoUnsignedWrap = true;
+					const bool hasNoSignedWrap = false;
+					classSize = functionGenerator_.getBuilder().CreateAdd(classSize,
+					                                                      memberSize,
+					                                                      "",
+					                                                      hasNoUnsignedWrap,
+					                                                      hasNoSignedWrap);
+				}
+				
+				// Class sizes must be at least one byte.
+				const auto isZero = functionGenerator_.getBuilder().CreateICmpEQ(classSize, zero);
+				classSize = functionGenerator_.getBuilder().CreateSelect(isZero, one, classSize);
+				
+				return makeAligned(functionGenerator_, classSize, classAlignMask);
 			}
 		}
 		

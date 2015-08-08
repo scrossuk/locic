@@ -58,6 +58,9 @@ namespace locic {
 			emitAlignMask(const SEM::Type* type);
 			
 			llvm::Value*
+			emitSizeOf(const SEM::Type* type);
+			
+			llvm::Value*
 			emitImplicitCopy(const SEM::Type* type,
 			                 SEM::FunctionType functionType,
 			                 PendingResultArray args,
