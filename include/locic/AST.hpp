@@ -14,6 +14,7 @@
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Statement.hpp>
+#include <locic/AST/StaticAssert.hpp>
 #include <locic/AST/StringList.hpp>
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
