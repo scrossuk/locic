@@ -163,6 +163,9 @@ const T& GETSYM(T* value) {
 	locic::AST::Node<locic::AST::Function>* function;
 	locic::AST::Node<locic::AST::FunctionList>* functionList;
 	locic::AST::Node<locic::AST::ModuleScope>* moduleScope;
+
+	// Static Assert
+	locic::AST::Node<locic::AST::StaticAssert>* staticAssert;
 	
 	// Exception initializer.
 	locic::AST::Node<locic::AST::ExceptionInitializer>* exceptionInitializer;
@@ -363,6 +366,8 @@ const T& GETSYM(T* value) {
 %type <alias> nonTemplatedAlias
 %type <alias> alias
 
+%type <staticAssert> staticAssert
+
 %type <string> moduleNameComponent
 %type <stringList> moduleName
 %type <version> moduleVersion
@@ -559,6 +564,11 @@ namespaceData:
 		(GETSYM($1))->moduleScopes.push_back(GETSYM($2));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
 	}
+	| namespaceData staticAssert
+	{
+		(GETSYM($1))->staticAsserts.push_back(GETSYM($2));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
 	| namespaceData error
 	{
 		parserContext->error("Invalid struct, class, function or other.", LOC(&@2));
@@ -651,6 +661,13 @@ cTypeVarList:
 	| cTypeVarList SEMICOLON
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), (GETSYM($1)).get()));
+	}
+	;
+
+staticAssert:
+	STATIC ASSERT predicateExpr SEMICOLON
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::StaticAssert(GETSYM($3))));
 	}
 	;
 
