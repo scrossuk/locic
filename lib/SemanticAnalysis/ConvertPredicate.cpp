@@ -28,6 +28,12 @@ namespace locic {
 			const auto& location = astPredicateNode.location();
 			
 			switch (astPredicateNode->kind()) {
+				case AST::Predicate::TRUE: {
+					return SEM::Predicate::True();
+				}
+				case AST::Predicate::FALSE: {
+					return SEM::Predicate::False();
+				}
 				case AST::Predicate::BRACKET: {
 					return ConvertPredicate(context, astPredicateNode->bracketExpr());
 				}

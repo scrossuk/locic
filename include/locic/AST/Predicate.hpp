@@ -15,12 +15,18 @@ namespace locic {
 		class Predicate {
 			public:
 				enum Kind {
+					TRUE,
+					FALSE,
 					BRACKET,
 					TYPESPEC,
 					SYMBOL,
 					AND,
 					OR
 				};
+				
+				static Predicate* True();
+				
+				static Predicate* False();
 				
 				static Predicate* Bracket(const Node<Predicate>& expr);
 				

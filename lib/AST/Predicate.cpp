@@ -8,9 +8,17 @@
 #include <locic/Support/MakeString.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
+	namespace AST {
+		
+		Predicate* Predicate::True() {
+			return new Predicate(TRUE);
+		}
+		
+		Predicate* Predicate::False() {
+			return new Predicate(FALSE);
+		}
+		
 		Predicate* Predicate::Bracket(const Node<Predicate>& expr) {
 			Predicate* predicate = new Predicate(BRACKET);
 			predicate->bracket_.expr = expr;
@@ -90,6 +98,10 @@ namespace locic {
 		
 		std::string Predicate::toString() const {
 			switch (kind()) {
+				case TRUE:
+					return "True";
+				case FALSE:
+					return "False";
 				case  BRACKET:
 					return makeString("Bracket(%s)", bracketExpr().toString().c_str());
 				case TYPESPEC:
