@@ -7,6 +7,7 @@ macro(test_check_success name)
 endmacro(test_check_success)
 
 add_subdirectory(Alias)
+add_subdirectory(Assert)
 add_subdirectory(Cast)
 add_subdirectory(Const)
 add_subdirectory(Exception)
