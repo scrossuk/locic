@@ -52,6 +52,8 @@ namespace locic {
 				//      (all methods created by this point).
 				CheckTemplateInstantiationsPass(context);
 				
+				EvaluateStaticAssertsPass(context, rootASTNamespaces);
+				
 				// ---- Fill in function code.
 				ConvertNamespace(context, rootASTNamespaces);
 			} catch(const Exception& e) {
