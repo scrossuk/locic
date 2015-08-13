@@ -57,6 +57,11 @@ namespace locic {
 		 */
 		void CheckTemplateInstantiationsPass(Context& context);
 		
+		/**
+		 * \brief Check all the static asserts resolve to true.
+		 */
+		 void EvaluateStaticAssertsPass(Context& context, const AST::NamespaceList& rootASTNamespaces);
+		
 	}
 	
 }
