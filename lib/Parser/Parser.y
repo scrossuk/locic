@@ -215,6 +215,9 @@ const T& GETSYM(T* value) {
 %token <lexer_version> VERSION
 %token <lexer_constant> CONSTANT
 
+%token TRUEVAL
+%token FALSEVAL
+
 %token UNKNOWN
 %token ERROR
 %token INTERFACE
@@ -1890,6 +1893,14 @@ constant:
 	CONSTANT
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::Constant($1)));
+	}
+	| TRUEVAL
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::Constant(locic::Constant::True())));
+	}
+	| FALSEVAL
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::Constant(locic::Constant::False())));
 	}
 	| NULLVAL
 	{

@@ -162,8 +162,8 @@ float                   { return FLOAT; }
 double                  { return DOUBLE; }
 
 null                    { return NULLVAL; }
-true                    { yylval->lexer_constant = locic::Constant::True(); return CONSTANT; }
-false                   { yylval->lexer_constant = locic::Constant::False(); return CONSTANT; }
+true                    { return TRUEVAL; }
+false                   { return FALSEVAL; }
 [0-9]+                  { yylval->lexer_constant = locic::Constant::Integer(atol(yytext)); return CONSTANT; }
 0x[0-9A-F]+             { yylval->lexer_constant = locic::Constant::Integer(parseHex(yytext)); return CONSTANT; }
 [0-9]+\.[0-9]+          { yylval->lexer_constant = locic::Constant::Float(atof(yytext)); return CONSTANT; }
