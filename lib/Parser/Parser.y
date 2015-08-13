@@ -670,7 +670,15 @@ constSpecifier:
 	;
 
 predicateExprAtom:
-	LROUNDBRACKET predicateExpr RROUNDBRACKET
+	TRUEVAL
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::True()));
+	}
+	| FALSEVAL
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::False()));
+	}
+	| LROUNDBRACKET predicateExpr RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Predicate::Bracket(GETSYM($2))));
 	}
