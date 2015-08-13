@@ -15,6 +15,7 @@ namespace locic {
 		struct Function;
 		struct ModuleScope;
 		struct Namespace;
+		class StaticAssert;
 		struct TypeInstance;
 		
 		struct NamespaceData {
@@ -22,6 +23,7 @@ namespace locic {
 			std::vector< AST::Node<Function> > functions;
 			std::vector< AST::Node<ModuleScope> > moduleScopes;
 			std::vector< AST::Node<Namespace> > namespaces;
+			std::vector< AST::Node<StaticAssert> > staticAsserts;
 			std::vector< AST::Node<TypeInstance> > typeInstances;
 			
 			std::string toString() const;
