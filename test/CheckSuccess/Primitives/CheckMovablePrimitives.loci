@@ -1,0 +1,16 @@
+
+static assert is_movable<byte>;
+static assert is_movable<short>;
+static assert is_movable<int>;
+static assert is_movable<long>;
+static assert is_movable<long long>;
+
+static assert is_movable<unsigned byte>;
+static assert is_movable<unsigned short>;
+static assert is_movable<unsigned int>;
+static assert is_movable<unsigned long>;
+static assert is_movable<unsigned long long>;
+
+static assert is_movable<float>;
+static assert is_movable<double>;
+static assert is_movable<long double>;
