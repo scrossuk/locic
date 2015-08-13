@@ -1,0 +1,1 @@
+Static assert predicate 'false' is false, at position SourceLocation\(filename = (.*)/StaticAssertTrivialFalse\.loci, range = \(line 2, column 15\) to \(line 2, column 20\)\)\.
