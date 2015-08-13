@@ -34,6 +34,7 @@ add_library(locic-semanalysis
 	Passes/CheckTemplateInstantiationsPass.cpp
 	Passes/CompleteFunctionTemplateVariableRequirementsPass.cpp
 	Passes/CompleteTypeTemplateVariableRequirementsPass.cpp
+	Passes/EvaluateStaticAssertsPass.cpp
 	Passes/GenerateDefaultMethodsPass.cpp
 	Ref.cpp
 	ScopeElement.cpp
