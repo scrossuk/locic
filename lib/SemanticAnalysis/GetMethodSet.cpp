@@ -373,17 +373,21 @@ namespace locic {
 			const auto type = rawType->resolveAliases();
 			assert(type->isObject() || type->isTemplateVar());
 			
-			const auto& templatedObject = lookupTemplatedObject(context.scopeStack());
+			const auto templatedObject = lookupTemplatedObject(context.scopeStack());
 			
 			const auto existingMethodSet = context.findMethodSet(templatedObject, type);
 			if (existingMethodSet != nullptr) {
 				return existingMethodSet;
 			}
 			
+			assert(type->isObject() || templatedObject != nullptr);
+			
 			const auto methodSet =
 				type->isObject() ?
 					getMethodSetForObjectType(context, type) :
-					getMethodSetForTemplateVarType(context, type, templatedObject);
+					getMethodSetForTemplateVarType(context,
+					                               type,
+					                               *templatedObject);
 			
 			context.addMethodSet(templatedObject, type, methodSet);
 			return methodSet;

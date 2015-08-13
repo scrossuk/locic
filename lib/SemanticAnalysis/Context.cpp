@@ -132,7 +132,8 @@ namespace locic {
 			return impl_->semContext;
 		}
 		
-		const MethodSet* Context::findMethodSet(const SEM::TemplatedObject& templatedObject, const SEM::Type* const type) const {
+		const MethodSet* Context::findMethodSet(const SEM::TemplatedObject* const templatedObject,
+		                                        const SEM::Type* const type) const {
 			assert(methodSetsComplete());
 			assert(type->isObject() || type->isTemplateVar());
 			
@@ -140,12 +141,15 @@ namespace locic {
 				const auto iterator = impl_->objectMethodSetMap.find(type);
 				return iterator != impl_->objectMethodSetMap.end() ? iterator->second : nullptr;
 			} else {
-				const auto iterator = impl_->templateVarMethodSetMap.find(std::make_pair(&templatedObject, type));
+				assert(templatedObject != nullptr);
+				const auto iterator = impl_->templateVarMethodSetMap.find(std::make_pair(templatedObject, type));
 				return iterator != impl_->templateVarMethodSetMap.end() ? iterator->second : nullptr;
 			}
 		}
 		
-		void Context::addMethodSet(const SEM::TemplatedObject& templatedObject, const SEM::Type* const type, const MethodSet* const methodSet) {
+		void Context::addMethodSet(const SEM::TemplatedObject* const templatedObject,
+		                           const SEM::Type* const type,
+		                           const MethodSet* const methodSet) {
 			assert(methodSetsComplete());
 			assert(type->isObject() || type->isTemplateVar());
 			
@@ -156,7 +160,8 @@ namespace locic {
 					result.first->second = methodSet;
 				}
 			} else {
-				const auto result = impl_->templateVarMethodSetMap.insert(std::make_pair(std::make_pair(&templatedObject, type), methodSet));
+				assert(templatedObject != nullptr);
+				const auto result = impl_->templateVarMethodSetMap.insert(std::make_pair(std::make_pair(templatedObject, type), methodSet));
 				if (!result.second) {
 					// Overwrite any existing element.
 					result.first->second = methodSet;

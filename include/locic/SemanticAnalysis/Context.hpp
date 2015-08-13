@@ -59,8 +59,12 @@ namespace locic {
 				
 				SEM::Context& semContext();
 				
-				const MethodSet* findMethodSet(const SEM::TemplatedObject& templatedObject, const SEM::Type* type) const;
-				void addMethodSet(const SEM::TemplatedObject& templatedObject, const SEM::Type* type, const MethodSet* methodSet);
+				const MethodSet* findMethodSet(const SEM::TemplatedObject* templatedObject,
+				                               const SEM::Type* type) const;
+				
+				void addMethodSet(const SEM::TemplatedObject* templatedObject,
+				                  const SEM::Type* type,
+				                  const MethodSet* methodSet);
 				
 				/**
 				 * \brief Maintains a list of pairs of a template var
