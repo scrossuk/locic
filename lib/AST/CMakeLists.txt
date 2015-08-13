@@ -6,6 +6,7 @@ add_library(locic-ast
 	Namespace.cpp
 	Predicate.cpp
 	RequireSpecifier.cpp
+	StaticAssert.cpp
 	Symbol.cpp
 	Type.cpp
 	TypeInstance.cpp
