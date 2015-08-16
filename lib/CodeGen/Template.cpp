@@ -26,15 +26,16 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool isRootTypeList(llvm::ArrayRef<SEM::Value> templateArguments);
+		bool isRootArgumentList(llvm::ArrayRef<SEM::Value> templateArguments);
 		
-		bool isRootType(const SEM::Type* type) {
+		bool isRootType(const SEM::Type* const type) {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
 					// Interface type template arguments don't affect
 					// code generation in any way so they can be
 					// ignored here.
-					return type->getObjectType()->isInterface() || isRootTypeList(arrayRef(type->templateArguments()));
+					return type->getObjectType()->isInterface() ||
+					       isRootArgumentList(arrayRef(type->templateArguments()));
 				}
 				case SEM::Type::TEMPLATEVAR: {
 					return false;
@@ -48,9 +49,19 @@ namespace locic {
 			}
 		}
 		
-		bool isRootTypeList(llvm::ArrayRef<SEM::Value> templateArguments) {
+		bool isRootArgument(const SEM::Value& value) {
+			if (value.isTypeRef()) {
+				return isRootType(value.typeRefType());
+			} else if (value.isTemplateVarRef()) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+		
+		bool isRootArgumentList(llvm::ArrayRef<SEM::Value> templateArguments) {
 			for (size_t i = 0; i < templateArguments.size(); i++) {
-				if (templateArguments[i].isTypeRef() && !isRootType(templateArguments[i].typeRefType())) {
+				if (!isRootArgument(templateArguments[i])) {
 					return false;
 				}
 			}
@@ -207,7 +218,7 @@ namespace locic {
 				// are ignored in code generation) then provide a 'null'
 				// root function.
 				return nullTemplateGenerator(module);
-			} else if (isRootTypeList(templateInst.arguments())) {
+			} else if (isRootArgumentList(templateInst.arguments())) {
 				// If there are only 'root' arguments (i.e. statically known),
 				// generate a root generator function for them and use
 				// path of '1' to only pick up the top level argument values.
@@ -264,7 +275,7 @@ namespace locic {
 		}
 		
 		llvm::Function* genTemplateRootFunction(Module& module, const TemplateInst& templateInst) {
-			assert(isRootTypeList(templateInst.arguments()));
+			assert(isRootArgumentList(templateInst.arguments()));
 			
 			const auto iterator = module.templateRootFunctionMap().find(templateInst);
 			if (iterator != module.templateRootFunctionMap().end()) {
