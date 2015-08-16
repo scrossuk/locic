@@ -5,4 +5,5 @@ test_check_output(IntClassTemplate)
 test_check_output(IntClassAndMethodTemplate)
 test_check_output(IntExtensionMethodTemplate)
 test_check_output(IntFunctionTemplate)
+test_check_output(IntFunctionTemplateRotateArgs)
 

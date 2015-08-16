@@ -1,0 +1,49 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+template <int value1, int value2, int value3>
+void printValues0() {
+	testPrint(C"printValues0:");
+	testPrint(C"  value1 = %d", value1);
+	testPrint(C"  value2 = %d", value2);
+	testPrint(C"  value3 = %d", value3);
+}
+
+template <int value1, int value2, int value3>
+void printValues1() {
+	printValues0<value2, value3, value1>();
+	testPrint(C"printValues1:");
+	testPrint(C"  value1 = %d", value1);
+	testPrint(C"  value2 = %d", value2);
+	testPrint(C"  value3 = %d", value3);
+}
+
+template <int value1, int value2, int value3>
+void printValues2() {
+	printValues1<value2, value3, value1>();
+	testPrint(C"printValues2:");
+	testPrint(C"  value1 = %d", value1);
+	testPrint(C"  value2 = %d", value2);
+	testPrint(C"  value3 = %d", value3);
+}
+
+template <int value1, int value2, int value3>
+void printValues3() {
+	printValues2<value2, value3, value1>();
+	testPrint(C"printValues3:");
+	testPrint(C"  value1 = %d", value1);
+	testPrint(C"  value2 = %d", value2);
+	testPrint(C"  value3 = %d", value3);
+}
+
+template <int value1, int value2, int value3>
+void printValues() {
+	printValues3<value1, value2, value3>();
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	printValues<1, 2, 3>();
+	return 0;
+}
+

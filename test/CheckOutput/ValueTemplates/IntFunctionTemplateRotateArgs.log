@@ -1,0 +1,16 @@
+printValues0:
+  value1 = 1
+  value2 = 2
+  value3 = 3
+printValues1:
+  value1 = 3
+  value2 = 1
+  value3 = 2
+printValues2:
+  value1 = 2
+  value2 = 3
+  value3 = 1
+printValues3:
+  value1 = 1
+  value2 = 2
+  value3 = 3
