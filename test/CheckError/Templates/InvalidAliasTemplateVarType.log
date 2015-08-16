@@ -1,1 +1,1 @@
-Template variable 'T' in type alias '::TestAlias' has invalid type 'SomeClass', at position SourceLocation\(filename = (.*)/InvalidAliasTemplateVarType\.loci, range = \(line 3, column 11\) to \(line 3, column 22\)\)\.
+Template variable 'T' in type alias '::TestAlias' has non-primitive type 'SomeClass', at position SourceLocation\(filename = (.*)/InvalidAliasTemplateVarType\.loci, range = \(line 3, column 11\) to \(line 3, column 22\)\)\.
