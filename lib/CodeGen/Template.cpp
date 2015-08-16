@@ -360,12 +360,10 @@ namespace locic {
 					
 					newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
 				} else {
-					// TODO: insert the actual value!
 					llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
 					
-					const auto llvmVtableType = vtableType(module);
-					const auto vtablePointer = ConstantGenerator(module).getNullPointer(llvmVtableType->getPointerTo());
-					typeInfo = builder.CreateInsertValue(typeInfo, vtablePointer, { 0 });
+					const auto valueFunction = genTemplateValueFunction(parentFunction, templateArg);
+					typeInfo = builder.CreateInsertValue(typeInfo, valueFunction, { 0 });
 					
 					const auto generator = nullTemplateGenerator(module);
 					typeInfo = builder.CreateInsertValue(typeInfo, generator, { 1 });
