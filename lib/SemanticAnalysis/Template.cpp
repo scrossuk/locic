@@ -111,6 +111,18 @@ namespace locic {
 				variableAssignments.insert(std::make_pair(templateVar, std::move(templateValue)));
 			}
 			
+			for (auto& assignment: variableAssignments) {
+				const auto& templateVar = assignment.first;
+				auto& templateValue = assignment.second;
+				if (!templateValue.isTypeRef()) {
+					const auto templateVarType = templateVar->type()->substitute(variableAssignments);
+					templateValue = ImplicitCast(context,
+					                             std::move(templateValue),
+					                             templateVarType,
+					                             location);
+				}
+			}
+			
 			// Check the assignments satisfy the requires predicate.
 			// 
 			// It's possible that we get to this point before the requires predicate
