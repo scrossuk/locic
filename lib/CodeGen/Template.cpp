@@ -520,10 +520,25 @@ namespace locic {
 				// Loop through each template argument and generate it.
 				for (size_t i = 0; i < templateUseInst.arguments().size(); i++) {
 					if (!templateUseInst.arguments()[i].isTypeRef()) {
-						// Non-type values currently not supported.
-						llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
-						typeInfo = builder.CreateInsertValue(typeInfo, nullTemplateGenerator(module), { 1 });
-						newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
+						if (templateUseInst.arguments()[i].isTemplateVarRef()) {
+							// Template var ref values just need to
+							// propagate the relevant argument.
+							const auto templateUseVar = templateUseInst.arguments()[i].templateVar();
+							const auto templateVarIndex = templateUseVar->index();
+							const auto templateRefEntryValue = builder.CreateExtractValue(typesArg, templateVarIndex);
+							newTypesValue = builder.CreateInsertValue(newTypesValue,
+							                                          templateRefEntryValue,
+							                                          { (unsigned int) i });
+						} else {
+							// Other values are just ignored for now...
+							llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
+							typeInfo = builder.CreateInsertValue(typeInfo,
+							                                     nullTemplateGenerator(module),
+							                                     { 1 });
+							newTypesValue = builder.CreateInsertValue(newTypesValue,
+							                                          typeInfo,
+							                                          { (unsigned int) i });
+						}
 						continue;
 					}
 					
