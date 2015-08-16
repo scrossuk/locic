@@ -3,5 +3,6 @@
 test_check_output(IntAliasTemplate)
 test_check_output(IntClassTemplate)
 test_check_output(IntClassAndMethodTemplate)
+test_check_output(IntExtensionMethodTemplate)
 test_check_output(IntFunctionTemplate)
 

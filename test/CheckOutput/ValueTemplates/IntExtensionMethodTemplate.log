@@ -1,0 +1,5 @@
+TestClass<1>().getValue() = 1
+TestClass<2>().getValue() = 2
+TestClass<3>().getValue() = 3
+TestClass<4>().getValue() = 4
+TestClass<5>().getValue() = 5
