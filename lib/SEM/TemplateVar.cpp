@@ -41,6 +41,7 @@ namespace locic {
 			type_ = argType;
 			if (type_->isBuiltInTypename()) {
 				selfRefType_ = SEM::Type::TemplateVarRef(this);
+				type_ = type_->createStaticRefType(selfRefType_);
 			}
 		}
 		
@@ -51,8 +52,7 @@ namespace locic {
 		
 		Value TemplateVar::selfRefValue() const {
 			if (type()->isBuiltInTypename()) {
-				const auto templateVarRef = selfRefType();
-				return SEM::Value::TypeRef(templateVarRef, type()->createStaticRefType(templateVarRef));
+				return SEM::Value::TypeRef(selfRefType(), type());
 			} else {
 				return SEM::Value::TemplateVarRef(this, type());
 			}

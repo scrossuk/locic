@@ -61,11 +61,14 @@ namespace locic {
 			for (const auto& assignment: variableAssignments) {
 				const auto& templateVar = assignment.first;
 				const auto& templateValue = assignment.second;
+				const auto templateVarType = templateVar->type()->substitute(variableAssignments)->resolveAliases();
+				const auto templateValueType = templateValue.type()->resolveAliases();
 				
-				if (templateVar->type() != templateValue.type()->withoutTags()) {
+				if (templateVarType != templateValueType) {
 					throw ErrorException(makeString("Template argument '%s' has type '%s', which doesn't match type '%s' of template variable '%s', at position %s.",
-						templateValue.toString().c_str(), templateValue.type()->toString().c_str(),
-						templateVar->type()->toString().c_str(),
+						templateValue.toString().c_str(),
+						templateValueType->toString().c_str(),
+						templateVarType->toString().c_str(),
 						templateVar->name().toString().c_str(), location.toString().c_str()));
 				}
 				
