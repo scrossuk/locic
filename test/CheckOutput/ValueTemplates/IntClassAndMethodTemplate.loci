@@ -1,0 +1,23 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+template <int first_value>
+class TestClass() {
+	static Create = default;
+	
+	template <int second_value>
+	int getValue() const {
+		return first_value * second_value;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"TestClass<1>().getValue<1>() = %d", TestClass<1>().getValue<1>());
+	testPrint(C"TestClass<2>().getValue<2>() = %d", TestClass<2>().getValue<2>());
+	testPrint(C"TestClass<3>().getValue<3>() = %d", TestClass<3>().getValue<3>());
+	testPrint(C"TestClass<4>().getValue<4>() = %d", TestClass<4>().getValue<4>());
+	testPrint(C"TestClass<5>().getValue<5>() = %d", TestClass<5>().getValue<5>());
+	return 0;
+}
+
