@@ -1,0 +1,5 @@
+getValue<1>() = 1
+getValue<2>() = 2
+getValue<3>() = 3
+getValue<4>() = 4
+getValue<5>() = 5

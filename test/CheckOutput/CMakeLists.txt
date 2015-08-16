@@ -32,4 +32,5 @@ add_subdirectory(SizeOf)
 add_subdirectory(StaticRef)
 add_subdirectory(Switch)
 add_subdirectory(Templates)
+add_subdirectory(ValueTemplates)
 
