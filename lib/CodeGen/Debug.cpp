@@ -140,8 +140,12 @@ namespace locic {
 			return declareInstruction;
 		}
 		
-		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType,
-				llvm::Function* function, const bool isInternal, const bool isDefinition) {
+		llvm::DISubprogram genDebugFunction(Module& module,
+		                                    const Debug::FunctionInfo& functionInfo,
+		                                    llvm::DIType functionType,
+		                                    llvm::Function* function,
+		                                    const bool isInternal,
+		                                    const bool isDefinition) {
 			const auto file = module.debugBuilder().createFile(functionInfo.declLocation.fileName());
 			const auto lineNumber = functionInfo.declLocation.range().start().lineNumber();
 			return module.debugBuilder().createFunction(file, lineNumber, isInternal,
