@@ -86,8 +86,8 @@ namespace locic {
 				const auto& astVarType = astTemplateVarNode->varType;
 				const auto semVarType = ConvertType(context, astVarType);
 				
-				if (!semVarType->isBuiltInBool() && !semVarType->isBuiltInTypename()) {
-					throw ErrorException(makeString("Template variable '%s' in function '%s' has invalid type '%s', at position %s.",
+				if (!semVarType->isPrimitive()) {
+					throw ErrorException(makeString("Template variable '%s' in function '%s' has non-primitive type '%s', at position %s.",
 						templateVarName.c_str(), semFunction->name().toString().c_str(),
 						semVarType->toString().c_str(),
 						astTemplateVarNode.location().toString().c_str()));
