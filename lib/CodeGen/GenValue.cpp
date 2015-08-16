@@ -494,8 +494,36 @@ namespace locic {
 					return makeStaticInterfaceMethodValue(function, typeRef, methodHashValue);
 				}
 				
+				case SEM::Value::TEMPLATEVARREF: {
+					const auto templateArgs = function.getTemplateArgs();
+					const auto templateVar = value.templateVar();
+					const auto index = templateVar->index();
+					const auto valueEntry = function.getBuilder().CreateExtractValue(templateArgs,
+					                                                                 { (unsigned) index, 0 });
+					
+					SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+					                                   /*isMethod=*/false,
+					                                   /*isTemplated=*/false,
+					                                   /*noExceptPredicate=*/SEM::Predicate::True());
+					SEM::FunctionType functionType(std::move(attributes),
+					                               /*returnType=*/value.type(),
+					                               /*parameterTypes=*/{});
+					
+					const auto argInfo = getFunctionArgInfo(module, functionType);
+					const auto functionPtrType = argInfo.makeFunctionType()->getPointerTo();
+					
+					FunctionCallInfo callInfo;
+					callInfo.functionPtr = function.getBuilder().CreatePointerCast(valueEntry,
+					                                                               functionPtrType);
+					
+					return genFunctionCall(function,
+					                       functionType,
+					                       callInfo,
+					                       /*args=*/{},
+					                       hintResultValue);
+				}
+				
 				case SEM::Value::PREDICATE:
-				case SEM::Value::TEMPLATEVARREF:
 				case SEM::Value::CAPABILITYTEST:
 				case SEM::Value::CASTDUMMYOBJECT:
 					llvm_unreachable("Invalid value enum for code generation.");
