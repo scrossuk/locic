@@ -222,7 +222,7 @@ namespace locic {
 				// If there are only 'root' arguments (i.e. statically known),
 				// generate a root generator function for them and use
 				// path of '1' to only pick up the top level argument values.
-				const auto rootFunction = genTemplateRootFunction(module, templateInst);
+				const auto rootFunction = genTemplateRootFunction(function, templateInst);
 				
 				llvm::Constant* const values[] = {
 						constGen.getPointerCast(rootFunction, TypeGenerator(module).getI8PtrType()),
@@ -274,8 +274,10 @@ namespace locic {
 			return value;
 		}
 		
-		llvm::Function* genTemplateRootFunction(Module& module, const TemplateInst& templateInst) {
+		llvm::Function* genTemplateRootFunction(Function& parentFunction, const TemplateInst& templateInst) {
 			assert(isRootArgumentList(templateInst.arguments()));
+			
+			auto& module = parentFunction.module();
 			
 			const auto iterator = module.templateRootFunctionMap().find(templateInst);
 			if (iterator != module.templateRootFunctionMap().end()) {

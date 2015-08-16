@@ -82,7 +82,7 @@ namespace locic {
 		 * The resulting function can therefore be called to obtain
 		 * template arguments given a particular path.
 		 */
-		llvm::Function* genTemplateRootFunction(Module& module, const TemplateInst& templateInst);
+		llvm::Function* genTemplateRootFunction(Function& parentFunction, const TemplateInst& templateInst);
 		
 		/**
 		 * \brief Generate the declaration for an intermediate template argument generator function.
