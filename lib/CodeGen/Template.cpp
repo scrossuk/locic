@@ -11,10 +11,12 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
@@ -272,6 +274,48 @@ namespace locic {
 			const auto value = computeTemplateGenerator(function, templateInst);
 			function.templateGeneratorMap().insert(std::make_pair(templateInst.copy(), value));
 			return value;
+		}
+		
+		llvm::Function* genTemplateValueFunction(Function& parentFunction, const SEM::Value& value) {
+			auto& module = parentFunction.module();
+			
+			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			                                   /*isMethod=*/false,
+			                                   /*isTemplated=*/false,
+			                                   /*noExceptPredicate=*/SEM::Predicate::True());
+			SEM::FunctionType functionType(std::move(attributes),
+			                               /*returnType=*/value.type(),
+			                               /*parameterTypes=*/{});
+			
+			const auto argInfo = getFunctionArgInfo(module, functionType);
+			
+			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString("template_value"));
+			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
+			
+			Function functionGenerator(module, *llvmFunction, argInfo);
+			functionGenerator.attachDebugInfo(parentFunction.debugInfo());
+			
+			if (value.debugInfo()) {
+				functionGenerator.setDebugPosition(value.debugInfo()->location.range().start());
+			}
+			
+			const auto result = genValue(functionGenerator,
+			                             value,
+			                             functionGenerator.getReturnVarOrNull());
+			
+			if (argInfo.hasReturnVarArgument()) {
+				genMoveStore(functionGenerator,
+				             result,
+				             functionGenerator.getReturnVar(),
+				             value.type());
+				functionGenerator.getBuilder().CreateRetVoid();
+			} else if (!value.type()->isBuiltInVoid()) {
+				functionGenerator.returnValue(result);
+			} else {
+				functionGenerator.getBuilder().CreateRetVoid();
+			}
+			
+			return llvmFunction;
 		}
 		
 		llvm::Function* genTemplateRootFunction(Function& parentFunction, const TemplateInst& templateInst) {
