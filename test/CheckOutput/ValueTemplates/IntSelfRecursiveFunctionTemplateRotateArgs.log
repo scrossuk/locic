@@ -1,0 +1,5 @@
+addValues<1, 2>(true) = 6
+addValues<2, 3>(true) = 9
+addValues<3, 4>(true) = 12
+addValues<4, 5>(true) = 15
+addValues<5, 6>(true) = 18

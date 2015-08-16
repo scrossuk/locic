@@ -8,4 +8,5 @@ test_check_output(IntFunctionTemplate)
 test_check_output(IntFunctionTemplateRotateArgs)
 test_check_output(IntRecursiveFunctionTemplate)
 test_check_output(IntSelfRecursiveFunctionTemplate)
+test_check_output(IntSelfRecursiveFunctionTemplateRotateArgs)
 
