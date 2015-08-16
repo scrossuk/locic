@@ -278,8 +278,6 @@ namespace locic {
 		}
 		
 		Value Value::TemplateVarRef(const TemplateVar* const targetVar, const Type* const type) {
-			assert(type->isBuiltInBool());
-			
 			Value value(TEMPLATEVARREF, type, ExitStates::Normal());
 			value.impl_->union_.templateVarRef.templateVar = targetVar;
 			return value;
