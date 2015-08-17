@@ -510,6 +510,8 @@ namespace locic {
 					return builder.CreateICmpEQ(byteValue, ConstantGenerator(module).getI8(1));
 				}
 			}
+			
+			llvm_unreachable("Unknown liveness indicator kind.");
 		}
 		
 		llvm::Value*
