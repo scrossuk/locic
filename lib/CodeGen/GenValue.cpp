@@ -498,8 +498,9 @@ namespace locic {
 					const auto templateArgs = function.getTemplateArgs();
 					const auto templateVar = value.templateVar();
 					const auto index = templateVar->index();
+					const unsigned extractIndexArray[] = { (unsigned) index, 0 };
 					const auto valueEntry = function.getBuilder().CreateExtractValue(templateArgs,
-					                                                                 { (unsigned) index, 0 });
+					                                                                 extractIndexArray);
 					
 					SEM::FunctionAttributes attributes(/*isVarArg=*/false,
 					                                   /*isMethod=*/false,
