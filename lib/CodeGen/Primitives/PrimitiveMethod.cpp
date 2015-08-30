@@ -288,6 +288,8 @@ namespace locic {
 					return genTypenamePrimitiveMethodCall(function, type, methodName, std::move(args));
 				case PrimitiveRef:
 					return genRefPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
+				case PrimitiveStaticArray:
+					llvm_unreachable("TODO!");
 			}
 			
 			const auto& typeName = type->getObjectType()->name().last();

@@ -56,7 +56,9 @@ namespace locic {
 		PrimitivePtrLval,
 		PrimitiveValueLval,
 		PrimitiveFinalLval,
-		PrimitiveTypename
+		PrimitiveTypename,
+		
+		PrimitiveStaticArray
 	};
 	
 	class PrimitiveID {

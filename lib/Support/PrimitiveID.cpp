@@ -144,6 +144,8 @@ namespace locic {
 				return "final_lval";
 			case PrimitiveTypename:
 				return "typename_t";
+			case PrimitiveStaticArray:
+				return "static_array_t";
 		}
 		
 		throw std::logic_error("Unknown primitive ID.");
