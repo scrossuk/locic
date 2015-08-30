@@ -90,6 +90,8 @@ namespace locic {
 		impl_->add(PrimitiveValueLval);
 		impl_->add(PrimitiveFinalLval);
 		impl_->add(PrimitiveTypename);
+		
+		impl_->add(PrimitiveStaticArray);
 	}
 	
 	PrimitiveIDMap::~PrimitiveIDMap() { }
