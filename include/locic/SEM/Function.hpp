@@ -6,6 +6,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include <locic/AST/Function.hpp>
+#include <locic/AST/Node.hpp>
+
 #include <locic/Debug/FunctionInfo.hpp>
 
 #include <locic/SEM/FunctionType.hpp>
@@ -47,7 +50,12 @@ namespace locic {
 		 */
 		class Function final: public TemplatedObject {
 			public:
-				Function(Name pName, ModuleScope pModuleScope);
+				Function(Name name, ModuleScope moduleScope);
+				
+				Function(AST::Node<AST::Function> function,
+				         ModuleScope moduleScope);
+				
+				const AST::Node<AST::Function>& function() const;
 				
 				const Name& name() const;
 				
@@ -115,10 +123,10 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
+				AST::Node<AST::Function> function_;
 				bool isDefault_, isPrimitive_;
 				bool isMethod_, isStaticMethod_;
 				FunctionType type_;
-				Name name_;
 				Optional<Debug::FunctionInfo> debugInfo_;
 				
 				TemplateVarArray templateVariables_;

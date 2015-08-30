@@ -1,5 +1,9 @@
 #include <locic/Support/String.hpp>
 
+#include <locic/AST/Function.hpp>
+#include <locic/AST/Node.hpp>
+#include <locic/AST/RequireSpecifier.hpp>
+
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Scope.hpp>
@@ -9,19 +13,50 @@
 namespace locic {
 
 	namespace SEM {
-	
-		Function::Function(Name pName, ModuleScope pModuleScope)
-			: isDefault_(false),
+		
+		namespace {
+			
+			AST::Node<AST::Function> createNamedASTFunction(Name name) {
+				AST::Node<Name> nameNode(Debug::SourceLocation::Null(),
+				                         new Name(std::move(name)));
+				AST::Node<AST::RequireSpecifier> requireSpecifierNode(Debug::SourceLocation::Null(),
+				                                                      AST::RequireSpecifier::None());
+				const auto function = AST::Function::DefaultMethodDef(std::move(nameNode),
+				                                                      std::move(requireSpecifierNode));
+				return AST::Node<AST::Function>(Debug::SourceLocation::Null(),
+				                                function);
+			}
+			
+		}
+		
+		Function::Function(Name pName,
+		                   ModuleScope pModuleScope)
+			: function_(createNamedASTFunction(std::move(pName))),
+			  isDefault_(false),
 			  isPrimitive_(false),
 			  isMethod_(false),
 			  isStaticMethod_(false),
-			  name_(std::move(pName)),
 			  constPredicate_(Predicate::False()),
 			  requiresPredicate_(Predicate::True()),
 			  moduleScope_(std::move(pModuleScope)) { }
 		
+		Function::Function(AST::Node<AST::Function> argFunction,
+		                   ModuleScope pModuleScope)
+			: function_(std::move(argFunction)),
+			  isDefault_(false),
+			  isPrimitive_(false),
+			  isMethod_(false),
+			  isStaticMethod_(false),
+			  constPredicate_(Predicate::False()),
+			  requiresPredicate_(Predicate::True()),
+			  moduleScope_(std::move(pModuleScope)) { }
+		
+		const AST::Node<AST::Function>& Function::function() const {
+			return function_;
+		}
+		
 		const Name& Function::name() const {
-			return name_;
+			return *(function()->name());
 		}
 		
 		void Function::setType(const FunctionType pType) {
