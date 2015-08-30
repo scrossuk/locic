@@ -37,7 +37,8 @@ namespace locic {
 			const auto& name = astFunctionNode->name()->last();
 			const auto fullName = getParentName(context.scopeStack().back()) + name;
 			
-			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(fullName.copy(), std::move(moduleScope)));
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(astFunctionNode,
+			                                                             std::move(moduleScope)));
 			
 			const bool isMethod = thisTypeInstance != nullptr;
 			
