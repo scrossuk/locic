@@ -2,3 +2,6 @@ interface sized_type {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 }
+
+template <typename T>
+using is_sized_type = T : sized_type;
