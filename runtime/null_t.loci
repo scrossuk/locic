@@ -17,3 +17,12 @@ template <typename T : movable>
 interface __implicit_cast_from_null_t {
 	static T null() noexcept;
 }
+
+template <typename T : movable>
+interface nullable_t {
+	static T null() noexcept;
+}
+
+template <typename T>
+require(is_movable<T>)
+using is_nullable = is_movable<T> and T : nullable_t<T>;
