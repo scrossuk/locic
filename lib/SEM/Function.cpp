@@ -18,7 +18,7 @@ namespace locic {
 			
 			AST::Node<AST::Function> createNamedASTFunction(Name name) {
 				AST::Node<Name> nameNode(Debug::SourceLocation::Null(),
-				                         new Name(std::move(name)));
+				                         new Name(Name::Relative() + name.last()));
 				AST::Node<AST::RequireSpecifier> requireSpecifierNode(Debug::SourceLocation::Null(),
 				                                                      AST::RequireSpecifier::None());
 				const auto function = AST::Function::DefaultMethodDef(std::move(nameNode),
@@ -38,6 +38,7 @@ namespace locic {
 			  isPrimitive_(false),
 			  isMethod_(false),
 			  isStaticMethod_(false),
+			  name_(parent_.name().concat(*(function_->name()))),
 			  constPredicate_(Predicate::False()),
 			  requiresPredicate_(Predicate::True()),
 			  moduleScope_(std::move(pModuleScope)) { }
@@ -51,6 +52,7 @@ namespace locic {
 			  isPrimitive_(false),
 			  isMethod_(false),
 			  isStaticMethod_(false),
+			  name_(parent_.name().concat(*(function_->name()))),
 			  constPredicate_(Predicate::False()),
 			  requiresPredicate_(Predicate::True()),
 			  moduleScope_(std::move(pModuleScope)) { }
@@ -76,7 +78,7 @@ namespace locic {
 		}
 		
 		const Name& Function::name() const {
-			return *(function()->name());
+			return name_;
 		}
 		
 		void Function::setType(const FunctionType pType) {

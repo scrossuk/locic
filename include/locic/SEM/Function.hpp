@@ -137,6 +137,7 @@ namespace locic {
 				bool isDefault_, isPrimitive_;
 				bool isMethod_, isStaticMethod_;
 				FunctionType type_;
+				Name name_;
 				Optional<Debug::FunctionInfo> debugInfo_;
 				
 				TemplateVarArray templateVariables_;
