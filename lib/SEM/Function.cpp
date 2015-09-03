@@ -29,9 +29,11 @@ namespace locic {
 			
 		}
 		
-		Function::Function(Name pName,
+		Function::Function(GlobalStructure pParent,
+		                   Name pName,
 		                   ModuleScope pModuleScope)
-			: function_(createNamedASTFunction(std::move(pName))),
+			: parent_(std::move(pParent)),
+			  function_(createNamedASTFunction(std::move(pName))),
 			  isDefault_(false),
 			  isPrimitive_(false),
 			  isMethod_(false),
@@ -40,9 +42,11 @@ namespace locic {
 			  requiresPredicate_(Predicate::True()),
 			  moduleScope_(std::move(pModuleScope)) { }
 		
-		Function::Function(AST::Node<AST::Function> argFunction,
+		Function::Function(GlobalStructure pParent,
+		                   AST::Node<AST::Function> argFunction,
 		                   ModuleScope pModuleScope)
-			: function_(std::move(argFunction)),
+			: parent_(std::move(pParent)),
+			  function_(std::move(argFunction)),
 			  isDefault_(false),
 			  isPrimitive_(false),
 			  isMethod_(false),
@@ -50,6 +54,22 @@ namespace locic {
 			  constPredicate_(Predicate::False()),
 			  requiresPredicate_(Predicate::True()),
 			  moduleScope_(std::move(pModuleScope)) { }
+		
+		GlobalStructure& Function::parent() {
+			return parent_;
+		}
+		
+		const GlobalStructure& Function::parent() const {
+			return parent_;
+		}
+		
+		Namespace& Function::nameSpace() {
+			return parent().nextNamespace();
+		}
+		
+		const Namespace& Function::nameSpace() const {
+			return parent().nextNamespace();
+		}
 		
 		const AST::Node<AST::Function>& Function::function() const {
 			return function_;

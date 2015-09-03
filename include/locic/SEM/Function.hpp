@@ -12,6 +12,7 @@
 #include <locic/Debug/FunctionInfo.hpp>
 
 #include <locic/SEM/FunctionType.hpp>
+#include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
@@ -50,10 +51,18 @@ namespace locic {
 		 */
 		class Function final: public TemplatedObject {
 			public:
-				Function(Name name, ModuleScope moduleScope);
+				Function(GlobalStructure parent,
+				         Name name, ModuleScope moduleScope);
 				
-				Function(AST::Node<AST::Function> function,
+				Function(GlobalStructure parent,
+				         AST::Node<AST::Function> function,
 				         ModuleScope moduleScope);
+				
+				GlobalStructure& parent();
+				const GlobalStructure& parent() const;
+				
+				Namespace& nameSpace();
+				const Namespace& nameSpace() const;
 				
 				const AST::Node<AST::Function>& function() const;
 				
@@ -123,6 +132,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
+				GlobalStructure parent_;
 				AST::Node<AST::Function> function_;
 				bool isDefault_, isPrimitive_;
 				bool isMethod_, isStaticMethod_;

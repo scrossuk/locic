@@ -69,7 +69,9 @@ namespace locic {
 				return CreateDefaultConstructorDecl(context, semTypeInstance, semTypeInstance->name() + context.getCString("create"));
 			}
 			
-			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(semTypeInstance->name() + context.getCString("create"), semTypeInstance->moduleScope().copy()));
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*semTypeInstance),
+			                                                             semTypeInstance->name() + context.getCString("create"),
+			                                                             semTypeInstance->moduleScope().copy()));
 			semFunction->setDebugInfo(makeDefaultFunctionInfo(*semTypeInstance, *semFunction));
 			
 			semFunction->setRequiresPredicate(semTypeInstance->requiresPredicate().copy());

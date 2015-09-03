@@ -19,18 +19,36 @@ namespace locic {
 
 	namespace SEM {
 	
-		TypeInstance::TypeInstance(Context& c, Name n, Kind k, ModuleScope m)
+		TypeInstance::TypeInstance(Context& c, GlobalStructure p,
+		                           Name n, Kind k, ModuleScope m)
 			: context_(c),
+			parent_(std::move(p)),
 			name_(std::move(n)),
 			kind_(std::move(k)),
 			moduleScope_(std::move(m)),
-			parent_(nullptr),
+			parentTypeInstance_(nullptr),
 			parentType_(nullptr),
 			requiresPredicate_(Predicate::True()),
 			noexceptPredicate_(Predicate::False()) { }
 		
 		Context& TypeInstance::context() const {
 			return context_;
+		}
+		
+		GlobalStructure& TypeInstance::parent() {
+			return parent_;
+		}
+		
+		const GlobalStructure& TypeInstance::parent() const {
+			return parent_;
+		}
+		
+		Namespace& TypeInstance::nameSpace() {
+			return parent().nextNamespace();
+		}
+		
+		const Namespace& TypeInstance::nameSpace() const {
+			return parent().nextNamespace();
 		}
 		
 		const Name& TypeInstance::name() const {
@@ -202,12 +220,12 @@ namespace locic {
 			return types;
 		}
 		
-		void TypeInstance::setParent(const TypeInstance* const pParent) {
-			parent_ = pParent;
+		void TypeInstance::setParentTypeInstance(const TypeInstance* const pParent) {
+			parentTypeInstance_ = pParent;
 		}
 		
-		const TypeInstance* TypeInstance::parent() const {
-			return parent_;
+		const TypeInstance* TypeInstance::parentTypeInstance() const {
+			return parentTypeInstance_;
 		}
 		
 		void TypeInstance::setParentType(const Type* const argParent) {

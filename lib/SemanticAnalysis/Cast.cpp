@@ -539,11 +539,11 @@ location, bool isTopLevel) {
 					return nullptr;
 				}
 				
-				if (type->getObjectType()->parent() == nullptr) {
+				if (type->getObjectType()->parentTypeInstance() == nullptr) {
 					return nullptr;
 				}
 				
-				return type->getObjectType()->parent()->selfType()->substitute(type->generateTemplateVarMap());
+				return type->getObjectType()->parentTypeInstance()->selfType()->substitute(type->generateTemplateVarMap());
 			}
 			
 		}

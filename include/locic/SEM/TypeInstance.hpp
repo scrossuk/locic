@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <locic/Debug/TypeInstanceInfo.hpp>
+#include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
@@ -61,7 +62,9 @@ namespace locic {
 					EXCEPTION
 				};
 				
-				TypeInstance(Context& c, Name name, Kind k, ModuleScope m);
+				TypeInstance(Context& c, GlobalStructure parent,
+				             Name name, Kind kind,
+				             ModuleScope moduleScope);
 				
 				/**
 				 * \brief Get context.
@@ -73,6 +76,12 @@ namespace locic {
 				 * \return The SEM context.
 				 */
 				Context& context() const;
+				
+				GlobalStructure& parent();
+				const GlobalStructure& parent() const;
+				
+				Namespace& nameSpace();
+				const Namespace& nameSpace() const;
 				
 				const Name& name() const;
 				
@@ -285,8 +294,8 @@ namespace locic {
 				 * 
 				 * \return Parent type instance.
 				 */
-				const TypeInstance* parent() const;
-				void setParent(const TypeInstance* parent);
+				const TypeInstance* parentTypeInstance() const;
+				void setParentTypeInstance(const TypeInstance* parent);
 				
 				const Type* parentType() const;
 				void setParentType(const Type* parent);
@@ -324,13 +333,14 @@ namespace locic {
 				
 			private:
 				Context& context_;
+				GlobalStructure parent_;
 				Name name_;
 				Kind kind_;
 				ModuleScope moduleScope_;
 				Optional<PrimitiveID> primitiveID_;
 				Optional<Debug::TypeInstanceInfo> debugInfo_;
 				
-				const TypeInstance* parent_;
+				const TypeInstance* parentTypeInstance_;
 				const Type* parentType_;
 				
 				std::vector<TypeInstance*> variants_;

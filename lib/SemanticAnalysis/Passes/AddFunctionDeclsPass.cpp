@@ -173,7 +173,8 @@ namespace locic {
 					fullName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
 				}
 				
-				std::unique_ptr<SEM::Function> semFunction(new SEM::Function(std::move(fullName), semTypeInstance->moduleScope().copy()));
+				std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*semTypeInstance),
+				                                                             std::move(fullName), semTypeInstance->moduleScope().copy()));
 				semFunction->setDebugInfo(makeDefaultFunctionInfo(*semTypeInstance, *semFunction));
 				
 				semFunction->setMethod(true);

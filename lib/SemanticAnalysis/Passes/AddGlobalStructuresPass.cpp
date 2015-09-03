@@ -69,7 +69,11 @@ namespace locic {
 			const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);
 			
 			// Create a placeholder type instance.
-			std::unique_ptr<SEM::TypeInstance> semTypeInstance(new SEM::TypeInstance(context.semContext(), fullTypeName.copy(), typeInstanceKind, moduleScope.copy()));
+			std::unique_ptr<SEM::TypeInstance> semTypeInstance(new SEM::TypeInstance(context.semContext(),
+			                                                                         SEM::GlobalStructure::Namespace(*parentNamespace),
+			                                                                         fullTypeName.copy(),
+			                                                                         typeInstanceKind,
+			                                                                         moduleScope.copy()));
 			
 			if (semTypeInstance->isPrimitive()) {
 				semTypeInstance->setPrimitiveID(context.sharedMaps().primitiveIDMap().getPrimitiveID(typeInstanceName));
@@ -128,7 +132,7 @@ namespace locic {
 			if (semTypeInstance->isUnionDatatype()) {
 				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
 					const auto variantTypeInstance = AddTypeInstance(context, astVariantNode, moduleScope);
-					variantTypeInstance->setParent(semTypeInstance.get());
+					variantTypeInstance->setParentTypeInstance(semTypeInstance.get());
 					variantTypeInstance->templateVariables() = semTypeInstance->templateVariables().copy();
 					variantTypeInstance->namedTemplateVariables() = semTypeInstance->namedTemplateVariables().copy();
 					semTypeInstance->variants().push_back(variantTypeInstance);

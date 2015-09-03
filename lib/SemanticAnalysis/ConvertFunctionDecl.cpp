@@ -27,6 +27,15 @@ namespace locic {
 			}
 		}
 		
+		SEM::GlobalStructure getParent(const ScopeElement& topElement) {
+			assert(topElement.isNamespace() || topElement.isTypeInstance());
+			if (topElement.isNamespace()) {
+				return SEM::GlobalStructure::Namespace(*(topElement.nameSpace()));
+			} else {
+				return SEM::GlobalStructure::TypeInstance(*(topElement.typeInstance()));
+			}
+		}
+		
 		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
 			const auto& astReturnTypeNode = astFunctionNode->returnType();
 			
@@ -37,7 +46,8 @@ namespace locic {
 			const auto& name = astFunctionNode->name()->last();
 			const auto fullName = getParentName(context.scopeStack().back()) + name;
 			
-			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(astFunctionNode,
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(getParent(context.scopeStack().back()),
+			                                                             astFunctionNode,
 			                                                             std::move(moduleScope)));
 			
 			const bool isMethod = thisTypeInstance != nullptr;

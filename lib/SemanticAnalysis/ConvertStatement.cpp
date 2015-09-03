@@ -129,10 +129,10 @@ namespace locic {
 					
 					// Check that all switch cases are based
 					// on the same union datatype.
-					const auto switchTypeInstance = firstSwitchTypeIterator->first->parent();
+					const auto switchTypeInstance = firstSwitchTypeIterator->first->parentTypeInstance();
 					for (auto caseTypePair: switchCaseTypes) {
 						const auto caseTypeInstance = caseTypePair.first;
-						const auto caseTypeInstanceParent = caseTypeInstance->parent();
+						const auto caseTypeInstanceParent = caseTypeInstance->parentTypeInstance();
 						
 						if (caseTypeInstanceParent == nullptr) {
 							throw ErrorException(makeString("Switch case type '%s' is not a member of a union datatype at position %s.",
