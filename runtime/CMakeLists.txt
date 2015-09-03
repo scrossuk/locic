@@ -38,6 +38,7 @@ set(RUNTIME_FILES
 	size_t.loci
 	sized_type.loci
 	ssize_t.loci
+	static_array_t.loci
 	staticinterfacemethod_t.loci
 	templatedfunction_ptr_t.loci
 	templatedmethodfunction_ptr_t.loci
