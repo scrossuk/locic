@@ -4,6 +4,7 @@ add_library(locic-sem
 	Context.cpp
 	Function.cpp
 	FunctionType.cpp
+	GlobalStructure.cpp
 	IfClause.cpp
 	ModuleScope.cpp
 	Namespace.cpp

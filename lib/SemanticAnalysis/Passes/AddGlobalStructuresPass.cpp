@@ -169,7 +169,8 @@ namespace locic {
 				
 				const auto iterator = semNamespace->items().find(childNamespaceName);
 				if (iterator == semNamespace->items().end()) {
-					std::unique_ptr<SEM::Namespace> childNamespace(new SEM::Namespace(semNamespace->name() + childNamespaceName, *semNamespace));
+					std::unique_ptr<SEM::Namespace> childNamespace(new SEM::Namespace(semNamespace->name() + childNamespaceName,
+					                                                                  SEM::GlobalStructure::Namespace(*semNamespace)));
 					semChildNamespace = childNamespace.get();
 					semNamespace->items().insert(std::make_pair(childNamespaceName, SEM::NamespaceItem::Namespace(std::move(childNamespace))));
 				} else {
@@ -197,7 +198,9 @@ namespace locic {
 						fullTypeName.toString().c_str(), astAliasNode.location().toString().c_str()));
 				}
 				
-				std::unique_ptr<SEM::Alias> semAlias(new SEM::Alias(context.semContext(), *semNamespace, fullTypeName.copy()));
+				std::unique_ptr<SEM::Alias> semAlias(new SEM::Alias(context.semContext(),
+				                                                    SEM::GlobalStructure::Namespace(*semNamespace),
+				                                                    fullTypeName.copy()));
 				
 				// Add template variables.
 				size_t templateVarIndex = 0;

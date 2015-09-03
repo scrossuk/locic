@@ -14,10 +14,10 @@ namespace locic {
 	namespace SEM {
 	
 		Alias::Alias(Context& argContext,
-		             GlobalStructure& argParent,
+		             GlobalStructure argParent,
 		             Name argName)
 			: context_(argContext),
-			parent_(argParent),
+			parent_(std::move(argParent)),
 			name_(std::move(argName)),
 			requiresPredicate_(Predicate::True()),
 			noexceptPredicate_(Predicate::False()) { }

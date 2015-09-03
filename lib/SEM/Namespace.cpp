@@ -117,11 +117,12 @@ namespace locic {
 			}
 		
 		Namespace::Namespace()
-			: parent_(*this),
+			: parent_(GlobalStructure::Namespace(*this)),
 			name_(Name::Absolute()) { }
 		
-		Namespace::Namespace(Name n, GlobalStructure& argParent)
-			: parent_(argParent), name_(std::move(n)) { }
+		Namespace::Namespace(Name n, GlobalStructure argParent)
+			: parent_(std::move(argParent)),
+			  name_(std::move(n)) { }
 		
 		GlobalStructure& Namespace::parent() {
 			return parent_;

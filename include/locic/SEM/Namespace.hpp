@@ -73,15 +73,14 @@ namespace locic {
 				
 		};
 		
-		class Namespace: public GlobalStructure {
+		class Namespace {
 			public:
 				// Create root namespace.
 				Namespace();
 				
-				Namespace(Name name, GlobalStructure& parent);
+				Namespace(Name name, GlobalStructure parent);
 				
 				GlobalStructure& parent();
-				
 				const GlobalStructure& parent() const;
 				
 				const Name& name() const;
@@ -92,7 +91,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				GlobalStructure& parent_;
+				GlobalStructure parent_;
 				Name name_;
 				FastMap<String, NamespaceItem> items_;
 				

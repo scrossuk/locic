@@ -22,12 +22,12 @@ namespace locic {
 		class GlobalStructure;
 		class Type;
 		
-		class Alias final: public GlobalStructure, public TemplatedObject {
+		class Alias final: public TemplatedObject {
 			public:
-				Alias(Context& context, GlobalStructure& parent, Name name);
+				Alias(Context& context, GlobalStructure parent,
+				      Name name);
 				
 				GlobalStructure& parent();
-				
 				const GlobalStructure& parent() const;
 				
 				Context& context() const;
@@ -75,7 +75,7 @@ namespace locic {
 				
 			private:
 				Context& context_;
-				GlobalStructure& parent_;
+				GlobalStructure parent_;
 				Name name_;
 				TemplateVarArray templateVars_;
 				FastMap<String, TemplateVar*> namedTemplateVariables_;
