@@ -3,6 +3,8 @@
 #include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
+#include <locic/Support/Name.hpp>
+
 namespace locic {
 	
 	namespace SEM {
@@ -39,6 +41,19 @@ namespace locic {
 		
 		bool GlobalStructure::isTypeInstance() const {
 			return kind() == TYPEINSTANCE;
+		}
+		
+		const Name& GlobalStructure::name() const {
+			switch (kind()) {
+				case ALIAS:
+					return alias().name();
+				case NAMESPACE:
+					return nameSpace().name();
+				case TYPEINSTANCE:
+					return typeInstance().name();
+			}
+			
+			throw std::logic_error("Unknown GlobalStructure kind.");
 		}
 		
 		GlobalStructure& GlobalStructure::parent() {

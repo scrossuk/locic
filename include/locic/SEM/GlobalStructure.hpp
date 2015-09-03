@@ -3,6 +3,8 @@
 
 namespace locic {
 	
+	class Name;
+	
 	namespace SEM {
 		
 		class Alias;
@@ -31,6 +33,8 @@ namespace locic {
 				bool isAlias() const;
 				bool isNamespace() const;
 				bool isTypeInstance() const;
+				
+				const Name& name() const;
 				
 				GlobalStructure& parent();
 				const GlobalStructure& parent() const;
