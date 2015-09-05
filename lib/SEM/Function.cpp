@@ -73,7 +73,7 @@ namespace locic {
 			return parent().nextNamespace();
 		}
 		
-		const AST::Node<AST::Function>& Function::function() const {
+		const AST::Node<AST::Function>& Function::astFunction() const {
 			return function_;
 		}
 		

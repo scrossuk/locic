@@ -64,7 +64,7 @@ namespace locic {
 				Namespace& nameSpace();
 				const Namespace& nameSpace() const;
 				
-				const AST::Node<AST::Function>& function() const;
+				const AST::Node<AST::Function>& astFunction() const;
 				
 				const Name& name() const;
 				
