@@ -2,8 +2,13 @@
 # NOT compile and produce a specific error.
 
 macro(test_check_error name)
-	add_test(NAME TestCheckError${name}
-		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name TestCheckError${name} --expected-error=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci)
+	cmake_parse_arguments(TEST_CHECK_ERROR "EXPECT_FAIL" "" "" ${ARGN})
+	set(test_name "TestCheckError${name}")
+	add_test(NAME "${test_name}"
+		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name "${test_name}" --expected-error=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci)
+	if(TEST_CHECK_ERROR_EXPECT_FAIL)
+		set_tests_properties("${test_name}" PROPERTIES LABELS "EXPECT_FAIL")
+	endif()
 endmacro(test_check_error)
 
 add_subdirectory(Alias)
