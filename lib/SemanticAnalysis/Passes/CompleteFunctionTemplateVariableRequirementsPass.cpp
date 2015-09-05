@@ -37,10 +37,10 @@ namespace locic {
 					// No requirement specified.
 					continue;
 				}
-			 	
-			 	const auto semSpecType = ConvertType(context, astSpecType);
-			 	
-			 	// Add the satisfies requirement to the predicate.
+				
+				const auto semSpecType = ConvertType(context, astSpecType);
+				
+				// Add the satisfies requirement to the predicate.
 				auto inlinePredicate = SEM::Predicate::Satisfies(semTemplateVar->selfRefType(), semSpecType);
 				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
