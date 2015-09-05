@@ -106,12 +106,17 @@ Various tests are include in the /test/ subdirectory. These tests are not run as
 
 	ctest
 
-If one of the tests fail, run the following command to see the
-output of all failing tests.
+If one of the tests fail, run the following command to see the output of all failing tests.
 
 .. code-block:: bash
 
 	ctest --output-on-failure
+
+Note that some tests are **expected to fail** and these are given the ``EXPECT_FAIL`` label. You can exclude these tests by running:
+
+.. code-block:: bash
+
+	ctest --label-exclude EXPECT_FAIL
 
 Building LLVM
 ~~~~~~~~~~~~~
