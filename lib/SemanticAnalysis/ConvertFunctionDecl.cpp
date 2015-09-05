@@ -18,15 +18,6 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		const Name& getParentName(const ScopeElement& topElement) {
-			assert(topElement.isNamespace() || topElement.isTypeInstance());
-			if (topElement.isNamespace()) {
-				return topElement.nameSpace()->name();
-			} else {
-				return topElement.typeInstance()->name();
-			}
-		}
-		
 		SEM::GlobalStructure getParent(const ScopeElement& topElement) {
 			assert(topElement.isNamespace() || topElement.isTypeInstance());
 			if (topElement.isNamespace()) {
@@ -44,7 +35,6 @@ namespace locic {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
 			const auto& name = astFunctionNode->name()->last();
-			const auto fullName = getParentName(context.scopeStack().back()) + name;
 			
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(getParent(context.scopeStack().back()),
 			                                                             astFunctionNode,
