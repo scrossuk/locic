@@ -38,6 +38,11 @@ namespace locic {
 		void AddFunctionDeclsPass(Context& context, const AST::NamespaceList& rootASTNamespaces);
 		
 		/**
+		 * \brief Add function types.
+		 */
+		void AddFunctionTypesPass(Context& context, const AST::NamespaceList& rootASTNamespaces);
+		
+		/**
 		 * \brief Complete type template variable requirements.
 		 */
 		void CompleteTypeTemplateVariableRequirementsPass(Context& context, const AST::NamespaceList& rootASTNamespaces);

@@ -28,10 +28,6 @@ namespace locic {
 		}
 		
 		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
-			const auto& astReturnTypeNode = astFunctionNode->returnType();
-			
-			const SEM::Type* semReturnType = NULL;
-			
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
 			const auto& name = astFunctionNode->name()->last();
@@ -100,13 +96,30 @@ namespace locic {
 				semFunction->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
 			}
 			
+			assert(semFunction->isDeclaration());
+			
+			return semFunction;
+		}
+		
+		void ConvertFunctionDeclType(Context& context, SEM::Function& function) {
+			if (function.isDefault()) {
+				// Type is already converted.
+				return;
+			}
+			
+			const auto& astFunctionNode = function.astFunction();
+			const auto thisTypeInstance = lookupParentType(context.scopeStack());
+			
 			// Enable lookups for function template variables.
-			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semFunction.get()));
+			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(&function));
 			
 			// Convert const specifier.
 			if (!astFunctionNode->constSpecifier().isNull()) {
-				semFunction->setConstPredicate(ConvertConstSpecifier(context, astFunctionNode->constSpecifier()));
+				function.setConstPredicate(ConvertConstSpecifier(context, astFunctionNode->constSpecifier()));
 			}
+			
+			const auto& astReturnTypeNode = astFunctionNode->returnType();
+			const SEM::Type* semReturnType = NULL;
 			
 			if (astReturnTypeNode->typeEnum == AST::Type::AUTO) {
 				// Undefined return type means this must be a class
@@ -140,24 +153,20 @@ namespace locic {
 				parameterVars.push_back(paramVar);
 			}
 			
-			semFunction->setParameters(std::move(parameterVars));
+			function.setParameters(std::move(parameterVars));
 			
 			auto noExceptPredicate = ConvertNoExceptSpecifier(context, astFunctionNode->noexceptSpecifier());
-			if (name == "__destructor") {
+			if (function.name().last() == "__destructor") {
 				// Destructors are always noexcept.
 				noExceptPredicate = SEM::Predicate::True();
 			}
 			
-			const bool isDynamicMethod = isMethod && !astFunctionNode->isStatic();
-			const bool isTemplatedMethod = !semFunction->templateVariables().empty() ||
+			const bool isDynamicMethod = function.isMethod() && !astFunctionNode->isStatic();
+			const bool isTemplatedMethod = !function.templateVariables().empty() ||
 				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());
 			
 			SEM::FunctionAttributes attributes(astFunctionNode->isVarArg(), isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
-			semFunction->setType(SEM::FunctionType(std::move(attributes), semReturnType, std::move(parameterTypes)));
-			
-			assert(semFunction->isDeclaration());
-			
-			return semFunction;
+			function.setType(SEM::FunctionType(std::move(attributes), semReturnType, std::move(parameterTypes)));
 		}
 		
 	}

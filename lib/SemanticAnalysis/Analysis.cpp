@@ -36,6 +36,8 @@ namespace locic {
 				// ---- Create function declarations.
 				AddFunctionDeclsPass(context, rootASTNamespaces);
 				
+				AddFunctionTypesPass(context, rootASTNamespaces);
+				
 				// ---- Complete type template variable requirements.
 				CompleteTypeTemplateVariableRequirementsPass(context, rootASTNamespaces);
 				

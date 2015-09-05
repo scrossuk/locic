@@ -28,6 +28,7 @@ add_library(locic-semanalysis
 	NameSearch.cpp
 	Passes/AddAliasValuesPass.cpp
 	Passes/AddFunctionDeclsPass.cpp
+	Passes/AddFunctionTypesPass.cpp
 	Passes/AddGlobalStructuresPass.cpp
 	Passes/AddTemplateVariableTypesPass.cpp
 	Passes/AddTypeMemberVariablesPass.cpp

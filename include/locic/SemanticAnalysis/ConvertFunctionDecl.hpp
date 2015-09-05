@@ -20,6 +20,8 @@ namespace locic {
 		
 		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& function, SEM::ModuleScope moduleScope);
 		
+		void ConvertFunctionDeclType(Context& context, SEM::Function& function);
+		
 	}
 	
 }
