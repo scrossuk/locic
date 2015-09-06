@@ -1,0 +1,5 @@
+Parser Error: Failed to parse file '(.*)/InvalidComparisonInFunctionArgument\.loci' with 4 errors:
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInFunctionArgument\.loci, range = \(line 9, column 7\) to \(line 9, column 8\)\)\): syntax error, unexpected RROUNDBRACKET, expecting QUESTIONMARK
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInFunctionArgument\.loci, range = \(line 9, column 2\) to \(line 9, column 8\)\)\): Invalid statement\.
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInFunctionArgument\.loci, range = \(line 10, column 7\) to \(line 10, column 8\)\)\): syntax error, unexpected RROUNDBRACKET, expecting QUESTIONMARK
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInFunctionArgument\.loci, range = \(line 10, column 2\) to \(line 10, column 8\)\)\): Invalid statement\.

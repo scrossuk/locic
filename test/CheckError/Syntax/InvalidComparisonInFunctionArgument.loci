@@ -1,0 +1,11 @@
+import void f(bool arg);
+
+export void compareInFunctionCall() {
+	int A = 1;
+	int B = 2;
+	
+	// These comparisons are illegal because they can conflict with
+	// templated type constructor calls in some cases.
+	f(A<B);
+	f(A>B);
+}
