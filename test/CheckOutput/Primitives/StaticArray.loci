@@ -2,10 +2,10 @@
 import void testPrint(const ubyte * str, ...) noexcept;
 
 static_array_t<int, 4u> addOne(static_array_t<int, 4u> array) {
-	array[0u]++;
-	array[1u]++;
-	array[2u]++;
-	array[3u]++;
+	array[0u] += 1;
+	array[1u] += 1;
+	array[2u] += 1;
+	array[3u] += 1;
 	return array;
 }
 
