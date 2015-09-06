@@ -1,0 +1,9 @@
+import void f(bool arg);
+
+export void compareInFunctionCall() {
+	int A = 1;
+	int B = 2;
+	
+	f((A<B));
+	f((A>B));
+}
