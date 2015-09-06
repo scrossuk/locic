@@ -480,8 +480,9 @@ const T& GETSYM(T* value) {
 %type <value> value
 %type <value> lvalue
 %type <value> templateValue
-%type <valueList> nonEmptyValueList
-%type <valueList> valueList
+%type <valueList> nonEmptyCallArgValueList
+%type <valueList> callArgValueList
+%type <value> callArgValue
 %type <value> atomicValue
 %type <value> unaryValue
 %type <value> unaryValueOrNext
@@ -1049,7 +1050,7 @@ exceptionInitializer:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ExceptionInitializer::None()));
 	}
-	| COLON symbol LROUNDBRACKET valueList RROUNDBRACKET
+	| COLON symbol LROUNDBRACKET callArgValueList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::ExceptionInitializer::Initialize(GETSYM($2), GETSYM($4))));
 	}
@@ -1655,23 +1656,23 @@ nonEmptyTypeVarList:
 	}
 	;
 	
-valueList:
+callArgValueList:
 	// empty
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::ValueList()));
 	}
-	| nonEmptyValueList
+	| nonEmptyCallArgValueList
 	{
 		$$ = $1;
 	}
 	;
 	
-nonEmptyValueList:
-	value
+nonEmptyCallArgValueList:
+	callArgValue
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::ValueList(1, GETSYM($1))));
 	}
-	| nonEmptyValueList COMMA value
+	| nonEmptyCallArgValueList COMMA callArgValue
 	{
 		(GETSYM($1))->push_back(GETSYM($3));
 		$$ = $1;
@@ -1961,11 +1962,11 @@ atomicValue:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberRef($2)));
 	}
-	| AT emptyTemplateArgumentList LROUNDBRACKET valueList RROUNDBRACKET
+	| AT emptyTemplateArgumentList LROUNDBRACKET callArgValueList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::InternalConstruct(GETSYM($2), GETSYM($4))));
 	}
-	| AT LTRIBRACKET templateValueList RTRIBRACKET LROUNDBRACKET valueList RROUNDBRACKET
+	| AT LTRIBRACKET templateValueList RTRIBRACKET LROUNDBRACKET callArgValueList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::InternalConstruct(GETSYM($3), GETSYM($6))));
 	}
@@ -2036,7 +2037,7 @@ callValue:
 		const auto derefNode = locic::AST::makeNode(LOC(&@$), UnaryOp(parserContext->getCString("deref"), GETSYM($1)));
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::MemberAccess(derefNode, $3)));
 	}
-	| callValueOrNext LROUNDBRACKET valueList RROUNDBRACKET
+	| callValueOrNext LROUNDBRACKET callArgValueList RROUNDBRACKET
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::FunctionCall(GETSYM($1), GETSYM($3))));
 	}
@@ -2452,6 +2453,49 @@ templateValue:
 		$$ = $1;
 	}
 	| bitwiseOrValue
+	{
+		$$ = $1;
+	}
+	| typeValue
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TypeRef(GETSYM($1))));
+	}
+	;
+	
+callArgValue:
+	atomicValue
+	{
+		$$ = $1;
+	}
+	| callValue
+	{
+		$$ = $1;
+	}
+	| unaryValue
+	{
+		$$ = $1;
+	}
+	| multiplyOperatorValue
+	{
+		$$ = $1;
+	}
+	| addOperatorValue
+	{
+		$$ = $1;
+	}
+	| shiftOperatorValue
+	{
+		$$ = $1;
+	}
+	| bitwiseAndValue
+	{
+		$$ = $1;
+	}
+	| bitwiseOrValue
+	{
+		$$ = $1;
+	}
+	| ternaryOperatorValue
 	{
 		$$ = $1;
 	}
