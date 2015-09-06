@@ -114,13 +114,22 @@ namespace locic {
 			for (auto& assignment: variableAssignments) {
 				const auto& templateVar = assignment.first;
 				auto& templateValue = assignment.second;
-				if (!templateValue.isTypeRef()) {
-					const auto templateVarType = templateVar->type()->substitute(variableAssignments);
-					templateValue = ImplicitCast(context,
-					                             std::move(templateValue),
-					                             templateVarType,
-					                             location);
+				if (!templateValue.isConstant()) {
+					continue;
 				}
+				
+				// This is a temporary mechanism by which a template
+				// value constant is re-typed as the destination type,
+				// since performing a cast here leads to the compiler
+				// trying to generate method sets before it has all
+				// the relevant information.
+				//
+				// In future, this code needs to perform an actual
+				// cast and the issue mentioned above needs to be
+				// resolved.
+				const auto templateVarType = templateVar->type()->substitute(variableAssignments);
+				templateValue = SEM::Value::Constant(templateValue.constant(),
+				                                     templateVarType);
 			}
 			
 			// Check the assignments satisfy the requires predicate.
