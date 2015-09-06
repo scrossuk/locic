@@ -1,0 +1,18 @@
+template <typename S, typename T>
+class A() {
+	static create(unused int value) {
+		return @();
+	}
+}
+
+class B() { }
+
+class C() { }
+
+import void f(A<B, C> arg);
+
+export void constructTemplateInFunctionCall() {
+	// This should be interpreted as constructing a type 'A' with template
+	// arguments 'B' and 'C' and constructor argument '1'.
+	f(A<B, C>(1));
+}

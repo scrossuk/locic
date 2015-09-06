@@ -17,3 +17,6 @@ test_check_success_syntax(PointerTypeVariableInitialiseSyntax)
 test_check_success_syntax(ReferenceTypeVariableInitialiseSyntax)
 test_check_success_syntax(TagTypeRefValueSyntax)
 test_check_success_syntax(TriangleBracketInTemplateSyntax)
+
+# Run Semantic Analysis in this test to ensure correct interpretation.
+test_check_success(TemplateConstructInFunctionArgument)
