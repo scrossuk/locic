@@ -53,6 +53,7 @@ add_library(locic-codegen
 	Primitives/PtrLval.cpp
 	Primitives/Ref.cpp
 	Primitives/SignedInteger.cpp
+	Primitives/StaticArray.cpp
 	Primitives/Typename.cpp
 	Primitives/UnsignedInteger.cpp
 	Primitives/ValueLval.cpp
