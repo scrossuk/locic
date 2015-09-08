@@ -36,6 +36,7 @@ namespace locic {
 		impl_->add(METHOD_TRAILINGZEROES);
 		impl_->add(METHOD_ALIGNMASK);
 		impl_->add(METHOD_SIZEOF);
+		impl_->add(METHOD_UNINITIALIZED);
 		
 		impl_->add(METHOD_IMPLICITCAST);
 		impl_->add(METHOD_CAST);

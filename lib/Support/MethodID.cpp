@@ -20,6 +20,7 @@ namespace locic {
 			case METHOD_CASTFROM:
 			case METHOD_ALIGNMASK:
 			case METHOD_SIZEOF:
+			case METHOD_UNINITIALIZED:
 				return CONSTRUCTOR;
 			
 			case METHOD_IMPLICITCAST:
