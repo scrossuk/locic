@@ -2,4 +2,4 @@
 
 test_check_output(CallFunctionPointer)
 test_check_output(NullFunctionPointer)
-test_check_output(StaticArray EXPECT_FAIL)
+test_check_output(StaticArray)
