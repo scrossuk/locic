@@ -219,6 +219,12 @@ namespace locic {
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue);
 		
+		llvm::Value* genStaticArrayPrimitiveMethodCall(Function& function,
+		                                               const SEM::Type* const type,
+		                                               const String& methodName,
+		                                               PendingResultArray args,
+		                                               llvm::Value* const hintResultValue);
+		
 		llvm::Value* genTypenamePrimitiveMethodCall(Function& function,
 		                                            const SEM::Type* type,
 		                                            const String& methodName,
@@ -289,7 +295,7 @@ namespace locic {
 				case PrimitiveRef:
 					return genRefPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
 				case PrimitiveStaticArray:
-					llvm_unreachable("TODO!");
+					return genStaticArrayPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
 			}
 			
 			const auto& typeName = type->getObjectType()->name().last();
