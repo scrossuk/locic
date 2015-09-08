@@ -99,6 +99,12 @@ namespace locic {
 				case PrimitiveFinalLval: {
 					return genType(module, type->templateArguments().front().typeRefType());
 				}
+				case PrimitiveStaticArray: {
+					const auto elementType = genType(module, type->templateArguments().front().typeRefType());
+					const auto elementCount = type->templateArguments().back().constant().integerValue();
+					return TypeGenerator(module).getArrayType(elementType,
+					                                          elementCount);
+				}
 				default:
 					return getBasicPrimitiveType(module, type->primitiveID());
 			}
@@ -333,6 +339,13 @@ namespace locic {
 					return genABIType(module, type->templateArguments().front().typeRefType());
 				case PrimitiveTypename:
 					return typeInfoType(module).first;
+				case PrimitiveStaticArray: {
+					const auto elementType = genABIType(module, type->templateArguments().front().typeRefType());
+					const auto elementCount = type->templateArguments().back().constant().integerValue();
+					return llvm_abi::Type::Array(abiContext,
+					                             elementCount,
+					                             elementType);
+				}
 				default:
 					return getBasicPrimitiveABIType(module, type->primitiveID());
 			}
