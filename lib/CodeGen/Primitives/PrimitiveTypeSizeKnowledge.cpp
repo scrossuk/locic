@@ -25,6 +25,13 @@ namespace locic {
 					return !refTargetType->isTemplateVar()
 						|| !refTargetType->getTemplateVar()->isVirtual();
 				}
+				case PrimitiveStaticArray: {
+					assert(type->templateArguments().size() == 2);
+					const auto targetType = type->templateArguments().front().typeRefType();
+					const auto& elementCountValue = type->templateArguments().back();
+					return isTypeSizeAlwaysKnown(module, targetType) &&
+					       elementCountValue.isConstant();
+				}
 				default:
 					return true;
 			}
@@ -39,6 +46,13 @@ namespace locic {
 					const auto refTargetType = type->templateArguments().front().typeRefType();
 					return !refTargetType->isTemplateVar()
 						|| !refTargetType->getTemplateVar()->isVirtual();
+				}
+				case PrimitiveStaticArray: {
+					assert(type->templateArguments().size() == 2);
+					const auto targetType = type->templateArguments().front().typeRefType();
+					const auto& elementCountValue = type->templateArguments().back();
+					return isTypeSizeKnownInThisModule(module, targetType) &&
+					       elementCountValue.isConstant();
 				}
 				default:
 					return true;
