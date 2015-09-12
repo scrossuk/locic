@@ -17,7 +17,7 @@
 #include <locic/CodeGen/UnwindAction.hpp>
 
 namespace locic {
-
+	
 	namespace CodeGen {
 		
 		llvm::Value* genPrimitiveAlignMask(Function& function, const SEM::Type* const type) {
