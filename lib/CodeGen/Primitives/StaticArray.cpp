@@ -22,13 +22,11 @@ namespace locic {
 		
 		llvm::Value* genStaticArrayPrimitiveMethodCall(Function& function,
 		                                               const SEM::Type* const type,
-		                                               const String& methodName,
+		                                               const MethodID methodID,
 		                                               PendingResultArray args,
 		                                               llvm::Value* const hintResultValue) {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			const auto elementType = type->templateArguments().front().typeRefType();
 			const auto& elementCount = type->templateArguments().back();
@@ -114,7 +112,6 @@ namespace locic {
 					}
 				}
 				default:
-					printf("%s\n", methodName.c_str());
 					llvm_unreachable("Unknown static_array_t primitive method.");
 			}
 		}
