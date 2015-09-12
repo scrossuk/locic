@@ -4,9 +4,11 @@
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
+#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
+#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
@@ -21,7 +23,7 @@ namespace locic {
 		                                               const SEM::Type* const type,
 		                                               const String& methodName,
 		                                               PendingResultArray args,
-		                                               llvm::Value* const /*hintResultValue*/) {
+		                                               llvm::Value* const hintResultValue) {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
 			
@@ -42,7 +44,15 @@ namespace locic {
 				}
 				case METHOD_UNINITIALIZED: {
 					// TODO: set elements to dead state.
-					return ConstantGenerator(module).getUndef(genType(module, type));
+					if (isTypeSizeAlwaysKnown(module, type)) {
+						return ConstantGenerator(module).getUndef(genType(module, type));
+					} else {
+						const auto result = genAlloca(function,
+						                              type,
+						                              hintResultValue);
+						// TODO
+						return result;
+					}
 				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY: {
