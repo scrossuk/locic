@@ -1,5 +1,7 @@
 __primitive longdouble_t {
+	static longdouble_t cast_float_t(float_t value) noexcept;
 	static longdouble_t implicit_cast_float_t(float_t value) noexcept;
+	static longdouble_t cast_double_t(double_t value) noexcept;
 	static longdouble_t implicit_cast_double_t(double_t value) noexcept;
 	
 	static size_t __alignmask() noexcept;
