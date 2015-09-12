@@ -52,10 +52,10 @@ namespace locic {
 					return ConstantGenerator(module).getI1(false);
 				}
 				case METHOD_ALIGNMASK: {
-					return genAlignMask(function, type);
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(genABIType(module, type)) - 1);
 				}
 				case METHOD_SIZEOF: {
-					return genSizeOf(function, type);
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(genABIType(module, type)));
 				}
 				case METHOD_SETDEAD: {
 					// Do nothing.
