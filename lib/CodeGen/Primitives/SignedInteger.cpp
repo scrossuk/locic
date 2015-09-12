@@ -38,10 +38,6 @@ namespace locic {
 		
 		bool isFloatType(Module& module, const SEM::Type* const rawType);
 		
-		bool isUnaryOp(const String& methodName);
-		
-		bool isBinaryOp(const String& methodName);
-		
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
 				MethodID methodID, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue);
 		
