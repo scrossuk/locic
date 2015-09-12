@@ -62,81 +62,90 @@ namespace locic {
 			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
 			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
 			
-			if (methodID == METHOD_ALIGNMASK) {
-				return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(genABIType(module, type)) - 1);
-			} else if (methodID == METHOD_SIZEOF) {
-				return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(genABIType(module, type)));
-			} else if (methodID == METHOD_IMPLICITCOPY || methodID == METHOD_COPY) {
-				return methodOwner;
-			} else if (methodName == "__move_to") {
-				const auto moveToPtr = args[1].resolve(function);
-				const auto moveToPosition = args[2].resolve(function);
-				
-				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
-				
-				genMoveStore(function, methodOwner, castedDestPtr, type);
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName == "create") {
-				return zero;
-			} else if (methodName == "unit") {
-				return unit;
-			} else if (methodName == "__setdead" || methodName == "__set_dead") {
-				// Do nothing.
-				return ConstantGenerator(module).getVoidUndef();
-			} else if (methodName.starts_with("implicit_cast_") || methodName.starts_with("cast_")) {
-				const auto argType = functionType.parameterTypes().front();
-				const auto operand = args[0].resolve(function);
-				if (isFloatType(module, argType)) {
-					return builder.CreateFPToSI(operand, selfType);
-				} else {
-					return builder.CreateSExtOrTrunc(operand, selfType);
+			switch (methodID) {
+				case METHOD_ALIGNMASK:
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(genABIType(module, type)) - 1);
+				case METHOD_SIZEOF:
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(genABIType(module, type)));
+				case METHOD_IMPLICITCOPY:
+				case METHOD_COPY:
+					return methodOwner;
+				case METHOD_MOVETO: {
+					const auto moveToPtr = args[1].resolve(function);
+					const auto moveToPosition = args[2].resolve(function);
+					
+					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
+					
+					genMoveStore(function, methodOwner, castedDestPtr, type);
+					return ConstantGenerator(module).getVoidUndef();
 				}
-			} else if (isUnaryOp(methodName)) {
-				if (methodName == "implicit_cast" || methodName == "cast") {
+				case METHOD_CREATE:
+					return zero;
+				case METHOD_UNIT:
+					return unit;
+				case METHOD_SETDEAD:
+					// Do nothing.
+					return ConstantGenerator(module).getVoidUndef();
+				case METHOD_IMPLICITCASTFROM:
+				case METHOD_CASTFROM: {
+					const auto argType = functionType.parameterTypes().front();
+					const auto operand = args[0].resolve(function);
+					if (isFloatType(module, argType)) {
+						return builder.CreateFPToSI(operand, selfType);
+					} else {
+						return builder.CreateSExtOrTrunc(operand, selfType);
+					}
+				}
+				case METHOD_IMPLICITCAST:
+				case METHOD_CAST:
 					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), hintResultValue);
-				} else if (methodName == "plus") {
+				case METHOD_PLUS:
 					return methodOwner;
-				} else if (methodName == "minus") {
+				case METHOD_MINUS:
 					return builder.CreateNeg(methodOwner);
-				} else if (methodName == "isZero") {
+				case METHOD_ISZERO:
 					return builder.CreateICmpEQ(methodOwner, zero);
-				} else if (methodName == "isPositive") {
+				case METHOD_ISPOSITIVE:
 					return builder.CreateICmpSGT(methodOwner, zero);
-				} else if (methodName == "isNegative") {
+				case METHOD_ISNEGATIVE:
 					return builder.CreateICmpSLT(methodOwner, zero);
-				} else if (methodName == "unsigned_value") {
+				case METHOD_UNSIGNEDVALUE:
 					return methodOwner;
-				} else if (methodName == "abs") {
+				case METHOD_ABS: {
 					// Generates: (value < 0) ? -value : value.
 					const auto lessThanZero = builder.CreateICmpSLT(methodOwner, zero);
 					return builder.CreateSelect(lessThanZero, builder.CreateNeg(methodOwner), methodOwner);
-				} else {
-					llvm_unreachable("Unknown primitive unary op.");
 				}
-			} else if (isBinaryOp(methodName)) {
-				const auto operand = args[1].resolveWithoutBind(function);
-				llvm::Value* const binaryArgs[] = { methodOwner, operand };
-				
-				if (methodName == "add") {
+				case METHOD_ADD: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					if (unsafe) {
 						return builder.CreateAdd(methodOwner, operand);
 					} else {
+						llvm::Value* const binaryArgs[] = { methodOwner, operand };
 						return callArithmeticNoOverflowIntrinsic(function, llvm::Intrinsic::sadd_with_overflow, binaryArgs);
 					}
-				} else if (methodName == "subtract") {
+				}
+				case METHOD_SUBTRACT: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					if (unsafe) {
 						return builder.CreateSub(methodOwner, operand);
 					} else {
+						llvm::Value* const binaryArgs[] = { methodOwner, operand };
 						return callArithmeticNoOverflowIntrinsic(function, llvm::Intrinsic::ssub_with_overflow, binaryArgs);
 					}
-				} else if (methodName == "multiply") {
+				}
+				case METHOD_MULTIPLY: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					if (unsafe) {
 						return builder.CreateMul(methodOwner, operand);
 					} else {
+						llvm::Value* const binaryArgs[] = { methodOwner, operand };
 						return callArithmeticNoOverflowIntrinsic(function, llvm::Intrinsic::smul_with_overflow, binaryArgs);
 					}
-				} else if (methodName == "divide") {
+				}
+				case METHOD_DIVIDE: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					if (!unsafe) {
 						// TODO: also check for case of MIN_INT / -1 leading to overflow.
 						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
@@ -148,7 +157,9 @@ namespace locic {
 						function.selectBasicBlock(isNotZeroBB);
 					}
 					return builder.CreateSDiv(methodOwner, operand);
-				} else if (methodName == "modulo") {
+				}
+				case METHOD_MODULO: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					if (!unsafe) {
 						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
 						const auto isZeroBB = function.createBasicBlock("isZero");
@@ -159,19 +170,33 @@ namespace locic {
 						function.selectBasicBlock(isNotZeroBB);
 					}
 					return builder.CreateSRem(methodOwner, operand);
-				} else if (methodName == "equal") {
+				}
+				case METHOD_EQUAL: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpEQ(methodOwner, operand);
-				} else if (methodName == "not_equal") {
+				}
+				case METHOD_NOTEQUAL: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpNE(methodOwner, operand);
-				} else if (methodName == "less_than") {
+				}
+				case METHOD_LESSTHAN: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpSLT(methodOwner, operand);
-				} else if (methodName == "less_than_or_equal") {
+				}
+				case METHOD_LESSTHANOREQUAL: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpSLE(methodOwner, operand);
-				} else if (methodName == "greater_than") {
+				}
+				case METHOD_GREATERTHAN: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpSGT(methodOwner, operand);
-				} else if (methodName == "greater_than_or_equal") {
+				}
+				case METHOD_GREATERTHANOREQUAL: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					return builder.CreateICmpSGE(methodOwner, operand);
-				} else if (methodName == "compare") {
+				}
+				case METHOD_COMPARE: {
+					const auto operand = args[1].resolveWithoutBind(function);
 					const auto isLessThan = builder.CreateICmpSLT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpSGT(methodOwner, operand);
 					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
@@ -179,12 +204,10 @@ namespace locic {
 					const auto plusOneResult = ConstantGenerator(module).getI8(1);
 					return builder.CreateSelect(isLessThan, minusOneResult,
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
-				} else {
-					llvm_unreachable("Unknown primitive binary op.");
 				}
-			} else {
-				printf("%s\n", methodName.c_str());
-				llvm_unreachable("Unknown primitive method.");
+				default:
+					printf("%s\n", methodName.c_str());
+					llvm_unreachable("Unknown primitive method.");
 			}
 		}
 		
