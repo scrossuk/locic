@@ -8,6 +8,7 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
+#include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
 
 #include <locic/SEM/TemplateVar.hpp>
@@ -93,11 +94,24 @@ namespace locic {
 				case METHOD_INDEX: {
 					const auto methodOwner = args[0].resolve(function);
 					const auto operand = args[1].resolve(function);
-					llvm::Value* const indexArray[] = {
-							ConstantGenerator(module).getSizeTValue(0),
-							operand
-						};
-					return builder.CreateInBoundsGEP(methodOwner, indexArray);
+					if (isTypeSizeAlwaysKnown(module, type)) {
+						llvm::Value* const indexArray[] = {
+								ConstantGenerator(module).getSizeTValue(0),
+								operand
+							};
+						return builder.CreateInBoundsGEP(methodOwner, indexArray);
+					} else {
+						const auto castMethodOwner = builder.CreatePointerCast(methodOwner,
+						                                                       TypeGenerator(module).getI8PtrType());
+						const auto elementSize = genSizeOf(function,
+						                                   elementType);
+						const auto indexPos = builder.CreateMul(elementSize,
+						                                        operand);
+						const auto elementPtr = builder.CreateInBoundsGEP(castMethodOwner,
+						                                                  indexPos);
+						return builder.CreatePointerCast(elementPtr,
+						                                 genPointerType(module, elementType));
+					}
 				}
 				default:
 					printf("%s\n", methodName.c_str());
