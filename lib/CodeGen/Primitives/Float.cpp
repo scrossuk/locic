@@ -87,11 +87,7 @@ namespace locic {
 					const auto operand = args[0].resolve(function);
 					const auto selfType = genType(module, type);
 					if (isFloatType(module, argType)) {
-						if (methodName.starts_with("implicit_cast_")) {
-							return builder.CreateFPExt(operand, selfType);
-						} else {
-							return builder.CreateFPTrunc(operand, selfType);
-						}
+						return builder.CreateFPCast(operand, selfType);
 					} else if (isUnsignedIntegerType(module, argType)) {
 						return builder.CreateUIToFP(operand, selfType);
 					} else if (isSignedIntegerType(module, argType)) {
