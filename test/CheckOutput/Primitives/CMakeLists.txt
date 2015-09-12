@@ -3,4 +3,4 @@
 test_check_output(CallFunctionPointer)
 test_check_output(NullFunctionPointer)
 test_check_output(StaticArray)
-test_check_output(StaticArrayTemplateElementType EXPECT_FAIL)
+test_check_output(StaticArrayTemplateElementType)
