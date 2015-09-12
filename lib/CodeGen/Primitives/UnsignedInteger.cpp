@@ -36,14 +36,12 @@ namespace locic {
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
 				MethodID methodID, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::FunctionType functionType,
+		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const MethodID methodID, const SEM::FunctionType functionType,
 				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
 			const auto& typeName = type->getObjectType()->name().first();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function);
 			
@@ -352,7 +350,6 @@ namespace locic {
 					);
 				}
 				default:
-					printf("%s\n", methodName.c_str());
 					llvm_unreachable("Unknown unsigned integer primitive method.");
 			}
 		}

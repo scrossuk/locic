@@ -205,7 +205,7 @@ namespace locic {
 		llvm::Value* genSignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID, SEM::FunctionType functionType,
 				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, SEM::FunctionType functionType,
+		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID, SEM::FunctionType functionType,
 				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue);
 		
 		llvm::Value* genFloatPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID, SEM::FunctionType functionType,
@@ -301,7 +301,7 @@ namespace locic {
 				case PrimitiveULong:
 				case PrimitiveULongLong:
 				case PrimitiveSize:
-					return genUnsignedIntegerPrimitiveMethodCall(function, type, methodName, functionType, arrayRef(templateArgs), std::move(args), hintResultValue);
+					return genUnsignedIntegerPrimitiveMethodCall(function, type, methodID, functionType, arrayRef(templateArgs), std::move(args), hintResultValue);
 				case PrimitiveFloat:
 				case PrimitiveDouble:
 				case PrimitiveLongDouble:
