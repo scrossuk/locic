@@ -49,12 +49,10 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_NULL:
 					return ConstantGenerator(module).getNull(genType(module, type));
-				case METHOD_ALIGNMASK: {
-					return genAlignMask(function, type);
-				}
-				case METHOD_SIZEOF: {
-					return genSizeOf(function, type);
-				}
+				case METHOD_ALIGNMASK:
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(genABIType(module, type)) - 1);
+				case METHOD_SIZEOF:
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(genABIType(module, type)));
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY:
 				case METHOD_DEREF:
