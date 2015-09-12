@@ -36,12 +36,10 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
+		llvm::Value* genPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const MethodID methodID,
 				PendingResultArray args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			const auto methodOwnerPointer = methodID.isConstructor() ? nullptr : args[0].resolve(function);
 			const auto methodOwner = methodOwnerPointer != nullptr ? builder.CreateLoad(methodOwnerPointer) : nullptr;
@@ -178,7 +176,6 @@ namespace locic {
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				}
 				default:
-					printf("%s\n", methodName.c_str());
 					llvm_unreachable("Unknown ptr primitive method.");
 			}
 		}
