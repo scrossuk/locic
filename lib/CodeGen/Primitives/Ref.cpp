@@ -181,13 +181,11 @@ namespace locic {
 		
 		llvm::Value* genRefPrimitiveMethodCall(Function& function,
 		                                       const SEM::Type* const type,
-		                                       const String& methodName,
+		                                       const MethodID methodID,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			switch (methodID) {
 				case METHOD_ALIGNMASK: {
@@ -288,7 +286,6 @@ namespace locic {
 						});
 				}
 				default:
-					printf("%s\n", methodName.c_str());
 					llvm_unreachable("Unknown ref primitive method.");
 			}
 		}

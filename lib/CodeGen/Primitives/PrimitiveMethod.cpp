@@ -215,7 +215,7 @@ namespace locic {
 		
 		llvm::Value* genRefPrimitiveMethodCall(Function& function,
 		                                       const SEM::Type* const type,
-		                                       const String& methodName,
+		                                       MethodID methodID,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue);
 		
@@ -296,7 +296,7 @@ namespace locic {
 				case PrimitiveTypename:
 					return genTypenamePrimitiveMethodCall(function, type, methodName, std::move(args));
 				case PrimitiveRef:
-					return genRefPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
+					return genRefPrimitiveMethodCall(function, type, methodID, std::move(args), hintResultValue);
 				case PrimitiveStaticArray:
 					return genStaticArrayPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
 			}
