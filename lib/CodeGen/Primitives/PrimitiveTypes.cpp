@@ -23,6 +23,12 @@ namespace locic {
 				case PrimitiveFinalLval: {
 					return genPointerType(module, type->templateArguments().front().typeRefType());
 				}
+				case PrimitiveStaticArray: {
+					if (!isTypeSizeKnownInThisModule(module, type)) {
+						return genPointerType(module,
+						                      type->templateArguments().front().typeRefType());
+					}
+				}
 				default: {
 					const auto pointerType = getPrimitiveType(module, type);
 					if (pointerType->isVoidTy()) {
