@@ -177,7 +177,7 @@ namespace locic {
 			return callRawCastMethod(function, castFromValue, castFromType, targetMethodName, castToType, hintResultValue);
 		}
 		
-		llvm::Value* genVoidPrimitiveMethodCall(Function& function, const SEM::Type*, const String& methodName, PendingResultArray args);
+		llvm::Value* genVoidPrimitiveMethodCall(Function& function, const SEM::Type*, MethodID methodID, PendingResultArray args);
 		
 		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type,
 		                                                 MethodID methodID,
@@ -241,7 +241,7 @@ namespace locic {
 			
 			switch (type->primitiveID()) {
 				case PrimitiveVoid:
-					return genVoidPrimitiveMethodCall(function, type, methodName, std::move(args));
+					return genVoidPrimitiveMethodCall(function, type, methodID, std::move(args));
 				case PrimitiveCompareResult:
 					return genCompareResultPrimitiveMethodCall(function, type, methodID, std::move(args));
 				case PrimitiveNull:
