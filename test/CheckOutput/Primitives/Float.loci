@@ -1,0 +1,59 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+const ubyte* compareResultString(compare_result_t result) {
+	if (result.is_equal()) {
+		return C"equal";
+	} else if (result.is_less_than()) {
+		return C"less than";
+	} else if (result.is_greater_than()) {
+		return C"greater than";
+	} else {
+		unreachable;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"alignof(float) = %llu", alignof(float).cast<ulonglong_t>());
+	testPrint(C"sizeof(float) = %llu", sizeof(float).cast<ulonglong_t>());
+	
+	float f = 1.0f;
+	testPrint(C"f = %f", f);
+	testPrint(C"f.implicitcopy() = %f", f.implicitcopy());
+	testPrint(C"f.copy() = %f", f.copy());
+	testPrint(C"f.implicitcast<double>() = %f", f.implicitcast<double>());
+	testPrint(C"f.cast<double>() = %f", f.cast<double>());
+	testPrint(C"f.plus() = %f", f.plus());
+	testPrint(C"f.minus() = %f", f.minus());
+	testPrint(C"f.abs() = %f", f.abs());
+	testPrint(C"f.minus().abs() = %f", f.minus().abs());
+	
+	testPrint(C"f.equal(0.0f) = %s", f.equal(0.0f) ? C"true" : C"false");
+	testPrint(C"f.not_equal(0.0f) = %s", f.not_equal(0.0f) ? C"true" : C"false");
+	testPrint(C"f.less_than(0.0f) = %s", f.less_than(0.0f) ? C"true" : C"false");
+	testPrint(C"f.less_than_or_equal(0.0f) = %s", f.less_than_or_equal(0.0f) ? C"true" : C"false");
+	testPrint(C"f.greater_than(0.0f) = %s", f.greater_than(0.0f) ? C"true" : C"false");
+	testPrint(C"f.greater_than_or_equal(0.0f) = %s", f.greater_than_or_equal(0.0f) ? C"true" : C"false");
+	testPrint(C"f.compare(0.0f) = %s", compareResultString(f.compare(0.0f)));
+	
+	testPrint(C"f.equal(1.0f) = %s", f.equal(1.0f) ? C"true" : C"false");
+	testPrint(C"f.not_equal(1.0f) = %s", f.not_equal(1.0f) ? C"true" : C"false");
+	testPrint(C"f.less_than(1.0f) = %s", f.less_than(1.0f) ? C"true" : C"false");
+	testPrint(C"f.less_than_or_equal(1.0f) = %s", f.less_than_or_equal(1.0f) ? C"true" : C"false");
+	testPrint(C"f.greater_than(1.0f) = %s", f.greater_than(1.0f) ? C"true" : C"false");
+	testPrint(C"f.greater_than_or_equal(1.0f) = %s", f.greater_than_or_equal(1.0f) ? C"true" : C"false");
+	testPrint(C"f.compare(1.0f) = %s", compareResultString(f.compare(1.0f)));
+	
+	testPrint(C"f.equal(2.0f) = %s", f.equal(2.0f) ? C"true" : C"false");
+	testPrint(C"f.not_equal(2.0f) = %s", f.not_equal(2.0f) ? C"true" : C"false");
+	testPrint(C"f.less_than(2.0f) = %s", f.less_than(2.0f) ? C"true" : C"false");
+	testPrint(C"f.less_than_or_equal(2.0f) = %s", f.less_than_or_equal(2.0f) ? C"true" : C"false");
+	testPrint(C"f.greater_than(2.0f) = %s", f.greater_than(2.0f) ? C"true" : C"false");
+	testPrint(C"f.greater_than_or_equal(2.0f) = %s", f.greater_than_or_equal(2.0f) ? C"true" : C"false");
+	testPrint(C"f.compare(2.0f) = %s", compareResultString(f.compare(2.0f)));
+	
+	testPrint(C"move f = %f", move f);
+	return 0;
+}
+
