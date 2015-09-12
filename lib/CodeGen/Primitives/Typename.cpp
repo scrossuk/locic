@@ -13,11 +13,9 @@ namespace locic {
 		
 		llvm::Value* genTypenamePrimitiveMethodCall(Function& functionGenerator,
 		                                            const SEM::Type* type,
-		                                            const String& methodName,
+		                                            const MethodID methodID,
 		                                            PendingResultArray args) {
 			auto& module = functionGenerator.module();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			switch (methodID) {
 				case METHOD_ALIGNMASK:
