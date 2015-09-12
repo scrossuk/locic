@@ -40,8 +40,21 @@ void printFloatArray(static_array_t<float, 4u> array) {
 export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	auto intArray = makeArray<int>(1, 2, 3, 4);
 	auto floatArray = makeArray<float>(1.0f, 2.0f, 3.0f, 4.0f);
+	
+	printIntArray(intArray);
+	printFloatArray(floatArray);
+	
+	testPrint(C"Rotate...");
 	intArray = rotate<int>(intArray);
 	floatArray = rotate<float>(floatArray);
+	
+	printIntArray(intArray);
+	printFloatArray(floatArray);
+	
+	testPrint(C"Rotate...");
+	intArray = rotate<int>(intArray);
+	floatArray = rotate<float>(floatArray);
+	
 	printIntArray(intArray);
 	printFloatArray(floatArray);
 	return 0;
