@@ -183,7 +183,7 @@ namespace locic {
 		                                                 const String& methodName,
 		                                                 PendingResultArray args);
 		
-		llvm::Value* genNullPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, llvm::ArrayRef<SEM::Value> templateArgs,
+		llvm::Value* genNullPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID, llvm::ArrayRef<SEM::Value> templateArgs,
 				PendingResultArray args, llvm::Value* const hintResultValue);
 		
 		llvm::Value* genBoolPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
@@ -236,13 +236,16 @@ namespace locic {
 			const auto functionType = methodInfo.functionType;
 			const auto& templateArgs = methodInfo.templateArgs;
 			
+			auto& module = function.module();
+			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
+			
 			switch (type->primitiveID()) {
 				case PrimitiveVoid:
 					return genVoidPrimitiveMethodCall(function, type, methodName, std::move(args));
 				case PrimitiveCompareResult:
 					return genCompareResultPrimitiveMethodCall(function, type, methodName, std::move(args));
 				case PrimitiveNull:
-					return genNullPrimitiveMethodCall(function, type, methodName, arrayRef(templateArgs), std::move(args), hintResultValue);
+					return genNullPrimitiveMethodCall(function, type, methodID, arrayRef(templateArgs), std::move(args), hintResultValue);
 				case PrimitiveBool:
 					return genBoolPrimitiveMethodCall(function, type, methodName, arrayRef(templateArgs), std::move(args), hintResultValue);
 				case PrimitiveValueLval:

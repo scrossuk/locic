@@ -18,11 +18,9 @@ namespace locic {
 		llvm::Value* callRawCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
 				const String& targetMethodName, const SEM::Type* const castToType, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genNullPrimitiveMethodCall(Function& functionGenerator, const SEM::Type* type, const String& methodName, llvm::ArrayRef<SEM::Value> templateArgs,
+		llvm::Value* genNullPrimitiveMethodCall(Function& functionGenerator, const SEM::Type* type, const MethodID methodID, llvm::ArrayRef<SEM::Value> templateArgs,
 				PendingResultArray /*args*/, llvm::Value* const hintResultValue) {
 			auto& module = functionGenerator.module();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			switch (methodID) {
 				case METHOD_CREATE:
