@@ -24,8 +24,20 @@ namespace locic {
 			
 			bool isVarArg() const;
 			
+			/**
+			 * \brief Query whether the function is a dynamic method.
+			 * 
+			 * A function is a dynamic method if it has a 'this'
+			 * argument; note this does not include static methods.
+			 */
 			bool isMethod() const;
 			
+			/**
+			 * \brief Query whether the function is templated.
+			 * 
+			 * A function is templated if either it or its parent
+			 * type accepts one or more non-virtual templates.
+			 */
 			bool isTemplated() const;
 			
 			const Predicate& noExceptPredicate() const;
