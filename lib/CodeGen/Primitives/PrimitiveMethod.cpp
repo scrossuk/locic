@@ -180,7 +180,7 @@ namespace locic {
 		llvm::Value* genVoidPrimitiveMethodCall(Function& function, const SEM::Type*, const String& methodName, PendingResultArray args);
 		
 		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type,
-		                                                 const String& methodName,
+		                                                 MethodID methodID,
 		                                                 PendingResultArray args);
 		
 		llvm::Value* genNullPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID, llvm::ArrayRef<SEM::Value> templateArgs,
@@ -243,7 +243,7 @@ namespace locic {
 				case PrimitiveVoid:
 					return genVoidPrimitiveMethodCall(function, type, methodName, std::move(args));
 				case PrimitiveCompareResult:
-					return genCompareResultPrimitiveMethodCall(function, type, methodName, std::move(args));
+					return genCompareResultPrimitiveMethodCall(function, type, methodID, std::move(args));
 				case PrimitiveNull:
 					return genNullPrimitiveMethodCall(function, type, methodID, arrayRef(templateArgs), std::move(args), hintResultValue);
 				case PrimitiveBool:

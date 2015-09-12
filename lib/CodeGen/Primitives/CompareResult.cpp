@@ -37,12 +37,10 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type,
-		                                                 const String& methodName,
+		                                                 const MethodID methodID,
 		                                                 PendingResultArray args) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			const auto lessThanValue = ConstantGenerator(module).getI8(-1);
 			const auto equalValue = ConstantGenerator(module).getI8(0);
@@ -90,7 +88,6 @@ namespace locic {
 					return builder.CreateICmpNE(methodOwner, lessThanValue);
 				}
 				default:
-					printf("%s\n", methodName.c_str());
 					llvm_unreachable("Unknown compare_result_t method.");
 			}
 		}
