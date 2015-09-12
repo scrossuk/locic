@@ -63,9 +63,9 @@ namespace locic {
 			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
 			
 			if (methodID == METHOD_ALIGNMASK) {
-				return genAlignMask(function, type);
+				return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(genABIType(module, type)) - 1);
 			} else if (methodID == METHOD_SIZEOF) {
-				return genSizeOf(function, type);
+				return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(genABIType(module, type)));
 			} else if (methodID == METHOD_IMPLICITCOPY || methodID == METHOD_COPY) {
 				return methodOwner;
 			} else if (methodName == "__move_to") {
