@@ -166,13 +166,26 @@ namespace locic {
 			return genStaticMethodCall(function, std::move(methodInfo), std::move(args), hintResultValue);
 		}
 		
+		String getCastMethodName(Module& module, const MethodID methodID) {
+			switch (methodID) {
+				case METHOD_CAST:
+					return module.getCString("cast");
+				case METHOD_IMPLICITCAST:
+					return module.getCString("implicit_cast");
+				default:
+					llvm_unreachable("Invalid cast method ID.");
+			}
+		}
+		
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
-				const String& methodName, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue) {
+				const MethodID methodID, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue) {
 			assert(castFromType->isPrimitive());
 			
 			const auto castToType = rawCastToType->resolveAliases();
 			assert(castToType->isObjectOrTemplateVar());
 			
+			auto& module = function.module();
+			const auto methodName = getCastMethodName(module, methodID);
 			const auto targetMethodName = methodName + "_" + castFromType->getObjectType()->name().last();
 			return callRawCastMethod(function, castFromValue, castFromType, targetMethodName, castToType, hintResultValue);
 		}

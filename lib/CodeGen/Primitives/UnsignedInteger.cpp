@@ -34,7 +34,7 @@ namespace locic {
 		bool isFloatType(Module& module, const SEM::Type* const rawType);
 		
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
-				const String& methodName, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue);
+				MethodID methodID, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue);
 		
 		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName, const SEM::FunctionType functionType,
 				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue) {
@@ -129,7 +129,7 @@ namespace locic {
 					
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST:
-					return callCastMethod(function, methodOwner, type, methodName, templateArgs.front().typeRefType(), hintResultValue);
+					return callCastMethod(function, methodOwner, type, methodID, templateArgs.front().typeRefType(), hintResultValue);
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:
 					return methodOwner;
