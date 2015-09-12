@@ -87,63 +87,6 @@ namespace locic {
 			}
 		}
 		
-		bool isConstructor(const String& methodName) {
-			return methodName == "create" ||
-				methodName == "null" ||
-				methodName == "zero" ||
-				methodName == "unit" ||
-				methodName == "leading_ones" ||
-				methodName == "trailing_ones" ||
-				methodName.starts_with("implicit_cast_") ||
-				methodName.starts_with("cast_");
-		}
-		
-		bool isUnaryOp(const String& methodName) {
-			return methodName == "implicit_cast" ||
-				methodName == "cast" ||
-				methodName == "implicit_copy" ||
-				methodName == "copy" ||
-				methodName == "plus" ||
-				methodName == "minus" ||
-				methodName == "not" ||
-				methodName == "isZero" ||
-				methodName == "isPositive" ||
-				methodName == "isNegative" ||
-				methodName == "abs" ||
-				methodName == "address" ||
-				methodName == "deref" ||
-				methodName == "dissolve" ||
-				methodName == "move" ||
-				methodName == "signed_value" ||
-				methodName == "unsigned_value" ||
-				methodName == "count_leading_zeroes" ||
-				methodName == "count_leading_ones" ||
-				methodName == "count_trailing_zeroes" ||
-				methodName == "count_trailing_ones" ||
-				methodName == "sqrt";
-		}
-		
-		bool isBinaryOp(const String& methodName) {
-			return methodName == "add" ||
-				methodName == "subtract" ||
-				methodName == "multiply" ||
-				methodName == "divide" ||
-				methodName == "modulo" ||
-				methodName == "compare" ||
-				methodName == "assign" ||
-				methodName == "index" ||
-				methodName == "equal" ||
-				methodName == "not_equal" ||
-				methodName == "less_than" ||
-				methodName == "less_than_or_equal" ||
-				methodName == "greater_than" ||
-				methodName == "greater_than_or_equal" ||
-				methodName == "bitwise_and" ||
-				methodName == "bitwise_or" ||
-				methodName == "left_shift" ||
-				methodName == "right_shift";
-		}
-		
 		llvm::Value* callRawCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
 				const String& targetMethodName, const SEM::Type* const castToType, llvm::Value* const hintResultValue) {
 			const bool isVarArg = false;
