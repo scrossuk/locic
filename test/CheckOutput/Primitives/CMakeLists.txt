@@ -1,6 +1,8 @@
 # Primitive tests.
 
 test_check_output(CallFunctionPointer)
+test_check_output(Double)
+test_check_output(Float)
 test_check_output(NullFunctionPointer)
 test_check_output(StaticArray)
 test_check_output(StaticArrayTemplateElementType)
