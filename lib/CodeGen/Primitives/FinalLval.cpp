@@ -36,14 +36,12 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
+		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const MethodID methodID,
 				PendingResultArray args, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
 			const auto targetType = type->templateArguments().front().typeRefType();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			switch (methodID) {
 				case METHOD_EMPTY: {
