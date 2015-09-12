@@ -91,11 +91,9 @@ namespace locic {
 			return genFunctionCall(function, type->asFunctionType(), callInfo, std::move(callArgs), hintResultValue);
 		}
 		
-		llvm::Value* genFunctionPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
+		llvm::Value* genFunctionPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const MethodID methodID,
 				PendingResultArray args, llvm::Value* hintResultValue) {
 			auto& module = function.module();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
 			switch (methodID) {
 				case METHOD_NULL:
@@ -118,7 +116,6 @@ namespace locic {
 				case METHOD_CALL:
 					return genFunctionPtrCallMethod(function, type, std::move(args), hintResultValue);
 				default:
-					printf("%s\n", methodName.c_str());
 					llvm_unreachable("Unknown function_ptr primitive method.");
 			}
 		}
