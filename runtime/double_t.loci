@@ -12,6 +12,7 @@ __primitive double_t {
 	static double_t cast_ssize_t(ssize_t value) noexcept;
 	static double_t cast_size_t(size_t value) noexcept;
 	
+	static double_t cast_float_t(float_t value) noexcept;
 	static double_t implicit_cast_float_t(float_t value) noexcept;
 	
 	static double_t cast_longdouble_t(longdouble_t value) noexcept;
