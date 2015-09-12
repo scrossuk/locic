@@ -144,9 +144,9 @@ namespace locic {
 				case METHOD_COPY:
 					return genValueLvalCopyMethod(functionGenerator, methodID, targetType, std::move(args), hintResultValue);
 				case METHOD_ALIGNMASK:
-					return genAlignMask(functionGenerator, type);
+					return genAlignMask(functionGenerator, targetType);
 				case METHOD_SIZEOF:
-					return genSizeOf(functionGenerator, type);
+					return genSizeOf(functionGenerator, targetType);
 				case METHOD_SETDEAD:
 					return genValueLvalSetDeadMethod(functionGenerator, targetType, std::move(args));
 				case METHOD_MOVETO:
