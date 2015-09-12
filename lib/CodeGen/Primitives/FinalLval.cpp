@@ -52,10 +52,10 @@ namespace locic {
 					return genMoveLoad(function, objectVar, targetType);
 				}
 				case METHOD_ALIGNMASK: {
-					return genAlignMask(function, type);
+					return genAlignMask(function, targetType);
 				}
 				case METHOD_SIZEOF: {
-					return genSizeOf(function, type);
+					return genSizeOf(function, targetType);
 				}
 				case METHOD_MOVETO: {
 					const auto moveToPtr = args[1].resolve(function);
