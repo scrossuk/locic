@@ -210,7 +210,7 @@ namespace locic {
 		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID,
 				PendingResultArray args, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const String& methodName,
+		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID,
 				PendingResultArray args, llvm::Value* const hintResultValue);
 		
 		llvm::Value* genRefPrimitiveMethodCall(Function& function,
@@ -249,7 +249,7 @@ namespace locic {
 				case PrimitiveBool:
 					return genBoolPrimitiveMethodCall(function, type, methodName, arrayRef(templateArgs), std::move(args), hintResultValue);
 				case PrimitiveValueLval:
-					return genValueLvalPrimitiveMethodCall(function, type, methodName, std::move(args), hintResultValue);
+					return genValueLvalPrimitiveMethodCall(function, type, methodID, std::move(args), hintResultValue);
 				case PrimitiveFinalLval:
 					return genFinalLvalPrimitiveMethodCall(function, type, methodID, std::move(args), hintResultValue);
 				case PrimitivePtrLval:

@@ -126,13 +126,9 @@ namespace locic {
 		
 		llvm::Value* genValueLvalPrimitiveMethodCall(Function& functionGenerator,
 		                                             const SEM::Type* type,
-		                                             const String& methodName,
+		                                             const MethodID methodID,
 		                                             PendingResultArray args,
 		                                             llvm::Value* const hintResultValue) {
-			auto& module = functionGenerator.module();
-			
-			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
-			
 			const auto targetType = type->templateArguments().front().typeRefType();
 			
 			switch (methodID) {
@@ -160,7 +156,6 @@ namespace locic {
 				case METHOD_ASSIGN:
 					return genValueLvalAssignMethod(functionGenerator, targetType, std::move(args));
 				default:
-					printf("%s\n", methodName.c_str());
 					llvm_unreachable("Unknown primitive value_lval method.");
 			}
 		}
