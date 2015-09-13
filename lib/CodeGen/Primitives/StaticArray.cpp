@@ -4,6 +4,7 @@
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
@@ -20,6 +21,34 @@ namespace locic {
 	
 	namespace CodeGen {
 		
+		llvm::Value* getArrayIndex(Function& function,
+		                           const SEM::Type* const type,
+		                           const SEM::Type* const elementType,
+		                           llvm::Value* const arrayPtr,
+		                           llvm::Value* const elementIndex) {
+			auto& builder = function.getBuilder();
+			auto& module = function.module();
+			
+			if (isTypeSizeAlwaysKnown(module, type)) {
+				llvm::Value* const indexArray[] = {
+						ConstantGenerator(module).getSizeTValue(0),
+						elementIndex
+					};
+				return builder.CreateInBoundsGEP(arrayPtr, indexArray);
+			} else {
+				const auto castMethodOwner = builder.CreatePointerCast(arrayPtr,
+				                                                       TypeGenerator(module).getI8PtrType());
+				const auto elementSize = genSizeOf(function,
+				                                   elementType);
+				const auto indexPos = builder.CreateMul(elementSize,
+				                                        elementIndex);
+				const auto elementPtr = builder.CreateInBoundsGEP(castMethodOwner,
+				                                                  indexPos);
+				return builder.CreatePointerCast(elementPtr,
+				                                 genPointerType(module, elementType));
+			}
+		}
+		
 		llvm::Value* genStaticArrayPrimitiveMethodCall(Function& function,
 		                                               const SEM::Type* const type,
 		                                               const MethodID methodID,
@@ -27,6 +56,8 @@ namespace locic {
 		                                               llvm::Value* const hintResultValue) {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
+			
+			IREmitter irEmitter(function);
 			
 			const auto elementType = type->templateArguments().front().typeRefType();
 			const auto& elementCount = type->templateArguments().back();
@@ -55,8 +86,64 @@ namespace locic {
 				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY: {
-					// TODO: need to call implicit copy methods!
-					return args[0].resolveWithoutBind(function);
+					const auto arraySize = genValue(function, elementCount);
+					const auto arrayPtr = args[0].resolve(function);
+					
+					const auto result = irEmitter.emitAlloca(type,
+					                                         hintResultValue);
+					
+					const auto beforeLoopBB = builder.GetInsertBlock();
+					const auto loopBB = function.createBasicBlock("");
+					const auto afterLoopBB = function.createBasicBlock("");
+					
+					builder.CreateBr(loopBB);
+					
+					function.selectBasicBlock(loopBB);
+					
+					const auto sizeTType = TypeGenerator(module).getSizeTType();
+					
+					const auto phiNode = builder.CreatePHI(sizeTType, 2);
+					phiNode->addIncoming(ConstantGenerator(module).getSizeTValue(0),
+					                     beforeLoopBB);
+					
+					const auto memberPtr = getArrayIndex(function,
+					                                     type,
+					                                     elementType,
+					                                     arrayPtr,
+					                                     phiNode);
+					
+					const auto resultPtr = getArrayIndex(function,
+					                                     type,
+					                                     elementType,
+					                                     result,
+					                                     phiNode);
+					
+					const auto copyResult = irEmitter.emitCopyCall(methodID,
+					                                               memberPtr,
+					                                               elementType,
+					                                               resultPtr);
+					
+					irEmitter.emitMoveStore(copyResult,
+					                        resultPtr,
+					                        elementType);
+					
+					const auto indexIncremented = builder.CreateAdd(phiNode,
+					                                                ConstantGenerator(module).getSizeTValue(1));
+					
+					phiNode->addIncoming(indexIncremented,
+					                     loopBB);
+					
+					const auto isEnd = builder.CreateICmpEQ(indexIncremented,
+					                                        arraySize);
+					
+					builder.CreateCondBr(isEnd,
+					                     afterLoopBB,
+					                     loopBB);
+					
+					function.selectBasicBlock(afterLoopBB);
+					
+					return irEmitter.emitMoveLoad(result,
+					                              type);
 				}
 				case METHOD_ISVALID: {
 					// TODO!
