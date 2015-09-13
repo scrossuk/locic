@@ -65,9 +65,23 @@ namespace locic {
 			                     const SEM::Type* type,
 			                     llvm::Value* hintResultValue = nullptr);
 			
+			/**
+			 * \brief Emit call to copy method.
+			 * 
+			 * This function can emit either a call to implicit copy
+			 * or explicit copy methods (specified via MethodID).
+			 * 
+			 * \param methodID Either METHOD_IMPLICITCOPY or METHOD_COPY.
+			 * \param valueRef A reference (i.e. IR pointer) to the value to be copied.
+			 * \param type The type of the value to be copied.
+			 * \param hintResultValue If given, a pointer to memory where
+			 *                        the result **can** be placed, to
+			 *                        avoid generating unnecessary allocas.
+			 * \return The result of the copy operation.
+			 */
 			llvm::Value*
 			emitCopyCall(MethodID methodID,
-			             llvm::Value* value,
+			             llvm::Value* valueRef,
 			             const SEM::Type* type,
 			             llvm::Value* hintResultValue = nullptr);
 			
