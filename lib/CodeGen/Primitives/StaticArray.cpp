@@ -166,14 +166,62 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_MOVETO: {
-					// TODO!
-					const auto methodOwner = args[0].resolveWithoutBind(function);
+					const auto arraySize = genValue(function, elementCount);
+					const auto arrayPtr = args[0].resolve(function);
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
-					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-					const auto llvmType = genType(module, type);
-					const auto castedDestPtr = builder.CreatePointerCast(destPtr, llvmType->getPointerTo());
-					builder.CreateStore(methodOwner, castedDestPtr);
+					
+					const auto result = builder.CreateInBoundsGEP(moveToPtr,
+					                                              moveToPosition);
+					
+					const auto beforeLoopBB = builder.GetInsertBlock();
+					const auto loopBB = function.createBasicBlock("");
+					const auto afterLoopBB = function.createBasicBlock("");
+					
+					builder.CreateBr(loopBB);
+					
+					function.selectBasicBlock(loopBB);
+					
+					const auto sizeTType = TypeGenerator(module).getSizeTType();
+					
+					const auto phiNode = builder.CreatePHI(sizeTType, 2);
+					phiNode->addIncoming(ConstantGenerator(module).getSizeTValue(0),
+					                     beforeLoopBB);
+					
+					const auto memberPtr = getArrayIndex(function,
+					                                     type,
+					                                     elementType,
+					                                     arrayPtr,
+					                                     phiNode);
+					
+					const auto resultPtr = getArrayIndex(function,
+					                                     type,
+					                                     elementType,
+					                                     result,
+					                                     phiNode);
+					
+					const auto memberValue = irEmitter.emitMoveLoad(memberPtr,
+					                                                elementType);
+					
+					irEmitter.emitMoveStore(memberValue,
+					                        resultPtr,
+					                        elementType);
+					
+					const auto indexIncremented = builder.CreateAdd(phiNode,
+					                                                ConstantGenerator(module).getSizeTValue(1));
+					
+					phiNode->addIncoming(indexIncremented,
+					                     loopBB);
+					
+					const auto isEnd = builder.CreateICmpEQ(indexIncremented,
+					                                        arraySize);
+					
+					builder.CreateCondBr(isEnd,
+					                     afterLoopBB,
+					                     loopBB);
+					
+					function.selectBasicBlock(afterLoopBB);
+					
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_INDEX: {
