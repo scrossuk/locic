@@ -6,13 +6,13 @@ class Invalidatable(bool isValid) {
 		return @(true);
 	}
 	
-	void __set_invalid() noexcept {
-		testPrint(C"Invalidatable::__set_invalid");
+	void __setinvalid() noexcept {
+		testPrint(C"Invalidatable::__setinvalid");
 		@isValid = false;
 	}
 	
-	bool __is_valid() const noexcept {
-		testPrint(C"Invalidatable::__is_valid : %s", @isValid ? C"true" : C"false");
+	bool __isvalid() const noexcept {
+		testPrint(C"Invalidatable::__isvalid : %s", @isValid ? C"true" : C"false");
 		return @isValid;
 	}
 }
