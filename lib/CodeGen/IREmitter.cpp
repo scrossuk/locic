@@ -17,8 +17,10 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		IREmitter::IREmitter(Function& functionGenerator)
-		: functionGenerator_(functionGenerator) { }
+		IREmitter::IREmitter(Function& functionGenerator,
+		                     llvm::Value* hintResultValue)
+		: functionGenerator_(functionGenerator),
+		  hintResultValue_(hintResultValue) { }
 		
 		llvm::Value*
 		IREmitter::emitAlignMask(const SEM::Type* const type) {
@@ -31,11 +33,16 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		IREmitter::emitAlloca(const SEM::Type* const type,
-		                      llvm::Value* const hintResultValue) {
+		IREmitter::emitReturnAlloca(const SEM::Type* const type) {
 			return genAlloca(functionGenerator_,
 			                 type,
-			                 hintResultValue);
+			                 hintResultValue_);
+		}
+		
+		llvm::Value*
+		IREmitter::emitAlloca(const SEM::Type* const type) {
+			return genAlloca(functionGenerator_,
+			                 type);
 		}
 		
 		llvm::Value*

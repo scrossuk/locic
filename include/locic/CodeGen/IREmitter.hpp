@@ -23,7 +23,8 @@ namespace locic {
 		 */
 		class IREmitter {
 		public:
-			IREmitter(Function& functionGenerator);
+			IREmitter(Function& functionGenerator,
+			          llvm::Value* hintResultValue = nullptr);
 			
 			llvm::Value*
 			emitAlignMask(const SEM::Type* type);
@@ -32,8 +33,10 @@ namespace locic {
 			emitSizeOf(const SEM::Type* type);
 			
 			llvm::Value*
-			emitAlloca(const SEM::Type* type,
-			           llvm::Value* hintResultValue = nullptr);
+			emitAlloca(const SEM::Type* type);
+			
+			llvm::Value*
+			emitReturnAlloca(const SEM::Type* type);
 			
 			llvm::Value*
 			emitMoveLoad(llvm::Value* value, const SEM::Type* type);
@@ -94,6 +97,7 @@ namespace locic {
 			
 		private:
 			Function& functionGenerator_;
+			llvm::Value* hintResultValue_;
 			
 		};
 		
