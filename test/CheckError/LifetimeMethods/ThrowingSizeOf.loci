@@ -1,0 +1,7 @@
+exception TestError();
+
+class TestClass() {
+	static size_t __sizeof() {
+		throw TestError();
+	}
+}

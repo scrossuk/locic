@@ -1,0 +1,7 @@
+exception TestError();
+
+class TestClass() {
+	void __setdead() {
+		throw TestError();
+	}
+}

@@ -1,0 +1,1 @@
+Lifetime method '::TestClass::__alignmask' isn't marked as noexcept, at location SourceLocation\(filename = (.*)/ThrowingAlignMask\.loci, range = \(line 4, column 2\) to \(line 6, column 3\)\).
