@@ -57,7 +57,7 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
 			
-			IREmitter irEmitter(function);
+			IREmitter irEmitter(function, hintResultValue);
 			
 			const auto elementType = type->templateArguments().front().typeRefType();
 			const auto& elementCount = type->templateArguments().back();
@@ -89,8 +89,7 @@ namespace locic {
 					const auto arraySize = genValue(function, elementCount);
 					const auto arrayPtr = args[0].resolve(function);
 					
-					const auto result = irEmitter.emitAlloca(type,
-					                                         hintResultValue);
+					const auto result = irEmitter.emitReturnAlloca(type);
 					
 					const auto beforeLoopBB = builder.GetInsertBlock();
 					const auto loopBB = function.createBasicBlock("");
