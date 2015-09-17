@@ -4,6 +4,7 @@ sizeof(TypeWithDestructor) = 1
 ---- checkLive()
 __islive called.
 Destructor called.
+__setdead called.
 ---- checkDead()
 __setdead called.
 __islive called.
@@ -14,5 +15,6 @@ __setdead called.
 * Destroy moved object.
 __islive called.
 Destructor called.
+__setdead called.
 * Destroy original object.
 __islive called.

@@ -328,6 +328,9 @@ namespace locic {
 				genDestructorCall(function, memberVar->type(), ptrToMember);
 			}
 			
+			// Put the object into a dead state.
+			genSetDeadState(function, typeInstance.selfType(), contextValue);
+			
 			function.getBuilder().CreateRetVoid();
 			
 			return llvmFunction;
