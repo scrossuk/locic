@@ -70,7 +70,7 @@ export std.container 0.1.0 {
 				unreachable;
 			}
 			
-			void __sort() require(is_noexcept_comparable<Key> and is_movable<Key> and is_movable<Value>) {
+			void internal_sort() require(is_noexcept_comparable<Key> and is_movable<Key> and is_movable<Value>) {
 				// Bubble sort! TODO: fix this!
 				for (const size_t c: std::counter<size_t>(0u, @array.size(), 1u)) {
 					for (const size_t i: std::counter<size_t>(1u, @array.size(), 1u)) {
@@ -88,7 +88,7 @@ export std.container 0.1.0 {
 					assert @array[i].first != value.first;
 				}
 				@array.push_back(move value);
-				self.__sort();
+				self.internal_sort();
 			}
 			
 			bool try_insert(pair<Key, Value> value) require(is_noexcept_comparable<Key> and is_movable<Key> and is_movable<Value>) {
@@ -98,7 +98,7 @@ export std.container 0.1.0 {
 					}
 				}
 				@array.push_back(move value);
-				self.__sort();
+				self.internal_sort();
 				return true;
 			}
 			
@@ -109,7 +109,7 @@ export std.container 0.1.0 {
 					}
 				}
 				@array.push_back(pair<Key, Value>(key.copy(), Value()));
-				self.__sort();
+				self.internal_sort();
 				return self[key];
 			}
 			
