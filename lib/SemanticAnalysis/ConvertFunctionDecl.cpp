@@ -161,6 +161,12 @@ namespace locic {
 				noExceptPredicate = SEM::Predicate::True();
 			}
 			
+			if (!noExceptPredicate.isTrue() && function.name().last().starts_with("__")) {
+				throw ErrorException(makeString("Lifetime method '%s' isn't marked as noexcept, at location %s.",
+					function.name().toString().c_str(),
+					astFunctionNode.location().toString().c_str()));
+			}
+			
 			const bool isDynamicMethod = function.isMethod() && !astFunctionNode->isStatic();
 			const bool isTemplatedMethod = !function.templateVariables().empty() ||
 				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());
