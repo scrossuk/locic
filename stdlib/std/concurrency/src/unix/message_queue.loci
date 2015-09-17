@@ -31,7 +31,7 @@ export std.concurrency 0.1.0 {
 					
 					assert @position < @array.size();
 					// TODO: use a queue<T>!
-					T message = nolval(@array[@position]).__extract_value();
+					T message = move @array[@position];
 					@position += 1u;
 					
 					if (@position == @array.size()) {

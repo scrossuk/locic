@@ -98,7 +98,7 @@ export std.container 0.1.0 {
 			
 			void push_back(T value) noexcept require(is_movable<T>) {
 				assert !self.full();
-				nolval(@data[@write_pos]).__set_value(move value);
+				nolval(@data[@write_pos]).setvalue(move value);
 				@write_pos++;
 				if (@write_pos == self.capacity()) {
 					// Wrap around to start of array.
@@ -109,7 +109,7 @@ export std.container 0.1.0 {
 			
 			void pop_front() noexcept {
 				assert !self.empty();
-				nolval(@data[@read_pos]).__destroy_value();
+				nolval(@data[@read_pos]).destroyvalue();
 				@read_pos++;
 				if (@read_pos == self.capacity()) {
 					// Wrap around to start of array.

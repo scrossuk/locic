@@ -14,7 +14,7 @@ export std.container 0.1.0 {
 			
 			~ {
 				for (auto i: reverse_counter<size_t>(@size, 0u, 1u)) {
-					nolval(@data[i]).__destroy_value();
+					nolval(@data[i]).destroyvalue();
 				}
 				
 				release(reinterpret_cast<T*, void*>(@data));
@@ -37,7 +37,7 @@ export std.container 0.1.0 {
 				final T* newData = reinterpret_cast<void*, T*>(allocate(size * sizeof(T)));
 				
 				for (auto i: counter<size_t>(0u, @size, 1u)) {
-					nolval(newData[i]).__set_value(nolval(@data[i]).__extract_value());
+					nolval(newData[i]).setvalue(nolval(@data[i]).extractvalue());
 				}
 				
 				release(reinterpret_cast<T*, void*>(@data));
@@ -54,11 +54,11 @@ export std.container 0.1.0 {
 				self.reserve(size);
 				if (size < self.size()) {
 					for (auto i: reverse_counter<size_t>(self.size(), size, 1u)) {
-						nolval(@data[i]).__destroy_value();
+						nolval(@data[i]).destroyvalue();
 					}
 				} else {
 					for (auto i: counter<size_t>(self.size(), size, 1u)) {
-						nolval(@data[i]).__set_value(element.copy());
+						nolval(@data[i]).setvalue(element.copy());
 					}
 				}
 				@size = size;
@@ -85,21 +85,21 @@ export std.container 0.1.0 {
 			
 			void clear() noexcept {
 				for (auto i: reverse_counter<size_t>(@size, 0u, 1u)) {
-					nolval(@data[i]).__destroy_value();
+					nolval(@data[i]).destroyvalue();
 				}
 				@size = 0u;
 			}
 			
 			void push_back(T value) require (is_movable<T>) {
 				self.reserve(@size + 1u);
-				nolval(@data[@size]).__set_value(move value);
+				nolval(@data[@size]).setvalue(move value);
 				@size = @size + 1u;
 			}
 			
 			void pop_back() noexcept {
 				assert !self.empty();
 				@size = @size - 1u;
-				nolval(@data[@size]).__destroy_value();
+				nolval(@data[@size]).destroyvalue();
 			}
 			
 			varray<notag(T)> copy() const require(is_copyable<T>) {

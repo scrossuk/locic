@@ -75,9 +75,9 @@ export std.container 0.1.0 {
 				for (const size_t c: std::counter<size_t>(0u, @array.size(), 1u)) {
 					for (const size_t i: std::counter<size_t>(1u, @array.size(), 1u)) {
 						if (@array[i].first < @array[i - 1u].first) {
-							auto tmp = nolval(@array[i]).__extract_value();
-							nolval(@array[i]).__set_value(nolval(@array[i - 1u]).__extract_value());
-							nolval(@array[i - 1u]).__set_value(move tmp);
+							auto tmp = nolval(@array[i]).extractvalue();
+							nolval(@array[i]).setvalue(nolval(@array[i - 1u]).extractvalue());
+							nolval(@array[i - 1u]).setvalue(move tmp);
 						}
 					}
 				}
@@ -117,7 +117,7 @@ export std.container 0.1.0 {
 				auto array = std::varray<pair<Key, Value>>();
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i].first != key) {
-						array.push_back(nolval(@array[i]).__extract_value());
+						array.push_back(nolval(@array[i]).extractvalue());
 					}
 				}
 				@array = move array;

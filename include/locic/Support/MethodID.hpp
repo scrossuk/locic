@@ -271,11 +271,11 @@ namespace locic {
 				case METHOD_INRANGE:
 					return "inrange";
 				case METHOD_SETVALUE:
-					return "__setvalue";
+					return "setvalue";
 				case METHOD_EXTRACTVALUE:
-					return "__extractvalue";
+					return "extractvalue";
 				case METHOD_DESTROYVALUE:
-					return "__destroyvalue";
+					return "destroyvalue";
 			}
 			
 			throw std::logic_error("Unknown Method ID.");
