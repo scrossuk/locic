@@ -41,6 +41,33 @@ namespace locic {
 			}
 		}
 		
+		void validateFunctionName(const String& name,
+		                          const Debug::SourceLocation& location) {
+			if (!name.starts_with("__")) {
+				// Not a lifetime method, so it's OK.
+				return;
+			}
+			
+			// FIXME: Use MethodID here.
+			if (name == "__moveto" ||
+			    name == "__destroy" ||
+			    // FIXME: We should only need __destroy.
+			    name == "__destructor" ||
+			    name == "__alignmask" ||
+			    name == "__sizeof" ||
+			    name == "__islive" ||
+			    name == "__setdead" ||
+			    name == "__empty" ||
+			    name == "__isvalid" ||
+			    name == "__setinvalid") {
+				// These are known lifetime methods.
+				return;
+			}
+			
+			throw ErrorException(makeString("Function name '%s' is not a valid object lifetime method, at location %s.",
+			                                name.c_str(), location.toString().c_str()));
+		}
+		
 		std::unique_ptr<SEM::Function> AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const Name& fullName, const SEM::ModuleScope& parentModuleScope) {
 			const auto& topElement = context.scopeStack().back();
 			
@@ -72,6 +99,9 @@ namespace locic {
 					break;
 				}
 			}
+			
+			validateFunctionName(fullName.last(),
+			                     astFunctionNode.location());
 			
 			if (astFunctionNode->isDefaultDefinition()) {
 				assert(topElement.isTypeInstance());
