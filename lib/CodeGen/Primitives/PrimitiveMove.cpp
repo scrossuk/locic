@@ -45,13 +45,30 @@ namespace locic {
 		}
 		
 		bool primitiveTypeHasCustomMove(Module& module, const SEM::Type* const type) {
-			const auto id = type->primitiveID();
-			return (id == PrimitiveValueLval || id == PrimitiveFinalLval) && typeHasCustomMove(module, type->templateArguments().front().typeRefType());
+			switch (type->primitiveID()) {
+				case PrimitiveValueLval:
+				case PrimitiveFinalLval:
+					return typeHasCustomMove(module, type->templateArguments().front().typeRefType());
+				case PrimitiveStaticArray:
+					// Static array has custom move method if
+					// element type has custom move method or
+					// number of elements is not a constant.
+					return typeHasCustomMove(module, type->templateArguments().front().typeRefType()) ||
+					       !type->templateArguments().back().isConstant();
+				default:
+					return false;
+			}
 		}
 		
 		bool primitiveTypeInstanceHasCustomMove(Module& /*module*/, const SEM::TypeInstance* typeInstance) {
-			const auto id = typeInstance->primitiveID();
-			return (id == PrimitiveValueLval || id == PrimitiveFinalLval);
+			switch (typeInstance->primitiveID()) {
+				case PrimitiveValueLval:
+				case PrimitiveFinalLval:
+				case PrimitiveStaticArray:
+					return true;
+				default:
+					return false;
+			}
 		}
 		
 	}
