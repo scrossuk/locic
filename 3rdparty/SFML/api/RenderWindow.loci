@@ -59,11 +59,11 @@ namespace sf {
 			sfRenderWindow_destroy(@window);
 		}
 		
-		void __setDead() noexcept {
+		void __setdead() noexcept {
 			@window = null;
 		}
 		
-		bool __isLive() const noexcept {
+		bool __islive() const noexcept {
 			return @window != null;
 		}
 		

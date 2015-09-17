@@ -43,11 +43,11 @@ namespace sf {
 			sfRectangleShape_destroy(@shape);
 		}
 		
-		void __setDead() noexcept {
+		void __setdead() noexcept {
 			@shape = null;
 		}
 		
-		bool __isLive() const noexcept {
+		bool __islive() const noexcept {
 			return @shape != null;
 		}
 		

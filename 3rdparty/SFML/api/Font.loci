@@ -33,11 +33,11 @@ namespace sf {
 			sfFont_destroy(@font);
 		}
 		
-		void __setDead() noexcept {
+		void __setdead() noexcept {
 			@font = null;
 		}
 		
-		bool __isLive() const noexcept {
+		bool __islive() const noexcept {
 			return @font != null;
 		}
 		

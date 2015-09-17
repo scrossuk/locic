@@ -41,11 +41,11 @@ namespace sf {
 			sfView_destroy(@view);
 		}
 		
-		void __setDead() noexcept {
+		void __setdead() noexcept {
 			@view = null;
 		}
 		
-		bool __isLive() const noexcept {
+		bool __islive() const noexcept {
 			return @view != null;
 		}
 		

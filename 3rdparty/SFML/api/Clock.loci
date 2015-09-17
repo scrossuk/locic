@@ -41,11 +41,11 @@ namespace sf {
 			sfClock_destroy(@clock);
 		}
 		
-		void __setDead() noexcept {
+		void __setdead() noexcept {
 			@clock = null;
 		}
 		
-		bool __isLive() const noexcept {
+		bool __islive() const noexcept {
 			return @clock != null;
 		}
 		
