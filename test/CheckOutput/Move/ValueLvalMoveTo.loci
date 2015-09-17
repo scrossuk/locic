@@ -14,8 +14,8 @@ class MemberClass() {
 		testPrint(C"MemberClass.~");
 	}
 	
-	void __move_to(unused void* ptr, unused size_t position) noexcept {
-		testPrint(C"MemberClass.__move_to");
+	void __moveto(unused void* ptr, unused size_t position) noexcept {
+		testPrint(C"MemberClass.__moveto");
 	}
 }
 

@@ -1,7 +1,7 @@
 auto testInstance = TestClass(MemberClass());
-MemberClass.__move_to
+MemberClass.__moveto
 auto testInstanceMoved = move testInstance;
-MemberClass.__move_to
+MemberClass.__moveto
 auto testInstanceMovedAgain = move testInstanceMoved;
-MemberClass.__move_to
+MemberClass.__moveto
 MemberClass.~

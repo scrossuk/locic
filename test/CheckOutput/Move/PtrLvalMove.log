@@ -1,8 +1,8 @@
 TestClass testInstance = TestClass(MemberClass());
-MemberClass.__move_to
+MemberClass.__moveto
 TestClass* testInstancePtr = &testInstance;
 TestClass testInstanceMoved = move *testInstancePtr;
-MemberClass.__move_to
+MemberClass.__moveto
 auto extractedObject = testInstanceMoved.extract();
-MemberClass.__move_to
+MemberClass.__moveto
 MemberClass.~

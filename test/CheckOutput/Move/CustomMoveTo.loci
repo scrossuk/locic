@@ -7,8 +7,8 @@ class TestClass() {
 		return @();
 	}
 	
-	void __move_to(unused void* ptr, unused size_t position) noexcept {
-		testPrint(C"TestClass.__move_to");
+	void __moveto(unused void* ptr, unused size_t position) noexcept {
+		testPrint(C"TestClass.__moveto");
 	}
 }
 

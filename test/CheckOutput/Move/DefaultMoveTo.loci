@@ -23,7 +23,7 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	// This is very dangerous (since it messes around the destructors)!
 	// It's only used here since we can make reasonable assumptions about
 	// the compiler.
-	testInstance.__move_to(reinterpret_cast<TestClass*, void*>(&testInstance2), 0u);
+	testInstance.__moveto(reinterpret_cast<TestClass*, void*>(&testInstance2), 0u);
 	
 	testPrint(C"testInstance.getValue() = %d", testInstance.getValue());
 	testPrint(C"testInstance2.getValue() = %d", testInstance2.getValue());

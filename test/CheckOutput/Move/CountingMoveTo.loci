@@ -6,9 +6,9 @@ class TestClass(int value) {
 		return @(0);
 	}
 	
-	void __move_to(void* ptr, size_t position) noexcept {
+	void __moveto(void* ptr, size_t position) noexcept {
 		@value += 1;
-		@value.__move_to(ptr, position);
+		@value.__moveto(ptr, position);
 	}
 	
 	int value() const noexcept {
