@@ -27,6 +27,7 @@ set(SPHINX_INPUT_FILES
 	MultiPassCompilation.rst
 	NamedParameters.rst
 	NameMangling.rst
+	ObjectMemoryStates.rst
 	OperatorOverloading.rst
 	Predicates.rst
 	PrimitiveObjects.rst

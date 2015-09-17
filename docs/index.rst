@@ -122,6 +122,7 @@ Language
 	LvaluesAndRvalues
 	Modules
 	MoveVersusCopy
+	ObjectMemoryStates
 	OperatorOverloading
 	Predicates
 	PrimitiveObjects
