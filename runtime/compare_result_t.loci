@@ -9,8 +9,8 @@ __primitive compare_result_t {
 	compare_result_t implicit_copy() const noexcept;
 	compare_result_t copy() const noexcept;
 	
-	void __set_dead() const noexcept;
-	bool __is_live() const noexcept;
+	void __setdead() const noexcept;
+	bool __islive() const noexcept;
 	
 	bool is_equal() const noexcept;
 	bool is_not_equal() const noexcept;
@@ -19,5 +19,5 @@ __primitive compare_result_t {
 	bool is_greater_than() const noexcept;
 	bool is_greater_than_or_equal() const noexcept;
 	
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 }

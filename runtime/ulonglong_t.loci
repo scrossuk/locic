@@ -22,8 +22,8 @@ __primitive ulonglong_t {
 	ulonglong_t implicit_copy() const noexcept;
 	ulonglong_t copy() const noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
 	
 	template <typename T>
 	T implicit_cast() const noexcept require(T : __implicit_cast_from_ulonglong_t<T> and T : movable);
@@ -48,7 +48,7 @@ __primitive ulonglong_t {
 	
 	bool isZero() const noexcept;
 	
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 }
 
 template <typename T : movable>

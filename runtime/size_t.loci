@@ -22,8 +22,8 @@ __primitive size_t {
 	size_t implicit_copy() const noexcept;
 	size_t copy() const noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
 	
 	template <typename T>
 	T implicit_cast() const noexcept require(T : __implicit_cast_from_size_t<T> and T : movable);
@@ -50,7 +50,7 @@ __primitive size_t {
 	
 	ssize_t signed_value() const noexcept;
 	
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 	
 	void increment() noexcept;
 	void decrement() noexcept;

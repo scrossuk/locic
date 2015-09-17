@@ -10,7 +10,7 @@ __primitive null_t {
 	template <typename T>
 	T implicit_cast() const noexcept require(T : __implicit_cast_from_null_t<T> and T : movable);
 	
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 }
 
 template <typename T : movable>

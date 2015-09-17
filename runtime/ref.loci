@@ -6,10 +6,10 @@ __primitive __ref {
 	__ref<T> implicit_copy() const noexcept;
 	__ref<T> copy() const noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
-	void __set_invalid() noexcept;
-	bool __is_valid() const noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	void __setinvalid() noexcept;
+	bool __isvalid() const noexcept;
 	
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 }

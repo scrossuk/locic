@@ -3,7 +3,7 @@ interface deadstateable {
 }
 
 interface queryislive {
-	void __is_live() const noexcept;
+	void __islive() const noexcept;
 }
 
 template <typename T>
@@ -26,8 +26,8 @@ __primitive value_lval {
 	template <bool IsConst>
 	const<IsConst>(T)& dissolve() const(IsConst) noexcept;
 	
-	bool __is_live() const noexcept require(T : queryislive);
-	void __set_dead() noexcept require(T : deadstateable);
+	bool __islive() const noexcept require(T : queryislive);
+	void __setdead() noexcept require(T : deadstateable);
 	
 	T move() noexcept require(T : movable);
 	
@@ -35,5 +35,5 @@ __primitive value_lval {
 	T __extract_value() noexcept require(T : movable);
 	void __destroy_value() noexcept;
 	
-	void __move_to(void* ptr, size_t position) noexcept require(T : movable);
+	void __moveto(void* ptr, size_t position) noexcept require(T : movable);
 }

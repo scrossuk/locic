@@ -5,5 +5,5 @@ __primitive typename_t {
 	typename_t implicit_copy() const noexcept;
 	typename_t copy() const noexcept;
 	
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 }

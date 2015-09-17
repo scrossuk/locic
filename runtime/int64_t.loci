@@ -38,7 +38,7 @@ __primitive int64_t {
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
 	
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 }
 
 template <typename T : movable>

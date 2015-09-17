@@ -9,8 +9,8 @@ __primitive __ptr {
 	__ptr<T> implicit_copy() const noexcept;
 	__ptr<T> copy() const noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
 	
 	template <bool IsConst>
 	lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept;
@@ -35,5 +35,5 @@ __primitive __ptr {
 	
 	compare_result_t compare(const __ptr<T>& value) const noexcept;
 	
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 }

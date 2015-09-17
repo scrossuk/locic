@@ -9,9 +9,9 @@ __primitive interfacemethod0_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 	
 	interfacemethod0_t<IsNoExcept, ReturnType> implicit_copy() const noexcept;
 	interfacemethod0_t<IsNoExcept, ReturnType> copy() const noexcept;
@@ -29,9 +29,9 @@ __primitive interfacemethod1_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 	
 	interfacemethod1_t<IsNoExcept, ReturnType, Arg0> implicit_copy() const noexcept;
 	interfacemethod1_t<IsNoExcept, ReturnType, Arg0> copy() const noexcept;
@@ -49,9 +49,9 @@ __primitive interfacemethod2_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 	
 	interfacemethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> implicit_copy() const noexcept;
 	interfacemethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> copy() const noexcept;
@@ -69,9 +69,9 @@ __primitive interfacemethod3_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 	
 	interfacemethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> implicit_copy() const noexcept;
 	interfacemethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> copy() const noexcept;
@@ -89,9 +89,9 @@ __primitive interfacemethod4_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 	
 	interfacemethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> implicit_copy() const noexcept;
 	interfacemethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> copy() const noexcept;
@@ -109,9 +109,9 @@ __primitive interfacemethod5_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 	
 	interfacemethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> implicit_copy() const noexcept;
 	interfacemethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> copy() const noexcept;
@@ -129,9 +129,9 @@ __primitive interfacemethod6_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 	
 	interfacemethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> implicit_copy() const noexcept;
 	interfacemethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> copy() const noexcept;
@@ -149,9 +149,9 @@ __primitive interfacemethod7_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 	
 	interfacemethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> implicit_copy() const noexcept;
 	interfacemethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> copy() const noexcept;
@@ -169,9 +169,9 @@ __primitive interfacemethod8_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
-	void __set_dead() noexcept;
-	bool __is_live() const noexcept;
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 	
 	interfacemethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> implicit_copy() const noexcept;
 	interfacemethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> copy() const noexcept;

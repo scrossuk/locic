@@ -42,7 +42,7 @@ __primitive ssize_t {
 	
 	size_t unsigned_value() const noexcept;
 	
-	void __move_to(void* ptr, size_t position) noexcept;
+	void __moveto(void* ptr, size_t position) noexcept;
 }
 
 template <typename T : movable>
