@@ -18,6 +18,7 @@ set(SPHINX_INPUT_FILES
 	ImplicitOperations.rst
 	index.rst
 	LanguageGoals.rst
+	LifetimeMethods.rst
 	Literals.rst
 	LLVMIntro.rst
 	LvaluesAndRvalues.rst

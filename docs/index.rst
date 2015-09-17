@@ -117,6 +117,7 @@ Language
 	ControlFlow
 	Exceptions
 	ImplicitOperations
+	LifetimeMethods
 	Literals
 	LvaluesAndRvalues
 	Modules
