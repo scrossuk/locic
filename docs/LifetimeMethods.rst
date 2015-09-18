@@ -30,7 +30,7 @@ setdead
 
 	void __setdead() noexcept;
 
-``__setdead`` puts an object memory slot into a dead state, by writing that particular state into the memory.
+``__setdead`` puts an object memory slot into a dead state, by writing that particular state into the memory. ``__setdead`` is **not** recursive, so it doesn't put the member objects into a dead state.
 
 Note that ``__setdead`` is allowed, for practical reasons, to leave the memory unchanged. This is usually the case when no dead state is required because the object does not have a custom move method or destructor. For example:
 
@@ -44,6 +44,8 @@ The only purpose of dead states is to ensure we only invoke user-specified move 
 
 Hence it's possible to invoke ``__setdead`` on a memory slot, but to still have ``__islive`` subsequently return ``true``.
 
+Further, combined with the fact ``__setdead`` is **not** recursive, calling ``__setdead`` on an object is **not** sufficient to ensure that any subsequent calls to ``__moveto`` or ``__destroy`` have no effect.
+
 moveto
 ------
 
@@ -51,7 +53,7 @@ moveto
 
 	void __moveto(void* dest, size_t offset) noexcept;
 
-``__moveto`` moves the the object into another memory slot, at location ``dest + offset``. The ``dest`` and ``offset`` arguments are provided, rather a single destination pointer argument, because it allows the object to adjust internal pointers.
+``__moveto`` moves the the object into another memory slot, at location ``dest + offset``. The ``dest`` and ``offset`` arguments are provided, rather a single destination pointer argument, because it allows the object to adjust internal pointers. ``__moveto`` **is** a recursive operation, so member objects will be moved to the destination.
 
 This method consists of an outer part and an inner 'user' part; only the latter can be customised.
 
@@ -73,7 +75,7 @@ destroy
 
 	void __destroy() noexcept;
 
-``__destroy`` releases the resources assigned to an object and puts the object into a dead state (by calling ``__setdead``).
+``__destroy`` releases the resources assigned to an object and puts the object into a dead state (by calling ``__setdead``). ``__destroy`` **is** a recursive operation, so member objects will also have their ``__destroy`` methods invoked.
 
 This method consists of an outer part and an inner 'user' part; only the latter can be customised.
 
