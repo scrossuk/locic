@@ -56,7 +56,6 @@ namespace locic {
 				const auto objectType = type->getObjectType();
 				const auto& functions = objectType->functions();
 				
-				// TODO: check these methods have the right types!
 				if (functions.find(module.getCString("__setinvalid")) != functions.end()
 					&& functions.find(module.getCString("__isvalid")) != functions.end()) {
 					// Member variable has invalid state, so just use
@@ -97,14 +96,12 @@ namespace locic {
 			if (!typeInstanceHasLivenessIndicator(module, typeInstance)) {
 				// Only classes need liveness indicators because only they
 				// have custom destructors and move operations.
-				//printf("%s: NONE\n", typeInstance.name().toString().c_str());
 				return LivenessIndicator::None();
 			}
 			
 			// Prefer to use user-specified liveness indicator if available.
 			const auto customLivenessIndicator = getCustomLivenessIndicator(module, typeInstance);
 			if (customLivenessIndicator) {
-				//printf("%s: CUSTOM\n", typeInstance.name().toString().c_str());
 				return *customLivenessIndicator;
 			}
 			
@@ -112,18 +109,15 @@ namespace locic {
 			// to represent whether this object is live/dead.
 			const auto memberLivenessIndicator = getMemberLivenessIndicator(module, typeInstance);
 			if (memberLivenessIndicator) {
-				//printf("%s: MEMBER\n", typeInstance.name().toString().c_str());
 				return *memberLivenessIndicator;
 			}
 			
 			const auto gapByteLivenessIndicator = getGapByteLivenessIndicator(module, typeInstance);
 			if (gapByteLivenessIndicator) {
-				//printf("%s: GAP BYTE\n", typeInstance.name().toString().c_str());
 				return *gapByteLivenessIndicator;
 			}
 			
 			// Worst case scenario; just put a byte at the end.
-			//printf("%s: SUFFIX BYTE\n", typeInstance.name().toString().c_str());
 			return LivenessIndicator::SuffixByte();
 		}
 		
