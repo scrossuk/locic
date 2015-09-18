@@ -153,7 +153,7 @@ namespace locic {
 				
 				const auto isLiveBB = functionGenerator_.createBasicBlock("is_live");
 				const auto isNotLiveBB = functionGenerator_.createBasicBlock("is_not_live");
-				const auto setSourceDeadBB = functionGenerator_.createBasicBlock("set_source_dead");
+				const auto mergeBB = functionGenerator_.createBasicBlock("");
 				
 				// Check whether the source object is in a 'live' state and
 				// only perform the move if it is.
@@ -178,30 +178,23 @@ namespace locic {
 				                  typeInstance,
 				                  castedDestPtr);
 				
-				builder.CreateBr(setSourceDeadBB);
-				
-				functionGenerator_.selectBasicBlock(isNotLiveBB);
-				
-				// If the source object is dead, just copy it straight to the destination.
-				// 
-				// Note that the *entire* object is copied since the object could have
-				// a custom __islive method and hence it may not actually be dead (the
-				// __setdead method is only required to set the object to a dead state,
-				// which may lead to undefined behaviour if used).
-				genBasicMove(functionGenerator_,
-				             type,
-				             sourceValue,
-				             destValue,
-				             positionValue);
-				
-				builder.CreateBr(setSourceDeadBB);
-				
-				functionGenerator_.selectBasicBlock(setSourceDeadBB);
-				
 				// Set the source object to dead state.
 				genSetDeadState(functionGenerator_,
 				                type,
 				                sourceValue);
+				
+				builder.CreateBr(mergeBB);
+				
+				functionGenerator_.selectBasicBlock(isNotLiveBB);
+				
+				// If the source object is dead, set destination to be dead.
+				genSetDeadState(functionGenerator_,
+				                type,
+				                castedDestPtr);
+				
+				builder.CreateBr(mergeBB);
+				
+				functionGenerator_.selectBasicBlock(mergeBB);
 			}
 			
 			return ConstantGenerator(module).getVoidUndef();
