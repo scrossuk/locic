@@ -1,0 +1,15 @@
+Create
+TestClass.create() : value = 1
+TestClass.create() : value = 2
+Move from 1 -> 2
+TestClass.__islive() : @value = 1
+TestClass.__moveto() : @value = 1
+TestClass.__setdead() : @value = 1
+Move from 2 -> 1
+TestClass.__islive() : @value = 2
+TestClass.__setdead() : @value = 1
+Destroy
+TestClass.__islive() : @value = 2
+TestClass.__islive() : @value = 1
+TestClass.~() : @value = 1
+TestClass.__setdead() : @value = 1
