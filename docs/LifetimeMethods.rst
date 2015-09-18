@@ -64,6 +64,9 @@ The outer part of the ``__moveto`` method consists of:
 	if (object.__islive()) {
 		[user __moveto code]
 		object.__setdead();
+	} else {
+		// Set the destination to dead state.
+		movedest.__setdead();
 	}
 
 This structure means that the user ``__moveto`` code is only executed when the object is in a live state, which means your ``__moveto`` implementation doesn't need to make any checks itself. It also means you don't have to put the source object into a dead state at the end of the move operation.
