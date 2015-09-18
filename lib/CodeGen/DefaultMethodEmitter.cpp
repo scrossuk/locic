@@ -422,17 +422,15 @@ namespace locic {
 			
 			switch (livenessIndicator.kind()) {
 				case LivenessIndicator::NONE: {
-					// Set member values to dead state; this only needs to
-					// occur if any of the members have custom destructors
-					// or custom move methods.
-					if (typeInstanceHasDestructor(module, typeInstance) ||
-					    typeInstanceHasCustomMove(module, &typeInstance)) {
-						for (const auto& memberVar: typeInstance.variables()) {
-							const auto memberIndex = module.getMemberVarMap().at(memberVar);
-							const auto memberPtr = genMemberPtr(functionGenerator_, contextValue, type, memberIndex);
-							genSetDeadState(functionGenerator_, memberVar->type(), memberPtr);
-						}
-					}
+					// Nothing to be done. Note that we don't need to set the
+					// member variables into a dead state, since this is done
+					// as part of a move operation or destructor call. In fact
+					// it's important NOT to do this otherwise it'd mean we
+					// would be recursing through the 'subtree' of objects twice
+					// for these operations; once for the operation and once at
+					// the end when calling __setdead (and since the operation
+					// calls __setdead, we'd be calling __setdead more than once
+					// for many objects).
 					break;
 				}
 				case LivenessIndicator::MEMBER_INVALID_STATE: {
