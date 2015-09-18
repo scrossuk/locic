@@ -1,0 +1,53 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+class InnerType() {
+	static create() noexcept {
+		return @();
+	}
+	
+	bool __islive() const noexcept {
+		testPrint(C"InnerType.__islive()");
+		return true;
+	}
+	
+	void __setdead() noexcept {
+		testPrint(C"InnerType.__setdead()");
+	}
+	
+	void __moveto(unused void* dest, unused size_t offset) noexcept {
+		testPrint(C"InnerType.__moveto()");
+	}
+}
+
+class OuterType(InnerType inner) {
+	static create() noexcept {
+		testPrint(C"OuterType.create()");
+		return @(InnerType());
+	}
+	
+	~ {
+		testPrint(C"OuterType.~()");
+	}
+	
+	void __moveto(void* dest, size_t offset) noexcept {
+		testPrint(C"OuterType.__moveto() - begin");
+		@inner.__moveto(dest, offset);
+		testPrint(C"OuterType.__moveto() - end");
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	// Check that default __setdead does NOT recurse and hence does
+	// NOT set the member to a dead state.
+	auto outer = OuterType();
+	outer.__setdead();
+	
+	// Check that __moveto DOES recurse and hence DOES set the
+	// member to a dead state.
+	auto sourceOuter = OuterType();
+	sourceOuter.__moveto(reinterpret_cast<OuterType*, void*>(&outer), 0u);
+	return 0;
+}
+
