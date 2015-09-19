@@ -27,7 +27,7 @@ namespace locic {
 			const auto canonicalMethodName = module.getCString("__moveto");
 			const auto functionType = type->getObjectType()->functions().at(canonicalMethodName)->type();
 			
-			const auto methodName = module.getCString("__move_to");
+			const auto methodName = module.getCString("__moveto");
 			MethodInfo methodInfo(type, methodName, functionType, {});
 			
 			PendingResultArray arguments;
