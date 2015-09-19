@@ -38,13 +38,25 @@ namespace locic {
 		}
 		
 		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* const type) {
-			const auto id = type->primitiveID();
-			return (id == PrimitiveValueLval || id == PrimitiveFinalLval) && typeHasDestructor(module, type->templateArguments().front().typeRefType());
+			switch (type->primitiveID()) {
+				case PrimitiveValueLval:
+				case PrimitiveFinalLval:
+				case PrimitiveStaticArray:
+					return typeHasDestructor(module, type->templateArguments().front().typeRefType());
+				default:
+					return false;
+			}
 		}
 		
 		bool primitiveTypeInstanceHasDestructor(Module& /*module*/, const SEM::TypeInstance* const typeInstance) {
-			const auto id = typeInstance->primitiveID();
-			return (id == PrimitiveValueLval || id == PrimitiveFinalLval);
+			switch (typeInstance->primitiveID()) {
+				case PrimitiveValueLval:
+				case PrimitiveFinalLval:
+				case PrimitiveStaticArray:
+					return true;
+				default:
+					return false;
+			}
 		}
 		
 	}
