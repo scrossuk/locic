@@ -1,0 +1,12 @@
+TestClass.create() : v = 1
+TestClass.create() : v = 2
+TestClass.create() : v = 3
+TestClass.create() : v = 4
+array[0] = 1
+array[1] = 2
+array[2] = 3
+array[3] = 4
+TestClass.~() : @v = 4
+TestClass.~() : @v = 3
+TestClass.~() : @v = 2
+TestClass.~() : @v = 1
