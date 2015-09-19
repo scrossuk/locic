@@ -80,7 +80,7 @@ namespace locic {
 		METHOD_RIGHTSHIFT,
 		
 		// Util methods.
-                METHOD_CALL,
+		METHOD_CALL,
 		METHOD_MOVETO,
 		METHOD_INRANGE,
 		METHOD_SETVALUE,
