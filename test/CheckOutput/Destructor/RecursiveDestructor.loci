@@ -1,0 +1,32 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+class InnerClass() {
+	static Create() {
+		testPrint(C"InnerClass.Create");
+		return @();
+	}
+	
+	~ {
+		testPrint(C"InnerClass.~");
+	}
+}
+
+class TestClass(InnerClass value) {
+	static Create(InnerClass value) {
+		testPrint(C"TestClass.Create");
+		return @(move value);
+	}
+	
+	~ {
+		testPrint(C"TestClass.~");
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	unused TestClass object = TestClass(InnerClass());
+	
+	return 0;
+}
+
