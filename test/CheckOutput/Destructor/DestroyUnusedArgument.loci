@@ -1,0 +1,32 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class TestClass(int value) {
+	static Create(int value) {
+		testPrint(C"TestClass.Create: Value = %d", value);
+		return @(value);
+	}
+	
+	~ {
+		testPrint(C"TestClass.~: Value = %d", @value);
+	}
+}
+
+// This function checks that the destructor is called before the function exits.
+void afterFunctionExit(unused int value) {
+	testPrint(C"afterFunctionExit()");
+}
+
+int consumeObject(unused TestClass object) {
+	return 0;
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	afterFunctionExit(consumeObject(TestClass(1)));
+	afterFunctionExit(consumeObject(TestClass(2)));
+	
+	return 0;
+}
+
