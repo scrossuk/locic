@@ -35,10 +35,16 @@ namespace locic {
 		                                 PendingResultArray args,
 		                                 llvm::Value* const hintResultValue) {
 			if (isInnerMethod) {
-				assert(methodID == METHOD_MOVETO);
-				return emitInnerMoveTo(type,
-				                       functionType,
-				                       std::move(args));
+				if (methodID == METHOD_DESTROY) {
+					return emitInnerDestroy(type,
+					                        functionType,
+					                        std::move(args));
+				} else {
+					assert(methodID == METHOD_MOVETO);
+					return emitInnerMoveTo(type,
+					                       functionType,
+					                       std::move(args));
+				}
 			}
 			
 			switch (methodID) {
@@ -216,6 +222,16 @@ namespace locic {
 				functionGenerator_.selectBasicBlock(endBB);
 			}
 			
+			return ConstantGenerator(module).getVoidUndef();
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitInnerDestroy(const SEM::Type* const /*type*/,
+		                                       const SEM::FunctionType /*functionType*/,
+		                                       PendingResultArray args) {
+			// Default destroy code doesn't do anything.
+			auto& module = functionGenerator_.module();
+			(void) args[0].resolve(functionGenerator_);
 			return ConstantGenerator(module).getVoidUndef();
 		}
 		

@@ -50,6 +50,11 @@ namespace locic {
 			                 PendingResultArray args);
 			
 			llvm::Value*
+			emitInnerDestroy(const SEM::Type* type,
+			                 SEM::FunctionType functionType,
+			                 PendingResultArray args);
+			
+			llvm::Value*
 			emitOuterMoveTo(const SEM::Type* type,
 			                SEM::FunctionType functionType,
 			                PendingResultArray args);
