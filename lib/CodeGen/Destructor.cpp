@@ -23,8 +23,8 @@ namespace locic {
 	namespace CodeGen {
 		
 		bool typeInstanceHasCustomDestructor(Module& module, const SEM::TypeInstance& typeInstance) {
-			const auto methodIterator = typeInstance.functions().find(module.getCString("__destructor"));
-			return methodIterator != typeInstance.functions().end();
+			const auto destroyFunction = typeInstance.functions().at(module.getCString("__destroy")).get();
+			return !destroyFunction->isDefault();
 		}
 		
 		bool typeHasDestructor(Module& module, const SEM::Type* const type) {
@@ -122,7 +122,7 @@ namespace locic {
 		}
 		
 		Debug::SourcePosition getDebugDestructorPosition(Module& module, const SEM::TypeInstance& typeInstance) {
-			const auto iterator = typeInstance.functions().find(module.getCString("__destructor"));
+			const auto iterator = typeInstance.functions().find(module.getCString("__destroy"));
 			if (iterator != typeInstance.functions().end()) {
 				return iterator->second->debugInfo()->scopeLocation.range().end();
 			} else {
@@ -241,23 +241,19 @@ namespace locic {
 				return iterator->second;
 			}
 			
+			const auto& function = typeInstance.functions().at(module.getCString("__destroy"));
+			
+			auto& semFunctionGenerator = module.semFunctionGenerator();
+			const auto llvmFunction = semFunctionGenerator.getDecl(&typeInstance,
+			                                                       *function);
+			
 			const auto argInfo = destructorArgInfo(module, typeInstance);
-			const auto linkage = module.semFunctionGenerator().getTypeLinkage(typeInstance);
-			
-			const auto mangledName = mangleModuleScope(module, typeInstance.moduleScope()) + mangleDestructorName(module, &typeInstance);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, linkage, mangledName);
-			
 			if (argInfo.hasTemplateGeneratorArgument()) {
 				// Always inline templated destructors.
 				llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			}
 			
 			module.getDestructorMap().insert(std::make_pair(&typeInstance, llvmFunction));
-			
-			if (typeInstance.isPrimitive()) {
-				// This is a primitive method; needs special code generation.
-				createPrimitiveDestructor(module, &typeInstance, *llvmFunction);
-			}
 			
 			return llvmFunction;
 		}

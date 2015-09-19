@@ -1,1 +1,1 @@
-Function '::TestClass::__destructor' is declared as 'noexcept' but can throw, at location SourceLocation\(filename = (.*)/ThrowInDestructor\.loci, range = \(line 4, column 2\) to \(line 6, column 3\)\)\.
+Function '::TestClass::__destroy' is declared as 'noexcept' but can throw, at location SourceLocation\(filename = (.*)/ThrowInDestructor\.loci, range = \(line 4, column 2\) to \(line 6, column 3\)\)\.

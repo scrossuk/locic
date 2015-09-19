@@ -1,1 +1,1 @@
-Function name '::TestClass::__destructor' clashes with existing name, at position SourceLocation\(filename = (.*)/MultipleDestructors\.loci, range = \(line 6, column 2\) to \(line 6, column 7\)\)\.
+Function name '::TestClass::__destroy' clashes with existing name, at position SourceLocation\(filename = (.*)/MultipleDestructors\.loci, range = \(line 6, column 2\) to \(line 6, column 7\)\)\.

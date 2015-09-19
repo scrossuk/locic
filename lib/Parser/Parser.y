@@ -1152,7 +1152,7 @@ methodName:
 destructorNameElement:
 	TILDA
 	{
-		$$ = parserContext->getCString("__destructor");
+		$$ = parserContext->getCString("__destroy");
 	}
 	;
 

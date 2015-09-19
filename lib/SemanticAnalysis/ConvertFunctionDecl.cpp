@@ -156,7 +156,7 @@ namespace locic {
 			function.setParameters(std::move(parameterVars));
 			
 			auto noExceptPredicate = ConvertNoExceptSpecifier(context, astFunctionNode->noexceptSpecifier());
-			if (function.name().last() == "__destructor") {
+			if (function.name().last() == "__destroy") {
 				// Destructors are always noexcept.
 				noExceptPredicate = SEM::Predicate::True();
 			}

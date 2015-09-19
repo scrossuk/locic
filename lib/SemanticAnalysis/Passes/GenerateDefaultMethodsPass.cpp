@@ -34,6 +34,13 @@ namespace locic {
 				typeInstance.functions().insert(std::make_pair(context.getCString("__sizeof"), std::move(methodDecl)));
 			}
 			
+			// Add default __destroy method.
+			const bool hasDefaultDestroy = HasDefaultDestroy(context, &typeInstance);
+			if (hasDefaultDestroy) {
+				auto methodDecl = CreateDefaultDestroyDecl(context, &typeInstance, typeInstance.name() + context.getCString("__destroy"));
+				typeInstance.functions().insert(std::make_pair(context.getCString("__destroy"), std::move(methodDecl)));
+			}
+			
 			// Add default __moveto method.
 			const bool hasDefaultMove = HasDefaultMove(context, &typeInstance);
 			if (hasDefaultMove) {

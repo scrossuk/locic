@@ -99,8 +99,6 @@ namespace locic {
 				return;
 			}
 			
-			(void) genDestructorFunctionDef(module, typeInstance);
-			
 			if (!typeInstance.templateVariables().empty()) {
 				auto& templateBuilder = module.templateBuilder(TemplatedObject::TypeInstance(&typeInstance));
 				(void) genTemplateIntermediateFunction(module, TemplatedObject::TypeInstance(&typeInstance), templateBuilder);
