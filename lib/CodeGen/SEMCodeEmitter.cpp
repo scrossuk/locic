@@ -29,7 +29,8 @@ namespace locic {
 		                                 const SEM::Function& function,
 		                                 const bool isInnerMethod) {
 			// TODO: remove this horrible code...
-			const bool isOuterMethod = function.name().last().starts_with("__move") &&
+			const bool isOuterMethod = (function.name().last() == "__moveto" ||
+			                            function.name().last() == "__destroy") &&
 			                           !isInnerMethod;
 			if (function.isDefault() || isOuterMethod) {
 				assert(typeInstance != nullptr);

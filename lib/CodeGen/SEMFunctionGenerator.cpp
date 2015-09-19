@@ -166,7 +166,9 @@ namespace locic {
 		SEMFunctionGenerator::genDef(const SEM::TypeInstance* typeInstance,
 		                             const SEM::Function& function,
 		                             const bool isInnerMethod) {
-			assert(!isInnerMethod || function.name().last().starts_with("__move"));
+			assert(!isInnerMethod ||
+			       function.name().last() == "__moveto" ||
+			       function.name().last() == "__destroy");
 			const auto llvmFunction = getDecl(typeInstance,
 			                                  function,
 			                                  isInnerMethod);
