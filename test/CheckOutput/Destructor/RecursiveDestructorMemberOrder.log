@@ -1,0 +1,6 @@
+InnerClass.Create(1)
+InnerClass.Create(2)
+TestClass.Create
+TestClass.~
+InnerClass.~(2)
+InnerClass.~(1)
