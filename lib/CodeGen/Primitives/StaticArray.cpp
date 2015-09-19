@@ -84,6 +84,54 @@ namespace locic {
 						return result;
 					}
 				}
+				case METHOD_DESTROY: {
+					const auto arraySize = genValue(function, elementCount);
+					const auto arrayPtr = args[0].resolve(function);
+					
+					const auto beforeLoopBB = builder.GetInsertBlock();
+					const auto loopBB = function.createBasicBlock("");
+					const auto afterLoopBB = function.createBasicBlock("");
+					
+					builder.CreateBr(loopBB);
+					
+					function.selectBasicBlock(loopBB);
+					
+					const auto sizeTType = TypeGenerator(module).getSizeTType();
+					
+					const auto phiNode = builder.CreatePHI(sizeTType, 2);
+					phiNode->addIncoming(ConstantGenerator(module).getSizeTValue(0),
+					                     beforeLoopBB);
+					
+					const auto reverseIndexPlusOne = builder.CreateSub(arraySize, phiNode);
+					const auto oneValue = ConstantGenerator(module).getSizeTValue(1);
+					const auto reverseIndex = builder.CreateSub(reverseIndexPlusOne, oneValue);
+					
+					const auto memberPtr = getArrayIndex(function,
+					                                     type,
+					                                     elementType,
+					                                     arrayPtr,
+					                                     reverseIndex);
+					
+					irEmitter.emitDestructorCall(memberPtr,
+												 elementType);
+					
+					const auto indexIncremented = builder.CreateAdd(phiNode,
+					                                                ConstantGenerator(module).getSizeTValue(1));
+					
+					phiNode->addIncoming(indexIncremented,
+					                     loopBB);
+					
+					const auto isEnd = builder.CreateICmpEQ(indexIncremented,
+					                                        arraySize);
+					
+					builder.CreateCondBr(isEnd,
+					                     afterLoopBB,
+					                     loopBB);
+					
+					function.selectBasicBlock(afterLoopBB);
+					
+					return ConstantGenerator(module).getVoidUndef();
+				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY: {
 					const auto arraySize = genValue(function, elementCount);
