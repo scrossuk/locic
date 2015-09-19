@@ -26,6 +26,7 @@ class TestClass(T value) {
 	
 	~ {
 		testPrint(C"TestClass.~");
+		// Check that we can call a method on a template type.
 		@value.onDestroy();
 	}
 }
