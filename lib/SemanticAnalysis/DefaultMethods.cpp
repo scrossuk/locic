@@ -250,6 +250,30 @@ namespace locic {
 			return semFunction;
 		}
 		
+		std::unique_ptr<SEM::Function> CreateDefaultDestroyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
+			                                                             name.copy(), typeInstance->moduleScope().copy()));
+			semFunction->setDefault(true);
+			
+			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
+			
+			semFunction->setRequiresPredicate(typeInstance->requiresPredicate().copy());
+			
+			semFunction->setMethod(true);
+			
+			const bool isVarArg = false;
+			const bool isDynamicMethod = true;
+			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
+			
+			// Destructor never throws.
+			auto noExceptPredicate = SEM::Predicate::True();
+			
+			const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
+			
+			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), voidType, /*argTypes=*/{}));
+			return semFunction;
+		}
+		
 		std::unique_ptr<SEM::Function> CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
@@ -440,6 +464,13 @@ namespace locic {
 				}
 				
 				return CreateDefaultConstructorDecl(context, typeInstance, name);
+			} else if (canonicalName == "__destroy") {
+				if (isStatic) {
+					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
+						name.toString().c_str(), location.toString().c_str()));
+				}
+				
+				return CreateDefaultDestroyDecl(context, typeInstance, name);
 			} else if (canonicalName == "__moveto") {
 				if (isStatic) {
 					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
@@ -513,6 +544,16 @@ namespace locic {
 			// There's only a default method if the user
 			// hasn't specified a custom method.
 			return typeInstance->functions().find(context.getCString("__sizeof")) == typeInstance->functions().end();
+		}
+		
+		bool HasDefaultDestroy(Context& context, SEM::TypeInstance* const typeInstance) {
+			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
+				return false;
+			}
+			
+			// There's only a default destructor if the user
+			// hasn't specified a custom destructor.
+			return typeInstance->functions().find(context.getCString("__destroy")) == typeInstance->functions().end();
 		}
 		
 		bool HasDefaultMove(Context& context, SEM::TypeInstance* const typeInstance) {
@@ -628,7 +669,10 @@ namespace locic {
 			
 			const auto& name = function->name();
 			const auto canonicalName = CanonicalizeMethodName(name.last());
-			if (canonicalName == "__moveto" || canonicalName == "__dead" || canonicalName == "__islive") {
+			if (canonicalName == "__moveto" ||
+			    canonicalName == "__destroy" ||
+			    canonicalName == "__dead" ||
+			    canonicalName == "__islive") {
 				// Generate by CodeGen.
 				return true;
 			} else if (canonicalName == "create") {

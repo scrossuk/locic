@@ -33,6 +33,8 @@ namespace locic {
 		
 		std::unique_ptr<SEM::Function> CreateDefaultSizeOfDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
 		
+		std::unique_ptr<SEM::Function> CreateDefaultDestroyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
+		
 		std::unique_ptr<SEM::Function> CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
 		
 		std::unique_ptr<SEM::Function> CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
@@ -52,6 +54,8 @@ namespace locic {
 		bool HasDefaultAlignMask(Context& context, SEM::TypeInstance* typeInstance);
 		
 		bool HasDefaultSizeOf(Context& context, SEM::TypeInstance* typeInstance);
+		
+		bool HasDefaultDestroy(Context& context, SEM::TypeInstance* typeInstance);
 		
 		bool HasDefaultMove(Context& context, SEM::TypeInstance* typeInstance);
 		
