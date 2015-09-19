@@ -3,6 +3,7 @@
 test_check_output(BasicDestructor)
 test_check_output(DestructorCallTemplateTypeMethod)
 test_check_output(DestroyConstructedTemporary)
+test_check_output(DestroyReturnedValueAfterThrow EXPECT_FAIL)
 test_check_output(DestroyReturnValue)
 test_check_output(DestroyUnusedArgument)
 test_check_output(RecursiveDestructor)

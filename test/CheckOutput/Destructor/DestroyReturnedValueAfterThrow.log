@@ -1,0 +1,4 @@
+TestClass.Create: Value = 1
+Throwing
+TestClass.~: Value = 1
+Caught

@@ -1,0 +1,38 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class TestClass(int value) {
+	static Create(int value) {
+		testPrint(C"TestClass.Create: Value = %d", value);
+		return @(value);
+	}
+	
+	~ {
+		testPrint(C"TestClass.~: Value = %d", @value);
+	}
+}
+
+exception TestException();
+
+TestClass f() {
+	scope(success) {
+		testPrint(C"Throwing");
+		throw TestException();
+	}
+	
+	return TestClass(1);
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	try {
+		unused TestClass result = f();
+		testPrint(C"ERROR: Got result.");
+	} catch(TestException e) {
+		testPrint(C"Caught");
+	}
+	
+	return 0;
+}
+
