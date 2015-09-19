@@ -7,6 +7,8 @@ __primitive static_array_t {
 	static size_t __alignmask() noexcept require(is_sized_type<T>);
 	static size_t __sizeof() noexcept require(is_sized_type<T>);
 	
+	void __destroy() noexcept;
+	
 	static_array_t<T, element_count> implicit_copy() const noexcept(is_noexcept_implicit_copyable<T>) require(is_implicit_copyable<T>);
 	
 	static_array_t<T, element_count> copy() const noexcept(is_noexcept_copyable<T>) require(is_copyable<T>);
