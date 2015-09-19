@@ -1,3 +1,4 @@
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -6,8 +7,10 @@
 #include <locic/CodeGen/MethodInfo.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/VirtualCall.hpp>
 
 #include <locic/SEM/Type.hpp>
 
@@ -106,6 +109,45 @@ namespace locic {
 			
 			return functionGenerator_.getBuilder().CreatePointerCast(datatypeVariantPtr,
 			                                                         genType(module, variantType)->getPointerTo());
+		}
+		
+		void
+		IREmitter::emitDestructorCall(llvm::Value* const value,
+		                              const SEM::Type* const type) {
+			auto& module = functionGenerator_.module();
+			
+			if (type->isObject()) {
+				if (!typeHasDestructor(module, type)) {
+					return;
+				}
+				
+				if (type->isPrimitive()) {
+					genPrimitiveDestructorCall(functionGenerator_, type, value);
+					return;
+				}
+				
+				const auto& typeInstance = *(type->getObjectType());
+				
+				// Call destructor.
+				const auto argInfo = destructorArgInfo(module, typeInstance);
+				const auto destructorFunction = genDestructorFunctionDecl(module, typeInstance);
+				
+				const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
+				
+				llvm::SmallVector<llvm::Value*, 2> args;
+				if (!type->templateArguments().empty()) {
+					args.push_back(getTemplateGenerator(functionGenerator_, TemplateInst::Type(type)));
+				}
+				args.push_back(castValue);
+				
+				(void) genRawFunctionCall(functionGenerator_, argInfo, destructorFunction, args);
+			} else if (type->isTemplateVar()) {
+				const auto typeInfo = functionGenerator_.getEntryBuilder().CreateExtractValue(functionGenerator_.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
+				const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
+				VirtualCall::generateDestructorCall(functionGenerator_, typeInfo, castValue);
+			} else {
+				llvm_unreachable("Unknown type kind.");
+			}
 		}
 		
 		llvm::Value*

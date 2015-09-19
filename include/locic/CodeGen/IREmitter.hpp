@@ -58,6 +58,10 @@ namespace locic {
 			                          const SEM::Type* datatypeType,
 			                          const SEM::Type* variantType);
 			
+			void
+			emitDestructorCall(llvm::Value* value,
+							   const SEM::Type* type);
+			
 			llvm::Value*
 			emitImplicitCopyCall(llvm::Value* value,
 			                     const SEM::Type* type,
