@@ -47,6 +47,10 @@ namespace locic {
 					                             functionType,
 					                             std::move(args),
 					                             hintResultValue);
+				case METHOD_DESTROY:
+					return emitOuterDestroy(type,
+					                        functionType,
+					                        std::move(args));
 				case METHOD_MOVETO:
 					return emitOuterMoveTo(type,
 					                       functionType,
@@ -120,6 +124,99 @@ namespace locic {
 			                  resultValue);
 			
 			return irEmitter.emitMoveLoad(resultValue, type);
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitOuterDestroy(const SEM::Type* const type,
+		                                       const SEM::FunctionType /*functionType*/,
+		                                       PendingResultArray args) {
+			const auto& typeInstance = *(type->getObjectType());
+			auto& module = functionGenerator_.module();
+			auto& builder = functionGenerator_.getBuilder();
+			
+			IREmitter irEmitter(functionGenerator_);
+			
+			const auto thisValue = args[0].resolve(functionGenerator_);
+			
+			if (typeInstance.isUnionDatatype()) {
+				const auto loadedTag = irEmitter.emitLoadDatatypeTag(thisValue);
+				
+				const auto endBB = functionGenerator_.createBasicBlock("end");
+				const auto switchInstruction = builder.CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
+				
+				// Start from 1 so that 0 can represent 'empty'.
+				uint8_t tag = 1;
+				
+				for (const auto variantTypeInstance: typeInstance.variants()) {
+					const auto matchBB = functionGenerator_.createBasicBlock("tagMatch");
+					const auto tagValue = ConstantGenerator(module).getI8(tag++);
+					
+					switchInstruction->addCase(tagValue, matchBB);
+					
+					functionGenerator_.selectBasicBlock(matchBB);
+					
+					const auto variantType = variantTypeInstance->selfType();
+					
+					const auto unionValuePtr = irEmitter.emitGetDatatypeVariantPtr(thisValue,
+					                                                               type,
+					                                                               variantType);
+					
+					irEmitter.emitDestructorCall(unionValuePtr, variantType);
+					
+					builder.CreateBr(endBB);
+				}
+				
+				functionGenerator_.selectBasicBlock(endBB);
+			} else {
+				const auto isLiveBB = functionGenerator_.createBasicBlock("is_live");
+				const auto endBB = functionGenerator_.createBasicBlock("");
+				
+				// Check whether this object is in a 'live' state and only
+				// run the destructor if it is.
+				const auto isLive = genIsLive(functionGenerator_, typeInstance.selfType(), thisValue);
+				builder.CreateCondBr(isLive, isLiveBB, endBB);
+				
+				functionGenerator_.selectBasicBlock(isLiveBB);
+				
+				// Call the custom destructor function, if one exists.
+				const auto& function = *(typeInstance.functions().at(module.getCString("__destroy")));
+				
+				auto& semFunctionGenerator = module.semFunctionGenerator();
+				
+				const auto customDestructor = semFunctionGenerator.genDef(&typeInstance,
+				                                                          function,
+				                                                          /*isInnerMethod=*/true);
+				
+				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto castThisValue = builder.CreatePointerCast(thisValue, i8PtrType);
+				
+				const auto argInfo = destructorArgInfo(module, typeInstance);
+				const auto callArgs = argInfo.hasTemplateGeneratorArgument() ?
+							std::vector<llvm::Value*> { functionGenerator_.getTemplateGenerator(), castThisValue } :
+							std::vector<llvm::Value*> { castThisValue };
+				(void) genRawFunctionCall(functionGenerator_, argInfo, customDestructor, callArgs);
+				
+				const auto& memberVars = typeInstance.variables();
+				
+				// Call destructors for all objects within the
+				// parent object, in *REVERSE* order.
+				for (size_t i = 0; i < memberVars.size(); i++) {
+					const auto memberVar = memberVars.at((memberVars.size() - 1) - i);
+					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
+					const auto memberOffsetValue = genMemberOffset(functionGenerator_, typeInstance.selfType(), memberIndex);
+					const auto ptrToMember = builder.CreateInBoundsGEP(castThisValue, memberOffsetValue);
+					irEmitter.emitDestructorCall(ptrToMember, memberVar->type());
+				}
+				
+				// Put the object into a dead state.
+				genSetDeadState(functionGenerator_, typeInstance.selfType(), thisValue);
+				
+				builder.CreateBr(endBB);
+				
+				functionGenerator_.selectBasicBlock(endBB);
+			}
+			
+			return ConstantGenerator(module).getVoidUndef();
 		}
 		
 		llvm::Value*
