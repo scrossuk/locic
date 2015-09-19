@@ -30,8 +30,6 @@ namespace locic {
 		
 		llvm::Function* genDestructorFunctionDecl(Module& module, const SEM::TypeInstance& typeInstance);
 		
-		llvm::Function* genDestructorFunctionDef(Module& module, const SEM::TypeInstance& typeInstance);
-		
 		llvm::Function* genVTableDestructorFunction(Module& module, const SEM::TypeInstance& typeInstance);
 		
 	}
