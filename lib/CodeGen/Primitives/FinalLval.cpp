@@ -55,6 +55,10 @@ namespace locic {
 				case METHOD_SIZEOF: {
 					return genSizeOf(function, targetType);
 				}
+				case METHOD_DESTROY: {
+					genDestructorCall(function, targetType, args[0].resolve(function));
+					return ConstantGenerator(module).getVoidUndef();
+				}
 				case METHOD_MOVETO: {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
