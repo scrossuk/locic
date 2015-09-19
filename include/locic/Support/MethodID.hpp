@@ -23,6 +23,7 @@ namespace locic {
 		METHOD_UNINITIALIZED,
 		
 		// Unary methods.
+		METHOD_DESTROY,
 		METHOD_IMPLICITCAST,
 		METHOD_CAST,
 		METHOD_IMPLICITCOPY,
@@ -158,6 +159,8 @@ namespace locic {
 				case METHOD_UNINITIALIZED:
 					return "uninitialized";
 				
+				case METHOD_DESTROY:
+					return "__destroy";
 				case METHOD_IMPLICITCAST:
 					return "implicitcast";
 				case METHOD_CAST:
