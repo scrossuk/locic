@@ -51,8 +51,6 @@ namespace locic {
 			// FIXME: Use MethodID here.
 			if (name == "__moveto" ||
 			    name == "__destroy" ||
-			    // FIXME: We should only need __destroy.
-			    name == "__destructor" ||
 			    name == "__alignmask" ||
 			    name == "__sizeof" ||
 			    name == "__islive" ||
