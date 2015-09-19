@@ -150,40 +150,6 @@ namespace locic {
 				isDefinition, functionName, functionType, function);
 		}
 		
-		void genUnionDestructor(Function& function, const SEM::TypeInstance& typeInstance) {
-			assert(typeInstance.isUnionDatatype());
-			
-			const auto contextValue = function.getContextValue(&typeInstance);
-			const auto unionDatatypePointers = getUnionDatatypePointers(function, typeInstance.selfType(), contextValue);
-			
-			const auto loadedTag = function.getBuilder().CreateLoad(unionDatatypePointers.first);
-			
-			const auto endBB = function.createBasicBlock("end");
-			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
-			
-			// Start from 1 so that 0 can represent 'empty'.
-			uint8_t tag = 1;
-			
-			for (const auto variantTypeInstance : typeInstance.variants()) {
-				const auto matchBB = function.createBasicBlock("tagMatch");
-				const auto tagValue = ConstantGenerator(function.module()).getI8(tag++);
-				
-				switchInstruction->addCase(tagValue, matchBB);
-				
-				function.selectBasicBlock(matchBB);
-				
-				const auto variantType = variantTypeInstance->selfType();
-				const auto unionValueType = genType(function.module(), variantType);
-				const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
-				
-				genDestructorCall(function, variantType, castedUnionValuePtr);
-				
-				function.getBuilder().CreateBr(endBB);
-			}
-			
-			function.selectBasicBlock(endBB);
-		}
-		
 		llvm::Function* getNullDestructorFunction(Module& module) {
 			const auto mangledName = module.getCString("__null_destructor");
 			
