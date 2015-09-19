@@ -46,7 +46,6 @@ namespace locic {
 		SEMCodeEmitter::emitDefaultFunctionCode(const SEM::TypeInstance& typeInstance,
 		                                        const SEM::Function& function,
 		                                        const bool isInnerMethod) {
-			//assert(function.isDefault());
 			auto& module = functionGenerator_.module();
 			
 			const auto& argInfo = functionGenerator_.getArgInfo();
