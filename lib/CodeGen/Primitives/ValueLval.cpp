@@ -136,6 +136,11 @@ namespace locic {
 					return genValueLvalEmptyMethod(functionGenerator, targetType, hintResultValue);
 				case METHOD_CREATE:
 					return genValueLvalCreateMethod(functionGenerator, targetType, std::move(args), hintResultValue);
+				case METHOD_DESTROY: {
+					auto& module = functionGenerator.module();
+					genDestructorCall(functionGenerator, targetType, args[0].resolve(functionGenerator));
+					return ConstantGenerator(module).getVoidUndef();
+				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:
 					return genValueLvalCopyMethod(functionGenerator, methodID, targetType, std::move(args), hintResultValue);
