@@ -192,16 +192,6 @@ namespace locic {
 					return irEmitter.emitMoveLoad(result,
 					                              type);
 				}
-				case METHOD_ISVALID: {
-					// TODO!
-					(void) args[0].resolve(function);
-					return ConstantGenerator(module).getI1(true);
-				}
-				case METHOD_SETINVALID: {
-					// TODO!
-					(void) args[0].resolve(function);
-					return ConstantGenerator(module).getVoidUndef();
-				}
 				case METHOD_ISLIVE: {
 					// TODO!
 					(void) args[0].resolve(function);
