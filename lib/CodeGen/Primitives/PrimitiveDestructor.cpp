@@ -17,21 +17,6 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void createPrimitiveDestructor(Module& module, const SEM::TypeInstance* const typeInstance, llvm::Function& llvmFunction) {
-			assert(llvmFunction.isDeclaration());
-			
-			Function functionGenerator(module, llvmFunction, destructorArgInfo(module, *typeInstance), &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
-			
-			const auto debugInfo = genDebugDestructorFunction(module, *typeInstance, &llvmFunction);
-			functionGenerator.attachDebugInfo(debugInfo);
-			functionGenerator.setDebugPosition(getDebugDestructorPosition(module, *typeInstance));
-			
-			genPrimitiveDestructorCall(functionGenerator, typeInstance->selfType(), functionGenerator.getRawContextValue());
-			functionGenerator.getBuilder().CreateRetVoid();
-			
-			functionGenerator.verify();
-		}
-		
 		void genPrimitiveDestructorCall(Function& function, const SEM::Type* const type, llvm::Value* value) {
 			assert(value->getType()->isPointerTy());
 			
