@@ -193,12 +193,10 @@ namespace locic {
 					                              type);
 				}
 				case METHOD_ISLIVE: {
-					// TODO!
 					(void) args[0].resolve(function);
 					return ConstantGenerator(module).getI1(true);
 				}
 				case METHOD_SETDEAD: {
-					// TODO!
 					(void) args[0].resolve(function);
 					return ConstantGenerator(module).getVoidUndef();
 				}
