@@ -20,11 +20,21 @@ namespace locic {
 		void genPrimitiveDestructorCall(Function& function, const SEM::Type* const type, llvm::Value* value) {
 			assert(value->getType()->isPointerTy());
 			
-			const auto id = type->primitiveID();
-			if (id == PrimitiveValueLval || id == PrimitiveFinalLval) {
-				const auto targetType = type->templateArguments().front().typeRefType();
-				genDestructorCall(function, targetType, value);
-			}
+			auto& module = function.module();
+			
+			assert(type->isPrimitive());
+			const auto canonicalMethodName = module.getCString("__destroy");
+			const auto functionType = type->getObjectType()->functions().at(canonicalMethodName)->type();
+			
+			const auto methodName = module.getCString("__destroy");
+			MethodInfo methodInfo(type, methodName, functionType, {});
+			
+			PendingResultArray arguments;
+			
+			const RefPendingResult contextPendingResult(value, type);
+			arguments.push_back(contextPendingResult);
+			
+			(void) genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(arguments));
 		}
 		
 		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* const type) {
