@@ -103,10 +103,17 @@ namespace locic {
 			return builder_.createPointerType(type, pointerSize);
 		}
 		
-		llvm::DIType DebugBuilder::createIntType(const String& name) {
+		llvm::DIType DebugBuilder::createIntType(const PrimitiveID primitiveID) {
+			assert(primitiveID.isInteger());
 			const auto& abi = module_.abi();
-			const auto abiType = getNamedPrimitiveABIType(module_, name);
-			return builder_.createBasicType(name.c_str(), abi.typeSize(abiType), abi.typeAlign(abiType), llvm::dwarf::DW_ATE_signed);
+			const auto abiType = getBasicPrimitiveABIType(module_, primitiveID);
+			const auto encoding = primitiveID.isSignedInteger() ?
+			                      llvm::dwarf::DW_ATE_signed :
+			                      llvm::dwarf::DW_ATE_unsigned;
+			return builder_.createBasicType(primitiveID.toCString(),
+			                                abi.typeSize(abiType),
+			                                abi.typeAlign(abiType),
+			                                encoding);
 		}
 		
 		llvm::DIType DebugBuilder::createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name) {

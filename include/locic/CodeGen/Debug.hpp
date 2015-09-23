@@ -11,6 +11,8 @@
 
 namespace locic {
 	
+	class PrimitiveID;
+	
 	namespace SEM {
 		
 		class Function;
@@ -65,7 +67,7 @@ namespace locic {
 				
 				llvm::DIType createPointerType(llvm::DIType type);
 				
-				llvm::DIType createIntType(const String& name);
+				llvm::DIType createIntType(PrimitiveID primitiveID);
 				
 				llvm::DIType createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name);
 				

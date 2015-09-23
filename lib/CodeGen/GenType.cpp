@@ -111,7 +111,8 @@ namespace locic {
 				case PrimitivePtr:
 					return module.debugBuilder().createPointerType(genDebugType(module, type->templateArguments().front().typeRefType()));
 				case PrimitiveInt:
-					return module.debugBuilder().createIntType(module.getCString("int_t"));
+					// TODO: Add other integer types.
+					return module.debugBuilder().createIntType(PrimitiveInt);
 				case PrimitiveRef:
 					return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front().typeRefType()));
 				case PrimitiveFunctionPtr:
