@@ -13,7 +13,9 @@ namespace locic {
 	
 	namespace CodeGen {
 		
+		class ConstantGenerator;
 		class Function;
+		class TypeGenerator;
 		
 		/**
 		 * \brief LLVM IR Emitter
@@ -25,6 +27,16 @@ namespace locic {
 		public:
 			IREmitter(Function& functionGenerator,
 			          llvm::Value* hintResultValue = nullptr);
+			
+			/**
+			 * \brief Get constant generator.
+			 */
+ 			ConstantGenerator constantGenerator();
+			
+			/**
+			 * \brief Get type generator.
+			 */
+ 			TypeGenerator typeGenerator();
 			
 			llvm::Value*
 			emitAlignMask(const SEM::Type* type);
@@ -98,6 +110,13 @@ namespace locic {
 			                const SEM::Type* compareResultType,
 			                const SEM::Type* thisType,
 			                const SEM::Type* thisRefType);
+			
+			// Needed to support existing code.
+			// FIXME: Remove these.
+ 			llvm::IRBuilder<>& builder();
+ 			Function& function();
+ 			llvm::Value* hintResultValue();
+ 			Module& module();
 			
 		private:
 			Function& functionGenerator_;

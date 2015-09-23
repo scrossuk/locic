@@ -1,3 +1,4 @@
+#include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
@@ -24,6 +25,16 @@ namespace locic {
 		                     llvm::Value* hintResultValue)
 		: functionGenerator_(functionGenerator),
 		  hintResultValue_(hintResultValue) { }
+		
+		ConstantGenerator
+		IREmitter::constantGenerator() {
+			return ConstantGenerator(module());
+		}
+		
+		TypeGenerator
+		IREmitter::typeGenerator() {
+			return TypeGenerator(module());
+		}
 		
 		llvm::Value*
 		IREmitter::emitAlignMask(const SEM::Type* const type) {
@@ -248,6 +259,22 @@ namespace locic {
 			                     methodInfo,
 			                     Optional<PendingResult>(leftValuePendingResult),
 			                     /*args=*/{ rightValuePendingResult });
+		}
+		
+		llvm::IRBuilder<>& IREmitter::builder() {
+			return functionGenerator_.getBuilder();
+		}
+		
+		Function& IREmitter::function() {
+			return functionGenerator_;
+		}
+		
+		llvm::Value* IREmitter::hintResultValue() {
+			return hintResultValue_;
+		}
+		
+		Module& IREmitter::module() {
+			return functionGenerator_.module();
 		}
 		
 	}
