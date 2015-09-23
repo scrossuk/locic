@@ -101,7 +101,8 @@ namespace locic{
 			return String(host(), *string_ + other);
 		}
 		
-		String substr(const size_t start, const size_t substrLength) const {
+		String substr(const size_t start,
+		              const size_t substrLength = std::string::npos) const {
 			assert(string_ != nullptr);
 			return String(host(), string_->substr(start, substrLength));
 		}
