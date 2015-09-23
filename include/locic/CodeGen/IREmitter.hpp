@@ -75,12 +75,12 @@ namespace locic {
 							   const SEM::Type* type);
 			
 			llvm::Value*
-			emitImplicitCopyCall(llvm::Value* value,
+			emitImplicitCopyCall(llvm::Value* valueRef,
 			                     const SEM::Type* type,
 			                     llvm::Value* hintResultValue = nullptr);
 			
 			llvm::Value*
-			emitExplicitCopyCall(llvm::Value* value,
+			emitExplicitCopyCall(llvm::Value* valueRef,
 			                     const SEM::Type* type,
 			                     llvm::Value* hintResultValue = nullptr);
 			
