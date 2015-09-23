@@ -11,8 +11,8 @@ namespace locic {
 	public:
 		SharedMaps()
 		: stringHost_(),
-		methodIDMap_(stringHost_),
-		primitiveIDMap_(stringHost_) { }
+		primitiveIDMap_(stringHost_),
+		methodIDMap_(stringHost_, primitiveIDMap_) { }
 		
 		const StringHost& stringHost() const {
 			return stringHost_;
@@ -32,8 +32,8 @@ namespace locic {
 		SharedMaps& operator=(const SharedMaps&) = delete;
 		
 		StringHost stringHost_;
-		MethodIDMap methodIDMap_;
 		PrimitiveIDMap primitiveIDMap_;
+		MethodIDMap methodIDMap_;
 		
 	};
 	

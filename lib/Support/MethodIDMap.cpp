@@ -4,6 +4,8 @@
 
 #include <locic/Support/MethodID.hpp>
 #include <locic/Support/MethodIDMap.hpp>
+#include <locic/Support/PrimitiveID.hpp>
+#include <locic/Support/PrimitiveIDMap.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/StringHost.hpp>
 
@@ -11,20 +13,25 @@ namespace locic {
 	
 	class MethodIDMapImpl {
 	public:
-		MethodIDMapImpl(const StringHost& stringHost)
-		: stringHost_(stringHost) { }
+		MethodIDMapImpl(const StringHost& stringHost,
+		                const PrimitiveIDMap& primitiveIDMap)
+		: stringHost_(stringHost),
+		  primitiveIDMap_(primitiveIDMap) { }
 		
 		inline void add(const MethodID id) {
 			map_.insert(std::make_pair(String(stringHost_, id.toCString()), id));
 		}
 		
 		const StringHost& stringHost_;
+		const PrimitiveIDMap& primitiveIDMap_;
 		std::unordered_map<String, MethodID> map_;
 		
 	};
 	
-	MethodIDMap::MethodIDMap(const StringHost& stringHost)
-	: impl_(new MethodIDMapImpl(stringHost)) {
+	MethodIDMap::MethodIDMap(const StringHost& stringHost,
+	                         const PrimitiveIDMap& primitiveIDMap)
+	: impl_(new MethodIDMapImpl(stringHost,
+	                            primitiveIDMap)) {
 		impl_->add(METHOD_CREATE);
 		impl_->add(METHOD_EMPTY);
 		impl_->add(METHOD_NULL);
@@ -111,10 +118,16 @@ namespace locic {
 		
 		if (name.starts_with("implicitcast")) {
 			assert(name != "implicitcast");
-			return METHOD_IMPLICITCASTFROM;
+			constexpr size_t IMPLICITCAST_LENGTH = 12;
+			const auto primitiveName = name.substr(IMPLICITCAST_LENGTH);
+			return MethodID(METHOD_IMPLICITCASTFROM,
+			                impl_->primitiveIDMap_.getPrimitiveID(primitiveName));
 		} else if (name.starts_with("cast")) {
 			assert(name != "cast");
-			return METHOD_CASTFROM;
+			constexpr size_t CAST_LENGTH = 4;
+			const auto primitiveName = name.substr(CAST_LENGTH);
+			return MethodID(METHOD_CASTFROM,
+			                impl_->primitiveIDMap_.getPrimitiveID(primitiveName));
 		}
 		
 		printf("%s\n", name.c_str());

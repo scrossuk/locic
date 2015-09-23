@@ -3,14 +3,17 @@
 
 #include <memory>
 
-#include <locic/Support/MethodID.hpp>
-#include <locic/Support/String.hpp>
-
 namespace locic {
+	
+	class MethodID;
+	class PrimitiveIDMap;
+	class String;
+	class StringHost;
 	
 	class MethodIDMap {
 	public:
-		MethodIDMap(const StringHost& stringHost);
+		MethodIDMap(const StringHost& stringHost,
+		            const PrimitiveIDMap& primitiveIDMap);
 		~MethodIDMap();
 		
 		MethodID getMethodID(const String& name) const;
