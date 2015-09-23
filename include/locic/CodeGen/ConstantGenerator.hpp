@@ -7,6 +7,7 @@
 
 namespace locic {
 	
+	class PrimitiveID;
 	class String;
 	
 	namespace CodeGen {
@@ -41,9 +42,9 @@ namespace locic {
 				
 				llvm::ConstantInt* getSizeTValue(unsigned long long sizeValue) const;
 				
-				llvm::ConstantInt* getPrimitiveInt(const String& primitiveName, long long intValue) const;
+				llvm::ConstantInt* getPrimitiveInt(PrimitiveID primitiveID, long long intValue) const;
 				
-				llvm::Constant* getPrimitiveFloat(const String& primitiveName, long double floatValue) const;
+				llvm::Constant* getPrimitiveFloat(PrimitiveID primitiveID, long double floatValue) const;
 				
 				llvm::Constant* getFloat(float value) const;
 				

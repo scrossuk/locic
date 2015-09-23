@@ -46,7 +46,7 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
-			const auto& typeName = type->getObjectType()->name().first();
+			const auto primitiveID = type->primitiveID();
 			
 			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function);
 			
@@ -69,7 +69,7 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_CREATE:
-					return ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
+					return ConstantGenerator(module).getPrimitiveFloat(primitiveID, 0.0);
 				case METHOD_SETDEAD:
 					// Do nothing.
 					return ConstantGenerator(module).getVoidUndef();
@@ -98,20 +98,20 @@ namespace locic {
 				case METHOD_MINUS:
 					return builder.CreateFNeg(methodOwner);
 				case METHOD_ISZERO: {
-					const auto zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
+					const auto zero = ConstantGenerator(module).getPrimitiveFloat(primitiveID, 0.0);
 					return builder.CreateFCmpOEQ(methodOwner, zero);
 				}
 				case METHOD_ISPOSITIVE: {
-					const auto zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
+					const auto zero = ConstantGenerator(module).getPrimitiveFloat(primitiveID, 0.0);
 					return builder.CreateFCmpOGT(methodOwner, zero);
 				}
 				case METHOD_ISNEGATIVE: {
-					const auto zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
+					const auto zero = ConstantGenerator(module).getPrimitiveFloat(primitiveID, 0.0);
 					return builder.CreateFCmpOLT(methodOwner, zero);
 				}
 				case METHOD_ABS: {
 					// Generates: (value < 0) ? -value : value.
-					const auto zero = ConstantGenerator(module).getPrimitiveFloat(typeName, 0.0);
+					const auto zero = ConstantGenerator(module).getPrimitiveFloat(primitiveID, 0.0);
 					const auto lessThanZero = builder.CreateFCmpOLT(methodOwner, zero);
 					return builder.CreateSelect(lessThanZero, builder.CreateFNeg(methodOwner), methodOwner);
 				}

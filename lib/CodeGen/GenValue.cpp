@@ -63,13 +63,13 @@ namespace locic {
 						case locic::Constant::INTEGER: {
 							assert(value.type()->isObject());
 							const auto integerValue = value.constant().integerValue();
-							return ConstantGenerator(module).getPrimitiveInt(value.type()->getObjectType()->name().last(), integerValue);
+							return ConstantGenerator(module).getPrimitiveInt(value.type()->primitiveID(), integerValue);
 						}
 						
 						case locic::Constant::FLOATINGPOINT: {
 							assert(value.type()->isObject());
 							const auto floatValue = value.constant().floatValue();
-							return ConstantGenerator(module).getPrimitiveFloat(value.type()->getObjectType()->name().last(), floatValue);
+							return ConstantGenerator(module).getPrimitiveFloat(value.type()->primitiveID(), floatValue);
 						}
 						
 						case locic::Constant::CHARACTER: {

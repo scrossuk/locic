@@ -63,20 +63,23 @@ namespace locic {
 			return getInt(sizeTypeWidth * 8, sizeValue);
 		}
 		
-		llvm::ConstantInt* ConstantGenerator::getPrimitiveInt(const String& primitiveName, const long long intValue) const {
-			const size_t primitiveWidth = module_.abi().typeSize(getNamedPrimitiveABIType(module_, primitiveName));
+		llvm::ConstantInt* ConstantGenerator::getPrimitiveInt(const PrimitiveID primitiveID,
+		                                                      const long long intValue) const {
+			const size_t primitiveWidth = module_.abi().typeSize(getBasicPrimitiveABIType(module_, primitiveID));
 			return getInt(primitiveWidth * 8, intValue);
 		}
 		
-		llvm::Constant* ConstantGenerator::getPrimitiveFloat(const String& primitiveName, const long double floatValue) const {
-			if (primitiveName == "float_t") {
-				return getFloat(floatValue);
-			} else if (primitiveName == "double_t") {
-				return getDouble(floatValue);
-			} else if (primitiveName == "longdouble_t") {
-				return getLongDouble(floatValue);
-			} else {
-				llvm_unreachable("Unknown constant primitive float type name.");
+		llvm::Constant* ConstantGenerator::getPrimitiveFloat(const PrimitiveID primitiveID,
+		                                                     const long double floatValue) const {
+			switch (primitiveID) {
+				case PrimitiveFloat:
+					return getFloat(floatValue);
+				case PrimitiveDouble:
+					return getDouble(floatValue);
+				case PrimitiveLongDouble:
+					return getLongDouble(floatValue);
+				default:
+					llvm_unreachable("Unknown constant primitive float type name.");
 			}
 		}
 		

@@ -46,15 +46,13 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			
-			const auto& typeName = type->getObjectType()->name().first();
-			
 			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function);
 			
 			const bool unsafe = module.buildOptions().unsafe;
 			const size_t selfWidth = module.abi().typeSize(genABIType(module, type)) * 8;
 			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
-			const auto zero = ConstantGenerator(module).getPrimitiveInt(typeName, 0);
-			const auto unit = ConstantGenerator(module).getPrimitiveInt(typeName, 1);
+			const auto zero = ConstantGenerator(module).getPrimitiveInt(type->primitiveID(), 0);
+			const auto unit = ConstantGenerator(module).getPrimitiveInt(type->primitiveID(), 1);
 			
 			switch (methodID) {
 				case METHOD_ALIGNMASK:
