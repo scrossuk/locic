@@ -118,7 +118,7 @@ namespace locic {
 				}
 				case METHOD_SUBTRACT: {
 					// TODO: should be intptr_t!
-					const auto ptrDiffTType = getNamedPrimitiveType(module, module.getCString("ptrdiff_t"));
+					const auto ptrDiffTType = getBasicPrimitiveType(module, PrimitivePtrDiff);
 					const auto operand = args[1].resolveWithoutBind(function);
 					
 					const auto firstPtrInt = builder.CreatePtrToInt(methodOwner, ptrDiffTType);
@@ -127,7 +127,7 @@ namespace locic {
 					return builder.CreateSub(firstPtrInt, secondPtrInt);
 				}
 				case METHOD_INDEX: {
-					const auto sizeTType = getNamedPrimitiveType(module, module.getCString("size_t"));
+					const auto sizeTType = getBasicPrimitiveType(module, PrimitiveSize);
 					const auto operand = args[1].resolve(function);
 					const auto targetType = type->templateArguments().front().typeRefType();
 					if (isTypeSizeKnownInThisModule(module, targetType)) {
