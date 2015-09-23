@@ -5,6 +5,69 @@
 
 namespace locic {
 	
+	bool PrimitiveID::isLval() const {
+		switch (value_) {
+			case PrimitivePtrLval:
+			case PrimitiveValueLval:
+			case PrimitiveFinalLval:
+				return true;
+			default:
+				return false;
+		}
+	}
+	
+	bool PrimitiveID::isInteger() const {
+		return isSignedInteger() || isUnsignedInteger();
+	}
+	
+	bool PrimitiveID::isSignedInteger() const {
+		switch (value_) {
+			case PrimitiveInt8:
+			case PrimitiveInt16:
+			case PrimitiveInt32:
+			case PrimitiveInt64:
+			case PrimitiveByte:
+			case PrimitiveShort:
+			case PrimitiveInt:
+			case PrimitiveLong:
+			case PrimitiveLongLong:
+			case PrimitiveSSize:
+			case PrimitivePtrDiff:
+				return true;
+			default:
+				return false;
+		}
+	}
+	
+	bool PrimitiveID::isUnsignedInteger() const {
+		switch (value_) {
+			case PrimitiveUInt8:
+			case PrimitiveUInt16:
+			case PrimitiveUInt32:
+			case PrimitiveUInt64:
+			case PrimitiveUByte:
+			case PrimitiveUShort:
+			case PrimitiveUInt:
+			case PrimitiveULong:
+			case PrimitiveULongLong:
+			case PrimitiveSize:
+				return true;
+			default:
+				return false;
+		}
+	}
+	
+	bool PrimitiveID::isFloat() const {
+		switch (value_) {
+			case PrimitiveFloat:
+			case PrimitiveDouble:
+			case PrimitiveLongDouble:
+				return true;
+			default:
+				return false;
+		}
+	}
+	
 	bool PrimitiveID::isCallable() const {
 		switch (value_) {
 			case PrimitiveFunctionPtr:

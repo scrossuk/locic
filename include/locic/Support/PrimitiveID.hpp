@@ -86,6 +86,11 @@ namespace locic {
 			return value_;
 		}
 		
+		bool isLval() const;
+		bool isInteger() const;
+		bool isSignedInteger() const;
+		bool isUnsignedInteger() const;
+		bool isFloat() const;
 		bool isCallable() const;
 		
 		std::string getName(const size_t count) const;
