@@ -23,6 +23,7 @@ namespace locic {
 			case METHOD_UNINITIALIZED:
 				return CONSTRUCTOR;
 			
+			case METHOD_DESTROY:
 			case METHOD_IMPLICITCAST:
 			case METHOD_CAST:
 			case METHOD_IMPLICITCOPY:
