@@ -75,9 +75,9 @@ namespace locic {
 						case locic::Constant::CHARACTER: {
 							const auto characterValue = value.constant().characterValue();
 							
-							const auto& typeName = value.type()->resolveAliases()->getObjectType()->name().last();
+							const auto primitiveID = value.type()->resolveAliases()->primitiveID();
 							
-							if (typeName == "uint8_t") {
+							if (primitiveID == PrimitiveUInt8) {
 								return ConstantGenerator(module).getI8(characterValue);
 							} else {
 								llvm_unreachable("Unknown character literal type.");
