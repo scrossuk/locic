@@ -1,7 +1,10 @@
 #ifndef LOCIC_SUPPORT_METHODID_HPP
 #define LOCIC_SUPPORT_METHODID_HPP
 
+#include <cassert>
 #include <string>
+
+#include <locic/Support/PrimitiveID.hpp>
 
 namespace locic {
 	
@@ -88,10 +91,27 @@ namespace locic {
 		METHOD_DESTROYVALUE
 	};
 	
+	/**
+	 * \brief MethodID
+	 * 
+	 * This class uses an enum value to efficiently refer to known methods
+	 * (e.g. 'implicitcopy').
+	 * 
+	 * Note that the 'cast_*' and 'implicitcast_*' methods have an
+	 * associated primitive ID (which they're casting from).
+	 */
 	class MethodID {
 	public:
-		MethodID(const MethodIDEnum value)
-		: value_(value) { }
+		MethodID(const MethodIDEnum value,
+		         const PrimitiveID argPrimitiveID = PrimitiveVoid)
+		: value_(value),
+		  primitiveID_(argPrimitiveID) {
+			// Only 'cast_*' and 'implicitcast_*' can have non-void
+			// associated primitive ID.
+			assert(value == METHOD_CASTFROM ||
+			       value == METHOD_IMPLICITCASTFROM ||
+			       argPrimitiveID == PrimitiveVoid);
+		}
 		
 		bool operator==(const MethodIDEnum other) const {
 			return value_ == other;
@@ -128,6 +148,8 @@ namespace locic {
 		
 		bool isBinary() const;
 		
+		PrimitiveID primitiveID() const;
+		
 		inline const char* toCString() const {
 			switch (value_) {
 				case METHOD_CREATE:
@@ -149,8 +171,10 @@ namespace locic {
 				case METHOD_TRAILINGZEROES:
 					return "trailingzeroes";
 				case METHOD_IMPLICITCASTFROM:
+					// TODO: use primitiveID() here.
 					return "implicitcast_?";
 				case METHOD_CASTFROM:
+					// TODO: use primitiveID() here.
 					return "cast_?";
 				case METHOD_ALIGNMASK:
 					return "__alignmask";
@@ -288,6 +312,7 @@ namespace locic {
 		
 	private:
 		MethodIDEnum value_;
+		PrimitiveID primitiveID_;
 		
 	};
 	

@@ -104,6 +104,10 @@ namespace locic {
 		return kind() == BINARY;
 	}
 	
+	PrimitiveID MethodID::primitiveID() const {
+		return primitiveID_;
+	}
+	
 	std::string MethodID::toString() const {
 		return toCString();
 	}
