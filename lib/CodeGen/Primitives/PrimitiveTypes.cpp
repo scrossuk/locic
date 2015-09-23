@@ -241,10 +241,6 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* getNamedPrimitiveType(Module& module, const String& name) {
-			return getBasicPrimitiveType(module, module.primitiveID(name));
-		}
-		
 		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, const PrimitiveID id) {
 			auto& abiContext = module.abiContext();
 			
@@ -319,10 +315,6 @@ namespace locic {
 				default:
 					llvm_unreachable("Unrecognised primitive type.");
 			}
-		}
-		
-		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const String& name) {
-			return getBasicPrimitiveABIType(module, module.primitiveID(name));
 		}
 		
 		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* const type) {

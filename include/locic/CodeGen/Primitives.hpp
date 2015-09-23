@@ -44,12 +44,10 @@ namespace locic {
 		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* type);
 		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveID id);
-		llvm::Type* getNamedPrimitiveType(Module& module, const String& name);
 		llvm::PointerType* getPrimitivePointerType(Module& module, const SEM::Type* type);
 		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* type);
 		
 		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveID id);
-		llvm_abi::Type* getNamedPrimitiveABIType(Module& module, const String& name);
 		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* type);
 		
 		bool primitiveTypeHasCustomMove(Module& module, const SEM::Type* type);
