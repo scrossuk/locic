@@ -29,7 +29,7 @@ namespace locic {
 		}
 		
 		TypePair sizeTypePair(Module& module) {
-			return std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::SizeT), getNamedPrimitiveType(module, module.getCString("size_t")));
+			return std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::SizeT), getBasicPrimitiveType(module, PrimitiveSize));
 		}
 		
 		TypePair pointerTypePair(Module& module) {
