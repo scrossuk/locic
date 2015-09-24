@@ -15,10 +15,6 @@ namespace locic {
 		PrimitiveIDMapImpl(const StringHost& stringHost)
 		: stringHost_(stringHost) { }
 		
-		void addOne(const PrimitiveID id, const size_t count) {
-			map_.insert(std::make_pair(String(stringHost_, id.getName(count)), id));
-		}
-		
 		void add(const PrimitiveID id) {
 			if (id.isCallable()) {
 				// Currently callable primitives have multiple
@@ -27,11 +23,23 @@ namespace locic {
 				//       are supported.
 				constexpr size_t MAX_NUMBER_ARGUMENTS = 8;
 				for (size_t i = 0; i <= MAX_NUMBER_ARGUMENTS; i++) {
-					map_.insert(std::make_pair(String(stringHost_, id.getName(i)), id));
+					insertMapping(String(stringHost_, id.getName(i)),
+					              id);
 				}
 			} else {
-				map_.insert(std::make_pair(String(stringHost_, id.toCString()), id));
+				insertMapping(String(stringHost_, id.toCString()),
+				              id);
 			}
+		}
+		
+		void insertMapping(const String name, const PrimitiveID id) {
+			map_.insert(std::make_pair(name, id));
+			
+			// Also insert canonicalized name since PrimitiveIDs
+			// can appear in names of cast-from methods (e.g.
+			// 'cast_uint8_t').
+			map_.insert(std::make_pair(CanonicalizeMethodName(name),
+			                           id));
 		}
 		
 		const StringHost& stringHost_;
