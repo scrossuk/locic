@@ -29,6 +29,12 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	testPrint(C"d.abs() = %f", d.abs());
 	testPrint(C"d.minus().abs() = %f", d.minus().abs());
 	
+	testPrint(C"d.add(2.0) = %f", d.add(2.0));
+	testPrint(C"d.subtract(2.0) = %f", d.subtract(2.0));
+	testPrint(C"d.multiply(2.0) = %f", d.multiply(2.0));
+	testPrint(C"d.divide(2.0) = %f", d.divide(2.0));
+	testPrint(C"d.modulo(0.3) = %f", d.modulo(0.3));
+	
 	testPrint(C"d.equal(0.0) = %s", d.equal(0.0) ? C"true" : C"false");
 	testPrint(C"d.not_equal(0.0) = %s", d.not_equal(0.0) ? C"true" : C"false");
 	testPrint(C"d.less_than(0.0) = %s", d.less_than(0.0) ? C"true" : C"false");
