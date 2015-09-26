@@ -3,6 +3,10 @@ __primitive short_t {
 	static short_t implicit_cast_int16_t(int16_t value) noexcept;
 	static short_t implicit_cast_byte_t(byte_t value) noexcept;
 	
+	static short_t cast_int8_t(int8_t value) noexcept;
+	static short_t cast_int16_t(int16_t value) noexcept;
+	static short_t cast_byte_t(byte_t value) noexcept;
+	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	

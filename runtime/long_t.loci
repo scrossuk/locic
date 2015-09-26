@@ -6,6 +6,13 @@ __primitive long_t {
 	static long_t implicit_cast_short_t(short_t value) noexcept;
 	static long_t implicit_cast_int_t(int_t value) noexcept;
 	
+	static long_t cast_int8_t(int8_t value) noexcept;
+	static long_t cast_int16_t(int16_t value) noexcept;
+	static long_t cast_int32_t(int32_t value) noexcept;
+	static long_t cast_byte_t(byte_t value) noexcept;
+	static long_t cast_short_t(short_t value) noexcept;
+	static long_t cast_int_t(int_t value) noexcept;
+	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	

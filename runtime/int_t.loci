@@ -6,6 +6,11 @@ __primitive int_t {
 	static int_t implicit_cast_byte_t(byte_t value) noexcept;
 	static int_t implicit_cast_short_t(short_t value) noexcept;
 	
+	static int_t cast_int8_t(int8_t value) noexcept;
+	static int_t cast_int16_t(int16_t value) noexcept;
+	static int_t cast_byte_t(byte_t value) noexcept;
+	static int_t cast_short_t(short_t value) noexcept;
+	
 	static int_t cast_ssize_t(ssize_t value) noexcept;
 	static int_t cast_size_t(size_t value) noexcept;
 	
