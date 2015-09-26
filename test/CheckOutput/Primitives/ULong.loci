@@ -1,0 +1,61 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+const ubyte* compareResultString(compare_result_t result) {
+	if (result.is_equal()) {
+		return C"equal";
+	} else if (result.is_less_than()) {
+		return C"less than";
+	} else if (result.is_greater_than()) {
+		return C"greater than";
+	} else {
+		unreachable;
+	}
+}
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"alignof(unsigned long) = %llu", alignof(unsigned long).cast<ulonglong_t>());
+	testPrint(C"sizeof(unsigned long) = %llu", sizeof(unsigned long).cast<ulonglong_t>());
+	
+	unsigned long i = 10u;
+	testPrint(C"i = %lu", i);
+	testPrint(C"i.implicitcopy() = %lu", i.implicitcopy());
+	testPrint(C"i.copy() = %lu", i.copy());
+	testPrint(C"i.implicitcast<unsigned long long>() = %lld", i.implicitcast<unsigned long long>());
+	testPrint(C"i.cast<unsigned long long>() = %lld", i.cast<unsigned long long>());
+	
+	testPrint(C"i.add(3u) = %lu", i.add(3u));
+	testPrint(C"i.subtract(3u) = %lu", i.subtract(3u));
+	testPrint(C"i.multiply(3u) = %lu", i.multiply(3u));
+	testPrint(C"i.divide(3u) = %lu", i.divide(3u));
+	testPrint(C"i.modulo(3u) = %lu", i.modulo(3u));
+	
+	testPrint(C"i.equal(0u) = %s", i.equal(0u) ? C"true" : C"false");
+	testPrint(C"i.not_equal(0u) = %s", i.not_equal(0u) ? C"true" : C"false");
+	testPrint(C"i.less_than(0u) = %s", i.less_than(0u) ? C"true" : C"false");
+	testPrint(C"i.less_than_or_equal(0u) = %s", i.less_than_or_equal(0u) ? C"true" : C"false");
+	testPrint(C"i.greater_than(0u) = %s", i.greater_than(0u) ? C"true" : C"false");
+	testPrint(C"i.greater_than_or_equal(0u) = %s", i.greater_than_or_equal(0u) ? C"true" : C"false");
+	testPrint(C"i.compare(0u) = %s", compareResultString(i.compare(0u)));
+	
+	testPrint(C"i.equal(10u) = %s", i.equal(10u) ? C"true" : C"false");
+	testPrint(C"i.not_equal(10u) = %s", i.not_equal(10u) ? C"true" : C"false");
+	testPrint(C"i.less_than(10u) = %s", i.less_than(10u) ? C"true" : C"false");
+	testPrint(C"i.less_than_or_equal(10u) = %s", i.less_than_or_equal(10u) ? C"true" : C"false");
+	testPrint(C"i.greater_than(10u) = %s", i.greater_than(10u) ? C"true" : C"false");
+	testPrint(C"i.greater_than_or_equal(10u) = %s", i.greater_than_or_equal(10u) ? C"true" : C"false");
+	testPrint(C"i.compare(10u) = %s", compareResultString(i.compare(10u)));
+	
+	testPrint(C"i.equal(20u) = %s", i.equal(20u) ? C"true" : C"false");
+	testPrint(C"i.not_equal(20u) = %s", i.not_equal(20u) ? C"true" : C"false");
+	testPrint(C"i.less_than(20u) = %s", i.less_than(20u) ? C"true" : C"false");
+	testPrint(C"i.less_than_or_equal(20u) = %s", i.less_than_or_equal(20u) ? C"true" : C"false");
+	testPrint(C"i.greater_than(20u) = %s", i.greater_than(20u) ? C"true" : C"false");
+	testPrint(C"i.greater_than_or_equal(20u) = %s", i.greater_than_or_equal(20u) ? C"true" : C"false");
+	testPrint(C"i.compare(20u) = %s", compareResultString(i.compare(20u)));
+	
+	testPrint(C"move i = %lu", move i);
+	return 0;
+}
+
