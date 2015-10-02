@@ -10,7 +10,7 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 
 #include <locic/SEM/Type.hpp>
@@ -106,7 +106,8 @@ namespace locic {
 			llvm::Value* datatypeVariantPtr = nullptr;
 			
 			// Try to use a plain GEP if possible.
-			if (isTypeSizeKnownInThisModule(module, datatypeType)) {
+			TypeInfo typeInfo(module);
+			if (typeInfo.isSizeKnownInThisModule(datatypeType)) {
 				datatypeVariantPtr = functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(datatypePtr, 0, 1);
 			} else {
 				const auto castObjectPtr =

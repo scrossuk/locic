@@ -12,7 +12,7 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 #include <locic/Support/Utils.hpp>
@@ -70,8 +70,9 @@ namespace locic {
 		
 		Optional<LivenessIndicator> getGapByteLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
 			size_t currentOffset = 0;
+			TypeInfo typeInfo(module);
 			for (const auto& var: typeInstance.variables()) {
-				if (!isTypeSizeKnownInThisModule(module, var->type())) {
+				if (!typeInfo.isSizeKnownInThisModule(var->type())) {
 					// Reached an unknown-size member, so give up here.
 					break;
 				}

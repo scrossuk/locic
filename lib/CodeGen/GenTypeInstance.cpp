@@ -6,7 +6,7 @@
 #include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 
 namespace locic {
 
@@ -68,7 +68,8 @@ namespace locic {
 			module.typeInstanceMap().insert(std::make_pair(typeInstance, structType));
 			
 			// If the size isn't known then just return an opaque struct.
-			if (!isObjectTypeSizeKnownInThisModule(module, typeInstance)) {
+			TypeInfo typeInfo(module);
+			if (!typeInfo.isObjectSizeKnownInThisModule(*typeInstance)) {
 				size_t index = 0;
 				
 				// Create mapping between member variables and their

@@ -26,7 +26,7 @@
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
@@ -72,7 +72,8 @@ namespace locic {
 				case METHOD_INCREMENT: {
 					const auto targetType = type->templateArguments().front().typeRefType();
 					
-					if (isTypeSizeKnownInThisModule(module, targetType)) {
+					TypeInfo typeInfo(module);
+					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						const auto one = ConstantGenerator(module).getI32(1);
 						const auto newPointer = builder.CreateInBoundsGEP(methodOwner, one);
 						builder.CreateStore(newPointer, methodOwnerPointer);
@@ -88,7 +89,8 @@ namespace locic {
 				case METHOD_DECREMENT: {
 					const auto targetType = type->templateArguments().front().typeRefType();
 					
-					if (isTypeSizeKnownInThisModule(module, targetType)) {
+					TypeInfo typeInfo(module);
+					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						const auto minusOne = ConstantGenerator(module).getI32(-1);
 						const auto newPointer = builder.CreateInBoundsGEP(methodOwner, minusOne);
 						builder.CreateStore(newPointer, methodOwnerPointer);
@@ -106,7 +108,8 @@ namespace locic {
 					const auto operand = args[1].resolveWithoutBind(function);
 					const auto targetType = type->templateArguments().front().typeRefType();
 					
-					if (isTypeSizeKnownInThisModule(module, targetType)) {
+					TypeInfo typeInfo(module);
+					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						return builder.CreateInBoundsGEP(methodOwner, operand);
 					} else {
 						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
@@ -130,7 +133,8 @@ namespace locic {
 					const auto sizeTType = getBasicPrimitiveType(module, PrimitiveSize);
 					const auto operand = args[1].resolve(function);
 					const auto targetType = type->templateArguments().front().typeRefType();
-					if (isTypeSizeKnownInThisModule(module, targetType)) {
+					TypeInfo typeInfo(module);
+					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						return builder.CreateInBoundsGEP(methodOwner, operand);
 					} else {
 						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());

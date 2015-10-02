@@ -8,11 +8,10 @@
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/Support/String.hpp>
 
@@ -243,7 +242,8 @@ namespace locic {
 			// since other modules may end up using it) and if it
 			// doesn't have a custom move method (which means it
 			// must stay in memory and we must hold references to it).
-			return isTypeSizeAlwaysKnown(module, type) && !typeHasCustomMove(module, type);
+			TypeInfo typeInfo(module);
+			return typeInfo.isSizeAlwaysKnown(type) && !typeInfo.hasCustomMove(type);
 		}
 		
 		ArgInfo getFunctionArgInfo(Module& module, const SEM::FunctionType functionType) {

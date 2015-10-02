@@ -11,7 +11,7 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 
 namespace locic {
 
@@ -24,7 +24,8 @@ namespace locic {
 					return genPointerType(module, type->templateArguments().front().typeRefType());
 				}
 				case PrimitiveStaticArray: {
-					if (!isTypeSizeKnownInThisModule(module, type)) {
+					TypeInfo typeInfo(module);
+					if (!typeInfo.isSizeKnownInThisModule(type)) {
 						return genPointerType(module,
 						                      type->templateArguments().front().typeRefType());
 					}
@@ -318,7 +319,7 @@ namespace locic {
 		}
 		
 		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* const type) {
-			assert(isTypeSizeKnownInThisModule(module, type));
+			assert(TypeInfo(module).isSizeKnownInThisModule(type));
 			
 			auto& abiContext = module.abiContext();
 			

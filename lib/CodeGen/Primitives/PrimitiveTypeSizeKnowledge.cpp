@@ -5,7 +5,7 @@
 
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
@@ -16,10 +16,11 @@ namespace locic {
 	namespace CodeGen {
 		
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, const SEM::Type* const type) {
+			TypeInfo typeInfo(module);
 			switch (type->primitiveID()) {
 				case PrimitiveFinalLval:
 				case PrimitiveValueLval:
-					return isTypeSizeAlwaysKnown(module, type->templateArguments().front().typeRefType());
+					return typeInfo.isSizeAlwaysKnown(type->templateArguments().front().typeRefType());
 				case PrimitiveRef: {
 					const auto refTargetType = type->templateArguments().front().typeRefType();
 					return !refTargetType->isTemplateVar()
@@ -29,7 +30,7 @@ namespace locic {
 					assert(type->templateArguments().size() == 2);
 					const auto targetType = type->templateArguments().front().typeRefType();
 					const auto& elementCountValue = type->templateArguments().back();
-					return isTypeSizeAlwaysKnown(module, targetType) &&
+					return typeInfo.isSizeAlwaysKnown(targetType) &&
 					       elementCountValue.isConstant();
 				}
 				default:
@@ -38,10 +39,11 @@ namespace locic {
 		}
 		
 		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, const SEM::Type* const type) {
+			TypeInfo typeInfo(module);
 			switch (type->primitiveID()) {
 				case PrimitiveFinalLval:
 				case PrimitiveValueLval:
-					return isTypeSizeKnownInThisModule(module, type->templateArguments().front().typeRefType());
+					return typeInfo.isSizeKnownInThisModule(type->templateArguments().front().typeRefType());
 				case PrimitiveRef: {
 					const auto refTargetType = type->templateArguments().front().typeRefType();
 					return !refTargetType->isTemplateVar()
@@ -51,7 +53,7 @@ namespace locic {
 					assert(type->templateArguments().size() == 2);
 					const auto targetType = type->templateArguments().front().typeRefType();
 					const auto& elementCountValue = type->templateArguments().back();
-					return isTypeSizeKnownInThisModule(module, targetType) &&
+					return typeInfo.isSizeKnownInThisModule(targetType) &&
 					       elementCountValue.isConstant();
 				}
 				default:

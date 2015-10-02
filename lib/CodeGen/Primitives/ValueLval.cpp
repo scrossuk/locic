@@ -15,7 +15,7 @@
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 
 #include <locic/Support/MethodID.hpp>
 
@@ -65,7 +65,8 @@ namespace locic {
 			auto& builder = functionGenerator.getBuilder();
 			auto& module = functionGenerator.module();
 			
-			const bool typeSizeIsKnown = isTypeSizeKnownInThisModule(module, targetType);
+			TypeInfo typeInfo(module);
+			const bool typeSizeIsKnown = typeInfo.isSizeKnownInThisModule(targetType);
 			
 			const auto destValue = args[1].resolve(functionGenerator);
 			const auto positionValue = args[2].resolve(functionGenerator);

@@ -12,7 +12,7 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 
 namespace locic {
 
@@ -31,7 +31,8 @@ namespace locic {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
-					if (isTypeSizeKnownInThisModule(function.module(), type)) {
+					TypeInfo typeInfo(module);
+					if (typeInfo.isSizeKnownInThisModule(type)) {
 						const auto llvmType = genType(module, type);
 						assert(!llvmType->isVoidTy());
 						return function.getBuilder().CreateAlloca(llvmType);
@@ -83,7 +84,8 @@ namespace locic {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
-					if (isTypeSizeAlwaysKnown(function.module(), type)) {
+					TypeInfo typeInfo(function.module());
+					if (typeInfo.isSizeAlwaysKnown(type)) {
 						return function.getBuilder().CreateLoad(var);
 					} else {
 						return var;
@@ -107,7 +109,8 @@ namespace locic {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
-					if (isTypeSizeAlwaysKnown(function.module(), type)) {
+					TypeInfo typeInfo(function.module());
+					if (typeInfo.isSizeAlwaysKnown(type)) {
 						// Most primitives will be passed around as values,
 						// rather than pointers.
 						(void) function.getBuilder().CreateStore(value, var);
@@ -119,7 +122,7 @@ namespace locic {
 							return;
 						}
 						
-						if (isTypeSizeKnownInThisModule(function.module(), type)) {
+						if (typeInfo.isSizeKnownInThisModule(type)) {
 							// If the type size is known now, it's
 							// better to generate an explicit load
 							// and store (optimisations will be able

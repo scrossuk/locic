@@ -10,7 +10,7 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
@@ -29,7 +29,8 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
 			
-			if (isTypeSizeAlwaysKnown(module, type)) {
+			TypeInfo typeInfo(module);
+			if (typeInfo.isSizeAlwaysKnown(type)) {
 				llvm::Value* const indexArray[] = {
 						ConstantGenerator(module).getSizeTValue(0),
 						elementIndex
@@ -74,7 +75,8 @@ namespace locic {
 				}
 				case METHOD_UNINITIALIZED: {
 					// TODO: set elements to dead state.
-					if (isTypeSizeAlwaysKnown(module, type)) {
+					TypeInfo typeInfo(module);
+					if (typeInfo.isSizeAlwaysKnown(type)) {
 						return ConstantGenerator(module).getUndef(genType(module, type));
 					} else {
 						const auto result = genAlloca(function,
@@ -262,7 +264,8 @@ namespace locic {
 				case METHOD_INDEX: {
 					const auto methodOwner = args[0].resolve(function);
 					const auto operand = args[1].resolve(function);
-					if (isTypeSizeAlwaysKnown(module, type)) {
+					TypeInfo typeInfo(module);
+					if (typeInfo.isSizeAlwaysKnown(type)) {
 						llvm::Value* const indexArray[] = {
 								ConstantGenerator(module).getSizeTValue(0),
 								operand

@@ -13,7 +13,6 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 
 namespace locic {

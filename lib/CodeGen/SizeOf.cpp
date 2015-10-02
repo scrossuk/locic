@@ -15,7 +15,7 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/Support/Utils.hpp>
@@ -69,7 +69,8 @@ namespace locic {
 			
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
-					if (isTypeSizeKnownInThisModule(module, type)) {
+					TypeInfo typeInfo(module);
+					if (typeInfo.isSizeKnownInThisModule(type)) {
 						return ConstantGenerator(module).getSizeTValue(abi.typeAlign(genABIType(module, type)) - 1);
 					}
 					
@@ -125,7 +126,8 @@ namespace locic {
 			
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
-					if (isTypeSizeKnownInThisModule(module, type)) {
+					TypeInfo typeInfo(module);
+					if (typeInfo.isSizeKnownInThisModule(type)) {
 						return ConstantGenerator(module).getSizeTValue(abi.typeSize(genABIType(module, type)));
 					}
 					
@@ -284,7 +286,8 @@ namespace locic {
 				return ConstantGenerator(module).getSizeTValue(0);
 			}
 			
-			if (isTypeSizeKnownInThisModule(module, type)) {
+			TypeInfo typeInfo(module);
+			if (typeInfo.isSizeKnownInThisModule(type)) {
 				auto& abi = module.abi();
 				const auto objectType = type->getObjectType();
 				assert(memberIndex < objectType->variables().size());
@@ -339,7 +342,8 @@ namespace locic {
 			assert(objectType->isObject());
 			auto& module = function.module();
 			
-			if (isTypeSizeKnownInThisModule(module, objectType) && !objectType->isUnion()) {
+			TypeInfo typeInfo(module);
+			if (typeInfo.isSizeKnownInThisModule(objectType) && !objectType->isUnion()) {
 				const auto llvmObjectPointerType = genPointerType(module, objectType);
 				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, llvmObjectPointerType);
 				return function.getBuilder().CreateConstInBoundsGEP2_32(castObjectPointer, 0, memberIndex);
@@ -356,7 +360,8 @@ namespace locic {
 			assert(type->isUnionDatatype());
 			auto& module = function.module();
 			
-			if (isTypeSizeKnownInThisModule(module, type)) {
+			TypeInfo typeInfo(module);
+			if (typeInfo.isSizeKnownInThisModule(type)) {
 				const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(objectPtr, 0, 0);
 				const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(objectPtr, 0, 1);
 				return std::make_pair(loadedTagPtr, unionValuePtr);

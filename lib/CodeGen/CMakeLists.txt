@@ -68,7 +68,7 @@ add_library(locic-codegen
 	TemplateBuilder.cpp
 	TemplatedObject.cpp
 	TypeGenerator.cpp
-	TypeSizeKnowledge.cpp
+	TypeInfo.cpp
 	UnwindAction.cpp
 	VTable.cpp
 	VirtualCall/VirtualCall-Default.cpp

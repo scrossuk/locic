@@ -30,7 +30,7 @@
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeSizeKnowledge.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
@@ -348,7 +348,8 @@ namespace locic {
 					
 					const auto objectValue = genAlloca(function, type, hintResultValue);
 					
-					if (isTypeSizeKnownInThisModule(module, type)) {
+					TypeInfo typeInfo(module);
+					if (typeInfo.isSizeKnownInThisModule(type)) {
 						for (size_t i = 0; i < parameterValues.size(); i++) {
 							const auto var = parameterVars.at(i);
 							const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
