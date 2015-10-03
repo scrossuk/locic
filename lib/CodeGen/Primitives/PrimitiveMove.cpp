@@ -2,15 +2,13 @@
 
 #include <string>
 
-#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/SizeOf.hpp>
-#include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/TypeInfo.hpp>
-#include <locic/CodeGen/UnwindAction.hpp>
+#include <locic/CodeGen/Support.hpp>
+#include <locic/Support/MethodID.hpp>
 
 namespace locic {
 
@@ -19,15 +17,9 @@ namespace locic {
 		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
 			assert(sourceValue->getType()->isPointerTy());
 			assert(destValue->getType()->isPointerTy());
+			assert(type->isPrimitive());
 			
 			auto& module = function.module();
-			
-			assert(type->isPrimitive());
-			const auto canonicalMethodName = module.getCString("__moveto");
-			const auto functionType = type->getObjectType()->functions().at(canonicalMethodName)->type();
-			
-			const auto methodName = module.getCString("__moveto");
-			MethodInfo methodInfo(type, methodName, functionType, {});
 			
 			PendingResultArray arguments;
 			
@@ -40,7 +32,14 @@ namespace locic {
 			const ValuePendingResult positionValuePendingResult(positionValue, nullptr);
 			arguments.push_back(positionValuePendingResult);
 			
-			(void) genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(arguments));
+			IREmitter irEmitter(function);
+			
+			const auto& primitive = module.getPrimitive(*(type->getObjectType()));
+			(void) primitive.emitMethod(irEmitter,
+			                            METHOD_MOVETO,
+			                            arrayRef(type->templateArguments()),
+			                            /*functionTemplateArguments=*/llvm::ArrayRef<SEM::Value>(),
+			                            std::move(arguments));
 		}
 		
 	}
