@@ -16,16 +16,20 @@
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Primitives/FinalLvalPrimitive.hpp>
 #include <locic/CodeGen/Routines.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
@@ -35,16 +39,61 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, const MethodID methodID,
-				PendingResultArray args, llvm::Value* const hintResultValue) {
-			auto& module = function.module();
-			auto& builder = function.getBuilder();
+		FinalLvalPrimitive::FinalLvalPrimitive(const SEM::TypeInstance& typeInstance)
+		: typeInstance_(typeInstance) {
+			(void) typeInstance_;
+		}
+		
+		bool FinalLvalPrimitive::isSizeAlwaysKnown(const TypeInfo& typeInfo,
+		                                           llvm::ArrayRef<SEM::Value> templateArguments) const {
+			assert(templateArguments.size() == 1);
+			return typeInfo.isSizeAlwaysKnown(templateArguments.front().typeRefType());
+		}
+		
+		bool FinalLvalPrimitive::isSizeKnownInThisModule(const TypeInfo& typeInfo,
+		                                                 llvm::ArrayRef<SEM::Value> templateArguments) const {
+			assert(templateArguments.size() == 1);
+			return typeInfo.isSizeKnownInThisModule(templateArguments.front().typeRefType());
+		}
+		
+		bool FinalLvalPrimitive::hasCustomDestructor(const TypeInfo& typeInfo,
+		                                             llvm::ArrayRef<SEM::Value> templateArguments) const {
+			return typeInfo.hasCustomDestructor(templateArguments.front().typeRefType());
+		}
+		
+		bool FinalLvalPrimitive::hasCustomMove(const TypeInfo& typeInfo,
+		                                       llvm::ArrayRef<SEM::Value> templateArguments) const {
+			return typeInfo.hasCustomMove(templateArguments.front().typeRefType());
+		}
+		
+		llvm_abi::Type* FinalLvalPrimitive::getABIType(Module& module,
+		                                               llvm_abi::Context& /*abiContext*/,
+		                                               llvm::ArrayRef<SEM::Value> templateArguments) const {
+			assert(templateArguments.size() == 1);
+			return genABIType(module, templateArguments.front().typeRefType());
+		}
+		
+		llvm::Type* FinalLvalPrimitive::getIRType(Module& module,
+		                                          const TypeGenerator& /*typeGenerator*/,
+		                                          llvm::ArrayRef<SEM::Value> templateArguments) const {
+			assert(templateArguments.size() == 1);
+			return genType(module, templateArguments.front().typeRefType());
+		}
+		
+		llvm::Value* FinalLvalPrimitive::emitMethod(IREmitter& irEmitter,
+		                                            const MethodID methodID,
+		                                            llvm::ArrayRef<SEM::Value> typeTemplateArguments,
+		                                            llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                            PendingResultArray args) const {
+			auto& builder = irEmitter.builder();
+			auto& function = irEmitter.function();
+			auto& module = irEmitter.module();
 			
-			const auto targetType = type->templateArguments().front().typeRefType();
+			const auto targetType = typeTemplateArguments.front().typeRefType();
 			
 			switch (methodID) {
 				case METHOD_EMPTY: {
-					const auto objectVar = genAlloca(function, targetType, hintResultValue);
+					const auto objectVar = irEmitter.emitReturnAlloca(targetType);
 					genSetDeadState(function, targetType, objectVar);
 					return genMoveLoad(function, objectVar, targetType);
 				}

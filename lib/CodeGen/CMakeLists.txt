@@ -38,7 +38,7 @@ add_library(locic-codegen
 	PendingResult.cpp
 	Primitives/BoolPrimitive.cpp
 	Primitives/CompareResultPrimitive.cpp
-	Primitives/FinalLval.cpp
+	Primitives/FinalLvalPrimitive.cpp
 	Primitives/Float.cpp
 	Primitives/FunctionPtr.cpp
 	Primitives/Null.cpp
