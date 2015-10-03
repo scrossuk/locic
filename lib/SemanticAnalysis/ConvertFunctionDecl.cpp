@@ -101,6 +101,182 @@ namespace locic {
 			return semFunction;
 		}
 		
+		bool isValidReturnType(const String& name,
+		                       const SEM::Type* const type) {
+			if (name == "__moveto") {
+				return type->isBuiltInVoid();
+			} else if (name == "__destroy") {
+				return type->isBuiltInVoid();
+			} else if (name == "__alignmask") {
+				return type->isPrimitive() &&
+				       type->primitiveID() == PrimitiveSize;
+			} else if (name == "__sizeof") {
+				return type->isPrimitive() &&
+				       type->primitiveID() == PrimitiveSize;
+			} else if (name == "__islive") {
+				return type->isBuiltInBool();
+			} else if (name == "__setdead") {
+				return type->isBuiltInVoid();
+			} else if (name == "__empty") {
+				// TODO
+				return true;
+			} else if (name == "__isvalid") {
+				return type->isBuiltInBool();
+			} else if (name == "__setinvalid") {
+				return type->isBuiltInVoid();
+			} else {
+				throw std::logic_error("Unknown lifetime method.");
+			}
+		}
+		
+		bool isValidArgumentCount(const String& name,
+		                          const size_t argCount) {
+			if (name == "__moveto") {
+				return argCount == 2;
+			} else if (name == "__destroy") {
+				return argCount == 0;
+			} else if (name == "__alignmask") {
+				return argCount == 0;
+			} else if (name == "__sizeof") {
+				return argCount == 0;
+			} else if (name == "__islive") {
+				return argCount == 0;
+			} else if (name == "__setdead") {
+				return argCount == 0;
+			} else if (name == "__empty") {
+				// TODO
+				return true;
+			} else if (name == "__isvalid") {
+				return argCount == 0;
+			} else if (name == "__setinvalid") {
+				return argCount == 0;
+			} else {
+				throw std::logic_error("Unknown lifetime method.");
+			}
+		}
+		
+		bool isValidArgumentTypes(const String& name,
+		                          const SEM::TypeArray& types) {
+			if (name == "__moveto") {
+				return types[0]->isPrimitive() &&
+				       types[0]->primitiveID() == PrimitivePtr &&
+				       types[0]->templateArguments()[0].typeRefType()->isBuiltInVoid() &&
+				       types[1]->isPrimitive() &&
+				       types[1]->primitiveID() == PrimitiveSize;
+			} else if (name == "__destroy") {
+				return true;
+			} else if (name == "__alignmask") {
+				return true;
+			} else if (name == "__sizeof") {
+				return true;
+			} else if (name == "__islive") {
+				return true;
+			} else if (name == "__setdead") {
+				return true;
+			} else if (name == "__empty") {
+				// TODO
+				return true;
+			} else if (name == "__isvalid") {
+				return true;
+			} else if (name == "__setinvalid") {
+				return true;
+			} else {
+				throw std::logic_error("Unknown lifetime method.");
+			}
+		}
+		
+		bool isValidConstness(const String& name,
+		                      const SEM::Predicate& constPredicate) {
+			if (name == "__moveto") {
+				return constPredicate.isFalse();
+			} else if (name == "__destroy") {
+				return constPredicate.isFalse();
+			} else if (name == "__alignmask") {
+				return true;
+			} else if (name == "__sizeof") {
+				return true;
+			} else if (name == "__islive") {
+				return constPredicate.isTrue();
+			} else if (name == "__setdead") {
+				return constPredicate.isFalse();
+			} else if (name == "__empty") {
+				// TODO
+				return true;
+			} else if (name == "__isvalid") {
+				return constPredicate.isTrue();
+			} else if (name == "__setinvalid") {
+				return constPredicate.isFalse();
+			} else {
+				throw std::logic_error("Unknown lifetime method.");
+			}
+		}
+		
+		bool isValidStaticness(const String& name,
+		                       const bool isStatic) {
+			if (name == "__moveto") {
+				return !isStatic;
+			} else if (name == "__destroy") {
+				return !isStatic;
+			} else if (name == "__alignmask") {
+				return isStatic;
+			} else if (name == "__sizeof") {
+				return isStatic;
+			} else if (name == "__islive") {
+				return !isStatic;
+			} else if (name == "__setdead") {
+				return !isStatic;
+			} else if (name == "__empty") {
+				return isStatic;
+			} else if (name == "__isvalid") {
+				return !isStatic;
+			} else if (name == "__setinvalid") {
+				return !isStatic;
+			} else {
+				throw std::logic_error("Unknown lifetime method.");
+			}
+		}
+		
+		void validateFunctionType(const Name& functionFullName,
+		                          const SEM::FunctionType& functionType,
+		                          const SEM::Predicate& constPredicate,
+		                          const Debug::SourceLocation& location) {
+			const auto& name = functionFullName.last();
+			if (!name.starts_with("__")) {
+				// Not a lifetime method; any type can be valid.
+				return;
+			}
+			
+			if (!isValidReturnType(name, functionType.returnType())) {
+				throw ErrorException(makeString("Lifetime method '%s' has incorrect return type, at location %s.",
+					functionFullName.toString().c_str(),
+					location.toString().c_str()));
+			}
+			
+			if (!isValidArgumentCount(name, functionType.parameterTypes().size())) {
+				throw ErrorException(makeString("Lifetime method '%s' has incorrect argument count, at location %s.",
+					functionFullName.toString().c_str(),
+					location.toString().c_str()));
+			}
+			
+			if (!isValidArgumentTypes(name, functionType.parameterTypes())) {
+				throw ErrorException(makeString("Lifetime method '%s' has incorrect argument types, at location %s.",
+					functionFullName.toString().c_str(),
+					location.toString().c_str()));
+			}
+			
+			if (!isValidStaticness(name, !functionType.attributes().isMethod())) {
+				throw ErrorException(makeString("Lifetime method '%s' has incorrect static-ness, at location %s.",
+					functionFullName.toString().c_str(),
+					location.toString().c_str()));
+			}
+			
+			if (!isValidConstness(name, constPredicate)) {
+				throw ErrorException(makeString("Lifetime method '%s' has incorrect const predicate, at location %s.",
+					functionFullName.toString().c_str(),
+					location.toString().c_str()));
+			}
+		}
+		
 		void ConvertFunctionDeclType(Context& context, SEM::Function& function) {
 			if (function.isDefault()) {
 				// Type is already converted.
@@ -172,7 +348,13 @@ namespace locic {
 				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());
 			
 			SEM::FunctionAttributes attributes(astFunctionNode->isVarArg(), isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
-			function.setType(SEM::FunctionType(std::move(attributes), semReturnType, std::move(parameterTypes)));
+			SEM::FunctionType functionType(std::move(attributes), semReturnType, std::move(parameterTypes));
+			validateFunctionType(function.name(),
+			                     functionType,
+			                     function.constPredicate(),
+			                     astFunctionNode.location());
+			
+			function.setType(functionType);
 		}
 		
 	}
