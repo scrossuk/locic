@@ -14,6 +14,7 @@
 #include <locic/BuildOptions.hpp>
 
 #include <locic/CodeGen/Debug.hpp>
+#include <locic/CodeGen/PrimitiveMap.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
@@ -89,6 +90,7 @@ namespace locic {
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
 		
 		class InternalContext;
+		class Primitive;
 		
 		class Module {
 			public:
@@ -142,6 +144,8 @@ namespace locic {
 				
 				MoveFunctionMap& getMoveFunctionMap();
 				
+				const Primitive& getPrimitive(const SEM::TypeInstance& typeInstance) const;
+				
 				StandardTypeMap& standardTypeMap();
 				
 				TemplateBuilder& templateBuilder(TemplatedObject templatedObject);
@@ -184,6 +188,7 @@ namespace locic {
 				MemberOffsetFunctionMap memberOffsetFunctionMap_;
 				MemberVarMap memberVarMap_;
 				MoveFunctionMap moveFunctionMap_;
+				PrimitiveMap primitiveMap_;
 				StandardTypeMap standardTypeMap_;
 				TemplateBuilderMap templateBuilderMap_;
 				TemplateRootFunctionMap templateRootFunctionMap_;
