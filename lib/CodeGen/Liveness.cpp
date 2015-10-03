@@ -21,17 +21,6 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		bool typeInstanceHasLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
-			// A liveness indicator is only required if the object has a custom destructor or move,
-			// since the indicator is used to determine whether the destructor/move is run.
-			return typeInstance.isClassDef() && (typeInstanceHasCustomMoveMethod(module, typeInstance) ||
-				typeInstanceHasCustomDestructor(module, typeInstance));
-		}
-		
-		bool typeHasLivenessIndicator(Module& module, const SEM::Type* const type) {
-			return type->isObject() && typeInstanceHasLivenessIndicator(module, *(type->getObjectType()));
-		}
-		
 		Optional<LivenessIndicator> getCustomLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
 			// Check if we have custom __islive and __setdead methods.
 			const auto& isLiveMethod = typeInstance.functions().at(module.getCString("__islive"));
@@ -94,7 +83,8 @@ namespace locic {
 		}
 		
 		LivenessIndicator getLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
-			if (!typeInstanceHasLivenessIndicator(module, typeInstance)) {
+			TypeInfo typeInfo(module);
+			if (!typeInfo.objectHasLivenessIndicator(typeInstance)) {
 				// Only classes need liveness indicators because only they
 				// have custom destructors and move operations.
 				return LivenessIndicator::None();
@@ -231,7 +221,8 @@ namespace locic {
 			
 			// Call __islive method.
 			if (type->isObject()) {
-				if (!typeInstanceHasLivenessIndicator(module, *(type->getObjectType()))) {
+				TypeInfo typeInfo(module);
+				if (!typeInfo.objectHasLivenessIndicator(*(type->getObjectType()))) {
 					// Assume value is always live.
 					return ConstantGenerator(module).getI1(true);
 				}

@@ -15,13 +15,6 @@ namespace locic {
 		class Module;
 		
 		/**
-		 * \brief Query whether a type has a liveness indicator.
-		 */
-		bool typeInstanceHasLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance);
-		
-		bool typeHasLivenessIndicator(Module& module, const SEM::Type* type);
-		
-		/**
 		 * \brief Get liveness indicator for type.
 		 */
 		LivenessIndicator getLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance);
