@@ -13,6 +13,7 @@ set(LLVMABI_REPO "https://github.com/scross99/llvm-abi.git")
 set(LLVMABI_CMAKE_ARGS
 	"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
 	"-DCMAKE_INSTALL_PREFIX=${LLVMABI_INSTALL_DIR}"
+	"-DLLVM_ROOT_DIR=${LLVM_ROOT_DIR}"
 )
 
 # Pull llvm-abi from repository and build it.
