@@ -1,5 +1,6 @@
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Primitive.hpp>
+#include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/Type.hpp>
@@ -17,7 +18,9 @@ namespace locic {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT:
 					if (type->isPrimitive()) {
-						return isPrimitiveTypeSizeAlwaysKnown(module_, type);
+						const auto& primitive = module_.getPrimitive(*(type->getObjectType()));
+						return primitive.isSizeAlwaysKnown(*this,
+						                                   arrayRef(type->templateArguments()));
 					} else {
 						return isObjectSizeAlwaysKnown(*(type->getObjectType()));
 					}
@@ -59,7 +62,9 @@ namespace locic {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
 					if (type->isPrimitive()) {
-						return isPrimitiveTypeSizeKnownInThisModule(module_, type);
+						const auto& primitive = module_.getPrimitive(*(type->getObjectType()));
+						return primitive.isSizeKnownInThisModule(*this,
+						                                         arrayRef(type->templateArguments()));
 					} else {
 						return isObjectSizeKnownInThisModule(*(type->getObjectType()));
 					}
@@ -101,7 +106,9 @@ namespace locic {
 		bool TypeInfo::hasCustomDestructor(const SEM::Type* const type) const {
 			if (type->isObject()) {
 				if (type->isPrimitive()) {
-					return primitiveTypeHasDestructor(module_, type);
+					const auto& primitive = module_.getPrimitive(*(type->getObjectType()));
+					return primitive.hasCustomDestructor(*this,
+					                                     arrayRef(type->templateArguments()));
 				} else {
 					return objectHasCustomDestructor(*(type->getObjectType()));
 				}
@@ -117,7 +124,9 @@ namespace locic {
 			}
 			
 			if (typeInstance.isPrimitive()) {
-				return primitiveTypeInstanceHasDestructor(module_, &typeInstance);
+				const auto& primitive = module_.getPrimitive(typeInstance);
+				return primitive.hasCustomDestructor(*this,
+				                                     arrayRef(typeInstance.selfTemplateArgs()));
 			}
 			
 			if (typeInstance.isUnionDatatype()) {
@@ -147,7 +156,9 @@ namespace locic {
 		bool TypeInfo::hasCustomMove(const SEM::Type* const type) const {
 			if (type->isObject()) {
 				if (type->isPrimitive()) {
-					return primitiveTypeHasCustomMove(module_, type);
+					const auto& primitive = module_.getPrimitive(*(type->getObjectType()));
+					return primitive.hasCustomMove(*this,
+					                               arrayRef(type->templateArguments()));
 				} else {
 					return objectHasCustomMove(*(type->getObjectType()))
 					       // We have a custom move operation if there's a liveness indicator,
@@ -166,7 +177,9 @@ namespace locic {
 			}
 			
 			if (typeInstance.isPrimitive()) {
-				return primitiveTypeInstanceHasCustomMove(module_, &typeInstance);
+				const auto& primitive = module_.getPrimitive(typeInstance);
+				return primitive.hasCustomMove(*this,
+				                               arrayRef(typeInstance.selfTemplateArgs()));
 			}
 			
 			if (typeInstance.isUnionDatatype()) {
