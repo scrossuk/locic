@@ -50,9 +50,6 @@ namespace locic {
 		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveID id);
 		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* type);
 		
-		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* type);
-		bool primitiveTypeInstanceHasDestructor(Module& module, const SEM::TypeInstance* typeInstance);
-		
 		bool isPrimitiveTypeSizeAlwaysKnown(Module& module, const SEM::Type* type);
 		
 		bool isPrimitiveTypeSizeKnownInThisModule(Module& module, const SEM::Type* type);

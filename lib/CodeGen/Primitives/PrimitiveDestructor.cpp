@@ -36,29 +36,6 @@ namespace locic {
 			(void) genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(arguments));
 		}
 		
-		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* const type) {
-			TypeInfo typeInfo(module);
-			switch (type->primitiveID()) {
-				case PrimitiveValueLval:
-				case PrimitiveFinalLval:
-				case PrimitiveStaticArray:
-					return typeInfo.hasCustomDestructor(type->templateArguments().front().typeRefType());
-				default:
-					return false;
-			}
-		}
-		
-		bool primitiveTypeInstanceHasDestructor(Module& /*module*/, const SEM::TypeInstance* const typeInstance) {
-			switch (typeInstance->primitiveID()) {
-				case PrimitiveValueLval:
-				case PrimitiveFinalLval:
-				case PrimitiveStaticArray:
-					return true;
-				default:
-					return false;
-			}
-		}
-		
 	}
 	
 }
