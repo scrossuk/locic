@@ -1,19 +1,38 @@
+#include <assert.h>
+
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
+#include <locic/CodeGen/Debug.hpp>
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/FunctionCallInfo.hpp>
+#include <locic/CodeGen/GenABIType.hpp>
+#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
+#include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
+#include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/Primitive.hpp>
+#include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Primitives/StaticArrayPrimitive.hpp>
+#include <locic/CodeGen/Routines.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
+#include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
-
-#include <locic/SEM/TemplateVar.hpp>
-#include <locic/SEM/Type.hpp>
+#include <locic/CodeGen/UnwindAction.hpp>
+#include <locic/CodeGen/VTable.hpp>
 
 #include <locic/Support/MethodID.hpp>
 
@@ -21,47 +40,106 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		llvm::Value* getArrayIndex(Function& function,
-		                           const SEM::Type* const type,
-		                           const SEM::Type* const elementType,
-		                           llvm::Value* const arrayPtr,
-		                           llvm::Value* const elementIndex) {
-			auto& builder = function.getBuilder();
-			auto& module = function.module();
-			
-			TypeInfo typeInfo(module);
-			if (typeInfo.isSizeAlwaysKnown(type)) {
-				llvm::Value* const indexArray[] = {
-						ConstantGenerator(module).getSizeTValue(0),
-						elementIndex
-					};
-				return builder.CreateInBoundsGEP(arrayPtr, indexArray);
-			} else {
-				const auto castMethodOwner = builder.CreatePointerCast(arrayPtr,
-				                                                       TypeGenerator(module).getI8PtrType());
-				const auto elementSize = genSizeOf(function,
-				                                   elementType);
-				const auto indexPos = builder.CreateMul(elementSize,
-				                                        elementIndex);
-				const auto elementPtr = builder.CreateInBoundsGEP(castMethodOwner,
-				                                                  indexPos);
-				return builder.CreatePointerCast(elementPtr,
-				                                 genPointerType(module, elementType));
-			}
+		StaticArrayPrimitive::StaticArrayPrimitive(const SEM::TypeInstance& typeInstance)
+		: typeInstance_(typeInstance) { }
+		
+		bool StaticArrayPrimitive::isSizeAlwaysKnown(const TypeInfo& typeInfo,
+		                                             llvm::ArrayRef<SEM::Value> templateArguments) const {
+			assert(templateArguments.size() == 2);
+			const auto targetType = templateArguments.front().typeRefType();
+			const auto& elementCountValue = templateArguments.back();
+			return typeInfo.isSizeAlwaysKnown(targetType) &&
+			       elementCountValue.isConstant();
 		}
 		
-		llvm::Value* genStaticArrayPrimitiveMethodCall(Function& function,
-		                                               const SEM::Type* const type,
-		                                               const MethodID methodID,
-		                                               PendingResultArray args,
-		                                               llvm::Value* const hintResultValue) {
-			auto& builder = function.getBuilder();
-			auto& module = function.module();
+		bool StaticArrayPrimitive::isSizeKnownInThisModule(const TypeInfo& typeInfo,
+		                                                   llvm::ArrayRef<SEM::Value> templateArguments) const {
+			assert(templateArguments.size() == 2);
+			const auto targetType = templateArguments.front().typeRefType();
+			const auto& elementCountValue = templateArguments.back();
+			return typeInfo.isSizeKnownInThisModule(targetType) &&
+			       elementCountValue.isConstant();
+		}
+		
+		bool StaticArrayPrimitive::hasCustomDestructor(const TypeInfo& typeInfo,
+		                                               llvm::ArrayRef<SEM::Value> templateArguments) const {
+			return typeInfo.hasCustomDestructor(templateArguments.front().typeRefType());
+		}
+		
+		bool StaticArrayPrimitive::hasCustomMove(const TypeInfo& typeInfo,
+		                                         llvm::ArrayRef<SEM::Value> templateArguments) const {
+			return typeInfo.hasCustomMove(templateArguments.front().typeRefType());
+		}
+		
+		llvm_abi::Type* StaticArrayPrimitive::getABIType(Module& module,
+		                                                 llvm_abi::Context& abiContext,
+		                                                 llvm::ArrayRef<SEM::Value> templateArguments) const {
+			const auto elementType = genABIType(module, templateArguments.front().typeRefType());
+			const auto elementCount = templateArguments.back().constant().integerValue();
+			return llvm_abi::Type::Array(abiContext,
+			                             elementCount,
+			                             elementType);
+		}
+		
+		llvm::Type* StaticArrayPrimitive::getIRType(Module& module,
+		                                            const TypeGenerator& typeGenerator,
+		                                            llvm::ArrayRef<SEM::Value> templateArguments) const {
+			const auto elementType = genType(module, templateArguments.front().typeRefType());
+			const auto elementCount = templateArguments.back().constant().integerValue();
+			return typeGenerator.getArrayType(elementType,
+			                                  elementCount);
+		}
+		
+		namespace {
 			
-			IREmitter irEmitter(function, hintResultValue);
+			llvm::Value* getArrayIndex(Function& function,
+			                           const SEM::Type* const type,
+			                           const SEM::Type* const elementType,
+			                           llvm::Value* const arrayPtr,
+			                           llvm::Value* const elementIndex) {
+				auto& builder = function.getBuilder();
+				auto& module = function.module();
+				
+				TypeInfo typeInfo(module);
+				if (typeInfo.isSizeAlwaysKnown(type)) {
+					llvm::Value* const indexArray[] = {
+							ConstantGenerator(module).getSizeTValue(0),
+							elementIndex
+						};
+					return builder.CreateInBoundsGEP(arrayPtr, indexArray);
+				} else {
+					const auto castMethodOwner = builder.CreatePointerCast(arrayPtr,
+					                                                       TypeGenerator(module).getI8PtrType());
+					const auto elementSize = genSizeOf(function,
+					                                   elementType);
+					const auto indexPos = builder.CreateMul(elementSize,
+					                                        elementIndex);
+					const auto elementPtr = builder.CreateInBoundsGEP(castMethodOwner,
+					                                                  indexPos);
+					return builder.CreatePointerCast(elementPtr,
+					                                 genPointerType(module, elementType));
+				}
+			}
 			
-			const auto elementType = type->templateArguments().front().typeRefType();
-			const auto& elementCount = type->templateArguments().back();
+		}
+		
+		llvm::Value* StaticArrayPrimitive::emitMethod(IREmitter& irEmitter,
+		                                              const MethodID methodID,
+		                                              llvm::ArrayRef<SEM::Value> typeTemplateArguments,
+		                                              llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                              PendingResultArray args) const {
+			auto& builder = irEmitter.builder();
+			auto& function = irEmitter.function();
+			auto& module = irEmitter.module();
+			
+			SEM::ValueArray valueArray;
+			for (const auto& value: typeTemplateArguments) {
+				valueArray.push_back(value.copy());
+			}
+			const auto type = SEM::Type::Object(&typeInstance_,
+			                                    std::move(valueArray));
+			const auto elementType = typeTemplateArguments.front().typeRefType();
+			const auto& elementCount = typeTemplateArguments.back();
 			
 			switch (methodID) {
 				case METHOD_ALIGNMASK: {
@@ -79,9 +157,7 @@ namespace locic {
 					if (typeInfo.isSizeAlwaysKnown(type)) {
 						return ConstantGenerator(module).getUndef(genType(module, type));
 					} else {
-						const auto result = genAlloca(function,
-						                              type,
-						                              hintResultValue);
+						const auto result = irEmitter.emitReturnAlloca(type);
 						// TODO
 						return result;
 					}
