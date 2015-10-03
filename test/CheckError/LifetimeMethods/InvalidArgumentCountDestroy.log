@@ -1,0 +1,1 @@
+Lifetime method '::TestClass::__destroy' has incorrect argument count, at location SourceLocation\(filename = (.*)/InvalidArgumentCountDestroy\.loci, range = \(line 2, column 2\) to \(line 2, column 43\)\)\.

@@ -1,0 +1,5 @@
+class TestClass() {
+	size_t __alignmask() noexcept {
+		return 1;
+	}
+}

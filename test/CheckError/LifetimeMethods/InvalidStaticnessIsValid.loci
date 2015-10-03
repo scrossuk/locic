@@ -1,0 +1,5 @@
+class TestClass() {
+	static bool __isvalid() noexcept {
+		return true;
+	}
+}

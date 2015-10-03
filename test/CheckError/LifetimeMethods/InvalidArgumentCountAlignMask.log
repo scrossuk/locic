@@ -1,0 +1,1 @@
+Lifetime method '::TestClass::__alignmask' has incorrect argument count, at location SourceLocation\(filename = (.*)/InvalidArgumentCountAlignMask\.loci, range = \(line 2, column 2\) to \(line 4, column 3\)\)\.

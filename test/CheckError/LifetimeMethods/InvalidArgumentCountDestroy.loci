@@ -1,0 +1,3 @@
+class TestClass() {
+	void __destroy(unused int i) noexcept { }
+}

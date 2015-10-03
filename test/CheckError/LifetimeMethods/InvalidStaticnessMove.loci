@@ -1,0 +1,3 @@
+class TestClass() {
+	static void __moveto(unused void* dest, unused size_t offset) noexcept { }
+}

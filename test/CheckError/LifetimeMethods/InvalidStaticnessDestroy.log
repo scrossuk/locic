@@ -1,0 +1,1 @@
+Lifetime method '::TestClass::__destroy' has incorrect static-ness, at location SourceLocation\(filename = (.*)/InvalidStaticnessDestroy\.loci, range = \(line 2, column 2\) to \(line 2, column 38\)\)\.

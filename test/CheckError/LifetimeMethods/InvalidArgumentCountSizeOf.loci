@@ -1,0 +1,5 @@
+class TestClass() {
+	static size_t __sizeof(unused int i) noexcept {
+		return 1;
+	}
+}

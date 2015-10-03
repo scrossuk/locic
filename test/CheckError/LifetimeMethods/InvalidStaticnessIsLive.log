@@ -1,0 +1,1 @@
+Lifetime method '::TestClass::__islive' has incorrect static-ness, at location SourceLocation\(filename = (.*)/InvalidStaticnessIsLive\.loci, range = \(line 2, column 2\) to \(line 4, column 3\)\)\.

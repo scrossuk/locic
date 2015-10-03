@@ -1,0 +1,3 @@
+class TestClass() {
+	void __setdead(unused int i) noexcept { }
+}

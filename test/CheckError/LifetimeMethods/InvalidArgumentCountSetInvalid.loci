@@ -1,0 +1,3 @@
+class TestClass() {
+	void __setinvalid(unused int i) noexcept { }
+}

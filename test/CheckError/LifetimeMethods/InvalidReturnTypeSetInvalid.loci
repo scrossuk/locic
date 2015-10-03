@@ -1,0 +1,5 @@
+class TestClass() {
+	int __setinvalid() noexcept {
+		return 0;
+	}
+}

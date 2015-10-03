@@ -1,0 +1,3 @@
+class TestClass() {
+	void __setdead() const noexcept { }
+}
