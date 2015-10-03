@@ -1,19 +1,9 @@
-#include <assert.h>
-
-#include <stdexcept>
-#include <string>
-
-#include <locic/CodeGen/ArgInfo.hpp>
-#include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/Interface.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/SizeOf.hpp>
+#include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Support.hpp>
-#include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/UnwindAction.hpp>
+#include <locic/Support/MethodID.hpp>
 
 namespace locic {
 	
@@ -22,29 +12,27 @@ namespace locic {
 		llvm::Value* genPrimitiveAlignMask(Function& function, const SEM::Type* const type) {
 			auto& module = function.module();
 			
-			MethodInfo methodInfo(type,
-			                      module.getCString("__alignmask"),
-			                      // FIXME: We shouldn't need to pass any function type here.
-			                      SEM::FunctionType(),
-			                      /*templateArgs=*/{});
+			IREmitter irEmitter(function);
 			
-			return genTrivialPrimitiveFunctionCall(function,
-			                                       methodInfo,
-			                                       /*args=*/{});
+			const auto& primitive = module.getPrimitive(*(type->getObjectType()));
+			return primitive.emitMethod(irEmitter,
+			                            METHOD_ALIGNMASK,
+			                            arrayRef(type->templateArguments()),
+			                            /*functionTemplateArguments=*/llvm::ArrayRef<SEM::Value>(),
+			                            /*args=*/{});
 		}
 		
 		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* const type) {
 			auto& module = function.module();
 			
-			MethodInfo methodInfo(type,
-			                      module.getCString("__sizeof"),
-			                      // FIXME: We shouldn't need to pass any function type here.
-			                      SEM::FunctionType(),
-			                      /*templateArgs=*/{});
+			IREmitter irEmitter(function);
 			
-			return genTrivialPrimitiveFunctionCall(function,
-			                                       methodInfo,
-			                                       /*args=*/{});
+			const auto& primitive = module.getPrimitive(*(type->getObjectType()));
+			return primitive.emitMethod(irEmitter,
+			                            METHOD_SIZEOF,
+			                            arrayRef(type->templateArguments()),
+			                            /*functionTemplateArguments=*/llvm::ArrayRef<SEM::Value>(),
+			                            /*args=*/{});
 		}
 		
 	}
