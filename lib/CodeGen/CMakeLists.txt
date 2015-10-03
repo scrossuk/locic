@@ -56,7 +56,7 @@ add_library(locic-codegen
 	Primitives/TypenamePrimitive.cpp
 	Primitives/UnsignedIntegerPrimitive.cpp
 	Primitives/ValueLvalPrimitive.cpp
-	Primitives/Void.cpp
+	Primitives/VoidPrimitive.cpp
 	Routines.cpp
 	ScopeExitActions.cpp
 	SEMCodeEmitter.cpp
