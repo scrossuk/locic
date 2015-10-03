@@ -43,34 +43,6 @@ namespace locic {
 			(void) genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(arguments));
 		}
 		
-		bool primitiveTypeHasCustomMove(Module& module, const SEM::Type* const type) {
-			TypeInfo typeInfo(module);
-			switch (type->primitiveID()) {
-				case PrimitiveValueLval:
-				case PrimitiveFinalLval:
-					return typeInfo.hasCustomMove(type->templateArguments().front().typeRefType());
-				case PrimitiveStaticArray:
-					// Static array has custom move method if
-					// element type has custom move method or
-					// number of elements is not a constant.
-					return typeInfo.hasCustomMove(type->templateArguments().front().typeRefType()) ||
-					       !type->templateArguments().back().isConstant();
-				default:
-					return false;
-			}
-		}
-		
-		bool primitiveTypeInstanceHasCustomMove(Module& /*module*/, const SEM::TypeInstance* typeInstance) {
-			switch (typeInstance->primitiveID()) {
-				case PrimitiveValueLval:
-				case PrimitiveFinalLval:
-				case PrimitiveStaticArray:
-					return true;
-				default:
-					return false;
-			}
-		}
-		
 	}
 	
 }
