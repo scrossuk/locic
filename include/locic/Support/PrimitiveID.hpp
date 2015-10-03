@@ -7,7 +7,7 @@
 namespace locic {
 	
 	enum PrimitiveIDEnum {
-		PrimitiveVoid,
+		PrimitiveVoid = 0,
 		PrimitiveNull,
 		PrimitiveBool,
 		PrimitiveCompareResult,
@@ -60,6 +60,8 @@ namespace locic {
 		
 		PrimitiveStaticArray
 	};
+	
+	constexpr size_t PRIMITIVE_COUNT = PrimitiveStaticArray + 1;
 	
 	class PrimitiveID {
 	public:
