@@ -16,11 +16,14 @@
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Primitives/PtrPrimitive.hpp>
 #include <locic/CodeGen/Routines.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
@@ -33,24 +36,78 @@
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {
-
+	
 	namespace CodeGen {
 		
-		llvm::Value* genPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, const MethodID methodID,
-				PendingResultArray args) {
-			auto& module = function.module();
-			auto& builder = function.getBuilder();
+		PtrPrimitive::PtrPrimitive(const SEM::TypeInstance& typeInstance)
+		: typeInstance_(typeInstance) {
+			(void) typeInstance_;
+		}
+		
+		bool PtrPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
+		                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return true;
+		}
+		
+		bool PtrPrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
+		                                           llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return true;
+		}
+		
+		bool PtrPrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
+		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return false;
+		}
+		
+		bool PtrPrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
+		                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return false;
+		}
+		
+		llvm_abi::Type* PtrPrimitive::getABIType(Module& /*module*/,
+		                                         llvm_abi::Context& abiContext,
+		                                         llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return llvm_abi::Type::Pointer(abiContext);
+		}
+		
+		llvm::Type* PtrPrimitive::getIRType(Module& module,
+		                                    const TypeGenerator& /*typeGenerator*/,
+		                                    llvm::ArrayRef<SEM::Value> templateArguments) const {
+			return genPointerType(module, templateArguments.front().typeRefType());
+		}
+		
+		llvm::Value* PtrPrimitive::emitMethod(IREmitter& irEmitter,
+		                                      const MethodID methodID,
+		                                      llvm::ArrayRef<SEM::Value> typeTemplateArguments,
+		                                      llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                      PendingResultArray args) const {
+			auto& builder = irEmitter.builder();
+			auto& function = irEmitter.function();
+			auto& module = irEmitter.module();
 			
+			const auto targetType = typeTemplateArguments.front().typeRefType();
 			const auto methodOwnerPointer = methodID.isConstructor() ? nullptr : args[0].resolve(function);
 			const auto methodOwner = methodOwnerPointer != nullptr ? builder.CreateLoad(methodOwnerPointer) : nullptr;
 			
 			switch (methodID) {
-				case METHOD_NULL:
-					return ConstantGenerator(module).getNull(genType(module, type));
-				case METHOD_ALIGNMASK:
-					return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(genABIType(module, type)) - 1);
-				case METHOD_SIZEOF:
-					return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(genABIType(module, type)));
+				case METHOD_NULL: {
+					const auto irType = this->getIRType(module,
+					                                    irEmitter.typeGenerator(),
+					                                    typeTemplateArguments);
+					return ConstantGenerator(module).getNull(irType);
+				}
+				case METHOD_ALIGNMASK: {
+					const auto abiType = this->getABIType(module,
+					                                      module.abiContext(),
+					                                      typeTemplateArguments);
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(abiType) - 1);
+				}
+				case METHOD_SIZEOF: {
+					const auto abiType = this->getABIType(module,
+					                                      module.abiContext(),
+					                                      typeTemplateArguments);
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(abiType));
+				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY:
 				case METHOD_DEREF:
@@ -64,14 +121,17 @@ namespace locic {
 					const auto moveToPosition = args[2].resolve(function);
 					
 					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
 					
-					genMoveStore(function, methodOwner, castedDestPtr, type);
+					const auto irType = this->getIRType(module,
+					                                    irEmitter.typeGenerator(),
+					                                    typeTemplateArguments);
+					
+					const auto castedDestPtr = builder.CreatePointerCast(destPtr,
+					                                                     irType->getPointerTo());
+					builder.CreateStore(methodOwner, castedDestPtr);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_INCREMENT: {
-					const auto targetType = type->templateArguments().front().typeRefType();
-					
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						const auto one = ConstantGenerator(module).getI32(1);
@@ -87,8 +147,6 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_DECREMENT: {
-					const auto targetType = type->templateArguments().front().typeRefType();
-					
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						const auto minusOne = ConstantGenerator(module).getI32(-1);
@@ -106,7 +164,6 @@ namespace locic {
 				}
 				case METHOD_ADD: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					const auto targetType = type->templateArguments().front().typeRefType();
 					
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
@@ -132,7 +189,6 @@ namespace locic {
 				case METHOD_INDEX: {
 					const auto sizeTType = getBasicPrimitiveType(module, PrimitiveSize);
 					const auto operand = args[1].resolve(function);
-					const auto targetType = type->templateArguments().front().typeRefType();
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						return builder.CreateInBoundsGEP(methodOwner, operand);

@@ -48,8 +48,8 @@ add_library(locic-codegen
 	Primitives/PrimitiveSizeOf.cpp
 	Primitives/PrimitiveStoreLval.cpp
 	Primitives/PrimitiveTypes.cpp
-	Primitives/Ptr.cpp
 	Primitives/PtrLval.cpp
+	Primitives/PtrPrimitive.cpp
 	Primitives/Ref.cpp
 	Primitives/SignedInteger.cpp
 	Primitives/StaticArray.cpp
