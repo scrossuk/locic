@@ -188,7 +188,10 @@ namespace locic {
 					const auto operand = args[1].resolveWithoutBind(function);
 					llvm::Value* const binaryArgs[] = { methodOwner, operand };
 					if (unsafe) {
-						return builder.CreateAdd(methodOwner, operand);
+						return builder.CreateAdd(methodOwner,
+						                         operand,
+						                         /*name=*/"",
+						                         /*hasNUW=*/true);
 					} else {
 						return callArithmeticNoOverflowIntrinsic(function, llvm::Intrinsic::uadd_with_overflow, binaryArgs);
 					}
@@ -197,7 +200,10 @@ namespace locic {
 					const auto operand = args[1].resolveWithoutBind(function);
 					llvm::Value* const binaryArgs[] = { methodOwner, operand };
 					if (unsafe) {
-						return builder.CreateSub(methodOwner, operand);
+						return builder.CreateSub(methodOwner,
+						                         operand,
+						                         /*name=*/"",
+						                         /*hasNUW=*/true);
 					} else {
 						return callArithmeticNoOverflowIntrinsic(function, llvm::Intrinsic::usub_with_overflow, binaryArgs);
 					}
@@ -205,7 +211,10 @@ namespace locic {
 				case METHOD_MULTIPLY: {
 					const auto operand = args[1].resolveWithoutBind(function);
 					if (unsafe) {
-						return builder.CreateMul(methodOwner, operand);
+						return builder.CreateMul(methodOwner,
+						                         operand,
+						                         /*name=*/"",
+						                         /*hasNUW=*/true);
 					} else {
 						const auto checkDivBB = function.createBasicBlock("");
 						const auto trapBB = function.createBasicBlock("");
