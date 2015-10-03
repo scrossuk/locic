@@ -6,10 +6,10 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 
 namespace locic {
@@ -44,15 +44,16 @@ namespace locic {
 		}
 		
 		bool primitiveTypeHasCustomMove(Module& module, const SEM::Type* const type) {
+			TypeInfo typeInfo(module);
 			switch (type->primitiveID()) {
 				case PrimitiveValueLval:
 				case PrimitiveFinalLval:
-					return typeHasCustomMove(module, type->templateArguments().front().typeRefType());
+					return typeInfo.hasCustomMove(type->templateArguments().front().typeRefType());
 				case PrimitiveStaticArray:
 					// Static array has custom move method if
 					// element type has custom move method or
 					// number of elements is not a constant.
-					return typeHasCustomMove(module, type->templateArguments().front().typeRefType()) ||
+					return typeInfo.hasCustomMove(type->templateArguments().front().typeRefType()) ||
 					       !type->templateArguments().back().isConstant();
 				default:
 					return false;
