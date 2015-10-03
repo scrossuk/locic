@@ -21,10 +21,10 @@ namespace locic {
 		
 		class AliasResolveInfo {
 		public:
-			AliasResolveInfo(AST::Node<AST::Value> astValue,
-			                 ScopeStack scopeStack)
-			: astValue_(std::move(astValue)),
-			scopeStack_(std::move(scopeStack)),
+			AliasResolveInfo(AST::Node<AST::Value> argASTValue,
+			                 ScopeStack argScopeStack)
+			: astValue_(std::move(argASTValue)),
+			scopeStack_(std::move(argScopeStack)),
 			isResolving_(false) { }
 			
 			AliasResolveInfo(AliasResolveInfo&&) = default;

@@ -199,7 +199,7 @@ namespace locic {
 				//throw std::runtime_error("Verification failed for module.");
 			}
 #else
-			(void) llvm::verifyModule(module_, llvm::AbortProcessAction);
+			(void) llvm::verifyModule(*module_, llvm::AbortProcessAction);
 #endif
 #endif
 		}

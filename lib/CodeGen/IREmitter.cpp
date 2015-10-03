@@ -22,9 +22,9 @@ namespace locic {
 	namespace CodeGen {
 		
 		IREmitter::IREmitter(Function& functionGenerator,
-		                     llvm::Value* hintResultValue)
+		                     llvm::Value* argHintResultValue)
 		: functionGenerator_(functionGenerator),
-		  hintResultValue_(hintResultValue) { }
+		  hintResultValue_(argHintResultValue) { }
 		
 		ConstantGenerator
 		IREmitter::constantGenerator() {
@@ -79,18 +79,16 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::emitLoadDatatypeTag(llvm::Value* const datatypePtr) {
-			auto& module = functionGenerator_.module();
 			const auto tagPtr = functionGenerator_.getBuilder().CreatePointerCast(datatypePtr,
-			                                                                      TypeGenerator(module).getI8PtrType());
+			                                                                      TypeGenerator(module()).getI8PtrType());
 			return functionGenerator_.getBuilder().CreateLoad(tagPtr);
 		}
 		
 		void
 		IREmitter::emitStoreDatatypeTag(llvm::Value* const tagValue,
 		                                llvm::Value* const datatypePtr) {
-			auto& module = functionGenerator_.module();
 			const auto tagPtr = functionGenerator_.getBuilder().CreatePointerCast(datatypePtr,
-			                                                                      TypeGenerator(module).getI8PtrType());
+			                                                                      TypeGenerator(module()).getI8PtrType());
 			functionGenerator_.getBuilder().CreateStore(tagValue, tagPtr);
 		}
 		
@@ -101,18 +99,16 @@ namespace locic {
 			assert(datatypeType->isUnionDatatype());
 			assert(variantType->isDatatype());
 			
-			auto& module = functionGenerator_.module();
-			
 			llvm::Value* datatypeVariantPtr = nullptr;
 			
 			// Try to use a plain GEP if possible.
-			TypeInfo typeInfo(module);
+			TypeInfo typeInfo(module());
 			if (typeInfo.isSizeKnownInThisModule(datatypeType)) {
 				datatypeVariantPtr = functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(datatypePtr, 0, 1);
 			} else {
 				const auto castObjectPtr =
 					functionGenerator_.getBuilder().CreatePointerCast(datatypePtr,
-					                                                  TypeGenerator(module).getI8PtrType());
+					                                                  TypeGenerator(module()).getI8PtrType());
 				const auto unionAlignValue = genAlignOf(functionGenerator_,
 				                                        datatypeType);
 				datatypeVariantPtr = functionGenerator_.getBuilder().CreateInBoundsGEP(castObjectPtr,
@@ -120,16 +116,14 @@ namespace locic {
 			}
 			
 			return functionGenerator_.getBuilder().CreatePointerCast(datatypeVariantPtr,
-			                                                         genType(module, variantType)->getPointerTo());
+			                                                         genType(module(), variantType)->getPointerTo());
 		}
 		
 		void
 		IREmitter::emitDestructorCall(llvm::Value* const value,
 		                              const SEM::Type* const type) {
-			auto& module = functionGenerator_.module();
-			
 			if (type->isObject()) {
-				if (!typeHasDestructor(module, type)) {
+				if (!typeHasDestructor(module(), type)) {
 					return;
 				}
 				
@@ -141,10 +135,10 @@ namespace locic {
 				const auto& typeInstance = *(type->getObjectType());
 				
 				// Call destructor.
-				const auto argInfo = destructorArgInfo(module, typeInstance);
-				const auto destructorFunction = genDestructorFunctionDecl(module, typeInstance);
+				const auto argInfo = destructorArgInfo(module(), typeInstance);
+				const auto destructorFunction = genDestructorFunctionDecl(module(), typeInstance);
 				
-				const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
+				const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(value, TypeGenerator(module()).getI8PtrType());
 				
 				llvm::SmallVector<llvm::Value*, 2> args;
 				if (!type->templateArguments().empty()) {
@@ -155,7 +149,7 @@ namespace locic {
 				(void) genRawFunctionCall(functionGenerator_, argInfo, destructorFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = functionGenerator_.getEntryBuilder().CreateExtractValue(functionGenerator_.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-				const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
+				const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(value, TypeGenerator(module()).getI8PtrType());
 				VirtualCall::generateDestructorCall(functionGenerator_, typeInfo, castValue);
 			} else {
 				llvm_unreachable("Unknown type kind.");
@@ -165,32 +159,30 @@ namespace locic {
 		llvm::Value*
 		IREmitter::emitImplicitCopyCall(llvm::Value* value,
 		                                const SEM::Type* type,
-		                                llvm::Value* hintResultValue) {
+		                                llvm::Value* callHintResultValue) {
 			return emitCopyCall(METHOD_IMPLICITCOPY,
 			                    value,
 			                    type,
-			                    hintResultValue);
+			                    callHintResultValue);
 		}
 		
 		llvm::Value*
 		IREmitter::emitExplicitCopyCall(llvm::Value* value,
 		                                const SEM::Type* type,
-		                                llvm::Value* hintResultValue) {
+		                                llvm::Value* callHintResultValue) {
 			return emitCopyCall(METHOD_COPY,
 			                    value,
 			                    type,
-			                    hintResultValue);
+			                    callHintResultValue);
 		}
 		
 		llvm::Value*
 		IREmitter::emitCopyCall(const MethodID methodID,
 		                        llvm::Value* value,
 		                        const SEM::Type* rawType,
-		                        llvm::Value* hintResultValue) {
+		                        llvm::Value* callHintResultValue) {
 			assert(methodID == METHOD_IMPLICITCOPY ||
 			       methodID == METHOD_COPY);
-			
-			const auto& module = functionGenerator_.module();
 			
 			const auto type = rawType->resolveAliases();
 			
@@ -208,8 +200,8 @@ namespace locic {
 			
 			const auto methodName =
 				methodID == METHOD_IMPLICITCOPY ?
-					module.getCString("implicitcopy") :
-					module.getCString("copy");
+					module().getCString("implicitcopy") :
+					module().getCString("copy");
 			
 			MethodInfo methodInfo(type,
 			                      methodName,
@@ -222,7 +214,7 @@ namespace locic {
 			                     methodInfo,
 			                     Optional<PendingResult>(thisPendingResult),
 			                     /*args=*/{},
-			                     hintResultValue);
+			                     callHintResultValue);
 		}
 		
 		llvm::Value*
@@ -231,8 +223,6 @@ namespace locic {
 		                           const SEM::Type* const compareResultType,
 		                           const SEM::Type* const rawThisType,
 		                           const SEM::Type* const rawThisRefType) {
-			const auto& module = functionGenerator_.module();
-			
 			const auto thisType = rawThisType->resolveAliases();
 			const auto thisRefType = rawThisRefType->resolveAliases();
 			
@@ -249,7 +239,7 @@ namespace locic {
 			                               { thisRefType });
 			
 			MethodInfo methodInfo(thisType,
-			                      module.getCString("compare"),
+			                      module().getCString("compare"),
 			                      functionType,
 			                      {});
 			
