@@ -131,8 +131,36 @@ namespace locic {
 					if (unsafe) {
 						return builder.CreateMul(methodOwner, operand);
 					} else {
-						llvm::Value* const binaryArgs[] = { methodOwner, operand };
-						return callArithmeticNoOverflowIntrinsic(function, llvm::Intrinsic::smul_with_overflow, binaryArgs);
+						const auto checkDivBB = function.createBasicBlock("");
+						const auto trapBB = function.createBasicBlock("");
+						const auto endBB = function.createBasicBlock("");
+						
+						const auto mulResult = builder.CreateMul(methodOwner,
+						                                         operand);
+						
+						// Check if methodOwner == 0.
+						const auto methodOwnerIsZero = builder.CreateICmpEQ(methodOwner,
+						                                                    zero);
+						builder.CreateCondBr(methodOwnerIsZero,
+						                     endBB,
+						                     checkDivBB);
+						
+						// If methodOwner != 0, check (mulResult / methodOwner) == operand.
+						function.selectBasicBlock(checkDivBB);
+						const auto divResult = builder.CreateSDiv(mulResult,
+						                                          methodOwner);
+						const auto divResultIsOperand = builder.CreateICmpEQ(divResult,
+						                                                     operand);
+						builder.CreateCondBr(divResultIsOperand,
+						                     endBB,
+						                     trapBB);
+						
+						// (mulResult / methodOwner) != operand -> trap.
+						function.selectBasicBlock(trapBB);
+						callTrapIntrinsic(function);
+						
+						function.selectBasicBlock(endBB);
+						return mulResult;
 					}
 				}
 				case METHOD_DIVIDE: {
