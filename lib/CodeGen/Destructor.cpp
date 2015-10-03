@@ -16,61 +16,12 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 
 namespace locic {
 	
 	namespace CodeGen {
-		
-		bool typeInstanceHasCustomDestructor(Module& module, const SEM::TypeInstance& typeInstance) {
-			const auto destroyFunction = typeInstance.functions().at(module.getCString("__destroy")).get();
-			return !destroyFunction->isDefault();
-		}
-		
-		bool typeHasDestructor(Module& module, const SEM::Type* const type) {
-			if (type->isObject()) {
-				if (type->isPrimitive()) {
-					return primitiveTypeHasDestructor(module, type);
-				} else {
-					return typeInstanceHasDestructor(module, *(type->getObjectType()));
-				}
-			} else {
-				return type->isTemplateVar();
-			}
-		}
-		
-		bool typeInstanceHasDestructor(Module& module, const SEM::TypeInstance& typeInstance) {
-			if (typeInstance.isClassDecl()) {
-				// Assume a destructor exists.
-				return true;
-			}
-			
-			if (typeInstance.isPrimitive()) {
-				return primitiveTypeInstanceHasDestructor(module, &typeInstance);
-			}
-			
-			if (typeInstance.isUnionDatatype()) {
-				for (const auto variantTypeInstance: typeInstance.variants()) {
-					if (typeInstanceHasDestructor(module, *variantTypeInstance)) {
-						return true;
-					}
-				}
-				
-				return false;
-			} else {
-				if (typeInstanceHasCustomDestructor(module, typeInstance)) {
-					return true;
-				}
-				
-				for (const auto var: typeInstance.variables()) {
-					if (typeHasDestructor(module, var->type())) {
-						return true;
-					}
-				}
-				
-				return false;
-			}
-		}
 		
 		ArgInfo destructorArgInfo(Module& module, const SEM::TypeInstance& typeInstance) {
 			const bool hasTemplateArgs = !typeInstance.templateVariables().empty();
@@ -82,7 +33,8 @@ namespace locic {
 			auto& module = function.module();
 			
 			if (type->isObject()) {
-				if (!typeHasDestructor(module, type)) {
+				TypeInfo typeInfo(module);
+				if (!typeInfo.hasCustomDestructor(type)) {
 					return;
 				}
 				
@@ -114,7 +66,8 @@ namespace locic {
 		}
 		
 		void scheduleDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
-			if (!typeHasDestructor(function.module(), type)) {
+			TypeInfo typeInfo(function.module());
+			if (!typeInfo.hasCustomDestructor(type)) {
 				return;
 			}
 			
@@ -172,7 +125,8 @@ namespace locic {
 		}
 		
 		llvm::Function* genVTableDestructorFunction(Module& module, const SEM::TypeInstance& typeInstance) {
-			if (!typeInstanceHasDestructor(module, typeInstance)) {
+			TypeInfo typeInfo(module);
+			if (!typeInfo.objectHasCustomDestructor(typeInstance)) {
 				return getNullDestructorFunction(module);
 			}
 			

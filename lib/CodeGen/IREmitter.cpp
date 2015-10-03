@@ -123,7 +123,8 @@ namespace locic {
 		IREmitter::emitDestructorCall(llvm::Value* const value,
 		                              const SEM::Type* const type) {
 			if (type->isObject()) {
-				if (!typeHasDestructor(module(), type)) {
+				TypeInfo typeInfo(module());
+				if (!typeInfo.hasCustomDestructor(type)) {
 					return;
 				}
 				

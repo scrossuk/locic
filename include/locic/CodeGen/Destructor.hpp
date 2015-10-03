@@ -10,12 +10,6 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool typeInstanceHasCustomDestructor(Module& module, const SEM::TypeInstance& typeInstance);
-		
-		bool typeHasDestructor(Module& module, const SEM::Type* type);
-		
-		bool typeInstanceHasDestructor(Module& module, const SEM::TypeInstance& typeInstance);
-		
 		ArgInfo destructorArgInfo(Module& module, const SEM::TypeInstance& typeInstance);
 		
 		void genDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
