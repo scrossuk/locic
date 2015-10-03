@@ -3,7 +3,7 @@ interface deadstateable {
 }
 
 interface queryislive {
-	void __islive() const noexcept;
+	bool __islive() const noexcept;
 }
 
 template <typename T>
