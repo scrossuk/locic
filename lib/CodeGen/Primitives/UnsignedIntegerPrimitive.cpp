@@ -1,9 +1,13 @@
-#include <cassert>
+#include <assert.h>
+
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
+#include <locic/CodeGen/Debug.hpp>
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
@@ -12,10 +16,14 @@
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
+#include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Primitives/UnsignedIntegerPrimitive.hpp>
 #include <locic/CodeGen/Routines.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
@@ -30,23 +38,94 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		bool isFloatType(Module& module, const SEM::Type* const rawType);
-		
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
 				MethodID methodID, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue);
 		
-		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, const MethodID methodID, const SEM::FunctionType functionType,
-				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue) {
-			auto& module = function.module();
-			auto& builder = function.getBuilder();
+		UnsignedIntegerPrimitive::UnsignedIntegerPrimitive(const SEM::TypeInstance& typeInstance)
+		: typeInstance_(typeInstance) { }
+		
+		bool UnsignedIntegerPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
+		                                               llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return true;
+		}
+		
+		bool UnsignedIntegerPrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
+		                                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return true;
+		}
+		
+		bool UnsignedIntegerPrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
+		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return false;
+		}
+		
+		bool UnsignedIntegerPrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
+		                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return false;
+		}
+		
+		llvm_abi::Type* UnsignedIntegerPrimitive::getABIType(Module& /*module*/,
+		                                                     llvm_abi::Context& abiContext,
+		                                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			switch (typeInstance_.primitiveID()) {
+				case PrimitiveUInt8:
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int8);
+				case PrimitiveUInt16:
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int16);
+				case PrimitiveUInt32:
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int32);
+				case PrimitiveUInt64:
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int64);
+				case PrimitiveUByte:
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Char);
+				case PrimitiveUShort:
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Short);
+				case PrimitiveUInt:
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
+				case PrimitiveULong:
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::Long);
+				case PrimitiveULongLong:
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::LongLong);
+				case PrimitiveSize:
+					return llvm_abi::Type::Integer(abiContext, llvm_abi::SizeT);
+				default:
+					llvm_unreachable("Invalid unsigned integer primitive type.");
+			}
+		}
+		
+		llvm::Type* UnsignedIntegerPrimitive::getIRType(Module& module,
+		                                                const TypeGenerator& typeGenerator,
+		                                                llvm::ArrayRef<SEM::Value> templateArguments) const {
+			const auto abiType = this->getABIType(module,
+			                                      module.abiContext(),
+			                                      templateArguments);
+			return typeGenerator.getIntType(module.abi().typeSize(abiType) * 8);
+		}
+		
+		llvm::Value* UnsignedIntegerPrimitive::emitMethod(IREmitter& irEmitter,
+		                                                const MethodID methodID,
+		                                                llvm::ArrayRef<SEM::Value> typeTemplateArguments,
+		                                                llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                                PendingResultArray args) const {
+			auto& builder = irEmitter.builder();
+			auto& function = irEmitter.function();
+			auto& module = irEmitter.module();
+			
+			const auto& constantGenerator = irEmitter.constantGenerator();
+			const auto& typeGenerator = irEmitter.typeGenerator();
+			
+			const auto primitiveID = typeInstance_.primitiveID();
 			
 			const auto methodOwner = methodID.isConstructor() ? nullptr : args[0].resolveWithoutBind(function);
 			
 			const bool unsafe = module.buildOptions().unsafe;
-			const size_t selfWidth = module.abi().typeSize(genABIType(module, type)) * 8;
-			const auto selfType = TypeGenerator(module).getIntType(selfWidth);
-			const auto zero = ConstantGenerator(module).getPrimitiveInt(type->primitiveID(), 0);
-			const auto unit = ConstantGenerator(module).getPrimitiveInt(type->primitiveID(), 1);
+			const auto abiType = this->getABIType(module,
+			                                      module.abiContext(),
+			                                      typeTemplateArguments);
+			const size_t selfWidth = module.abi().typeSize(abiType) * 8;
+			const auto selfType = typeGenerator.getIntType(selfWidth);
+			const auto zero = constantGenerator.getPrimitiveInt(primitiveID, 0);
+			const auto unit = constantGenerator.getPrimitiveInt(primitiveID, 1);
 			
 			switch (methodID) {
 				case METHOD_CREATE:
@@ -59,7 +138,7 @@ namespace locic {
 					
 					if (!unsafe) {
 						// Check that operand <= sizeof(type) * 8.
-						const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth);
+						const auto maxValue = constantGenerator.getSizeTValue(selfWidth);
 						const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
 						const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
 						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
@@ -71,11 +150,11 @@ namespace locic {
 					
 					const bool isSigned = false;
 					
-					const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth);
+					const auto maxValue = constantGenerator.getSizeTValue(selfWidth);
 					const auto shift = builder.CreateSub(maxValue, operand);
 					
 					// Use a 128-bit integer type to avoid overflow.
-					const auto one128Bit = ConstantGenerator(module).getInt(128, 1);
+					const auto one128Bit = constantGenerator.getInt(128, 1);
 					const auto shiftCasted = builder.CreateIntCast(shift, one128Bit->getType(), isSigned);
 					const auto shiftedValue = builder.CreateShl(one128Bit, shiftCasted);
 					const auto trailingOnesValue = builder.CreateSub(shiftedValue, one128Bit);
@@ -87,7 +166,7 @@ namespace locic {
 					
 					if (!unsafe) {
 						// Check that operand <= sizeof(type) * 8.
-						const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth);
+						const auto maxValue = constantGenerator.getSizeTValue(selfWidth);
 						const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
 						const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
 						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
@@ -98,7 +177,7 @@ namespace locic {
 					}
 					
 					// Use a 128-bit integer type to avoid overflow.
-					const auto one128Bit = ConstantGenerator(module).getInt(128, 1);
+					const auto one128Bit = constantGenerator.getInt(128, 1);
 					const bool isSigned = false;
 					const auto operandCasted = builder.CreateIntCast(operand, one128Bit->getType(), isSigned);
 					const auto shiftedValue = builder.CreateShl(one128Bit, operandCasted);
@@ -107,24 +186,37 @@ namespace locic {
 				}
 				case METHOD_IMPLICITCASTFROM:
 				case METHOD_CASTFROM: {
-					const auto argType = functionType.parameterTypes().front();
+					const auto argPrimitiveID = methodID.primitiveID();
 					const auto operand = args[0].resolve(function);
-					if (isFloatType(module, argType)) {
+					if (argPrimitiveID.isFloat()) {
 						return builder.CreateFPToUI(operand, selfType);
-					} else {
+					} else if (argPrimitiveID.isInteger()) {
 						return builder.CreateZExtOrTrunc(operand, selfType);
+					} else {
+						llvm_unreachable("Unknown unsigned integer cast source type.");
 					}
 				}
 				case METHOD_ALIGNMASK: {
-					return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(genABIType(module, type)) - 1);
+					return constantGenerator.getSizeTValue(module.abi().typeAlign(abiType) - 1);
 				}
 				case METHOD_SIZEOF: {
-					return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(genABIType(module, type)));
+					return constantGenerator.getSizeTValue(module.abi().typeSize(abiType));
 				}
-					
 				case METHOD_IMPLICITCAST:
-				case METHOD_CAST:
-					return callCastMethod(function, methodOwner, type, methodID, templateArgs.front().typeRefType(), hintResultValue);
+				case METHOD_CAST: {
+					SEM::ValueArray valueArray;
+					for (const auto& value: typeTemplateArguments) {
+						valueArray.push_back(value.copy());
+					}
+					const auto type = SEM::Type::Object(&typeInstance_,
+					                                    std::move(valueArray));
+					return callCastMethod(function,
+					                      methodOwner,
+					                      type,
+					                      methodID,
+					                      functionTemplateArguments.front().typeRefType(),
+					                      irEmitter.hintResultValue());
+				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:
 					return methodOwner;
@@ -138,28 +230,28 @@ namespace locic {
 					
 					// Cast to size_t.
 					const bool isSigned = false;
-					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
+					return builder.CreateIntCast(bitCount, typeGenerator.getSizeTType(), isSigned);
 				}
 				case METHOD_COUNTLEADINGONES: {
 					const auto bitCount = countLeadingOnes(function, methodOwner);
 					
 					// Cast to size_t.
 					const bool isSigned = false;
-					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
+					return builder.CreateIntCast(bitCount, typeGenerator.getSizeTType(), isSigned);
 				}
 				case METHOD_COUNTTRAILINGZEROES: {
 					const auto bitCount = countTrailingZeroes(function, methodOwner);
 					
 					// Cast to size_t.
 					const bool isSigned = false;
-					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
+					return builder.CreateIntCast(bitCount, typeGenerator.getSizeTType(), isSigned);
 				}
 				case METHOD_COUNTTRAILINGONES: {
 					const auto bitCount = countTrailingOnes(function, methodOwner);
 					
 					// Cast to size_t.
 					const bool isSigned = false;
-					return builder.CreateIntCast(bitCount, TypeGenerator(module).getSizeTType(), isSigned);
+					return builder.CreateIntCast(bitCount, typeGenerator.getSizeTType(), isSigned);
 				}
 				case METHOD_SQRT:
 				case METHOD_INCREMENT: {
@@ -167,21 +259,21 @@ namespace locic {
 					const auto methodOwnerPtr = args[0].resolve(function);
 					const auto incrementedValue = builder.CreateAdd(methodOwner, unit);
 					builder.CreateStore(incrementedValue, methodOwnerPtr);
-					return ConstantGenerator(module).getVoidUndef();
+					return constantGenerator.getVoidUndef();
 				}
 				case METHOD_DECREMENT: {
 					// TODO: add safety checks!
 					const auto methodOwnerPtr = args[0].resolve(function);
 					const auto decrementedValue = builder.CreateSub(methodOwner, unit);
 					builder.CreateStore(decrementedValue, methodOwnerPtr);
-					return ConstantGenerator(module).getVoidUndef();
+					return constantGenerator.getVoidUndef();
 				}
 				case METHOD_SETDEAD: {
 					// Do nothing.
-					return ConstantGenerator(module).getVoidUndef();
+					return constantGenerator.getVoidUndef();
 				}
 				case METHOD_ISLIVE: {
-					return ConstantGenerator(module).getI1(true);
+					return constantGenerator.getI1(true);
 				}
 				
 				case METHOD_ADD: {
@@ -278,9 +370,9 @@ namespace locic {
 					const auto operand = args[1].resolveWithoutBind(function);
 					const auto isLessThan = builder.CreateICmpULT(methodOwner, operand);
 					const auto isGreaterThan = builder.CreateICmpUGT(methodOwner, operand);
-					const auto minusOneResult = ConstantGenerator(module).getI8(-1);
-					const auto zeroResult = ConstantGenerator(module).getI8(0);
-					const auto plusOneResult = ConstantGenerator(module).getI8(1);
+					const auto minusOneResult = constantGenerator.getI8(-1);
+					const auto zeroResult = constantGenerator.getI8(0);
+					const auto plusOneResult = constantGenerator.getI8(1);
 					return builder.CreateSelect(isLessThan, minusOneResult,
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				}
@@ -348,7 +440,7 @@ namespace locic {
 					
 					if (!unsafe) {
 						// Check that operand < sizeof(type) * 8.
-						const auto maxValue = ConstantGenerator(module).getSizeTValue(selfWidth - 1);
+						const auto maxValue = constantGenerator.getSizeTValue(selfWidth - 1);
 						const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
 						const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
 						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
@@ -369,10 +461,13 @@ namespace locic {
 					const auto moveToPosition = args[2].resolve(function);
 					
 					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
-					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
-					
-					genMoveStore(function, methodOwner, castedDestPtr, type);
-					return ConstantGenerator(module).getVoidUndef();
+					const auto irType = this->getIRType(module,
+					                                    typeGenerator,
+					                                    typeTemplateArguments);
+					const auto castedDestPtr = builder.CreatePointerCast(destPtr,
+					                                                     irType->getPointerTo());
+					builder.CreateStore(methodOwner, castedDestPtr);
+					return constantGenerator.getVoidUndef();
 				}
 				case METHOD_INRANGE: {
 					const auto leftOperand = args[1].resolve(function);

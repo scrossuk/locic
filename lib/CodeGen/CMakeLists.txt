@@ -54,7 +54,7 @@ add_library(locic-codegen
 	Primitives/SignedIntegerPrimitive.cpp
 	Primitives/StaticArrayPrimitive.cpp
 	Primitives/TypenamePrimitive.cpp
-	Primitives/UnsignedInteger.cpp
+	Primitives/UnsignedIntegerPrimitive.cpp
 	Primitives/ValueLval.cpp
 	Primitives/Void.cpp
 	Routines.cpp
