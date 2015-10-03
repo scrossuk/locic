@@ -18,39 +18,6 @@ namespace locic {
 	namespace CodeGen {
 		
 		/**
-		 * \brief Query whether a type has a custom move method.
-		 * 
-		 * This will determine whether the type has a custom
-		 * move method. For class declarations this always returns
-		 * true, since we must assume they have a custom move
-		 * method. For known types they will have a custom move
-		 * method if one of their child types has a custom move
-		 * method, so this will also return true in that case.
-		 */
-		bool typeHasCustomMove(Module& module, const SEM::Type* type);
-		
-		/**
-		 * \brief Query whether a type instance has a custom move method.
-		 * 
-		 * This will determine whether the type has a custom move method;
-		 * it doesn't check whether any of the member values have custom
-		 * move methods.
-		 */
-		bool typeInstanceHasCustomMoveMethod(Module& module, const SEM::TypeInstance& typeInstance);
-		
-		/**
-		 * \brief Query whether a type instance has a custom move operation.
-		 * 
-		 * This will determine whether the type has a custom
-		 * move method. For class declarations this always returns
-		 * true, since we must assume they have a custom move
-		 * method. For known types they will have a custom move
-		 * method if one of their child types has a custom move
-		 * method, so this will also return true in that case.
-		 */
-		bool typeInstanceHasCustomMove(Module& module, const SEM::TypeInstance* typeInstance);
-		
-		/**
 		 * \brief Make an i8* to a move destination.
 		 * 
 		 * This just adds the position value to the destination start value

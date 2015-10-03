@@ -16,6 +16,7 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/VirtualCall.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
@@ -23,59 +24,6 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		bool typeHasCustomMove(Module& module, const SEM::Type* type) {
-			if (type->isObject()) {
-				if (type->isPrimitive()) {
-					return primitiveTypeHasCustomMove(module, type);
-				} else {
-					return typeInstanceHasCustomMove(module, type->getObjectType())
-						// We have a custom move operation if there's a liveness indicator,
-						// since we need to set the source value to be dead.
-						|| typeInstanceHasLivenessIndicator(module, *(type->getObjectType()));
-				}
-			} else {
-				return type->isTemplateVar();
-			}
-		}
-		
-		bool typeInstanceHasCustomMoveMethod(Module& module, const SEM::TypeInstance& typeInstance) {
-			const auto moveFunction = typeInstance.functions().at(module.getCString("__moveto")).get();
-			return !moveFunction->isDefault();
-		}
-		
-		bool typeInstanceHasCustomMove(Module& module, const SEM::TypeInstance* const typeInstance) {
-			if (typeInstance->isClassDecl()) {
-				// Assume a custom move function exists.
-				return true;
-			}
-			
-			if (typeInstance->isPrimitive()) {
-				return primitiveTypeInstanceHasCustomMove(module, typeInstance);
-			}
-			
-			if (typeInstanceHasCustomMoveMethod(module, *typeInstance)) {
-				return true;
-			}
-			
-			if (typeInstance->isUnionDatatype()) {
-				for (const auto variantTypeInstance: typeInstance->variants()) {
-					if (typeInstanceHasCustomMove(module, variantTypeInstance)) {
-						return true;
-					}
-				}
-				
-				return false;
-			} else {
-				for (const auto var: typeInstance->variables()) {
-					if (typeHasCustomMove(module, var->type())) {
-						return true;
-					}
-				}
-				
-				return false;
-			}
-		}
-		
 		llvm::Value* makeRawMoveDest(Function& function, llvm::Value* const startDestValue, llvm::Value* const positionValue) {
 			auto& module = function.module();
 			const auto startDestValueI8Ptr = function.getBuilder().CreatePointerCast(startDestValue, TypeGenerator(module).getI8PtrType());
@@ -88,7 +36,8 @@ namespace locic {
 		}
 		
 		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
-			if (typeHasCustomMove(function.module(), type)) {
+			TypeInfo typeInfo(function.module());
+			if (typeInfo.hasCustomMove(type)) {
 				// Can't load since we need to run the move method.
 				return var;
 			} else {
@@ -107,7 +56,8 @@ namespace locic {
 			
 			assert(var->getType() == genPointerType(function.module(), type));
 			
-			if (typeHasCustomMove(function.module(), type)) {
+			TypeInfo typeInfo(function.module());
+			if (typeInfo.hasCustomMove(type)) {
 				// Can't store since we need to run the move method.
 				assert(value->getType()->isPointerTy());
 				assert(value->getType() == genPointerType(function.module(), type));
@@ -153,7 +103,8 @@ namespace locic {
 			auto& module = function.module();
 			
 			if (type->isObject()) {
-				if (!typeHasCustomMove(module, type)) {
+				TypeInfo typeInfo(function.module());
+				if (!typeInfo.hasCustomMove(type)) {
 					genBasicMove(function, type, sourceValue, destValue, positionValue);
 					return;
 				}
