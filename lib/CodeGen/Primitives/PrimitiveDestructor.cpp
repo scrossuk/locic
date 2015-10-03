@@ -3,13 +3,13 @@
 #include <string>
 
 #include <locic/CodeGen/ArgInfo.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 
 namespace locic {
@@ -37,11 +37,12 @@ namespace locic {
 		}
 		
 		bool primitiveTypeHasDestructor(Module& module, const SEM::Type* const type) {
+			TypeInfo typeInfo(module);
 			switch (type->primitiveID()) {
 				case PrimitiveValueLval:
 				case PrimitiveFinalLval:
 				case PrimitiveStaticArray:
-					return typeHasDestructor(module, type->templateArguments().front().typeRefType());
+					return typeInfo.hasCustomDestructor(type->templateArguments().front().typeRefType());
 				default:
 					return false;
 			}
