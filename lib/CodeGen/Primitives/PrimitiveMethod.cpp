@@ -16,10 +16,12 @@
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Routines.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
@@ -132,133 +134,22 @@ namespace locic {
 			return callRawCastMethod(function, castFromValue, castFromType, targetMethodName, castToType, hintResultValue);
 		}
 		
-		llvm::Value* genVoidPrimitiveMethodCall(Function& function, const SEM::Type*, MethodID methodID, PendingResultArray args);
-		
-		llvm::Value* genCompareResultPrimitiveMethodCall(Function& function, const SEM::Type* type,
-		                                                 MethodID methodID,
-		                                                 PendingResultArray args);
-		
-		llvm::Value* genNullPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID, llvm::ArrayRef<SEM::Value> templateArgs,
-				PendingResultArray args, llvm::Value* const hintResultValue);
-		
-		llvm::Value* genBoolPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID,
-				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue);
-		
-		llvm::Value* genSignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID, SEM::FunctionType functionType,
-				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue);
-		
-		llvm::Value* genUnsignedIntegerPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID, SEM::FunctionType functionType,
-				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue);
-		
-		llvm::Value* genFloatPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID, SEM::FunctionType functionType,
-				llvm::ArrayRef<SEM::Value> templateArgs, PendingResultArray args, llvm::Value* const hintResultValue);
-		
-		llvm::Value* genFunctionPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID,
-				PendingResultArray args, llvm::Value* hintResultValue);
-		
-		llvm::Value* genPtrPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID,
-				PendingResultArray args);
-		
-		llvm::Value* genPtrLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID,
-				PendingResultArray args, llvm::Value* const hintResultValue);
-		
-		llvm::Value* genFinalLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID,
-				PendingResultArray args, llvm::Value* const hintResultValue);
-		
-		llvm::Value* genValueLvalPrimitiveMethodCall(Function& function, const SEM::Type* type, MethodID methodID,
-				PendingResultArray args, llvm::Value* const hintResultValue);
-		
-		llvm::Value* genRefPrimitiveMethodCall(Function& function,
-		                                       const SEM::Type* const type,
-		                                       MethodID methodID,
-		                                       PendingResultArray args,
-		                                       llvm::Value* const hintResultValue);
-		
-		llvm::Value* genStaticArrayPrimitiveMethodCall(Function& function,
-		                                               const SEM::Type* const type,
-		                                               MethodID methodID,
-		                                               PendingResultArray args,
-		                                               llvm::Value* const hintResultValue);
-		
-		llvm::Value* genTypenamePrimitiveMethodCall(Function& function,
-		                                            const SEM::Type* type,
-		                                            MethodID methodID,
-		                                            PendingResultArray args);
-		
 		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args, llvm::Value* const hintResultValue) {
 			const auto type = methodInfo.parentType;
 			const auto methodName = methodInfo.name;
-			const auto functionType = methodInfo.functionType;
 			const auto& templateArgs = methodInfo.templateArgs;
 			
 			auto& module = function.module();
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			switch (type->primitiveID()) {
-				case PrimitiveVoid:
-					return genVoidPrimitiveMethodCall(function, type, methodID, std::move(args));
-				case PrimitiveCompareResult:
-					return genCompareResultPrimitiveMethodCall(function, type, methodID, std::move(args));
-				case PrimitiveNull:
-					return genNullPrimitiveMethodCall(function, type, methodID, arrayRef(templateArgs), std::move(args), hintResultValue);
-				case PrimitiveBool:
-					return genBoolPrimitiveMethodCall(function, type, methodID, arrayRef(templateArgs), std::move(args), hintResultValue);
-				case PrimitiveValueLval:
-					return genValueLvalPrimitiveMethodCall(function, type, methodID, std::move(args), hintResultValue);
-				case PrimitiveFinalLval:
-					return genFinalLvalPrimitiveMethodCall(function, type, methodID, std::move(args), hintResultValue);
-				case PrimitivePtrLval:
-					return genPtrLvalPrimitiveMethodCall(function, type, methodID, std::move(args), hintResultValue);
-				case PrimitivePtr:
-					return genPtrPrimitiveMethodCall(function, type, methodID, std::move(args));
-				case PrimitiveFunctionPtr:
-				case PrimitiveMethodFunctionPtr:
-				case PrimitiveTemplatedFunctionPtr:
-				case PrimitiveTemplatedMethodFunctionPtr:
-				case PrimitiveVarArgFunctionPtr:
-				case PrimitiveMethod:
-				case PrimitiveTemplatedMethod:
-				case PrimitiveInterfaceMethod:
-				case PrimitiveStaticInterfaceMethod:
-					return genFunctionPtrPrimitiveMethodCall(function, type, methodID, std::move(args), hintResultValue);
-				case PrimitiveInt8:
-				case PrimitiveInt16:
-				case PrimitiveInt32:
-				case PrimitiveInt64:
-				case PrimitiveByte:
-				case PrimitiveShort:
-				case PrimitiveInt:
-				case PrimitiveLong:
-				case PrimitiveLongLong:
-				case PrimitiveSSize:
-				case PrimitivePtrDiff:
-					return genSignedIntegerPrimitiveMethodCall(function, type, methodID, functionType, arrayRef(templateArgs), std::move(args), hintResultValue);
-				case PrimitiveUInt8:
-				case PrimitiveUInt16:
-				case PrimitiveUInt32:
-				case PrimitiveUInt64:
-				case PrimitiveUByte:
-				case PrimitiveUShort:
-				case PrimitiveUInt:
-				case PrimitiveULong:
-				case PrimitiveULongLong:
-				case PrimitiveSize:
-					return genUnsignedIntegerPrimitiveMethodCall(function, type, methodID, functionType, arrayRef(templateArgs), std::move(args), hintResultValue);
-				case PrimitiveFloat:
-				case PrimitiveDouble:
-				case PrimitiveLongDouble:
-					return genFloatPrimitiveMethodCall(function, type, methodID, functionType, arrayRef(templateArgs), std::move(args), hintResultValue);
-				case PrimitiveTypename:
-					return genTypenamePrimitiveMethodCall(function, type, methodID, std::move(args));
-				case PrimitiveRef:
-					return genRefPrimitiveMethodCall(function, type, methodID, std::move(args), hintResultValue);
-				case PrimitiveStaticArray:
-					return genStaticArrayPrimitiveMethodCall(function, type, methodID, std::move(args), hintResultValue);
-			}
+			IREmitter irEmitter(function, hintResultValue);
 			
-			const auto& typeName = type->getObjectType()->name().last();
-			printf("%s\n", typeName.c_str());
-			llvm_unreachable("Unknown trivial primitive function.");
+			const auto& primitive = module.getPrimitive(*(type->getObjectType()));
+			return primitive.emitMethod(irEmitter,
+			                            methodID,
+			                            arrayRef(type->templateArguments()),
+			                            /*functionTemplateArguments=*/arrayRef(templateArgs),
+			                            std::move(args));
 		}
 		
 		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* const typeInstance, SEM::Function* const semFunction, llvm::Function& llvmFunction) {
