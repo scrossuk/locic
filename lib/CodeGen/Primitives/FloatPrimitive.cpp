@@ -201,7 +201,8 @@ namespace locic {
 					llvm::Type* const intrinsicTypes[] = { methodOwner->getType() };
 					const auto sqrtIntrinsic = llvm::Intrinsic::getDeclaration(module.getLLVMModulePtr(), llvm::Intrinsic::sqrt, intrinsicTypes);
 					llvm::Value* const sqrtArgs[] = { methodOwner };
-					return builder.CreateCall(sqrtIntrinsic, sqrtArgs);
+					return irEmitter.emitCall(sqrtIntrinsic->getFunctionType(),
+					                          sqrtIntrinsic, sqrtArgs);
 				}
 				case METHOD_ADD: {
 					const auto operand = args[1].resolveWithoutBind(function);

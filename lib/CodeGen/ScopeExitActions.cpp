@@ -67,6 +67,8 @@ namespace locic {
 				return;
 			}
 			
+			IREmitter irEmitter(function);
+			
 			switch (unwindAction.kind()) {
 				case UnwindAction::DESTRUCTOR: {
 					genDestructorCall(function, unwindAction.destructorType(), unwindAction.destructorValue());
@@ -95,7 +97,6 @@ namespace locic {
 					return;
 				}
 				case UnwindAction::FUNCTIONMARKER: {
-					IREmitter irEmitter(function);
 					switch (unwindState) {
 						case UnwindStateThrow: {
 							TypeGenerator typeGen(function.module());
@@ -151,7 +152,9 @@ namespace locic {
 					switch (unwindState) {
 						case UnwindStateThrow: {
 							llvm::Value* const values[] = { unwindAction.destroyExceptionValue() };
-							const auto callInst = function.getBuilder().CreateCall(getExceptionFreeFunction(function.module()), values);
+							const auto exceptionFreeFunction = getExceptionFreeFunction(function.module());
+							const auto callInst = irEmitter.emitCall(exceptionFreeFunction->getFunctionType(),
+							                                         exceptionFreeFunction, values);
 							callInst->setDoesNotThrow();
 							break;
 						}

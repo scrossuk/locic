@@ -473,7 +473,9 @@ namespace locic {
 						// the selector for the catch type.
 						const auto intrinsic = llvm::Intrinsic::getDeclaration(module.getLLVMModulePtr(), llvm::Intrinsic::eh_typeid_for, std::vector<llvm::Type*> {});
 						const auto castedCatchTypeInfo = ConstantGenerator(module).getPointerCast(catchTypeList[i], TypeGenerator(module).getPtrType());
-						const auto catchSelectorValue = function.getBuilder().CreateCall(intrinsic, std::vector<llvm::Value*> {castedCatchTypeInfo});
+						const auto catchSelectorValue = irEmitter.emitCall(intrinsic->getFunctionType(),
+						                                                   intrinsic,
+						                                                   std::vector<llvm::Value*> {castedCatchTypeInfo});
 						
 						// Check thrown selector against catch selector.
 						const auto compareResult = function.getBuilder().CreateICmpEQ(catchSelectorValue, throwSelectorValue);
@@ -483,7 +485,10 @@ namespace locic {
 						{
 							function.selectBasicBlock(executeCatchBB);
 							llvm::Value* const getPtrArgs[] = { thrownExceptionValue };
-							const auto exceptionPtrValue = function.getBuilder().CreateCall(getExceptionPtrFunction(module), getPtrArgs);
+							const auto exceptionPtrFunction = getExceptionPtrFunction(module);
+							const auto exceptionPtrValue = irEmitter.emitCall(exceptionPtrFunction->getFunctionType(),
+							                                                  exceptionPtrFunction,
+							                                                  getPtrArgs);
 							exceptionPtrValue->setDoesNotAccessMemory();
 							exceptionPtrValue->setDoesNotThrow();
 							
@@ -536,7 +541,8 @@ namespace locic {
 					const auto allocateFunction = getExceptionAllocateFunction(module);
 					const auto exceptionValueSize = genSizeOf(function, throwType);
 					llvm::Value* const exceptArgs[] = { exceptionValueSize };
-					const auto allocatedException = function.getBuilder().CreateCall(allocateFunction, exceptArgs);
+					const auto allocatedException = irEmitter.emitCall(allocateFunction->getFunctionType(),
+					                                                   allocateFunction, exceptArgs);
 					
 					// Store value into allocated space.
 					genMoveStore(function, exceptionValue, allocatedException, throwType);
@@ -599,14 +605,18 @@ namespace locic {
 						// Create throw and nothrow paths.
 						const auto noThrowPath = function.createBasicBlock("");
 						const auto throwPath = genLandingPad(function, UnwindStateRethrow);
-						const auto throwInvoke = function.getBuilder().CreateInvoke(rethrowFunction, noThrowPath, throwPath, args);
+						const auto throwInvoke = irEmitter.emitInvoke(rethrowFunction->getFunctionType(),
+						                                              rethrowFunction,
+						                                              noThrowPath,
+						                                              throwPath, args);
 						throwInvoke->setDoesNotReturn();
 						
 						// 'rethrow' function should never return normally.
 						function.selectBasicBlock(noThrowPath);
 						function.getBuilder().CreateUnreachable();
 					} else {
-						const auto callInst = function.getBuilder().CreateCall(rethrowFunction, args);
+						const auto callInst = irEmitter.emitCall(rethrowFunction->getFunctionType(),
+						                                         rethrowFunction, args);
 						callInst->setDoesNotReturn();
 						
 						// 'rethrow' function should never return normally.
@@ -662,7 +672,8 @@ namespace locic {
 						
 						const auto assertFailedFunction = getAssertFailedFunction(module);
 						llvm::Value* const args[] = { stringGlobal };
-						const auto callInst = function.getBuilder().CreateCall(assertFailedFunction, args);
+						const auto callInst = irEmitter.emitCall(assertFailedFunction->getFunctionType(),
+						                                         assertFailedFunction, args);
 						callInst->setDoesNotThrow();
 						callInst->setDoesNotReturn();
 					}
@@ -684,7 +695,9 @@ namespace locic {
 				case SEM::Statement::UNREACHABLE: {
 					if (!module.buildOptions().unsafe) {
 						const auto unreachableFailedFunction = getUnreachableFailedFunction(module);
-						const auto callInst = function.getBuilder().CreateCall(unreachableFailedFunction, std::vector<llvm::Value*>());
+						const auto callInst = irEmitter.emitCall(unreachableFailedFunction->getFunctionType(),
+						                                         unreachableFailedFunction,
+						                                         std::vector<llvm::Value*>());
 						callInst->setDoesNotThrow();
 						callInst->setDoesNotReturn();
 					}

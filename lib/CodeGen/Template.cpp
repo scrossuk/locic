@@ -401,7 +401,8 @@ namespace locic {
 			llvm::Type* const ctlzTypes[] = { typeGen.getI32Type() };
 			const auto countLeadingZerosFunction = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::ctlz, ctlzTypes);
 			llvm::Value* const ctlzArgs[] = { pathArg, constGen.getI1(true) };
-			const auto numLeadingZeroes = builder.CreateCall(countLeadingZerosFunction, ctlzArgs);
+			const auto numLeadingZeroes = irEmitter.emitCall(countLeadingZerosFunction->getFunctionType(),
+			                                                 countLeadingZerosFunction, ctlzArgs);
 			const auto numLeadingZeroesI8 = builder.CreateTrunc(numLeadingZeroes, typeGen.getI8Type());
 			const auto startPosition = builder.CreateSub(constGen.getI8(31), numLeadingZeroesI8);
 			
