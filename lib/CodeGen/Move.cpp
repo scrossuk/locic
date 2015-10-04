@@ -112,23 +112,18 @@ namespace locic {
 				const auto argInfo = moveArgInfo(module, type->getObjectType());
 				const auto moveFunction = genMoveFunctionDecl(module, type->getObjectType());
 				
-				const auto castSourceValue = function.getBuilder().CreatePointerCast(sourceValue, TypeGenerator(module).getPtrType());
-				const auto castDestValue = function.getBuilder().CreatePointerCast(destValue, TypeGenerator(module).getPtrType());
-				
 				llvm::SmallVector<llvm::Value*, 4> args;
 				if (!type->templateArguments().empty()) {
 					args.push_back(getTemplateGenerator(function, TemplateInst::Type(type)));
 				}
-				args.push_back(castSourceValue);
-				args.push_back(castDestValue);
+				args.push_back(sourceValue);
+				args.push_back(destValue);
                                 args.push_back(positionValue);
 				
 				(void) genRawFunctionCall(function, argInfo, moveFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-				const auto castSourceValue = function.getBuilder().CreatePointerCast(sourceValue, TypeGenerator(module).getPtrType());
-				const auto castDestValue = function.getBuilder().CreatePointerCast(destValue, TypeGenerator(module).getPtrType());
-				VirtualCall::generateMoveCall(function, typeInfo, castSourceValue, castDestValue, positionValue);
+				VirtualCall::generateMoveCall(function, typeInfo, sourceValue, destValue, positionValue);
 			}
 		}
 		
@@ -199,7 +194,6 @@ namespace locic {
 		void genCallUserMoveFunction(Function& functionGenerator, const SEM::TypeInstance& typeInstance,
 				llvm::Value* const sourceValue, llvm::Value* const destValue, llvm::Value* const positionValue) {
 			auto& module = functionGenerator.module();
-			auto& builder = functionGenerator.getBuilder();
 			
 			const auto& function = *(typeInstance.functions().at(module.getCString("__moveto")));
 			
@@ -208,8 +202,6 @@ namespace locic {
 			const auto llvmFunction = semFunctionGenerator.genDef(&typeInstance,
 			                                                      function,
 			                                                      /*isInnerMethod=*/true);
-			const auto i8PtrType = TypeGenerator(module).getPtrType();
-			const auto castContextValue = builder.CreatePointerCast(sourceValue, i8PtrType);
 			
 			const auto argInfo = moveArgInfo(module, &typeInstance);
 			
@@ -217,7 +209,7 @@ namespace locic {
 			if (argInfo.hasTemplateGeneratorArgument()) {
 				args.push_back(functionGenerator.getTemplateGenerator());
 			}
-			args.push_back(castContextValue);
+			args.push_back(sourceValue);
 			args.push_back(destValue);
 			args.push_back(positionValue);
 			
