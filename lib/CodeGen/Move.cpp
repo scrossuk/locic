@@ -22,7 +22,7 @@
 #include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
-
+	
 	namespace CodeGen {
 		
 		llvm::Value* makeMoveDest(Function& function, llvm::Value* const startDestValue, llvm::Value* const positionValue) {
