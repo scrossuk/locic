@@ -16,31 +16,6 @@
 namespace locic {
 
 	namespace CodeGen {
-	
-		llvm::PointerType* getPrimitivePointerType(Module& module, const SEM::Type* const type) {
-			switch (type->primitiveID()) {
-				case PrimitiveValueLval:
-				case PrimitiveFinalLval: {
-					return genPointerType(module, type->templateArguments().front().typeRefType());
-				}
-				case PrimitiveStaticArray: {
-					TypeInfo typeInfo(module);
-					if (!typeInfo.isSizeKnownInThisModule(type)) {
-						return genPointerType(module,
-						                      type->templateArguments().front().typeRefType());
-					}
-				}
-				default: {
-					const auto pointerType = getPrimitiveType(module, type);
-					if (pointerType->isVoidTy()) {
-						// LLVM doesn't support 'void *' => use 'int8_t *' instead.
-						return TypeGenerator(module).getPtrType();
-					} else {
-						return pointerType->getPointerTo();
-					}
-				}
-			}
-		}
 		
 		llvm::Type* getFunctionPointerType(Module& module, const SEM::FunctionType functionType) {
 			const auto functionPtrType = genFunctionType(module, functionType)->getPointerTo();

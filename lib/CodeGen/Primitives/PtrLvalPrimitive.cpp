@@ -69,10 +69,10 @@ namespace locic {
 			return llvm_abi::Type::Pointer(abiContext);
 		}
 		
-		llvm::Type* PtrLvalPrimitive::getIRType(Module& module,
-		                                        const TypeGenerator& /*typeGenerator*/,
-		                                        llvm::ArrayRef<SEM::Value> templateArguments) const {
-			return genPointerType(module, templateArguments.front().typeRefType());
+		llvm::Type* PtrLvalPrimitive::getIRType(Module& /*module*/,
+		                                        const TypeGenerator& typeGenerator,
+		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return typeGenerator.getPtrType();
 		}
 		
 		llvm::Value* PtrLvalPrimitive::emitMethod(IREmitter& irEmitter,

@@ -76,7 +76,7 @@ namespace locic {
 		}
 		
 		llvm::Type* RefPrimitive::getIRType(Module& module,
-		                                    const TypeGenerator& /*typeGenerator*/,
+		                                    const TypeGenerator& typeGenerator,
 		                                    llvm::ArrayRef<SEM::Value> templateArguments) const {
 			const auto argType = templateArguments.front().typeRefType();
 			if (argType->isTemplateVar() && argType->getTemplateVar()->isVirtual()) {
@@ -95,7 +95,7 @@ namespace locic {
 				return interfaceStructType(module).second;
 			} else {
 				// Argument type is definitely not virtual.
-				return genPointerType(module, argType);
+				return typeGenerator.getPtrType();
 			}
 		}
 		
@@ -127,14 +127,14 @@ namespace locic {
 				return interfaceStructType(module).second;
 			}
 			
-			llvm::Type* getNotVirtualLLVMType(Module& module, const SEM::Type* const type) {
-				return genPointerType(module, getRefTarget(type));
+			llvm::Type* getNotVirtualLLVMType(Module& module) {
+				return TypeGenerator(module).getPtrType();
 			}
 			
 			llvm::Type* getRefLLVMType(Module& module, const SEM::Type* const type) {
 				return isRefVirtual(type) ?
 					getVirtualRefLLVMType(module) :
-					getNotVirtualLLVMType(module, type);
+					getNotVirtualLLVMType(module);
 			}
 			
 			template <typename Fn>
@@ -177,7 +177,7 @@ namespace locic {
 				function.getBuilder().CreateBr(mergeBlock);
 				
 				function.selectBasicBlock(ifNotVirtualBlock);
-				const auto notVirtualType = getNotVirtualLLVMType(module, type);
+				const auto notVirtualType = getNotVirtualLLVMType(module);
 				const auto notVirtualResult = f(notVirtualType);
 				function.getBuilder().CreateBr(mergeBlock);
 				

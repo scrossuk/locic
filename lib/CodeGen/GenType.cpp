@@ -23,7 +23,7 @@ namespace locic {
 			if (canPassByValue(module, type)) {
 				return genType(module, type);
 			} else {
-				return genPointerType(module, type);
+				return TypeGenerator(module).getPtrType();
 			}
 		}
 		
@@ -38,24 +38,6 @@ namespace locic {
 			} else {
 				assert(!typeInstance->isInterface() && "Interface types must always be converted by reference");
 				return genTypeInstance(module, type->getObjectType());
-			}
-		}
-		
-		llvm::PointerType* genPointerType(Module& module, const SEM::Type* rawTargetType) {
-			const auto targetType = rawTargetType->resolveAliases();
-                        assert(!targetType->isInterface());
-			if (targetType->isPrimitive()) {
-				return getPrimitivePointerType(module, targetType);
-			} else if (targetType->isTemplateVar()) {
-				return TypeGenerator(module).getPtrType();
-			} else {
-				const auto llvmTargetType = genType(module, targetType);
-				if (llvmTargetType->isVoidTy()) {
-					// LLVM doesn't support 'void *' => use 'int8_t *' instead.
-					return TypeGenerator(module).getPtrType();
-				} else {
-					return llvmTargetType->getPointerTo();
-				}
 			}
 		}
 		
