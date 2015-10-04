@@ -221,7 +221,7 @@ namespace locic {
 					
 					assert(llvmDataRefValue != nullptr && "MethodObject requires a valid data pointer");
 					
-					callInfo.contextPointer = function.getBuilder().CreatePointerCast(llvmDataRefValue, TypeGenerator(module).getPtrType());
+					callInfo.contextPointer = llvmDataRefValue;
 					
 					return callInfo;
 				}
