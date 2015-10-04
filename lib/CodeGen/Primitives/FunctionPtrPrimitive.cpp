@@ -109,7 +109,6 @@ namespace locic {
 				case PrimitiveFunctionPtr:
 				case PrimitiveMethodFunctionPtr:
 				case PrimitiveVarArgFunctionPtr:
-				case PrimitivePtrLval:
 					return typeGenerator.getPtrType();
 				case PrimitiveTemplatedFunctionPtr:
 				case PrimitiveTemplatedMethodFunctionPtr: {
