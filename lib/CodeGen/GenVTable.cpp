@@ -73,21 +73,21 @@ namespace locic {
 			
 			const auto virtualTable = VirtualTable::CalculateFromHashes(hashArray);
 			
-			const auto i8PtrType = typeGen.getI8PtrType();
+			const auto i8PtrType = typeGen.getPtrType();
 			
 			std::vector<llvm::Constant*> vtableStructElements;
 			
 			// Move.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableMoveFunction(module, typeInstance), typeGen.getI8PtrType()));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableMoveFunction(module, typeInstance), typeGen.getPtrType()));
 			
 			// Destructor.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableDestructorFunction(module, *typeInstance), typeGen.getI8PtrType()));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableDestructorFunction(module, *typeInstance), typeGen.getPtrType()));
 			
 			// Alignmask.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genAlignMaskFunctionDecl(module, typeInstance), typeGen.getI8PtrType()));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genAlignMaskFunctionDecl(module, typeInstance), typeGen.getPtrType()));
 			
 			// Sizeof.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genSizeOfFunctionDecl(module, typeInstance), typeGen.getI8PtrType()));
+			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genSizeOfFunctionDecl(module, typeInstance), typeGen.getPtrType()));
 			
 			// Method slots.
 			std::vector<llvm::Constant*> methodSlotElements;

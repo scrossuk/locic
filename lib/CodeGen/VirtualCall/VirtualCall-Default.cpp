@@ -44,7 +44,7 @@ namespace locic {
 				arguments.push_back(std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::Int64), typeGen.getI64Type()));
 				
 				// Arguments struct pointer type.
-				arguments.push_back(std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), typeGen.getI8PtrType()));
+				arguments.push_back(std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), typeGen.getPtrType()));
 				
 				return ArgInfo(module, hasReturnVarArgument, hasTemplateGenerator, hasContextArgument, isVarArg,
 							   voidTypePair(module), arguments);
@@ -82,7 +82,7 @@ namespace locic {
 				assert(argTypes.size() == args.size());
 				
 				auto& module = function.module();
-				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto i8PtrType = TypeGenerator(module).getPtrType();
 				
 				if (args.empty()) {
 					// Don't allocate struct when it's not needed.
@@ -143,7 +143,7 @@ namespace locic {
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				// i8
-				const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
+				const auto i8PtrType = TypeGenerator(function.module()).getPtrType();
 				
 				// Put together the arguments.
 				llvm::SmallVector<llvm::Value*, 5> parameters;
@@ -175,7 +175,7 @@ namespace locic {
 				const bool hasReturnVar = !returnType->isBuiltInVoid();
 				
 				ConstantGenerator constGen(function.module());
-				const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
+				const auto i8PtrType = TypeGenerator(function.module()).getPtrType();
 				
 				// If the return type isn't void, allocate space on the stack for the return value.
 				const auto returnVarValue = hasReturnVar ?
@@ -283,7 +283,7 @@ namespace locic {
 				TypeGenerator typeGen(module);
 				
 				if (methods.empty()) {
-					return constGen.getNullPointer(typeGen.getI8PtrType());
+					return constGen.getNullPointer(typeGen.getPtrType());
 				}
 				
 				const auto stubArgInfo = getStubArgInfo(module);
@@ -344,7 +344,7 @@ namespace locic {
 					
 					// Build the args struct type, which is just a struct
 					// containing i8* for each parameter.
-					llvm::SmallVector<llvm::Type*, 10> llvmArgsTypes(numArgs, TypeGenerator(module).getI8PtrType());
+					llvm::SmallVector<llvm::Type*, 10> llvmArgsTypes(numArgs, TypeGenerator(module).getPtrType());
 					
 					const auto llvmArgsStructPtrType = typeGen.getStructType(llvmArgsTypes)->getPointerTo();
 					

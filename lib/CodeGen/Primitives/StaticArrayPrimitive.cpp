@@ -109,7 +109,7 @@ namespace locic {
 					return builder.CreateInBoundsGEP(arrayPtr, indexArray);
 				} else {
 					const auto castMethodOwner = builder.CreatePointerCast(arrayPtr,
-					                                                       TypeGenerator(module).getI8PtrType());
+					                                                       TypeGenerator(module).getPtrType());
 					const auto elementSize = genSizeOf(function,
 					                                   elementType);
 					const auto indexPos = builder.CreateMul(elementSize,
@@ -349,7 +349,7 @@ namespace locic {
 						return builder.CreateInBoundsGEP(methodOwner, indexArray);
 					} else {
 						const auto castMethodOwner = builder.CreatePointerCast(methodOwner,
-						                                                       TypeGenerator(module).getI8PtrType());
+						                                                       TypeGenerator(module).getPtrType());
 						const auto elementSize = genSizeOf(function,
 						                                   elementType);
 						const auto indexPos = builder.CreateMul(elementSize,

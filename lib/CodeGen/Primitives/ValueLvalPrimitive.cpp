@@ -127,7 +127,7 @@ namespace locic {
 				const auto positionValue = args[2].resolve(functionGenerator);
 				const auto sourceValue = args[0].resolve(functionGenerator);
 				
-				const auto castType = typeSizeIsKnown ? genPointerType(module, targetType) : TypeGenerator(module).getI8PtrType();
+				const auto castType = typeSizeIsKnown ? genPointerType(module, targetType) : TypeGenerator(module).getPtrType();
 				const auto sourceObjectPointer = builder.CreatePointerCast(sourceValue, castType);
 				const auto destObjectPointer = builder.CreatePointerCast(destValue, castType);
 				

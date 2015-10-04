@@ -49,7 +49,7 @@ namespace locic {
 				const auto argInfo = destructorArgInfo(module, typeInstance);
 				const auto destructorFunction = genDestructorFunctionDecl(module, typeInstance);
 				
-				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
+				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getPtrType());
 				
 				llvm::SmallVector<llvm::Value*, 2> args;
 				if (!type->templateArguments().empty()) {
@@ -60,7 +60,7 @@ namespace locic {
 				(void) genRawFunctionCall(function, argInfo, destructorFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getI8PtrType());
+				const auto castValue = function.getBuilder().CreatePointerCast(value, TypeGenerator(module).getPtrType());
 				VirtualCall::generateDestructorCall(function, typeInfo, castValue);
 			}
 		}

@@ -26,19 +26,19 @@ namespace locic {
 			std::vector<llvm::Type*> structElements;
 			
 			// Move.
-			structElements.push_back(typeGen.getI8PtrType());
+			structElements.push_back(typeGen.getPtrType());
 			
 			// Destructor.
-			structElements.push_back(typeGen.getI8PtrType());
+			structElements.push_back(typeGen.getPtrType());
 			
 			// Alignof.
-			structElements.push_back(typeGen.getI8PtrType());
+			structElements.push_back(typeGen.getPtrType());
 									 
 			// Sizeof.
-			structElements.push_back(typeGen.getI8PtrType());
+			structElements.push_back(typeGen.getPtrType());
 									 
 			// Hash table.
-			structElements.push_back(typeGen.getArrayType(typeGen.getI8PtrType(), VTABLE_SIZE));
+			structElements.push_back(typeGen.getArrayType(typeGen.getPtrType(), VTABLE_SIZE));
 			
 			structType->setBody(structElements);
 			

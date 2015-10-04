@@ -24,7 +24,7 @@ namespace locic {
 			}
 			
 			auto& abiContext = module.abiContext();
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
 			const auto sizeType = std::make_pair(llvm_abi::Type::Integer(abiContext, llvm_abi::SizeT), getBasicPrimitiveType(module, PrimitiveSize));
 			
 			const TypePair argTypes[] = { sizeType };
@@ -45,7 +45,7 @@ namespace locic {
 			
 			auto& abiContext = module.abiContext();
 			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
 			
 			const TypePair argTypes[] = { voidPtr };
 			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoExcept();
@@ -65,7 +65,7 @@ namespace locic {
 			
 			auto& abiContext = module.abiContext();
 			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
 			
 			const TypePair argTypes[] = { voidPtr, voidPtr, voidPtr };
 			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoReturn();
@@ -85,7 +85,7 @@ namespace locic {
 			
 			auto& abiContext = module.abiContext();
 			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
 			
 			const TypePair argTypes[] = { voidPtr };
 			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoReturn();
@@ -122,7 +122,7 @@ namespace locic {
 			}
 			
 			auto& abiContext = module.abiContext();
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
 			
 			const TypePair argTypes[] = { voidPtr };
 			const auto argInfo = ArgInfo::Basic(module, voidPtr, argTypes).withNoExcept().withNoMemoryAccess();
@@ -188,7 +188,7 @@ namespace locic {
 			const auto& unwindStack = function.unwindStack();
 			
 			TypeGenerator typeGen(module);
-			const auto landingPadType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getI8PtrType(), typeGen.getI32Type()});
+			const auto landingPadType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getPtrType(), typeGen.getI32Type()});
 			const auto personalityFunction = getExceptionPersonalityFunction(module);
 			
 			// Find all catch types on the stack.
@@ -213,7 +213,7 @@ namespace locic {
 			landingPad->setCleanup(anyUnwindCleanupActions(function, unwindState));
 			
 			for (size_t i = 0; i < catchTypes.size(); i++) {
-				landingPad->addClause(ConstantGenerator(module).getPointerCast(catchTypes[i], typeGen.getI8PtrType()));
+				landingPad->addClause(ConstantGenerator(module).getPointerCast(catchTypes[i], typeGen.getPtrType()));
 			}
 			
 			function.getBuilder().CreateStore(landingPad, function.exceptionInfo());
@@ -253,7 +253,7 @@ namespace locic {
 			TypeGenerator typeGen(module);
 			
 			// Create a constant struct {i32, i8*} for the catch type info.
-			const auto typeInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getI32Type(), typeGen.getI8PtrType()});
+			const auto typeInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getI32Type(), typeGen.getPtrType()});
 			
 			// Calculate offset to check based on number of parents.
 			size_t offset = 0;
@@ -263,7 +263,7 @@ namespace locic {
 				currentInstance = currentInstance->parentType()->getObjectType();
 			}
 			
-			const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getI8PtrType());
+			const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getPtrType());
 			const auto typeInfoValue = constGen.getStruct(typeInfoType, std::vector<llvm::Constant*> {constGen.getI32(offset), castedTypeNamePtr});
 			
 			const auto typeInfoGlobal = module.createConstGlobal(module.getCString("catch_type_info"), typeInfoType, llvm::GlobalValue::InternalLinkage, typeInfoValue);
@@ -294,14 +294,14 @@ namespace locic {
 			TypeGenerator typeGen(module);
 			
 			// Create a constant struct {i32, i8*} for the throw type info.
-			const auto typeNameArrayType = typeGen.getArrayType(typeGen.getI8PtrType(), typeNames.size());
+			const auto typeNameArrayType = typeGen.getArrayType(typeGen.getPtrType(), typeNames.size());
 			const auto typeInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getI32Type(), typeNameArrayType});
 			
 			std::vector<llvm::Constant*> typeNameConstants;
 			
 			for (const auto& typeName : typeNames) {
 				const auto typeNameGlobalPtr = getTypeNameGlobal(module, typeName);
-				const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getI8PtrType());
+				const auto castedTypeNamePtr = constGen.getPointerCast(typeNameGlobalPtr, typeGen.getPtrType());
 				typeNameConstants.push_back(castedTypeNamePtr);
 			}
 			

@@ -26,7 +26,7 @@ namespace locic {
 			auto& module = function.module();
 			
 			if (isStatic) {
-				const auto objectPointer = ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
+				const auto objectPointer = ConstantGenerator(module).getNull(TypeGenerator(module).getPtrType());
 				const auto typeInfoValue = builder.CreateExtractValue(interfaceMethodValue, { 0 }, "typeInfo");
 				const VirtualObjectComponents virtualObjectComponents(getTypeInfoComponents(function, typeInfoValue), objectPointer);
 				

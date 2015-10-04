@@ -381,7 +381,7 @@ namespace locic {
 			if (exceptionInfo_ == nullptr) {
 				// Allocate exception information values.
 				TypeGenerator typeGen(module());
-				const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getI8PtrType(), typeGen.getI32Type()});
+				const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getPtrType(), typeGen.getI32Type()});
 				exceptionInfo_ = getEntryBuilder().CreateAlloca(exceptionInfoType, nullptr, "exceptionInfo");
 			}
 			

@@ -262,7 +262,7 @@ namespace locic {
 			const auto methodHash = CreateMethodNameHash(methodInfo.name);
 			const auto methodHashValue = ConstantGenerator(function.module()).getI64(methodHash);
 			
-			const auto contextPointer = methodOwner ? methodOwner->resolve(function) : ConstantGenerator(function.module()).getNull(TypeGenerator(function.module()).getI8PtrType());
+			const auto contextPointer = methodOwner ? methodOwner->resolve(function) : ConstantGenerator(function.module()).getNull(TypeGenerator(function.module()).getPtrType());
 			
 			llvm::SmallVector<llvm::Value*, 10> llvmArgs;
 			llvmArgs.reserve(args.size());
@@ -305,7 +305,7 @@ namespace locic {
 					}
 					
 					if (methodOwner) {
-						const auto i8PtrType = TypeGenerator(function.module()).getI8PtrType();
+						const auto i8PtrType = TypeGenerator(function.module()).getPtrType();
 						const auto resolvedMethodOwner = methodOwner->resolve(function);
 						callInfo.contextPointer = function.getBuilder().CreatePointerCast(resolvedMethodOwner, i8PtrType);
 					}

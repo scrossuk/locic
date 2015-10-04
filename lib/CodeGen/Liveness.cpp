@@ -134,7 +134,7 @@ namespace locic {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
 			const auto byteOffsetValue = getLivenessByteOffset(function, typeInstance, livenessIndicator);
-			const auto startPtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getI8PtrType());
+			const auto startPtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getPtrType());
 			return builder.CreateInBoundsGEP(startPtr, byteOffsetValue);
 		}
 		

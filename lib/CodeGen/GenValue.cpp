@@ -55,7 +55,7 @@ namespace locic {
 				case SEM::Value::CONSTANT: {
 					switch (value.constant().kind()) {
 						case locic::Constant::NULLVAL:
-							return ConstantGenerator(module).getNullPointer(TypeGenerator(module).getI8PtrType());
+							return ConstantGenerator(module).getNullPointer(TypeGenerator(module).getPtrType());
 									   
 						case locic::Constant::BOOLEAN:
 							return ConstantGenerator(module).getI1(value.constant().boolValue());
@@ -302,7 +302,7 @@ namespace locic {
 						// Cast class pointer to pointer to the opaque struct
 						// representing destination interface type.
 						const auto objectPointer = function.getBuilder().CreatePointerCast(rawValue,
-									TypeGenerator(module).getI8PtrType());
+									TypeGenerator(module).getPtrType());
 						
 						// Generate the vtable and template generator.
 						const auto vtablePointer = genVTable(module, sourceTarget->resolveAliases()->getObjectType());
@@ -357,7 +357,7 @@ namespace locic {
 							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
 						}
 					} else {
-						const auto castObjectValue = function.getBuilder().CreatePointerCast(objectValue, TypeGenerator(module).getI8PtrType());
+						const auto castObjectValue = function.getBuilder().CreatePointerCast(objectValue, TypeGenerator(module).getPtrType());
 						llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(0);
 						
 						for (size_t i = 0; i < parameterValues.size(); i++) {

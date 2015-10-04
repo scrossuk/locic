@@ -47,12 +47,12 @@ namespace locic {
 			if (targetType->isPrimitive()) {
 				return getPrimitivePointerType(module, targetType);
 			} else if (targetType->isTemplateVar()) {
-				return TypeGenerator(module).getI8PtrType();
+				return TypeGenerator(module).getPtrType();
 			} else {
 				const auto llvmTargetType = genType(module, targetType);
 				if (llvmTargetType->isVoidTy()) {
 					// LLVM doesn't support 'void *' => use 'int8_t *' instead.
-					return TypeGenerator(module).getI8PtrType();
+					return TypeGenerator(module).getPtrType();
 				} else {
 					return llvmTargetType->getPointerTo();
 				}

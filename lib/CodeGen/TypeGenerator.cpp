@@ -42,7 +42,7 @@ namespace locic {
 			return llvm::IntegerType::get(module_.getLLVMContext(), sizeTypeWidth * 8);
 		}
 		
-		llvm::PointerType* TypeGenerator::getI8PtrType() const {
+		llvm::PointerType* TypeGenerator::getPtrType() const {
 			return llvm::Type::getInt8PtrTy(module_.getLLVMContext());
 		}
 		

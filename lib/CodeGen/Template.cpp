@@ -90,8 +90,8 @@ namespace locic {
 			module.getTypeMap().insert(std::make_pair(name, structType));
 			
 			llvm::SmallVector<llvm::Type*, 3> structMembers;
-			structMembers.push_back(typeGen.getI8PtrType());
-			structMembers.push_back(typeGen.getI8PtrType());
+			structMembers.push_back(typeGen.getPtrType());
+			structMembers.push_back(typeGen.getPtrType());
 			structMembers.push_back(typeGen.getI32Type());
 			structType->setBody(structMembers);
 			return structType;
@@ -189,8 +189,8 @@ namespace locic {
 			ConstantGenerator constGen(module);
 			
 			llvm::Constant* const values[] = {
-				constGen.getNull(TypeGenerator(module).getI8PtrType()),
-				constGen.getNull(TypeGenerator(module).getI8PtrType()),
+				constGen.getNull(TypeGenerator(module).getPtrType()),
+				constGen.getNull(TypeGenerator(module).getPtrType()),
 				constGen.getI32(0)
 			};
 			return constGen.getStruct(templateGeneratorLLVMType(module), values);
@@ -226,8 +226,8 @@ namespace locic {
 				const auto rootFunction = genTemplateRootFunction(function, templateInst);
 				
 				llvm::Constant* const values[] = {
-						constGen.getPointerCast(rootFunction, TypeGenerator(module).getI8PtrType()),
-						constGen.getNullPointer(TypeGenerator(module).getI8PtrType()),
+						constGen.getPointerCast(rootFunction, TypeGenerator(module).getPtrType()),
+						constGen.getNullPointer(TypeGenerator(module).getPtrType()),
 						constGen.getI32(1)
 					};
 				return constGen.getStruct(templateGeneratorLLVMType(module), values);
@@ -564,7 +564,7 @@ namespace locic {
 							// If there are arguments, refer to the component for them
 							// by adding the correct component in the path by computing
 							// (subPath & ~mask) | <their component>.
-							const auto castRootFunction = builder.CreatePointerCast(rootFnArg, TypeGenerator(module).getI8PtrType());
+							const auto castRootFunction = builder.CreatePointerCast(rootFnArg, TypeGenerator(module).getPtrType());
 							const auto argComponent = templateBuilder.templateUseMap().at(TemplateInst::Type(templateUseArg));
 							const auto maskedSubPath = builder.CreateAnd(subPath, builder.CreateNot(mask));
 							const auto argFullPath = builder.CreateOr(maskedSubPath, constGen.getI32(argComponent));

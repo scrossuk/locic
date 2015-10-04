@@ -110,25 +110,25 @@ namespace locic {
 				case PrimitiveMethodFunctionPtr:
 				case PrimitiveVarArgFunctionPtr:
 				case PrimitivePtrLval:
-					return typeGenerator.getI8PtrType();
+					return typeGenerator.getPtrType();
 				case PrimitiveTemplatedFunctionPtr:
 				case PrimitiveTemplatedMethodFunctionPtr: {
 					llvm::Type* const memberTypes[] = {
-						typeGenerator.getI8PtrType(),
+						typeGenerator.getPtrType(),
 						templateGeneratorType(module).second
 					};
 					return typeGenerator.getStructType(memberTypes);
 				}
 				case PrimitiveMethod: {
 					llvm::Type* const memberTypes[] = {
-						typeGenerator.getI8PtrType(),
+						typeGenerator.getPtrType(),
 						getBasicPrimitiveType(module, PrimitiveMethodFunctionPtr)
 					};
 					return typeGenerator.getStructType(memberTypes);
 				}
 				case PrimitiveTemplatedMethod: {
 					llvm::Type* const memberTypes[] = {
-						typeGenerator.getI8PtrType(),
+						typeGenerator.getPtrType(),
 						getBasicPrimitiveType(module, PrimitiveTemplatedMethodFunctionPtr)
 					};
 					return typeGenerator.getStructType(memberTypes);

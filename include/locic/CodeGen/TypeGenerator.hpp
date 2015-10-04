@@ -27,7 +27,7 @@ namespace locic {
 				
 				llvm::IntegerType* getSizeTType() const;
 				
-				llvm::PointerType* getI8PtrType() const;
+				llvm::PointerType* getPtrType() const;
 				
 				llvm::Type* getFloatType() const;
 				

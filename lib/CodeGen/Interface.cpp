@@ -17,7 +17,7 @@ namespace locic {
 		
 		llvm::Type* interfaceStructLLVMType(Module& module) {
 			TypeGenerator typeGen(module);
-			llvm::Type* const memberTypes[] = { typeGen.getI8PtrType(), typeInfoType(module).second };
+			llvm::Type* const memberTypes[] = { typeGen.getPtrType(), typeInfoType(module).second };
 			return typeGen.getStructType(memberTypes);
 		}
 		

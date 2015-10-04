@@ -71,7 +71,7 @@ namespace locic {
 					initialiseValue = initialisePtr;
 				}
 				
-				const auto castInitialiseValue = function.getBuilder().CreatePointerCast(initialiseValue, TypeGenerator(module).getI8PtrType());
+				const auto castInitialiseValue = function.getBuilder().CreatePointerCast(initialiseValue, TypeGenerator(module).getPtrType());
 				
 				// For composite variables, extract each member of
 				// the type and assign it to its variable.

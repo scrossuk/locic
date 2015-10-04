@@ -193,7 +193,7 @@ namespace locic {
 				                                                          function,
 				                                                          /*isInnerMethod=*/true);
 				
-				const auto i8PtrType = TypeGenerator(module).getI8PtrType();
+				const auto i8PtrType = TypeGenerator(module).getPtrType();
 				const auto castThisValue = builder.CreatePointerCast(thisValue, i8PtrType);
 				
 				const auto argInfo = destructorArgInfo(module, typeInstance);

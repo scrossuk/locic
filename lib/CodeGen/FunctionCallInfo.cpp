@@ -220,7 +220,7 @@ namespace locic {
 					
 					assert(llvmDataRefValue != nullptr && "MethodObject requires a valid data pointer");
 					
-					callInfo.contextPointer = function.getBuilder().CreatePointerCast(llvmDataRefValue, TypeGenerator(module).getI8PtrType());
+					callInfo.contextPointer = function.getBuilder().CreatePointerCast(llvmDataRefValue, TypeGenerator(module).getPtrType());
 					
 					return callInfo;
 				}
@@ -304,7 +304,7 @@ namespace locic {
 					
 					const auto interfaceFunction = method.functionRefFunction();
 					
-					const auto contextPointer = ConstantGenerator(function.module()).getNull(TypeGenerator(function.module()).getI8PtrType());
+					const auto contextPointer = ConstantGenerator(function.module()).getNull(TypeGenerator(function.module()).getPtrType());
 					
 					const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
 					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);

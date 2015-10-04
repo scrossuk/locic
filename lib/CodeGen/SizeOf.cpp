@@ -348,7 +348,7 @@ namespace locic {
 				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, llvmObjectPointerType);
 				return function.getBuilder().CreateConstInBoundsGEP2_32(castObjectPointer, 0, memberIndex);
 			} else {
-				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, TypeGenerator(module).getI8PtrType());
+				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, TypeGenerator(module).getPtrType());
 				const auto memberOffset = genMemberOffset(function, objectType, memberIndex);
 				const auto memberPtr = function.getBuilder().CreateInBoundsGEP(castObjectPointer, memberOffset);
 				const auto memberType = objectType->getObjectType()->variables().at(memberIndex)->type()->substitute(objectType->generateTemplateVarMap());
@@ -366,7 +366,7 @@ namespace locic {
 				const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(objectPtr, 0, 1);
 				return std::make_pair(loadedTagPtr, unionValuePtr);
 			} else {
-				const auto castObjectPtr = function.getBuilder().CreatePointerCast(objectPtr, TypeGenerator(module).getI8PtrType());
+				const auto castObjectPtr = function.getBuilder().CreatePointerCast(objectPtr, TypeGenerator(module).getPtrType());
 				const auto loadedTagPtr = castObjectPtr;
 				const auto unionAlignValue = genAlignOf(function, type);
 				const auto unionValuePtr = function.getBuilder().CreateInBoundsGEP(castObjectPtr, unionAlignValue);

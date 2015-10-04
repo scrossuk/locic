@@ -53,7 +53,7 @@ namespace locic {
 		ArgInfo assertFailedArgInfo(Module& module) {
 			auto& abiContext = module.abiContext();
 			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getI8PtrType());
+			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
 			
 			const TypePair argTypes[] = { voidPtr };
 			return ArgInfo::Basic(module, voidType, argTypes).withNoExcept().withNoReturn();
@@ -469,7 +469,7 @@ namespace locic {
 						// Call llvm.eh.typeid.for intrinsic to get
 						// the selector for the catch type.
 						const auto intrinsic = llvm::Intrinsic::getDeclaration(module.getLLVMModulePtr(), llvm::Intrinsic::eh_typeid_for, std::vector<llvm::Type*> {});
-						const auto castedCatchTypeInfo = ConstantGenerator(module).getPointerCast(catchTypeList[i], TypeGenerator(module).getI8PtrType());
+						const auto castedCatchTypeInfo = ConstantGenerator(module).getPointerCast(catchTypeList[i], TypeGenerator(module).getPtrType());
 						const auto catchSelectorValue = function.getBuilder().CreateCall(intrinsic, std::vector<llvm::Value*> {castedCatchTypeInfo});
 						
 						// Check thrown selector against catch selector.
@@ -546,8 +546,8 @@ namespace locic {
 					// Call 'throw' function.
 					const auto throwFunction = getExceptionThrowFunction(module);
 					const auto throwTypeInfo = genThrowInfo(module, throwType->getObjectType());
-					const auto castedTypeInfo = function.getBuilder().CreatePointerCast(throwTypeInfo, TypeGenerator(module).getI8PtrType());
-					const auto nullPtr = ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
+					const auto castedTypeInfo = function.getBuilder().CreatePointerCast(throwTypeInfo, TypeGenerator(module).getPtrType());
+					const auto nullPtr = ConstantGenerator(module).getNull(TypeGenerator(module).getPtrType());
 					llvm::Value* const args[] = { allocatedException, castedTypeInfo, nullPtr };
 					
 					if (anyUnwindActions(function, UnwindStateThrow)) {

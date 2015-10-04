@@ -342,7 +342,7 @@ namespace locic {
 				const auto argInfo = destructorArgInfo(module(), typeInstance);
 				const auto destructorFunction = genDestructorFunctionDecl(module(), typeInstance);
 				
-				const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(value, TypeGenerator(module()).getI8PtrType());
+				const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(value, TypeGenerator(module()).getPtrType());
 				
 				llvm::SmallVector<llvm::Value*, 2> args;
 				if (!type->templateArguments().empty()) {
@@ -353,7 +353,7 @@ namespace locic {
 				(void) genRawFunctionCall(functionGenerator_, argInfo, destructorFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = functionGenerator_.getEntryBuilder().CreateExtractValue(functionGenerator_.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-				const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(value, TypeGenerator(module()).getI8PtrType());
+				const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(value, TypeGenerator(module()).getPtrType());
 				VirtualCall::generateDestructorCall(functionGenerator_, typeInfo, castValue);
 			} else {
 				llvm_unreachable("Unknown type kind.");

@@ -34,7 +34,7 @@ namespace locic {
 					const auto pointerType = getPrimitiveType(module, type);
 					if (pointerType->isVoidTy()) {
 						// LLVM doesn't support 'void *' => use 'int8_t *' instead.
-						return TypeGenerator(module).getI8PtrType();
+						return TypeGenerator(module).getPtrType();
 					} else {
 						return pointerType->getPointerTo();
 					}
@@ -91,7 +91,7 @@ namespace locic {
 				case PrimitiveMethod:
 				case PrimitiveTemplatedMethod: {
 					llvm::Type* const memberTypes[] = {
-						TypeGenerator(module).getI8PtrType(),
+						TypeGenerator(module).getPtrType(),
 						getFunctionPointerType(module, type->asFunctionType())
 					};
 					return TypeGenerator(module).getStructType(memberTypes);
@@ -166,7 +166,7 @@ namespace locic {
 				case PrimitiveVoid:
 					return TypeGenerator(module).getVoidType();
 				case PrimitiveNull:
-					return TypeGenerator(module).getI8PtrType();
+					return TypeGenerator(module).getPtrType();
 				case PrimitiveCompareResult:
 					return TypeGenerator(module).getI8Type();
 				case PrimitiveBool:
@@ -206,25 +206,25 @@ namespace locic {
 				case PrimitiveMethodFunctionPtr:
 				case PrimitiveVarArgFunctionPtr:
 				case PrimitivePtrLval:
-					return TypeGenerator(module).getI8PtrType();
+					return TypeGenerator(module).getPtrType();
 				case PrimitiveTemplatedFunctionPtr:
 				case PrimitiveTemplatedMethodFunctionPtr: {
 					llvm::Type* const memberTypes[] = {
-						TypeGenerator(module).getI8PtrType(),
+						TypeGenerator(module).getPtrType(),
 						templateGeneratorType(module).second
 					};
 					return TypeGenerator(module).getStructType(memberTypes);
 				}
 				case PrimitiveMethod: {
 					llvm::Type* const memberTypes[] = {
-						TypeGenerator(module).getI8PtrType(),
+						TypeGenerator(module).getPtrType(),
 						getBasicPrimitiveType(module, PrimitiveMethodFunctionPtr)
 					};
 					return TypeGenerator(module).getStructType(memberTypes);
 				}
 				case PrimitiveTemplatedMethod: {
 					llvm::Type* const memberTypes[] = {
-						TypeGenerator(module).getI8PtrType(),
+						TypeGenerator(module).getPtrType(),
 						getBasicPrimitiveType(module, PrimitiveTemplatedMethodFunctionPtr)
 					};
 					return TypeGenerator(module).getStructType(memberTypes);

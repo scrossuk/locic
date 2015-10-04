@@ -73,7 +73,7 @@ namespace locic {
 		llvm::Type* NullPrimitive::getIRType(Module& /*module*/,
 		                                     const TypeGenerator& typeGenerator,
 		                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
-			return typeGenerator.getI8PtrType();
+			return typeGenerator.getPtrType();
 		}
 		
 		llvm::Value* NullPrimitive::emitMethod(IREmitter& irEmitter,
@@ -86,7 +86,7 @@ namespace locic {
 			
 			switch (methodID) {
 				case METHOD_CREATE:
-					return ConstantGenerator(module).getNull(TypeGenerator(module).getI8PtrType());
+					return ConstantGenerator(module).getNull(TypeGenerator(module).getPtrType());
 				case METHOD_ALIGNMASK: {
 					const auto abiType = this->getABIType(module,
 					                                      module.abiContext(),

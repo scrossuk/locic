@@ -32,7 +32,7 @@ namespace locic {
 		}
 		
 		TypePair pointerTypePair(Module& module) {
-			return std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), TypeGenerator(module).getI8PtrType());
+			return std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), TypeGenerator(module).getPtrType());
 		}
 		
 		ArgInfo ArgInfo::VoidNone(Module& module) {

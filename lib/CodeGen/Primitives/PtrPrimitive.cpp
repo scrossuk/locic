@@ -138,7 +138,7 @@ namespace locic {
 						const auto newPointer = builder.CreateInBoundsGEP(methodOwner, one);
 						builder.CreateStore(newPointer, methodOwnerPointer);
 					} else {
-						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getPtrType());
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, targetSize);
 						const auto newPointer = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
@@ -153,7 +153,7 @@ namespace locic {
 						const auto newPointer = builder.CreateInBoundsGEP(methodOwner, minusOne);
 						builder.CreateStore(newPointer, methodOwnerPointer);
 					} else {
-						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getPtrType());
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto minusTargetSize = builder.CreateNeg(targetSize);
 						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, minusTargetSize);
@@ -169,7 +169,7 @@ namespace locic {
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						return builder.CreateInBoundsGEP(methodOwner, operand);
 					} else {
-						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getPtrType());
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto adjustedOffset = builder.CreateMul(operand, targetSize);
 						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, adjustedOffset);
@@ -193,7 +193,7 @@ namespace locic {
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						return builder.CreateInBoundsGEP(methodOwner, operand);
 					} else {
-						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getI8PtrType());
+						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getPtrType());
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto offset = builder.CreateIntCast(operand, sizeTType, true);
 						const auto adjustedOffset = builder.CreateMul(offset, targetSize);
