@@ -50,19 +50,11 @@ namespace locic {
 		
 		void genMoveStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* type) {
 			assert(var->getType()->isPointerTy());
-			if (var->getType() != genPointerType(function.module(), type)) {
-				var->dump();
-				var->getType()->dump();
-				genPointerType(function.module(), type)->dump();
-			}
-			
-			assert(var->getType() == genPointerType(function.module(), type));
 			
 			TypeInfo typeInfo(function.module());
 			if (typeInfo.hasCustomMove(type)) {
 				// Can't store since we need to run the move method.
 				assert(value->getType()->isPointerTy());
-				assert(value->getType() == genPointerType(function.module(), type));
 				
 				if (value->stripPointerCasts() == var->stripPointerCasts()) {
 					// Source and destination are same pointer, so no
