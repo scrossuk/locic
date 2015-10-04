@@ -193,13 +193,10 @@ namespace locic {
 				                                                          function,
 				                                                          /*isInnerMethod=*/true);
 				
-				const auto i8PtrType = TypeGenerator(module).getPtrType();
-				const auto castThisValue = builder.CreatePointerCast(thisValue, i8PtrType);
-				
 				const auto argInfo = destructorArgInfo(module, typeInstance);
 				const auto callArgs = argInfo.hasTemplateGeneratorArgument() ?
-							std::vector<llvm::Value*> { functionGenerator_.getTemplateGenerator(), castThisValue } :
-							std::vector<llvm::Value*> { castThisValue };
+							std::vector<llvm::Value*> { functionGenerator_.getTemplateGenerator(), thisValue } :
+							std::vector<llvm::Value*> { thisValue };
 				(void) genRawFunctionCall(functionGenerator_, argInfo, customDestructor, callArgs);
 				
 				const auto& memberVars = typeInstance.variables();
@@ -211,7 +208,7 @@ namespace locic {
 					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
 					const auto memberOffsetValue = genMemberOffset(functionGenerator_, typeInstance.selfType(), memberIndex);
 					const auto ptrToMember = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                                   castThisValue,
+					                                                   thisValue,
 					                                                   memberOffsetValue);
 					irEmitter.emitDestructorCall(ptrToMember, memberVar->type());
 				}
@@ -266,8 +263,7 @@ namespace locic {
 				const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 				                                               destValue,
 				                                               positionValue);
-				const auto castedDestPtr = builder.CreatePointerCast(destPtr,
-				                                                     genPointerType(module, type));
+				TypeGenerator typeGenerator(module);
 				
 				const auto isLiveBB = functionGenerator_.createBasicBlock("is_live");
 				const auto isNotLiveBB = functionGenerator_.createBasicBlock("is_not_live");
@@ -294,7 +290,7 @@ namespace locic {
 				// Set dest object to be valid (e.g. may need to set gap byte to 1).
 				setOuterLiveState(functionGenerator_,
 				                  typeInstance,
-				                  castedDestPtr);
+				                  destPtr);
 				
 				// Set the source object to dead state.
 				genSetDeadState(functionGenerator_,
@@ -308,7 +304,7 @@ namespace locic {
 				// If the source object is dead, set destination to be dead.
 				genSetDeadState(functionGenerator_,
 				                type,
-				                castedDestPtr);
+				                destPtr);
 				
 				builder.CreateBr(mergeBB);
 				
@@ -370,13 +366,10 @@ namespace locic {
 					functionGenerator_.selectBasicBlock(matchBB);
 					
 					const auto variantType = variantTypeInstance->selfType();
-					const auto unionValueType = genType(module, variantType);
-					const auto castedUnionValuePtr = builder.CreatePointerCast(unionDatatypePointers.second,
-					                                                           unionValueType->getPointerTo());
 					
 					genMoveCall(functionGenerator_,
 					            variantType,
-					            castedUnionValuePtr,
+					            unionDatatypePointers.second,
 					            destValue,
 					            adjustedPositionValue);
 					
@@ -527,7 +520,6 @@ namespace locic {
 		                                  const SEM::FunctionType /*functionType*/,
 		                                  PendingResultArray args) {
 			auto& module = functionGenerator_.module();
-			auto& builder = functionGenerator_.getBuilder();
 			
 			const auto& typeInstance = *(type->getObjectType());
 			
