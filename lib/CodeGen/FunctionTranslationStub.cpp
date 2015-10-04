@@ -54,8 +54,7 @@ namespace locic {
 			auto& module = functionGenerator.module();
 			
 			if (doFunctionTypesMatch(module, functionType, translatedFunctionType)) {
-				const auto functionPtrType = genFunctionType(module, translatedFunctionType)->getPointerTo();
-				return functionGenerator.getBuilder().CreatePointerCast(function, functionPtrType);
+				return function;
 			} else {
 				return genFunctionTranslationStub(module, function, functionType, translatedFunctionType);
 			}
@@ -67,11 +66,7 @@ namespace locic {
 		                                         llvm::Value* const argValue,
 		                                         const SEM::Type* const parameterType,
 		                                         const SEM::Type* const translatedParameterType) {
-			auto& builder = functionGenerator.getBuilder();
 			auto& module = functionGenerator.module();
-			
-			const auto llvmParameterType = genArgType(module, parameterType);
-			const auto llvmTranslatedParameterType = genArgType(module, translatedParameterType);
 			
 			// Being able to pass the inner parameter type by value must imply
 			// that the outer parameter type can be passed by value.
@@ -82,10 +77,7 @@ namespace locic {
 				// into the target function.
 				const auto argAlloca = genAlloca(functionGenerator, translatedParameterType);
 				genStore(functionGenerator, argValue, argAlloca, translatedParameterType);
-				return builder.CreatePointerCast(argAlloca, llvmParameterType);
-			} else if (llvmParameterType->isPointerTy() && llvmTranslatedParameterType->isPointerTy()) {
-				// Make sure our pointers have the right type.
-				return builder.CreatePointerCast(argValue, llvmParameterType);
+				return argAlloca;
 			} else {
 				return argValue;
 			}
@@ -97,14 +89,10 @@ namespace locic {
 		                                           llvm::Value* const returnVar,
 		                                           const ArgInfo& argInfo,
 		                                           const ArgInfo& translatedArgInfo) {
-			auto& module = functionGenerator.module();
-			auto& builder = functionGenerator.getBuilder();
-			
 			TranslatedArguments args;
 			
 			if (argInfo.hasReturnVarArgument()) {
-				const auto llvmReturnType = genArgType(module, functionType.returnType());
-				args.push_back(builder.CreatePointerCast(returnVar, llvmReturnType));
+				args.push_back(returnVar);
 			}
 			
 			if (translatedArgInfo.hasTemplateGeneratorArgument()) {
