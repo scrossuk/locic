@@ -22,7 +22,6 @@ namespace locic {
 		llvm::Value* genRawAlloca(Function& function, const SEM::Type* const type, llvm::Value* const hintResultValue) {
 			if (hintResultValue != nullptr) {
 				assert(hintResultValue->getType()->isPointerTy());
-				assert(hintResultValue->getType() == genPointerType(function.module(), type));
 				return hintResultValue;
 			}
 			
@@ -79,8 +78,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genLoad(Function& function, llvm::Value* const var, const SEM::Type* const type) {
-			assert(var->getType()->isPointerTy() || type->isInterface());
-			assert(var->getType() == genPointerType(function.module(), type));
+			assert(var->getType()->isPointerTy());
 			
 			IREmitter irEmitter(function);
 			
@@ -109,7 +107,6 @@ namespace locic {
 		
 		void genStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* const type) {
 			assert(var->getType()->isPointerTy());
-			assert(var->getType() == genPointerType(function.module(), type));
 			
 			IREmitter irEmitter(function);
 			
