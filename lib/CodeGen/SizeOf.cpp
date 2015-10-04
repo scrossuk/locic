@@ -354,11 +354,9 @@ namespace locic {
 				                                          0, memberIndex);
 			} else {
 				const auto memberOffset = genMemberOffset(function, objectType, memberIndex);
-				const auto memberPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-				                                                 objectPointer,
-				                                                 memberOffset);
-				const auto memberType = objectType->getObjectType()->variables().at(memberIndex)->type()->substitute(objectType->generateTemplateVarMap());
-				return function.getBuilder().CreatePointerCast(memberPtr, genPointerType(module, memberType));
+				return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+				                                 objectPointer,
+				                                 memberOffset);
 			}
 		}
 		
