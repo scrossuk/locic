@@ -112,7 +112,9 @@ namespace locic {
 					const auto moveToPosition = args[2].resolve(function);
 					const auto methodOwner = args[0].resolve(function);
 					
-					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                               moveToPtr,
+					                                               moveToPosition);
 					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
 					
 					const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));

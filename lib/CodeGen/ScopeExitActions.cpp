@@ -9,6 +9,7 @@
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
@@ -18,7 +19,9 @@ namespace locic {
 	namespace CodeGen {
 	
 		llvm::Value* getIsCurrentUnwindState(Function& function, UnwindState state) {
-			const auto currentUnwindStateValue = function.getBuilder().CreateLoad(function.unwindState());
+			IREmitter irEmitter(function);
+			const auto currentUnwindStateValue = irEmitter.emitRawLoad(function.unwindState(),
+			                                                           irEmitter.typeGenerator().getI8Type());
 			const auto targetUnwindStateValue = getUnwindStateValue(function.module(), state);
 			return function.getBuilder().CreateICmpEQ(currentUnwindStateValue, targetUnwindStateValue);
 		}
@@ -31,7 +34,8 @@ namespace locic {
 		
 		void setCurrentUnwindState(Function& function, UnwindState state) {
 			const auto stateValue = getUnwindStateValue(function.module(), state);
-			function.getBuilder().CreateStore(stateValue, function.unwindState());
+			IREmitter irEmitter(function);
+			irEmitter.emitRawStore(stateValue, function.unwindState());
 		}
 		
 		llvm::ConstantInt* getUnwindStateValue(Module& module, UnwindState state) {
@@ -91,9 +95,13 @@ namespace locic {
 					return;
 				}
 				case UnwindAction::FUNCTIONMARKER: {
+					IREmitter irEmitter(function);
 					switch (unwindState) {
 						case UnwindStateThrow: {
-							const auto exceptionInfo = function.getBuilder().CreateLoad(function.exceptionInfo());
+							TypeGenerator typeGen(function.module());
+							const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getPtrType(), typeGen.getI32Type()});
+							const auto exceptionInfo = irEmitter.emitRawLoad(function.exceptionInfo(),
+							                                                 exceptionInfoType);
 							function.getBuilder().CreateResume(exceptionInfo);
 							break;
 						}
@@ -102,7 +110,8 @@ namespace locic {
 							if (function.getArgInfo().hasReturnVarArgument() || returnType->isVoidTy()) {
 								function.getBuilder().CreateRetVoid();
 							} else {
-								function.getBuilder().CreateRet(function.getRawReturnValue());
+								irEmitter.emitReturn(returnType,
+								                     function.getRawReturnValue());
 							}
 							break;
 						}
@@ -294,7 +303,9 @@ namespace locic {
 						if (branchInst->getSuccessor(0) != nextBB) {
 							// Replace the existing branch with a switch.
 							function.selectBasicBlock(branchInst->getParent());
-							const auto currentUnwindStateValue = function.getBuilder().CreateLoad(function.unwindState());
+							IREmitter irEmitter(function);
+							const auto currentUnwindStateValue = irEmitter.emitRawLoad(function.unwindState(),
+							                                                           TypeGenerator(module).getI8Type());
 							const auto switchInst = function.getBuilder().CreateSwitch(currentUnwindStateValue, branchInst->getSuccessor(0));
 							branchInst->eraseFromParent();
 							switchInst->addCase(getUnwindStateValue(module, unwindState), nextBB);

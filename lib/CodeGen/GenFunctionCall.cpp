@@ -15,6 +15,7 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/Interface.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/MethodInfo.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -48,8 +49,12 @@ namespace locic {
 			auto& module = function.module();
 			auto& abiContext = module.abiContext();
 			
+			IREmitter irEmitter(function, hintResultValue);
+			
 			const auto functionType = semCallValue.type()->asFunctionType();
 			const auto returnType = functionType.returnType();
+			
+			const auto functionIRType = getFunctionArgInfo(module, functionType).makeFunctionType();
 			
 			llvm::SmallVector<llvm::Value*, 16> evaluatedArguments;
 			evaluatedArguments.reserve(args.size());
@@ -140,11 +145,17 @@ namespace locic {
 				const auto successPath = function.createBasicBlock("");
 				const auto failPath = genLandingPad(function, UnwindStateThrow);
 				
-				encodedCallReturnValue = function.getBuilder().CreateInvoke(callInfo.functionPtr, successPath, failPath, parameters);
+				encodedCallReturnValue = irEmitter.emitInvoke(functionIRType,
+				                                              callInfo.functionPtr,
+				                                              successPath,
+				                                              failPath,
+				                                              parameters);
 				
 				function.selectBasicBlock(successPath);
 			} else {
-				encodedCallReturnValue = function.getBuilder().CreateCall(callInfo.functionPtr, parameters);
+				encodedCallReturnValue = irEmitter.emitCall(functionIRType,
+				                                            callInfo.functionPtr,
+				                                            parameters);
 			}
 			
 			if (returnVarValue != nullptr) {
@@ -156,12 +167,16 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, llvm::Value* functionPtr,
-				llvm::ArrayRef<llvm::Value*> args) {
+		llvm::Value* genRawFunctionCall(Function& function,
+		                                const ArgInfo& argInfo,
+		                                llvm::Value* functionPtr,
+		                                llvm::ArrayRef<llvm::Value*> args) {
 			
 			assert(args.size() == argInfo.argumentTypes().size());
 			
-			assert(functionPtr->getType()->getPointerElementType()->isFunctionTy());
+			IREmitter irEmitter(function);
+			
+			const auto functionType = argInfo.makeFunctionType();
 			
 			llvm::SmallVector<llvm_abi::Type*, 10> argABITypes;
 			argABITypes.reserve(argInfo.argumentTypes().size());
@@ -180,7 +195,11 @@ namespace locic {
 				const auto successPath = function.createBasicBlock("");
 				const auto failPath = genLandingPad(function, UnwindStateThrow);
 				
-				const auto invokeInst = function.getBuilder().CreateInvoke(functionPtr, successPath, failPath, encodedParameters);
+				const auto invokeInst = irEmitter.emitInvoke(functionType,
+				                                             functionPtr,
+				                                             successPath,
+				                                             failPath,
+				                                             encodedParameters);
 				
 				if (argInfo.noReturn()) {
 					invokeInst->setDoesNotReturn();
@@ -194,7 +213,9 @@ namespace locic {
 				
 				function.selectBasicBlock(successPath);
 			} else {
-				const auto callInst = function.getBuilder().CreateCall(functionPtr, encodedParameters);
+				const auto callInst = irEmitter.emitCall(functionType,
+				                                         functionPtr,
+				                                         encodedParameters);
 				
 				if (argInfo.noExcept()) {
 					callInst->setDoesNotThrow();

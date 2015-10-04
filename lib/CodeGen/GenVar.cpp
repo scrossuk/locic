@@ -6,6 +6,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVar.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -54,7 +55,7 @@ namespace locic {
 		}
 		
 		void genVarInitialise(Function& function, SEM::Var* const var, llvm::Value* initialiseValue) {
-			auto& module = function.module();
+			IREmitter irEmitter(function);
 			
 			if (var->isAny()) {
 				// Casting to 'any', which means the destructor
@@ -78,7 +79,9 @@ namespace locic {
 				for (size_t i = 0; i < var->children().size(); i++) {
 					const auto childVar = var->children().at(i);
 					const auto memberOffsetValue = genMemberOffset(function, var->constructType(), i);
-					const auto childInitialiseValue = function.getBuilder().CreateInBoundsGEP(castInitialiseValue, memberOffsetValue);
+					const auto childInitialiseValue = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                                            initialiseValue,
+					                                                            memberOffsetValue);
 					const auto castChildInitialiseValue = function.getBuilder().CreatePointerCast(childInitialiseValue, genPointerType(module, childVar->constructType()));
 					const auto loadedChildInitialiseValue = genMoveLoad(function, castChildInitialiseValue, childVar->constructType());
 					genVarInitialise(function, childVar, loadedChildInitialiseValue);

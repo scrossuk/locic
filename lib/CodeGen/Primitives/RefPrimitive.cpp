@@ -244,10 +244,9 @@ namespace locic {
 						if (isRefVirtualnessKnown(type_)) {
 							return value_;
 						} else {
-							auto& builder = function_.getBuilder();
-							const auto pointerType = llvmType->getPointerTo();
-							const auto result = builder.CreatePointerCast(value_, pointerType);
-							return builder.CreateLoad(result);
+							IREmitter irEmitter(function_);
+							return irEmitter.emitRawLoad(value_,
+							                             llvmType);
 						}
 					} else {
 						auto& builder = function_.getBuilder();
@@ -326,9 +325,8 @@ namespace locic {
 							const auto loadedValue = methodOwner.get(llvmType);
 							if (!isRefVirtualnessKnown(type)) {
 								assert(irEmitter.hintResultValue() != nullptr);
-								const auto castPtr = builder.CreatePointerCast(irEmitter.hintResultValue(),
-								                                               llvmType->getPointerTo());
-								builder.CreateStore(loadedValue, castPtr);
+								irEmitter.emitRawStore(loadedValue,
+								                       irEmitter.hintResultValue());
 								return irEmitter.hintResultValue();
 							} else {
 								return loadedValue;
@@ -358,7 +356,7 @@ namespace locic {
 						[&](llvm::Type* const llvmType) {
 							const auto methodOwnerPtr = methodOwner.get(llvmType);
 							const auto nullValue = ConstantGenerator(module).getNull(llvmType);
-							builder.CreateStore(nullValue, methodOwnerPtr);
+							irEmitter.emitRawStore(nullValue, methodOwnerPtr);
 							return ConstantGenerator(module).getVoidUndef();
 						});
 				}
@@ -373,12 +371,13 @@ namespace locic {
 					auto methodOwner = RefMethodOwner::AsValue(function, type, args);
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
-					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                               moveToPtr,
+					                                               moveToPosition);
 					
 					return genRefPrimitiveMethodForVirtualCases(function, type,
 						[&](llvm::Type* const llvmType) {
-							const auto castedDestPtr = builder.CreatePointerCast(destPtr, llvmType->getPointerTo());
-							builder.CreateStore(methodOwner.get(llvmType), castedDestPtr);
+							irEmitter.emitRawStore(methodOwner.get(llvmType), destPtr);
 							return ConstantGenerator(module).getVoidUndef();
 						});
 				}

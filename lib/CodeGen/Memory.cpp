@@ -6,6 +6,7 @@
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -60,18 +61,18 @@ namespace locic {
 			auto& module = function.module();
 			const bool shouldZeroAlloca = module.buildOptions().zeroAllAllocas;
 			
+			IREmitter irEmitter(function, hintResultValue);
+			
 			const auto allocaValue = genRawAlloca(function,
 			                                      type,
 			                                      hintResultValue);
 			
 			if (shouldZeroAlloca && hintResultValue == nullptr) {
 				const auto typeSizeValue = genSizeOf(function, type);
-				const auto allocaCastValue = function.getBuilder().CreatePointerCast(allocaValue,
-				                                                                     TypeGenerator(module).getPtrType());
-				function.getBuilder().CreateMemSet(allocaCastValue,
-				                                   ConstantGenerator(module).getI8(0),
-				                                   typeSizeValue,
-				                                   /*align=*/1);
+				irEmitter.emitMemSet(allocaValue,
+				                     ConstantGenerator(module).getI8(0),
+				                     typeSizeValue,
+				                     /*align=*/1);
 			}
 			
 			return allocaValue;
@@ -81,12 +82,16 @@ namespace locic {
 			assert(var->getType()->isPointerTy() || type->isInterface());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
+			IREmitter irEmitter(function);
+			
 			switch (type->kind()) {
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
 					TypeInfo typeInfo(function.module());
 					if (typeInfo.isSizeAlwaysKnown(type)) {
-						return function.getBuilder().CreateLoad(var);
+						const auto valueType = genType(function.module(), type);
+						return irEmitter.emitRawLoad(var,
+						                             valueType);
 					} else {
 						return var;
 					}
@@ -106,6 +111,8 @@ namespace locic {
 			assert(var->getType()->isPointerTy());
 			assert(var->getType() == genPointerType(function.module(), type));
 			
+			IREmitter irEmitter(function);
+			
 			switch (type->kind()) {
 				case SEM::Type::OBJECT:
 				case SEM::Type::TEMPLATEVAR: {
@@ -113,7 +120,7 @@ namespace locic {
 					if (typeInfo.isSizeAlwaysKnown(type)) {
 						// Most primitives will be passed around as values,
 						// rather than pointers.
-						(void) function.getBuilder().CreateStore(value, var);
+						irEmitter.emitRawStore(value, var);
 						return;
 					} else {
 						if (value->stripPointerCasts() == var->stripPointerCasts()) {
@@ -127,11 +134,16 @@ namespace locic {
 							// better to generate an explicit load
 							// and store (optimisations will be able
 							// to make more sense of this).
-							(void) function.getBuilder().CreateStore(function.getBuilder().CreateLoad(value), var);
+							const auto loadedValue = irEmitter.emitRawLoad(value,
+							                                               genType(function.module(), type));
+							irEmitter.emitRawStore(loadedValue, var);
 						} else {
 							// If the type size isn't known, then
 							// a memcpy is unavoidable.
-							(void) function.getBuilder().CreateMemCpy(var, value, genSizeOf(function, type), 1);
+							irEmitter.emitMemCpy(var,
+							                     value,
+							                     genSizeOf(function, type),
+							                     1);
 						}
 						return;
 					}

@@ -11,6 +11,7 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -108,7 +109,9 @@ namespace locic {
 			
 			encodeABIValues(values, abiTypes);
 			
-			return getBuilder().CreateRet(values.at(0));
+			IREmitter irEmitter(*this);
+			return irEmitter.emitReturn(getArgInfo().returnType().second,
+			                            values[0]);
 		}
 		
 		void Function::setReturnValue(llvm::Value* const value) {
@@ -131,7 +134,8 @@ namespace locic {
 				                                                 nullptr, "returnvalueptr");
 			}
 			
-			getBuilder().CreateStore(encodedValue, returnValuePtr_);
+			IREmitter irEmitter(*this);
+			irEmitter.emitRawStore(encodedValue, returnValuePtr_);
 		}
 		
 		llvm::Value* Function::getRawReturnValue() {
@@ -144,7 +148,9 @@ namespace locic {
 				                                                 nullptr, "returnvalueptr");
 			}
 			
-			return getBuilder().CreateLoad(returnValuePtr_);
+			IREmitter irEmitter(*this);
+			return irEmitter.emitRawLoad(returnValuePtr_,
+			                             function_.getFunctionType()->getReturnType());
 		}
 		
 		llvm::Function& Function::getLLVMFunction() {
@@ -371,7 +377,10 @@ namespace locic {
 				// Zero state means 'normal execution'.
 				const auto zero = ConstantGenerator(module_).getI8(0);
 				unwindState_ = getEntryBuilder().CreateAlloca(i8Type, nullptr, "unwindState");
-				getEntryBuilder().CreateStore(zero, unwindState_);
+				
+				SetUseEntryBuilder setUseEntryBuilder(*this);
+				IREmitter irEmitter(*this);
+				irEmitter.emitRawStore(zero, unwindState_);
 			}
 			
 			return unwindState_;

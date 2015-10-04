@@ -1,3 +1,5 @@
+#include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/PendingResult.hpp>
 #include <locic/SEM/Type.hpp>
@@ -34,7 +36,13 @@ namespace locic {
 			}
 			assert(type_->isBuiltInReference());
 			assert(value_->getType()->isPointerTy());
-			return function.getBuilder().CreateLoad(value_);
+			
+			const auto refTargetType = type_->templateArguments().front().typeRefType();
+			const auto loadType = genType(function.module(),
+			                              refTargetType);
+			
+			IREmitter irEmitter(function);
+			return irEmitter.emitRawLoad(value_, loadType);
 		}
 		
 		PendingResult::PendingResult(const PendingResultBase& base)

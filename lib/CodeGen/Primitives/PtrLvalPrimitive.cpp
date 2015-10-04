@@ -104,7 +104,9 @@ namespace locic {
 					const auto moveToPosition = args[2].resolve(function);
 					const auto methodOwner = args[0].resolveWithoutBind(function);
 					
-					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                               moveToPtr,
+					                                               moveToPosition);
 					
 					const auto irType = this->getIRType(module,
 					                                    irEmitter.typeGenerator(),

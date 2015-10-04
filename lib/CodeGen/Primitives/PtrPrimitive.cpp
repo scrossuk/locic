@@ -85,9 +85,13 @@ namespace locic {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
+			const auto ptrType = irEmitter.typeGenerator().getPtrType();
+			
 			const auto targetType = typeTemplateArguments.front().typeRefType();
 			const auto methodOwnerPointer = methodID.isConstructor() ? nullptr : args[0].resolve(function);
-			const auto methodOwner = methodOwnerPointer != nullptr ? builder.CreateLoad(methodOwnerPointer) : nullptr;
+			const auto methodOwner = methodOwnerPointer != nullptr ?
+			                         irEmitter.emitRawLoad(methodOwnerPointer, genPointerType(module, targetType)) :
+			                         nullptr;
 			
 			switch (methodID) {
 				case METHOD_NULL: {
@@ -120,7 +124,9 @@ namespace locic {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
 					
-					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                               moveToPtr,
+					                                               moveToPosition);
 					
 					const auto irType = this->getIRType(module,
 					                                    irEmitter.typeGenerator(),
@@ -135,14 +141,17 @@ namespace locic {
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						const auto one = ConstantGenerator(module).getI32(1);
-						const auto newPointer = builder.CreateInBoundsGEP(methodOwner, one);
-						builder.CreateStore(newPointer, methodOwnerPointer);
+						const auto newPointer = irEmitter.emitInBoundsGEP(genType(module, targetType),
+						                                                  methodOwner,
+						                                                  one);
+						irEmitter.emitRawStore(newPointer, methodOwnerPointer);
 					} else {
 						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getPtrType());
 						const auto targetSize = genSizeOf(function, targetType);
-						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, targetSize);
-						const auto newPointer = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
-						builder.CreateStore(newPointer, methodOwnerPointer);
+						const auto newPointer = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+						                                                  methodOwner,
+						                                                  targetSize);
+						irEmitter.emitRawStore(newPointer, methodOwnerPointer);
 					}
 					return ConstantGenerator(module).getVoidUndef();
 				}
@@ -150,15 +159,17 @@ namespace locic {
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						const auto minusOne = ConstantGenerator(module).getI32(-1);
-						const auto newPointer = builder.CreateInBoundsGEP(methodOwner, minusOne);
-						builder.CreateStore(newPointer, methodOwnerPointer);
+						const auto newPointer = irEmitter.emitInBoundsGEP(genType(module, targetType),
+						                                                  methodOwner,
+						                                                  minusOne);
+						irEmitter.emitRawStore(newPointer, methodOwnerPointer);
 					} else {
-						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getPtrType());
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto minusTargetSize = builder.CreateNeg(targetSize);
-						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, minusTargetSize);
-						const auto newPointer = builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
-						builder.CreateStore(newPointer, methodOwnerPointer);
+						const auto newPointer = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+						                                                  methodOwner,
+						                                                  minusTargetSize);
+						irEmitter.emitRawStore(newPointer, methodOwnerPointer);
 					}
 					return ConstantGenerator(module).getVoidUndef();
 				}
@@ -167,13 +178,15 @@ namespace locic {
 					
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
-						return builder.CreateInBoundsGEP(methodOwner, operand);
+						return irEmitter.emitInBoundsGEP(genType(module, targetType),
+						                                 methodOwner,
+						                                 operand);
 					} else {
-						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getPtrType());
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto adjustedOffset = builder.CreateMul(operand, targetSize);
-						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, adjustedOffset);
-						return builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
+						return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+						                                 methodOwner,
+						                                 adjustedOffset);
 					}
 				}
 				case METHOD_SUBTRACT: {
@@ -191,14 +204,16 @@ namespace locic {
 					const auto operand = args[1].resolve(function);
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
-						return builder.CreateInBoundsGEP(methodOwner, operand);
+						return irEmitter.emitInBoundsGEP(genType(module, targetType),
+						                                 methodOwner,
+						                                 operand);
 					} else {
-						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getPtrType());
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto offset = builder.CreateIntCast(operand, sizeTType, true);
 						const auto adjustedOffset = builder.CreateMul(offset, targetSize);
-						const auto i8IndexPtr = builder.CreateInBoundsGEP(i8BasePtr, adjustedOffset);
-						return builder.CreatePointerCast(i8IndexPtr, methodOwner->getType());
+						return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+						                                 methodOwner,
+						                                 adjustedOffset);
 					}
 				}
 				case METHOD_EQUAL: {

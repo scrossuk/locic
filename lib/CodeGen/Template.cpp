@@ -14,6 +14,7 @@
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -211,6 +212,7 @@ namespace locic {
 			auto& builder = function.getEntryBuilder();
 			
 			ConstantGenerator constGen(module);
+			IREmitter irEmitter(function);
 			
 			const auto typeInstance = templateInst.object().isTypeInstance() ? templateInst.object().typeInstance() : templateInst.object().parentTypeInstance();
 			if (templateInst.arguments().empty() || (typeInstance != nullptr && typeInstance->isInterface())) {
@@ -256,10 +258,12 @@ namespace locic {
 				
 				const auto newPath = builder.CreateOr(shiftedPath, constGen.getI32(entryId));
 				
+				SetUseEntryBuilder setUseEntryBuilder(function);
+				
 				llvm::Value* templateGenerator = constGen.getUndef(templateGeneratorType(module).second);
-				templateGenerator = builder.CreateInsertValue(templateGenerator, rootFunction, { 0 });
-				templateGenerator = builder.CreateInsertValue(templateGenerator, contextPointer, { 1 });
-				templateGenerator = builder.CreateInsertValue(templateGenerator, newPath, { 2 });
+				templateGenerator = irEmitter.emitInsertValue(templateGenerator, rootFunction, { 0 });
+				templateGenerator = irEmitter.emitInsertValue(templateGenerator, contextPointer, { 1 });
+				templateGenerator = irEmitter.emitInsertValue(templateGenerator, newPath, { 2 });
 				return templateGenerator;
 			}
 		}
@@ -336,6 +340,7 @@ namespace locic {
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			Function function(module, *llvmFunction, argInfo);
+			IREmitter irEmitter(function);
 			
 			auto& builder = function.getBuilder();
 			
@@ -352,29 +357,30 @@ namespace locic {
 					
 					// Create type info struct.
 					llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
-					typeInfo = builder.CreateInsertValue(typeInfo, vtablePointer, { 0 });
+					typeInfo = irEmitter.emitInsertValue(typeInfo, vtablePointer, { 0 });
 					
 					const auto generator = getTemplateGenerator(function, TemplateInst::Type(templateArg.typeRefType()));
-					typeInfo = builder.CreateInsertValue(typeInfo, generator, { 1 });
+					typeInfo = irEmitter.emitInsertValue(typeInfo, generator, { 1 });
 					
-					newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
+					newTypesValue = irEmitter.emitInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
 				} else {
 					llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
 					
 					const auto valueFunction = genTemplateValueFunction(parentFunction, templateArg);
-					typeInfo = builder.CreateInsertValue(typeInfo, valueFunction, { 0 });
+					typeInfo = irEmitter.emitInsertValue(typeInfo, valueFunction, { 0 });
 					
 					const auto generator = nullTemplateGenerator(module);
-					typeInfo = builder.CreateInsertValue(typeInfo, generator, { 1 });
+					typeInfo = irEmitter.emitInsertValue(typeInfo, generator, { 1 });
 					
-					newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
+					newTypesValue = irEmitter.emitInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
 				}
 			}
 			
 			if (templateInst.object().isTypeInstance() && templateInst.object().typeInstance()->isPrimitive()) {
 				// Primitives don't have template generators;
 				// the path must have ended by now.
-				builder.CreateRet(newTypesValue);
+				irEmitter.emitReturn(typeInfoArrayType(module).second,
+				                     newTypesValue);
 				return llvmFunction;
 			}
 			
@@ -388,7 +394,8 @@ namespace locic {
 			builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
 			
 			function.selectBasicBlock(pathEndBB);
-			builder.CreateRet(newTypesValue);
+			irEmitter.emitReturn(typeInfoArrayType(module).second,
+			                     newTypesValue);
 			
 			function.selectBasicBlock(callNextGeneratorBB);
 			
@@ -404,7 +411,8 @@ namespace locic {
 			const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateInst.object());
 			
 			llvm::Value* const args[] = { newTypesValue, llvmFunction, contextPointerArg, pathArg, startPosition };
-			builder.CreateRet(genRawFunctionCall(function, intermediateFunctionArgInfo(module), nextFunction, args));
+			irEmitter.emitReturn(typeInfoArrayType(module).second,
+			                     genRawFunctionCall(function, intermediateFunctionArgInfo(module), nextFunction, args));
 			
 			return llvmFunction;
 		}
@@ -493,6 +501,7 @@ namespace locic {
 			const auto pathArg = function.getArg(3);
 			const auto parentPositionArg = function.getArg(4);
 			
+			IREmitter irEmitter(function);
 			auto& builder = function.getBuilder();
 			
 			const auto position = builder.CreateSub(parentPositionArg, constGen.getI8(templateBuilder.bitsRequired()));
@@ -525,16 +534,16 @@ namespace locic {
 							const auto templateUseVar = templateUseInst.arguments()[i].templateVar();
 							const auto templateVarIndex = templateUseVar->index();
 							const auto templateRefEntryValue = builder.CreateExtractValue(typesArg, templateVarIndex);
-							newTypesValue = builder.CreateInsertValue(newTypesValue,
+							newTypesValue = irEmitter.emitInsertValue(newTypesValue,
 							                                          templateRefEntryValue,
 							                                          { (unsigned int) i });
 						} else {
 							// Other values are just ignored for now...
 							llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
-							typeInfo = builder.CreateInsertValue(typeInfo,
+							typeInfo = irEmitter.emitInsertValue(typeInfo,
 							                                     nullTemplateGenerator(module),
 							                                     { 1 });
-							newTypesValue = builder.CreateInsertValue(newTypesValue,
+							newTypesValue = irEmitter.emitInsertValue(newTypesValue,
 							                                          typeInfo,
 							                                          { (unsigned int) i });
 						}
@@ -547,43 +556,43 @@ namespace locic {
 						// from the types provided to us by the caller.
 						const auto templateVarIndex = templateUseArg->getTemplateVar()->index();
 						const auto templateVarValue = builder.CreateExtractValue(typesArg, templateVarIndex);
-						newTypesValue = builder.CreateInsertValue(newTypesValue, templateVarValue, { (unsigned int) i });
+						newTypesValue = irEmitter.emitInsertValue(newTypesValue, templateVarValue, { (unsigned int) i });
 					} else {
 						// For an object type need to obtain the vtable (and potentially
 						// also the generator function for its template arguments).
 						const auto vtablePointer = genVTable(module, templateUseArg->resolveAliases()->getObjectType());
 						
 						llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
-						typeInfo = builder.CreateInsertValue(typeInfo, vtablePointer, { 0 });
+						typeInfo = irEmitter.emitInsertValue(typeInfo, vtablePointer, { 0 });
 						
 						if (templateUseArg->templateArguments().empty()) {
 							// If the type doesn't have any template arguments, then
 							// provide a 'null' template generator.
-							typeInfo = builder.CreateInsertValue(typeInfo, nullTemplateGenerator(module), { 1 });
+							typeInfo = irEmitter.emitInsertValue(typeInfo, nullTemplateGenerator(module), { 1 });
 						} else {
 							// If there are arguments, refer to the component for them
 							// by adding the correct component in the path by computing
 							// (subPath & ~mask) | <their component>.
-							const auto castRootFunction = builder.CreatePointerCast(rootFnArg, TypeGenerator(module).getPtrType());
 							const auto argComponent = templateBuilder.templateUseMap().at(TemplateInst::Type(templateUseArg));
 							const auto maskedSubPath = builder.CreateAnd(subPath, builder.CreateNot(mask));
 							const auto argFullPath = builder.CreateOr(maskedSubPath, constGen.getI32(argComponent));
 							
 							llvm::Value* templateGenerator = constGen.getUndef(templateGeneratorType(module).second);
-							templateGenerator = builder.CreateInsertValue(templateGenerator, castRootFunction, { 0 });
-							templateGenerator = builder.CreateInsertValue(templateGenerator, rootContextArg, { 1 });
-							templateGenerator = builder.CreateInsertValue(templateGenerator, argFullPath, { 2 });
-							typeInfo = builder.CreateInsertValue(typeInfo, templateGenerator, { 1 });
+							templateGenerator = irEmitter.emitInsertValue(templateGenerator, rootFnArg, { 0 });
+							templateGenerator = irEmitter.emitInsertValue(templateGenerator, rootContextArg, { 1 });
+							templateGenerator = irEmitter.emitInsertValue(templateGenerator, argFullPath, { 2 });
+							typeInfo = irEmitter.emitInsertValue(typeInfo, templateGenerator, { 1 });
 						}
 						
-						newTypesValue = builder.CreateInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
+						newTypesValue = irEmitter.emitInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
 					}
 				}
 				
 				if (templateUseInst.object().isTypeInstance() && templateUseInst.object().typeInstance()->isPrimitive()) {
 					// Primitives don't have template generators;
 					// the path must have ended by now.
-					builder.CreateRet(newTypesValue);
+					irEmitter.emitReturn(typeInfoArrayType(module).second,
+					                     newTypesValue);
 				} else {
 					// If the position is 0, that means we've reached the end of the path,
 					// so just return the new types struct. Otherwise, call the next
@@ -595,7 +604,8 @@ namespace locic {
 					builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
 					
 					function.selectBasicBlock(pathEndBB);
-					builder.CreateRet(newTypesValue);
+					irEmitter.emitReturn(typeInfoArrayType(module).second,
+					                     newTypesValue);
 					
 					function.selectBasicBlock(callNextGeneratorBB);
 					
@@ -604,7 +614,8 @@ namespace locic {
 					
 					llvm::Value* const args[] = { newTypesValue, rootFnArg, rootContextArg, pathArg, position };
 					const auto callResult = genRawFunctionCall(function, argInfo, nextFunction, args);
-					builder.CreateRet(callResult);
+					irEmitter.emitReturn(typeInfoArrayType(module).second,
+					                     callResult);
 				}
 			}
 			

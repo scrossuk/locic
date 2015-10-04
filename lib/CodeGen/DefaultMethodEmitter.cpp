@@ -210,7 +210,9 @@ namespace locic {
 					const auto memberVar = memberVars.at((memberVars.size() - 1) - i);
 					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
 					const auto memberOffsetValue = genMemberOffset(functionGenerator_, typeInstance.selfType(), memberIndex);
-					const auto ptrToMember = builder.CreateInBoundsGEP(castThisValue, memberOffsetValue);
+					const auto ptrToMember = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                                   castThisValue,
+					                                                   memberOffsetValue);
 					irEmitter.emitDestructorCall(ptrToMember, memberVar->type());
 				}
 				
@@ -242,6 +244,8 @@ namespace locic {
 			const auto& typeInstance = *(type->getObjectType());
 			auto& module = functionGenerator_.module();
 			
+			IREmitter irEmitter(functionGenerator_);
+			
 			const auto destValue = args[1].resolve(functionGenerator_);
 			const auto positionValue = args[2].resolve(functionGenerator_);
 			const auto sourceValue = args[0].resolve(functionGenerator_);
@@ -259,7 +263,8 @@ namespace locic {
 			} else {
 				auto& builder = functionGenerator_.getBuilder();
 				
-				const auto destPtr = builder.CreateInBoundsGEP(destValue,
+				const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+				                                               destValue,
 				                                               positionValue);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr,
 				                                                     genPointerType(module, type));
@@ -321,6 +326,8 @@ namespace locic {
 			auto& builder = functionGenerator_.getBuilder();
 			const auto& typeInstance = *(type->getObjectType());
 			
+			IREmitter irEmitter(functionGenerator_);
+			
 			const auto destValue = args[1].resolve(functionGenerator_);
 			const auto positionValue = args[2].resolve(functionGenerator_);
 			const auto sourceValue = args[0].resolve(functionGenerator_);
@@ -332,13 +339,17 @@ namespace locic {
 				const auto unionDatatypePointers = getUnionDatatypePointers(functionGenerator_,
 				                                                            type,
 				                                                            sourceValue);
-				const auto loadedTag = builder.CreateLoad(unionDatatypePointers.first);
+				TypeGenerator typeGenerator(module);
+				const auto loadedTag = irEmitter.emitRawLoad(unionDatatypePointers.first,
+				                                             typeGenerator.getI8Type());
 				
 				// Store tag.
-				builder.CreateStore(loadedTag, makeRawMoveDest(functionGenerator_, destValue, positionValue));
+				irEmitter.emitRawStore(loadedTag,
+				                       makeMoveDest(functionGenerator_, destValue, positionValue));
 				
 				// Set previous tag to zero.
-				builder.CreateStore(ConstantGenerator(module).getI8(0), unionDatatypePointers.first);
+				irEmitter.emitRawStore(ConstantGenerator(module).getI8(0),
+				                       unionDatatypePointers.first);
 				
 				// Offset of union datatype data is equivalent to its alignment size.
 				const auto unionDataOffset = genAlignOf(functionGenerator_, type);
@@ -558,7 +569,8 @@ namespace locic {
 					                                        typeInstance,
 					                                        livenessIndicator,
 					                                        contextValue);
-					builder.CreateStore(ConstantGenerator(module).getI8(0), bytePtr);
+					irEmitter.emitRawStore(ConstantGenerator(module).getI8(0),
+					                       bytePtr);
 					break;
 				}
 			}
@@ -608,9 +620,10 @@ namespace locic {
 					                                        typeInstance,
 					                                        livenessIndicator,
 					                                        contextValue);
-					const auto byteValue = builder.CreateLoad(bytePtr);
+					const auto oneValue = ConstantGenerator(module).getI8(1);
+					const auto byteValue = irEmitter.emitRawLoad(bytePtr, oneValue->getType());
 					// Live if suffix/gap byte == 1.
-					return builder.CreateICmpEQ(byteValue, ConstantGenerator(module).getI8(1));
+					return builder.CreateICmpEQ(byteValue, oneValue);
 				}
 			}
 			

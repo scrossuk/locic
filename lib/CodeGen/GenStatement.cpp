@@ -16,6 +16,7 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVar.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -97,6 +98,8 @@ namespace locic {
 			if (debugInfo) {
 				function.setDebugPosition(debugInfo->location.range().start());
 			}
+			
+			IREmitter irEmitter(function);
 			
 			switch (statement.kind()) {
 				case SEM::Statement::VALUE: {
@@ -258,7 +261,8 @@ namespace locic {
 					
 					const auto unionDatatypePointers = getUnionDatatypePointers(function, switchType, switchValuePtr);
 					
-					const auto loadedTag = function.getBuilder().CreateLoad(unionDatatypePointers.first);
+					const auto loadedTag = irEmitter.emitRawLoad(unionDatatypePointers.first,
+					                                             TypeGenerator(module).getI8Type());
 					
 					const auto defaultBB = function.createBasicBlock("");
 					const auto endBB = function.createBasicBlock("switchEnd");
@@ -457,7 +461,10 @@ namespace locic {
 					function.selectBasicBlock(catchBB);
 					
 					// Load selector of exception thrown.
-					const auto exceptionInfo = function.getBuilder().CreateLoad(function.exceptionInfo());
+					TypeGenerator typeGen(module);
+					const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getPtrType(), typeGen.getI32Type()});
+					const auto exceptionInfo = irEmitter.emitRawLoad(function.exceptionInfo(),
+					                                                 exceptionInfoType);
 					const auto thrownExceptionValue = function.getBuilder().CreateExtractValue(exceptionInfo, std::vector<unsigned> {0});
 					const auto throwSelectorValue = function.getBuilder().CreateExtractValue(exceptionInfo, std::vector<unsigned> {1});
 					
@@ -554,14 +561,20 @@ namespace locic {
 						// Create throw and nothrow paths.
 						const auto noThrowPath = function.createBasicBlock("");
 						const auto throwPath = genLandingPad(function, UnwindStateThrow);
-						const auto throwInvoke = function.getBuilder().CreateInvoke(throwFunction, noThrowPath, throwPath, args);
+						const auto throwInvoke = irEmitter.emitInvoke(throwFunction->getFunctionType(),
+						                                              throwFunction,
+						                                              noThrowPath,
+						                                              throwPath,
+						                                              args);
 						throwInvoke->setDoesNotReturn();
 						
 						// 'throw' function should never return normally.
 						function.selectBasicBlock(noThrowPath);
 						function.getBuilder().CreateUnreachable();
 					} else {
-						const auto callInst = function.getBuilder().CreateCall(throwFunction, args);
+						const auto callInst = irEmitter.emitCall(throwFunction->getFunctionType(),
+						                                         throwFunction,
+						                                         args);
 						callInst->setDoesNotReturn();
 						
 						// 'throw' function should never return normally.
@@ -653,7 +666,9 @@ namespace locic {
 						const auto constArray = ConstantGenerator(module).getString(stringValue);
 						const auto globalArray = module.createConstGlobal(module.getCString("assert_name_constant"), arrayType, llvm::GlobalValue::InternalLinkage, constArray);
 						globalArray->setAlignment(1);
-						const auto stringGlobal = function.getBuilder().CreateConstGEP2_32(globalArray, 0, 0);
+						const auto stringGlobal = irEmitter.emitConstInBoundsGEP2_32(arrayType,
+						                                                             globalArray,
+						                                                             0, 0);
 						
 						const auto assertFailedFunction = getAssertFailedFunction(module);
 						llvm::Value* const args[] = { stringGlobal };

@@ -124,8 +124,9 @@ namespace locic {
 					const auto irType = this->getIRType(module,
 					                                    typeGenerator,
 					                                    typeTemplateArguments);
-					const auto destPtr = irEmitter.builder().CreateInBoundsGEP(moveToPtr,
-					                                                           moveToPosition);
+					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                               moveToPtr,
+					                                               moveToPosition);
 					const auto castedDestPtr = irEmitter.builder().CreatePointerCast(destPtr,
 					                                                                 irType->getPointerTo());
 					irEmitter.emitMoveStore(methodOwner,

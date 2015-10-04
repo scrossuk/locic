@@ -1,5 +1,6 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -9,9 +10,10 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Value* makeTypeInfoValue(Function& function, llvm::Value* vtablePointer, llvm::Value* templateGenerator) {
+			IREmitter irEmitter(function);
 			llvm::Value* typeInfoValue = ConstantGenerator(function.module()).getUndef(typeInfoType(function.module()).second);
-			typeInfoValue = function.getBuilder().CreateInsertValue(typeInfoValue, vtablePointer, { 0 });
-			typeInfoValue = function.getBuilder().CreateInsertValue(typeInfoValue, templateGenerator, { 1 });
+			typeInfoValue = irEmitter.emitInsertValue(typeInfoValue, vtablePointer, { 0 });
+			typeInfoValue = irEmitter.emitInsertValue(typeInfoValue, templateGenerator, { 1 });
 			return typeInfoValue;
 		}
 		
@@ -34,9 +36,10 @@ namespace locic {
 		}
 		
 		llvm::Value* makeInterfaceStructValue(Function& function, llvm::Value* contextPointer, llvm::Value* typeInfoValue) {
+			IREmitter irEmitter(function);
 			llvm::Value* interfaceValue = ConstantGenerator(function.module()).getUndef(interfaceStructLLVMType(function.module()));
-			interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, contextPointer, { 0 });
-			interfaceValue = function.getBuilder().CreateInsertValue(interfaceValue, typeInfoValue, { 1 });
+			interfaceValue = irEmitter.emitInsertValue(interfaceValue, contextPointer, { 0 });
+			interfaceValue = irEmitter.emitInsertValue(interfaceValue, typeInfoValue, { 1 });
 			return interfaceValue;
 		}
 		
@@ -59,9 +62,10 @@ namespace locic {
 		}
 		
 		llvm::Value* makeInterfaceMethodValue(Function& function, llvm::Value* interfaceStructValue, llvm::Value* hashValue) {
+			IREmitter irEmitter(function);
 			llvm::Value* methodValue = ConstantGenerator(function.module()).getUndef(interfaceMethodLLVMType(function.module()));
-			methodValue = function.getBuilder().CreateInsertValue(methodValue, interfaceStructValue, { 0 });
-			methodValue = function.getBuilder().CreateInsertValue(methodValue, hashValue, { 1 });
+			methodValue = irEmitter.emitInsertValue(methodValue, interfaceStructValue, { 0 });
+			methodValue = irEmitter.emitInsertValue(methodValue, hashValue, { 1 });
 			return methodValue;
 		}
 		
@@ -84,9 +88,10 @@ namespace locic {
 		}
 		
 		llvm::Value* makeStaticInterfaceMethodValue(Function& function, llvm::Value* typeInfoValue, llvm::Value* hashValue) {
+			IREmitter irEmitter(function);
 			llvm::Value* methodValue = ConstantGenerator(function.module()).getUndef(staticInterfaceMethodLLVMType(function.module()));
-			methodValue = function.getBuilder().CreateInsertValue(methodValue, typeInfoValue, { 0 });
-			methodValue = function.getBuilder().CreateInsertValue(methodValue, hashValue, { 1 });
+			methodValue = irEmitter.emitInsertValue(methodValue, typeInfoValue, { 0 });
+			methodValue = irEmitter.emitInsertValue(methodValue, hashValue, { 1 });
 			return methodValue;
 		}
 		

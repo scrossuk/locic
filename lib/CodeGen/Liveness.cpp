@@ -3,6 +3,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Memory.hpp>
@@ -133,9 +134,12 @@ namespace locic {
 				const LivenessIndicator livenessIndicator, llvm::Value* const objectPointerValue) {
 			auto& module = function.module();
 			auto& builder = function.getBuilder();
+			IREmitter irEmitter(function);
 			const auto byteOffsetValue = getLivenessByteOffset(function, typeInstance, livenessIndicator);
 			const auto startPtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getPtrType());
-			return builder.CreateInBoundsGEP(startPtr, byteOffsetValue);
+			return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+			                                 startPtr,
+			                                 byteOffsetValue);
 		}
 		
 		void setOuterLiveState(Function& functionGenerator, const SEM::TypeInstance& typeInstance, llvm::Value* const objectPointerValue) {
@@ -159,10 +163,11 @@ namespace locic {
 				}
 				case LivenessIndicator::SUFFIX_BYTE:
 				case LivenessIndicator::GAP_BYTE: {
-					auto& builder = functionGenerator.getBuilder();
 					// Store one into gap/suffix byte to represent live state.
 					const auto bytePtr = getLivenessBytePtr(functionGenerator, typeInstance, livenessIndicator, objectPointerValue);
-					builder.CreateStore(ConstantGenerator(module).getI8(1), bytePtr);
+					IREmitter irEmitter(functionGenerator);
+					irEmitter.emitRawStore(ConstantGenerator(module).getI8(1),
+					                       bytePtr);
 					break;
 				}
 			}

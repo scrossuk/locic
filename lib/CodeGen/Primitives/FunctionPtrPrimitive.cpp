@@ -189,13 +189,16 @@ namespace locic {
 			llvm::Value* genFunctionPtrMoveToMethod(Function& function, const SEM::Type* const type, PendingResultArray args) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
+				IREmitter irEmitter(function);
 				
 				const auto methodOwner = args[0].resolveWithoutBind(function);
 				
 				const auto moveToPtr = args[1].resolve(function);
 				const auto moveToPosition = args[2].resolve(function);
 				
-				const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+				const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+				                                               moveToPtr,
+				                                               moveToPosition);
 				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
 				
 				genMoveStore(function, methodOwner, castedDestPtr, type);

@@ -4,6 +4,7 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
@@ -216,7 +217,8 @@ namespace locic {
 				landingPad->addClause(ConstantGenerator(module).getPointerCast(catchTypes[i], typeGen.getPtrType()));
 			}
 			
-			function.getBuilder().CreateStore(landingPad, function.exceptionInfo());
+			IREmitter irEmitter(function);
+			irEmitter.emitRawStore(landingPad, function.exceptionInfo());
 			
 			// Unwind stack due to exception.
 			genUnwind(function, unwindState);

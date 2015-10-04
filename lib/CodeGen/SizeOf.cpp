@@ -6,6 +6,7 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Mangling.hpp>
@@ -212,6 +213,7 @@ namespace locic {
 			assert(!typeInstance->isInterface() && !typeInstance->isClassDecl() && !typeInstance->isPrimitive());
 			
 			Function function(module, *llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
+			IREmitter irEmitter(function);
 			
 			const auto& typeVars = typeInstance->variables();
 			
@@ -232,7 +234,8 @@ namespace locic {
 				function.getBuilder().CreateCondBr(compareResult, exitBB, nextBB);
 				
 				function.selectBasicBlock(exitBB);
-				function.getBuilder().CreateRet(offsetValue);
+				irEmitter.emitReturn(offsetValue->getType(),
+				                     offsetValue);
 				
 				function.selectBasicBlock(nextBB);
 				
@@ -342,15 +345,18 @@ namespace locic {
 			assert(objectType->isObject());
 			auto& module = function.module();
 			
+			IREmitter irEmitter(function);
+			
 			TypeInfo typeInfo(module);
 			if (typeInfo.isSizeKnownInThisModule(objectType) && !objectType->isUnion()) {
-				const auto llvmObjectPointerType = genPointerType(module, objectType);
-				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, llvmObjectPointerType);
-				return function.getBuilder().CreateConstInBoundsGEP2_32(castObjectPointer, 0, memberIndex);
+				return irEmitter.emitConstInBoundsGEP2_32(genType(module, objectType),
+				                                          objectPointer,
+				                                          0, memberIndex);
 			} else {
-				const auto castObjectPointer = function.getBuilder().CreatePointerCast(objectPointer, TypeGenerator(module).getPtrType());
 				const auto memberOffset = genMemberOffset(function, objectType, memberIndex);
-				const auto memberPtr = function.getBuilder().CreateInBoundsGEP(castObjectPointer, memberOffset);
+				const auto memberPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+				                                                 objectPointer,
+				                                                 memberOffset);
 				const auto memberType = objectType->getObjectType()->variables().at(memberIndex)->type()->substitute(objectType->generateTemplateVarMap());
 				return function.getBuilder().CreatePointerCast(memberPtr, genPointerType(module, memberType));
 			}
@@ -360,17 +366,22 @@ namespace locic {
 			assert(type->isUnionDatatype());
 			auto& module = function.module();
 			
+			IREmitter irEmitter(function);
+			
 			TypeInfo typeInfo(module);
 			if (typeInfo.isSizeKnownInThisModule(type)) {
-				const auto loadedTagPtr = function.getBuilder().CreateConstInBoundsGEP2_32(objectPtr, 0, 0);
-				const auto unionValuePtr = function.getBuilder().CreateConstInBoundsGEP2_32(objectPtr, 0, 1);
+				const auto irType = genType(module, type);
+				const auto loadedTagPtr = irEmitter.emitConstInBoundsGEP2_32(irType,
+				                                                             objectPtr, 0, 0);
+				const auto unionValuePtr = irEmitter.emitConstInBoundsGEP2_32(irType,
+				                                                              objectPtr, 0, 1);
 				return std::make_pair(loadedTagPtr, unionValuePtr);
 			} else {
-				const auto castObjectPtr = function.getBuilder().CreatePointerCast(objectPtr, TypeGenerator(module).getPtrType());
-				const auto loadedTagPtr = castObjectPtr;
 				const auto unionAlignValue = genAlignOf(function, type);
-				const auto unionValuePtr = function.getBuilder().CreateInBoundsGEP(castObjectPtr, unionAlignValue);
-				return std::make_pair(loadedTagPtr, unionValuePtr);
+				const auto unionValuePtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+				                                                     objectPtr,
+				                                                     unionAlignValue);
+				return std::make_pair(objectPtr, unionValuePtr);
 			}
 		}
 		

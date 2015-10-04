@@ -134,9 +134,11 @@ namespace locic {
 					                                    irEmitter.typeGenerator(),
 					                                    typeTemplateArguments);
 					
-					const auto destPtr = builder.CreateInBoundsGEP(moveToPtr, moveToPosition);
+					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                               moveToPtr,
+					                                               moveToPosition);
 					const auto castedDestPtr = builder.CreatePointerCast(destPtr, irType->getPointerTo());
-					builder.CreateStore(methodOwner, castedDestPtr);
+					irEmitter.emitRawStore(methodOwner, castedDestPtr);
 					return constantGenerator.getVoidUndef();
 				}
 				case METHOD_CREATE:

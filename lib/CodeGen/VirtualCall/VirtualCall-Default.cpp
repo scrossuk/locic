@@ -12,6 +12,7 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/Interface.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -94,18 +95,19 @@ namespace locic {
 				
 				const auto argsStructPtr = function.getEntryBuilder().CreateAlloca(argsStructType);
 				
+				IREmitter irEmitter(function);
+				
 				for (size_t offset = 0; offset < args.size(); offset++) {
-					const auto argPtr = function.getBuilder().CreateConstInBoundsGEP2_32(
-											argsStructPtr, 0, offset);
+					const auto argPtr = irEmitter.emitConstInBoundsGEP2_32(argsStructType,
+					                                                       argsStructPtr,
+					                                                       0, offset);
 											
 					if (canPassByValue(module, argTypes[offset])) {
 						const auto argAlloca = function.getEntryBuilder().CreateAlloca(args[offset]->getType());
-						function.getBuilder().CreateStore(args[offset], argAlloca);
-						const auto castArg = function.getBuilder().CreatePointerCast(argAlloca, i8PtrType);
-						function.getBuilder().CreateStore(castArg, argPtr);
+						irEmitter.emitRawStore(args[offset], argAlloca);
+						irEmitter.emitRawStore(argAlloca, argPtr);
 					} else {
-						const auto castArg = function.getBuilder().CreatePointerCast(args[offset], i8PtrType);
-						function.getBuilder().CreateStore(castArg, argPtr);
+						irEmitter.emitRawStore(args[offset], argPtr);
 					}
 				}
 				
@@ -116,6 +118,8 @@ namespace locic {
 					const VirtualMethodComponents methodComponents, llvm::ArrayRef<llvm::Value*> args) {
 				auto& builder = function.getBuilder();
 				auto& module = function.module();
+				
+				IREmitter irEmitter(function);
 				
 				// Calculate the slot for the virtual call.
 				ConstantGenerator constantGen(function.module());
@@ -130,10 +134,13 @@ namespace locic {
 				vtableEntryGEP.push_back(constantGen.getI32(4));
 				vtableEntryGEP.push_back(castVTableOffsetValue);
 				
-				const auto vtableEntryPointer = builder.CreateInBoundsGEP(methodComponents.object.typeInfo.vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module),
+				                                                          methodComponents.object.typeInfo.vtablePointer,
+				                                                          vtableEntryGEP);
 				
 				// Load the slot.
-				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
+				const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
+				                                                         irEmitter.typeGenerator().getPtrType());
 				
 				const auto argInfo = getStubArgInfo(function.module());
 				
@@ -192,6 +199,8 @@ namespace locic {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				
+				IREmitter irEmitter(function);
+				
 				// Extract vtable and template generator.
 				const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
 				const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
@@ -202,12 +211,15 @@ namespace locic {
 				vtableEntryGEP.push_back(constGen.getI32(0));
 				vtableEntryGEP.push_back(constGen.getI32(kind == ALIGNOF ? 2 : 3));
 				
-				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module),
+				                                                          vtablePointer,
+				                                                          vtableEntryGEP);
 				
 				const auto argInfo = ArgInfo::TemplateOnly(module, sizeTypePair(module)).withNoMemoryAccess().withNoExcept();
 				
 				// Load the slot.
-				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
+				const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
+				                                                         irEmitter.typeGenerator().getPtrType());
 				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
@@ -224,6 +236,8 @@ namespace locic {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				
+				IREmitter irEmitter(function);
+				
 				// Extract vtable and template generator.
 				const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
 				const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
@@ -234,12 +248,15 @@ namespace locic {
 				vtableEntryGEP.push_back(constGen.getI32(0));
 				vtableEntryGEP.push_back(constGen.getI32(0));
 				
-				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module),
+				                                                          vtablePointer,
+				                                                          vtableEntryGEP);
 				
 				const auto argInfo = virtualMoveArgInfo(module);
 				
 				// Load the slot.
-				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
+				const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
+				                                                         irEmitter.typeGenerator().getPtrType());
 				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
@@ -255,6 +272,8 @@ namespace locic {
 				auto& module = function.module();
 				auto& builder = function.getBuilder();
 				
+				IREmitter irEmitter(function);
+				
 				// Extract vtable and template generator.
 				const auto vtablePointer = builder.CreateExtractValue(typeInfoValue, { 0 }, "vtable");
 				const auto templateGeneratorValue = builder.CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
@@ -265,12 +284,15 @@ namespace locic {
 				vtableEntryGEP.push_back(constGen.getI32(0));
 				vtableEntryGEP.push_back(constGen.getI32(1));
 				
-				const auto vtableEntryPointer = builder.CreateInBoundsGEP(vtablePointer, vtableEntryGEP, "vtableEntryPointer");
+				const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module),
+				                                                          vtablePointer,
+				                                                          vtableEntryGEP);
 				
 				const auto argInfo = virtualDestructorArgInfo(module);
 				
 				// Load the slot.
-				const auto methodFunctionPointer = builder.CreateLoad(vtableEntryPointer, "methodFunctionPointer");
+				const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
+				                                                         irEmitter.typeGenerator().getPtrType());
 				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
 				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
@@ -293,6 +315,8 @@ namespace locic {
 				llvmFunction->setAttributes(conflictResolutionStubAttributes(module));
 				
 				Function function(module, *llvmFunction, stubArgInfo);
+				
+				IREmitter irEmitter(function);
 				
 				const auto llvmHashValue = function.getArg(0);
 				const auto llvmOpaqueArgsStructPtr = function.getArg(1);
@@ -355,12 +379,16 @@ namespace locic {
 					for (size_t offset = 0; offset < numArgs; offset++) {
 						const auto& paramType = paramTypes.at(offset);
 						
-						const auto argPtrPtr = builder.CreateConstInBoundsGEP2_32(llvmArgsStructPtr, 0, offset);
-						const auto argPtr = builder.CreateLoad(argPtrPtr, "argPtr");
+						const auto argPtrPtr = irEmitter.emitConstInBoundsGEP2_32(typeGen.getStructType(llvmArgsTypes),
+						                                                          llvmArgsStructPtr,
+						                                                          0, offset);
+						const auto argPtr = irEmitter.emitRawLoad(argPtrPtr,
+						                                          irEmitter.typeGenerator().getPtrType());
 						const auto castArgPtr = builder.CreatePointerCast(argPtr, genPointerType(module, paramType));
 						
 						if (canPassByValue(module, paramType)) {
-							parameters.push_back(builder.CreateLoad(castArgPtr));
+							parameters.push_back(irEmitter.emitRawLoad(castArgPtr,
+							                                           genType(module, paramType)));
 						} else {
 							parameters.push_back(castArgPtr);
 						}
@@ -371,9 +399,7 @@ namespace locic {
 					
 					// Store return value.
 					if (!argInfo.hasReturnVarArgument() && !returnType->isBuiltInVoid()) {
-						const auto returnValuePointerType = llvmCallReturnValue->getType()->getPointerTo();
-						const auto llvmCastReturnVar = builder.CreatePointerCast(function.getReturnVar(), returnValuePointerType, "castedReturnVar");
-						builder.CreateStore(llvmCallReturnValue, llvmCastReturnVar);
+						irEmitter.emitRawStore(llvmCallReturnValue, function.getReturnVar());
 					}
 					
 					builder.CreateRetVoid();

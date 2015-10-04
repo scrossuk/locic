@@ -9,6 +9,7 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -273,7 +274,12 @@ namespace locic {
 				}
 				
 				default: {
-					return getTypeInfoComponents(function, function.getBuilder().CreateLoad(genValue(function, value)));
+					const auto typeInfoIRType = typeInfoType(function.module()).second;
+					IREmitter irEmitter(function);
+					const auto typeInfoValue = irEmitter.emitRawLoad(genValue(function, value),
+					                                                 typeInfoIRType);
+					return getTypeInfoComponents(function,
+					                             typeInfoValue);
 				}
 			}
 		}

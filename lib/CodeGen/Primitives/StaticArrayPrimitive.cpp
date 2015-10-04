@@ -92,29 +92,25 @@ namespace locic {
 		
 		namespace {
 			
-			llvm::Value* getArrayIndex(Function& function,
-			                           const SEM::Type* const type,
+			llvm::Value* getArrayIndex(IREmitter& irEmitter,
 			                           const SEM::Type* const elementType,
 			                           llvm::Value* const arrayPtr,
 			                           llvm::Value* const elementIndex) {
-				auto& builder = function.getBuilder();
-				auto& module = function.module();
+				auto& builder = irEmitter.builder();
+				auto& module = irEmitter.module();
 				
 				TypeInfo typeInfo(module);
-				if (typeInfo.isSizeAlwaysKnown(type)) {
-					llvm::Value* const indexArray[] = {
-							ConstantGenerator(module).getSizeTValue(0),
-							elementIndex
-						};
-					return builder.CreateInBoundsGEP(arrayPtr, indexArray);
+				if (typeInfo.isSizeAlwaysKnown(elementType)) {
+					return irEmitter.emitInBoundsGEP(genType(module, elementType),
+					                                 arrayPtr,
+					                                 elementIndex);
 				} else {
-					const auto castMethodOwner = builder.CreatePointerCast(arrayPtr,
-					                                                       TypeGenerator(module).getPtrType());
-					const auto elementSize = genSizeOf(function,
+					const auto elementSize = genSizeOf(irEmitter.function(),
 					                                   elementType);
 					const auto indexPos = builder.CreateMul(elementSize,
 					                                        elementIndex);
-					const auto elementPtr = builder.CreateInBoundsGEP(castMethodOwner,
+					const auto elementPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                                  arrayPtr,
 					                                                  indexPos);
 					return builder.CreatePointerCast(elementPtr,
 					                                 genPointerType(module, elementType));
@@ -184,14 +180,13 @@ namespace locic {
 					const auto oneValue = ConstantGenerator(module).getSizeTValue(1);
 					const auto reverseIndex = builder.CreateSub(reverseIndexPlusOne, oneValue);
 					
-					const auto memberPtr = getArrayIndex(function,
-					                                     type,
+					const auto memberPtr = getArrayIndex(irEmitter,
 					                                     elementType,
 					                                     arrayPtr,
 					                                     reverseIndex);
 					
 					irEmitter.emitDestructorCall(memberPtr,
-												 elementType);
+					                             elementType);
 					
 					const auto indexIncremented = builder.CreateAdd(phiNode,
 					                                                ConstantGenerator(module).getSizeTValue(1));
@@ -231,14 +226,12 @@ namespace locic {
 					phiNode->addIncoming(ConstantGenerator(module).getSizeTValue(0),
 					                     beforeLoopBB);
 					
-					const auto memberPtr = getArrayIndex(function,
-					                                     type,
+					const auto memberPtr = getArrayIndex(irEmitter,
 					                                     elementType,
 					                                     arrayPtr,
 					                                     phiNode);
 					
-					const auto resultPtr = getArrayIndex(function,
-					                                     type,
+					const auto resultPtr = getArrayIndex(irEmitter,
 					                                     elementType,
 					                                     result,
 					                                     phiNode);
@@ -284,7 +277,8 @@ namespace locic {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
 					
-					const auto result = builder.CreateInBoundsGEP(moveToPtr,
+					const auto result = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                              moveToPtr,
 					                                              moveToPosition);
 					
 					const auto beforeLoopBB = builder.GetInsertBlock();
@@ -301,14 +295,12 @@ namespace locic {
 					phiNode->addIncoming(ConstantGenerator(module).getSizeTValue(0),
 					                     beforeLoopBB);
 					
-					const auto memberPtr = getArrayIndex(function,
-					                                     type,
+					const auto memberPtr = getArrayIndex(irEmitter,
 					                                     elementType,
 					                                     arrayPtr,
 					                                     phiNode);
 					
-					const auto resultPtr = getArrayIndex(function,
-					                                     type,
+					const auto resultPtr = getArrayIndex(irEmitter,
 					                                     elementType,
 					                                     result,
 					                                     phiNode);
@@ -341,12 +333,10 @@ namespace locic {
 					const auto methodOwner = args[0].resolve(function);
 					const auto operand = args[1].resolve(function);
 					TypeInfo typeInfo(module);
-					if (typeInfo.isSizeAlwaysKnown(type)) {
-						llvm::Value* const indexArray[] = {
-								ConstantGenerator(module).getSizeTValue(0),
-								operand
-							};
-						return builder.CreateInBoundsGEP(methodOwner, indexArray);
+					if (typeInfo.isSizeAlwaysKnown(elementType)) {
+						return irEmitter.emitInBoundsGEP(genType(module, elementType),
+						                                 methodOwner,
+						                                 operand);
 					} else {
 						const auto castMethodOwner = builder.CreatePointerCast(methodOwner,
 						                                                       TypeGenerator(module).getPtrType());
@@ -354,7 +344,8 @@ namespace locic {
 						                                   elementType);
 						const auto indexPos = builder.CreateMul(elementSize,
 						                                        operand);
-						const auto elementPtr = builder.CreateInBoundsGEP(castMethodOwner,
+						const auto elementPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+						                                                  castMethodOwner,
 						                                                  indexPos);
 						return builder.CreatePointerCast(elementPtr,
 						                                 genPointerType(module, elementType));

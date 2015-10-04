@@ -18,6 +18,7 @@
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Mangling.hpp>
@@ -44,6 +45,8 @@ namespace locic {
 			if (debugInfo) {
 				function.setDebugPosition(debugInfo->location.range().start());
 			}
+			
+			IREmitter irEmitter(function, hintResultValue);
 			
 			switch (value.kind()) {
 				case SEM::Value::SELF: {
@@ -98,7 +101,9 @@ namespace locic {
 							globalArray->setAlignment(1);
 							
 							// Convert array to a pointer.
-							return function.getBuilder().CreateConstGEP2_32(globalArray, 0, 0);
+							return irEmitter.emitConstInBoundsGEP2_32(arrayType,
+							                                          globalArray,
+							                                          0, 0);
 						}
 						
 						default:
@@ -242,7 +247,8 @@ namespace locic {
 								const auto unionDatatypePointers = getUnionDatatypePointers(function, destType, unionValue);
 								
 								// Set the variant kind value.
-								function.getBuilder().CreateStore(ConstantGenerator(module).getI8(variantKind), unionDatatypePointers.first);
+								irEmitter.emitRawStore(ConstantGenerator(module).getI8(variantKind),
+								                       unionDatatypePointers.first);
 								
 								// Store the union value.
 								const auto unionValueType = genType(function.module(), sourceType);
@@ -350,9 +356,12 @@ namespace locic {
 					
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(type)) {
+						const auto objectIRType = genType(module, type);
 						for (size_t i = 0; i < parameterValues.size(); i++) {
 							const auto var = parameterVars.at(i);
-							const auto llvmInsertPointer = function.getBuilder().CreateConstInBoundsGEP2_32(objectValue, 0, i);
+							const auto llvmInsertPointer = irEmitter.emitConstInBoundsGEP2_32(objectIRType,
+							                                                                  objectValue,
+							                                                                  0, i);
 							const auto llvmParamValue = genValue(function, parameterValues.at(i), llvmInsertPointer);
 							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
 						}
@@ -366,7 +375,8 @@ namespace locic {
 							// Align offset for field.
 							offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->type()));
 							
-							const auto llvmInsertPointer = function.getBuilder().CreateInBoundsGEP(castObjectValue, offsetValue);
+							const auto llvmInsertPointer = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+							                                                         castObjectValue, offsetValue);
 							const auto castInsertPointer = function.getBuilder().CreatePointerCast(llvmInsertPointer, genPointerType(module, var->type()));
 							const auto insertHintPointer = function.getBuilder().CreatePointerCast(castInsertPointer, genPointerType(module, parameterValues.at(i).type()));
 							
@@ -443,8 +453,8 @@ namespace locic {
 					
 					if (callInfo.templateGenerator != nullptr) {
 						llvm::Value* functionValue = ConstantGenerator(module).getUndef(genType(module, value.type()));
-						functionValue = function.getBuilder().CreateInsertValue(functionValue, callInfo.functionPtr, { 0 });
-						functionValue = function.getBuilder().CreateInsertValue(functionValue, callInfo.templateGenerator, { 1 });
+						functionValue = irEmitter.emitInsertValue(functionValue, callInfo.functionPtr, { 0 });
+						functionValue = irEmitter.emitInsertValue(functionValue, callInfo.templateGenerator, { 1 });
 						return functionValue;
 					} else {
 						return callInfo.functionPtr;
@@ -458,15 +468,15 @@ namespace locic {
 					
 					if (callInfo.templateGenerator != nullptr) {
 						functionValue = ConstantGenerator(module).getUndef(genType(module, value.type()));
-						functionValue = function.getBuilder().CreateInsertValue(functionValue, callInfo.functionPtr, { 0 });
-						functionValue = function.getBuilder().CreateInsertValue(functionValue, callInfo.templateGenerator, { 1 });
+						functionValue = irEmitter.emitInsertValue(functionValue, callInfo.functionPtr, { 0 });
+						functionValue = irEmitter.emitInsertValue(functionValue, callInfo.templateGenerator, { 1 });
 					} else {
 						functionValue = callInfo.functionPtr;
 					}
 					
 					llvm::Value* methodValue = ConstantGenerator(module).getUndef(genType(module, value.type()));
-					methodValue = function.getBuilder().CreateInsertValue(methodValue, callInfo.contextPointer, { 0 });
-					methodValue = function.getBuilder().CreateInsertValue(methodValue, functionValue, { 1 });
+					methodValue = irEmitter.emitInsertValue(methodValue, callInfo.contextPointer, { 0 });
+					methodValue = irEmitter.emitInsertValue(methodValue, functionValue, { 1 });
 					return methodValue;
 				}
 				
@@ -485,7 +495,9 @@ namespace locic {
 				case SEM::Value::STATICINTERFACEMETHODOBJECT: {
 					const auto& method = value.staticInterfaceMethodObject();
 					const auto typeRefPtr = genValue(function, value.staticInterfaceMethodOwner());
-					const auto typeRef = function.getBuilder().CreateLoad(typeRefPtr);
+					
+					const auto typeRef = irEmitter.emitRawLoad(typeRefPtr,
+					                                           typeInfoType(module).second);
 					
 					assert(method.kind() == SEM::Value::FUNCTIONREF);
 					

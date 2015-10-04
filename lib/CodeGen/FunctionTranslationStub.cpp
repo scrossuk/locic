@@ -6,6 +6,7 @@
 #include <locic/CodeGen/FunctionTranslationStub.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -163,6 +164,7 @@ namespace locic {
 			
 			Function functionGenerator(module, *llvmFunction, translatedArgInfo);
 			auto& builder = functionGenerator.getBuilder();
+			IREmitter irEmitter(functionGenerator);
 			
 			const auto returnVar =
 				argInfo.hasReturnVarArgument() ?
@@ -181,16 +183,17 @@ namespace locic {
 			const auto result = genRawFunctionCall(functionGenerator, argInfo, function, arguments);
 			
 			if (argInfo.hasReturnVarArgument() && !translatedArgInfo.hasReturnVarArgument()) {
-				builder.CreateRet(builder.CreateLoad(returnVar));
+				const auto returnVarType = llvmFunction->getFunctionType()->getReturnType();
+				irEmitter.emitReturn(returnVarType,
+				                     irEmitter.emitRawLoad(returnVar,
+						                           returnVarType));
 			} else {
 				if (llvmTranslatedFunctionType->getReturnType()->isVoidTy()) {
 					builder.CreateRetVoid();
 				} else {
-					if (result->getType()->isPointerTy()) {
-						builder.CreateRet(builder.CreatePointerCast(result, llvmTranslatedFunctionType->getReturnType()));
-					} else {
-						builder.CreateRet(result);
-					}
+					const auto returnVarType = llvmFunction->getFunctionType()->getReturnType();
+					irEmitter.emitReturn(returnVarType,
+					                     result);
 				}
 			}
 			
