@@ -231,33 +231,10 @@ namespace locic {
 		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* const type) {
 			assert(TypeInfo(module).isSizeKnownInThisModule(type));
 			
-			auto& abiContext = module.abiContext();
-			
-			switch (type->primitiveID()) {
-				case PrimitiveRef: {
-					if (type->templateArguments().front().typeRefType()->isInterface()) {
-						return interfaceStructType(module).first;
-					} else {
-						return llvm_abi::Type::Pointer(abiContext);
-					}
-				}
-				case PrimitivePtrLval:
-					return llvm_abi::Type::Pointer(abiContext);
-				case PrimitiveValueLval:
-				case PrimitiveFinalLval:
-					return genABIType(module, type->templateArguments().front().typeRefType());
-				case PrimitiveTypename:
-					return typeInfoType(module).first;
-				case PrimitiveStaticArray: {
-					const auto elementType = genABIType(module, type->templateArguments().front().typeRefType());
-					const auto elementCount = type->templateArguments().back().constant().integerValue();
-					return llvm_abi::Type::Array(abiContext,
-					                             elementCount,
-					                             elementType);
-				}
-				default:
-					return getBasicPrimitiveABIType(module, type->primitiveID());
-			}
+			const auto& primitive = module.getPrimitive(*(type->getObjectType()));
+			return primitive.getABIType(module,
+			                            module.abiContext(),
+			                            arrayRef(type->templateArguments()));
 		}
 		
 	}
