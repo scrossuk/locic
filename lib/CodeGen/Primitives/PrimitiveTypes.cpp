@@ -2,7 +2,6 @@
 
 #include <stdexcept>
 
-#include <locic/Support/String.hpp>
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -12,6 +11,8 @@
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
+
+#include <locic/Support/String.hpp>
 
 namespace locic {
 
