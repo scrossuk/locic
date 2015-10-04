@@ -283,17 +283,16 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::emitLoadDatatypeTag(llvm::Value* const datatypePtr) {
-			const auto tagPtr = functionGenerator_.getBuilder().CreatePointerCast(datatypePtr,
-			                                                                      TypeGenerator(module()).getI8PtrType());
-			return functionGenerator_.getBuilder().CreateLoad(tagPtr);
+			return emitRawLoad(datatypePtr,
+			                   TypeGenerator(module()).getI8Type());
 		}
 		
 		void
 		IREmitter::emitStoreDatatypeTag(llvm::Value* const tagValue,
 		                                llvm::Value* const datatypePtr) {
-			const auto tagPtr = functionGenerator_.getBuilder().CreatePointerCast(datatypePtr,
-			                                                                      TypeGenerator(module()).getI8PtrType());
-			functionGenerator_.getBuilder().CreateStore(tagValue, tagPtr);
+			assert(tagValue->getType()->isIntegerTy(8));
+			assert(datatypePtr->getType()->isPointerTy());
+			emitRawStore(tagValue, datatypePtr);
 		}
 		
 		llvm::Value*
@@ -308,15 +307,15 @@ namespace locic {
 			// Try to use a plain GEP if possible.
 			TypeInfo typeInfo(module());
 			if (typeInfo.isSizeKnownInThisModule(datatypeType)) {
-				datatypeVariantPtr = functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(datatypePtr, 0, 1);
+				datatypeVariantPtr = emitConstInBoundsGEP2_32(genType(module(), datatypeType),
+				                                              datatypePtr,
+				                                              0, 1);
 			} else {
-				const auto castObjectPtr =
-					functionGenerator_.getBuilder().CreatePointerCast(datatypePtr,
-					                                                  TypeGenerator(module()).getI8PtrType());
 				const auto unionAlignValue = genAlignOf(functionGenerator_,
 				                                        datatypeType);
-				datatypeVariantPtr = functionGenerator_.getBuilder().CreateInBoundsGEP(castObjectPtr,
-				                                                                       unionAlignValue);
+				datatypeVariantPtr = emitInBoundsGEP(typeGenerator().getI8Type(),
+				                                     datatypePtr,
+				                                     unionAlignValue);
 			}
 			
 			return functionGenerator_.getBuilder().CreatePointerCast(datatypeVariantPtr,
