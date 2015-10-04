@@ -93,7 +93,18 @@ namespace locic {
 			
 			impl_->executionEngine()->finalizeObject();
 			
-			return impl_->executionEngine()->runFunctionAsMain(function, args, NULL);
+			std::vector<llvm::GenericValue> gvArgs;
+			llvm::GenericValue argc;
+			argc.IntVal = llvm::APInt(32, args.size());
+			gvArgs.push_back(argc);
+			
+			std::vector<const char*> argsArray;
+			for (const auto& arg: args) {
+				argsArray.push_back(arg.c_str());
+			}
+			gvArgs.push_back(llvm::PTOGV(argsArray.data()));
+			
+			return impl_->executionEngine()->runFunction(function, gvArgs).IntVal.getZExtValue();
 		}
 		
 	}

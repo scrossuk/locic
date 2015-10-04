@@ -33,6 +33,7 @@
 #endif
 
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/ExecutionEngine/GenericValue.h>
 
 #if LOCIC_LLVM_VERSION < 306
 #include <llvm/ExecutionEngine/JIT.h>
