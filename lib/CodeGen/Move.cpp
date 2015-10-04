@@ -26,9 +26,10 @@ namespace locic {
 	namespace CodeGen {
 	
 		llvm::Value* makeRawMoveDest(Function& function, llvm::Value* const startDestValue, llvm::Value* const positionValue) {
-			auto& module = function.module();
-			const auto startDestValueI8Ptr = function.getBuilder().CreatePointerCast(startDestValue, TypeGenerator(module).getPtrType());
-			return function.getBuilder().CreateInBoundsGEP(startDestValueI8Ptr, positionValue);
+			IREmitter irEmitter(function);
+			return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+			                                 startDestValue,
+			                                 positionValue);
 		}
 		
 		llvm::Value* makeMoveDest(Function& function, llvm::Value* const startDestValue, llvm::Value* const positionValue, const SEM::Type* type) {

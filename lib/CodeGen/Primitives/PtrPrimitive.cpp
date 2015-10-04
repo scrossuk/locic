@@ -127,14 +127,7 @@ namespace locic {
 					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                               moveToPtr,
 					                                               moveToPosition);
-					
-					const auto irType = this->getIRType(module,
-					                                    irEmitter.typeGenerator(),
-					                                    typeTemplateArguments);
-					
-					const auto castedDestPtr = builder.CreatePointerCast(destPtr,
-					                                                     irType->getPointerTo());
-					builder.CreateStore(methodOwner, castedDestPtr);
+					irEmitter.emitRawStore(methodOwner, destPtr);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_INCREMENT: {
