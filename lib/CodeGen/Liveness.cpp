@@ -132,13 +132,10 @@ namespace locic {
 		
 		llvm::Value* getLivenessBytePtr(Function& function, const SEM::TypeInstance& typeInstance,
 				const LivenessIndicator livenessIndicator, llvm::Value* const objectPointerValue) {
-			auto& module = function.module();
-			auto& builder = function.getBuilder();
 			IREmitter irEmitter(function);
 			const auto byteOffsetValue = getLivenessByteOffset(function, typeInstance, livenessIndicator);
-			const auto startPtr = builder.CreatePointerCast(objectPointerValue, TypeGenerator(module).getPtrType());
 			return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-			                                 startPtr,
+			                                 objectPointerValue,
 			                                 byteOffsetValue);
 		}
 		
