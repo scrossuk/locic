@@ -127,10 +127,12 @@ namespace locic {
 				
 				case SEM::Value::REINTERPRET: {
 					const auto sourceValue = genValue(function, value.reinterpretOperand());
-					const auto targetType = genType(module, value.type());
 					
 					// Currently, reinterpret_cast is only implemented for pointers.
-					return function.getBuilder().CreatePointerCast(sourceValue, targetType);
+					assert(sourceValue->getType()->isPointerTy());
+					assert(genType(module, value.type())->isPointerTy());
+					
+					return sourceValue;
 				}
 				
 				case SEM::Value::DEREF_REFERENCE: {
@@ -200,7 +202,7 @@ namespace locic {
 					
 					if (ifTrueValue->stripPointerCasts() == ifFalseValue->stripPointerCasts()) {
 						assert(ifTrueValue->getType()->isPointerTy() && ifFalseValue->getType()->isPointerTy());
-						return function.getBuilder().CreatePointerCast(ifTrueValue, genPointerType(module, value.type()));
+						return ifTrueValue;
 					} else {
 						const auto phiNode = function.getBuilder().CreatePHI(ifTrueValue->getType(), 2);
 						phiNode->addIncoming(ifTrueValue, ifTrueReceiveBB);
@@ -251,9 +253,7 @@ namespace locic {
 								                       unionDatatypePointers.first);
 								
 								// Store the union value.
-								const auto unionValueType = genType(function.module(), sourceType);
-								const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
-								genMoveStore(function, codeValue, castedUnionValuePtr, sourceType);
+								genMoveStore(function, codeValue, unionDatatypePointers.second, sourceType);
 								
 								return genMoveLoad(function, unionValue, destType);
 							}
@@ -305,17 +305,12 @@ namespace locic {
 							return rawValue;
 						}
 						
-						// Cast class pointer to pointer to the opaque struct
-						// representing destination interface type.
-						const auto objectPointer = function.getBuilder().CreatePointerCast(rawValue,
-									TypeGenerator(module).getPtrType());
-						
 						// Generate the vtable and template generator.
 						const auto vtablePointer = genVTable(module, sourceTarget->resolveAliases()->getObjectType());
 						const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(sourceTarget));
 						
 						// Build the new interface struct with these values.
-						return makeInterfaceStructValue(function, objectPointer, makeTypeInfoValue(function, vtablePointer, templateGenerator));
+						return makeInterfaceStructValue(function, rawValue, makeTypeInfoValue(function, vtablePointer, templateGenerator));
 					} else {
 						llvm_unreachable("Poly cast type must be ref or staticref.");
 					}
@@ -366,7 +361,6 @@ namespace locic {
 							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
 						}
 					} else {
-						const auto castObjectValue = function.getBuilder().CreatePointerCast(objectValue, TypeGenerator(module).getPtrType());
 						llvm::Value* offsetValue = ConstantGenerator(module).getSizeTValue(0);
 						
 						for (size_t i = 0; i < parameterValues.size(); i++) {
@@ -376,13 +370,10 @@ namespace locic {
 							offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->type()));
 							
 							const auto llvmInsertPointer = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-							                                                         castObjectValue, offsetValue);
-							const auto castInsertPointer = function.getBuilder().CreatePointerCast(llvmInsertPointer, genPointerType(module, var->type()));
-							const auto insertHintPointer = function.getBuilder().CreatePointerCast(castInsertPointer, genPointerType(module, parameterValues.at(i).type()));
+							                                                         objectValue, offsetValue);
+							const auto llvmParamValue = genValue(function, parameterValues.at(i), llvmInsertPointer);
 							
-							const auto llvmParamValue = genValue(function, parameterValues.at(i), insertHintPointer);
-							
-							genStoreVar(function, llvmParamValue, castInsertPointer, var);
+							genStoreVar(function, llvmParamValue, llvmInsertPointer, var);
 							
 							if ((i + 1) != parameterValues.size()) {
 								// If this isn't the last field, add its size for calculating
@@ -523,12 +514,8 @@ namespace locic {
 					                               /*returnType=*/value.type(),
 					                               /*parameterTypes=*/{});
 					
-					const auto argInfo = getFunctionArgInfo(module, functionType);
-					const auto functionPtrType = argInfo.makeFunctionType()->getPointerTo();
-					
 					FunctionCallInfo callInfo;
-					callInfo.functionPtr = function.getBuilder().CreatePointerCast(valueEntry,
-					                                                               functionPtrType);
+					callInfo.functionPtr = valueEntry;
 					
 					return genFunctionCall(function,
 					                       functionType,
