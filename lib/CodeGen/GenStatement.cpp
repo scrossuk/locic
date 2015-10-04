@@ -117,8 +117,7 @@ namespace locic {
 					const auto var = statement.getInitialiseVar();
 					const auto varAllocaOptional = function.getLocalVarMap().tryGet(var);
 					const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
-					const auto castVarAlloca = varAlloca != nullptr ? function.getBuilder().CreatePointerCast(varAlloca, genPointerType(module, var->constructType())) : nullptr;
-					const auto value = genValue(function, statement.getInitialiseValue(), castVarAlloca);
+					const auto value = genValue(function, statement.getInitialiseValue(), varAlloca);
 					genVarInitialise(function, var, value);
 					return;
 				}
@@ -292,14 +291,11 @@ namespace locic {
 						
 						function.selectBasicBlock(caseBB);
 						
-						const auto unionValueType = genType(function.module(), caseType);
-						const auto castedUnionValuePtr = function.getBuilder().CreatePointerCast(unionDatatypePointers.second, unionValueType->getPointerTo());
-						
 						{
 							ScopeLifetime switchCaseLifetime(function);
 							genVarAlloca(function, switchCase->var());
 							genVarInitialise(function, switchCase->var(),
-								genMoveLoad(function, castedUnionValuePtr, switchCase->var()->constructType()));
+								genMoveLoad(function, unionDatatypePointers.second, switchCase->var()->constructType()));
 							genScope(function, switchCase->scope());
 						}
 						
@@ -486,16 +482,13 @@ namespace locic {
 						// If matched, execute catch block and then continue normal execution.
 						{
 							function.selectBasicBlock(executeCatchBB);
-							const auto catchType = genType(function.module(), catchClause->var()->constructType());
 							llvm::Value* const getPtrArgs[] = { thrownExceptionValue };
 							const auto exceptionPtrValue = function.getBuilder().CreateCall(getExceptionPtrFunction(module), getPtrArgs);
 							exceptionPtrValue->setDoesNotAccessMemory();
 							exceptionPtrValue->setDoesNotThrow();
 							
-							const auto castedExceptionValue = function.getBuilder().CreatePointerCast(exceptionPtrValue, catchType->getPointerTo());
-							
 							assert(catchClause->var()->isBasic());
-							function.getLocalVarMap().forceInsert(catchClause->var(), castedExceptionValue);
+							function.getLocalVarMap().forceInsert(catchClause->var(), exceptionPtrValue);
 							
 							{
 								ScopeLifetime catchScopeLifetime(function);
@@ -538,7 +531,6 @@ namespace locic {
 					const auto throwType = statement.getThrowValue().type();
 					
 					const auto exceptionValue = genValue(function, statement.getThrowValue());
-					const auto exceptionType = genType(module, throwType);
 					
 					// Allocate space for exception.
 					const auto allocateFunction = getExceptionAllocateFunction(module);
@@ -547,15 +539,13 @@ namespace locic {
 					const auto allocatedException = function.getBuilder().CreateCall(allocateFunction, exceptArgs);
 					
 					// Store value into allocated space.
-					const auto castedAllocatedException = function.getBuilder().CreatePointerCast(allocatedException, exceptionType->getPointerTo());
-					genMoveStore(function, exceptionValue, castedAllocatedException, throwType);
+					genMoveStore(function, exceptionValue, allocatedException, throwType);
 					
 					// Call 'throw' function.
 					const auto throwFunction = getExceptionThrowFunction(module);
 					const auto throwTypeInfo = genThrowInfo(module, throwType->getObjectType());
-					const auto castedTypeInfo = function.getBuilder().CreatePointerCast(throwTypeInfo, TypeGenerator(module).getPtrType());
 					const auto nullPtr = ConstantGenerator(module).getNull(TypeGenerator(module).getPtrType());
-					llvm::Value* const args[] = { allocatedException, castedTypeInfo, nullPtr };
+					llvm::Value* const args[] = { allocatedException, throwTypeInfo, nullPtr };
 					
 					if (anyUnwindActions(function, UnwindStateThrow)) {
 						// Create throw and nothrow paths.
