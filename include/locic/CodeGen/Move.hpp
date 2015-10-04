@@ -23,15 +23,7 @@ namespace locic {
 		 * This just adds the position value to the destination start value
 		 * (which is a pointer to the beginning of the top-most object being moved).
 		 */
-		llvm::Value* makeRawMoveDest(Function& function, llvm::Value* startDestValue, llvm::Value* positionValue);
-		
-		/**
-		 * \brief Make an T* to a move destination.
-		 * 
-		 * This is a convenience method that casts the result of makeRawMoveDest
-		 * to a pointer to a generated SEM type.
-		 */
-		llvm::Value* makeMoveDest(Function& function, llvm::Value* startDestValue, llvm::Value* positionValue, const SEM::Type* type);
+		llvm::Value* makeMoveDest(Function& function, llvm::Value* startDestValue, llvm::Value* positionValue);
 		
 		/**
 		 * \brief Move a value by loading it from a memory location.

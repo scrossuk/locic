@@ -24,17 +24,12 @@
 namespace locic {
 
 	namespace CodeGen {
-	
-		llvm::Value* makeRawMoveDest(Function& function, llvm::Value* const startDestValue, llvm::Value* const positionValue) {
+		
+		llvm::Value* makeMoveDest(Function& function, llvm::Value* const startDestValue, llvm::Value* const positionValue) {
 			IREmitter irEmitter(function);
 			return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 			                                 startDestValue,
 			                                 positionValue);
-		}
-		
-		llvm::Value* makeMoveDest(Function& function, llvm::Value* const startDestValue, llvm::Value* const positionValue, const SEM::Type* type) {
-			const auto rawMoveDest = makeRawMoveDest(function, startDestValue, positionValue);
-			return function.getBuilder().CreatePointerCast(rawMoveDest, genPointerType(function.module(), type));
 		}
 		
 		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
@@ -88,7 +83,7 @@ namespace locic {
 		}
 		
 		void genBasicMove(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue) {
-			const auto destValue = makeMoveDest(function, startDestValue, positionValue, type);
+			const auto destValue = makeMoveDest(function, startDestValue, positionValue);
 			const auto loadedValue = genLoad(function, sourceValue, type);
 			genStore(function, loadedValue, destValue, type);
 		}
