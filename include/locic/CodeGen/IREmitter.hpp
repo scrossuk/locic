@@ -39,6 +39,79 @@ namespace locic {
  			TypeGenerator typeGenerator();
 			
 			llvm::Value*
+			emitRawLoad(llvm::Value* valuePtr, llvm::Type* type);
+			
+			void
+			emitRawStore(llvm::Value* value, llvm::Value* var);
+			
+			llvm::Value*
+			emitInBoundsGEP(llvm::Type* type,
+			                llvm::Value* ptrValue,
+			                llvm::Value* indexValue);
+			
+			llvm::Value*
+			emitInBoundsGEP(llvm::Type* type,
+			                llvm::Value* ptrValue,
+			                llvm::ArrayRef<llvm::Value*> indexArray);
+			
+			llvm::Value*
+			emitConstInBoundsGEP2_32(llvm::Type* type,
+			                         llvm::Value* ptrValue,
+			                         unsigned index0,
+			                         unsigned index1);
+			
+			llvm::Value*
+			emitInsertValue(llvm::Value* aggregate,
+			                llvm::Value* value,
+			                llvm::ArrayRef<unsigned> indexArray);
+			
+			void
+			emitMemSet(llvm::Value* ptr,
+			           llvm::Value* value,
+			           uint64_t size,
+			           unsigned align);
+			
+			void
+			emitMemSet(llvm::Value* ptr,
+			           llvm::Value* value,
+			           llvm::Value* sizeValue,
+			           unsigned align);
+			
+			void
+			emitMemCpy(llvm::Value* dest,
+			           llvm::Value* src,
+			           uint64_t size,
+			           unsigned align);
+			
+			void
+			emitMemCpy(llvm::Value* dest,
+			           llvm::Value* src,
+			           llvm::Value* sizeValue,
+			           unsigned align);
+			
+			llvm::CallInst*
+			emitCall(llvm::FunctionType* functionType,
+			         llvm::Value* callee,
+			         llvm::ArrayRef<llvm::Value*> args);
+			
+			llvm::InvokeInst*
+			emitInvoke(llvm::FunctionType* functionType,
+			           llvm::Value* callee,
+			           llvm::BasicBlock* normalDest,
+			           llvm::BasicBlock* unwindDest,
+			           llvm::ArrayRef<llvm::Value*> args);
+			
+			llvm::InvokeInst*
+			emitInvoke(llvm::Value* callee,
+			           llvm::BasicBlock* normalDest,
+			           llvm::BasicBlock* unwindDest,
+			           llvm::ArrayRef<llvm::Value*> args);
+			
+			llvm::ReturnInst*
+			emitReturn(llvm::Type* type,
+			           llvm::Value* value);
+			
+			llvm::Value*
 			emitAlignMask(const SEM::Type* type);
 			
 			llvm::Value*

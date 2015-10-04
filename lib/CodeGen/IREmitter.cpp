@@ -37,6 +37,210 @@ namespace locic {
 		}
 		
 		llvm::Value*
+		IREmitter::emitRawLoad(llvm::Value* const valuePtr,
+		                       llvm::Type* const type) {
+			assert(valuePtr->getType()->isPointerTy());
+			const auto castVar = functionGenerator_.getBuilder().CreatePointerCast(valuePtr,
+			                                                                       type->getPointerTo());
+			return functionGenerator_.getBuilder().CreateLoad(castVar);
+		}
+		
+		void
+		IREmitter::emitRawStore(llvm::Value* const value,
+		                        llvm::Value* const var) {
+			assert(var->getType()->isPointerTy());
+			const auto castVar = functionGenerator_.getBuilder().CreatePointerCast(var,
+			                                                                       value->getType()->getPointerTo());
+			(void) functionGenerator_.getBuilder().CreateStore(value,
+			                                                   castVar);
+		}
+		
+		llvm::Value*
+		IREmitter::emitInBoundsGEP(llvm::Type* const type,
+		                           llvm::Value* const ptrValue,
+		                           llvm::Value* const indexValue) {
+			assert(ptrValue->getType()->isPointerTy());
+			assert(indexValue->getType()->isIntegerTy());
+			const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(ptrValue,
+			                                                                         type->getPointerTo());
+			return functionGenerator_.getBuilder().CreateInBoundsGEP(castValue,
+			                                                         indexValue);
+		}
+		
+		llvm::Value*
+		IREmitter::emitInBoundsGEP(llvm::Type* const type,
+		                           llvm::Value* const ptrValue,
+		                           llvm::ArrayRef<llvm::Value*> indexArray) {
+			assert(ptrValue->getType()->isPointerTy());
+			const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(ptrValue,
+			                                                                         type->getPointerTo());
+			return functionGenerator_.getBuilder().CreateInBoundsGEP(castValue,
+			                                                         indexArray);
+		}
+		
+		llvm::Value*
+		IREmitter::emitConstInBoundsGEP2_32(llvm::Type* const type,
+		                                    llvm::Value* const ptrValue,
+		                                    const unsigned index0,
+		                                    const unsigned index1) {
+			assert(ptrValue->getType()->isPointerTy());
+			const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(ptrValue,
+			                                                                         type->getPointerTo());
+			return functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(castValue,
+			                                                                  index0,
+			                                                                  index1);
+		}
+		
+		llvm::Value*
+		IREmitter::emitInsertValue(llvm::Value* const aggregate,
+		                           llvm::Value* const value,
+		                           llvm::ArrayRef<unsigned> indexArray) {
+			assert(aggregate->getType()->isAggregateType());
+			const auto indexType = llvm::ExtractValueInst::getIndexedType(aggregate->getType(),
+			                                                              indexArray);
+			if (indexType->isPointerTy()) {
+				assert(value->getType()->isPointerTy());
+				const auto castValue = builder().CreatePointerCast(value,
+				                                                   indexType);
+				return builder().CreateInsertValue(aggregate,
+				                                   castValue,
+				                                   indexArray);
+			} else {
+				assert(!value->getType()->isPointerTy());
+				return builder().CreateInsertValue(aggregate,
+				                                   value,
+				                                   indexArray);
+			}
+		}
+		
+		void
+		IREmitter::emitMemSet(llvm::Value* const ptr,
+		                      llvm::Value* const value,
+		                      const uint64_t size,
+		                      const unsigned align) {
+			assert(ptr->getType()->isPointerTy());
+			const auto castPtr = builder().CreatePointerCast(ptr,
+			                                                 typeGenerator().getPtrType());
+			builder().CreateMemSet(castPtr, value, size, align);
+		}
+		
+		void
+		IREmitter::emitMemSet(llvm::Value* const ptr,
+		                      llvm::Value* const value,
+		                      llvm::Value* const sizeValue,
+		                      const unsigned align) {
+			assert(ptr->getType()->isPointerTy());
+			const auto castPtr = builder().CreatePointerCast(ptr,
+			                                                 typeGenerator().getPtrType());
+			builder().CreateMemSet(castPtr, value, sizeValue, align);
+		}
+		
+		void
+		IREmitter::emitMemCpy(llvm::Value* const dest,
+		                      llvm::Value* const src,
+		                      const uint64_t size,
+		                      const unsigned align) {
+			assert(dest->getType()->isPointerTy());
+			assert(src->getType()->isPointerTy());
+			const auto castDest = builder().CreatePointerCast(dest,
+			                                                  typeGenerator().getPtrType());
+			const auto castSrc = builder().CreatePointerCast(src,
+			                                                 typeGenerator().getPtrType());
+			builder().CreateMemCpy(castDest, castSrc, size, align);
+		}
+		
+		void
+		IREmitter::emitMemCpy(llvm::Value* const dest,
+		                      llvm::Value* const src,
+		                      llvm::Value* const sizeValue,
+		                      const unsigned align) {
+			assert(dest->getType()->isPointerTy());
+			assert(src->getType()->isPointerTy());
+			const auto castDest = builder().CreatePointerCast(dest,
+			                                                  typeGenerator().getPtrType());
+			const auto castSrc = builder().CreatePointerCast(src,
+			                                                 typeGenerator().getPtrType());
+			builder().CreateMemCpy(castDest, castSrc, sizeValue, align);
+		}
+		
+		llvm::CallInst*
+		IREmitter::emitCall(llvm::FunctionType* const functionType,
+		                    llvm::Value* const callee,
+		                    llvm::ArrayRef<llvm::Value*> args) {
+			assert(callee->getType()->isPointerTy());
+			const auto castCallee = functionGenerator_.getBuilder().CreatePointerCast(callee,
+			                                                                          functionType->getPointerTo());
+			
+			// Cast all pointers to required types.
+			llvm::SmallVector<llvm::Value*, 10> newArgs;
+			newArgs.reserve(args.size());
+			for (size_t i = 0; i < functionType->getNumParams(); i++) {
+				const auto& arg = args[i];
+				if (arg->getType()->isPointerTy()) {
+					assert(functionType->getParamType(i)->isPointerTy());
+					newArgs.push_back(builder().CreatePointerCast(arg,
+					                                              functionType->getParamType(i)));
+				} else {
+					assert(!functionType->getParamType(i)->isPointerTy());
+					newArgs.push_back(arg);
+				}
+			}
+			
+			for (size_t i = functionType->getNumParams(); i < args.size(); i++) {
+				newArgs.push_back(args[i]);
+			}
+			
+			return builder().CreateCall(castCallee, newArgs);
+		}
+		
+		llvm::InvokeInst*
+		IREmitter::emitInvoke(llvm::FunctionType* const functionType,
+		                      llvm::Value* const callee,
+		                      llvm::BasicBlock* const normalDest,
+		                      llvm::BasicBlock* const unwindDest,
+		                      llvm::ArrayRef<llvm::Value*> args) {
+			assert(callee->getType()->isPointerTy());
+			const auto castCallee = functionGenerator_.getBuilder().CreatePointerCast(callee,
+			                                                                          functionType->getPointerTo());
+			
+			// Cast all pointers to required types.
+			llvm::SmallVector<llvm::Value*, 10> newArgs;
+			newArgs.reserve(args.size());
+			for (size_t i = 0; i < functionType->getNumParams(); i++) {
+				const auto& arg = args[i];
+				if (arg->getType()->isPointerTy()) {
+					assert(functionType->getParamType(i)->isPointerTy());
+					newArgs.push_back(builder().CreatePointerCast(arg,
+					                                              functionType->getParamType(i)));
+				} else {
+					assert(!functionType->getParamType(i)->isPointerTy());
+					newArgs.push_back(arg);
+				}
+			}
+			
+			for (size_t i = functionType->getNumParams(); i < args.size(); i++) {
+				newArgs.push_back(args[i]);
+			}
+			
+			return builder().CreateInvoke(castCallee,
+			                              normalDest,
+			                              unwindDest,
+			                              newArgs);
+		}
+		
+		llvm::ReturnInst*
+		IREmitter::emitReturn(llvm::Type* const type,
+		                      llvm::Value* const value) {
+			if (value->getType()->isPointerTy()) {
+				assert(type->isPointerTy());
+				return builder().CreateRet(builder().CreatePointerCast(value, type));
+			} else {
+				assert(!type->isPointerTy());
+				return builder().CreateRet(value);
+			}
+		}
+		
+		llvm::Value*
 		IREmitter::emitAlignMask(const SEM::Type* const type) {
 			return genAlignMask(functionGenerator_, type);
 		}
