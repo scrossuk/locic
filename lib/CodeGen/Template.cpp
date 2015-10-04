@@ -124,7 +124,7 @@ namespace locic {
 			const auto structType = typeGen.getForwardDeclaredStructType(name);
 			
 			llvm::SmallVector<llvm::Type*, 2> structMembers;
-			structMembers.push_back(vtableType(module)->getPointerTo());
+			structMembers.push_back(typeGen.getPtrType());
 			structMembers.push_back(templateGeneratorType(module).second);
 			structType->setBody(structMembers);
 			return structType;
@@ -417,8 +417,6 @@ namespace locic {
 		ArgInfo intermediateFunctionArgInfo(Module& module) {
 			auto& abiContext = module.abiContext();
 			
-			const auto rootFunctionType = rootFunctionArgInfo(module).makeFunctionType();
-			
 			std::vector<TypePair> argTypes;
 			argTypes.reserve(5);
 			
@@ -426,7 +424,7 @@ namespace locic {
 			argTypes.push_back(typeInfoArrayType(module));
 			
 			// Root function pointer.
-			argTypes.push_back(std::make_pair(llvm_abi::Type::Pointer(abiContext), rootFunctionType->getPointerTo()));
+			argTypes.push_back(pointerTypePair(module));
 			
 			// Root function context pointer.
 			argTypes.push_back(pointerTypePair(module));
