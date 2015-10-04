@@ -144,25 +144,17 @@ namespace locic {
 				
 				const auto argInfo = getStubArgInfo(function.module());
 				
-				// Cast the loaded pointer to the stub function type.
-				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
-				
-				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
-				
-				// i8
-				const auto i8PtrType = TypeGenerator(function.module()).getPtrType();
-				
 				// Put together the arguments.
 				llvm::SmallVector<llvm::Value*, 5> parameters;
 				
 				// Pass in the return var pointer.
-				parameters.push_back(builder.CreatePointerCast(returnVarPointer, i8PtrType, "castedReturnVarPtr"));
+				parameters.push_back(returnVarPointer);
 				
 				// Pass in the template generator.
 				parameters.push_back(methodComponents.object.typeInfo.templateGenerator);
 				
 				// Pass in the object pointer.
-				parameters.push_back(builder.CreatePointerCast(methodComponents.object.objectPointer, i8PtrType, "castedObjectPtr"));
+				parameters.push_back(methodComponents.object.objectPointer);
 				
 				// Pass in the method hash value.
 				parameters.push_back(methodComponents.hashValue);
@@ -170,10 +162,10 @@ namespace locic {
 				// Store all the arguments into a struct on the stack,
 				// and pass the pointer to the stub.
 				const auto argsStructPtr = makeArgsStruct(function, arrayRef(functionType.parameterTypes()), args);
-				parameters.push_back(builder.CreatePointerCast(argsStructPtr, i8PtrType, "castedArgsStructPtr"));
+				parameters.push_back(argsStructPtr);
 				
 				// Call the stub function.
-				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, parameters);
+				(void) genRawFunctionCall(function, argInfo, methodFunctionPointer, parameters);
 			}
 			
 			llvm::Value* generateCall(Function& function, const SEM::FunctionType functionType, const VirtualMethodComponents methodComponents,
@@ -220,10 +212,8 @@ namespace locic {
 				// Load the slot.
 				const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 				                                                         irEmitter.typeGenerator().getPtrType());
-				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
-				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
-				return genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, { templateGeneratorValue });
+				return genRawFunctionCall(function, argInfo, methodFunctionPointer, { templateGeneratorValue });
 			}
 			
 			ArgInfo virtualMoveArgInfo(Module& module) {
@@ -257,11 +247,9 @@ namespace locic {
 				// Load the slot.
 				const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 				                                                         irEmitter.typeGenerator().getPtrType());
-				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
-				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				llvm::Value* const args[] = { templateGeneratorValue, sourceValue, destValue, positionValue };
-				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args);
+				(void) genRawFunctionCall(function, argInfo, methodFunctionPointer, args);
 			}
 			
 			ArgInfo virtualDestructorArgInfo(Module& module) {
@@ -293,11 +281,9 @@ namespace locic {
 				// Load the slot.
 				const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 				                                                         irEmitter.typeGenerator().getPtrType());
-				const auto stubFunctionPtrType = argInfo.makeFunctionType()->getPointerTo();
-				const auto castedMethodFunctionPointer = builder.CreatePointerCast(methodFunctionPointer, stubFunctionPtrType, "castedMethodFunctionPointer");
 				
 				llvm::Value* const args[] = { templateGeneratorValue, objectValue };
-				(void) genRawFunctionCall(function, argInfo, castedMethodFunctionPointer, args);
+				(void) genRawFunctionCall(function, argInfo, methodFunctionPointer, args);
 			}
 			
 			llvm::Constant* generateVTableSlot(Module& module, const SEM::TypeInstance* typeInstance, llvm::ArrayRef<SEM::Function*> methods) {
@@ -319,7 +305,7 @@ namespace locic {
 				IREmitter irEmitter(function);
 				
 				const auto llvmHashValue = function.getArg(0);
-				const auto llvmOpaqueArgsStructPtr = function.getArg(1);
+				const auto llvmArgsStructPtr = function.getArg(1);
 				
 				auto& builder = function.getBuilder();
 				
@@ -349,9 +335,7 @@ namespace locic {
 					// If the function uses a return value pointer, just pass
 					// the pointer we received from our caller.
 					if (argInfo.hasReturnVarArgument()) {
-						const auto returnVarType = genPointerType(module, returnType);
-						const auto castReturnVar = builder.CreatePointerCast(function.getReturnVar(), returnVarType, "castReturnVar");
-						parameters.push_back(castReturnVar);
+						parameters.push_back(function.getReturnVar());
 					}
 					
 					// If type is templated, pass the template generator.
@@ -370,27 +354,23 @@ namespace locic {
 					// containing i8* for each parameter.
 					llvm::SmallVector<llvm::Type*, 10> llvmArgsTypes(numArgs, TypeGenerator(module).getPtrType());
 					
-					const auto llvmArgsStructPtrType = typeGen.getStructType(llvmArgsTypes)->getPointerTo();
-					
-					// Cast the args struct pointer.
-					const auto llvmArgsStructPtr = builder.CreatePointerCast(llvmOpaqueArgsStructPtr, llvmArgsStructPtrType, "castedArgsStructPtr");
+					const auto llvmArgsStructType = typeGen.getStructType(llvmArgsTypes);
 					
 					// Extract the arguments.
 					for (size_t offset = 0; offset < numArgs; offset++) {
 						const auto& paramType = paramTypes.at(offset);
 						
-						const auto argPtrPtr = irEmitter.emitConstInBoundsGEP2_32(typeGen.getStructType(llvmArgsTypes),
+						const auto argPtrPtr = irEmitter.emitConstInBoundsGEP2_32(llvmArgsStructType,
 						                                                          llvmArgsStructPtr,
 						                                                          0, offset);
 						const auto argPtr = irEmitter.emitRawLoad(argPtrPtr,
 						                                          irEmitter.typeGenerator().getPtrType());
-						const auto castArgPtr = builder.CreatePointerCast(argPtr, genPointerType(module, paramType));
 						
 						if (canPassByValue(module, paramType)) {
-							parameters.push_back(irEmitter.emitRawLoad(castArgPtr,
+							parameters.push_back(irEmitter.emitRawLoad(argPtr,
 							                                           genType(module, paramType)));
 						} else {
-							parameters.push_back(castArgPtr);
+							parameters.push_back(argPtr);
 						}
 					}
 					
