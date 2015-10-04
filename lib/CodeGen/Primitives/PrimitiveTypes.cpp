@@ -7,7 +7,9 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
@@ -15,82 +17,14 @@
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
+	
 	namespace CodeGen {
 		
-		llvm::Type* getFunctionPointerType(Module& module, const SEM::FunctionType functionType) {
-			const auto functionPtrType = genFunctionType(module, functionType)->getPointerTo();
-			if (functionType.attributes().isTemplated()) {
-				llvm::Type* const memberTypes[] = {
-					functionPtrType,
-					templateGeneratorType(module).second
-				};
-				return TypeGenerator(module).getStructType(memberTypes);
-			} else {
-				return functionPtrType;
-			}
-		}
-		
 		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* const type) {
-			switch (type->primitiveID()) {
-				case PrimitiveRef: {
-					const auto argType = type->templateArguments().front().typeRefType();
-					if (argType->isTemplateVar() && argType->getTemplateVar()->isVirtual()) {
-						// Unknown whether the argument type is virtual, so use an opaque struct type.
-						const auto iterator = module.typeInstanceMap().find(type->getObjectType());
-						if (iterator != module.typeInstanceMap().end()) {
-							return iterator->second;
-						}
-						
-						const auto structType = TypeGenerator(module).getForwardDeclaredStructType(module.getCString("ref_t"));
-						
-						module.typeInstanceMap().insert(std::make_pair(type->getObjectType(), structType));
-						return structType;
-					} else if (type->templateArguments().front().typeRefType()->isInterface()) {
-						// Argument type is definitely virtual.
-						return interfaceStructType(module).second;
-					} else {
-						// Argument type is definitely not virtual.
-						return genPointerType(module, type->templateArguments().front().typeRefType());
-					}
-				}
-				case PrimitivePtr:
-				case PrimitivePtrLval:
-					return genPointerType(module, type->templateArguments().front().typeRefType());
-				case PrimitiveFunctionPtr:
-				case PrimitiveMethodFunctionPtr:
-				case PrimitiveVarArgFunctionPtr:
-				case PrimitiveTemplatedFunctionPtr:
-				case PrimitiveTemplatedMethodFunctionPtr: {
-					return getFunctionPointerType(module, type->asFunctionType());
-				}
-				case PrimitiveMethod:
-				case PrimitiveTemplatedMethod: {
-					llvm::Type* const memberTypes[] = {
-						TypeGenerator(module).getPtrType(),
-						getFunctionPointerType(module, type->asFunctionType())
-					};
-					return TypeGenerator(module).getStructType(memberTypes);
-				}
-				case PrimitiveInterfaceMethod: {
-					return interfaceMethodType(module).second;
-				}
-				case PrimitiveStaticInterfaceMethod: {
-					return staticInterfaceMethodType(module).second;
-				}
-				case PrimitiveValueLval:
-				case PrimitiveFinalLval: {
-					return genType(module, type->templateArguments().front().typeRefType());
-				}
-				case PrimitiveStaticArray: {
-					const auto elementType = genType(module, type->templateArguments().front().typeRefType());
-					const auto elementCount = type->templateArguments().back().constant().integerValue();
-					return TypeGenerator(module).getArrayType(elementType,
-					                                          elementCount);
-				}
-				default:
-					return getBasicPrimitiveType(module, type->primitiveID());
-			}
+			const auto& primitive = module.getPrimitive(*(type->getObjectType()));
+			return primitive.getIRType(module,
+			                           TypeGenerator(module),
+			                           arrayRef(type->templateArguments()));
 		}
 		
 		llvm_abi::IntegerKind primitiveABIIntegerKind(const PrimitiveID id) {
