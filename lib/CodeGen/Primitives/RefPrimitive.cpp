@@ -162,7 +162,7 @@ namespace locic {
 				
 				// If the VTable pointer is NULL, it's a virtual type, which
 				// means we are larger (to store the type information etc.).
-				const auto nullVtablePtr = ConstantGenerator(module).getNullPointer(vtableType(module)->getPointerTo());
+				const auto nullVtablePtr = ConstantGenerator(module).getNullPointer();
 				const auto isVirtualCondition = function.getBuilder().CreateICmpEQ(argVTablePointer, nullVtablePtr, "isVirtual");
 				
 				const auto ifVirtualBlock = function.createBasicBlock("ifRefVirtual");

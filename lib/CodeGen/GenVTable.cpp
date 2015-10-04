@@ -53,7 +53,7 @@ namespace locic {
 			if (typeInstance->isInterface()) {
 				// Interfaces are abstract types so can't have a vtable;
 				// we return a NULL pointer to signify this.
-				return ConstantGenerator(module).getNullPointer(llvmVtableType->getPointerTo());
+				return ConstantGenerator(module).getNullPointer();
 			}
 			
 			const auto mangledName = module.getCString("__type_vtable_") + mangleObjectType(module, typeInstance);

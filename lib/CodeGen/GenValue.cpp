@@ -56,7 +56,7 @@ namespace locic {
 				case SEM::Value::CONSTANT: {
 					switch (value.constant().kind()) {
 						case locic::Constant::NULLVAL:
-							return ConstantGenerator(module).getNullPointer(TypeGenerator(module).getPtrType());
+							return ConstantGenerator(module).getNullPointer();
 									   
 						case locic::Constant::BOOLEAN:
 							return ConstantGenerator(module).getI1(value.constant().boolValue());

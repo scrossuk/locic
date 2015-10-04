@@ -83,14 +83,14 @@ namespace locic {
 				assert(argTypes.size() == args.size());
 				
 				auto& module = function.module();
-				const auto i8PtrType = TypeGenerator(module).getPtrType();
+				const auto ptrType = TypeGenerator(module).getPtrType();
 				
 				if (args.empty()) {
 					// Don't allocate struct when it's not needed.
-					return ConstantGenerator(module).getNullPointer(i8PtrType);
+					return ConstantGenerator(module).getNullPointer();
 				}
 				
-				llvm::SmallVector<llvm::Type*, 10> llvmArgTypes(args.size(), i8PtrType);
+				llvm::SmallVector<llvm::Type*, 10> llvmArgTypes(args.size(), ptrType);
 				const auto argsStructType = TypeGenerator(function.module()).getStructType(llvmArgTypes);
 				
 				const auto argsStructPtr = function.getEntryBuilder().CreateAlloca(argsStructType);
@@ -174,12 +174,11 @@ namespace locic {
 				const bool hasReturnVar = !returnType->isBuiltInVoid();
 				
 				ConstantGenerator constGen(function.module());
-				const auto i8PtrType = TypeGenerator(function.module()).getPtrType();
 				
 				// If the return type isn't void, allocate space on the stack for the return value.
 				const auto returnVarValue = hasReturnVar ?
 					genAlloca(function, returnType, hintResultValue) :
-					constGen.getNullPointer(i8PtrType);
+					constGen.getNullPointer();
 				
 				generateCallWithReturnVar(function, functionType, returnVarValue, methodComponents, args);
 				
@@ -291,7 +290,7 @@ namespace locic {
 				TypeGenerator typeGen(module);
 				
 				if (methods.empty()) {
-					return constGen.getNullPointer(typeGen.getPtrType());
+					return constGen.getNullPointer();
 				}
 				
 				const auto stubArgInfo = getStubArgInfo(module);

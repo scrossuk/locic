@@ -226,7 +226,7 @@ namespace locic {
 				
 				llvm::Constant* const values[] = {
 						constGen.getPointerCast(rootFunction, TypeGenerator(module).getPtrType()),
-						constGen.getNullPointer(TypeGenerator(module).getPtrType()),
+						constGen.getNullPointer(),
 						constGen.getI32(1)
 					};
 				return constGen.getStruct(templateGeneratorLLVMType(module), values);

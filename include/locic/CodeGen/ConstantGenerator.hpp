@@ -24,7 +24,7 @@ namespace locic {
 				
 				llvm::Constant* getNull(llvm::Type* type) const;
 				
-				llvm::ConstantPointerNull* getNullPointer(llvm::PointerType* pointerType) const;
+				llvm::ConstantPointerNull* getNullPointer() const;
 				
 				llvm::ConstantInt* getInt(size_t sizeInBits, long long intValue) const;
 				

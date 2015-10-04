@@ -24,8 +24,8 @@ namespace locic {
 			return llvm::Constant::getNullValue(type);
 		}
 		
-		llvm::ConstantPointerNull* ConstantGenerator::getNullPointer(llvm::PointerType* pointerType) const {
-			return llvm::ConstantPointerNull::get(pointerType);
+		llvm::ConstantPointerNull* ConstantGenerator::getNullPointer() const {
+			return llvm::ConstantPointerNull::get(TypeGenerator(module_).getPtrType());
 		}
 		
 		llvm::ConstantInt* ConstantGenerator::getInt(size_t sizeInBits, long long intValue) const {
