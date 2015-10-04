@@ -72,8 +72,6 @@ namespace locic {
 					initialiseValue = initialisePtr;
 				}
 				
-				const auto castInitialiseValue = function.getBuilder().CreatePointerCast(initialiseValue, TypeGenerator(module).getPtrType());
-				
 				// For composite variables, extract each member of
 				// the type and assign it to its variable.
 				for (size_t i = 0; i < var->children().size(); i++) {
@@ -82,8 +80,7 @@ namespace locic {
 					const auto childInitialiseValue = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                                            initialiseValue,
 					                                                            memberOffsetValue);
-					const auto castChildInitialiseValue = function.getBuilder().CreatePointerCast(childInitialiseValue, genPointerType(module, childVar->constructType()));
-					const auto loadedChildInitialiseValue = genMoveLoad(function, castChildInitialiseValue, childVar->constructType());
+					const auto loadedChildInitialiseValue = genMoveLoad(function, childInitialiseValue, childVar->constructType());
 					genVarInitialise(function, childVar, loadedChildInitialiseValue);
 				}
 			} else {
