@@ -37,12 +37,9 @@ namespace locic {
 						assert(!llvmType->isVoidTy());
 						return function.getBuilder().CreateAlloca(llvmType);
 					} else {
-						const auto alloca =
-							function.getEntryBuilder().CreateAlloca(
+						return function.getEntryBuilder().CreateAlloca(
 								TypeGenerator(module).getI8Type(),
 								genSizeOf(function, type));
-						return function.getBuilder().CreatePointerCast(alloca,
-							genPointerType(module, type));
 					}
 				}
 				
