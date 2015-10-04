@@ -109,11 +109,9 @@ namespace locic {
 					                                   elementType);
 					const auto indexPos = builder.CreateMul(elementSize,
 					                                        elementIndex);
-					const auto elementPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                                  arrayPtr,
-					                                                  indexPos);
-					return builder.CreatePointerCast(elementPtr,
-					                                 genPointerType(module, elementType));
+					return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                 arrayPtr,
+					                                 indexPos);
 				}
 			}
 			
@@ -338,17 +336,14 @@ namespace locic {
 						                                 methodOwner,
 						                                 operand);
 					} else {
-						const auto castMethodOwner = builder.CreatePointerCast(methodOwner,
-						                                                       TypeGenerator(module).getPtrType());
 						const auto elementSize = genSizeOf(function,
 						                                   elementType);
 						const auto indexPos = builder.CreateMul(elementSize,
 						                                        operand);
 						const auto elementPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-						                                                  castMethodOwner,
+						                                                  methodOwner,
 						                                                  indexPos);
-						return builder.CreatePointerCast(elementPtr,
-						                                 genPointerType(module, elementType));
+						return elementPtr;
 					}
 				}
 				default:

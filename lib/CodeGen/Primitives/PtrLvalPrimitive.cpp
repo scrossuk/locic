@@ -80,7 +80,6 @@ namespace locic {
 		                                          llvm::ArrayRef<SEM::Value> typeTemplateArguments,
 		                                          llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
 		                                          PendingResultArray args) const {
-			auto& builder = irEmitter.builder();
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			

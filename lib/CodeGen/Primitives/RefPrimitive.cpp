@@ -137,14 +137,6 @@ namespace locic {
 					getNotVirtualLLVMType(module, type);
 			}
 			
-			llvm::Value* fixRefType(Function& function, llvm::Value* const value, llvm::Type* const type, llvm::Type* const fixType) {
-				if (value->getType()->isPointerTy() && value->getType()->getPointerElementType() == type) {
-					return function.getBuilder().CreatePointerCast(value, fixType->getPointerTo());
-				} else {
-					return value;
-				}
-			}
-			
 			template <typename Fn>
 			llvm::Value* genRefPrimitiveMethodForVirtualCases(Function& function, const SEM::Type* const type, Fn f) {
 				auto& module = function.module();
@@ -181,12 +173,12 @@ namespace locic {
 				
 				function.selectBasicBlock(ifVirtualBlock);
 				const auto virtualType = getVirtualRefLLVMType(module);
-				const auto virtualResult = fixRefType(function, f(virtualType), virtualType, genType(module, type));
+				const auto virtualResult = f(virtualType);
 				function.getBuilder().CreateBr(mergeBlock);
 				
 				function.selectBasicBlock(ifNotVirtualBlock);
 				const auto notVirtualType = getNotVirtualLLVMType(module, type);
-				const auto notVirtualResult = fixRefType(function, f(notVirtualType), notVirtualType, genType(module, type));
+				const auto notVirtualResult = f(notVirtualType);
 				function.getBuilder().CreateBr(mergeBlock);
 				
 				function.selectBasicBlock(mergeBlock);
@@ -249,9 +241,7 @@ namespace locic {
 							                             llvmType);
 						}
 					} else {
-						auto& builder = function_.getBuilder();
-						const auto pointerType = llvmType->getPointerTo();
-						return builder.CreatePointerCast(value_, pointerType);
+						return value_;
 					}
 				}
 				

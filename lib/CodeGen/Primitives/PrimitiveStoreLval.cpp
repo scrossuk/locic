@@ -22,11 +22,7 @@ namespace locic {
 			
 			const auto id = varType->primitiveID();
 			if (id == PrimitiveValueLval || id == PrimitiveFinalLval) {
-				auto& module = function.module();
-				auto& builder = function.getBuilder();
-				
-				const auto targetPtr = builder.CreatePointerCast(var, genPointerType(module, varType->lvalTarget()));
-				genMoveStore(function, value, targetPtr, varType->lvalTarget());
+				genMoveStore(function, value, var, varType->lvalTarget());
 			} else {
 				llvm_unreachable("Unknown primitive lval kind.");
 			}

@@ -130,15 +130,10 @@ namespace locic {
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
 					
-					const auto irType = this->getIRType(module,
-					                                    irEmitter.typeGenerator(),
-					                                    typeTemplateArguments);
-					
 					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                               moveToPtr,
 					                                               moveToPosition);
-					const auto castedDestPtr = builder.CreatePointerCast(destPtr, irType->getPointerTo());
-					irEmitter.emitRawStore(methodOwner, castedDestPtr);
+					irEmitter.emitRawStore(methodOwner, destPtr);
 					return constantGenerator.getVoidUndef();
 				}
 				case METHOD_CREATE:

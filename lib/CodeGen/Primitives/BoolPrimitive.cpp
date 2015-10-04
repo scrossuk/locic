@@ -92,7 +92,6 @@ namespace locic {
 			                                    std::move(valueArray));
 			
 			const auto& constantGenerator = irEmitter.constantGenerator();
-			const auto& typeGenerator = irEmitter.typeGenerator();
 			
 			switch (methodID) {
 				case METHOD_CREATE: {
@@ -121,16 +120,11 @@ namespace locic {
 					const auto moveToPosition = args[2].resolve(function);
 					const auto methodOwner = args[0].resolveWithoutBind(function);
 					
-					const auto irType = this->getIRType(module,
-					                                    typeGenerator,
-					                                    typeTemplateArguments);
 					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                               moveToPtr,
 					                                               moveToPosition);
-					const auto castedDestPtr = irEmitter.builder().CreatePointerCast(destPtr,
-					                                                                 irType->getPointerTo());
 					irEmitter.emitMoveStore(methodOwner,
-					                        castedDestPtr,
+					                        destPtr,
 					                        type);
 					return constantGenerator.getVoidUndef();
 				}

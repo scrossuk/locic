@@ -186,7 +186,6 @@ namespace locic {
 			}
 			
 			llvm::Value* genFunctionPtrMoveToMethod(Function& function, const SEM::Type* const type, PendingResultArray args) {
-				auto& builder = function.getBuilder();
 				auto& module = function.module();
 				IREmitter irEmitter(function);
 				
@@ -198,9 +197,7 @@ namespace locic {
 				const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 				                                               moveToPtr,
 				                                               moveToPosition);
-				const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, type));
-				
-				genMoveStore(function, methodOwner, castedDestPtr, type);
+				genMoveStore(function, methodOwner, destPtr, type);
 				return ConstantGenerator(module).getVoidUndef();
 			}
 			

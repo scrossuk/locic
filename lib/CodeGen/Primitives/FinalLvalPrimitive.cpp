@@ -85,7 +85,6 @@ namespace locic {
 		                                            llvm::ArrayRef<SEM::Value> typeTemplateArguments,
 		                                            llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
 		                                            PendingResultArray args) const {
-			auto& builder = irEmitter.builder();
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
@@ -115,17 +114,13 @@ namespace locic {
 					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                               moveToPtr,
 					                                               moveToPosition);
-					const auto castedDestPtr = builder.CreatePointerCast(destPtr, genPointerType(module, targetType));
-					
-					const auto targetPtr = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-					const auto loadedValue = genMoveLoad(function, targetPtr, targetType);
-					genMoveStore(function, loadedValue, castedDestPtr, targetType);
+					const auto loadedValue = genMoveLoad(function, methodOwner, targetType);
+					genMoveStore(function, loadedValue, destPtr, targetType);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_ADDRESS:
 				case METHOD_DISSOLVE: {
-					const auto methodOwner = args[0].resolve(function);
-					return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+					return args[0].resolve(function);
 				}
 				case METHOD_SETVALUE: {
 					const auto operand = args[1].resolve(function);

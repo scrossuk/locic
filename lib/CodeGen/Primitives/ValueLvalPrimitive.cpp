@@ -85,15 +85,11 @@ namespace locic {
 			}
 			
 			llvm::Value* genValueLvalCreateMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args, llvm::Value* const hintResultValue) {
-				auto& builder = functionGenerator.getBuilder();
-				auto& module = functionGenerator.module();
-				
 				const auto objectVar = genAlloca(functionGenerator, targetType, hintResultValue);
 				const auto operand = args[0].resolve(functionGenerator, hintResultValue);
 				
 				// Store the object.
-				const auto targetPtr = builder.CreatePointerCast(objectVar, genPointerType(module, targetType));
-				genMoveStore(functionGenerator, operand, targetPtr, targetType);
+				genMoveStore(functionGenerator, operand, objectVar, targetType);
 				return genMoveLoad(functionGenerator, objectVar, targetType);
 			}
 			
@@ -117,66 +113,42 @@ namespace locic {
 			}
 			
 			llvm::Value* genValueLvalMoveToMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
-				auto& builder = functionGenerator.getBuilder();
 				auto& module = functionGenerator.module();
-				
-				TypeInfo typeInfo(module);
-				const bool typeSizeIsKnown = typeInfo.isSizeKnownInThisModule(targetType);
 				
 				const auto destValue = args[1].resolve(functionGenerator);
 				const auto positionValue = args[2].resolve(functionGenerator);
 				const auto sourceValue = args[0].resolve(functionGenerator);
 				
-				const auto castType = typeSizeIsKnown ? genPointerType(module, targetType) : TypeGenerator(module).getPtrType();
-				const auto sourceObjectPointer = builder.CreatePointerCast(sourceValue, castType);
-				const auto destObjectPointer = builder.CreatePointerCast(destValue, castType);
-				
-				genMoveCall(functionGenerator, targetType, sourceObjectPointer, destObjectPointer, positionValue);
+				genMoveCall(functionGenerator, targetType, sourceValue, destValue, positionValue);
 				return ConstantGenerator(module).getVoidUndef();
 			}
 			
-			llvm::Value* genValueLvalAddressMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
-				auto& builder = functionGenerator.getBuilder();
-				auto& module = functionGenerator.module();
-				
-				const auto methodOwner = args[0].resolve(functionGenerator);
-				return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+			llvm::Value* genValueLvalAddressMethod(Function& functionGenerator, PendingResultArray args) {
+				return args[0].resolve(functionGenerator);
 			}
 			
-			llvm::Value* genValueLvalDissolveMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
-				auto& builder = functionGenerator.getBuilder();
-				auto& module = functionGenerator.module();
-				
-				const auto methodOwner = args[0].resolve(functionGenerator);
-				return builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
+			llvm::Value* genValueLvalDissolveMethod(Function& functionGenerator, PendingResultArray args) {
+				return args[0].resolve(functionGenerator);
 			}
 			
 			llvm::Value* genValueLvalMoveMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args, llvm::Value* const hintResultValue) {
-				auto& builder = functionGenerator.getBuilder();
-				auto& module = functionGenerator.module();
-				
 				const auto methodOwner = args[0].resolve(functionGenerator);
 				
-				const auto targetPointer = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-				
 				const auto returnValuePtr = genAlloca(functionGenerator, targetType, hintResultValue);
-				const auto loadedValue = genMoveLoad(functionGenerator, targetPointer, targetType);
+				const auto loadedValue = genMoveLoad(functionGenerator, methodOwner, targetType);
 				genMoveStore(functionGenerator, loadedValue, returnValuePtr, targetType);
 				
 				return genMoveLoad(functionGenerator, returnValuePtr, targetType);
 			}
 			
 			llvm::Value* genValueLvalAssignMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
-				auto& builder = functionGenerator.getBuilder();
 				auto& module = functionGenerator.module();
 				
 				const auto operand = args[1].resolve(functionGenerator);
 				const auto methodOwner = args[0].resolve(functionGenerator);
 				
-				const auto targetPointer = builder.CreatePointerCast(methodOwner, genPointerType(module, targetType));
-				
-				genDestructorCall(functionGenerator, targetType, targetPointer);
-				genMoveStore(functionGenerator, operand, targetPointer, targetType);
+				genDestructorCall(functionGenerator, targetType, methodOwner);
+				genMoveStore(functionGenerator, operand, methodOwner, targetType);
 				return ConstantGenerator(module).getVoidUndef();
 			}
 			
@@ -212,9 +184,9 @@ namespace locic {
 				case METHOD_MOVETO:
 					return genValueLvalMoveToMethod(functionGenerator, targetType, std::move(args));
 				case METHOD_ADDRESS:
-					return genValueLvalAddressMethod(functionGenerator, targetType, std::move(args));
+					return genValueLvalAddressMethod(functionGenerator, std::move(args));
 				case METHOD_DISSOLVE:
-					return genValueLvalDissolveMethod(functionGenerator, targetType, std::move(args));
+					return genValueLvalDissolveMethod(functionGenerator, std::move(args));
 				case METHOD_MOVE:
 					return genValueLvalMoveMethod(functionGenerator, targetType, std::move(args), irEmitter.hintResultValue());
 				case METHOD_ASSIGN:

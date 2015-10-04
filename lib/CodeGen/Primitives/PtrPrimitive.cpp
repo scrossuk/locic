@@ -85,19 +85,16 @@ namespace locic {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
-			const auto ptrType = irEmitter.typeGenerator().getPtrType();
+			const auto irType = irEmitter.typeGenerator().getPtrType();
 			
 			const auto targetType = typeTemplateArguments.front().typeRefType();
 			const auto methodOwnerPointer = methodID.isConstructor() ? nullptr : args[0].resolve(function);
 			const auto methodOwner = methodOwnerPointer != nullptr ?
-			                         irEmitter.emitRawLoad(methodOwnerPointer, genPointerType(module, targetType)) :
+			                         irEmitter.emitRawLoad(methodOwnerPointer, irType) :
 			                         nullptr;
 			
 			switch (methodID) {
 				case METHOD_NULL: {
-					const auto irType = this->getIRType(module,
-					                                    irEmitter.typeGenerator(),
-					                                    typeTemplateArguments);
 					return ConstantGenerator(module).getNull(irType);
 				}
 				case METHOD_ALIGNMASK: {
@@ -139,7 +136,6 @@ namespace locic {
 						                                                  one);
 						irEmitter.emitRawStore(newPointer, methodOwnerPointer);
 					} else {
-						const auto i8BasePtr = builder.CreatePointerCast(methodOwner, TypeGenerator(module).getPtrType());
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto newPointer = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 						                                                  methodOwner,
