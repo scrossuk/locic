@@ -177,11 +177,8 @@ namespace locic {
 			const auto generatorPath = builder.CreateExtractValue(generatorValue, { 2 }, "path");
 			
 			const auto argInfo = rootFunctionArgInfo(function.module());
-			const auto functionType = argInfo.makeFunctionType();
-			const auto castRootFn = builder.CreateBitCast(generatorRootFn, functionType->getPointerTo(), "castRootFn");
-			
 			llvm::Value* const args[] = { contextPointer, generatorPath };
-			const auto callResult = genRawFunctionCall(function, argInfo, castRootFn, args);
+			const auto callResult = genRawFunctionCall(function, argInfo, generatorRootFn, args);
 			callResult->setName("templateArgs");
 			return callResult;
 		}
