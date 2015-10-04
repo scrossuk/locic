@@ -100,7 +100,7 @@ namespace locic {
 			}
 			
 			if (translatedArgInfo.hasContextArgument()) {
-				args.push_back(functionGenerator.getRawContextValue());
+				args.push_back(functionGenerator.getContextValue());
 			}
 			
 			const auto& parameterTypes = functionType.parameterTypes();

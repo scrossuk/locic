@@ -226,13 +226,9 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* Function::getRawContextValue() const {
+		llvm::Value* Function::getContextValue() const {
 			assert(argInfo_.hasContextArgument());
 			return getRawArg(argInfo_.contextArgumentOffset());
-		}
-		
-		llvm::Value* Function::getContextValue(const SEM::TypeInstance* const typeInstance) {
-			return getBuilder().CreatePointerCast(getRawContextValue(), genPointerType(module(), typeInstance->selfType()));
 		}
 		
 		TemplateBuilder& Function::templateBuilder() {

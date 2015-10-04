@@ -259,8 +259,8 @@ namespace locic {
 			
 			const auto typeInfoValue = functionGenerator.getBuilder().CreateExtractValue(functionGenerator.getTemplateArgs(), { (unsigned) templateVar->index() });
 			
-			const auto i8PtrT = TypeGenerator(module_).getPtrType();
-			const auto contextPointer = argInfo.hasContextArgument() ? functionGenerator.getRawContextValue() : ConstantGenerator(module_).getNull(i8PtrT);
+			const auto ptrType = TypeGenerator(module_).getPtrType();
+			const auto contextPointer = argInfo.hasContextArgument() ? functionGenerator.getContextValue() : ConstantGenerator(module_).getNull(ptrType);
 			
 			const auto methodHash = CreateMethodNameHash(functionName);
 			const auto methodHashValue = ConstantGenerator(module_).getI64(methodHash);

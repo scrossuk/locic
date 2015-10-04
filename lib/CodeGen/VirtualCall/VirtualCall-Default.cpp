@@ -345,7 +345,7 @@ namespace locic {
 					
 					// If this is not a static method, pass the object pointer.
 					if (argInfo.hasContextArgument()) {
-						parameters.push_back(function.getRawContextValue());
+						parameters.push_back(function.getContextValue());
 					}
 					
 					const auto numArgs = functionType.parameterTypes().size();

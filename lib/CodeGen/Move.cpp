@@ -154,7 +154,7 @@ namespace locic {
 			functionGenerator.setDebugPosition(moveSEMFunction->debugInfo()->scopeLocation.range().start());
 			
 			genRawFunctionCall(functionGenerator, moveArgInfo(module, typeInstance), moveFunction,
-				std::vector<llvm::Value*> { functionGenerator.getRawContextValue(), functionGenerator.getArg(0), functionGenerator.getArg(1) });
+				std::vector<llvm::Value*> { functionGenerator.getContextValue(), functionGenerator.getArg(0), functionGenerator.getArg(1) });
 			
 			functionGenerator.getBuilder().CreateRetVoid();
 			

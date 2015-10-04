@@ -170,7 +170,7 @@ namespace locic {
 			PendingResultArray args;
 			const auto contextValue =
 				argInfo.hasContextArgument() ?
-					function.getContextValue(typeInstance) :
+					function.getContextValue() :
 					nullptr;
 			RefPendingResult contextPendingResult(contextValue, typeInstance->selfType());
 			if (argInfo.hasContextArgument()) {

@@ -49,11 +49,9 @@ namespace locic {
 			IREmitter irEmitter(function, hintResultValue);
 			
 			switch (value.kind()) {
-				case SEM::Value::SELF: {
-					return function.getContextValue(value.type()->refTarget()->getObjectType());
-				}
+				case SEM::Value::SELF:
 				case SEM::Value::THIS: {
-					return function.getContextValue(value.type()->templateArguments().at(0).typeRefType()->getObjectType());
+					return function.getContextValue();
 				}
 				case SEM::Value::CONSTANT: {
 					switch (value.constant().kind()) {

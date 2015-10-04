@@ -144,7 +144,7 @@ namespace locic {
 			function.attachDebugInfo(debugInfo);
 			function.setDebugPosition(getDebugDestructorPosition(module, typeInstance));
 			
-			genRawFunctionCall(function, destructorArgInfo(module, typeInstance), destructorFunction, std::vector<llvm::Value*> { function.getRawContextValue() });
+			genRawFunctionCall(function, destructorArgInfo(module, typeInstance), destructorFunction, std::vector<llvm::Value*> { function.getContextValue() });
 			
 			function.getBuilder().CreateRetVoid();
 			
