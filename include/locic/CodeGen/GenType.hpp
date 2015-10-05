@@ -20,9 +20,9 @@ namespace locic {
 		
 		llvm::Type* genType(Module& module, const SEM::Type* type);
 		
-		llvm::DIType genDebugFunctionType(Module& module, SEM::FunctionType type);
+		DISubroutineType genDebugFunctionType(Module& module, SEM::FunctionType type);
 		
-		llvm::DIType genDebugType(Module& module, const SEM::Type* type);
+		DIType genDebugType(Module& module, const SEM::Type* type);
 		
 	}
 	

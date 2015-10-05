@@ -55,7 +55,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::DIType genDebugFunctionType(Module& module, SEM::FunctionType type) {
+		DISubroutineType genDebugFunctionType(Module& module, SEM::FunctionType type) {
 			// TODO!
 			const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
 			
@@ -69,7 +69,7 @@ namespace locic {
 			return module.debugBuilder().createFunctionType(file, parameterTypes);
 		}
 		
-		llvm::DIType genObjectDebugType(Module& module, const SEM::Type* const type) {
+		DIType genObjectDebugType(Module& module, const SEM::Type* const type) {
 			const auto objectType = type->getObjectType();
 			const auto debugInfo = objectType->debugInfo();
 			
@@ -84,7 +84,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::DIType genPrimitiveDebugType(Module& module, const SEM::Type* const type) {
+		DIType genPrimitiveDebugType(Module& module, const SEM::Type* const type) {
 			switch (type->primitiveID()) {
 				case PrimitiveVoid:
 					return module.debugBuilder().createVoidType();
@@ -134,7 +134,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::DIType genDebugType(Module& module, const SEM::Type* const type) {
+		DIType genDebugType(Module& module, const SEM::Type* const type) {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
 					if (type->isPrimitive()) {
