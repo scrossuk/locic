@@ -42,7 +42,7 @@ namespace locic {
 			std::unique_ptr<Module> releaseModule() {
 				auto releasedValue = std::move(module_);
 				module_ = std::unique_ptr<Module>();
-				return std::move(releasedValue);
+				return releasedValue;
 			}
 			
 		private:

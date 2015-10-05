@@ -82,7 +82,7 @@ namespace locic {
 		std::unique_ptr<llvm::Module> Module::releaseLLVMModule() {
 			auto releasedValue = std::move(module_);
 			module_ = std::unique_ptr<llvm::Module>();
-			return std::move(releasedValue);
+			return releasedValue;
 		}
 		
 		llvm::Module& Module::getLLVMModule() const {
