@@ -104,6 +104,8 @@ namespace locic {
 					return new StaticArrayPrimitive(typeInstance);
 				}
 			}
+			
+			llvm_unreachable("Invalid PrimitiveID.");
 		}
 		
 		PrimitiveMap::PrimitiveMap() { }

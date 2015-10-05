@@ -375,7 +375,7 @@ namespace locic {
 				const auto zero = ConstantGenerator(module_).getI8(0);
 				unwindState_ = getEntryBuilder().CreateAlloca(i8Type, nullptr, "unwindState");
 				
-				SetUseEntryBuilder setUseEntryBuilder(*this);
+				SetUseEntryBuilder useEntryBuilder(*this);
 				IREmitter irEmitter(*this);
 				irEmitter.emitRawStore(zero, unwindState_);
 			}
@@ -412,11 +412,11 @@ namespace locic {
 			return builder_.getCurrentDebugLocation();
 		}
 		
-		void Function::setPersonalityFunction(llvm::Constant* const personalityFunction) {
+		void Function::setPersonalityFunction(llvm::Constant* const argPersonalityFunction) {
 #if LOCIC_LLVM_VERSION >= 307
-			function_.setPersonalityFn(personalityFunction);
+			function_.setPersonalityFn(argPersonalityFunction);
 #else
-			personalityFunction_ = personalityFunction;
+			personalityFunction_ = argPersonalityFunction;
 #endif
 		}
 		
