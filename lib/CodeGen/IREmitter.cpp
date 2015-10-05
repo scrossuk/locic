@@ -240,6 +240,20 @@ namespace locic {
 			}
 		}
 		
+		llvm::LandingPadInst*
+		IREmitter::emitLandingPad(llvm::StructType* const type,
+		                          const unsigned numClauses) {
+			assert(functionGenerator_.personalityFunction() != nullptr);
+#if LOCIC_LLVM_VERSION >= 307
+			return functionGenerator_.getBuilder().CreateLandingPad(type,
+			                                                        numClauses);
+#else
+			return functionGenerator_.getBuilder().CreateLandingPad(type,
+			                                                        functionGenerator_.personalityFunction(),
+			                                                        numClauses);
+#endif
+		}
+		
 		llvm::Value*
 		IREmitter::emitAlignMask(const SEM::Type* const type) {
 			return genAlignMask(functionGenerator_, type);

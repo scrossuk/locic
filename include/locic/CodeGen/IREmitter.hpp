@@ -111,6 +111,10 @@ namespace locic {
 			emitReturn(llvm::Type* type,
 			           llvm::Value* value);
 			
+			llvm::LandingPadInst*
+			emitLandingPad(llvm::StructType* type,
+			               unsigned numClauses);
+			
 			llvm::Value*
 			emitAlignMask(const SEM::Type* type);
 			
