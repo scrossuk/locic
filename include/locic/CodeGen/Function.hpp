@@ -193,6 +193,10 @@ namespace locic {
 				
 				llvm::DebugLoc getDebugLoc() const;
 				
+				void setPersonalityFunction(llvm::Constant* personalityFunction);
+				
+				llvm::Constant* personalityFunction() const;
+				
 			private:
 				// Non-copyable.
 				Function(const Function&) = delete;
@@ -218,6 +222,11 @@ namespace locic {
 				std::stack<UnwindStack> unwindStackStack_;
 				
 				llvm::DISubprogram debugInfo_;
+				
+#if LOCIC_LLVM_VERSION < 307
+				llvm::Constant* personalityFunction_;
+#endif
+				
 				std::vector<llvm::Value*> argValues_;
 				
 				llvm::Value* exceptionInfo_;

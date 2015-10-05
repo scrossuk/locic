@@ -47,8 +47,9 @@ namespace locic {
 			  useEntryBuilder_(false),
 			  argInfo_(argInfo),
 			  templateBuilder_(pTemplateBuilder),
-#if LOCIC_LLVM_VERSION < 307
 			  debugInfo_(nullptr),
+#if LOCIC_LLVM_VERSION < 307
+			  personalityFunction_(nullptr),
 #endif
 			  exceptionInfo_(nullptr),
 			  returnValuePtr_(nullptr),
@@ -409,6 +410,22 @@ namespace locic {
 		
 		llvm::DebugLoc Function::getDebugLoc() const {
 			return builder_.getCurrentDebugLocation();
+		}
+		
+		void Function::setPersonalityFunction(llvm::Constant* const personalityFunction) {
+#if LOCIC_LLVM_VERSION >= 307
+			function_.setPersonalityFn(personalityFunction);
+#else
+			personalityFunction_ = personalityFunction;
+#endif
+		}
+		
+		llvm::Constant* Function::personalityFunction() const {
+#if LOCIC_LLVM_VERSION >= 307
+			return function_.getPersonalityFn();
+#else
+			return personalityFunction_;
+#endif
 		}
 		
 	}
