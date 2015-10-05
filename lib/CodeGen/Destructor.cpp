@@ -80,7 +80,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::DISubprogram genDebugDestructorFunction(Module& module, const SEM::TypeInstance& typeInstance, llvm::Function* const function) {
+		DISubprogram genDebugDestructorFunction(Module& module, const SEM::TypeInstance& typeInstance, llvm::Function* const function) {
 			const auto& typeInstanceInfo = *(typeInstance.debugInfo());
 			
 			const auto position = getDebugDestructorPosition(module, typeInstance);

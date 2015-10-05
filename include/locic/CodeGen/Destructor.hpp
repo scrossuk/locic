@@ -20,7 +20,7 @@ namespace locic {
 		
 		Debug::SourcePosition getDebugDestructorPosition(Module& module, const SEM::TypeInstance& typeInstance);
 		
-		llvm::DISubprogram genDebugDestructorFunction(Module& module, const SEM::TypeInstance& typeInstance, llvm::Function* const function);
+		DISubprogram genDebugDestructorFunction(Module& module, const SEM::TypeInstance& typeInstance, llvm::Function* const function);
 		
 		llvm::Function* genDestructorFunctionDecl(Module& module, const SEM::TypeInstance& typeInstance);
 		
