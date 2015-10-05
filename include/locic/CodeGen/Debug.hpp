@@ -39,35 +39,50 @@ namespace locic {
 				
 				void finalize();
 				
-				llvm::DICompileUnit createCompileUnit(const DebugCompileUnit& compileUnit);
+				DICompileUnit createCompileUnit(const DebugCompileUnit& compileUnit);
 				
-				llvm::DICompileUnit compileUnit() const;
+				DICompileUnit compileUnit() const;
 				
-				llvm::DIFile createFile(const std::string& path);
+				DIFile createFile(const std::string& path);
 				
-				llvm::DISubprogram createFunction(llvm::DIFile file, unsigned int lineNumber,
-					bool isInternal, bool isDefinition, const Name& name,
-					llvm::DIType functionType, llvm::Function* function);
+				DISubprogram createFunction(DIFile file,
+				                            unsigned int lineNumber,
+				                            bool isInternal,
+				                            bool isDefinition,
+				                            const Name& name,
+				                            DISubroutineType functionType,
+				                            llvm::Function* function);
 				
-				llvm::DIVariable createVar(llvm::DIDescriptor scope, bool isParam, const String& name, llvm::DIFile file, unsigned lineNumber, llvm::DIType type);
+				DILocalVariable createVar(DIScope scope,
+				                          bool isParam,
+				                          const String& name,
+				                          DIFile file,
+				                          unsigned lineNumber,
+				                          DIType type);
 				
-				llvm::DIType createUnspecifiedType(const String& name);
+				DIType createUnspecifiedType(const String& name);
 				
-				llvm::DIType createVoidType();
+				DIType createVoidType();
 				
-				llvm::DIType createNullType();
+				DIType createNullType();
 				
-				llvm::DIType createReferenceType(llvm::DIType type);
+				DIType createReferenceType(DIType type);
 				
-				llvm::DIType createPointerType(llvm::DIType type);
+				DIType createPointerType(DIType type);
 				
-				llvm::DIType createIntType(PrimitiveID primitiveID);
+				DIType createIntType(PrimitiveID primitiveID);
 				
-				llvm::DIType createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name);
+				DIType createObjectType(DIFile file,
+				                        unsigned int lineNumber,
+				                        const Name& name);
 				
-				llvm::DIType createFunctionType(llvm::DIFile file, const std::vector<LLVMMetadataValue*>& parameters);
+				DISubroutineType createFunctionType(DIFile file,
+				                                    const std::vector<LLVMMetadataValue*>& parameters);
 				
-				llvm::Instruction* insertVariableDeclare(Function& function, llvm::DIVariable variable, llvm::Value* varValue);
+				llvm::Instruction* insertVariableDeclare(Function& function,
+				                                         DILocalVariable variable,
+				                                         llvm::DebugLoc location,
+				                                         llvm::Value* varValue);
 				
 			private:
 				Module& module_;
@@ -77,18 +92,30 @@ namespace locic {
 		
 		std::pair<std::string, std::string> splitPath(const std::string& path);
 		
-		llvm::DISubprogram genDebugFunction(Module& module, const Debug::FunctionInfo& functionInfo, llvm::DIType functionType,
-			llvm::Function* function, bool isInternal, bool isDefinition);
+		DISubprogram genDebugFunction(Module& module,
+		                              const Debug::FunctionInfo& functionInfo,
+		                              DISubroutineType functionType,
+		                              llvm::Function* function,
+		                              bool isInternal,
+		                              bool isDefinition);
 		
-		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, const SEM::Function* function, llvm::Function* llvmFunction);
+		Optional<DISubprogram> genDebugFunctionInfo(Module& module,
+		                                            const SEM::Function* function,
+		                                            llvm::Function* llvmFunction);
 		
-		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue);
+		llvm::Instruction* genDebugVar(Function& function,
+		                               const Debug::VarInfo& varInfo,
+		                               DIType type,
+		                               llvm::Value* varValue);
 		
-		llvm::DebugLoc getDebugLocation(Function& function, const Debug::SourceLocation& debugSourceLocation);
+		llvm::DebugLoc getDebugLocation(Function& function,
+		                                const Debug::SourceLocation& debugSourceLocation);
 		
-		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function, const SEM::Function& semFunction);
+		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function,
+		                                                  const SEM::Function& semFunction);
 		
-		Optional<llvm::DebugLoc> getValueDebugLocation(Function& function, const SEM::Value& value);
+		Optional<llvm::DebugLoc> getValueDebugLocation(Function& function,
+		                                               const SEM::Value& value);
 		
 	}
 	

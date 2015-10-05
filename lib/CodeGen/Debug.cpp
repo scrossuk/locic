@@ -36,57 +36,75 @@ namespace locic {
 			builder_.finalize();
 		}
 		
-		llvm::DICompileUnit DebugBuilder::createCompileUnit(const DebugCompileUnit& compileUnitInfo) {
+		DICompileUnit DebugBuilder::createCompileUnit(const DebugCompileUnit& compileUnitInfo) {
 			const unsigned language = llvm::dwarf::DW_LANG_lo_user;
 			const bool isOptimized = false;
 			const unsigned runtimeVersion = 0;
-			builder_.createCompileUnit(language, compileUnitInfo.fileName, compileUnitInfo.directoryName,
-				compileUnitInfo.compilerName, isOptimized, compileUnitInfo.flags, runtimeVersion);
+			builder_.createCompileUnit(language,
+			                           compileUnitInfo.fileName,
+			                           compileUnitInfo.directoryName,
+			                           compileUnitInfo.compilerName,
+			                           isOptimized,
+			                           compileUnitInfo.flags,
+			                           runtimeVersion);
 			return compileUnit();
 		}
 		
-		llvm::DICompileUnit DebugBuilder::compileUnit() const {
+		DICompileUnit DebugBuilder::compileUnit() const {
 			const auto namedNode = module_.getLLVMModule().getNamedMetadata("llvm.dbg.cu");
 			assert(namedNode != nullptr);
 			const auto node = namedNode->getOperand(0);
 			assert(node != nullptr);
-			return llvm::DICompileUnit(node);
+			return DICompileUnit(node);
 		}
 		
-		llvm::DIFile DebugBuilder::createFile(const std::string& path) {
+		DIFile DebugBuilder::createFile(const std::string& path) {
 			const auto components = splitPath(path);
 			return builder_.createFile(components.second, components.first);
 		}
 		
-		llvm::DISubprogram DebugBuilder::createFunction(llvm::DIFile file, const unsigned int lineNumber,
-				const bool isInternal, const bool isDefinition, const Name& name,
-				llvm::DIType functionType, llvm::Function* const function) {
+		DISubprogram DebugBuilder::createFunction(DIFile file,
+		                                          const unsigned int lineNumber,
+		                                          const bool isInternal,
+		                                          const bool isDefinition,
+		                                          const Name& name,
+		                                          DISubroutineType functionType,
+		                                          llvm::Function* const function) {
 			assert(function != nullptr);
 			const bool isLocalToUnit = isInternal;
 			const auto scopeLine = lineNumber;
-			const auto flags = llvm::DIDescriptor::FlagPrototyped;
+			const auto flags = DINode::FlagPrototyped;
 			const bool isOptimised = false;
 			
 			return builder_.createFunction(file, name.toString(false), "",
-				file, lineNumber, llvm::DICompositeType(functionType),
+				file, lineNumber, functionType,
 				isLocalToUnit, isDefinition, scopeLine,
 				flags, isOptimised, function);
 		}
 		
-		llvm::DIVariable DebugBuilder::createVar(llvm::DIDescriptor scope, bool isParam, const String& name, llvm::DIFile file, unsigned lineNumber, llvm::DIType type) {
+		DILocalVariable DebugBuilder::createVar(DIScope scope,
+		                                        bool isParam,
+		                                        const String& name,
+		                                        DIFile file,
+		                                        unsigned lineNumber,
+		                                        DIType type) {
 			const auto tag = isParam ? llvm::dwarf::DW_TAG_arg_variable : llvm::dwarf::DW_TAG_auto_variable;
 			return builder_.createLocalVariable(tag, scope, name.c_str(), file, lineNumber, type);
 		}
 		
-		llvm::DIType DebugBuilder::createUnspecifiedType(const String& name) {
+		DIType DebugBuilder::createUnspecifiedType(const String& name) {
 			return builder_.createUnspecifiedType(name.c_str());
 		}
 		
-		llvm::DIType DebugBuilder::createVoidType() {
+		DIType DebugBuilder::createVoidType() {
+#if LOCIC_LLVM_VERSION >= 307
+			return builder_.createUnspecifiedType("void");
+#else
 			return llvm::DIType();
+#endif
 		}
 		
-		llvm::DIType DebugBuilder::createNullType() {
+		DIType DebugBuilder::createNullType() {
 #if LOCIC_LLVM_VERSION < 304
 			return builder_.createNullPtrType("null");
 #else
@@ -94,16 +112,16 @@ namespace locic {
 #endif
 		}
 		
-		llvm::DIType DebugBuilder::createReferenceType(llvm::DIType type) {
+		DIType DebugBuilder::createReferenceType(DIType type) {
 			return builder_.createReferenceType(llvm::dwarf::DW_TAG_reference_type, type);
 		}
 		
-		llvm::DIType DebugBuilder::createPointerType(llvm::DIType type) {
+		DIType DebugBuilder::createPointerType(DIType type) {
 			const auto pointerSize = module_.abi().typeSize(llvm_abi::Type::Pointer(module_.abiContext()));
 			return builder_.createPointerType(type, pointerSize);
 		}
 		
-		llvm::DIType DebugBuilder::createIntType(const PrimitiveID primitiveID) {
+		DIType DebugBuilder::createIntType(const PrimitiveID primitiveID) {
 			assert(primitiveID.isInteger());
 			const auto& abi = module_.abi();
 			const auto abiType = getBasicPrimitiveABIType(module_, primitiveID);
@@ -116,21 +134,23 @@ namespace locic {
 			                                encoding);
 		}
 		
-		llvm::DIType DebugBuilder::createObjectType(llvm::DIFile file, unsigned int lineNumber, const Name& name) {
+		DIType DebugBuilder::createObjectType(DIFile file,
+		                                      unsigned int lineNumber,
+		                                      const Name& name) {
 			// TODO!
 			const auto sizeInBits = 32;
 			const auto alignInBits = 32;
 			const auto offsetInBits = 0;
 			const auto flags = 0;
 			const auto derivedFrom = createVoidType();
-			const auto elements = llvm::DIArray();
+			const auto elements = builder_.getOrCreateArray({});
 			
 			return builder_.createClassType(compileUnit(), name.toString(false), file,
 				lineNumber, sizeInBits, alignInBits, offsetInBits,
 				flags, derivedFrom, elements);
 		}
 		
-		llvm::DIType DebugBuilder::createFunctionType(llvm::DIFile file, const std::vector<LLVMMetadataValue*>& parameters) {
+		DISubroutineType DebugBuilder::createFunctionType(DIFile file, const std::vector<LLVMMetadataValue*>& parameters) {
 #if LOCIC_LLVM_VERSION >= 306
 			return builder_.createSubroutineType(file, builder_.getOrCreateTypeArray(parameters));
 #else
@@ -138,28 +158,50 @@ namespace locic {
 #endif
 		}
 		
-		llvm::Instruction* DebugBuilder::insertVariableDeclare(Function& function, llvm::DIVariable variable, llvm::Value* varValue) {
-#if LOCIC_LLVM_VERSION >= 306
-			const auto declareInstruction = builder_.insertDeclare(varValue, variable, builder_.createExpression(), function.getEntryBuilder().GetInsertPoint());
+		llvm::Instruction* DebugBuilder::insertVariableDeclare(Function& function,
+		                                                       DILocalVariable variable,
+		                                                       llvm::DebugLoc location,
+		                                                       llvm::Value* varValue) {
+#if LOCIC_LLVM_VERSION >= 307
+			return builder_.insertDeclare(varValue,
+			                              variable,
+			                              builder_.createExpression(),
+			                              location,
+			                              function.getEntryBuilder().GetInsertPoint());
+#elif LOCIC_LLVM_VERSION >= 306
+			(void) location;
+			return builder_.insertDeclare(varValue,
+			                              variable,
+			                              builder_.createExpression(),
+			                              function.getEntryBuilder().GetInsertPoint());
 #else
-			const auto declareInstruction = builder_.insertDeclare(varValue, variable, function.getEntryBuilder().GetInsertPoint());
+			(void) location;
+			return builder_.insertDeclare(varValue,
+			                              variable,
+			                              function.getEntryBuilder().GetInsertPoint());
 #endif
-			return declareInstruction;
 		}
 		
-		llvm::DISubprogram genDebugFunction(Module& module,
-		                                    const Debug::FunctionInfo& functionInfo,
-		                                    llvm::DIType functionType,
-		                                    llvm::Function* function,
-		                                    const bool isInternal,
-		                                    const bool isDefinition) {
+		DISubprogram genDebugFunction(Module& module,
+		                              const Debug::FunctionInfo& functionInfo,
+		                              DISubroutineType functionType,
+		                              llvm::Function* function,
+		                              const bool isInternal,
+		                              const bool isDefinition) {
 			const auto file = module.debugBuilder().createFile(functionInfo.declLocation.fileName());
 			const auto lineNumber = functionInfo.declLocation.range().start().lineNumber();
-			return module.debugBuilder().createFunction(file, lineNumber, isInternal,
-				isDefinition, functionInfo.name, functionType, function);
+			return module.debugBuilder().createFunction(file,
+			                                            lineNumber,
+			                                            isInternal,
+			                                            isDefinition,
+			                                            functionInfo.name,
+			                                            functionType,
+			                                            function);
 		}
 		
-		Optional<llvm::DISubprogram> genDebugFunctionInfo(Module& module, const SEM::Function* const function, llvm::Function* const llvmFunction) {
+		Optional<DISubprogram> genDebugFunctionInfo(Module& module,
+		                                            const SEM::Function* const function,
+		                                            llvm::Function* const llvmFunction) {
 			const auto& debugInfo = function->debugInfo();
 			
 			if (debugInfo) {
@@ -173,23 +215,28 @@ namespace locic {
 			}
 		}
 		
-		llvm::Instruction* genDebugVar(Function& function, const Debug::VarInfo& varInfo, llvm::DIType type, llvm::Value* varValue) {
-			assert(type.isType());
+		llvm::Instruction* genDebugVar(Function& function,
+		                               const Debug::VarInfo& varInfo,
+		                               DIType type,
+		                               llvm::Value* varValue) {
 			auto& module = function.module();
 			const auto file = module.debugBuilder().createFile(varInfo.declLocation.fileName());
 			const auto lineNumber = varInfo.declLocation.range().start().lineNumber();
 			const bool isParam = (varInfo.kind == Debug::VarInfo::VAR_ARGUMENT);
 			
+			const auto location = getDebugLocation(function, varInfo.declLocation);
 			const auto varDebugInfo = module.debugBuilder().createVar(function.debugInfo(), isParam, varInfo.name, file, lineNumber, type);
-			return module.debugBuilder().insertVariableDeclare(function, varDebugInfo, varValue);
+			return module.debugBuilder().insertVariableDeclare(function, varDebugInfo, location, varValue);
 		}
 		
-		llvm::DebugLoc getDebugLocation(Function& function, const Debug::SourceLocation& debugSourceLocation) {
+		llvm::DebugLoc getDebugLocation(Function& function,
+		                                const Debug::SourceLocation& debugSourceLocation) {
 			const auto debugStartPosition = debugSourceLocation.range().start();
 			return llvm::DebugLoc::get(debugStartPosition.lineNumber(), debugStartPosition.column(), function.debugInfo());
 		}
 		
-		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function, const SEM::Function& semFunction) {
+		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function,
+		                                                  const SEM::Function& semFunction) {
 			const auto& debugInfo = semFunction.debugInfo();
 			if (debugInfo) {
 				const auto debugSourceLocation = debugInfo->declLocation;
