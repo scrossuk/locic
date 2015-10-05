@@ -86,9 +86,16 @@ namespace locic {
 			assert(ptrValue->getType()->isPointerTy());
 			const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(ptrValue,
 			                                                                         type->getPointerTo());
+#if LOCIC_LLVM_VERSION >= 307
+			return functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(type,
+			                                                                  castValue,
+			                                                                  index0,
+			                                                                  index1);
+#else
 			return functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(castValue,
 			                                                                  index0,
 			                                                                  index1);
+#endif
 		}
 		
 		llvm::Value*
