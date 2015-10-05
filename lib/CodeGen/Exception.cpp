@@ -185,12 +185,15 @@ namespace locic {
 				return latestLandingPadBlock;
 			}
 			
+			IREmitter irEmitter(function);
+			
 			auto& module = function.module();
 			const auto& unwindStack = function.unwindStack();
 			
 			TypeGenerator typeGen(module);
 			const auto landingPadType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getPtrType(), typeGen.getI32Type()});
 			const auto personalityFunction = getExceptionPersonalityFunction(module);
+			function.setPersonalityFunction(personalityFunction);
 			
 			// Find all catch types on the stack.
 			llvm::SmallVector<llvm::Constant*, 5> catchTypes;
@@ -210,14 +213,14 @@ namespace locic {
 			
 			function.selectBasicBlock(landingPadBB);
 			
-			const auto landingPad = function.getBuilder().CreateLandingPad(landingPadType, personalityFunction, catchTypes.size());
+			const auto landingPad = irEmitter.emitLandingPad(landingPadType,
+			                                                 catchTypes.size());
 			landingPad->setCleanup(anyUnwindCleanupActions(function, unwindState));
 			
 			for (size_t i = 0; i < catchTypes.size(); i++) {
 				landingPad->addClause(ConstantGenerator(module).getPointerCast(catchTypes[i], typeGen.getPtrType()));
 			}
 			
-			IREmitter irEmitter(function);
 			irEmitter.emitRawStore(landingPad, function.exceptionInfo());
 			
 			// Unwind stack due to exception.
