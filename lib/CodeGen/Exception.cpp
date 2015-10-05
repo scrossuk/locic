@@ -242,7 +242,7 @@ namespace locic {
 			typeNameGlobal->setAlignment(1);
 			
 			// Convert array to a pointer.
-			return constGen.getGetElementPtr(typeNameGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
+			return constGen.getGetElementPtr(typeNameType, typeNameGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}
 		
 		llvm::Constant* genCatchInfo(Module& module, const SEM::TypeInstance* const catchTypeInstance) {
@@ -270,7 +270,7 @@ namespace locic {
 			
 			const auto typeInfoGlobal = module.createConstGlobal(module.getCString("catch_type_info"), typeInfoType, llvm::GlobalValue::InternalLinkage, typeInfoValue);
 			
-			return constGen.getGetElementPtr(typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
+			return constGen.getGetElementPtr(typeInfoType, typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}
 		
 		llvm::Constant* genThrowInfo(Module& module,const  SEM::TypeInstance* const throwTypeInstance) {
@@ -312,7 +312,7 @@ namespace locic {
 			
 			const auto typeInfoGlobal = module.createConstGlobal(module.getCString("throw_type_info"), typeInfoType, llvm::GlobalValue::InternalLinkage, typeInfoValue);
 			
-			return constGen.getGetElementPtr(typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
+			return constGen.getGetElementPtr(typeInfoType, typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}
 		
 		TryScope::TryScope(Function& function, llvm::BasicBlock* catchBlock, llvm::ArrayRef<llvm::Constant*> catchTypeList)

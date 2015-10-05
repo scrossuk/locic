@@ -64,7 +64,7 @@ namespace locic {
 				
 				llvm::Constant* getSizeOf(llvm::Type* type) const;
 				
-				llvm::Constant* getGetElementPtr(llvm::Constant* operand, llvm::ArrayRef<llvm::Constant*> args) const;
+				llvm::Constant* getGetElementPtr(llvm::Type* type, llvm::Constant* operand, llvm::ArrayRef<llvm::Constant*> args) const;
 				
 				llvm::Constant* getExtractValue(llvm::Constant* operand, llvm::ArrayRef<unsigned> args) const;
 				

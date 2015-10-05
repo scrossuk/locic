@@ -120,8 +120,19 @@ namespace locic {
 			return llvm::ConstantExpr::getSizeOf(type);
 		}
 		
-		llvm::Constant* ConstantGenerator::getGetElementPtr(llvm::Constant* operand, llvm::ArrayRef<llvm::Constant*> args) const {
-			return llvm::ConstantExpr::getGetElementPtr(operand, args);
+		llvm::Constant* ConstantGenerator::getGetElementPtr(llvm::Type* const type,
+		                                                    llvm::Constant* const operand,
+		                                                    llvm::ArrayRef<llvm::Constant*> args) const {
+			const auto castOperand = getPointerCast(operand,
+			                                        type->getPointerTo());
+#if LOCIC_LLVM_VERSION >= 307
+			return llvm::ConstantExpr::getGetElementPtr(type,
+			                                            castOperand,
+			                                            args);
+#else
+			return llvm::ConstantExpr::getGetElementPtr(castOperand,
+			                                            args);
+#endif
 		}
 		
 		llvm::Constant* ConstantGenerator::getExtractValue(llvm::Constant* operand, llvm::ArrayRef<unsigned> args) const {
