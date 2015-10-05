@@ -394,11 +394,11 @@ namespace locic {
 			return exceptionInfo_;
 		}
 		
-		void Function::attachDebugInfo(llvm::DISubprogram subprogram) {
+		void Function::attachDebugInfo(const DISubprogram subprogram) {
 			debugInfo_ = subprogram;
 		}
 		
-		llvm::DISubprogram Function::debugInfo() const {
+		DISubprogram Function::debugInfo() const {
 			assert(debugInfo_ != nullptr);
 			return debugInfo_;
 		}

@@ -185,9 +185,9 @@ namespace locic {
 				// currently being handled.
 				llvm::Value* exceptionInfo();
 				
-				void attachDebugInfo(llvm::DISubprogram subprogram);
+				void attachDebugInfo(DISubprogram subprogram);
 				
-				llvm::DISubprogram debugInfo() const;
+				DISubprogram debugInfo() const;
 				
 				void setDebugPosition(const Debug::SourcePosition& position);
 				
@@ -221,7 +221,7 @@ namespace locic {
 				// A stack of unwind stacks.
 				std::stack<UnwindStack> unwindStackStack_;
 				
-				llvm::DISubprogram debugInfo_;
+				DISubprogram debugInfo_;
 				
 #if LOCIC_LLVM_VERSION < 307
 				llvm::Constant* personalityFunction_;
