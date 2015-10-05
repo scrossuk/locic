@@ -20,6 +20,8 @@ else(NOT "${CLANG_BINARY_NAME}" STREQUAL "")
 	# Otherwise search for clang with a
 	# set of typical names.
 	set(CLANG_BINARY_SEARCH_NAMES
+		clang-3.8
+		clang-3.7
 		clang-3.6
 		clang-3.5
 		clang-3.4
