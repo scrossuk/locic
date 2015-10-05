@@ -32,12 +32,6 @@ namespace locic {
 		class Function;
 		class Module;
 		
-#if LOCIC_LLVM_VERSION >= 306
-		using LLVMMetadataValue = llvm::Metadata;
-#else
-		using LLVMMetadataValue = llvm::Value;
-#endif
-		
 		class DebugBuilder {
 			public:
 				DebugBuilder(Module& module);

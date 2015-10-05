@@ -87,4 +87,38 @@
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/Scalar.h>
 
+namespace locic {
+	
+	namespace CodeGen {
+		
+#if LOCIC_LLVM_VERSION >= 307
+		using DICompileUnit = llvm::DICompileUnit*;
+		using DIFile = llvm::DIFile*;
+		using DILocalVariable = llvm::DILocalVariable*;
+		using DINode = llvm::DINode;
+		using DIScope = llvm::DIScope*;
+		using DISubprogram = llvm::DISubprogram*;
+		using DISubroutineType = llvm::DISubroutineType*;
+		using DIType = llvm::DIType*;
+#else
+		using DICompileUnit = llvm::DICompileUnit;
+		using DIFile = llvm::DIFile;
+		using DILocalVariable = llvm::DIVariable;
+		using DINode = llvm::DIDescriptor;
+		using DIScope = llvm::DIScope;
+		using DISubprogram = llvm::DISubprogram;
+		using DISubroutineType = llvm::DICompositeType;
+		using DIType = llvm::DIType;
+#endif
+		
+#if LOCIC_LLVM_VERSION >= 306
+		using LLVMMetadataValue = llvm::Metadata;
+#else
+		using LLVMMetadataValue = llvm::Value;
+#endif
+		
+	}
+	
+}
+
 #endif
