@@ -98,6 +98,31 @@ namespace locic {
 			}
 		}
 		
+		namespace {
+			
+			bool isVirtualnessKnown(const SEM::Type* const type) {
+				// Virtual template variables may or may not be
+				// instantiated with virtual types.
+				return !type->isTemplateVar() ||
+					!type->getTemplateVar()->isVirtual();
+			}
+			
+			const SEM::Type* getRefTarget(const SEM::Type* const type) {
+				const auto refTarget = type->templateArguments().at(0).typeRefType();
+				return refTarget->resolveAliases();
+			}
+			
+			bool isRefVirtualnessKnown(const SEM::Type* const type) {
+				return isVirtualnessKnown(getRefTarget(type));
+			}
+			
+			bool isRefVirtual(const SEM::Type* const type) {
+				assert(isRefVirtualnessKnown(type));
+				return getRefTarget(type)->isInterface();
+			}
+			
+		}
+		
 		DIType genPrimitiveDebugType(Module& module, const SEM::Type* const type) {
 			switch (type->primitiveID()) {
 				case PrimitiveVoid:
@@ -109,7 +134,20 @@ namespace locic {
 				case PrimitiveInt:
 					// TODO: Add other integer types.
 					return module.debugBuilder().createIntType(PrimitiveInt);
-				case PrimitiveRef:
+				case PrimitiveRef: {
+					if (isRefVirtualnessKnown(type)) {
+						const auto targetDebugType = genDebugType(module,
+						                                          type->templateArguments().front().typeRefType());
+						if (isRefVirtual(type)) {
+							// TODO?
+							return module.debugBuilder().createUnspecifiedType(module.getCString("ref_t"));
+						} else {
+							return module.debugBuilder().createReferenceType(targetDebugType);
+						}
+					} else {
+						return module.debugBuilder().createUnspecifiedType(module.getCString("ref_t"));
+					}
+				}
 					return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front().typeRefType()));
 				case PrimitiveFunctionPtr:
 				case PrimitiveMethodFunctionPtr:
