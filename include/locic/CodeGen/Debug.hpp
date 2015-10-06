@@ -74,7 +74,9 @@ namespace locic {
 				
 				DIType createObjectType(DIFile file,
 				                        unsigned int lineNumber,
-				                        const Name& name);
+				                        const Name& name,
+				                        size_t sizeInBits,
+				                        size_t alignInBits);
 				
 				DISubroutineType createFunctionType(DIFile file,
 				                                    const std::vector<LLVMMetadataValue*>& parameters);

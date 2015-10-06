@@ -136,10 +136,10 @@ namespace locic {
 		
 		DIType DebugBuilder::createObjectType(DIFile file,
 		                                      unsigned int lineNumber,
-		                                      const Name& name) {
+		                                      const Name& name,
+		                                      const size_t sizeInBits,
+		                                      const size_t alignInBits) {
 			// TODO!
-			const auto sizeInBits = 32;
-			const auto alignInBits = 32;
 			const auto offsetInBits = 0;
 			const auto flags = 0;
 			const auto derivedFrom = createVoidType();

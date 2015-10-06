@@ -14,6 +14,7 @@
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 
 namespace locic {
 
@@ -73,12 +74,25 @@ namespace locic {
 			const auto objectType = type->getObjectType();
 			const auto debugInfo = objectType->debugInfo();
 			
-			if (debugInfo) {
-				const auto& typeInstanceInfo = *debugInfo;
-				const auto& location = typeInstanceInfo.location;
-				const auto file = module.debugBuilder().createFile(location.fileName());
-				const auto lineNumber = location.range().start().lineNumber();
-				return module.debugBuilder().createObjectType(file, lineNumber, objectType->name());
+			if (!debugInfo) {
+				return module.debugBuilder().createUnspecifiedType(objectType->name().last());
+			}
+			
+			const auto& typeInstanceInfo = *debugInfo;
+			const auto& location = typeInstanceInfo.location;
+			const auto file = module.debugBuilder().createFile(location.fileName());
+			const auto lineNumber = location.range().start().lineNumber();
+			
+			TypeInfo typeInfo(module);
+			if (typeInfo.isSizeKnownInThisModule(type)) {
+				const auto abiType = genABIType(module, type);
+				const auto typeSizeBytes = module.abi().typeSize(abiType);
+				const auto typeAlignBytes = module.abi().typeAlign(abiType);
+				return module.debugBuilder().createObjectType(file,
+				                                              lineNumber,
+				                                              objectType->name(),
+				                                              typeSizeBytes*8,
+				                                              typeAlignBytes*8);
 			} else {
 				return module.debugBuilder().createUnspecifiedType(objectType->name().last());
 			}
@@ -145,16 +159,7 @@ namespace locic {
 				}
 				case SEM::Type::TEMPLATEVAR: {
 					const auto templateVar = type->getTemplateVar();
-					const auto debugInfo = templateVar->debugInfo();
-					
-					if (debugInfo) {
-						const auto& templateVarInfo = *debugInfo;
-						const auto file = module.debugBuilder().createFile(templateVarInfo.declLocation.fileName());
-						const auto lineNumber = templateVarInfo.declLocation.range().start().lineNumber();
-						return module.debugBuilder().createObjectType(file, lineNumber, templateVar->name());
-					} else {
-						return module.debugBuilder().createUnspecifiedType(templateVar->name().last());
-					}
+					return module.debugBuilder().createUnspecifiedType(templateVar->name().last());
 				}
 				case SEM::Type::ALIAS: {
 					return genDebugType(module, type->resolveAliases());
