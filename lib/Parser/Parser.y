@@ -125,7 +125,7 @@ const T& GETSYM(T* value) {
 // 2. parser conflicts between reference types and bitwise-and,
 //    and between pointer types and multiply - this is fixable
 //    by merging these type structures into values.
-%expect-rr 4
+%expect-rr 5
 
 %lex-param {void * scanner}
 %lex-param {locic::Parser::Context * parserContext}
@@ -1420,6 +1420,10 @@ pointerType:
 	| typePrecision1WithSymbol AMPERSAND
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Reference(GETSYM($1))));
+	}
+	| typePrecision1WithSymbol LSQUAREBRACKET templateValue RSQUAREBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::StaticArray(GETSYM($1), GETSYM($3))));
 	}
 	;
 
