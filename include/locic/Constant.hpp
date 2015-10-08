@@ -73,6 +73,30 @@ namespace locic{
 				return kind_;
 			}
 			
+			bool isNull() const {
+				return kind() == NULLVAL;
+			}
+			
+			bool isBool() const {
+				return kind() == BOOLEAN;
+			}
+			
+			bool isInteger() const {
+				return kind() == INTEGER;
+			}
+			
+			bool isFloat() const {
+				return kind() == FLOATINGPOINT;
+			}
+			
+			bool isCharacter() const {
+				return kind() == CHARACTER;
+			}
+			
+			bool isString() const {
+				return kind() == STRING;
+			}
+			
 			bool boolValue() const{
 				assert(kind_ == BOOLEAN);
 				return bool_;
