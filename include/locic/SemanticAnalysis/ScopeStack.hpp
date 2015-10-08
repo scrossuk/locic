@@ -96,6 +96,10 @@ namespace locic {
 		
 		class Context;
 		
+		const SEM::NamespaceItem& getBuiltInNamespaceItem(Context& context, const String& typeName);
+		
+		const SEM::TypeInstance& getBuiltInTypeInstance(Context& context, const String& typeName);
+		
 		const SEM::Type* getBuiltInType(Context& context, const String& typeName, SEM::TypeArray templateArgs);
 		
 		const SEM::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, SEM::ValueArray templateArgValues);

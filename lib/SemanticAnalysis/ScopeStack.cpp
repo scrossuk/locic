@@ -76,15 +76,24 @@ namespace locic {
 			return function->type().returnType();
 		}
 		
-		const SEM::Type* getBuiltInType(Context& context, const String& typeName, SEM::TypeArray templateArgs) {
+		const SEM::NamespaceItem& getBuiltInNamespaceItem(Context& context, const String& typeName) {
 			const auto& scopeStack = context.scopeStack();
 			const auto rootElement = scopeStack[0];
 			assert(rootElement.isNamespace());
 			
 			const auto iterator = rootElement.nameSpace()->items().find(typeName);
 			assert(iterator != rootElement.nameSpace()->items().end() && "Failed to find built-in type!");
-			
-			const auto& value = iterator->second;
+			return iterator->second;
+		}
+		
+		const SEM::TypeInstance& getBuiltInTypeInstance(Context& context, const String& typeName) {
+			const auto& value = getBuiltInNamespaceItem(context, typeName);
+			assert(value.isTypeInstance());
+			return value.typeInstance();
+		}
+		
+		const SEM::Type* getBuiltInType(Context& context, const String& typeName, SEM::TypeArray templateArgs) {
+			const auto& value = getBuiltInNamespaceItem(context, typeName);
 			assert(value.isTypeInstance() || value.isAlias());
 			
 			SEM::ValueArray templateArgValues;
@@ -108,16 +117,7 @@ namespace locic {
 		}
 		
 		const SEM::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, SEM::ValueArray templateArgValues) {
-			const auto& scopeStack = context.scopeStack();
-			const auto rootElement = scopeStack[0];
-			assert(rootElement.isNamespace());
-			
-			const auto iterator = rootElement.nameSpace()->items().find(typeName);
-			if (iterator == rootElement.nameSpace()->items().end()) {
-				throw std::runtime_error(makeString("Failed to find built-in type '%s'.", typeName.c_str()));
-			}
-			
-			const auto& value = iterator->second;
+			const auto& value = getBuiltInNamespaceItem(context, typeName);
 			assert(value.isTypeInstance() || value.isAlias());
 			
 			if (value.isTypeInstance()) {
