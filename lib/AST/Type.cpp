@@ -58,6 +58,9 @@ namespace locic {
 				case POINTER:
 					return getPointerTarget()->toString() + "*";
 					
+				case STATICARRAY:
+					return getStaticArrayTarget()->toString() + "[" + getArraySize()->toString() + "]";
+					
 				case FUNCTION: {
 					std::string str;
 					str += "(";

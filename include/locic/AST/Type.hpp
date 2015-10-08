@@ -17,6 +17,7 @@ namespace locic {
 		
 		class Predicate;
 		class Symbol;
+		struct Value;
 		
 		struct Type {
 			enum SignedModifier {
@@ -39,6 +40,7 @@ namespace locic {
 				OBJECT,
 				REFERENCE,
 				POINTER,
+				STATICARRAY,
 				FUNCTION
 			} typeEnum;
 			
@@ -90,6 +92,11 @@ namespace locic {
 			struct {
 				Node<Type> targetType;
 			} pointerType;
+			
+			struct {
+				Node<Type> targetType;
+				Node<Value> arraySize;
+			} staticArrayType;
 			
 			struct {
 				bool isVarArg;
@@ -177,6 +184,13 @@ namespace locic {
 			inline static Type* Pointer(Node<Type> targetType) {
 				Type* type = new Type(POINTER);
 				type->pointerType.targetType = targetType;
+				return type;
+			}
+			
+			inline static Type* StaticArray(Node<Type> targetType, Node<Value> arraySize) {
+				Type* type = new Type(STATICARRAY);
+				type->staticArrayType.targetType = targetType;
+				type->staticArrayType.arraySize = arraySize;
 				return type;
 			}
 			
@@ -294,6 +308,20 @@ namespace locic {
 			inline Node<Type> getPointerTarget() const {
 				assert(isPointer());
 				return pointerType.targetType;
+			}
+			
+			inline bool isStaticArray() const {
+				return typeEnum == STATICARRAY;
+			}
+			
+			inline Node<Type> getStaticArrayTarget() const {
+				assert(isStaticArray());
+				return staticArrayType.targetType;
+			}
+			
+			inline Node<Value> getArraySize() const {
+				assert(isStaticArray());
+				return staticArrayType.arraySize;
 			}
 			
 			inline bool isFunction() const {

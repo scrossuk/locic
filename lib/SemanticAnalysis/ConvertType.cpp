@@ -10,6 +10,7 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
+#include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
@@ -70,6 +71,37 @@ namespace locic {
 		
 		const SEM::Type* createPointerType(Context& context, const SEM::Type* const varType) {
 			return getBuiltInType(context, context.getCString("__ptr"), { varType });
+		}
+		
+		const SEM::Type* createStaticArrayType(Context& context,
+		                                       const SEM::Type* const varType,
+		                                       SEM::Value arraySize,
+		                                       const Debug::SourceLocation& location) {
+			const auto& typeInstance = getBuiltInTypeInstance(context, context.getCString("static_array_t"));
+			const auto& templateVariables = typeInstance.templateVariables();
+			
+			SEM::ValueArray templateArgValues;
+			templateArgValues.reserve(2);
+			
+			const auto arraySizeType = templateVariables[1]->type();
+			
+			if (arraySize.isConstant() && arraySize.constant().isInteger()) {
+				arraySize = SEM::Value::Constant(arraySize.constant(),
+				                                 arraySizeType);
+			}
+			
+			if (arraySize.type() != arraySizeType) {
+				throw ErrorException(makeString("Static array size '%s' has type '%s', which doesn't match expected type '%s', at position %s.",
+					arraySize.toString().c_str(),
+					arraySize.type()->toString().c_str(),
+					arraySizeType->toString().c_str(),
+					location.toString().c_str()));
+			}
+			
+			templateArgValues.push_back(SEM::Value::TypeRef(varType, templateVariables[0]->type()->createStaticRefType(varType)));
+			templateArgValues.push_back(std::move(arraySize));
+			
+			return SEM::Type::Object(&typeInstance, std::move(templateArgValues));
 		}
 		
 		SEM::ValueArray getFunctionTemplateArgs(Context& context, const SEM::FunctionType functionType) {
@@ -226,6 +258,11 @@ namespace locic {
 				case AST::Type::POINTER: {
 					const auto targetType = ConvertType(context, type->getPointerTarget());
 					return createPointerType(context, targetType);
+				}
+				case AST::Type::STATICARRAY: {
+					const auto targetType = ConvertType(context, type->getStaticArrayTarget());
+					auto arraySize = ConvertValue(context, type->getArraySize());
+					return createStaticArrayType(context, targetType, std::move(arraySize), type.location());
 				}
 				case AST::Type::FUNCTION: {
 					const auto returnType = ConvertType(context, type->functionType.returnType);
