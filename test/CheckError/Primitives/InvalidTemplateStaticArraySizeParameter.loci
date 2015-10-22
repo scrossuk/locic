@@ -1,0 +1,2 @@
+template <double V>
+import int[V] invalidDoubleSizeParameter();

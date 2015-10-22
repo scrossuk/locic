@@ -1,0 +1,1 @@
+Static array size 'TemplateVarRef\(templateVar: TemplateVar\(name = ::invalidDoubleSizeParameter::V, index = 0\)\)' has type 'double_t', which doesn't match expected type 'size_t', at position SourceLocation\(filename = (.*)/InvalidTemplateStaticArraySizeParameter\.loci, range = \(line 2, column 8\) to \(line 2, column 14\)\)\.

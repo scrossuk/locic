@@ -1,0 +1,1 @@
+Static array size 'Constant\(FloatConstant\(1.000000\)\)' has type 'double_t', which doesn't match expected type 'size_t', at position SourceLocation\(filename = (.*)/InvalidConstantStaticArraySizeParameter\.loci, range = \(line 1, column 8\) to \(line 1, column 16\)\)\.
