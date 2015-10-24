@@ -10,4 +10,14 @@ export void compareInFunctionCall() {
 	f0(A<B);
 	f0(A>B);
 	f1(A<B, B>A);
+	
+	// These are not treated as templates, since '&&' can't appear inside a
+	// template without surrounding parentheses.
+	f0(A<B && B>(A));
+	f1(A<B && B>(A), A<B && B>(A));
+	
+	// These are not treated as templates, since '||' can't appear inside a
+	// template without surrounding parentheses.
+	f0(A<B || B>(A));
+	f1(A<B || B>(A), A<B || B>(A));
 }
