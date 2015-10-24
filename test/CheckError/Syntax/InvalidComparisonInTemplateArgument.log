@@ -1,5 +1,5 @@
 Parser Error: Failed to parse file '(.*)/InvalidComparisonInTemplateArgument\.loci' with 32 errors:
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 5, column 17\) to \(line 5, column 47\)\)\): syntax error, unexpected NAME, expecting STAR or AMPERSAND
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 5, column 17\) to \(line 5, column 47\)\)\): syntax error, unexpected NAME, expecting LSQUAREBRACKET or STAR or AMPERSAND
 Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 4, column 1\) to \(line 5, column 47\)\)\): Invalid struct, class, function or other\.
 Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 5, column 17\) to \(line 5, column 48\)\)\): Invalid struct, class, function or other\.
 Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 5, column 47\) to \(line 5, column 49\)\)\): Invalid struct, class, function or other\.
@@ -17,7 +17,7 @@ Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArg
 Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 14, column 14\) to \(line 14, column 17\)\)\): Invalid struct, class, function or other\.
 Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 14, column 18\) to \(line 14, column 51\)\)\): Invalid struct, class, function or other\.
 Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 14, column 50\) to \(line 14, column 52\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 16, column 68\) to \(line 16, column 73\)\)\): syntax error, unexpected NAME, expecting STAR or AMPERSAND
+Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 16, column 68\) to \(line 16, column 73\)\)\): syntax error, unexpected NAME, expecting LSQUAREBRACKET or STAR or AMPERSAND
 Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 16, column 1\) to \(line 16, column 73\)\)\): Invalid struct, class, function or other\.
 Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 16, column 68\) to \(line 16, column 74\)\)\): Invalid struct, class, function or other\.
 Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonInTemplateArgument\.loci, range = \(line 18, column 66\) to \(line 18, column 67\)\)\): syntax error, unexpected RTRIBRACKET, expecting RROUNDBRACKET
