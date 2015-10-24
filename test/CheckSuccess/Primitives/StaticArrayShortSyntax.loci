@@ -1,0 +1,42 @@
+
+int_t[10u] getIntArray(static_array_t<int, 10u> array) {
+	return move array;
+}
+
+int*[10u] getPtrArray(static_array_t<int*, 10u> array) {
+	return move array;
+}
+
+int_t[10u]* getArrayPtr(int_t[10u]* array) {
+	return move array;
+}
+
+int&[10u] getRefArray(static_array_t<int&, 10u> array) {
+	return move array;
+}
+
+int_t[10u]& getArrayRef(int_t[10u]& array) {
+	return array;
+}
+
+int_t[10u][10u] getArrayArray(int_t[10u][10u] array) {
+	return move array;
+}
+
+template <typename T>
+T[10u] getTemplateArray(static_array_t<T, 10u> array) require(is_movable<T>) {
+	return move array;
+}
+
+import static_array_t<int, 10u> createIntArray();
+
+void localArray() {
+	int_t[10u] array = createIntArray();
+	unused_result(array);
+}
+
+import static_array_t<int_t[10u], 10u> arrayTemplateArgument();
+
+staticref<int_t[10u]> typename_t arrayTypeRef() {
+	return int_t[10u];
+}
