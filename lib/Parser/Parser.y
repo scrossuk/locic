@@ -83,6 +83,14 @@ const T& GETSYM(T* value) {
 	return *value;
 }
 
+static locic::AST::Node<locic::AST::ValueList> * mergeCallArgList(LOCIC_PARSER_GENERATEDPARSER_STYPE x0,
+                                                                  LOCIC_PARSER_GENERATEDPARSER_STYPE x1) {
+	auto& first = *(x0.valueList);
+	auto& second = *(x1.valueList);
+	// Accept the call argument list that's shortest.
+	return first->size() < second->size() ? &first : &second;
+}
+
 static locic::AST::Node<locic::AST::Value> * mergeValue(LOCIC_PARSER_GENERATEDPARSER_STYPE x0,
                                                         LOCIC_PARSER_GENERATEDPARSER_STYPE x1) {
 	auto& first = *(x0.value);
@@ -489,7 +497,6 @@ static locic::AST::Node<locic::AST::Value> * mergeValue(LOCIC_PARSER_GENERATEDPA
 %type <value> templateValue
 %type <valueList> nonEmptyCallArgValueList
 %type <valueList> callArgValueList
-%type <value> callArgValue
 %type <value> atomicValue
 %type <value> unaryValue
 %type <value> unaryValueOrNext
@@ -1678,15 +1685,36 @@ callArgValueList:
 	}
 	;
 	
+/* There are some cases where it's possible to have an ambiguity due to a comma
+ * in a template argument list being treated as a comma separating the
+ * arguments. For example:
+ * 
+ *     f(A<B, C>(D))
+ * 
+ * In this case in could be treated as one of:
+ * 
+ *     f( (A<B) , (C>(D)) ) : Passing two arguments.
+ * 
+ *     or
+ * 
+ *     f( (A<B, C>(D)) ) : Passing one argument.
+ * 
+ * In this case we favour the latter, assuming the user meant to construct an
+ * object as an argument. This means we merge any ambiguities by always
+ * favouring the smaller argument list.
+ */
 nonEmptyCallArgValueList:
-	callArgValue
+	value %dprec 2
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::ValueList(1, GETSYM($1))));
 	}
-	| nonEmptyCallArgValueList COMMA callArgValue
+	| nonEmptyCallArgValueList COMMA value %dprec 1 %merge <mergeCallArgList>
 	{
-		(GETSYM($1))->push_back(GETSYM($3));
-		$$ = $1;
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::ValueList()));
+		for (const auto& node: *(GETSYM($1))) {
+			(GETSYM($$))->push_back(node);
+		}
+		(GETSYM($$))->push_back(GETSYM($3));
 	}
 	;
 	
@@ -2460,49 +2488,6 @@ templateValue:
 		$$ = $1;
 	}
 	| bitwiseOrValue
-	{
-		$$ = $1;
-	}
-	| typeValue
-	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TypeRef(GETSYM($1))));
-	}
-	;
-	
-callArgValue:
-	atomicValue
-	{
-		$$ = $1;
-	}
-	| callValue
-	{
-		$$ = $1;
-	}
-	| unaryValue
-	{
-		$$ = $1;
-	}
-	| multiplyOperatorValue
-	{
-		$$ = $1;
-	}
-	| addOperatorValue
-	{
-		$$ = $1;
-	}
-	| shiftOperatorValue
-	{
-		$$ = $1;
-	}
-	| bitwiseAndValue
-	{
-		$$ = $1;
-	}
-	| bitwiseOrValue
-	{
-		$$ = $1;
-	}
-	| ternaryOperatorValue
 	{
 		$$ = $1;
 	}

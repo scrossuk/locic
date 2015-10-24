@@ -18,5 +18,6 @@ test_check_success_syntax(ReferenceTypeVariableInitialiseSyntax)
 test_check_success_syntax(TagTypeRefValueSyntax)
 test_check_success_syntax(TriangleBracketInTemplateSyntax)
 
-# Run Semantic Analysis in this test to ensure correct interpretation.
+# Run Semantic Analysis in these tests to ensure correct interpretation.
+test_check_success(ComparisonInFunctionArgument)
 test_check_success(TemplateConstructInFunctionArgument)
