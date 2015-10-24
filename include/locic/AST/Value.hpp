@@ -338,6 +338,8 @@ namespace locic {
 				return value;
 			}
 			
+			TypeEnum kind() const;
+			
 			std::string toString() const;
 		};
 		
