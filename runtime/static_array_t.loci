@@ -2,7 +2,8 @@ template <typename T, size_t element_count>
 __primitive static_array_t {
 	static static_array_t<T, element_count> uninitialized() require(is_movable<T>);
 	
-	static static_array_t<T, element_count> null() require(is_nullable<T>);
+	// Temporarily disabled until support is implemented.
+	//static static_array_t<T, element_count> null() require(is_nullable<T>);
 	
 	static size_t __alignmask() noexcept require(is_sized_type<T>);
 	static size_t __sizeof() noexcept require(is_sized_type<T>);
@@ -16,7 +17,8 @@ __primitive static_array_t {
 	template <bool IsConst>
 	lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept require(T : sized_type);
 	
-	compare_result_t compare(const size_t& v) const noexcept(is_noexcept_comparable<T>) require(is_comparable<T>);
+	// Temporarily disabled until support is implemented.
+	//compare_result_t compare(const size_t& v) const noexcept(is_noexcept_comparable<T>) require(is_comparable<T>);
 	
 	void __moveto(void* ptr, size_t position) noexcept require(is_movable<T>);
 }
