@@ -683,6 +683,34 @@ namespace locic {
 					                                  capabilityType,
 					                                  boolType);
 				}
+				case AST::Value::MERGE: {
+					// The parser wasn't able to resolve an ambiguity,
+					// so it merged two values.
+					const auto& first = astValueNode->merge.first;
+					const auto& second = astValueNode->merge.second;
+					
+					const auto isFirstType = (first->kind() == AST::Value::TYPEREF);
+					const auto isSecondType = (second->kind() == AST::Value::TYPEREF);
+					
+					// We're expecting to see an ambiguity
+					// between types and values where an
+					// indexing operation (i.e. A[N]) could
+					// be either an array type or indexing
+					// inside an array.
+					assert(isFirstType || isSecondType);
+					assert(!(isFirstType && isSecondType));
+					
+					const auto& typeValue = isFirstType ? first : second;
+					const auto& nonTypeValue = isFirstType ? second : first;
+					
+					try {
+						// Try to convert the type.
+						return ConvertValue(context, typeValue);
+					} catch (const Exception&) {
+						// It failed, so try to convert the value.
+						return ConvertValue(context, nonTypeValue);
+					}
+				}
 			}
 			
 			std::terminate();

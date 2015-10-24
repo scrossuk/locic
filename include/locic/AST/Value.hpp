@@ -71,7 +71,8 @@ namespace locic {
 				MEMBERACCESS,
 				TEMPLATEDMEMBERACCESS,
 				FUNCTIONCALL,
-				CAPABILITYTEST
+				CAPABILITYTEST,
+				MERGE
 			} typeEnum;
 			
 			struct {
@@ -173,6 +174,11 @@ namespace locic {
 				Node<Type> checkType;
 				Node<Type> capabilityType;
 			} capabilityTest;
+			
+			struct {
+				Node<Value> first;
+				Node<Value> second;
+			} merge;
 			
 			Value() : typeEnum(static_cast<TypeEnum>(-1)) { }
 			
@@ -321,6 +327,14 @@ namespace locic {
 				Value* value = new Value(CAPABILITYTEST);
 				value->capabilityTest.checkType = checkType;
 				value->capabilityTest.capabilityType = capabilityType;
+				return value;
+			}
+			
+			static Value* Merge(Node<Value> first,
+			                    Node<Value> second) {
+				Value* value = new Value(MERGE);
+				value->merge.first = first;
+				value->merge.second = second;
 				return value;
 			}
 			

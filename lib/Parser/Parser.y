@@ -83,6 +83,13 @@ const T& GETSYM(T* value) {
 	return *value;
 }
 
+static locic::AST::Node<locic::AST::Value> * mergeValue(LOCIC_PARSER_GENERATEDPARSER_STYPE x0,
+                                                        LOCIC_PARSER_GENERATEDPARSER_STYPE x1) {
+	auto& first = *(x0.value);
+	auto& second = *(x1.value);
+	return MAKESYM(locic::AST::makeNode(first.location(), locic::AST::Value::Merge(first, second)));
+}
+
 %}
 
 // ================ Options ================
@@ -2358,7 +2365,7 @@ value:
 	{
 		$$ = $1;
 	}
-	| callValue
+	| callValue %merge <mergeValue>
 	{
 		$$ = $1;
 	}
@@ -2410,7 +2417,7 @@ value:
 	{
 		$$ = $1;
 	}
-	| typeValue
+	| typeValue %merge <mergeValue>
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TypeRef(GETSYM($1))));
 	}
@@ -2433,10 +2440,6 @@ lvalue:
 	
 templateValue:
 	atomicValue
-	{
-		$$ = $1;
-	}
-	| callValue
 	{
 		$$ = $1;
 	}
