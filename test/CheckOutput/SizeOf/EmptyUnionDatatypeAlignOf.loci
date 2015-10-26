@@ -1,0 +1,16 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+datatype Empty = A() | B();
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"alignof(A) = %llu", alignof(A).cast<ulonglong_t>());
+	testPrint(C"A.__alignmask() = %llu", A.__alignmask().cast<ulonglong_t>());
+	testPrint(C"alignof(B) = %llu", alignof(B).cast<ulonglong_t>());
+	testPrint(C"B.__alignmask() = %llu", B.__alignmask().cast<ulonglong_t>());
+	testPrint(C"alignof(Empty) = %llu", alignof(Empty).cast<ulonglong_t>());
+	testPrint(C"Empty.__alignmask() = %llu", Empty.__alignmask().cast<ulonglong_t>());
+	return 0;
+}
+

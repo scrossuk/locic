@@ -1,0 +1,6 @@
+alignof(ClassInt8Int8) = 1
+ClassInt8Int8.__alignmask() = 0
+alignof(ClassInt16Int16) = 2
+ClassInt16Int16.__alignmask() = 1
+alignof(ClassInt32Int32) = 4
+ClassInt32Int32.__alignmask() = 3

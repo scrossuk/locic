@@ -1,0 +1,16 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+datatype Empty = A() | B();
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"sizeof(A) = %llu", sizeof(A).cast<ulonglong_t>());
+	testPrint(C"A.__sizeof() = %llu", A.__sizeof().cast<ulonglong_t>());
+	testPrint(C"sizeof(B) = %llu", sizeof(B).cast<ulonglong_t>());
+	testPrint(C"B.__sizeof() = %llu", B.__sizeof().cast<ulonglong_t>());
+	testPrint(C"sizeof(Empty) = %llu", sizeof(Empty).cast<ulonglong_t>());
+	testPrint(C"Empty.__sizeof() = %llu", Empty.__sizeof().cast<ulonglong_t>());
+	return 0;
+}
+

@@ -1,0 +1,6 @@
+sizeof(ClassInt8Int8) = 3
+ClassInt8Int8.__sizeof() = 3
+sizeof(ClassInt16Int16) = 6
+ClassInt16Int16.__sizeof() = 6
+sizeof(ClassInt32Int32) = 12
+ClassInt32Int32.__sizeof() = 12

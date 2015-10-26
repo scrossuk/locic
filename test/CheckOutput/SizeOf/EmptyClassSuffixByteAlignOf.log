@@ -1,0 +1,2 @@
+alignof(EmptyClass) = 1
+EmptyClass.__alignmask() = 0

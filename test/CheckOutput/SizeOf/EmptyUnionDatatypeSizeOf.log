@@ -1,0 +1,6 @@
+sizeof(A) = 1
+A.__sizeof() = 1
+sizeof(B) = 1
+B.__sizeof() = 1
+sizeof(Empty) = 2
+Empty.__sizeof() = 2

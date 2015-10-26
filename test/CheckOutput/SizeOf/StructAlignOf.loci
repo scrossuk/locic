@@ -1,0 +1,70 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+struct A {
+	byte a;
+};
+
+struct B {
+	byte a;
+	short b;
+};
+
+struct C {
+	byte a;
+	short b;
+	int c;
+};
+
+struct D {
+	byte a;
+	short b;
+	int c;
+	long d;
+};
+
+struct E {
+	byte a;
+	short b;
+	int c;
+	long d;
+	long long e;
+};
+
+struct F {
+	float a;
+};
+
+struct G {
+	float a;
+	double b;
+};
+
+struct H {
+	byte a;
+	long long b;
+	byte c;
+	long long d;
+};
+
+struct I {
+	byte a;
+	byte b;
+	long long c;
+	long long d;
+};
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"alignof(A) = %llu", alignof(A).cast<ulonglong_t>());
+	testPrint(C"alignof(B) = %llu", alignof(B).cast<ulonglong_t>());
+	testPrint(C"alignof(C) = %llu", alignof(C).cast<ulonglong_t>());
+	testPrint(C"alignof(D) = %llu", alignof(D).cast<ulonglong_t>());
+	testPrint(C"alignof(E) = %llu", alignof(E).cast<ulonglong_t>());
+	testPrint(C"alignof(F) = %llu", alignof(F).cast<ulonglong_t>());
+	testPrint(C"alignof(G) = %llu", alignof(G).cast<ulonglong_t>());
+	testPrint(C"alignof(H) = %llu", alignof(H).cast<ulonglong_t>());
+	testPrint(C"alignof(I) = %llu", alignof(I).cast<ulonglong_t>());
+	return 0;
+}
+

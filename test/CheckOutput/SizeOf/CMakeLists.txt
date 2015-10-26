@@ -1,6 +1,22 @@
 # Sizeof tests.
 
+test_check_output(ClassGapByteAlignOf)
+test_check_output(ClassGapByteSizeOf EXPECT_FAIL)
+test_check_output(ClassSuffixByteAlignOf)
+test_check_output(ClassSuffixByteSizeOf)
+test_check_output(EmptyClassSuffixByteAlignOf)
+test_check_output(EmptyClassSuffixByteSizeOf)
+test_check_output(EmptyStructAlignOf)
+test_check_output(EmptyStructSizeOf)
+test_check_output(EmptyUnionDatatypeAlignOf)
+test_check_output(EmptyUnionDatatypeSizeOf)
+test_check_output(EmptyUnionAlignOf)
+test_check_output(EmptyUnionSizeOf)
+test_check_output(PrimitiveAlignOf)
 test_check_output(PrimitiveSizeOf)
+test_check_output(StructAlignOf)
 test_check_output(StructSizeOf)
+test_check_output(TemplatedTypeAlignOf)
 test_check_output(TemplatedTypeSizeOf)
-
+test_check_output(UnionAlignOf)
+test_check_output(UnionSizeOf)

@@ -1,0 +1,31 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+union UnionInt32Float {
+	int32_t intValue;
+	float floatValue;
+};
+
+union UnionInt8Float {
+	int8_t intValue;
+	float floatValue;
+};
+
+union UnionInt8Int16 {
+	int8_t int8Value;
+	int16_t int16Value;
+};
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"alignof(UnionInt32Float) = %llu", alignof(UnionInt32Float).cast<ulonglong_t>());
+	testPrint(C"UnionInt32Float.__alignmask() = %llu", UnionInt32Float.__alignmask().cast<ulonglong_t>());
+	
+	testPrint(C"alignof(UnionInt8Float) = %llu", alignof(UnionInt8Float).cast<ulonglong_t>());
+	testPrint(C"UnionInt8Float.__alignmask() = %llu", UnionInt8Float.__alignmask().cast<ulonglong_t>());
+	
+	testPrint(C"alignof(UnionInt8Int16) = %llu", alignof(UnionInt8Int16).cast<ulonglong_t>());
+	testPrint(C"UnionInt8Int16.__alignmask() = %llu", UnionInt8Int16.__alignmask().cast<ulonglong_t>());
+	return 0;
+}
+

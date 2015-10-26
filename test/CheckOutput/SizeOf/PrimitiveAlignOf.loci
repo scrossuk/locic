@@ -1,0 +1,16 @@
+// Test output.
+import void testPrint(const ubyte * str, ...);
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"alignof(byte) = %llu", alignof(byte).cast<ulonglong_t>());
+	testPrint(C"alignof(short) = %llu", alignof(short).cast<ulonglong_t>());
+	testPrint(C"alignof(int) = %llu", alignof(int).cast<ulonglong_t>());
+	testPrint(C"alignof(long) = %llu", alignof(long).cast<ulonglong_t>());
+	testPrint(C"alignof(long long) = %llu", alignof(long long).cast<ulonglong_t>());
+	
+	testPrint(C"alignof(float) = %llu", alignof(float).cast<ulonglong_t>());
+	testPrint(C"alignof(double) = %llu", alignof(double).cast<ulonglong_t>());
+	return 0;
+}
+
