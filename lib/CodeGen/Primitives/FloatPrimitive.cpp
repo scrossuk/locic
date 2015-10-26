@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -64,20 +69,19 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* FloatPrimitive::getABIType(Module& /*module*/,
-		                                           llvm_abi::Context& abiContext,
-		                                           llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		llvm_abi::Type FloatPrimitive::getABIType(Module& /*module*/,
+		                                          const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
+		                                          llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
 			switch (typeInstance_.primitiveID()) {
 				case PrimitiveFloat:
-					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Float);
+					return llvm_abi::FloatTy;
 				case PrimitiveDouble:
-					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Double);
+					return llvm_abi::DoubleTy;
 				case PrimitiveLongDouble:
-					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::LongDouble);
+					return llvm_abi::LongDoubleTy;
 				default:
 					llvm_unreachable("Invalid float primitive ID.");
 			}
-			
 		}
 		
 		llvm::Type* FloatPrimitive::getIRType(Module& /*module*/,
@@ -113,15 +117,15 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_ALIGNMASK: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return constantGenerator.getSizeTValue(module.abi().typeAlign(abiType) - 1);
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeRequiredAlign(abiType).asBytes() - 1);
 				}
 				case METHOD_SIZEOF: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return constantGenerator.getSizeTValue(module.abi().typeSize(abiType));
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:
@@ -142,7 +146,7 @@ namespace locic {
 					// Do nothing.
 					return constantGenerator.getVoidUndef();
 				case METHOD_ISLIVE:
-					return constantGenerator.getI1(true);
+					return constantGenerator.getBool(true);
 				case METHOD_IMPLICITCASTFROM:
 				case METHOD_CASTFROM: {
 					const auto argPrimitiveID = methodID.primitiveID();
@@ -181,15 +185,15 @@ namespace locic {
 					return builder.CreateFNeg(methodOwner);
 				case METHOD_ISZERO: {
 					const auto zero = constantGenerator.getPrimitiveFloat(primitiveID, 0.0);
-					return builder.CreateFCmpOEQ(methodOwner, zero);
+					return irEmitter.emitI1ToBool(builder.CreateFCmpOEQ(methodOwner, zero));
 				}
 				case METHOD_ISPOSITIVE: {
 					const auto zero = constantGenerator.getPrimitiveFloat(primitiveID, 0.0);
-					return builder.CreateFCmpOGT(methodOwner, zero);
+					return irEmitter.emitI1ToBool(builder.CreateFCmpOGT(methodOwner, zero));
 				}
 				case METHOD_ISNEGATIVE: {
 					const auto zero = constantGenerator.getPrimitiveFloat(primitiveID, 0.0);
-					return builder.CreateFCmpOLT(methodOwner, zero);
+					return irEmitter.emitI1ToBool(builder.CreateFCmpOLT(methodOwner, zero));
 				}
 				case METHOD_ABS: {
 					// Generates: (value < 0) ? -value : value.
@@ -226,27 +230,27 @@ namespace locic {
 				}
 				case METHOD_EQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateFCmpOEQ(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateFCmpOEQ(methodOwner, operand));
 				}
 				case METHOD_NOTEQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateFCmpONE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateFCmpONE(methodOwner, operand));
 				}
 				case METHOD_LESSTHAN: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateFCmpOLT(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateFCmpOLT(methodOwner, operand));
 				}
 				case METHOD_LESSTHANOREQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateFCmpOLE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateFCmpOLE(methodOwner, operand));
 				}
 				case METHOD_GREATERTHAN: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateFCmpOGT(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateFCmpOGT(methodOwner, operand));
 				}
 				case METHOD_GREATERTHANOREQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateFCmpOGE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateFCmpOGE(methodOwner, operand));
 				}
 				case METHOD_COMPARE: {
 					const auto operand = args[1].resolveWithoutBind(function);

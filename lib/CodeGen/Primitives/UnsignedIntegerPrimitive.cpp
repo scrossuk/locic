@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -64,30 +69,30 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* UnsignedIntegerPrimitive::getABIType(Module& /*module*/,
-		                                                     llvm_abi::Context& abiContext,
-		                                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		llvm_abi::Type UnsignedIntegerPrimitive::getABIType(Module& /*module*/,
+		                                                    const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
+		                                                    llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
 			switch (typeInstance_.primitiveID()) {
 				case PrimitiveUInt8:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int8);
+					return llvm_abi::UInt8Ty;
 				case PrimitiveUInt16:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int16);
+					return llvm_abi::UInt16Ty;
 				case PrimitiveUInt32:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int32);
+					return llvm_abi::UInt32Ty;
 				case PrimitiveUInt64:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int64);
+					return llvm_abi::UInt64Ty;
 				case PrimitiveUByte:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Char);
+					return llvm_abi::UCharTy;
 				case PrimitiveUShort:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Short);
+					return llvm_abi::UShortTy;
 				case PrimitiveUInt:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
+					return llvm_abi::UIntTy;
 				case PrimitiveULong:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Long);
+					return llvm_abi::ULongTy;
 				case PrimitiveULongLong:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::LongLong);
+					return llvm_abi::ULongLongTy;
 				case PrimitiveSize:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::SizeT);
+					return llvm_abi::SizeTy;
 				default:
 					llvm_unreachable("Invalid unsigned integer primitive type.");
 			}
@@ -97,9 +102,9 @@ namespace locic {
 		                                                const TypeGenerator& typeGenerator,
 		                                                llvm::ArrayRef<SEM::Value> templateArguments) const {
 			const auto abiType = this->getABIType(module,
-			                                      module.abiContext(),
+			                                      module.abiTypeBuilder(),
 			                                      templateArguments);
-			return typeGenerator.getIntType(module.abi().typeSize(abiType) * 8);
+			return typeGenerator.getIntType(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes() * 8);
 		}
 		
 		llvm::Value* UnsignedIntegerPrimitive::emitMethod(IREmitter& irEmitter,
@@ -120,9 +125,9 @@ namespace locic {
 			
 			const bool unsafe = module.buildOptions().unsafe;
 			const auto abiType = this->getABIType(module,
-			                                      module.abiContext(),
+			                                      module.abiTypeBuilder(),
 			                                      typeTemplateArguments);
-			const size_t selfWidth = module.abi().typeSize(abiType) * 8;
+			const size_t selfWidth = module.abi().typeInfo().getTypeAllocSize(abiType).asBytes() * 8;
 			const auto selfType = typeGenerator.getIntType(selfWidth);
 			const auto zero = constantGenerator.getPrimitiveInt(primitiveID, 0);
 			const auto unit = constantGenerator.getPrimitiveInt(primitiveID, 1);
@@ -197,10 +202,10 @@ namespace locic {
 					}
 				}
 				case METHOD_ALIGNMASK: {
-					return constantGenerator.getSizeTValue(module.abi().typeAlign(abiType) - 1);
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeRequiredAlign(abiType).asBytes() - 1);
 				}
 				case METHOD_SIZEOF: {
-					return constantGenerator.getSizeTValue(module.abi().typeSize(abiType));
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST: {
@@ -221,7 +226,7 @@ namespace locic {
 				case METHOD_COPY:
 					return methodOwner;
 				case METHOD_ISZERO:
-					return builder.CreateICmpEQ(methodOwner, zero);
+					return irEmitter.emitI1ToBool(builder.CreateICmpEQ(methodOwner, zero));
 				case METHOD_SIGNEDVALUE: {
 					return methodOwner;
 				}
@@ -273,7 +278,7 @@ namespace locic {
 					return constantGenerator.getVoidUndef();
 				}
 				case METHOD_ISLIVE: {
-					return constantGenerator.getI1(true);
+					return constantGenerator.getBool(true);
 				}
 				
 				case METHOD_ADD: {
@@ -378,27 +383,27 @@ namespace locic {
 				}
 				case METHOD_EQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpEQ(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpEQ(methodOwner, operand));
 				}
 				case METHOD_NOTEQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpNE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpNE(methodOwner, operand));
 				}
 				case METHOD_LESSTHAN: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpULT(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpULT(methodOwner, operand));
 				}
 				case METHOD_LESSTHANOREQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpULE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpULE(methodOwner, operand));
 				}
 				case METHOD_GREATERTHAN: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpUGT(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpUGT(methodOwner, operand));
 				}
 				case METHOD_GREATERTHANOREQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpUGE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpUGE(methodOwner, operand));
 				}
 				case METHOD_BITWISEAND: {
 					const auto operand = args[1].resolveWithoutBind(function);
@@ -470,10 +475,10 @@ namespace locic {
 					const auto leftOperand = args[1].resolve(function);
 					const auto rightOperand = args[2].resolve(function);
 					
-					return builder.CreateAnd(
+					return irEmitter.emitI1ToBool(builder.CreateAnd(
 						builder.CreateICmpULE(leftOperand, methodOwner),
 						builder.CreateICmpULE(methodOwner, rightOperand)
-					);
+					));
 				}
 				default:
 					llvm_unreachable("Unknown unsigned integer primitive method.");

@@ -1,7 +1,5 @@
 #include <stdexcept>
 
-#include <llvm-abi/Context.hpp>
-
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/TargetOptions.hpp>
 #include <locic/Support/MakeString.hpp>
@@ -173,10 +171,6 @@ namespace locic {
 		
 		llvm::LLVMContext& InternalContext::llvmContext() {
 			return llvmContext_;
-		}
-		
-		llvm_abi::Context& InternalContext::llvmABIContext() {
-			return llvmABIContext_;
 		}
 		
 		const llvm::Triple& InternalContext::targetTriple() const {

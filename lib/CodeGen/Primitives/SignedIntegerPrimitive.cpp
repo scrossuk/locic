@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -64,32 +69,32 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* SignedIntegerPrimitive::getABIType(Module& /*module*/,
-		                                                   llvm_abi::Context& abiContext,
-		                                                   llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		llvm_abi::Type SignedIntegerPrimitive::getABIType(Module& /*module*/,
+		                                                  const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
+		                                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
 			switch (typeInstance_.primitiveID()) {
 				case PrimitiveInt8:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int8);
+					return llvm_abi::Int8Ty;
 				case PrimitiveInt16:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int16);
+					return llvm_abi::Int16Ty;
 				case PrimitiveInt32:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int32);
+					return llvm_abi::Int32Ty;
 				case PrimitiveInt64:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int64);
+					return llvm_abi::Int64Ty;
 				case PrimitiveByte:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Char);
+					return llvm_abi::CharTy;
 				case PrimitiveShort:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Short);
+					return llvm_abi::ShortTy;
 				case PrimitiveInt:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
+					return llvm_abi::IntTy;
 				case PrimitiveLong:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::Long);
+					return llvm_abi::LongTy;
 				case PrimitiveLongLong:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::LongLong);
+					return llvm_abi::LongLongTy;
 				case PrimitiveSSize:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::SizeT);
+					return llvm_abi::SSizeTy;
 				case PrimitivePtrDiff:
-					return llvm_abi::Type::Integer(abiContext, llvm_abi::PtrDiffT);
+					return llvm_abi::PtrDiffTy;
 				default:
 					llvm_unreachable("Invalid signed integer primitive type.");
 			}
@@ -99,9 +104,9 @@ namespace locic {
 		                                              const TypeGenerator& typeGenerator,
 		                                              llvm::ArrayRef<SEM::Value> templateArguments) const {
 			const auto abiType = this->getABIType(module,
-			                                      module.abiContext(),
+			                                      module.abiTypeBuilder(),
 			                                      templateArguments);
-			return typeGenerator.getIntType(module.abi().typeSize(abiType) * 8);
+			return typeGenerator.getIntType(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes() * 8);
 		}
 		
 		llvm::Value* SignedIntegerPrimitive::emitMethod(IREmitter& irEmitter,
@@ -126,15 +131,15 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_ALIGNMASK: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return constantGenerator.getSizeTValue(module.abi().typeAlign(abiType) - 1);
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeRequiredAlign(abiType).asBytes() - 1);
 				}
 				case METHOD_SIZEOF: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return constantGenerator.getSizeTValue(module.abi().typeSize(abiType));
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:
@@ -191,11 +196,11 @@ namespace locic {
 				case METHOD_MINUS:
 					return builder.CreateNeg(methodOwner);
 				case METHOD_ISZERO:
-					return builder.CreateICmpEQ(methodOwner, zero);
+					return irEmitter.emitI1ToBool(builder.CreateICmpEQ(methodOwner, zero));
 				case METHOD_ISPOSITIVE:
-					return builder.CreateICmpSGT(methodOwner, zero);
+					return irEmitter.emitI1ToBool(builder.CreateICmpSGT(methodOwner, zero));
 				case METHOD_ISNEGATIVE:
-					return builder.CreateICmpSLT(methodOwner, zero);
+					return irEmitter.emitI1ToBool(builder.CreateICmpSLT(methodOwner, zero));
 				case METHOD_UNSIGNEDVALUE:
 					return methodOwner;
 				case METHOD_ABS: {
@@ -299,27 +304,27 @@ namespace locic {
 				}
 				case METHOD_EQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpEQ(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpEQ(methodOwner, operand));
 				}
 				case METHOD_NOTEQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpNE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpNE(methodOwner, operand));
 				}
 				case METHOD_LESSTHAN: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpSLT(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpSLT(methodOwner, operand));
 				}
 				case METHOD_LESSTHANOREQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpSLE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpSLE(methodOwner, operand));
 				}
 				case METHOD_GREATERTHAN: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpSGT(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpSGT(methodOwner, operand));
 				}
 				case METHOD_GREATERTHANOREQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpSGE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpSGE(methodOwner, operand));
 				}
 				case METHOD_COMPARE: {
 					const auto operand = args[1].resolveWithoutBind(function);

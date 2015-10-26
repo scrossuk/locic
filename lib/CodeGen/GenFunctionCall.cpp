@@ -1,6 +1,7 @@
 #include <vector>
 
 #include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
 #include <llvm-abi/Type.hpp>
 
 #include <locic/SEM.hpp>
@@ -31,30 +32,13 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		static llvm::Value* decodeReturnValue(Function& function, llvm::Value* const value, llvm_abi::Type* const type, llvm::Type* const llvmType) {
-			std::vector<llvm_abi::Type*> abiTypes;
-			abiTypes.push_back(type);
-			
-			std::vector<llvm::Value*> values;
-			values.push_back(value);
-			function.decodeABIValues(values, abiTypes, {llvmType});
-			return values.at(0);
-		}
-		
-		// TODO: merge the duplicated code in this function into genFunctionCall().
 		llvm::Value* genSEMFunctionCall(Function& function,
 		                                const SEM::Value& semCallValue,
 		                                llvm::ArrayRef<SEM::Value> args,
 		                                llvm::Value* const hintResultValue) {
 			auto& module = function.module();
-			auto& abiContext = module.abiContext();
-			
-			IREmitter irEmitter(function, hintResultValue);
 			
 			const auto functionType = semCallValue.type()->asFunctionType();
-			const auto returnType = functionType.returnType();
-			
-			const auto functionIRType = getFunctionArgInfo(module, functionType).makeFunctionType();
 			
 			llvm::SmallVector<llvm::Value*, 16> evaluatedArguments;
 			evaluatedArguments.reserve(args.size());
@@ -66,10 +50,8 @@ namespace locic {
 			
 			const auto callInfo = genFunctionCallInfo(function, semCallValue);
 			
-			std::vector<llvm::Value*> parameters;
+			llvm::SmallVector<llvm_abi::TypedValue, 10> parameters;
 			parameters.reserve(3 + args.size());
-			
-			llvm::SmallVector<llvm_abi::Type*, 10> parameterABITypes;
 			
 			// Some values (e.g. classes) will be returned
 			// by assigning to a pointer passed as the first
@@ -77,93 +59,42 @@ namespace locic {
 			// potentially being unknown).
 			llvm::Value* returnVarValue = nullptr;
 			
+			const auto returnType = functionType.returnType();
 			if (!canPassByValue(module, returnType)) {
 				returnVarValue = hintResultValue != nullptr ? hintResultValue : genAlloca(function, returnType);
-				parameters.push_back(returnVarValue);
-				parameterABITypes.push_back(llvm_abi::Type::Pointer(abiContext));
+				parameters.push_back(llvm_abi::TypedValue(returnVarValue,
+				                                          llvm_abi::PointerTy));
 			}
 			
 			if (callInfo.templateGenerator != nullptr) {
-				parameters.push_back(callInfo.templateGenerator);
-				parameterABITypes.push_back(templateGeneratorType(module).first);
+				parameters.push_back(llvm_abi::TypedValue(callInfo.templateGenerator,
+				                                          templateGeneratorType(module).first));
 			}
 			
 			if (callInfo.contextPointer != nullptr) {
-				parameters.push_back(callInfo.contextPointer);
-				parameterABITypes.push_back(llvm_abi::Type::Pointer(abiContext));
+				parameters.push_back(llvm_abi::TypedValue(callInfo.contextPointer,
+				                                          llvm_abi::PointerTy));
 			}
-			
-			const auto intType = getBasicPrimitiveType(module, PrimitiveInt);
-			const auto intSize = module.abi().typeSize(getBasicPrimitiveABIType(module, PrimitiveInt));
-			const auto doubleSize = module.abi().typeSize(getBasicPrimitiveABIType(module, PrimitiveDouble));
 			
 			for (size_t i = 0; i < args.size(); i++) {
 				const auto paramType = args[i].type();
-				auto argValue = evaluatedArguments[i];
-				llvm_abi::Type* argABIType = genABIArgType(module, paramType);
-				
-				// When calling var-args functions, all 'char' and 'short'
-				// values must be extended to 'int' values, and all 'float'
-				// values must be converted to 'double' values.
-				if (functionType.isVarArg() && paramType->isPrimitive()) {
-					const auto typeSize = module.abi().typeSize(argABIType);
-					
-					if (argABIType->isInteger() && typeSize < intSize) {
-						if (isSignedIntegerType(module, paramType)) {
-							// Need to extend to int (i.e. sign extend).
-							argValue = function.getBuilder().CreateSExt(argValue, intType);
-						} else if (isUnsignedIntegerType(module, paramType)) {
-							// Need to extend to unsigned int (i.e. zero extend).
-							argValue = function.getBuilder().CreateZExt(argValue, intType);
-						}
-						argABIType = llvm_abi::Type::Integer(abiContext, llvm_abi::Int);
-					} else if (argABIType->isFloatingPoint() && typeSize < doubleSize) {
-						// Need to extend to double.
-						argValue = function.getBuilder().CreateFPExt(argValue, TypeGenerator(module).getDoubleType());
-						argABIType = llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Double);
-					}
-				}
-				
-				parameters.push_back(argValue);
-				parameterABITypes.push_back(argABIType);
+				const auto abiType = genABIArgType(module, paramType);
+				parameters.push_back(llvm_abi::TypedValue(evaluatedArguments[i],
+				                                          abiType));
 			}
 			
-			function.encodeABIValues(parameters, parameterABITypes);
-			
-			llvm::Value* encodedCallReturnValue = nullptr;
-			
-			// Some functions will only be noexcept in certain cases but for
-			// CodeGen purposes we're looking for a guarantee of noexcept
-			// in all cases, hence we look for always-true noexcept predicates.
-			if (!functionType.attributes().noExceptPredicate().isTrivialBool()) {
-				assert(!functionType.attributes().noExceptPredicate().dependsOnOnly({}));
-			}
-			
-			// If the function can throw and we have pending unwind actions, generate a
-			// landing pad to execute those actions.
-			if (!functionType.attributes().noExceptPredicate().isTrue() && anyUnwindActions(function, UnwindStateThrow)) {
-				const auto successPath = function.createBasicBlock("");
-				const auto failPath = genLandingPad(function, UnwindStateThrow);
-				
-				encodedCallReturnValue = irEmitter.emitInvoke(functionIRType,
-				                                              callInfo.functionPtr,
-				                                              successPath,
-				                                              failPath,
-				                                              parameters);
-				
-				function.selectBasicBlock(successPath);
-			} else {
-				encodedCallReturnValue = irEmitter.emitCall(functionIRType,
-				                                            callInfo.functionPtr,
-				                                            parameters);
-			}
+			const auto functionArgInfo = getFunctionArgInfo(module, functionType);
+			const auto returnValue = genRawFunctionCall(function,
+			                                            functionArgInfo,
+			                                            callInfo.functionPtr,
+			                                            parameters);
 			
 			if (returnVarValue != nullptr) {
 				// As above, if the return value pointer is used,
 				// this should be loaded (and used instead).
 				return genMoveLoad(function, returnVarValue, returnType);
 			} else {
-				return decodeReturnValue(function, encodedCallReturnValue, genABIType(function.module(), returnType), genType(function.module(), returnType));
+				return returnValue;
 			}
 		}
 		
@@ -171,98 +102,137 @@ namespace locic {
 		                                const ArgInfo& argInfo,
 		                                llvm::Value* functionPtr,
 		                                llvm::ArrayRef<llvm::Value*> args) {
+			assert(!argInfo.isVarArg() && "This method doesn't support calling varargs functions.");
+			const auto functionABIType = argInfo.getABIFunctionType();
+			llvm::SmallVector<llvm_abi::TypedValue, 10> abiArgs;
+			abiArgs.reserve(args.size());
+			for (size_t i = 0; i < args.size(); i++) {
+				abiArgs.push_back(llvm_abi::TypedValue(args[i],
+				                                       functionABIType.argumentTypes()[i]));
+			}
+			return genRawFunctionCall(function,
+			                          argInfo,
+			                          functionPtr,
+			                          abiArgs);
+		}
+		
+		llvm::Value* genRawFunctionCall(Function& function,
+		                                const ArgInfo& argInfo,
+		                                llvm::Value* functionPtr,
+		                                llvm::ArrayRef<llvm_abi::TypedValue> args) {
+			auto& module = function.module();
 			
-			assert(args.size() == argInfo.argumentTypes().size());
+			assert(args.size() >= argInfo.argumentTypes().size());
 			
 			IREmitter irEmitter(function);
 			
-			const auto functionType = argInfo.makeFunctionType();
+			const auto functionABIType = argInfo.getABIFunctionType();
+			const auto functionIRType = argInfo.makeFunctionType();
 			
-			llvm::SmallVector<llvm_abi::Type*, 10> argABITypes;
-			argABITypes.reserve(argInfo.argumentTypes().size());
-			
-			for (const auto& typePair: argInfo.argumentTypes()) {
-				argABITypes.push_back(typePair.first);
-			}
-			
-			// Parameters need to be encoded according to the ABI.
-			std::vector<llvm::Value*> encodedParameters = args.vec();
-			function.encodeABIValues(encodedParameters, argABITypes);
-			
-			llvm::Value* encodedCallReturnValue = nullptr;
-			
-			if (!argInfo.noExcept() && anyUnwindActions(function, UnwindStateThrow)) {
-				const auto successPath = function.createBasicBlock("");
-				const auto failPath = genLandingPad(function, UnwindStateThrow);
-				
-				const auto invokeInst = irEmitter.emitInvoke(functionType,
-				                                             functionPtr,
-				                                             successPath,
-				                                             failPath,
-				                                             encodedParameters);
-				
-				if (argInfo.noReturn()) {
-					invokeInst->setDoesNotReturn();
+			const auto callBuilder = [&](llvm::ArrayRef<llvm::Value*> encodedArgs) -> llvm::Value* {
+				// If the function can throw AND we have pending unwind actions,
+				// emit a landing pad to execute those actions.
+				if (!argInfo.noExcept() && anyUnwindActions(function, UnwindStateThrow)) {
+					const auto successPath = function.createBasicBlock("");
+					const auto failPath = genLandingPad(function, UnwindStateThrow);
+					
+					const auto invokeInst = irEmitter.emitInvoke(functionIRType,
+					                                             functionPtr,
+					                                             successPath,
+					                                             failPath,
+					                                             encodedArgs);
+					
+					if (argInfo.noReturn()) {
+						invokeInst->setDoesNotReturn();
+					}
+					
+ 					if (argInfo.noMemoryAccess()) {
+ 						invokeInst->setDoesNotAccessMemory();
+ 					}
+ 					
+					const auto attributes = module.abi().getAttributes(functionABIType,
+					                                                   functionABIType.argumentTypes(),
+					                                                   invokeInst->getAttributes());
+					invokeInst->setAttributes(attributes);
+					
+					function.selectBasicBlock(successPath);
+					return invokeInst;
+				} else {
+					const auto callInst = irEmitter.emitCall(functionIRType,
+					                                         functionPtr,
+					                                         encodedArgs);
+					if (argInfo.noExcept()) {
+						callInst->setDoesNotThrow();
+					}
+					
+					if (argInfo.noReturn()) {
+						callInst->setDoesNotReturn();
+					}
+					
+ 					if (argInfo.noMemoryAccess()) {
+ 						callInst->setDoesNotAccessMemory();
+ 					}
+ 					
+					const auto attributes = module.abi().getAttributes(functionABIType,
+					                                                   functionABIType.argumentTypes(),
+					                                                   callInst->getAttributes());
+					callInst->setAttributes(attributes);
+					
+					return callInst;
 				}
-				
-				if (argInfo.noMemoryAccess()) {
-					invokeInst->setDoesNotAccessMemory();
-				}
-				
-				encodedCallReturnValue = invokeInst;
-				
-				function.selectBasicBlock(successPath);
-			} else {
-				const auto callInst = irEmitter.emitCall(functionType,
-				                                         functionPtr,
-				                                         encodedParameters);
-				
-				if (argInfo.noExcept()) {
-					callInst->setDoesNotThrow();
-				}
-				
-				if (argInfo.noReturn()) {
-					callInst->setDoesNotReturn();
-				}
-				
-				if (argInfo.noMemoryAccess()) {
-					callInst->setDoesNotAccessMemory();
-				}
-				
-				encodedCallReturnValue = callInst;
-			}
+			};
 			
-			// Return values need to be decoded according to the ABI.
-			return decodeReturnValue(function, encodedCallReturnValue, argInfo.returnType().first, argInfo.returnType().second);
+			return module.abi().createCall(function,
+			                               functionABIType,
+			                               callBuilder,
+			                               args);
 		}
 		
-		llvm::Value* genFunctionCall(Function& function, SEM::FunctionType functionType, const FunctionCallInfo callInfo,
-		                             PendingResultArray args, llvm::Value* const hintResultValue) {
-			const auto argInfo = getFunctionArgInfo(function.module(), functionType);
+		llvm::Value* genFunctionCall(Function& function,
+		                             SEM::FunctionType functionType,
+		                             const FunctionCallInfo callInfo,
+		                             PendingResultArray args,
+		                             llvm::Value* const hintResultValue) {
+			auto& module = function.module();
 			
-			llvm::SmallVector<llvm::Value*, 10> llvmArgs;
+			const auto argInfo = getFunctionArgInfo(function.module(), functionType);
+			assert(!argInfo.isVarArg() && "This method doesn't support calling varargs functions.");
+			
+			const auto functionABIType = argInfo.getABIFunctionType();
+			
+			llvm::SmallVector<llvm_abi::TypedValue, 10> llvmArgs;
 			
 			llvm::Value* returnVar = nullptr;
 			if (argInfo.hasReturnVarArgument()) {
 				returnVar = genAlloca(function, functionType.returnType(), hintResultValue);
-				llvmArgs.push_back(returnVar);
+				llvmArgs.push_back(llvm_abi::TypedValue(returnVar,
+				                                        llvm_abi::PointerTy));
 			}
 			
 			if (argInfo.hasTemplateGeneratorArgument()) {
 				assert(callInfo.templateGenerator != nullptr);
-				llvmArgs.push_back(callInfo.templateGenerator);
+				llvmArgs.push_back(llvm_abi::TypedValue(callInfo.templateGenerator,
+				                                        templateGeneratorType(module).first));
 			}
 			
 			if (argInfo.hasContextArgument()) {
 				assert(callInfo.contextPointer != nullptr);
-				llvmArgs.push_back(callInfo.contextPointer);
+				llvmArgs.push_back(llvm_abi::TypedValue(callInfo.contextPointer,
+				                                        llvm_abi::PointerTy));
 			}
 			
-			for (auto& pendingResult: args) {
-				llvmArgs.push_back(pendingResult.resolve(function));
+			for (size_t i = 0; i < args.size(); i++) {
+				auto& pendingResult = args[i];
+				const auto argValue = pendingResult.resolve(function);
+				const auto argType = functionABIType.argumentTypes()[llvmArgs.size()];
+				llvmArgs.push_back(llvm_abi::TypedValue(argValue,
+				                                        argType));
 			}
 			
-			const auto result = genRawFunctionCall(function, argInfo, callInfo.functionPtr, llvmArgs);
+			const auto result = genRawFunctionCall(function,
+			                                       argInfo,
+			                                       callInfo.functionPtr,
+			                                       llvmArgs);
 			
 			if (argInfo.hasReturnVarArgument()) {
 				return genMoveLoad(function, returnVar, functionType.returnType());

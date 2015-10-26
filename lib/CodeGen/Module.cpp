@@ -7,6 +7,7 @@
 #endif
 
 #include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
 
 #include <locic/Debug.hpp>
 #include <locic/Support/Map.hpp>
@@ -23,7 +24,7 @@ namespace locic {
 		
 		Module::Module(InternalContext& argContext, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
 			: context_(argContext), module_(new llvm::Module(name.c_str(), context_.llvmContext())),
-			  abi_(llvm_abi::createABI(module_.get(), context_.targetTriple())),
+			  abi_(llvm_abi::createABI(*module_, context_.targetTriple())),
 			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions),
 			  semFunctionGenerator_(*this) {
 			
@@ -71,8 +72,8 @@ namespace locic {
 			return *abi_;
 		}
 		
-		llvm_abi::Context& Module::abiContext() {
-			return context_.llvmABIContext();
+		const llvm_abi::TypeBuilder& Module::abiTypeBuilder() {
+			return abi().typeInfo().typeBuilder();
 		}
 		
 		llvm::LLVMContext& Module::getLLVMContext() const {

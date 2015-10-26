@@ -36,6 +36,12 @@ namespace locic {
 				llvmFunction->setDoesNotReturn();
 			}
 			
+			const auto abiFunctionType = argInfo.getABIFunctionType();
+			const auto attributes = module.abi().getAttributes(abiFunctionType,
+			                                                   abiFunctionType.argumentTypes(),
+			                                                   llvmFunction->getAttributes());
+			llvmFunction->setAttributes(attributes);
+			
 			return llvmFunction;
 		}
 		
@@ -56,7 +62,6 @@ namespace locic {
 			  templateArgs_(nullptr),
 			  unwindState_(nullptr) {
 			assert(function.isDeclaration());
-			assert(argInfo_.numArguments() == function_.getFunctionType()->getNumParams());
 			
 			// Add a bottom level unwind stack.
 			unwindStackStack_.push(UnwindStack());
@@ -67,76 +72,44 @@ namespace locic {
 			const auto startBB = createBasicBlock("");
 			builder_.SetInsertPoint(startBB);
 			
-			argValues_.reserve(function_.arg_size());
+			llvm::SmallVector<llvm::Value*, 8> argValues;
+			argValues.reserve(function_.arg_size());
 			
 			for (auto arg = function_.arg_begin(); arg != function_.arg_end(); ++arg) {
-				argValues_.push_back(arg);
-			}
-			
-			std::vector<llvm_abi::Type*> argABITypes;
-			argABITypes.reserve(argInfo.argumentTypes().size());
-			
-			std::vector<llvm::Type*> argLLVMTypes;
-			argLLVMTypes.reserve(argInfo.argumentTypes().size());
-			
-			for (const auto& typePair : argInfo.argumentTypes()) {
-				argABITypes.push_back(typePair.first);
-				argLLVMTypes.push_back(typePair.second);
+				argValues.push_back(arg);
 			}
 			
 			SetUseEntryBuilder useEntryBuilder(*this);
+			
 			// Decode arguments according to ABI.
-			decodeABIValues(argValues_, argABITypes, argLLVMTypes);
+			functionEncoder_ = module().abi().createFunctionEncoder(/*builder=*/*this,
+			                                                        argInfo.getABIFunctionType(),
+			                                                        argValues);
 		}
 		
-		void Function::encodeABIValues(std::vector<llvm::Value*>& values, llvm::ArrayRef<llvm_abi::Type*> argTypes) {
-			module().abi().encodeValues(*this, values, argTypes);
-		}
-		
-		void Function::decodeABIValues(std::vector<llvm::Value*>& values, llvm::ArrayRef<llvm_abi::Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes) {
-			module().abi().decodeValues(*this, values, argTypes, llvmArgTypes);
-		}
-		
-		llvm::Instruction* Function::returnValue(llvm::Value* const value) {
+		llvm::Instruction* Function::returnValue(llvm::Value* value) {
 			assert(!argInfo_.hasReturnVarArgument());
 			assert(!value->getType()->isVoidTy());
 			
-			// Encode return value according to ABI.
-			std::vector<llvm_abi::Type*> abiTypes;
-			abiTypes.push_back(getArgInfo().returnType().first);
+			if (value->getType()->isPointerTy()) {
+				value = getBuilder().CreatePointerCast(value,
+				                                       TypeGenerator(module()).getPtrType());
+			}
 			
-			std::vector<llvm::Value*> values;
-			values.push_back(value);
-			
-			encodeABIValues(values, abiTypes);
-			
-			IREmitter irEmitter(*this);
-			return irEmitter.emitReturn(getArgInfo().returnType().second,
-			                            values[0]);
+			return functionEncoder_->returnValue(value);
 		}
 		
 		void Function::setReturnValue(llvm::Value* const value) {
 			assert(!argInfo_.hasReturnVarArgument());
 			assert(!value->getType()->isVoidTy());
 			
-			// Encode return value according to ABI.
-			std::vector<llvm_abi::Type*> abiTypes;
-			abiTypes.push_back(getArgInfo().returnType().first);
-			
-			std::vector<llvm::Value*> values;
-			values.push_back(value);
-			
-			encodeABIValues(values, abiTypes);
-			
-			const auto encodedValue = values.at(0);
-			
 			if (returnValuePtr_ == nullptr) {
-				returnValuePtr_ = getEntryBuilder().CreateAlloca(encodedValue->getType(),
+				returnValuePtr_ = getEntryBuilder().CreateAlloca(argInfo_.returnType().second,
 				                                                 nullptr, "returnvalueptr");
 			}
 			
 			IREmitter irEmitter(*this);
-			irEmitter.emitRawStore(encodedValue, returnValuePtr_);
+			irEmitter.emitRawStore(value, returnValuePtr_);
 		}
 		
 		llvm::Value* Function::getRawReturnValue() {
@@ -145,13 +118,13 @@ namespace locic {
 			}
 			
 			if (returnValuePtr_ == nullptr) {
-				returnValuePtr_ = getEntryBuilder().CreateAlloca(function_.getFunctionType()->getReturnType(),
+				returnValuePtr_ = getEntryBuilder().CreateAlloca(argInfo_.returnType().second,
 				                                                 nullptr, "returnvalueptr");
 			}
 			
 			IREmitter irEmitter(*this);
 			return irEmitter.emitRawLoad(returnValuePtr_,
-			                             function_.getFunctionType()->getReturnType());
+			                             argInfo_.returnType().second);
 		}
 		
 		llvm::Function& Function::getLLVMFunction() {
@@ -180,7 +153,7 @@ namespace locic {
 		
 		llvm::Value* Function::getRawArg(size_t index) const {
 			assert(index < argInfo_.numArguments());
-			return argValues_.at(index);
+			return functionEncoder_->arguments()[index];
 		}
 		
 		llvm::Value* Function::getArg(size_t index) const {

@@ -12,6 +12,8 @@
 #include <locic/Support/Map.hpp>
 
 #include <llvm-abi/ABI.hpp>
+#include <llvm-abi/Builder.hpp>
+#include <llvm-abi/FunctionEncoder.hpp>
 
 namespace locic {
 	
@@ -54,10 +56,6 @@ namespace locic {
 		class Function: public llvm_abi::Builder {
 			public:
 				Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* templateBuilder = nullptr);
-				
-				void encodeABIValues(std::vector<llvm::Value*>& values, llvm::ArrayRef<llvm_abi::Type*> argTypes);
-				
-				void decodeABIValues(std::vector<llvm::Value*>& values, llvm::ArrayRef<llvm_abi::Type*> argTypes, llvm::ArrayRef<llvm::Type*> llvmArgTypes);
 				
 				/**
 				 * \brief Generate return instruction
@@ -227,7 +225,7 @@ namespace locic {
 				llvm::Constant* personalityFunction_;
 #endif
 				
-				std::vector<llvm::Value*> argValues_;
+				std::unique_ptr<llvm_abi::FunctionEncoder> functionEncoder_;
 				
 				llvm::Value* exceptionInfo_;
 				llvm::Value* returnValuePtr_;

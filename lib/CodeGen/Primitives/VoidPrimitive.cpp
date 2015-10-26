@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -63,11 +68,10 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* VoidPrimitive::getABIType(Module& /*module*/,
-		                                          llvm_abi::Context& abiContext,
-		                                          llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
-			// TODO: use a void type?
-			return llvm_abi::Type::Struct(abiContext, {});
+		llvm_abi::Type VoidPrimitive::getABIType(Module& /*module*/,
+		                                         const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
+		                                         llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return llvm_abi::VoidTy;
 		}
 		
 		llvm::Type* VoidPrimitive::getIRType(Module& /*module*/,

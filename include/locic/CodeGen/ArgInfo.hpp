@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/FunctionType.hpp>
 #include <llvm-abi/Type.hpp>
 
 namespace locic {
@@ -20,7 +21,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		class Module;
-		typedef std::pair<llvm_abi::Type*, llvm::Type*> TypePair;
+		typedef std::pair<llvm_abi::Type, llvm::Type*> TypePair;
 		
 		TypePair voidTypePair(Module& module);
 		
@@ -63,6 +64,8 @@ namespace locic {
 				ArgInfo withNoExcept() const;
 				
 				ArgInfo withNoReturn() const;
+				
+				llvm_abi::FunctionType getABIFunctionType() const;
 				
 				llvm::FunctionType* makeFunctionType() const;
 				

@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -63,9 +68,9 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* TypenamePrimitive::getABIType(Module& module,
-		                                              llvm_abi::Context& /*abiContext*/,
-		                                              llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		llvm_abi::Type TypenamePrimitive::getABIType(Module& module,
+		                                             const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
+		                                             llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
 			return typeInfoType(module).first;
 		}
 		
@@ -88,15 +93,15 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_ALIGNMASK: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return constantGenerator.getSizeTValue(module.abi().typeAlign(abiType) - 1);
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeRequiredAlign(abiType).asBytes() - 1);
 				}
 				case METHOD_SIZEOF: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return constantGenerator.getSizeTValue(module.abi().typeSize(abiType));
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:

@@ -3,6 +3,10 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -117,8 +121,9 @@ namespace locic {
 		}
 		
 		DIType DebugBuilder::createPointerType(DIType type) {
-			const auto pointerSize = module_.abi().typeSize(llvm_abi::Type::Pointer(module_.abiContext()));
-			return builder_.createPointerType(type, pointerSize);
+			const auto& abiTypeInfo = module_.abi().typeInfo();
+			const auto pointerSize = abiTypeInfo.getTypeRawSize(module_.abiTypeBuilder().getPointerTy());
+			return builder_.createPointerType(type, pointerSize.asBits());
 		}
 		
 		DIType DebugBuilder::createIntType(const PrimitiveID primitiveID) {
@@ -129,8 +134,8 @@ namespace locic {
 			                      llvm::dwarf::DW_ATE_signed :
 			                      llvm::dwarf::DW_ATE_unsigned;
 			return builder_.createBasicType(primitiveID.toCString(),
-			                                abi.typeSize(abiType),
-			                                abi.typeAlign(abiType),
+			                                abi.typeInfo().getTypeRawSize(abiType).asBits(),
+			                                abi.typeInfo().getTypeRequiredAlign(abiType).asBits(),
 			                                encoding);
 		}
 		

@@ -2,7 +2,9 @@
 
 #include <vector>
 
+#include <llvm-abi/FunctionType.hpp>
 #include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
@@ -20,19 +22,19 @@ namespace locic {
 	namespace CodeGen {
 	
 		TypePair voidTypePair(Module& module) {
-			return std::make_pair(llvm_abi::Type::AutoStruct(module.abiContext(), {}), TypeGenerator(module).getVoidType());
+			return std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
 		}
 		
 		TypePair boolTypePair(Module& module) {
-			return std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::Bool), TypeGenerator(module).getI1Type());
+			return std::make_pair(llvm_abi::BoolTy, TypeGenerator(module).getI1Type());
 		}
 		
 		TypePair sizeTypePair(Module& module) {
-			return std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::SizeT), getBasicPrimitiveType(module, PrimitiveSize));
+			return std::make_pair(llvm_abi::SizeTy, getBasicPrimitiveType(module, PrimitiveSize));
 		}
 		
 		TypePair pointerTypePair(Module& module) {
-			return std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), TypeGenerator(module).getPtrType());
+			return std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
 		}
 		
 		ArgInfo ArgInfo::VoidNone(Module& module) {
@@ -98,7 +100,8 @@ namespace locic {
 			
 			if (hasReturnVarArgument_) {
 				if (returnType().second->isPointerTy()) {
-					argumentTypes_.push_back(std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), returnType().second));
+					argumentTypes_.push_back(std::make_pair(module.abiTypeBuilder().getPointerTy(),
+					                                        returnType().second));
 				} else {
 					argumentTypes_.push_back(pointerTypePair(module));
 				}
@@ -135,24 +138,24 @@ namespace locic {
 			return copy;
 		}
 		
-		llvm::FunctionType* ArgInfo::makeFunctionType() const {
+		llvm_abi::FunctionType ArgInfo::getABIFunctionType() const {
 			const auto voidPair = voidTypePair(*module_);
 			const auto& returnTypeRef = hasReturnVarArgument() ? voidPair : returnType();
 			
-			llvm_abi::FunctionType abiFunctionType;
-			abiFunctionType.returnType = returnTypeRef.first;
-			abiFunctionType.argTypes.reserve(argumentTypes().size());
-			
-			std::vector<llvm::Type*> paramTypes;
-			paramTypes.reserve(argumentTypes().size());
-			
+			llvm::SmallVector<llvm_abi::Type, 8> abiArgTypes;
+			abiArgTypes.reserve(argumentTypes().size());
 			for (const auto& typePair: argumentTypes()) {
-				abiFunctionType.argTypes.push_back(typePair.first);
-				paramTypes.push_back(typePair.second);
+				abiArgTypes.push_back(typePair.first);
 			}
 			
-			const auto genericFunctionType = TypeGenerator(*module_).getFunctionType(returnTypeRef.second, paramTypes, isVarArg());
-			return module_->abi().rewriteFunctionType(genericFunctionType, abiFunctionType);
+			return llvm_abi::FunctionType(llvm_abi::CC_CDefault,
+			                              returnTypeRef.first,
+			                              abiArgTypes,
+			                              isVarArg());
+		}
+		
+		llvm::FunctionType* ArgInfo::makeFunctionType() const {
+			return module_->abi().getFunctionType(getABIFunctionType());
 		}
 		
 		bool ArgInfo::hasReturnVarArgument() const {

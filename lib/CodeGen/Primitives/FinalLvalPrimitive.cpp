@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -66,9 +71,9 @@ namespace locic {
 			return typeInfo.hasCustomMove(templateArguments.front().typeRefType());
 		}
 		
-		llvm_abi::Type* FinalLvalPrimitive::getABIType(Module& module,
-		                                               llvm_abi::Context& /*abiContext*/,
-		                                               llvm::ArrayRef<SEM::Value> templateArguments) const {
+		llvm_abi::Type FinalLvalPrimitive::getABIType(Module& module,
+		                                              const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
+		                                              llvm::ArrayRef<SEM::Value> templateArguments) const {
 			assert(templateArguments.size() == 1);
 			return genABIType(module, templateArguments.front().typeRefType());
 		}

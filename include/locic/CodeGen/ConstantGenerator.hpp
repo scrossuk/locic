@@ -26,6 +26,8 @@ namespace locic {
 				
 				llvm::ConstantPointerNull* getNullPointer() const;
 				
+				llvm::ConstantInt* getBool(bool value) const;
+				
 				llvm::ConstantInt* getInt(size_t sizeInBits, long long intValue) const;
 				
 				llvm::ConstantInt* getIntByType(llvm::IntegerType* type, long long intValue) const;

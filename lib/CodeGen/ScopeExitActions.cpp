@@ -107,12 +107,11 @@ namespace locic {
 							break;
 						}
 						case UnwindStateReturn: {
-							const auto returnType = function.getLLVMFunction().getFunctionType()->getReturnType();
+							const auto returnType = function.getArgInfo().returnType().second;
 							if (function.getArgInfo().hasReturnVarArgument() || returnType->isVoidTy()) {
 								function.getBuilder().CreateRetVoid();
 							} else {
-								irEmitter.emitReturn(returnType,
-								                     function.getRawReturnValue());
+								function.returnValue(function.getRawReturnValue());
 							}
 							break;
 						}

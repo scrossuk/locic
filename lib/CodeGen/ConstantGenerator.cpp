@@ -1,3 +1,6 @@
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -26,6 +29,10 @@ namespace locic {
 		
 		llvm::ConstantPointerNull* ConstantGenerator::getNullPointer() const {
 			return llvm::ConstantPointerNull::get(TypeGenerator(module_).getPtrType());
+		}
+		
+		llvm::ConstantInt* ConstantGenerator::getBool(bool value) const {
+			return getI8(value ? 1 : 0);
 		}
 		
 		llvm::ConstantInt* ConstantGenerator::getInt(size_t sizeInBits, long long intValue) const {
@@ -59,14 +66,16 @@ namespace locic {
 		}
 		
 		llvm::ConstantInt* ConstantGenerator::getSizeTValue(const unsigned long long sizeValue) const {
-			const size_t sizeTypeWidth = module_.abi().typeSize(getBasicPrimitiveABIType(module_, PrimitiveSize));
-			return getInt(sizeTypeWidth * 8, sizeValue);
+			const auto& abiTypeInfo = module_.abi().typeInfo();
+			const auto sizeTypeWidth = abiTypeInfo.getTypeRawSize(getBasicPrimitiveABIType(module_, PrimitiveSize));
+			return getInt(sizeTypeWidth.asBits(), sizeValue);
 		}
 		
 		llvm::ConstantInt* ConstantGenerator::getPrimitiveInt(const PrimitiveID primitiveID,
 		                                                      const long long intValue) const {
-			const size_t primitiveWidth = module_.abi().typeSize(getBasicPrimitiveABIType(module_, primitiveID));
-			return getInt(primitiveWidth * 8, intValue);
+			const auto& abiTypeInfo = module_.abi().typeInfo();
+			const auto primitiveWidth = abiTypeInfo.getTypeRawSize(getBasicPrimitiveABIType(module_, primitiveID));
+			return getInt(primitiveWidth.asBits(), intValue);
 		}
 		
 		llvm::Constant* ConstantGenerator::getPrimitiveFloat(const PrimitiveID primitiveID,
@@ -92,7 +101,8 @@ namespace locic {
 		}
 		
 		llvm::Constant* ConstantGenerator::getLongDouble(const long double value) const {
-			return llvm::ConstantFP::get(module_.abi().longDoubleType(), value);
+			const auto& abiTypeInfo = module_.abi().typeInfo();
+			return llvm::ConstantFP::get(abiTypeInfo.getLLVMType(llvm_abi::LongDoubleTy), value);
 		}
 		
 		llvm::Constant* ConstantGenerator::getArray(llvm::ArrayType* arrayType, llvm::ArrayRef<llvm::Constant*> values) const {

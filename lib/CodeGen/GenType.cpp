@@ -2,6 +2,9 @@
 #include <stdexcept>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
@@ -86,13 +89,13 @@ namespace locic {
 			TypeInfo typeInfo(module);
 			if (typeInfo.isSizeKnownInThisModule(type)) {
 				const auto abiType = genABIType(module, type);
-				const auto typeSizeBytes = module.abi().typeSize(abiType);
-				const auto typeAlignBytes = module.abi().typeAlign(abiType);
+				const auto typeSize = module.abi().typeInfo().getTypeAllocSize(abiType);
+				const auto typeAlign = module.abi().typeInfo().getTypeAllocSize(abiType);
 				return module.debugBuilder().createObjectType(file,
 				                                              lineNumber,
 				                                              objectType->name(),
-				                                              typeSizeBytes*8,
-				                                              typeAlignBytes*8);
+				                                              typeSize.asBits(),
+				                                              typeAlign.asBits());
 			} else {
 				return module.debugBuilder().createUnspecifiedType(objectType->name().last());
 			}

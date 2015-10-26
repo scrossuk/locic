@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -64,10 +69,10 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* NullPrimitive::getABIType(Module& /*module*/,
-		                                          llvm_abi::Context& abiContext,
+		llvm_abi::Type NullPrimitive::getABIType(Module& /*module*/,
+		                                          const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
 		                                          llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
-			return llvm_abi::Type::Pointer(abiContext);
+			return llvm_abi::PointerTy;
 		}
 		
 		llvm::Type* NullPrimitive::getIRType(Module& /*module*/,
@@ -89,15 +94,15 @@ namespace locic {
 					return ConstantGenerator(module).getNull(TypeGenerator(module).getPtrType());
 				case METHOD_ALIGNMASK: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(abiType) - 1);
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeInfo().getTypeRequiredAlign(abiType).asBytes() - 1);
 				}
 				case METHOD_SIZEOF: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(abiType));
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST: {

@@ -3,7 +3,9 @@
 #include <vector>
 
 #include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
 #include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
@@ -20,16 +22,16 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm_abi::Type* genABIArgType(Module& module, const SEM::Type* type) {
+		llvm_abi::Type genABIArgType(Module& module, const SEM::Type* type) {
 			if (canPassByValue(module, type)) {
 				return genABIType(module, type);
 			} else {
-				return llvm_abi::Type::Pointer(module.abiContext());
+				return module.abiTypeBuilder().getPointerTy();
 			}
 		}
 		
-		llvm_abi::Type* genABIType(Module& module, const SEM::Type* type) {
-			auto& abiContext = module.abiContext();
+		llvm_abi::Type genABIType(Module& module, const SEM::Type* type) {
+			auto& abiTypeBuilder = module.abiTypeBuilder();
 			
 			switch (type->kind()) {
 				case SEM::Type::OBJECT: {
@@ -38,20 +40,21 @@ namespace locic {
 					if (typeInstance->isPrimitive()) {
 						return getPrimitiveABIType(module, type);
 					} else {
-						std::vector<llvm_abi::Type*> members;
+						llvm::SmallVector<llvm_abi::Type, 8> members;
 						
 						if (typeInstance->isUnionDatatype()) {
 							members.reserve(2);
-							members.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int8));
+							members.push_back(llvm_abi::Int8Ty);
 							
-							llvm_abi::Type* maxStructType = llvm_abi::Type::AutoStruct(abiContext, {});
+							llvm_abi::Type maxStructType = abiTypeBuilder.getStructTy({});
 							size_t maxStructSize = 0;
 							size_t maxStructAlign = 0;
 							
 							for (auto variantTypeInstance: typeInstance->variants()) {
 								const auto variantStructType = genABIType(module, variantTypeInstance->selfType());
-								const auto variantStructSize = module.abi().typeSize(variantStructType);
-								const auto variantStructAlign = module.abi().typeAlign(variantStructType);
+								const auto& abiTypeInfo = module.abi().typeInfo();
+								const auto variantStructSize = abiTypeInfo.getTypeStoreSize(variantStructType).asBytes();
+								const auto variantStructAlign = abiTypeInfo.getTypePreferredAlign(variantStructType).asBytes();
 								
 								if (variantStructAlign > maxStructAlign || (variantStructAlign == maxStructAlign && variantStructSize > maxStructSize)) {
 									maxStructType = variantStructType;
@@ -73,11 +76,11 @@ namespace locic {
 							const auto livenessIndicator = getLivenessIndicator(module, *typeInstance);
 							if (livenessIndicator.isSuffixByte()) {
 								// Add suffix byte.
-								members.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int8));
+								members.push_back(llvm_abi::Int8Ty);
 							}
 						}
 						
-						return llvm_abi::Type::AutoStruct(abiContext, members);
+						return abiTypeBuilder.getStructTy(members);
 					}
 				}
 				case SEM::Type::ALIAS: {

@@ -1,6 +1,8 @@
 #ifndef LOCIC_CODEGEN_GENFUNCTIONCALL_HPP
 #define LOCIC_CODEGEN_GENFUNCTIONCALL_HPP
 
+#include <llvm-abi/TypedValue.hpp>
+
 #include <locic/CodeGen/PendingResult.hpp>
 #include <locic/Support/Optional.hpp>
 
@@ -38,7 +40,14 @@ namespace locic {
 		 * pointers or return value pointers; these must be handled at
 		 * a higher level.
 		 */
-		llvm::Value* genRawFunctionCall(Function& function, const ArgInfo& argInfo, llvm::Value* functionPtr,
+		llvm::Value* genRawFunctionCall(Function& function,
+		                                const ArgInfo& argInfo,
+		                                llvm::Value* functionPtr,
+		                                llvm::ArrayRef<llvm_abi::TypedValue> args);
+		
+		llvm::Value* genRawFunctionCall(Function& function,
+		                                const ArgInfo& argInfo,
+		                                llvm::Value* functionPtr,
 		                                llvm::ArrayRef<llvm::Value*> args);
 		
 		/**

@@ -24,9 +24,8 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			auto& abiContext = module.abiContext();
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
-			const auto sizeType = std::make_pair(llvm_abi::Type::Integer(abiContext, llvm_abi::SizeT), getBasicPrimitiveType(module, PrimitiveSize));
+			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
+			const auto sizeType = std::make_pair(llvm_abi::SizeTy, getBasicPrimitiveType(module, PrimitiveSize));
 			
 			const TypePair argTypes[] = { sizeType };
 			const auto argInfo = ArgInfo::Basic(module, voidPtr, argTypes).withNoExcept();
@@ -44,9 +43,8 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			auto& abiContext = module.abiContext();
-			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
+			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
+			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
 			
 			const TypePair argTypes[] = { voidPtr };
 			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoExcept();
@@ -64,9 +62,8 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			auto& abiContext = module.abiContext();
-			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
+			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
+			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
 			
 			const TypePair argTypes[] = { voidPtr, voidPtr, voidPtr };
 			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoReturn();
@@ -84,9 +81,8 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			auto& abiContext = module.abiContext();
-			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
+			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
+			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
 			
 			const TypePair argTypes[] = { voidPtr };
 			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoReturn();
@@ -105,8 +101,7 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			auto& abiContext = module.abiContext();
-			const auto int32Type = std::make_pair(llvm_abi::Type::Integer(abiContext, llvm_abi::Int32), TypeGenerator(module).getI32Type());
+			const auto int32Type = std::make_pair(llvm_abi::Int32Ty, TypeGenerator(module).getI32Type());
 			const auto argInfo = ArgInfo::VarArgs(module, int32Type, {}).withNoExcept();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
@@ -122,8 +117,7 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			auto& abiContext = module.abiContext();
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
+			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
 			
 			const TypePair argTypes[] = { voidPtr };
 			const auto argInfo = ArgInfo::Basic(module, voidPtr, argTypes).withNoExcept().withNoMemoryAccess();

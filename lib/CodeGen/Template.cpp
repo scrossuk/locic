@@ -73,38 +73,26 @@ namespace locic {
 		constexpr size_t TYPE_INFO_ARRAY_SIZE = 8;
 		
 		TypePair pathType(Module& module) {
-			return std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::Int32),
-				TypeGenerator(module).getI32Type());
+			return std::make_pair(llvm_abi::Int32Ty,
+			                      TypeGenerator(module).getI32Type());
 		}
 		
 		llvm::StructType* templateGeneratorLLVMType(Module& module) {
-			const auto name = module.getCString("__template_generator");
-			
-			const auto iterator = module.getTypeMap().find(name);
-			if (iterator != module.getTypeMap().end()) {
-				return iterator->second;
-			}
-			
 			TypeGenerator typeGen(module);
-			const auto structType = typeGen.getForwardDeclaredStructType(name);
-			
-			module.getTypeMap().insert(std::make_pair(name, structType));
-			
 			llvm::SmallVector<llvm::Type*, 3> structMembers;
 			structMembers.push_back(typeGen.getPtrType());
 			structMembers.push_back(typeGen.getPtrType());
 			structMembers.push_back(typeGen.getI32Type());
-			structType->setBody(structMembers);
-			return structType;
+			return typeGen.getStructType(structMembers);
 		}
 		
-		llvm_abi::Type* templateGeneratorABIType(Module& module) {
-			auto& abiContext = module.abiContext();
-			llvm::SmallVector<llvm_abi::Type*, 3> types;
-			types.push_back(llvm_abi::Type::Pointer(abiContext));
-			types.push_back(llvm_abi::Type::Pointer(abiContext));
-			types.push_back(llvm_abi::Type::Integer(abiContext, llvm_abi::Int32));
-			return llvm_abi::Type::AutoStruct(abiContext, types);
+		llvm_abi::Type templateGeneratorABIType(Module& module) {
+			auto& abiTypeBuilder = module.abiTypeBuilder();
+			llvm::SmallVector<llvm_abi::Type, 3> types;
+			types.push_back(llvm_abi::PointerTy);
+			types.push_back(llvm_abi::PointerTy);
+			types.push_back(llvm_abi::Int32Ty);
+			return llvm_abi::Type::AutoStruct(abiTypeBuilder, types);
 		}
 		
 		TypePair templateGeneratorType(Module& module) {
@@ -120,22 +108,18 @@ namespace locic {
 		
 		llvm::Type* typeInfoLLVMType(Module& module) {
 			TypeGenerator typeGen(module);
-			const auto name = module.getCString("__type_info");
-			const auto structType = typeGen.getForwardDeclaredStructType(name);
-			
 			llvm::SmallVector<llvm::Type*, 2> structMembers;
 			structMembers.push_back(typeGen.getPtrType());
 			structMembers.push_back(templateGeneratorType(module).second);
-			structType->setBody(structMembers);
-			return structType;
+			return typeGen.getStructType(structMembers);
 		}
 		
-		llvm_abi::Type* typeInfoABIType(Module& module) {
-			auto& abiContext = module.abiContext();
-			llvm::SmallVector<llvm_abi::Type*, 2> types;
-			types.push_back(llvm_abi::Type::Pointer(abiContext));
+		llvm_abi::Type typeInfoABIType(Module& module) {
+			auto& abiTypeBuilder = module.abiTypeBuilder();
+			llvm::SmallVector<llvm_abi::Type, 2> types;
+			types.push_back(llvm_abi::PointerTy);
 			types.push_back(templateGeneratorABIType(module));
-			return llvm_abi::Type::AutoStruct(abiContext, types);
+			return llvm_abi::Type::AutoStruct(abiTypeBuilder, types);
 		}
 		
 		TypePair typeInfoType(Module& module) {
@@ -151,10 +135,10 @@ namespace locic {
 		
 		TypePair typeInfoArrayType(Module& module) {
 			const auto typeInfo = typeInfoType(module);
-			auto& abiContext = module.abiContext();
+			auto& abiTypeBuilder = module.abiTypeBuilder();
 			TypeGenerator typeGen(module);
-			return std::make_pair(llvm_abi::Type::Array(abiContext, TYPE_INFO_ARRAY_SIZE, typeInfo.first),
-				typeGen.getArrayType(typeInfo.second, TYPE_INFO_ARRAY_SIZE));
+			return std::make_pair(llvm_abi::Type::Array(abiTypeBuilder, TYPE_INFO_ARRAY_SIZE, typeInfo.first),
+			                      typeGen.getArrayType(typeInfo.second, TYPE_INFO_ARRAY_SIZE));
 		}
 		
 		ArgInfo rootFunctionArgInfo(Module& module) {
@@ -376,8 +360,7 @@ namespace locic {
 			if (templateInst.object().isTypeInstance() && templateInst.object().typeInstance()->isPrimitive()) {
 				// Primitives don't have template generators;
 				// the path must have ended by now.
-				irEmitter.emitReturn(typeInfoArrayType(module).second,
-				                     newTypesValue);
+				function.returnValue(newTypesValue);
 				return llvmFunction;
 			}
 			
@@ -391,8 +374,7 @@ namespace locic {
 			builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
 			
 			function.selectBasicBlock(pathEndBB);
-			irEmitter.emitReturn(typeInfoArrayType(module).second,
-			                     newTypesValue);
+			function.returnValue(newTypesValue);
 			
 			function.selectBasicBlock(callNextGeneratorBB);
 			
@@ -409,15 +391,12 @@ namespace locic {
 			const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateInst.object());
 			
 			llvm::Value* const args[] = { newTypesValue, llvmFunction, contextPointerArg, pathArg, startPosition };
-			irEmitter.emitReturn(typeInfoArrayType(module).second,
-			                     genRawFunctionCall(function, intermediateFunctionArgInfo(module), nextFunction, args));
+			function.returnValue(genRawFunctionCall(function, intermediateFunctionArgInfo(module), nextFunction, args));
 			
 			return llvmFunction;
 		}
 		
 		ArgInfo intermediateFunctionArgInfo(Module& module) {
-			auto& abiContext = module.abiContext();
-			
 			std::vector<TypePair> argTypes;
 			argTypes.reserve(5);
 			
@@ -434,7 +413,8 @@ namespace locic {
 			argTypes.push_back(pathType(module));
 			
 			// Position in path.
-			argTypes.push_back(std::make_pair(llvm_abi::Type::Integer(abiContext, llvm_abi::Int8), TypeGenerator(module).getI8Type()));
+			argTypes.push_back(std::make_pair(llvm_abi::Int8Ty,
+			                                  TypeGenerator(module).getI8Type()));
 			
 			return ArgInfo::Basic(module, typeInfoArrayType(module), argTypes).withNoMemoryAccess().withNoExcept();
 		}
@@ -587,8 +567,7 @@ namespace locic {
 				if (templateUseInst.object().isTypeInstance() && templateUseInst.object().typeInstance()->isPrimitive()) {
 					// Primitives don't have template generators;
 					// the path must have ended by now.
-					irEmitter.emitReturn(typeInfoArrayType(module).second,
-					                     newTypesValue);
+					function.returnValue(newTypesValue);
 				} else {
 					// If the position is 0, that means we've reached the end of the path,
 					// so just return the new types struct. Otherwise, call the next
@@ -600,8 +579,7 @@ namespace locic {
 					builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
 					
 					function.selectBasicBlock(pathEndBB);
-					irEmitter.emitReturn(typeInfoArrayType(module).second,
-					                     newTypesValue);
+					function.returnValue(newTypesValue);
 					
 					function.selectBasicBlock(callNextGeneratorBB);
 					
@@ -610,8 +588,7 @@ namespace locic {
 					
 					llvm::Value* const args[] = { newTypesValue, rootFnArg, rootContextArg, pathArg, position };
 					const auto callResult = genRawFunctionCall(function, argInfo, nextFunction, args);
-					irEmitter.emitReturn(typeInfoArrayType(module).second,
-					                     callResult);
+					function.returnValue(callResult);
 				}
 			}
 			

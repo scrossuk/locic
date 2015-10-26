@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -64,16 +69,16 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* BoolPrimitive::getABIType(Module& /*module*/,
-		                                          llvm_abi::Context& abiContext,
-		                                          llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
-			return llvm_abi::Type::Integer(abiContext, llvm_abi::Bool);
+		llvm_abi::Type BoolPrimitive::getABIType(Module& /*module*/,
+		                                         const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
+		                                         llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return llvm_abi::BoolTy;
 		}
 		
 		llvm::Type* BoolPrimitive::getIRType(Module& /*module*/,
 		                                     const TypeGenerator& typeGenerator,
 		                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
-			return typeGenerator.getI1Type();
+			return typeGenerator.getI8Type();
 		}
 		
 		llvm::Value* BoolPrimitive::emitMethod(IREmitter& irEmitter,
@@ -96,19 +101,19 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_CREATE: {
 					assert(args.empty());
-					return constantGenerator.getI1(false);
+					return constantGenerator.getBool(false);
 				}
 				case METHOD_ALIGNMASK: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return constantGenerator.getSizeTValue(module.abi().typeAlign(abiType) - 1);
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeRequiredAlign(abiType).asBytes() - 1);
 				}
 				case METHOD_SIZEOF: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return constantGenerator.getSizeTValue(module.abi().typeSize(abiType));
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
 				case METHOD_SETDEAD: {
 					// Do nothing.
@@ -140,11 +145,13 @@ namespace locic {
 					return args[0].resolveWithoutBind(function);
 				case METHOD_ISLIVE: {
 					(void) args[0].resolveWithoutBind(function);
-					return constantGenerator.getI1(false);
+					return constantGenerator.getBool(false);
 				}
 				case METHOD_NOT: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.builder().CreateNot(methodOwner);
+					const auto i1Value = irEmitter.emitBoolToI1(methodOwner);
+					const auto i1NotValue = irEmitter.builder().CreateNot(i1Value);
+					return irEmitter.emitI1ToBool(i1NotValue);
 				}
 				case METHOD_COMPARE: {
 					const auto operand = args[1].resolveWithoutBind(function);
@@ -160,12 +167,12 @@ namespace locic {
 				case METHOD_EQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.builder().CreateICmpEQ(methodOwner, operand);
+					return irEmitter.emitI1ToBool(irEmitter.builder().CreateICmpEQ(methodOwner, operand));
 				}
 				case METHOD_NOTEQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.builder().CreateICmpNE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(irEmitter.builder().CreateICmpNE(methodOwner, operand));
 				}
 				default:
 					llvm_unreachable("Unknown bool primitive method.");

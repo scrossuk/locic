@@ -1,3 +1,8 @@
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/Support/PrimitiveID.hpp>
@@ -38,8 +43,10 @@ namespace locic {
 		}
 		
 		llvm::IntegerType* TypeGenerator::getSizeTType() const {
-			const size_t sizeTypeWidth = module_.abi().typeSize(getBasicPrimitiveABIType(module_, PrimitiveSize));
-			return llvm::IntegerType::get(module_.getLLVMContext(), sizeTypeWidth * 8);
+			const auto abiType = getBasicPrimitiveABIType(module_, PrimitiveSize);
+			const auto sizeTypeWidth = module_.abi().typeInfo().getTypeRawSize(abiType);
+			return llvm::IntegerType::get(module_.getLLVMContext(),
+			                              sizeTypeWidth.asBits());
 		}
 		
 		llvm::PointerType* TypeGenerator::getPtrType() const {
@@ -55,7 +62,7 @@ namespace locic {
 		}
 		
 		llvm::Type* TypeGenerator::getLongDoubleType() const {
-			return module_.abi().longDoubleType();
+			return module_.abi().typeInfo().getLLVMType(llvm_abi::LongDoubleTy);
 		}
 		
 		llvm::ArrayType* TypeGenerator::getArrayType(llvm::Type* elementType, size_t size) const {

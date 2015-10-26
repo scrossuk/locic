@@ -37,6 +37,20 @@ namespace locic {
 		}
 		
 		llvm::Value*
+		IREmitter::emitI1ToBool(llvm::Value* const value) {
+			assert(value->getType()->isIntegerTy(1));
+			return functionGenerator_.getBuilder().CreateZExt(value,
+			                                                  typeGenerator().getI8Type());
+		}
+		
+		llvm::Value*
+		IREmitter::emitBoolToI1(llvm::Value* const value) {
+			assert(value->getType()->isIntegerTy(8));
+			return functionGenerator_.getBuilder().CreateICmpNE(value,
+			                                                    constantGenerator().getBool(false));
+		}
+		
+		llvm::Value*
 		IREmitter::emitRawLoad(llvm::Value* const valuePtr,
 		                       llvm::Type* const type) {
 			assert(valuePtr->getType()->isPointerTy());

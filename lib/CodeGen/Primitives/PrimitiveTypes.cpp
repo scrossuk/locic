@@ -2,6 +2,11 @@
 
 #include <stdexcept>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -27,45 +32,55 @@ namespace locic {
 			                           arrayRef(type->templateArguments()));
 		}
 		
-		llvm_abi::IntegerKind primitiveABIIntegerKind(const PrimitiveID id) {
+		llvm_abi::Type getPrimitiveABIIntegerType(const PrimitiveID id) {
 			switch (id) {
 				case PrimitiveCompareResult:
 					// Compare results represented with 8 bits.
-					return llvm_abi::Int8;
+					return llvm_abi::Int8Ty;
 				case PrimitiveBool:
-					return llvm_abi::Bool;
+					return llvm_abi::BoolTy;
 				case PrimitiveInt8:
+					return llvm_abi::Int8Ty;
 				case PrimitiveUInt8:
-					return llvm_abi::Int8;
+					return llvm_abi::UInt8Ty;
 				case PrimitiveInt16:
+					return llvm_abi::Int16Ty;
 				case PrimitiveUInt16:
-					return llvm_abi::Int16;
+					return llvm_abi::UInt16Ty;
 				case PrimitiveInt32:
+					return llvm_abi::Int32Ty;
 				case PrimitiveUInt32:
-					return llvm_abi::Int32;
+					return llvm_abi::UInt32Ty;
 				case PrimitiveInt64:
+					return llvm_abi::Int64Ty;
 				case PrimitiveUInt64:
-					return llvm_abi::Int64;
+					return llvm_abi::UInt64Ty;
 				case PrimitiveByte:
+					return llvm_abi::CharTy;
 				case PrimitiveUByte:
-					return llvm_abi::Char;
+					return llvm_abi::UCharTy;
 				case PrimitiveShort:
+					return llvm_abi::ShortTy;
 				case PrimitiveUShort:
-					return llvm_abi::Short;
+					return llvm_abi::UShortTy;
 				case PrimitiveInt:
+					return llvm_abi::IntTy;
 				case PrimitiveUInt:
-					return llvm_abi::Int;
+					return llvm_abi::UIntTy;
 				case PrimitiveLong:
+					return llvm_abi::LongTy;
 				case PrimitiveULong:
-					return llvm_abi::Long;
+					return llvm_abi::ULongTy;
 				case PrimitiveLongLong:
+					return llvm_abi::LongLongTy;
 				case PrimitiveULongLong:
-					return llvm_abi::LongLong;
+					return llvm_abi::ULongLongTy;
 				case PrimitiveSize:
+					return llvm_abi::SizeTy;
 				case PrimitiveSSize:
-					return llvm_abi::SizeT;
+					return llvm_abi::SSizeTy;
 				case PrimitivePtrDiff:
-					return llvm_abi::PtrDiffT;
+					return llvm_abi::PtrDiffTy;
 				default:
 					llvm_unreachable("Primitive type is not an integer.");
 			}
@@ -102,8 +117,9 @@ namespace locic {
 				case PrimitiveSize:
 				case PrimitiveSSize:
 				case PrimitivePtrDiff: {
-					const auto intAbiType = llvm_abi::Type::Integer(module.abiContext(), primitiveABIIntegerKind(id));
-					return TypeGenerator(module).getIntType(module.abi().typeSize(intAbiType) * 8);
+					const auto intAbiType = getPrimitiveABIIntegerType(id);
+					const auto typeSize = module.abi().typeInfo().getTypeRawSize(intAbiType);
+					return TypeGenerator(module).getIntType(typeSize.asBits());
 				}
 				case PrimitiveFloat:
 					return TypeGenerator(module).getFloatType();
@@ -152,40 +168,39 @@ namespace locic {
 			}
 		}
 		
-		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, const PrimitiveID id) {
-			auto& abiContext = module.abiContext();
+		llvm_abi::Type getBasicPrimitiveABIType(Module& module, const PrimitiveID id) {
+			auto& abiTypeBuilder = module.abiTypeBuilder();
 			
 			switch (id) {
 				case PrimitiveVoid:
-					// TODO: use a void type?
-					return llvm_abi::Type::Struct(abiContext, {});
+					return llvm_abi::VoidTy;
 				case PrimitiveNull:
 				case PrimitivePtr:
 				case PrimitiveFunctionPtr:
 				case PrimitiveMethodFunctionPtr:
 				case PrimitiveVarArgFunctionPtr:
-					return llvm_abi::Type::Pointer(abiContext);
+					return llvm_abi::PointerTy;
 				case PrimitiveTemplatedFunctionPtr:
 				case PrimitiveTemplatedMethodFunctionPtr: {
-					std::vector<llvm_abi::Type*> types;
+					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
-					types.push_back(llvm_abi::Type::Pointer(abiContext));
+					types.push_back(llvm_abi::PointerTy);
 					types.push_back(templateGeneratorType(module).first);
-					return llvm_abi::Type::AutoStruct(abiContext, types);
+					return llvm_abi::Type::AutoStruct(abiTypeBuilder, types);
 				}
 				case PrimitiveMethod: {
-					std::vector<llvm_abi::Type*> types;
+					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
-					types.push_back(llvm_abi::Type::Pointer(abiContext));
+					types.push_back(llvm_abi::PointerTy);
 					types.push_back(getBasicPrimitiveABIType(module, PrimitiveMethodFunctionPtr));
-					return llvm_abi::Type::AutoStruct(abiContext, types);
+					return llvm_abi::Type::AutoStruct(abiTypeBuilder, types);
 				}
 				case PrimitiveTemplatedMethod: {
-					std::vector<llvm_abi::Type*> types;
+					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
-					types.push_back(llvm_abi::Type::Pointer(abiContext));
+					types.push_back(llvm_abi::PointerTy);
 					types.push_back(getBasicPrimitiveABIType(module, PrimitiveTemplatedMethodFunctionPtr));
-					return llvm_abi::Type::AutoStruct(abiContext, types);
+					return llvm_abi::Type::AutoStruct(abiTypeBuilder, types);
 				}
 				case PrimitiveInterfaceMethod: {
 					return interfaceMethodType(module).first;
@@ -216,24 +231,24 @@ namespace locic {
 				case PrimitiveSize:
 				case PrimitiveSSize:
 				case PrimitivePtrDiff:
-					return llvm_abi::Type::Integer(abiContext, primitiveABIIntegerKind(id));
+					return getPrimitiveABIIntegerType(id);
 				case PrimitiveFloat:
-					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Float);
+					return llvm_abi::FloatTy;
 				case PrimitiveDouble:
-					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::Double);
+					return llvm_abi::DoubleTy;
 				case PrimitiveLongDouble:
-					return llvm_abi::Type::FloatingPoint(abiContext, llvm_abi::LongDouble);
+					return llvm_abi::LongDoubleTy;
 				default:
 					llvm_unreachable("Unrecognised primitive type.");
 			}
 		}
 		
-		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* const type) {
+		llvm_abi::Type getPrimitiveABIType(Module& module, const SEM::Type* const type) {
 			assert(TypeInfo(module).isSizeKnownInThisModule(type));
 			
 			const auto& primitive = module.getPrimitive(*(type->getObjectType()));
 			return primitive.getABIType(module,
-			                            module.abiContext(),
+			                            module.abiTypeBuilder(),
 			                            arrayRef(type->templateArguments()));
 		}
 		

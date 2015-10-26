@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -64,10 +69,10 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* PtrPrimitive::getABIType(Module& /*module*/,
-		                                         llvm_abi::Context& abiContext,
-		                                         llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
-			return llvm_abi::Type::Pointer(abiContext);
+		llvm_abi::Type PtrPrimitive::getABIType(Module& /*module*/,
+		                                        const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
+		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+			return llvm_abi::PointerTy;
 		}
 		
 		llvm::Type* PtrPrimitive::getIRType(Module& /*module*/,
@@ -99,15 +104,15 @@ namespace locic {
 				}
 				case METHOD_ALIGNMASK: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(abiType) - 1);
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeInfo().getTypeRequiredAlign(abiType).asBytes() - 1);
 				}
 				case METHOD_SIZEOF: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(abiType));
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY:
@@ -207,27 +212,27 @@ namespace locic {
 				}
 				case METHOD_EQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpEQ(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpEQ(methodOwner, operand));
 				}
 				case METHOD_NOTEQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpNE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpNE(methodOwner, operand));
 				}
 				case METHOD_LESSTHAN: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpULT(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpULT(methodOwner, operand));
 				}
 				case METHOD_LESSTHANOREQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpULE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpULE(methodOwner, operand));
 				}
 				case METHOD_GREATERTHAN: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpUGT(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpUGT(methodOwner, operand));
 				}
 				case METHOD_GREATERTHANOREQUAL: {
 					const auto operand = args[1].resolveWithoutBind(function);
-					return builder.CreateICmpUGE(methodOwner, operand);
+					return irEmitter.emitI1ToBool(builder.CreateICmpUGE(methodOwner, operand));
 				}
 				case METHOD_COMPARE: {
 					const auto operand = args[1].resolveWithoutBind(function);

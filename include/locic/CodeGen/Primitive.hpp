@@ -1,8 +1,8 @@
 #ifndef LOCIC_CODEGEN_PRIMITIVE_HPP
 #define LOCIC_CODEGEN_PRIMITIVE_HPP
 
-#include <llvm-abi/Context.hpp>
 #include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
 
 #include <locic/CodeGen/PendingResult.hpp>
 #include <locic/SEM/ValueArray.hpp>
@@ -64,13 +64,13 @@ namespace locic {
 			 * \brief Get the ABI type corresponding to the primitive.
 			 * 
 			 * \param module Current module. FIXME: Remove this argument.
-			 * \param context The ABI context.
+			 * \param abiTypeBuilder The ABI type builder.
 			 * \param templateArguments The template arguments provided to the primitive type.
 			 * \return The ABI type.
 			 */
-			virtual llvm_abi::Type* getABIType(Module& module,
-			                                   llvm_abi::Context& context,
-			                                   llvm::ArrayRef<SEM::Value> templateArguments) const = 0;
+			virtual llvm_abi::Type getABIType(Module& module,
+			                                  const llvm_abi::TypeBuilder& abiTypeBuilder,
+			                                  llvm::ArrayRef<SEM::Value> templateArguments) const = 0;
 			
 			/**
 			 * \brief Get the IR type corresponding to the primitive.

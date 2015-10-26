@@ -1,3 +1,8 @@
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -72,7 +77,9 @@ namespace locic {
 				case SEM::Type::OBJECT: {
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(type)) {
-						return ConstantGenerator(module).getSizeTValue(abi.typeAlign(genABIType(module, type)) - 1);
+						const auto abiType = genABIType(module, type);
+						const auto typeAlign = abi.typeInfo().getTypeRequiredAlign(abiType);
+						return ConstantGenerator(module).getSizeTValue(typeAlign.asBytes() - 1);
 					}
 					
 					if (type->isPrimitive()) {
@@ -129,7 +136,9 @@ namespace locic {
 				case SEM::Type::OBJECT: {
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(type)) {
-						return ConstantGenerator(module).getSizeTValue(abi.typeSize(genABIType(module, type)));
+						const auto abiType = genABIType(module, type);
+						const auto typeSize = abi.typeInfo().getTypeAllocSize(abiType);
+						return ConstantGenerator(module).getSizeTValue(typeSize.asBytes());
 					}
 					
 					if (type->isPrimitive()) {
@@ -300,13 +309,16 @@ namespace locic {
 				for (size_t i = 0; i < memberIndex; i++) {
 					const auto memberVar = objectType->variables().at(i);
 					const auto abiType = genABIType(module, memberVar->type());
-					offset = roundUpToAlign(offset, abi.typeAlign(abiType)) + abi.typeSize(abiType);
+					const auto typeAlign = abi.typeInfo().getTypeRequiredAlign(abiType);
+					const auto typeSize = abi.typeInfo().getTypeAllocSize(abiType);
+					offset = roundUpToAlign(offset, typeAlign.asBytes()) + typeSize.asBytes();
 				}
 				
 				{
 					const auto memberVar = objectType->variables().at(memberIndex);
 					const auto abiType = genABIType(module, memberVar->type());
-					offset = roundUpToAlign(offset, abi.typeAlign(abiType));
+					const auto typeAlign = abi.typeInfo().getTypeRequiredAlign(abiType);
+					offset = roundUpToAlign(offset, typeAlign.asBytes());
 				}
 				
 				return ConstantGenerator(module).getSizeTValue(offset);

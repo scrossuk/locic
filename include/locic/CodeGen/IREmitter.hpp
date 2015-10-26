@@ -39,6 +39,12 @@ namespace locic {
  			TypeGenerator typeGenerator();
 			
 			llvm::Value*
+			emitI1ToBool(llvm::Value* value);
+			
+			llvm::Value*
+			emitBoolToI1(llvm::Value* value);
+			
+			llvm::Value*
 			emitRawLoad(llvm::Value* valuePtr, llvm::Type* type);
 			
 			void

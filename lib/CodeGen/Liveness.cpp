@@ -1,3 +1,6 @@
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -68,7 +71,9 @@ namespace locic {
 				}
 				
 				const auto abiType = genABIType(module, var->type());
-				const size_t nextOffset = roundUpToAlign(currentOffset, module.abi().typeAlign(abiType));
+				const auto& abiTypeInfo = module.abi().typeInfo();
+				const size_t nextOffset = roundUpToAlign(currentOffset,
+				                                         abiTypeInfo.getTypeRequiredAlign(abiType).asBytes());
 				if (currentOffset != nextOffset) {
 					// Found a gap of one or more bytes, so let's
 					// insert a byte field here to store the
@@ -76,7 +81,7 @@ namespace locic {
 					return make_optional(LivenessIndicator::GapByte(currentOffset));
 				}
 				
-				currentOffset = nextOffset + module.abi().typeSize(abiType);
+				currentOffset = nextOffset + abiTypeInfo.getTypeAllocSize(abiType).asBytes();
 			}
 			
 			// No gaps available.
@@ -226,7 +231,7 @@ namespace locic {
 				TypeInfo typeInfo(module);
 				if (!typeInfo.objectHasLivenessIndicator(*(type->getObjectType()))) {
 					// Assume value is always live.
-					return ConstantGenerator(module).getI1(true);
+					return ConstantGenerator(module).getBool(true);
 				}
 				
 				// Call __islive method.

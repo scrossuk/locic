@@ -46,8 +46,8 @@ namespace locic {
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveID id);
 		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* type);
 		
-		llvm_abi::Type* getBasicPrimitiveABIType(Module& module, PrimitiveID id);
-		llvm_abi::Type* getPrimitiveABIType(Module& module, const SEM::Type* type);
+		llvm_abi::Type getBasicPrimitiveABIType(Module& module, PrimitiveID id);
+		llvm_abi::Type getPrimitiveABIType(Module& module, const SEM::Type* type);
 		
 	}
 	

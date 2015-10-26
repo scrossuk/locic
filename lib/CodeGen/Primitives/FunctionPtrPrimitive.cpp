@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -61,35 +66,35 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* FunctionPtrPrimitive::getABIType(Module& module,
-		                                                 llvm_abi::Context& abiContext,
-		                                                 llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		llvm_abi::Type FunctionPtrPrimitive::getABIType(Module& module,
+		                                                const llvm_abi::TypeBuilder& abiTypeBuilder,
+		                                                llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
 			switch (typeInstance_.primitiveID()) {
 				case PrimitiveFunctionPtr:
 				case PrimitiveMethodFunctionPtr:
 				case PrimitiveVarArgFunctionPtr:
-					return llvm_abi::Type::Pointer(abiContext);
+					return llvm_abi::PointerTy;
 				case PrimitiveTemplatedFunctionPtr:
 				case PrimitiveTemplatedMethodFunctionPtr: {
-					std::vector<llvm_abi::Type*> types;
+					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
-					types.push_back(llvm_abi::Type::Pointer(abiContext));
+					types.push_back(llvm_abi::PointerTy);
 					types.push_back(templateGeneratorType(module).first);
-					return llvm_abi::Type::AutoStruct(abiContext, types);
+					return abiTypeBuilder.getStructTy(types);
 				}
 				case PrimitiveMethod: {
-					std::vector<llvm_abi::Type*> types;
+					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
-					types.push_back(llvm_abi::Type::Pointer(abiContext));
+					types.push_back(llvm_abi::PointerTy);
 					types.push_back(getBasicPrimitiveABIType(module, PrimitiveMethodFunctionPtr));
-					return llvm_abi::Type::AutoStruct(abiContext, types);
+					return abiTypeBuilder.getStructTy(types);
 				}
 				case PrimitiveTemplatedMethod: {
-					std::vector<llvm_abi::Type*> types;
+					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
-					types.push_back(llvm_abi::Type::Pointer(abiContext));
+					types.push_back(llvm_abi::PointerTy);
 					types.push_back(getBasicPrimitiveABIType(module, PrimitiveTemplatedMethodFunctionPtr));
-					return llvm_abi::Type::AutoStruct(abiContext, types);
+					return abiTypeBuilder.getStructTy(types);
 				}
 				case PrimitiveInterfaceMethod: {
 					return interfaceMethodType(module).first;
@@ -182,7 +187,7 @@ namespace locic {
 			
 			llvm::Value* genFunctionPtrIsLiveMethod(Function& function) {
 				auto& module = function.module();
-				return ConstantGenerator(module).getI1(true);
+				return ConstantGenerator(module).getBool(true);
 			}
 			
 			llvm::Value* genFunctionPtrMoveToMethod(Function& function, const SEM::Type* const type, PendingResultArray args) {
@@ -240,10 +245,14 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_NULL:
 					return genFunctionPtrNullMethod(function, type);
-				case METHOD_ALIGNMASK:
-					return ConstantGenerator(module).getSizeTValue(module.abi().typeAlign(genABIType(module, type)) - 1);
-				case METHOD_SIZEOF:
-					return ConstantGenerator(module).getSizeTValue(module.abi().typeSize(genABIType(module, type)));
+				case METHOD_ALIGNMASK: {
+					const auto abiType = genABIType(module, type);
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeInfo().getTypeRequiredAlign(abiType).asBytes() - 1);
+				}
+				case METHOD_SIZEOF: {
+					const auto abiType = genABIType(module, type);
+					return ConstantGenerator(module).getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
+				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY:
 					return genFunctionPtrCopyMethod(function, std::move(args));

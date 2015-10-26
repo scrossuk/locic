@@ -179,7 +179,8 @@ namespace locic {
 				
 				// Check whether this object is in a 'live' state and only
 				// run the destructor if it is.
-				const auto isLive = genIsLive(functionGenerator_, typeInstance.selfType(), thisValue);
+				const auto isLiveBool = genIsLive(functionGenerator_, typeInstance.selfType(), thisValue);
+				const auto isLive = irEmitter.emitBoolToI1(isLiveBool);
 				builder.CreateCondBr(isLive, isLiveBB, endBB);
 				
 				functionGenerator_.selectBasicBlock(isLiveBB);
@@ -271,9 +272,10 @@ namespace locic {
 				
 				// Check whether the source object is in a 'live' state and
 				// only perform the move if it is.
-				const auto isLive = genIsLive(functionGenerator_,
+				const auto isLiveBool = genIsLive(functionGenerator_,
 				                              type,
 				                              sourceValue);
+				const auto isLive = irEmitter.emitBoolToI1(isLiveBool);
 				builder.CreateCondBr(isLive,
 				                     isLiveBB,
 				                     isNotLiveBB);
@@ -588,7 +590,7 @@ namespace locic {
 			switch (livenessIndicator.kind()) {
 				case LivenessIndicator::NONE: {
 					// Always consider object to be live.
-					return ConstantGenerator(module).getI1(true);
+					return ConstantGenerator(module).getBool(true);
 				}
 				case LivenessIndicator::MEMBER_INVALID_STATE: {
 					// Query whether member has invalid state.
@@ -615,7 +617,7 @@ namespace locic {
 					const auto oneValue = ConstantGenerator(module).getI8(1);
 					const auto byteValue = irEmitter.emitRawLoad(bytePtr, oneValue->getType());
 					// Live if suffix/gap byte == 1.
-					return builder.CreateICmpEQ(byteValue, oneValue);
+					return irEmitter.emitI1ToBool(builder.CreateICmpEQ(byteValue, oneValue));
 				}
 			}
 			

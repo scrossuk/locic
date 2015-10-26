@@ -57,10 +57,8 @@ namespace locic {
 					switch (value.constant().kind()) {
 						case locic::Constant::NULLVAL:
 							return ConstantGenerator(module).getNullPointer();
-									   
 						case locic::Constant::BOOLEAN:
-							return ConstantGenerator(module).getI1(value.constant().boolValue());
-						
+							return ConstantGenerator(module).getBool(value.constant().boolValue());
 						case locic::Constant::INTEGER: {
 							assert(value.type()->isObject());
 							const auto integerValue = value.constant().integerValue();
@@ -151,7 +149,8 @@ namespace locic {
 				}
 				
 				case SEM::Value::TERNARY: {
-					const auto condValue = genValue(function, value.ternaryCondition());
+					const auto boolCondition = genValue(function, value.ternaryCondition());
+					const auto condValue = irEmitter.emitBoolToI1(boolCondition);
 					
 					const auto ifTrueBB = function.createBasicBlock("");
 					const auto ifFalseBB = function.createBasicBlock("");

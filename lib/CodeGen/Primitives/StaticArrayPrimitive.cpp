@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -71,14 +76,13 @@ namespace locic {
 			return typeInfo.hasCustomMove(templateArguments.front().typeRefType());
 		}
 		
-		llvm_abi::Type* StaticArrayPrimitive::getABIType(Module& module,
-		                                                 llvm_abi::Context& abiContext,
+		llvm_abi::Type StaticArrayPrimitive::getABIType(Module& module,
+		                                                 const llvm_abi::TypeBuilder& abiTypeBuilder,
 		                                                 llvm::ArrayRef<SEM::Value> templateArguments) const {
 			const auto elementType = genABIType(module, templateArguments.front().typeRefType());
 			const auto elementCount = templateArguments.back().constant().integerValue();
-			return llvm_abi::Type::Array(abiContext,
-			                             elementCount,
-			                             elementType);
+			return abiTypeBuilder.getArrayTy(elementCount,
+			                                 elementType);
 		}
 		
 		llvm::Type* StaticArrayPrimitive::getIRType(Module& module,
@@ -263,7 +267,7 @@ namespace locic {
 				}
 				case METHOD_ISLIVE: {
 					(void) args[0].resolve(function);
-					return ConstantGenerator(module).getI1(true);
+					return ConstantGenerator(module).getBool(true);
 				}
 				case METHOD_SETDEAD: {
 					(void) args[0].resolve(function);

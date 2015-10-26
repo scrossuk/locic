@@ -52,9 +52,8 @@ namespace locic {
 		}
 		
 		ArgInfo assertFailedArgInfo(Module& module) {
-			auto& abiContext = module.abiContext();
-			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::Type::Pointer(abiContext), TypeGenerator(module).getPtrType());
+			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
+			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
 			
 			const TypePair argTypes[] = { voidPtr };
 			return ArgInfo::Basic(module, voidType, argTypes).withNoExcept().withNoReturn();
@@ -74,8 +73,7 @@ namespace locic {
 		}
 		
 		ArgInfo unreachableFailedArgInfo(Module& module) {
-			auto& abiContext = module.abiContext();
-			const auto voidType = std::make_pair(llvm_abi::Type::Struct(abiContext, {}), TypeGenerator(module).getVoidType());
+			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
 			return ArgInfo::Basic(module, voidType, {}).withNoExcept().withNoReturn();
 		}
 		
@@ -157,7 +155,8 @@ namespace locic {
 						{
 							ScopeLifetime ifScopeLifetime(function);
 							
-							conditionValue = genValue(function, ifClause->condition());
+							const auto boolCondition = genValue(function, ifClause->condition());
+							conditionValue = irEmitter.emitBoolToI1(boolCondition);
 							conditionHasUnwindActions = anyUnwindCleanupActions(function, UnwindStateNormal);
 							
 							// The condition value may involve some unwinding operations, in
@@ -342,7 +341,8 @@ namespace locic {
 					// before the branch instruction.
 					{
 						ScopeLifetime conditionScopeLifetime(function);
-						condition = genValue(function, statement.getLoopCondition());
+						const auto boolCondition = genValue(function, statement.getLoopCondition());
+						condition = irEmitter.emitBoolToI1(boolCondition);
 					}
 					
 					function.getBuilder().CreateCondBr(condition, loopIterationBB, loopEndBB);
@@ -654,7 +654,8 @@ namespace locic {
 					const auto failBB = function.createBasicBlock("assertFail");
 					const auto successBB = function.createBasicBlock("assertSuccess");
 					
-					const auto conditionValue = genValue(function, statement.getAssertValue());
+					const auto boolCondition = genValue(function, statement.getAssertValue());
+					const auto conditionValue = irEmitter.emitBoolToI1(boolCondition);
 					function.getBuilder().CreateCondBr(conditionValue, successBB, failBB);
 					
 					function.selectBasicBlock(failBB);

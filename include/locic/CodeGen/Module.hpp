@@ -44,7 +44,7 @@ namespace locic {
 	
 	namespace CodeGen {
 	
-		typedef std::pair<llvm_abi::Type*, llvm::Type*> TypePair;
+		typedef std::pair<llvm_abi::Type, llvm::Type*> TypePair;
 		
 		enum CompareResult {
 			COMPARE_EQUAL,
@@ -112,7 +112,7 @@ namespace locic {
 				
 				const llvm_abi::ABI& abi() const;
 				
-				llvm_abi::Context& abiContext();
+				const llvm_abi::TypeBuilder& abiTypeBuilder();
 				
 				llvm::LLVMContext& getLLVMContext() const;
 				

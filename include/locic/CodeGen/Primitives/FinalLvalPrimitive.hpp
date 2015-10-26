@@ -37,9 +37,9 @@ namespace locic {
 			bool hasCustomMove(const TypeInfo& typeInfo,
 			                   llvm::ArrayRef<SEM::Value> templateVariables) const;
 			
-			llvm_abi::Type* getABIType(Module& module,
-			                           llvm_abi::Context& context,
-			                           llvm::ArrayRef<SEM::Value> templateVariables) const;
+			llvm_abi::Type getABIType(Module& module,
+			                          const llvm_abi::TypeBuilder& abiTypeBuilder,
+			                          llvm::ArrayRef<SEM::Value> templateVariables) const;
 			
 			llvm::Type* getIRType(Module& module,
 			                      const TypeGenerator& typeGenerator,

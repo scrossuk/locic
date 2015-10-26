@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -65,13 +70,13 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* RefPrimitive::getABIType(Module& module,
-		                                         llvm_abi::Context& abiContext,
-		                                         llvm::ArrayRef<SEM::Value> templateArguments) const {
+		llvm_abi::Type RefPrimitive::getABIType(Module& module,
+		                                        const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
+		                                        llvm::ArrayRef<SEM::Value> templateArguments) const {
 			if (templateArguments.front().typeRefType()->isInterface()) {
 				return interfaceStructType(module).first;
 			} else {
-				return llvm_abi::Type::Pointer(abiContext);
+				return llvm_abi::PointerTy;
 			}
 		}
 		
@@ -277,11 +282,11 @@ namespace locic {
 					return genRefPrimitiveMethodForVirtualCases(function, type,
 						[&](llvm::Type* const llvmType) {
 							if (llvmType->isPointerTy()) {
-								const auto nonVirtualAlign = module.abi().typeAlign(llvm_abi::Type::Pointer(module.abiContext()));
-								return ConstantGenerator(module).getSizeTValue(nonVirtualAlign - 1);
+								const auto nonVirtualAlign = module.abi().typeInfo().getTypeRequiredAlign(llvm_abi::PointerTy);
+								return ConstantGenerator(module).getSizeTValue(nonVirtualAlign.asBytes() - 1);
 							} else {
-								const auto virtualAlign = module.abi().typeAlign(interfaceStructType(module).first);
-								return ConstantGenerator(module).getSizeTValue(virtualAlign - 1);
+								const auto virtualAlign = module.abi().typeInfo().getTypeRequiredAlign(interfaceStructType(module).first);
+								return ConstantGenerator(module).getSizeTValue(virtualAlign.asBytes() - 1);
 							}
 						}
 					);
@@ -290,11 +295,11 @@ namespace locic {
 					return genRefPrimitiveMethodForVirtualCases(function, type,
 						[&](llvm::Type* const llvmType) {
 							if (llvmType->isPointerTy()) {
-								const auto nonVirtualSize = module.abi().typeSize(llvm_abi::Type::Pointer(module.abiContext()));
-								return ConstantGenerator(module).getSizeTValue(nonVirtualSize);
+								const auto nonVirtualSize = module.abi().typeInfo().getTypeRawSize(llvm_abi::PointerTy);
+								return ConstantGenerator(module).getSizeTValue(nonVirtualSize.asBytes());
 							} else {
-								const auto virtualSize = module.abi().typeSize(interfaceStructType(module).first);
-								return ConstantGenerator(module).getSizeTValue(virtualSize);
+								const auto virtualSize = module.abi().typeInfo().getTypeRawSize(interfaceStructType(module).first);
+								return ConstantGenerator(module).getSizeTValue(virtualSize.asBytes());
 							}
 						}
 					);
@@ -331,11 +336,11 @@ namespace locic {
 							const auto methodOwnerValue = methodOwner.get(llvmType);
 							if (llvmType->isPointerTy()) {
 								const auto nullValue = ConstantGenerator(module).getNull(llvmType);
-								return builder.CreateICmpNE(methodOwnerValue, nullValue);
+								return irEmitter.emitI1ToBool(builder.CreateICmpNE(methodOwnerValue, nullValue));
 							} else {
 								const auto pointerValue = builder.CreateExtractValue(methodOwnerValue, { 0 });
 								const auto nullValue = ConstantGenerator(module).getNull(pointerValue->getType());
-								return builder.CreateICmpNE(pointerValue, nullValue);
+								return irEmitter.emitI1ToBool(builder.CreateICmpNE(pointerValue, nullValue));
 							}
 						});
 				}
@@ -351,7 +356,7 @@ namespace locic {
 						});
 				}
 				case METHOD_ISLIVE: {
-					return ConstantGenerator(module).getI1(true);
+					return ConstantGenerator(module).getBool(true);
 				}
 				case METHOD_SETDEAD: {
 					// Do nothing.

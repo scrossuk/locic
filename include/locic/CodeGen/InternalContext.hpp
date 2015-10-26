@@ -3,8 +3,6 @@
 
 #include <memory>
 
-#include <llvm-abi/Context.hpp>
-
 namespace locic {
 	
 	class MethodID;
@@ -30,8 +28,6 @@ namespace locic {
 				
 				llvm::LLVMContext& llvmContext();
 				
-				llvm_abi::Context& llvmABIContext();
-				
 				const llvm::Triple& targetTriple() const;
 				
 				const llvm::Target* target() const;
@@ -43,7 +39,6 @@ namespace locic {
 			private:
 				const SharedMaps& sharedMaps_;
 				llvm::LLVMContext llvmContext_;
-				llvm_abi::Context llvmABIContext_;
 				llvm::Triple targetTriple_;
 				const llvm::Target* target_;
 				std::unique_ptr<llvm::TargetMachine> targetMachine_;

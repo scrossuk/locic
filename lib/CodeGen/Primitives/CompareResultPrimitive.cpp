@@ -4,6 +4,11 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -63,11 +68,11 @@ namespace locic {
 			return false;
 		}
 		
-		llvm_abi::Type* CompareResultPrimitive::getABIType(Module& /*module*/,
-		                                                   llvm_abi::Context& abiContext,
-		                                                   llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		llvm_abi::Type CompareResultPrimitive::getABIType(Module& /*module*/,
+		                                                  const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
+		                                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
 			 // Compare results represented with 8 bits.
-			return llvm_abi::Type::Integer(abiContext,  llvm_abi::Int8);
+			return llvm_abi::Int8Ty;
 		}
 		
 		llvm::Type* CompareResultPrimitive::getIRType(Module& /*module*/,
@@ -93,15 +98,15 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_ALIGNMASK: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return constantGenerator.getSizeTValue(module.abi().typeAlign(abiType) - 1);
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeRequiredAlign(abiType).asBytes() - 1);
 				}
 				case METHOD_SIZEOF: {
 					const auto abiType = this->getABIType(module,
-					                                      module.abiContext(),
+					                                      module.abiTypeBuilder(),
 					                                      typeTemplateArguments);
-					return constantGenerator.getSizeTValue(module.abi().typeSize(abiType));
+					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
 				case METHOD_LESSTHAN:
 					assert(args.empty());
@@ -117,27 +122,27 @@ namespace locic {
 					return args[0].resolveWithoutBind(function);
 				case METHOD_ISEQUAL: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.builder().CreateICmpEQ(methodOwner, equalValue);
+					return irEmitter.emitI1ToBool(irEmitter.builder().CreateICmpEQ(methodOwner, equalValue));
 				}
 				case METHOD_ISNOTEQUAL: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.builder().CreateICmpNE(methodOwner, equalValue);
+					return irEmitter.emitI1ToBool(irEmitter.builder().CreateICmpNE(methodOwner, equalValue));
 				}
 				case METHOD_ISLESSTHAN: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.builder().CreateICmpEQ(methodOwner, lessThanValue);
+					return irEmitter.emitI1ToBool(irEmitter.builder().CreateICmpEQ(methodOwner, lessThanValue));
 				}
 				case METHOD_ISLESSTHANOREQUAL: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.builder().CreateICmpNE(methodOwner, greaterThanValue);
+					return irEmitter.emitI1ToBool(irEmitter.builder().CreateICmpNE(methodOwner, greaterThanValue));
 				}
 				case METHOD_ISGREATERTHAN: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.builder().CreateICmpEQ(methodOwner, greaterThanValue);
+					return irEmitter.emitI1ToBool(irEmitter.builder().CreateICmpEQ(methodOwner, greaterThanValue));
 				}
 				case METHOD_ISGREATERTHANOREQUAL: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.builder().CreateICmpNE(methodOwner, lessThanValue);
+					return irEmitter.emitI1ToBool(irEmitter.builder().CreateICmpNE(methodOwner, lessThanValue));
 				}
 				default:
 					llvm_unreachable("Unknown compare_result_t method.");

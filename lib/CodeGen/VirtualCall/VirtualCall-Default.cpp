@@ -42,16 +42,17 @@ namespace locic {
 				llvm::SmallVector<TypePair, 2> arguments;
 				
 				// Hash value type.
-				arguments.push_back(std::make_pair(llvm_abi::Type::Integer(module.abiContext(), llvm_abi::Int64), typeGen.getI64Type()));
+				arguments.push_back(std::make_pair(llvm_abi::Int64Ty, typeGen.getI64Type()));
 				
 				// Arguments struct pointer type.
-				arguments.push_back(std::make_pair(llvm_abi::Type::Pointer(module.abiContext()), typeGen.getPtrType()));
+				arguments.push_back(std::make_pair(llvm_abi::PointerTy, typeGen.getPtrType()));
 				
 				return ArgInfo(module, hasReturnVarArgument, hasTemplateGenerator, hasContextArgument, isVarArg,
 							   voidTypePair(module), arguments);
 			}
 			
-			llvm::AttributeSet conflictResolutionStubAttributes(Module& module) {
+			llvm::AttributeSet conflictResolutionStubAttributes(Module& module,
+			                                                    const llvm::AttributeSet& existingAttributes) {
 				const auto iterator = module.attributeMap().find(AttributeVirtualCallStub);
 				
 				if (iterator != module.attributeMap().end()) {
@@ -60,7 +61,7 @@ namespace locic {
 				
 				auto& context = module.getLLVMContext();
 				
-				auto attributes = llvm::AttributeSet();
+				auto attributes = existingAttributes;
 				
 				// Always inline stubs.
 				attributes = attributes.addAttribute(context, llvm::AttributeSet::FunctionIndex, llvm::Attribute::AlwaysInline);
@@ -297,7 +298,8 @@ namespace locic {
 				const auto linkage = llvm::Function::InternalLinkage;
 				
 				const auto llvmFunction = createLLVMFunction(module, stubArgInfo, linkage, module.getCString("__slot_conflict_resolution_stub"));
-				llvmFunction->setAttributes(conflictResolutionStubAttributes(module));
+				llvmFunction->setAttributes(conflictResolutionStubAttributes(module,
+				                                                             llvmFunction->getAttributes()));
 				
 				Function function(module, *llvmFunction, stubArgInfo);
 				
