@@ -62,10 +62,7 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto mangledName = mangleObjectType(module, typeInstance);
-			const auto structType = TypeGenerator(module).getForwardDeclaredStructType(mangledName);
-			
-			module.typeInstanceMap().insert(std::make_pair(typeInstance, structType));
+			llvm::StructType* structType = nullptr;
 			
 			// If the size isn't known then just return an opaque struct.
 			TypeInfo typeInfo(module);
@@ -80,13 +77,10 @@ namespace locic {
 					(void) result;
 				}
 				
-				return structType;
-			}
-			
-			if (typeInstance->isUnion()) {
+				const auto mangledName = mangleObjectType(module, typeInstance);
+				structType = TypeGenerator(module).getForwardDeclaredStructType(mangledName);
+			} else if (typeInstance->isUnion()) {
 				UnionSizer sizer(module);
-				
-				assert(!typeInstance->variables().empty());
 				
 				for (const auto& var: typeInstance->variables()) {
 					// All variables at 'index' 0.
@@ -99,8 +93,7 @@ namespace locic {
 				
 				llvm::SmallVector<llvm::Type*, 1> structMembers;
 				structMembers.push_back(sizer.maxType());
-				structType->setBody(structMembers);
-				return structType;
+				structType = TypeGenerator(module).getStructType(structMembers);
 			} else if (typeInstance->isUnionDatatype()) {
 				UnionSizer sizer(module);
 				
@@ -113,8 +106,7 @@ namespace locic {
 				llvm::SmallVector<llvm::Type*, 2> structMembers;
 				structMembers.push_back(TypeGenerator(module).getI8Type());
 				structMembers.push_back(sizer.maxType());
-				structType->setBody(structMembers);
-				return structType;
+				structType = TypeGenerator(module).getStructType(structMembers);
 			} else {
 				// Generating the type for a class or struct definition, so
 				// the size and contents of the type instance is known and
@@ -142,9 +134,12 @@ namespace locic {
 					structMembers.push_back(TypeGenerator(module).getI8Type());
 				}
 				
-				structType->setBody(structMembers);
+				structType = TypeGenerator(module).getStructType(structMembers);
 			}
 			
+			assert(structType != nullptr);
+			
+			module.typeInstanceMap().insert(std::make_pair(typeInstance, structType));
 			return structType;
 		}
 		
