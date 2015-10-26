@@ -99,6 +99,11 @@ namespace locic {
 								// Add suffix byte.
 								members.push_back(llvm_abi::Int8Ty);
 							}
+							
+							if (members.empty()) {
+								// All datatypes must be at least one byte in size.
+								members.push_back(llvm_abi::Int8Ty);
+							}
 						}
 						
 						return abiTypeBuilder.getStructTy(members);
