@@ -42,7 +42,28 @@ namespace locic {
 					} else {
 						llvm::SmallVector<llvm_abi::Type, 8> members;
 						
-						if (typeInstance->isUnionDatatype()) {
+						if (typeInstance->isUnion()) {
+							llvm_abi::Type maxType = llvm_abi::Int8Ty;
+							size_t maxSize = 0;
+							size_t maxAlign = 0;
+							
+							for (const auto& var: typeInstance->variables()) {
+								const auto variantType = genABIType(module, var->type());
+								const auto& abiTypeInfo = module.abi().typeInfo();
+								const auto variantSize = abiTypeInfo.getTypeStoreSize(variantType).asBytes();
+								const auto variantAlign = abiTypeInfo.getTypePreferredAlign(variantType).asBytes();
+								
+								if (variantAlign > maxAlign || (variantAlign == maxAlign && variantSize > maxSize)) {
+									maxType = variantType;
+									maxSize = variantSize;
+									maxAlign = variantAlign;
+								} else {
+									assert(variantAlign <= maxAlign && variantSize <= maxSize);
+								}
+							}
+							
+							members.push_back(maxType);
+						} else if (typeInstance->isUnionDatatype()) {
 							members.reserve(2);
 							members.push_back(llvm_abi::Int8Ty);
 							
