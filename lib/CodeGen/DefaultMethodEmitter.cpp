@@ -446,7 +446,23 @@ namespace locic {
 			const auto zero = ConstantGenerator(module).getSizeTValue(0);
 			const auto one = ConstantGenerator(module).getSizeTValue(1);
 			
-			if (typeInstance.isUnionDatatype()) {
+			if (typeInstance.isUnion()) {
+				// Calculate maximum alignment and size of all variants.
+				llvm::Value* maxVariantAlignMask = zero;
+				llvm::Value* maxVariantSize = one;
+				
+				for (const auto& var: typeInstance.variables()) {
+					const auto variantAlignMask = irEmitter.emitAlignMask(var->type());
+					const auto variantSize = irEmitter.emitSizeOf(var->type());
+					
+					maxVariantAlignMask = functionGenerator_.getBuilder().CreateOr(maxVariantAlignMask, variantAlignMask);
+					
+					const auto compareResult = functionGenerator_.getBuilder().CreateICmpUGT(variantSize, maxVariantSize);
+					maxVariantSize = functionGenerator_.getBuilder().CreateSelect(compareResult, variantSize, maxVariantSize);
+				}
+				
+				return makeAligned(functionGenerator_, maxVariantSize, maxVariantAlignMask);
+			} else if (typeInstance.isUnionDatatype()) {
 				// Calculate maximum alignment and size of all variants.
 				llvm::Value* maxVariantAlignMask = zero;
 				llvm::Value* maxVariantSize = zero;
