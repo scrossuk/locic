@@ -19,7 +19,7 @@ set(LLVMABI_CMAKE_ARGS
 # Pull llvm-abi from repository and build it.
 ExternalProject_Add(LLVMABIProject
 	GIT_REPOSITORY "${LLVMABI_REPO}"
-	GIT_TAG "1fdc3c1930f1c7b3fe9eff409ebe42f08ea3e18e"
+	GIT_TAG "125554d165be07ab7cfdb25f8bcecf86abf7974a"
 	UPDATE_COMMAND ""
 	CMAKE_ARGS ${LLVMABI_CMAKE_ARGS}
 	INSTALL_DIR "${LLVMABI_INSTALL_DIR}"
