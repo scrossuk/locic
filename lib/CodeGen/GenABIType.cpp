@@ -43,50 +43,28 @@ namespace locic {
 						llvm::SmallVector<llvm_abi::Type, 8> members;
 						
 						if (typeInstance->isUnion()) {
-							llvm_abi::Type maxType = llvm_abi::Int8Ty;
-							size_t maxSize = 0;
-							size_t maxAlign = 0;
+							members.reserve(typeInstance->variables().size() + 1);
 							
-							for (const auto& var: typeInstance->variables()) {
-								const auto variantType = genABIType(module, var->type());
-								const auto& abiTypeInfo = module.abi().typeInfo();
-								const auto variantSize = abiTypeInfo.getTypeStoreSize(variantType).asBytes();
-								const auto variantAlign = abiTypeInfo.getTypePreferredAlign(variantType).asBytes();
-								
-								if (variantAlign > maxAlign || (variantAlign == maxAlign && variantSize > maxSize)) {
-									maxType = variantType;
-									maxSize = variantSize;
-									maxAlign = variantAlign;
-								} else {
-									assert(variantAlign <= maxAlign && variantSize <= maxSize);
-								}
+							for (const auto var: typeInstance->variables()) {
+								members.push_back(genABIType(module, var->type()));
 							}
 							
-							members.push_back(maxType);
-						} else if (typeInstance->isUnionDatatype()) {
-							members.reserve(2);
-							members.push_back(llvm_abi::Int8Ty);
+							if (members.empty()) {
+								// All datatypes must be at least one byte in size.
+								members.push_back(llvm_abi::Int8Ty);
+							}
 							
-							llvm_abi::Type maxStructType = abiTypeBuilder.getStructTy({});
-							size_t maxStructSize = 0;
-							size_t maxStructAlign = 0;
+							return abiTypeBuilder.getUnionTy(members);
+						} else if (typeInstance->isUnionDatatype()) {
+							members.reserve(typeInstance->variants().size());
 							
 							for (auto variantTypeInstance: typeInstance->variants()) {
-								const auto variantStructType = genABIType(module, variantTypeInstance->selfType());
-								const auto& abiTypeInfo = module.abi().typeInfo();
-								const auto variantStructSize = abiTypeInfo.getTypeStoreSize(variantStructType).asBytes();
-								const auto variantStructAlign = abiTypeInfo.getTypePreferredAlign(variantStructType).asBytes();
-								
-								if (variantStructAlign > maxStructAlign || (variantStructAlign == maxStructAlign && variantStructSize > maxStructSize)) {
-									maxStructType = variantStructType;
-									maxStructSize = variantStructSize;
-									maxStructAlign = variantStructAlign;
-								} else {
-									assert(variantStructAlign <= maxStructAlign && variantStructSize <= maxStructSize);
-								}
+								members.push_back(genABIType(module, variantTypeInstance->selfType()));
 							}
 							
-							members.push_back(maxStructType);
+							const auto unionType = abiTypeBuilder.getUnionTy(members);
+							return abiTypeBuilder.getStructTy({llvm_abi::Int8Ty,
+							                                   unionType});
 						} else {
 							members.reserve(typeInstance->variables().size() + 1);
 							
@@ -104,9 +82,9 @@ namespace locic {
 								// All datatypes must be at least one byte in size.
 								members.push_back(llvm_abi::Int8Ty);
 							}
+							
+							return abiTypeBuilder.getStructTy(members);
 						}
-						
-						return abiTypeBuilder.getStructTy(members);
 					}
 				}
 				case SEM::Type::ALIAS: {
