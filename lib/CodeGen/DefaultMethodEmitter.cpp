@@ -718,13 +718,14 @@ namespace locic {
 					                                                               type,
 					                                                               variantType);
 					
-					const auto copyResult = irEmitter.emitCopyCall(methodID,
-					                                               unionValuePtr,
-					                                               variantType);
-					
 					const auto unionValueDestPtr = irEmitter.emitGetDatatypeVariantPtr(resultValue,
 					                                                                   type,
 					                                                                   variantType);
+					
+					const auto copyResult = irEmitter.emitCopyCall(methodID,
+					                                               unionValuePtr,
+					                                               variantType,
+					                                               unionValueDestPtr);
 					
 					irEmitter.emitMoveStore(copyResult,
 					                        unionValueDestPtr,
@@ -744,11 +745,12 @@ namespace locic {
 					
 					const auto memberType = memberVar->constructType()->resolveAliases();
 					
+					const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberIndex);
+					
 					const auto copyResult = irEmitter.emitCopyCall(methodID,
 					                                               ptrToMember,
-					                                               memberType);
-					
-					const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberIndex);
+					                                               memberType,
+					                                               resultPtr);
 					
 					irEmitter.emitMoveStore(copyResult,
 					                        resultPtr,
