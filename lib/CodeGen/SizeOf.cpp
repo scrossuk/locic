@@ -355,6 +355,10 @@ namespace locic {
 		
 		llvm::Value* genMemberPtr(Function& function, llvm::Value* const objectPointer, const SEM::Type* const objectType, const size_t memberIndex) {
 			assert(objectType->isObject());
+			if (memberIndex == 0) {
+				return objectPointer;
+			}
+			
 			auto& module = function.module();
 			
 			IREmitter irEmitter(function);

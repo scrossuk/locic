@@ -384,8 +384,13 @@ namespace locic {
 				for (const auto& memberVar: typeInstance.variables()) {
 					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
 					const auto ptrToMember = genMemberPtr(functionGenerator_, sourceValue, type, memberIndex);
-					const auto memberOffsetValue = genMemberOffset(functionGenerator_, type, memberIndex);
-					const auto adjustedPositionValue = builder.CreateAdd(positionValue, memberOffsetValue);
+					llvm::Value* adjustedPositionValue;
+					if (memberIndex != 0) {
+						const auto memberOffsetValue = genMemberOffset(functionGenerator_, type, memberIndex);
+						adjustedPositionValue = builder.CreateAdd(positionValue, memberOffsetValue);
+					} else {
+						adjustedPositionValue = positionValue;
+					}
 					genMoveCall(functionGenerator_,
 					            memberVar->type(),
 					            ptrToMember,
@@ -877,12 +882,17 @@ namespace locic {
 					return ConstantGenerator(module).getI8(0);
 				}
 				
-				const auto endBB = functionGenerator_.createBasicBlock("end");
+				llvm::BasicBlock* endBB = nullptr;
+				llvm::PHINode* phiNode = nullptr;
 				
-				const auto phiNode = llvm::PHINode::Create(i8Type,
-				                                           typeInstance.variables().size(),
-				                                           "compare_result",
-				                                           endBB);
+				if (typeInstance.variables().size() > 1) {
+					endBB = functionGenerator_.createBasicBlock("end");
+					
+					phiNode = llvm::PHINode::Create(i8Type,
+					                                typeInstance.variables().size(),
+					                                "compare_result",
+					                                endBB);
+				}
 				
 				for (size_t i = 0; i < typeInstance.variables().size(); i++) {
 					const auto& memberVar = typeInstance.variables()[i];
@@ -906,6 +916,10 @@ namespace locic {
 					                                                     compareResultType,
 					                                                     memberType,
 					                                                     memberRefType);
+					
+					if (typeInstance.variables().size() == 1) {
+						return compareResult;
+					}
 					
 					phiNode->addIncoming(compareResult,
 					                     functionGenerator_.getBuilder().GetInsertBlock());
