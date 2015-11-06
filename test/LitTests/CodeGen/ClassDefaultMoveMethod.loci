@@ -1,0 +1,29 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+import Test 1.0.0 {
+	
+	class ImportedClass { }
+	
+}
+
+class ClassWithMove(ImportedClass value) {
+	// CHECK-LABEL: void @MT1N13ClassWithMoveF1N8__moveto(i8*, i8*, i64)
+	// CHECK-NEXT: call void @MT1N13ClassWithMoveF1N8__moveto_internal(i8* %0, i8* %1, i64 %2)
+	// CHECK-NEXT: ret void
+	// CHECK-LABEL: void @MT1N13ClassWithMoveF1N8__moveto_internal(i8*, i8*, i64)
+	// CHECK-NEXT: call void @P1N4TestV1_0_0_MT1N13ImportedClassF1N8__moveto(i8* %0, i8* %1, i64 %2)
+	// CHECK-NEXT: ret void
+	__moveto = default;
+}
+
+class ClassWithImplicitMove(ImportedClass value) {
+	// __moveto() is always created as a default method.
+	
+	// CHECK-LABEL: void @MT1N21ClassWithImplicitMoveF1N8__moveto(i8*, i8*, i64)
+	// CHECK-NEXT: call void @MT1N21ClassWithImplicitMoveF1N8__moveto_internal(i8* %0, i8* %1, i64 %2)
+	// CHECK-NEXT: ret void
+	// CHECK-LABEL: void @MT1N21ClassWithImplicitMoveF1N8__moveto_internal(i8*, i8*, i64)
+	// CHECK-NEXT: call void @P1N4TestV1_0_0_MT1N13ImportedClassF1N8__moveto(i8* %0, i8* %1, i64 %2)
+	// CHECK-NEXT: ret void
+}

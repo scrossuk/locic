@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Unknown type with name 'Type'
+// CHECK: line 9
+// CHECK-NEXT: column 1
+// CHECK: line 9
+// CHECK-NEXT: column 5
+Type function() { }

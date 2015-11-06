@@ -1,0 +1,25 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class A() {
+	void method() { }
+}
+
+interface B {
+	void method();
+}
+
+// CHECK-NOT: type: A
+// CHECK-NOT: requirement: B
+// CHECK-NOT: line 16
+static assert A : B;
+
+// CHECK: Static assert predicate
+// CHECK-NEXT: type: B
+// CHECK-NEXT: requirement: A
+// CHECK-NEXT: is false
+// CHECK: line 25
+// CHECK-NEXT: column 15
+// CHECK: line 25
+// CHECK-NEXT: column 20
+static assert B : A;

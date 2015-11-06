@@ -1,0 +1,8 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK-NOT: Static assert predicate 'true' is false
+static assert true;
+
+// CHECK: Static assert predicate 'false' is false
+static assert false;

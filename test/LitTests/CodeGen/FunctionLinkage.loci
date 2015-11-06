@@ -1,0 +1,17 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+// CHECK-LABEL: declare i{{[0-9]+}} @importFunction()
+import int importFunction();
+
+// CHECK-LABEL: define internal i{{[0-9]+}} @internalFunction()
+int internalFunction() {
+	// CHECK: ret i{{[0-9]+}} 0
+	return 0;
+}
+
+// CHECK-LABEL: define i{{[0-9]+}} @externalFunction()
+export int externalFunction() {
+	// CHECK: ret i{{[0-9]+}} 0
+	return 0;
+}

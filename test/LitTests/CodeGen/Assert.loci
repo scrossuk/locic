@@ -1,0 +1,22 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+// CHECK: @[[CNAME:[a-zA-z0-9_]+]] = internal constant [7 x i8] c"i > 10\00", align 1
+
+// CHECK-LABEL: void @function(i32)
+void function(int i) {
+	// CHECK: %[[COND0:[0-9]+]] = icmp sgt i32 %{{[0-9]+}}, 10
+	
+	// Some tedious casting since bools are i8; it would be good to fix this.
+	// CHECK-NEXT: %[[COND1:[0-9]+]] = zext i1 %[[COND0]] to i8
+	// CHECK-NEXT: %[[COND2:[0-9]+]] = icmp ne i8 %[[COND1]], 0
+	
+	// CHECK-NEXT: br i1 %[[COND2]], label %assertSuccess, label %assertFail
+	
+	// CHECK: assertFail:
+	// CHECK-NEXT: call void @__loci_assert_failed({{.*}}@[[CNAME]]{{.*}})
+	// CHECK-NEXT: unreachable
+	// CHECK: assertSuccess:
+	// CHECK-NEXT: ret void
+	assert i > 10;
+}

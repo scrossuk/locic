@@ -1,0 +1,21 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+import Test 1.0.0 {
+	
+	class ImportedClass {
+		ImportedClass implicitCopy() const;
+	}
+	
+}
+
+class ClassWithCopy(ImportedClass value) {
+	// CHECK-LABEL: void @MT1N13ClassWithCopyF1N12implicitCopy(i8* noalias nocapture sret, i8*)
+	// CHECK-NEXT: call void @P1N4TestV1_0_0_MT1N13ImportedClassF1N12implicitCopy(i8* %0, i8* %1)
+	// CHECK-NEXT: ret void
+	implicitCopy = default;
+}
+
+class ClassWithoutCopy(ImportedClass value) {
+	// CHECK-NOT: void @MT1N16ClassWithoutCopyF1N12implicitCopy(i8* noalias nocapture sret, i8*)
+}

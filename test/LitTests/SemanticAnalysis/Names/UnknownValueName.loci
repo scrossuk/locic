@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Couldn't find symbol or value 'value'
+// CHECK: line 10
+// CHECK-NEXT: column 9
+// CHECK: line 10
+// CHECK-NEXT: column 14
+int function() {
+	return value;
+}

@@ -1,0 +1,27 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+export TestExport 1.0.0 {
+	
+	class ExportClass() {
+		// CHECK-LABEL: define void @P1N10TestExportV1_0_0_MT1N11ExportClassF1N6method
+		// CHECK-NEXT: ret void
+		void method() { }
+	}
+	
+}
+
+import TestImport 1.0.0 {
+	
+	class ImportClass {
+		// CHECK-LABEL: declare void @P1N10TestImportV1_0_0_MT1N11ImportClassF1N6method
+		void method();
+	}
+	
+}
+
+class InternalClass() {
+	// CHECK-LABEL: define internal void @MT1N13InternalClassF1N6method
+	// CHECK-NEXT: ret void
+	void method() { }
+}
