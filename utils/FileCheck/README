@@ -1,0 +1,3 @@
+FileCheck is a tool from LLVM (see top level 'LICENSE' file for the LLVM License) for checking test output.
+
+This will be periodically updated with upstream changes from LLVM.
