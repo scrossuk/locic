@@ -30,6 +30,8 @@ namespace locic {
 			
 			bool objectHasCustomDestructor(const SEM::TypeInstance& typeInstance) const;
 			
+			bool objectHasCustomDestructorMethod(const SEM::TypeInstance& typeInstance) const;
+			
 			/**
 			 * \brief Query whether a type has a custom move operation.
 			 * 

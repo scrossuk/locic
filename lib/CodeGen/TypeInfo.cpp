@@ -138,8 +138,8 @@ namespace locic {
 				
 				return false;
 			} else {
-				const auto destroyFunction = typeInstance.functions().at(module_.getCString("__destroy")).get();
-				if (!destroyFunction->isDefault()) {
+				if (typeInstance.isClassDef() &&
+				     objectHasCustomDestructorMethod(typeInstance)) {
 					return true;
 				}
 				
@@ -151,6 +151,12 @@ namespace locic {
 				
 				return false;
 			}
+		}
+		
+		bool TypeInfo::objectHasCustomDestructorMethod(const SEM::TypeInstance& typeInstance) const {
+			assert(typeInstance.isClassDef());
+			const auto destroyFunction = typeInstance.functions().at(module_.getCString("__destroy")).get();
+			return !destroyFunction->isDefault();
 		}
 		
 		bool TypeInfo::hasCustomMove(const SEM::Type* const type) const {
@@ -191,7 +197,8 @@ namespace locic {
 				
 				return false;
 			} else {
-				if (objectHasCustomMoveMethod(typeInstance)) {
+				if (typeInstance.isClassDef() &&
+				     objectHasCustomMoveMethod(typeInstance)) {
 					return true;
 				}
 				
@@ -206,6 +213,7 @@ namespace locic {
 		}
 		
 		bool TypeInfo::objectHasCustomMoveMethod(const SEM::TypeInstance& typeInstance) const {
+			assert(typeInstance.isClassDef());
 			const auto moveFunction = typeInstance.functions().at(module_.getCString("__moveto")).get();
 			return !moveFunction->isDefault();
 		}
@@ -219,7 +227,7 @@ namespace locic {
 			// since the indicator is used to determine whether the destructor/move is run.
 			return typeInstance.isClassDef() &&
 			       (objectHasCustomMoveMethod(typeInstance) ||
-			        objectHasCustomDestructor(typeInstance));
+			        objectHasCustomDestructorMethod(typeInstance));
 		}
 		
 	}
