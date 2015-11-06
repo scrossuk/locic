@@ -174,7 +174,7 @@ namespace locic {
 			const auto iterator = parentTypeInstance->functions().find(canonicalMethodName);
 			if (iterator != parentTypeInstance->functions().end()) {
 				throw ErrorException(makeString("Function name '%s' clashes with existing name, at position %s.",
-					fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+					fullName.toString().c_str(), astFunctionNode->name().location().toString().c_str()));
 			}
 			
 			auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);

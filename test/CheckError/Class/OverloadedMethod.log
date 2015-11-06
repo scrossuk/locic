@@ -1,1 +1,1 @@
-Function name '::TestClass::doSomething' clashes with existing name, at position SourceLocation\(filename = (.*)/OverloadedMethod\.loci, range = \(line 11, column 2\) to \(line 13, column 3\)\)\.
+Function name '::TestClass::doSomething' clashes with existing name, at position SourceLocation\(filename = (.*)/OverloadedMethod\.loci, range = \(line 11, column 7\) to \(line 11, column 18\)\)\.
