@@ -81,96 +81,103 @@ class Timer {
 };
 
 int main(int argc, char* argv[]) {
+	Timer totalTimer;
+	
+	if (argc < 1) return -1;
+	const auto programName = boost::filesystem::path(argv[0]).stem().string();
+	
+	std::vector<std::string> inputFileNames;
+	int optimisationLevel = 0;
+	std::string outputFileName;
+	
+	// Target
+	std::string targetArchString;
+	std::string targetCPUString;
+	std::string targetFloatABIString;
+	std::string targetFPUString;
+	std::string targetTripleString;
+	
+	// Debug
+	std::string astDebugFileName;
+	std::string semDebugFileName;
+	std::string codeGenDebugFileName;
+	std::string optDebugFileName;
+	
+	po::options_description visibleOptions("Options");
+	visibleOptions.add_options()
+	("help,h", "Display help information")
+	("output-file,o", po::value<std::string>(&outputFileName)->default_value("out.bc"), "Set output file name")
+	("optimisation,O", po::value<int>(&optimisationLevel)->default_value(0), "Set optimization level")
+	("target", po::value<std::string>(&targetTripleString), "Target Triple")
+	("march", po::value<std::string>(&targetArchString), "Target Architecture")
+	("mcpu", po::value<std::string>(&targetCPUString), "Target CPU")
+	("mfloat-abi", po::value<std::string>(&targetFloatABIString), "Target Float ABI")
+	("mfpu", po::value<std::string>(&targetFPUString), "Target FPU")
+	("unsafe", "Build in 'unsafe mode' (i.e. assert traps disabled, overflow traps disabled etc.)")
+	("timings", "Print out timings of the compiler stages")
+	("emit-llvm", "Emit LLVM IR text")
+	("verify", "Verify code and accept failures")
+	("ast-debug-file", po::value<std::string>(&astDebugFileName), "Set Parser AST tree debug output file")
+	("sem-debug-file", po::value<std::string>(&semDebugFileName), "Set Semantic Analysis SEM tree debug output file")
+	("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
+	("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
+	;
+	
+	po::options_description hiddenOptions;
+	hiddenOptions.add_options()
+	("input-file", po::value<std::vector<std::string>>(&inputFileNames), "Set input file names")
+	;
+	
+	po::options_description allOptions;
+	allOptions.add(visibleOptions).add(hiddenOptions);
+	
+	po::positional_options_description optionsPositions;
+	optionsPositions.add("input-file", -1);
+	
+	po::variables_map variableMap;
+	
 	try {
-		Timer totalTimer;
-		
-		if (argc < 1) return -1;
-		const auto programName = boost::filesystem::path(argv[0]).stem().string();
-		
-		std::vector<std::string> inputFileNames;
-		int optimisationLevel = 0;
-		std::string outputFileName;
-		
-		// Target
-		std::string targetArchString;
-		std::string targetCPUString;
-		std::string targetFloatABIString;
-		std::string targetFPUString;
-		std::string targetTripleString;
-		
-		// Debug
-		std::string astDebugFileName;
-		std::string semDebugFileName;
-		std::string codeGenDebugFileName;
-		std::string optDebugFileName;
-		
-		po::options_description visibleOptions("Options");
-		visibleOptions.add_options()
-		("help,h", "Display help information")
-		("output-file,o", po::value<std::string>(&outputFileName)->default_value("out.bc"), "Set output file name")
-		("optimisation,O", po::value<int>(&optimisationLevel)->default_value(0), "Set optimization level")
-		("target", po::value<std::string>(&targetTripleString), "Target Triple")
-		("march", po::value<std::string>(&targetArchString), "Target Architecture")
-		("mcpu", po::value<std::string>(&targetCPUString), "Target CPU")
-		("mfloat-abi", po::value<std::string>(&targetFloatABIString), "Target Float ABI")
-		("mfpu", po::value<std::string>(&targetFPUString), "Target FPU")
-		("unsafe", "Build in 'unsafe mode' (i.e. assert traps disabled, overflow traps disabled etc.)")
-		("timings", "Print out timings of the compiler stages")
-		("ast-debug-file", po::value<std::string>(&astDebugFileName), "Set Parser AST tree debug output file")
-		("sem-debug-file", po::value<std::string>(&semDebugFileName), "Set Semantic Analysis SEM tree debug output file")
-		("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
-		("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
-		;
-		
-		po::options_description hiddenOptions;
-		hiddenOptions.add_options()
-		("input-file", po::value<std::vector<std::string>>(&inputFileNames), "Set input file names")
-		;
-		
-		po::options_description allOptions;
-		allOptions.add(visibleOptions).add(hiddenOptions);
-		
-		po::positional_options_description optionsPositions;
-		optionsPositions.add("input-file", -1);
-		
-		po::variables_map variableMap;
-		
-		try {
-			po::store(po::command_line_parser(argc, argv).options(allOptions).positional(optionsPositions).run(), variableMap);
-			po::notify(variableMap);
-		} catch (const po::error& e) {
-			printf("%s: Command line parsing error: %s\n", programName.c_str(), e.what());
-			printf("Usage: %s [options] file...\n", programName.c_str());
-			return 1;
-		}
-		
-		if (!variableMap["help"].empty()) {
-			printf("Usage: %s [options] file...\n", programName.c_str());
-			std::cout << visibleOptions << std::endl;
-			return 1;
-		}
-		
-		if (inputFileNames.empty()) {
-			printf("%s: No files provided.\n", programName.c_str());
-			printf("Usage: %s [options] file...\n", programName.c_str());
-			std::cout << visibleOptions << std::endl;
-			return 1;
-		}
-		
-		if (optimisationLevel < 0 || optimisationLevel > 3) {
-			printf("%s: Invalid optimisation level '%d'.\n", programName.c_str(), optimisationLevel);
-			printf("Usage: %s [options] file...\n", programName.c_str());
-			std::cout << visibleOptions << std::endl;
-			return 1;
-		}
-		
-		const bool timingsEnabled = !variableMap["timings"].empty();
-		
-		BuildOptions buildOptions;
-		buildOptions.unsafe = !variableMap["unsafe"].empty();
-		
-		inputFileNames.push_back("BuiltInTypes.loci");
-		
+		po::store(po::command_line_parser(argc, argv)
+			.options(allOptions)
+			.style(po::command_line_style::unix_style)
+			.positional(optionsPositions).run(), variableMap);
+		po::notify(variableMap);
+	} catch (const po::error& e) {
+		printf("%s: Command line parsing error: %s\n", programName.c_str(), e.what());
+		printf("Usage: %s [options] file...\n", programName.c_str());
+		return 1;
+	}
+	
+	if (!variableMap["help"].empty()) {
+		printf("Usage: %s [options] file...\n", programName.c_str());
+		std::cout << visibleOptions << std::endl;
+		return 1;
+	}
+	
+	if (inputFileNames.empty()) {
+		printf("%s: No files provided.\n", programName.c_str());
+		printf("Usage: %s [options] file...\n", programName.c_str());
+		std::cout << visibleOptions << std::endl;
+		return 1;
+	}
+	
+	if (optimisationLevel < 0 || optimisationLevel > 3) {
+		printf("%s: Invalid optimisation level '%d'.\n", programName.c_str(), optimisationLevel);
+		printf("Usage: %s [options] file...\n", programName.c_str());
+		std::cout << visibleOptions << std::endl;
+		return 1;
+	}
+	
+	const bool timingsEnabled = !variableMap["timings"].empty();
+	const bool emitIRText = !variableMap["emit-llvm"].empty();
+	const bool verifying = !variableMap["verify"].empty();
+	
+	BuildOptions buildOptions;
+	buildOptions.unsafe = !variableMap["unsafe"].empty();
+	
+	inputFileNames.push_back("BuiltInTypes.loci");
+	
+	try {
 		SharedMaps sharedMaps;
 		
 		AST::NamespaceList astRootNamespaceList;
@@ -256,6 +263,10 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		
+		if (verifying) {
+			return 0;
+		}
+		
 		CodeGen::TargetOptions targetOptions;
 		targetOptions.triple = targetTripleString;
 		targetOptions.arch = targetArchString;
@@ -305,7 +316,13 @@ int main(int argc, char* argv[]) {
 			}
 		}
 		
-		{
+		if (emitIRText) {
+			Timer timer;
+			codeGenerator.dumpToFile(outputFileName);
+			if (timingsEnabled) {
+				printf("Write IR Assembly: %f seconds.\n", timer.getTime());
+			}
+		} else {
 			Timer timer;
 			codeGenerator.writeToFile(outputFileName);
 			if (timingsEnabled) {
@@ -318,7 +335,7 @@ int main(int argc, char* argv[]) {
 		}
 	} catch (const Exception& e) {
 		printf("Compilation failed (errors should be shown above).\n");
-		return 1;
+		return verifying ? 0 : 1;
 	}
 	
 	return 0;
