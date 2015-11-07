@@ -45,6 +45,9 @@ install:
       sleep 1;
     done
 
+  # Install lit (from LLVM) for testing.
+  - sudo pip install lit
+
   # Install a recent version of g++ to build the compiler (with C++11 support).
   -
     if [[ "${CXX}" == "g++" ]]; then
