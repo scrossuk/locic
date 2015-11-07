@@ -1,0 +1,12 @@
+// Test output.
+import void testPrint(const ubyte * str, ...) noexcept;
+
+class EmptyClass() { }
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	testPrint(C"alignof(EmptyClass) = %llu", alignof(EmptyClass).cast<ulonglong_t>());
+	testPrint(C"EmptyClass.__alignmask() = %llu", EmptyClass.__alignmask().cast<ulonglong_t>());
+	return 0;
+}
+
