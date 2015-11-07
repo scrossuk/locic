@@ -454,7 +454,7 @@ namespace locic {
 			if (typeInstance.isUnion()) {
 				// Calculate maximum alignment and size of all variants.
 				llvm::Value* maxVariantAlignMask = zero;
-				llvm::Value* maxVariantSize = one;
+				llvm::Value* maxVariantSize = zero;
 				
 				for (const auto& var: typeInstance.variables()) {
 					const auto variantAlignMask = irEmitter.emitAlignMask(var->type());
@@ -530,9 +530,12 @@ namespace locic {
 					                                                      hasNoSignedWrap);
 				}
 				
-				// Class sizes must be at least one byte.
-				const auto isZero = functionGenerator_.getBuilder().CreateICmpEQ(classSize, zero);
-				classSize = functionGenerator_.getBuilder().CreateSelect(isZero, one, classSize);
+				if (!typeInstance.isStruct()) {
+					// Class sizes must be at least one byte; empty structs
+					// are zero size for compatibility with the GCC extension.
+					const auto isZero = functionGenerator_.getBuilder().CreateICmpEQ(classSize, zero);
+					classSize = functionGenerator_.getBuilder().CreateSelect(isZero, one, classSize);
+				}
 				
 				return makeAligned(functionGenerator_, classSize, classAlignMask);
 			}

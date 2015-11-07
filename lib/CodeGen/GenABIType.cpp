@@ -49,11 +49,6 @@ namespace locic {
 								members.push_back(genABIType(module, var->type()));
 							}
 							
-							if (members.empty()) {
-								// All datatypes must be at least one byte in size.
-								members.push_back(llvm_abi::Int8Ty);
-							}
-							
 							return abiTypeBuilder.getUnionTy(members);
 						} else if (typeInstance->isUnionDatatype()) {
 							members.reserve(typeInstance->variants().size());
@@ -78,8 +73,9 @@ namespace locic {
 								members.push_back(llvm_abi::Int8Ty);
 							}
 							
-							if (members.empty()) {
-								// All datatypes must be at least one byte in size.
+							// Class sizes must be at least one byte; empty structs
+							// are zero size for compatibility with the GCC extension.
+							if (!typeInstance->isStruct() && members.empty()) {
 								members.push_back(llvm_abi::Int8Ty);
 							}
 							

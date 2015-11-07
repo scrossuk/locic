@@ -5,6 +5,8 @@ struct Empty { };
 
 // Entry point.
 export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	// Empty structs are ZERO bytes for compatibility with GCC's empty
+	// struct extension to C; note that in C++ empty structs are one byte.
 	testPrint(C"sizeof(Empty) = %llu", sizeof(Empty).cast<ulonglong_t>());
 	testPrint(C"Empty.__sizeof() = %llu", Empty.__sizeof().cast<ulonglong_t>());
 	return 0;

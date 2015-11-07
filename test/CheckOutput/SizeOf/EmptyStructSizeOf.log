@@ -1,2 +1,2 @@
-sizeof(Empty) = 1
-Empty.__sizeof() = 1
+sizeof(Empty) = 0
+Empty.__sizeof() = 0
