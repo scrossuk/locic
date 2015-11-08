@@ -259,38 +259,3 @@ The following features have not yet been assigned a release:
 * Remove 'events' and 'network' examples (probably turn them into tests)
 * Ogre3D based example
 * Add Qt5-based instant messaging example
-
-Development
------------
-
-The Loci Compiler Tools are under active development in `this GitHub repository <https://github.com/scross99/locic>`_. You can checkout the latest version by:
-
-.. code-block:: bash
-
-	git clone https://github.com/scross99/locic.git
-
-You can then follow the :doc:`Getting Started Guide <GettingStarted>` to build the compiler.
-
-The compiler itself also uses the `llvm-abi library <https://github.com/scross99/llvm-abi>`_ for generating functions that conform to platform ABIs (for interoperability with C). This is automatically cloned from GitHub as part of a compiler build, but you can also manually clone it by:
-
-.. code-block:: bash
-
-	git clone https://github.com/scross99/llvm-abi.git
-
-Other pieces of infrastructure for the project:
-
-* `Travis CI <https://travis-ci.org/scross99/locic>`_ - Continuous integration build jobs.
-* `Travis CI Artifacts <http://loci-lang.org/travis/>`_ - Artifacts (binaries) from Travis CI jobs.
-* `Phabricator <https://locic.phoreplay.com/>`_ - Issue tracker and code review.
-* `Twitter account <https://twitter.com/loci_lang>`_
-* `Google Groups Mailing List <https://groups.google.com/group/loci-dev>`_
-
-Queries/Suggestions
--------------------
-
-This project is being developed by `Stephen Cross <http://scross.co.uk>`_.
-
-Contributions, queries, suggestions and feedback are all very welcome; you can:
-
-* `Raise an issue on GitHub <https://github.com/scross99/locic/issues>`_
-* `Post to the Google Group <https://groups.google.com/group/loci-dev>`_
