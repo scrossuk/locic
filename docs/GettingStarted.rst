@@ -13,8 +13,8 @@ Before building and using the Loci Compiler Tools, it's first necessary to build
 * Boost Program Options - *debian package: libboost-program-options-dev, arch package: extra/boost*
 * Boost Regex - *debian package: libboost-regex-dev, arch package: extra/boost*
 * Boost System - *debian package: libboost-system-dev, arch package: extra/boost*
-* LLVM 3.3/3.4/3.5/3.6 (development build) - *debian package: llvm-dev, arch package: extra/llvm*
-* Clang 3.3/3.4/3.5/3.6 - *debian package: clang, arch package: extra/clang*
+* LLVM 3.3 to 3.7 (development build) - *debian package: llvm-dev, arch package: extra/llvm*
+* Clang 3.3 to 3.7- *debian package: clang, arch package: extra/clang*
 * Sphinx (documentation) - *debian package: python-sphinx, arch package: community/python-sphinx*
 * Bison (parser generator) - *debian package: bison, arch package: core/bison*
 * tinfo (ncurses library routines) - *debian package: libtinfo-dev, arch package: aur/libtinfo*
@@ -40,7 +40,7 @@ CMake will output various information about the build configuration; make sure t
 
 ::
 
-	-- Building Loci Compiler Tools version 1.2.0.0 using build type ''.
+	-- Building Loci Compiler Tools version 1.3.0.0 using build type ''.
 	--     Source directory is '/home/user/locic/locic-src'.
 	--     Build directory is '/home/user/locic/build'.
 	-- LLVM_ROOT_DIR wasn't specified (you can use this to search for LLVM in a particular path).

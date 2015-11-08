@@ -6,6 +6,68 @@ Available Releases
 
 This section lists completed releases of the Loci Compiler Tools, in reverse version order.
 
+v1.3
+~~~~
+
+Available here: `locic-1.3.src.tar.xz <http://loci-lang.org/releases/locic-1.3.src.tar.xz>`_
+
+Released on 8th November 2015, version 1.3 provides:
+
+**Language features**
+
+* Added named predicates (or 'predicate aliases')
+* Added ``__sizeof`` and ``__alignmask`` methods.
+* Added support for opaque structs.
+* Added :doc:`LifetimeMethods`
+* Clarified :doc:`ObjectMemoryStates` (enables moving with all lvalues)
+* Added ``static assert`` statement.
+* Fixed various aspects of value templates support.
+* Constrained operator combinations to avoid precedence confusion (see :doc:`OperatorOverloading`).
+* Allowed ``require`` to be both before and after function declaration for templated functions.
+* Fixed ``noexcept`` predicates value inference.
+* Added syntax support for comparisons in function parameters without needing parentheses.
+* Fixed method call and assignment evaluation order.
+
+**Primitives**
+
+* Added primitive function/method/interface-method pointer types.
+* Added primitive static array type.
+
+**Standard library**
+
+* Fixed ``std.concurrency`` implementation to be more stable and portable.
+* Modified ``std.container`` to use named predicates.
+* Fixed ``std.memory`` in respect to Lifetime Methods.
+
+**Compiler**
+
+* Substantially improved llvm-abi API and backend (lots of code brought in from Clang) and integrated this into compiler.
+* Moved default method generation (for 'implicitcopy', 'copy' etc.) into CodeGen.
+* Modified CodeGen to emit opaque pointer types and typed pointer operations to faciliate upstream LLVM opaque pointer changes.
+* Refactored CodeGen primitives into separate classes.
+
+**Test**
+
+* Added tests using LLVM's 'lit' to verify compiler's IR output.
+* Added lit-based tests to check ABI correctness.
+* Added new tests for all new/improved features mentioned above.
+* Added many new syntax tests to check parser.
+* Added tests for ``std.concurrency``.
+* Added tests for primitives.
+* Added tests for sizes of empty objects.
+* Added tests for destroying temporary objects.
+* Added tests for evaluation order.
+
+**Other**
+
+* Documentation now automatically uploaded to `website <http://loci-lang.org>`_.
+* Build artifacts now automatically uploaded to `website (/travis) <http://loci-lang.org/travis/>`_.
+
+**Dependencies**
+
+* Tested to build and work with LLVM versions 3.3 to 3.7
+* ``nest`` LLVM `ARM <http://reviews.llvm.org/D11126>`_ and `AArch64 <http://reviews.llvm.org/D10585>`_ patches accepted into LLVM 3.7 in preparation for fast virtual call implementation.
+
 v1.2
 ~~~~
 
@@ -138,55 +200,39 @@ Future Releases
 
 This section lists planned releases of the Loci Compiler Tools, in reverse version order.
 
-v1.3
+v1.4
 ~~~~
 
-Planned for Summer 2015, version 1.3 aims to provide:
+Planned for around January 2016, version 1.4 aims to provide:
 
 **Language features**
 
-* Live/not-live objects (reduces number of moves and enables moving with all lvalues)
-* Named predicates
-* Value-templates
-* Variadic templates
-* Template argument deduction
-* User-defined :doc:`reference types <References>`
-* User-defined function types
-* Lambdas
+* Improve template argument deduction
+
+**Primitives**
+
+* Add static array comparison support.
+* Min, max and range
 
 **Standard library**
 
-* Standardise APIs for version 1.0.0
 * Fix std::map implementation (std.container)
 * Hash table set and map (std.container)
 * Files and directories (std.filesystem)
 * DNS resolution (std.network)
 * IPv6 (std.network)
 * UDP (std.network)
-* Points, Vectors, Matrices (std.geometry)
-* Fibers (std.concurrency)
 * Binary search, sorting (std.algorithm)
-* URL creation/parsing (std.url)
-* Endianness (std.buffer?)
 
 **Compiler**
 
-* Clarifying/defining :doc:`implicit casting rules <ImplicitOperations>` - mostly related to improving Semantic Analysis
-* Move default method generation (for 'implicitcopy', 'copy' etc.) into CodeGen
+* Improve compiler diagnostics
 * Add CMake module files to make it easier to create Loci projects
 * Improve emitted debug information
-
-**Primitives**
-
-* Function/method/interface-method types
-* Statically sized array
-* :doc:`Vectorised types <VectorTypes>`
-* Min, max and range
 
 **Tools**
 
 * Generation of :doc:`imports from exports <Modules>`
-* Generation of Loci imports from C (and potentially C++) headers
 
 **Test**
 
@@ -200,6 +246,10 @@ The following features have not yet been assigned a release:
 
 **Language Features**
 
+* Fix function pointer ABI issues
+* Variadic templates
+* Lambdas
+* User-defined :doc:`reference types <References>`
 * Union datatype function 'overloading' (i.e. splitting a function into multiple functions similar to a type-switch)
 * Statically checked :doc:`exception specifications <Exceptions>`
 * Unit test functions
@@ -213,10 +263,20 @@ The following features have not yet been assigned a release:
 * Null coalescing operator
 * Named parameters
 
+**Primitives**
+
+* :doc:`Vectorised types <VectorTypes>`
+* Atomic operations
+
 **Standard Library**
 
 (Many of these will be APIs over existing 3rd-party libraries.)
 
+* Standardise APIs for version 1.0.0
+* Points, Vectors, Matrices (std.geometry)
+* URL creation/parsing (std.url)
+* Endianness (std.buffer?)
+* Fibers (std.concurrency)
 * Complex Numbers (std.numeric)
 * Infinite precision arithmetic (std.numeric)
 * Random number generation (std.numeric)
@@ -236,20 +296,18 @@ The following features have not yet been assigned a release:
 
 **Compiler**
 
+* Implement 'native' virtual calls on LLVM 3.6+.
+* Clarifying/defining :doc:`implicit casting rules <ImplicitOperations>` - mostly related to improving Semantic Analysis
 * ARM ABI support
-* Separate llvm-abi into separate project
 * Windows and Mac support
 * Multiple error message reporting
 * Improved/standardised error messages
 * Emit TBAA (Type Based Alias Analysis) information
 * Javascript-based build (e.g. with Emscripten) for demonstration purposes
 
-**Primitives**
-
-* Atomic operations
-
 **Tools**
 
+* Generation of Loci imports from C (and potentially C++) headers
 * Verify imports and exports against each other
 * Benchmarks of language features
 * Generate C and C++ headers from Loci imports
