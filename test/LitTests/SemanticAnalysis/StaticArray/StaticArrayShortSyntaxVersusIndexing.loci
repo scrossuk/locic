@@ -1,0 +1,20 @@
+// RUN: %locic %s --emit-llvm -o %t
+// XFAIL: *
+
+class Type {
+	int method();
+};
+
+Type[4u] constructorCallFunction() {
+	// The complexity here is that Type[4] could be an attempt to index a
+	// variable called 'Type' or to call a constructor on the static array
+	// type containing 4 elements of type 'Type'. This should be generated
+	// as a merged value by the Parser (i.e. there are two possibilities
+	// syntactically) and then Semantic Analysis should resolve this.
+	return Type[4u].uninitialized();
+}
+
+int indexFunction(Type[8] value) {
+	// Similar to above, but in this case we're actually indexing.
+	return value[4u].method();
+}
