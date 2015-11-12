@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+
+void function() {
+	unused int value = 4;
+	if (true) {
+		// CHECK: Variable 'value' shadows existing object
+		// CHECK: line 12
+		// CHECK: column 10
+		// CHECK: line 12
+		// CHECK: column 19
+		unused int value = 5;
+	}
+}

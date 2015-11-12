@@ -1,0 +1,9 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+void function() { }
+
+namespace Namespace {
+	
+	void function() { }
+	
+}
