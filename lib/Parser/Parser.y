@@ -2449,6 +2449,10 @@ value:
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::TypeRef(GETSYM($1))));
 	}
+	| LCURLYBRACKET callArgValueList RCURLYBRACKET
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Value::ArrayLiteral(GETSYM($2))));
+	}
 	;
 	
 lvalue:
