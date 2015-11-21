@@ -1,3 +1,5 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
 
 interface Requirements {
 	void methodA();
@@ -17,5 +19,15 @@ class TestClass() {
 // from it about what methods T supports.
 template <typename T>
 void function(T& object) require(TestClass<T> : Requirements) {
+	// CHECK: Can't access member 'methodA' in type 'TemplateVarType(
+	// CHECK-NEXT:     templateVar: TemplateVar(
+	// CHECK-NEXT:         name = ::function::T,
+	// CHECK-NEXT:         index = 0
+	// CHECK-NEXT:     )
+	// CHECK-NEXT: )'
+	// CHECK: line 32
+	// CHECK-NEXT: column 2
+	// CHECK: line 32
+	// CHECK-NEXT: column 16
 	object.methodA();
 }

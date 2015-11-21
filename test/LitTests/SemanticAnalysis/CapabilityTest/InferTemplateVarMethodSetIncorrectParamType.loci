@@ -1,0 +1,36 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+interface Requirements {
+	void methodA(int i);
+}
+
+template <typename T>
+class TestClass() {
+	void methodA(unused float f) require(T : Requirements) { }
+}
+
+// The intention here is to confuse the compiler into
+// assuming T has method 'methodA', even though the
+// predicate 'TestClass<T> : Requirements' is actually
+// always false and hence no information can be obtained
+// from it about what methods T supports.
+template <typename T>
+void function(T& object) require(TestClass<T> : Requirements) {
+	// CHECK: Template arguments do not satisfy require predicate 'satisfies(
+	// CHECK-NEXT:     type: TestClass<
+	// CHECK-NEXT:         TemplateVarType(
+	// CHECK-NEXT:             templateVar: TemplateVar(
+	// CHECK-NEXT:                 name = ::function::T,
+	// CHECK-NEXT:                 index = 0
+	// CHECK-NEXT:             )
+	// CHECK-NEXT:         )
+	// CHECK-NEXT:     >,
+	// CHECK-NEXT:     requirement: Requirements
+	// CHECK-NEXT: )' of method 'methodA'
+	// CHECK: line 35
+	// CHECK-NEXT: column 2
+	// CHECK: line 35
+	// CHECK-NEXT: column 16
+	object.methodA(0);
+}
