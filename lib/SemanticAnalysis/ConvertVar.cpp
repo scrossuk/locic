@@ -90,7 +90,7 @@ namespace locic {
 						
 						// Search all scopes outside of the current scope.
 						const auto searchStartPosition = 1;
-						if (!performSearch(context, Name::Relative() + varName, searchStartPosition).isNone()) {
+						if (performSearch(context, Name::Relative() + varName, searchStartPosition).isVar()) {
 							throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
 								varName.c_str(), location.toString().c_str()));
 						}
@@ -177,7 +177,7 @@ namespace locic {
 					
 					// Search all scopes outside of the current scope.
 					const auto searchStartPosition = 1;
-					if (varKind != Debug::VarInfo::VAR_MEMBER && !performSearch(context, Name::Relative() + varName, searchStartPosition).isNone()) {
+					if (varKind != Debug::VarInfo::VAR_MEMBER && performSearch(context, Name::Relative() + varName, searchStartPosition).isVar()) {
 						throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
 							varName.c_str(), location.toString().c_str()));
 					}
