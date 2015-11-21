@@ -1,1 +1,0 @@
-Function contains dead code beginning with statement at position SourceLocation\(filename = (.*)/DeadCodeAfterThrow\.loci, range = \(line 5, column 2\) to \(line 5, column 11\)\)\.

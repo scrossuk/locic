@@ -1,7 +1,0 @@
-void function() {
-	while (true) {
-		continue;
-		unused int i = 10;
-	}
-}
-

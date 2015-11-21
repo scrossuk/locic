@@ -1,0 +1,16 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Variable name 'value'
+// CHECK: line 14
+// CHECK-NEXT: column 25
+// CHECK: line 14
+// CHECK-NEXT: column 34
+// CHECK: duplicates existing variable of the same name
+// CHECK: line 14
+// CHECK-NEXT: column 14
+// CHECK: line 14
+// CHECK-NEXT: column 23
+int function(int value, int value) {
+	return value;
+}

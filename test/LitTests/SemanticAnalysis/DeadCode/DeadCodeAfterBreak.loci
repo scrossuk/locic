@@ -1,0 +1,15 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+void function() {
+	while (true) {
+		break;
+		// CHECK: Function contains dead code beginning with statement
+		// CHECK: line 12
+		// CHECK-NEXT: column 3
+		// CHECK: line 12
+		// CHECK-NEXT: column 20
+		unused int i = 10;
+	}
+}
+

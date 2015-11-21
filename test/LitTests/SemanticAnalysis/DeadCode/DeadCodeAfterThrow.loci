@@ -1,0 +1,15 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+exception TestError();
+
+int function() {
+	throw TestError();
+	// CHECK: Function contains dead code beginning with statement
+	// CHECK: line 13
+	// CHECK-NEXT: column 2
+	// CHECK: line 13
+	// CHECK-NEXT: column 11
+	return 10;
+}
+

@@ -1,7 +1,0 @@
-exception TestError();
-
-int function() {
-	throw TestError();
-	return 10;
-}
-

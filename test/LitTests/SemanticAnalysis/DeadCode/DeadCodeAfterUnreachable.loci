@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+int function() {
+	unreachable;
+	// CHECK: Function contains dead code beginning with statement
+	// CHECK: line 11
+	// CHECK-NEXT: column 2
+	// CHECK: line 11
+	// CHECK-NEXT: column 11
+	return 10;
+}
+
