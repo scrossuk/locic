@@ -72,6 +72,7 @@ namespace locic {
 				TEMPLATEDMEMBERACCESS,
 				FUNCTIONCALL,
 				CAPABILITYTEST,
+				ARRAYLITERAL,
 				MERGE
 			} typeEnum;
 			
@@ -174,6 +175,10 @@ namespace locic {
 				Node<Type> checkType;
 				Node<Type> capabilityType;
 			} capabilityTest;
+			
+			struct {
+				Node<ValueList> values;
+			} arrayLiteral;
 			
 			struct {
 				Node<Value> first;
@@ -327,6 +332,12 @@ namespace locic {
 				Value* value = new Value(CAPABILITYTEST);
 				value->capabilityTest.checkType = checkType;
 				value->capabilityTest.capabilityType = capabilityType;
+				return value;
+			}
+			
+			static Value* ArrayLiteral(const Node<ValueList>& values) {
+				Value* value = new Value(ARRAYLITERAL);
+				value->arrayLiteral.values = values;
 				return value;
 			}
 			

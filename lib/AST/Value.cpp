@@ -57,6 +57,8 @@ namespace locic {
 					return "call";
 				case CAPABILITYTEST:
 					return "capabilitytest";
+				case ARRAYLITERAL:
+					return "arrayliteral";
 				case MERGE:
 					return makeString("Merge(%s, %s)",
 					                  merge.first.toString().c_str(),

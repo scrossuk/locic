@@ -685,6 +685,34 @@ namespace locic {
 					                                  capabilityType,
 					                                  boolType);
 				}
+				case AST::Value::ARRAYLITERAL: {
+					SEM::ValueArray elementValues;
+					for (const auto& astElementValueNode: *(astValueNode->arrayLiteral.values)) {
+						elementValues.push_back(ConvertValue(context, astElementValueNode));
+					}
+					
+					if (elementValues.empty()) {
+						throw ErrorException(makeString("Empty array literals not currently supported, at position %s.",
+						                                location.toString().c_str()));
+					}
+					
+					const auto elementType = elementValues[0].type();
+					
+					for (const auto& elementValue: elementValues) {
+						if (elementType != elementValue.type()) {
+							throw ErrorException(makeString("Element value types don't match, at position %s.",
+							                                location.toString().c_str()));
+						}
+					}
+					
+					TypeBuilder typeBuilder(context);
+					const auto arrayType = typeBuilder.getConstantStaticArrayType(elementType,
+					                                                              elementValues.size(),
+					                                                              location);
+					
+					return SEM::Value::ArrayLiteral(arrayType,
+					                                std::move(elementValues));
+				}
 				case AST::Value::MERGE: {
 					// The parser wasn't able to resolve an ambiguity,
 					// so it merged two values.
