@@ -1,4 +1,5 @@
 // RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
 
 void function() {
 	unused int value = 4;
