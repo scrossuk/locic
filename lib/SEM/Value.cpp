@@ -365,6 +365,18 @@ namespace locic {
 			return value;
 		}
 		
+		Value Value::ArrayLiteral(const Type* const arrayType,
+		                          ValueArray values) {
+			ExitStates exitStates = ExitStates::Normal();
+			for (const auto& value: values) {
+				exitStates.add(value.exitStates());
+			}
+			
+			Value value(ARRAYLITERAL, arrayType, exitStates);
+			value.impl_->valueArray = std::move(values);
+			return value;
+		}
+		
 		Value Value::CastDummy(const Type* type) {
 			return Value(CASTDUMMYOBJECT, type, ExitStates::Normal());
 		}
@@ -761,6 +773,15 @@ namespace locic {
 			return impl_->union_.capabilityTest.capabilityType;
 		}
 		
+		bool Value::isArrayLiteral() const {
+			return kind() == ARRAYLITERAL;
+		}
+		
+		const ValueArray& Value::arrayLiteralValues() const {
+			assert(isArrayLiteral());
+			return impl_->valueArray;
+		}
+		
 		void Value::setDebugInfo(Debug::ValueInfo newDebugInfo) {
 			impl_->debugInfo = make_optional(std::move(newDebugInfo));
 		}
@@ -897,6 +918,12 @@ namespace locic {
 					hasher.add(capabilityTestCheckType());
 					hasher.add(capabilityTestCapabilityType());
 					break;
+				case Value::ARRAYLITERAL:
+					hasher.add(arrayLiteralValues().size());
+					for (const auto& value: arrayLiteralValues()) {
+						hasher.add(value);
+					}
+					break;
 				case Value::CASTDUMMYOBJECT:
 					break;
 			}
@@ -980,6 +1007,8 @@ namespace locic {
 				case Value::CAPABILITYTEST:
 					return capabilityTestCheckType() == value.capabilityTestCheckType() &&
 					       capabilityTestCapabilityType() == value.capabilityTestCapabilityType();
+				case Value::ARRAYLITERAL:
+					return arrayLiteralValues() == value.arrayLiteralValues();
 				case Value::CASTDUMMYOBJECT:
 					return true;
 			}
@@ -1212,6 +1241,10 @@ namespace locic {
 					return makeString("CapabilityTest(checkType: %s, capabilityType: %s)",
 					                  capabilityTestCheckType()->toString().c_str(),
 					                  capabilityTestCapabilityType()->toString().c_str());
+				case Value::ARRAYLITERAL:
+					return makeString("ArrayLiteral(type: %s, values: %s)",
+					                  type()->toString().c_str(),
+					                  makeArrayString(arrayLiteralValues()).c_str());
 				case CASTDUMMYOBJECT:
 					return makeString("[CAST DUMMY OBJECT (FOR SEMANTIC ANALYSIS)](type: %s)",
 						type()->toString().c_str());

@@ -39,6 +39,33 @@ namespace locic {
 
 	namespace CodeGen {
 		
+		namespace {
+			
+			llvm::Value* getArrayIndex(IREmitter& irEmitter,
+			                           const SEM::Type* const elementType,
+			                           llvm::Value* const arrayPtr,
+			                           llvm::Value* const elementIndex) {
+				auto& builder = irEmitter.builder();
+				auto& module = irEmitter.module();
+				
+				TypeInfo typeInfo(module);
+				if (typeInfo.isSizeAlwaysKnown(elementType)) {
+					return irEmitter.emitInBoundsGEP(genType(module, elementType),
+					                                 arrayPtr,
+					                                 elementIndex);
+				} else {
+					const auto elementSize = genSizeOf(irEmitter.function(),
+					                                   elementType);
+					const auto indexPos = builder.CreateMul(elementSize,
+					                                        elementIndex);
+					return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					                                 arrayPtr,
+					                                 indexPos);
+				}
+			}
+			
+		}
+		
 		llvm::Value* genValue(Function& function, const SEM::Value& value, llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			const auto& debugInfo = value.debugInfo();
@@ -519,6 +546,28 @@ namespace locic {
 					                       callInfo,
 					                       /*args=*/{},
 					                       hintResultValue);
+				}
+				
+				case SEM::Value::ARRAYLITERAL: {
+					const auto arrayPtr = irEmitter.emitReturnAlloca(value.type());
+					
+					ConstantGenerator constantGenerator(module);
+					
+					for (size_t i = 0; i < value.arrayLiteralValues().size(); i++) {
+						const auto& elementValue = value.arrayLiteralValues()[i];
+						const auto elementPtr = getArrayIndex(irEmitter,
+						                                      elementValue.type(),
+						                                      arrayPtr,
+						                                      constantGenerator.getI32(i));
+						
+						const auto elementIRValue = genValue(function, elementValue, elementPtr);
+						irEmitter.emitMoveStore(elementIRValue,
+						                        elementPtr,
+						                        elementValue.type());
+					}
+					
+					return irEmitter.emitMoveLoad(arrayPtr,
+					                              value.type());
 				}
 				
 				case SEM::Value::PREDICATE:
