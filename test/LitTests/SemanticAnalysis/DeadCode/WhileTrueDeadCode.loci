@@ -1,0 +1,10 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+// XFAIL: *
+
+int function() {
+	while (true) { }
+	
+	// CHECK: Function contains dead code
+	return 10;
+}
