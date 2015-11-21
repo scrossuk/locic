@@ -12,7 +12,6 @@ macro(test_check_error name)
 endmacro(test_check_error)
 
 add_subdirectory(Alias)
-add_subdirectory(Assert)
 add_subdirectory(CapabilityTest)
 add_subdirectory(Cast)
 add_subdirectory(Class)
