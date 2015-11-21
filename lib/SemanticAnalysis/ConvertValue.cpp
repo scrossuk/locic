@@ -26,6 +26,7 @@
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -225,7 +226,8 @@ namespace locic {
 						assert(function != nullptr && "Function pointer must not be NULL (as indicated by isFunction() being true)");
 						
 						auto functionTemplateArguments = GetTemplateValues(templateVarMap, function->templateVariables());
-						const auto functionType = createFunctionPointerType(context, function->type().substitute(templateVarMap));
+						TypeBuilder typeBuilder(context);
+						const auto functionType = typeBuilder.getFunctionPointerType(function->type().substitute(templateVarMap));
 						
 						if (function->isMethod()) {
 							if (!function->isStaticMethod()) {

@@ -27,14 +27,6 @@ namespace locic {
 		 */
 		const SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol);
 		
-		const SEM::Type* createFunctionPointerType(Context& context, SEM::FunctionType functionType);
-		
-		const SEM::Type* createMethodType(Context& context, SEM::FunctionType functionType);
-		
-		const SEM::Type* createInterfaceMethodType(Context& context, SEM::FunctionType functionType);
-		
-		const SEM::Type* createStaticInterfaceMethodType(Context& context, SEM::FunctionType functionType);
-		
 		/**
 		 * \brief Convert AST type annotation to a semantic type definition.
 		 */

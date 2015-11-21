@@ -10,6 +10,7 @@
 #include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
@@ -70,25 +71,27 @@ namespace locic {
 					location.toString().c_str()));
 			}
 			
+			TypeBuilder typeBuilder(context);
+			
 			if (targetType->isObject()) {
 				// Get the actual function so we can refer to it.
 				const auto& function = targetType->getObjectType()->functions().at(canonicalMethodName);
 				const auto functionTypeTemplateMap = targetType->generateTemplateVarMap();
 				
 				const auto functionType = simplifyFunctionType(context, function->type().substitute(functionTypeTemplateMap));
-				const auto functionRefType = createFunctionPointerType(context, functionType);
+				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				
 				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function.get(), {}, functionRefType), location);
 				
 				if (targetType->isInterface()) {
-					const auto interfaceMethodType = createStaticInterfaceMethodType(context, functionType);
+					const auto interfaceMethodType = typeBuilder.getStaticInterfaceMethodType(functionType);
 					return addDebugInfo(SEM::Value::StaticInterfaceMethodObject(std::move(functionRef), std::move(value), interfaceMethodType), location);
 				} else {
 					return functionRef;
 				}
 			} else {
 				const bool isTemplated = true;
-				const auto functionType = createFunctionPointerType(context, methodElement.createFunctionType(isTemplated));
+				const auto functionType = typeBuilder.getFunctionPointerType(methodElement.createFunctionType(isTemplated));
 				return addDebugInfo(SEM::Value::TemplateFunctionRef(targetType, methodName, functionType), location);
 			}
 		}
@@ -216,26 +219,28 @@ namespace locic {
 					location.toString().c_str()));
 			}
 			
+			TypeBuilder typeBuilder(context);
+			
 			if (function != nullptr) {
 				const auto functionType = simplifyFunctionType(context, function->type().substitute(templateVariableAssignments));
-				const auto functionRefType = createFunctionPointerType(context, functionType);
+				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				
 				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function, std::move(templateArguments), functionRefType), location);
 				
 				if (type->isInterface()) {
-					const auto interfaceMethodType = createInterfaceMethodType(context, functionType);
+					const auto interfaceMethodType = typeBuilder.getInterfaceMethodType(functionType);
 					return addDebugInfo(SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value), interfaceMethodType), location);
 				} else {
-					const auto methodType = createMethodType(context, functionType);
+					const auto methodType = typeBuilder.getMethodType(functionType);
 					return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);
 				}
 			} else {
 				const bool isTemplated = true;
 				const auto functionType = methodElement.createFunctionType(isTemplated);
-				const auto functionRefType = createFunctionPointerType(context, functionType);
+				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				auto functionRef = addDebugInfo(SEM::Value::TemplateFunctionRef(type, methodName, functionRefType), location);
 				
-				const auto methodType = createMethodType(context, functionType);
+				const auto methodType = typeBuilder.getMethodType(functionType);
 				return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);
 			}
 		}

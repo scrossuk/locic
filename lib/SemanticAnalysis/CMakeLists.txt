@@ -42,6 +42,7 @@ add_library(locic-semanalysis
 	ScopeStack.cpp
 	SearchResult.cpp
 	Template.cpp
+	TypeBuilder.cpp
 	TypeCapabilities.cpp
 	VarArgCast.cpp
 )

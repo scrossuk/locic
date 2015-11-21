@@ -18,6 +18,7 @@
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/SearchResult.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -195,7 +196,8 @@ namespace locic {
 					specifier.c_str(), location.toString().c_str(), functionName.c_str()));
 			}
 			
-			const auto functionRefType = createFunctionPointerType(context, searchResult.function()->type());
+			TypeBuilder typeBuilder(context);
+			const auto functionRefType = typeBuilder.getFunctionPointerType(searchResult.function()->type());
 			
 			auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, functionRefType);
 			return CallValue(context, std::move(functionRef), makeHeapArray( std::move(constantValue) ), location);
