@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void varFunction() {
+	// CHECK:      User cast failed from type 'uint8_t' to type 'notag(
+	// CHECK-NEXT:     int_t
+	// CHECK-NEXT: )' at position
+	// CHECK:      line 12
+	// CHECK-NEXT: column 9
+	// CHECK:      line 12
+	// CHECK-NEXT: column 18
+	unused int value = 42u;
+}

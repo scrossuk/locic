@@ -1,0 +1,16 @@
+// RUN: %locic %s --emit-llvm -o %t
+// XFAIL: *
+
+export void varFunction() {
+	unused unsigned int value = 42;
+}
+
+export unsigned int returnFunction() {
+	return 42;
+}
+
+import void callee(unsigned int value);
+
+export void callFunction() {
+	callee(42);
+}
