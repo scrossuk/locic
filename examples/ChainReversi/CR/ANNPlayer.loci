@@ -1,0 +1,90 @@
+// Chain Reversi Artificial Neural Net player.
+
+namespace CR {
+	
+	std::varray<double> getBoardData(const Board& board) {
+		auto boardData = std::varray<double>();
+		
+		for (auto x: std::counter<size_t>(0, board.size().width, 1)) {
+			for (auto y: std::counter<size_t>(0, board.size().height, 1)) {
+				const auto position = Position(x, y);
+				boardData.push_back(board[position] == board.opponent() ? 1.0 : 0.0);
+				boardData.push_back(board[position] == board.player() ? 1.0 : 0.0);
+			}
+		}
+		
+		return move boardData;
+	}
+	
+	class ANNPlayer(ANN::Net& net, double exploreProbability,
+	                std::varray<double> previousState,
+	                std::varray<double> currentState) {
+		static create(ANN::Net& net, double exploreProbability) {
+			return @(net, exploreProbability, std::varray<double>(),
+			         std::varray<double>());
+		}
+		
+		OptionalPosition performMove(const Board& board) {
+			if (!@previousState.empty()) {
+				self.applyReward(0.0);
+			}
+			
+			double bestQuality = -2.0;
+			size_t bestX = 0;
+			size_t bestY = 0;
+			
+			@previousState = move @currentState;
+			
+			const bool explore = (Random() < @exploreProbability);
+			
+			for (auto x: std::counter<size_t>(0, board.size().width, 1)) {
+				for (auto y: std::counter<size_t>(0, board.size().height, 1)) {
+					const auto position = Position(x, y);
+					if (board.isValid(position)) {
+						Board copy = board.copy();
+						copy.placeMove(position);
+						
+						std::varray<double> state = getBoardData(copy);
+						std::varray<double> output = @net.update(move state);
+						
+						const double quality = explore ? Random() : output[0];
+						
+						if (quality >= bestQuality) {
+							bestX = x;
+							bestY = y;
+							bestQuality = quality;
+							@currentState = move state;
+						}
+					}
+				}
+			}
+			
+			return Some(Position(bestX, bestY));
+		}
+		
+		void gameOver(bool didWin) {
+			self.applyReward(didWin ? 1.0 : 0.0);
+			
+			@previousState.clear();
+			@currentState.clear();
+		}
+		
+		void applyReward(double reward) {
+			auto afterValues = @net.update(@currentState.copy());
+			auto beforeValues = @net.update(@previousState.copy());
+			
+			const size_t index = 0;
+			@net.updateGradient(index);
+			
+			const double after = afterValues[0];
+			const double before = beforeValues[0];
+			
+			const double error = reward + 0.95 * after - before;
+			
+			@net.error(index, error);
+		}
+		
+	}
+	
+}
+

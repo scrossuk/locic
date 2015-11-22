@@ -15,6 +15,7 @@ loci_module(ChainReversi_Module chainReversi.bc ""
 	ANN/Net.loci
 	ANN/Neuron.loci
 	CR/AIPlayer.loci
+	CR/ANNPlayer.loci
 	CR/Board.loci
 	CR/BoardAnalysis.loci
 	CR/HumanPlayer.loci
