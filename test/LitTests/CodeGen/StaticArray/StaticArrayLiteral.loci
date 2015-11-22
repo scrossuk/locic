@@ -5,17 +5,17 @@
 export void function() {
 	// CHECK-NEXT: %[[ALLOCA:[0-9]+]] = alloca [3 x i8]
 	// CHECK: %[[PTR0:[0-9]+]] = bitcast [3 x i8]* %[[ALLOCA]] to i8*
-	// CHECK-NEXT: %[[SPTR0:[0-9]+]] = getelementptr inbounds i8* %[[PTR0]], i64 0
+	// CHECK-NEXT: %[[SPTR0:[0-9]+]] = getelementptr inbounds {{.*}}i8* %[[PTR0]], i64 0
 	// CHECK-NEXT: store i8 1, i8* %[[SPTR0]]
 	// CHECK-NEXT: %[[PTR1:[0-9]+]] = bitcast [3 x i8]* %[[ALLOCA]] to i8*
-	// CHECK-NEXT: %[[SPTR1:[0-9]+]] = getelementptr inbounds i8* %[[PTR1]], i64 1
+	// CHECK-NEXT: %[[SPTR1:[0-9]+]] = getelementptr inbounds {{.*}}i8* %[[PTR1]], i64 1
 	// CHECK-NEXT: store i8 2, i8* %[[SPTR1]]
 	// CHECK-NEXT: %[[PTR2:[0-9]+]] = bitcast [3 x i8]* %[[ALLOCA]] to i8*
-	// CHECK-NEXT: %[[SPTR2:[0-9]+]] = getelementptr inbounds i8* %[[PTR2]], i64 2
+	// CHECK-NEXT: %[[SPTR2:[0-9]+]] = getelementptr inbounds {{.*}}i8* %[[PTR2]], i64 2
 	// CHECK-NEXT: store i8 3, i8* %[[SPTR2]]
 	
 	// TODO: investigate this:
-	// CHECK-NEXT: %[[VAL:[0-9]+]] = load [3 x i8]* %[[ALLOCA]]
+	// CHECK-NEXT: %[[VAL:[0-9]+]] = load {{.*}}[3 x i8]* %[[ALLOCA]]
 	// CHECK-NEXT: store [3 x i8] %[[VAL]], [3 x i8]* %[[ALLOCA]]
 	
 	unused uint8_t[3] i = { 1u, 2u, 3u };
