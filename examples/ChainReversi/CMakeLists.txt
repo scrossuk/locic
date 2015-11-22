@@ -11,6 +11,9 @@ loci_get_3rdparty_api_files(SFML_API_FILES SFML)
 
 loci_module(ChainReversi_Module chainReversi.bc ""
 	main.loci
+	ANN/Layer.loci
+	ANN/Net.loci
+	ANN/Neuron.loci
 	CR/AIPlayer.loci
 	CR/Board.loci
 	CR/BoardAnalysis.loci

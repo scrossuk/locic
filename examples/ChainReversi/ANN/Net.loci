@@ -1,0 +1,154 @@
+struct FILE;
+
+import FILE* fopen(const ubyte* filename, const ubyte* perms) noexcept;
+
+import int fscanf(FILE* file, const ubyte* pattern, ...) noexcept;
+
+import void fprintf(FILE* file, const ubyte* pattern, ...) noexcept;
+
+import void fclose(FILE* file) noexcept;
+
+namespace ANN {
+	
+	class Net(std::varray<Layer> layers, size_t numInputs,
+	          size_t numOutputs, size_t numLayers,
+	          size_t numNeuronsPerLayer) {
+		
+		static create(size_t numInputs, size_t numOutputs,
+		              size_t numLayers, size_t numNeuronsPerLayer) {
+			auto layers = std::varray<Layer>();
+			
+			if (numLayers > 0u) {
+				layers.push_back(Layer(numNeuronsPerLayer,
+				                       numInputs));
+				
+				for (auto i: std::counter<size_t>(0u, numLayers - 1u, 1u)) {
+					layers.push_back(Layer(numNeuronsPerLayer,
+					                       numNeuronsPerLayer));
+				}
+				
+				layers.push_back(Layer(numOutputs,
+				                       numNeuronsPerLayer));
+			} else {
+				layers.push_back(Layer(numOutputs, numInputs));
+			}
+			
+			return @(move layers, numInputs, numOutputs, numLayers,
+			         numNeuronsPerLayer);
+		}
+		
+		bool load(const std::string& filename) {
+			auto weights = std::varray<double>();
+			weights.resize(self.getNumWeights(), 0.0);
+			
+			FILE* fh = fopen(filename.make_buffer().c_str(), C"rb");
+			
+			if (fh == null) {
+				return false;
+			}
+			
+			for (auto i: std::counter<size_t>(0u, weights.size(), 1u)) {
+				float v = 0.0f;
+				if (fscanf(fh, C"%f ", &v) <= 0) {
+					return false;
+				}
+				weights[i] = v;
+			}
+			
+			fclose(fh);
+			
+			self.setWeights(weights);
+			return true;
+		}
+		
+		bool save(const std::string& filename) {
+			auto weights = self.getWeights();
+			
+			FILE* fh = fopen(filename.make_buffer().c_str(), C"wb");
+			
+			if (fh == null) {
+				return false;
+			}
+			
+			for (auto i: std::counter<size_t>(0u, weights.size(), 1u)) {
+				fprintf(fh, C"%f ", weights[i]);
+			}
+			
+			fclose(fh);
+			return true;
+		}
+		
+		// Gets a vector of weights.
+		std::varray<double> getWeights(){
+			auto weights = std::varray<double>();
+			
+			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+				@layers[i].getWeights(weights);
+			}
+			
+			return move weights;
+		}
+		
+		// Sets a vector of weights.
+		void setWeights(std::varray<double>& weights) {
+			size_t p = 0u;
+			
+			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+				@layers[i].setWeights(&p, weights);
+			}
+		}
+		
+		size_t getNumWeights() {
+			size_t t = 0u;
+			
+			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+				t += @layers[i].getNumWeights();
+			}
+			
+			return t;
+		}
+		
+		std::varray<double> update(std::varray<double> input) {
+			auto vals = std::varray<double>();
+			
+			if (input.size() != @numInputs) {
+				return move vals;
+			}
+			
+			vals = move input;
+			
+			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+				vals = @layers[i].update(vals);
+			}
+			
+			return move vals;
+		}
+		
+		void zeroGradient(size_t index) {
+			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+				@layers[i].zeroGradient(index);
+			}
+		}
+		
+		void updateGradient(size_t index) {
+			auto gradient = std::varray<double>();
+			gradient.resize(@numOutputs, 1.0);
+			
+			for (auto i: std::reverse_counter<size_t>(@layers.size() - 1u, 0u, 1u)) {
+				@layers[i].gradient(index, gradient);
+			}
+			
+			@layers[0u].gradient(index, gradient);
+		}
+		
+		void error(size_t index, double error) {
+			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+				@layers[i].error(index, error);
+			}
+		}
+		
+	}
+	
+}
+
+

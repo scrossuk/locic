@@ -1,0 +1,80 @@
+
+namespace ANN {
+	
+	class Layer(size_t numNeurons, size_t numInputsPerNeuron,
+	            std::varray<Neuron> neurons) {
+		
+		static create(size_t numNeurons, size_t numInputsPerNeuron) {
+			auto neurons = std::varray<Neuron>();
+			neurons.reserve(numNeurons);
+			
+			for (auto i: std::counter<size_t>(0u, numNeurons, 1u)) {
+				neurons.push_back(Neuron(numInputsPerNeuron));
+			}
+			
+			return @(numNeurons, numInputsPerNeuron, move neurons);
+		}
+		
+		void getWeights(std::varray<double>& weights) {
+			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+				@neurons[i].getWeights(weights);
+			}
+		}
+		
+		void setWeights(size_t* pos, std::varray<double>& weights) {
+			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+				@neurons[i].setWeights(pos, weights);
+			}
+		}
+		
+		size_t getNumWeights() {
+			size_t t = 0u;
+			
+			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+				t += @neurons[i].getNumWeights();
+			}
+			
+			return t;
+		}
+		
+		std::varray<double> update(const std::varray<double>& input) {
+			auto outputs = std::varray<double>();
+			outputs.reserve(@numNeurons);
+		
+			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+				outputs.push_back(@neurons[i].update(input));
+			}
+			
+			return move outputs;
+		}
+		
+		void error(size_t index, double error) {
+			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+				@neurons[i].error(index, error);
+			}
+		}
+		
+		void zeroGradient(size_t index) {
+			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+				@neurons[i].zeroGradient(index);
+			}
+		}
+		
+		void gradient(size_t index, std::varray<double>& gradient) {
+			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+				@neurons[i].gradient(index, gradient[i]);
+			}
+			
+			gradient.resize(@numInputsPerNeuron, 0.0);
+			
+			for (auto i: std::counter<size_t>(0u, @numInputsPerNeuron, 1u)) {
+				gradient[i] = 0.0;
+				
+				for (auto j: std::counter<size_t>(0u, @numNeurons, 1u)) {
+					gradient[i] += @neurons[j].getGradient(i);
+				}
+			}
+		}
+	}
+	
+}
