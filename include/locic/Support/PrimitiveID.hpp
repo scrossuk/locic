@@ -92,8 +92,16 @@ namespace locic {
 		bool isInteger() const;
 		bool isSignedInteger() const;
 		bool isUnsignedInteger() const;
+		bool isFixedSizeInteger() const;
 		bool isFloat() const;
 		bool isCallable() const;
+		
+		PrimitiveID asUnsigned() const;
+		
+		size_t getIntegerMinByteSize() const;
+		
+		bool isSubsetOf(const PrimitiveID other) const;
+		bool isSupersetOf(const PrimitiveID other) const;
 		
 		std::string getName(const size_t count) const;
 		
