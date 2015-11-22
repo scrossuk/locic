@@ -1,0 +1,28 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+import {
+
+	class TestClass {
+		static TestClass create() noexcept;
+	}
+	
+}
+
+// CHECK-LABEL: define void @function()
+export void function() {
+	// CHECK:      %[[SIZE:[0-9a-zA-z_]+]] = call i64 @MT1N9TestClassF1N8__sizeof()
+	// CHECK-NEXT: %[[ARRAYSIZE:[0-9a-zA-z_]+]] = mul i64 %[[SIZE]], 2
+	// CHECK-NEXT: %[[ALLOCA:[0-9]+]] = alloca i8, i64 %[[ARRAYSIZE]]
+	
+	// CHECK:      %[[INDEX0:[0-9]+]] = mul i64 %sizeof__TestClass, 0
+	// CHECK-NEXT: %[[PTR0:[0-9]+]] = getelementptr inbounds i8* %2, i64 %[[INDEX0]]
+	// CHECK-NEXT: call void @MT1N9TestClassF1N6create(i8* %[[PTR0]])
+	// CHECK-NEXT: %[[INDEX1:[0-9]+]] = mul i64 %sizeof__TestClass, 1
+	// CHECK-NEXT: %[[PTR1:[0-9]+]] = getelementptr inbounds i8* %2, i64 %[[INDEX1]]
+	// CHECK-NEXT: call void @MT1N9TestClassF1N6create(i8* %[[PTR1]])
+	
+	unused TestClass[2] i = { TestClass(), TestClass() };
+	
+	// CHECK: ret void
+}
