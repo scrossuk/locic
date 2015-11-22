@@ -305,6 +305,33 @@ location, bool isTopLevel) {
 			}
 		}
 		
+		bool canTreatConstantAsUnsigned(const SEM::Value& value, const SEM::Type* const destType) {
+			assert(value.isConstant());
+			
+			const auto sourceType = value.type()->resolveAliases();
+			
+			if (!sourceType->isPrimitive() || !destType->isPrimitive()) {
+				return false;
+			}
+			
+			const auto sourcePrimitiveID = sourceType->primitiveID();
+			const auto destPrimitiveID = destType->primitiveID();
+			
+			if (!sourcePrimitiveID.isSignedInteger()) {
+				// Looking for constants of signed integer type.
+				return false;
+			}
+			
+			if (!destPrimitiveID.isUnsignedInteger()) {
+				// Looking to cast to an unsigned integer type.
+				return false;
+			}
+			
+			// Finally, we need to able to represent the constant
+			// in the destination type.
+			return sourcePrimitiveID.asUnsigned().isSubsetOf(destPrimitiveID);
+		}
+		
 		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, const SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool allowBind, bool formatOnly) {
 			{
 				// Try a format only cast first, since
@@ -319,6 +346,14 @@ location, bool isTopLevel) {
 			}
 			
 			const auto sourceType = value.type()->resolveAliases();
+			
+			if (value.isConstant() &&
+			    canTreatConstantAsUnsigned(value, destType)) {
+				// Allow positive signed integer constants to be
+				// treated as unsigned.
+				return make_optional(SEM::Value::Constant(value.constant(),
+				                                          destType));
+			}
 			
 			// Try to cast datatype to its parent union datatype.
 			if (sourceType->isDatatype()) {
