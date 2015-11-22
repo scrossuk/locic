@@ -278,15 +278,15 @@ namespace locic {
 					
 					auto semValue = ConvertValue(context, astInitialValueNode);
 					
-					// Convert the AST type var.
-					const auto semVar = ConvertInitialisedVar(context, astTypeVarNode, semValue.type());
-					assert(!semVar->isAny());
+					const auto varDeclType = getVarType(context, astTypeVarNode, semValue.type());
 					
 					// Cast the initialise value to the variable's type.
-					// (The variable conversion above should have ensured
-					// this will work.)
-					auto semInitialiseValue = ImplicitCast(context, std::move(semValue), semVar->constructType(), location);
-					assert(!semInitialiseValue.type()->isBuiltInVoid());
+					auto semInitialiseValue = ImplicitCast(context, std::move(semValue), varDeclType, location);
+					
+					// Convert the AST type var.
+					const auto varType = semInitialiseValue.type();
+					const auto semVar = ConvertInitialisedVar(context, astTypeVarNode, varType);
+					assert(!semVar->isAny());
 					
 					// Add the variable to the SEM scope.
 					const auto semScope = context.scopeStack().back().scope();

@@ -6,8 +6,8 @@ export void varFunction() {
 	// CHECK-NEXT:     int_t
 	// CHECK-NEXT: )' at position
 	// CHECK:      line 12
-	// CHECK-NEXT: column 9
+	// CHECK-NEXT: column 2
 	// CHECK:      line 12
-	// CHECK-NEXT: column 18
+	// CHECK-NEXT: column 24
 	unused int value = 42u;
 }

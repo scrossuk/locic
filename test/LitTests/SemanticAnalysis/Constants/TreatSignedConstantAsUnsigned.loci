@@ -1,5 +1,4 @@
 // RUN: %locic %s --emit-llvm -o %t
-// XFAIL: *
 
 export void varFunction() {
 	unused unsigned int value = 42;
