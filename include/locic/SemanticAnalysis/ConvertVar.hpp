@@ -21,6 +21,8 @@ namespace locic {
 		
 		void attachVar(Context& context, const String& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* var, Debug::VarInfo::Kind varKind);
 		
+		const SEM::Type* getVarType(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType);
+		
 		SEM::Var* ConvertVar(Context& context, Debug::VarInfo::Kind varKind, const AST::Node<AST::TypeVar>& typeVar);
 		
 		// Note that this function assumes that the variable is a local variable.

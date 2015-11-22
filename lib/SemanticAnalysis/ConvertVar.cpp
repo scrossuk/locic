@@ -66,6 +66,24 @@ namespace locic {
 			var->setDebugInfo(makeVarInfo(varKind, astTypeVarNode));
 		}
 		
+		const SEM::Type* getVarType(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType) {
+			switch (astTypeVarNode->kind()) {
+				case AST::TypeVar::ANYVAR: {
+					return initialiseType;
+				}
+				
+				case AST::TypeVar::NAMEDVAR: {
+					return ConvertType(context, astTypeVarNode->namedType())->resolveAliases();
+				}
+				
+				case AST::TypeVar::PATTERNVAR: {
+					return ConvertType(context, astTypeVarNode->patternType())->resolveAliases();
+				}
+			}
+			
+			std::terminate();
+		}
+		
 		namespace {
 			
 			const SEM::Type* CastType(Context& context, const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location, bool isTopLevel) {
