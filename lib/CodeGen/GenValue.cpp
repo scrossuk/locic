@@ -558,7 +558,7 @@ namespace locic {
 						const auto elementPtr = getArrayIndex(irEmitter,
 						                                      elementValue.type(),
 						                                      arrayPtr,
-						                                      constantGenerator.getI32(i));
+						                                      constantGenerator.getSizeTValue(i));
 						
 						const auto elementIRValue = genValue(function, elementValue, elementPtr);
 						irEmitter.emitMoveStore(elementIRValue,
