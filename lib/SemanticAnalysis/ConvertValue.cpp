@@ -700,7 +700,9 @@ namespace locic {
 					
 					for (const auto& elementValue: elementValues) {
 						if (elementType != elementValue.type()) {
-							throw ErrorException(makeString("Element value types don't match, at position %s.",
+							throw ErrorException(makeString("Element value types '%s' and '%s' don't match, at position %s.",
+							                                elementType->toString().c_str(),
+							                                elementValue.type()->toString().c_str(),
 							                                location.toString().c_str()));
 						}
 					}

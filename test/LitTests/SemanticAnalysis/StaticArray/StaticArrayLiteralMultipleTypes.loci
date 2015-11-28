@@ -2,7 +2,7 @@
 // RUN: FileCheck < %t %s
 
 void function() {
-	// CHECK: Element value types don't match,
+	// CHECK: Element value types 'int8_t' and 'float_t' don't match,
 	// CHECK-NEXT: at position
 	// CHECK: line 11
 	// CHECK-NEXT: column 18
