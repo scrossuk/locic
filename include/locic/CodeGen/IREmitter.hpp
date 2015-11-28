@@ -45,6 +45,9 @@ namespace locic {
 			emitBoolToI1(llvm::Value* value);
 			
 			llvm::Value*
+			emitRawAlloca(llvm::Type* type);
+			
+			llvm::Value*
 			emitRawLoad(llvm::Value* valuePtr, llvm::Type* type);
 			
 			void

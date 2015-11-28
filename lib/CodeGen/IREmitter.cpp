@@ -51,6 +51,11 @@ namespace locic {
 		}
 		
 		llvm::Value*
+		IREmitter::emitRawAlloca(llvm::Type* const type) {
+			return functionGenerator_.getEntryBuilder().CreateAlloca(type);
+		}
+		
+		llvm::Value*
 		IREmitter::emitRawLoad(llvm::Value* const valuePtr,
 		                       llvm::Type* const type) {
 			assert(valuePtr->getType()->isPointerTy());
