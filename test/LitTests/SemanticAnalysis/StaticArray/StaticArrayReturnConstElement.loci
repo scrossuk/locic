@@ -1,0 +1,6 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+// static_array_t<const int, 4> becomes static_array_t<int, 4> when copied.
+export int[4] copyFunction(const int[4]& value) {
+	return value.copy();
+}
