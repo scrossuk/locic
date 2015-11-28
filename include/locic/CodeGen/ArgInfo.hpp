@@ -53,6 +53,8 @@ namespace locic {
 				
 				static ArgInfo TemplateAndContext(Module& module, TypePair returnType);
 				
+				static ArgInfo VoidBasic(Module& module, llvm::ArrayRef<TypePair> argumentTypes);
+				
 				static ArgInfo Basic(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
 				
 				static ArgInfo VarArgs(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
