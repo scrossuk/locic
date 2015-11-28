@@ -120,6 +120,9 @@ namespace locic {
 			emitReturn(llvm::Type* type,
 			           llvm::Value* value);
 			
+			llvm::ReturnInst*
+			emitReturnVoid();
+			
 			llvm::LandingPadInst*
 			emitLandingPad(llvm::StructType* type,
 			               unsigned numClauses);

@@ -266,6 +266,11 @@ namespace locic {
 			}
 		}
 		
+		llvm::ReturnInst*
+		IREmitter::emitReturnVoid() {
+			return builder().CreateRetVoid();
+		}
+		
 		llvm::LandingPadInst*
 		IREmitter::emitLandingPad(llvm::StructType* const type,
 		                          const unsigned numClauses) {
