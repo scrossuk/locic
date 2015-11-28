@@ -1,0 +1,8 @@
+// RUN: %locic %s --emit-llvm -o %t
+// XFAIL: *
+
+import void callee(const unsigned int& value);
+
+export void callFunction() {
+	callee(42);
+}
