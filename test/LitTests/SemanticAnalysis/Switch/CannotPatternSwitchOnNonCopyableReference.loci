@@ -1,0 +1,25 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+interface HasMethod {
+	void doSomething();
+}
+
+class NonCopyable() { }
+
+datatype Data = A(NonCopyable a) | B();
+
+void doSwitch(const Data& data) {
+	// CHECK: Can't implicitly cast value of type
+	// CHECK: to type 'Data'
+	// CHECK: line 19
+	// CHECK-NEXT: column 10
+	// CHECK: line 19
+	// CHECK-NEXT: column 14
+	switch (data) {
+		case A(unused NonCopyable a) {
+			unused_result a;
+		}
+		case B() { }
+	}
+}
