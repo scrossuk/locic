@@ -1,0 +1,15 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+// XFAIL: *
+
+interface HasMethod {
+	void doSomething();
+}
+
+template <typename T>
+require(notag(T) : HasMethod)
+void callMethod(T& object) {
+	// CHECK: TODO error
+	// This is not valid because T could be 'const <something>'.
+	object.doSomething();
+}
