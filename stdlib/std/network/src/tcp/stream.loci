@@ -1,6 +1,5 @@
 struct std_ipv6_address {
-	uint64_t high;
-	uint64_t low;
+	uint8_t[16] value;
 }
 
 import int std_tcp_iswouldblock(const int error) noexcept;
@@ -30,25 +29,36 @@ bool isInProgress(final int error) noexcept {
 
 std_ipv6_address encodeAddress(const std::ip::address& address) noexcept {
 	switch (address) {
-		case std::ip::address_v4(uint32_t value) {
-			// Map IPv4 address to IPv4.
-			return std_ipv6_address(0u, (uint64_t.trailing_ones(16u) << 32u) | value);
+		case std::ip::address_v4(uint8_t[4] value) {
+			// Map IPv4 address to IPv6.
+			return std_ipv6_address({ 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+			                          0u, 0u, 0xFFu, 0xFFu,
+			                          value[0].copy(), value[1].copy(),
+			                          value[2].copy(), value[3].copy() });
 		}
-		case std::ip::address_v6(uint64_t low, uint64_t high) {
-			return std_ipv6_address(high, low);
+		case std::ip::address_v6(uint8_t[16] value) {
+			return std_ipv6_address(value);
 		}
 	}
 }
 
 bool isAddressIPv4(const std_ipv6_address& address) noexcept {
-	return address.high == 0u && (address.low >> 32u) == uint64_t.trailing_ones(16u);
+	return address.value[0] == 0u && address.value[1] == 0u &&
+	       address.value[2] == 0u && address.value[3] == 0u &&
+	       address.value[4] == 0u && address.value[5] == 0u &&
+	       address.value[6] == 0u && address.value[7] == 0u &&
+	       address.value[8] == 0u && address.value[9] == 0u &&
+	       address.value[10] == 0xFFu && address.value[11] == 0xFFu;
 }
 
 std::ip::address decodeAddress(const std_ipv6_address& address) noexcept {
 	if (isAddressIPv4(address)) {
-		return std::ip::address_v4((address.low & uint64_t.trailing_ones(32u)).cast<uint32_t>());
+		return std::ip::address_v4({ address.value[12].copy(),
+		                             address.value[13].copy(),
+		                             address.value[14].copy(),
+		                             address.value[15].copy() });
 	} else {
-		return std::ip::address_v6(address.low, address.high);
+		return std::ip::address_v6(address.value.copy());
 	}
 }
 

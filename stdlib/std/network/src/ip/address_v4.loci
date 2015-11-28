@@ -5,13 +5,7 @@ export std.network 0.1.0 {
 		namespace ip {
 			
 			static address_v4 address_v4::localhost() noexcept {
-				return
-					@(
-						(127u32 << 24u) |
-						(0u32 << 16u) |
-						(0u32 << 8u) |
-						(1u32 << 0u)
-					);
+				return @({ 127u, 0u, 0u, 1u });
 			}
 			
 			static address_v4 address_v4::any() noexcept {
@@ -20,8 +14,10 @@ export std.network 0.1.0 {
 			}
 			
 			bool address_v4::is_localhost() const noexcept {
-				// TODO!
-				unreachable;
+				return @value[0] == 127u &&
+				       @value[1] == 0u &&
+				       @value[2] == 0u &&
+				       @value[3] == 1u;
 			}
 			
 			bool address_v4::is_any() const noexcept {
@@ -31,13 +27,13 @@ export std.network 0.1.0 {
 			
 			std::string address_v4::to_string() const {
 				return "ip::address_v4(" +
-						((@value >> 24u) & 0xFFu).to_string() +
+						@value[0u].to_string() +
 						"." +
-						((@value >> 16u) & 0xFFu).to_string() +
+						@value[1u].to_string() +
 						"." +
-						((@value >> 8u) & 0xFFu).to_string() +
+						@value[2u].to_string() +
 						"." +
-						((@value >> 0u) & 0xFFu).to_string() +
+						@value[3u].to_string() +
 					")";
 			}
 			

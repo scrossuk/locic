@@ -51,7 +51,7 @@ export std.network 0.1.0 {
 						}
 					}
 					
-					return @(handle, -1, endpoint(ip::address_v4(0u), 0u));
+					return @(handle, -1, endpoint(ip::address_v4::localhost(), 0u));
 				}
 				
 				~ {
@@ -74,7 +74,10 @@ export std.network 0.1.0 {
 						return true;
 					}
 					
-					auto peerAddress = std_ipv6_address(0u, 0u);
+					auto peerAddress = std_ipv6_address({ 0u, 0u, 0u, 0u,
+					                                      0u, 0u, 0u, 0u,
+					                                      0u, 0u, 0u, 0u,
+					                                      0u, 0u, 0u, 0u });
 					port_t peerPort = 0u;
 					
 					const int result = std_tcp_accept(@handle, &peerAddress, &peerPort);

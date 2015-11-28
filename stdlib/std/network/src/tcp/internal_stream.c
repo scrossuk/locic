@@ -63,50 +63,22 @@ int std_tcp_socket() {
 }
 
 struct std_ipv6_address {
-	uint64_t high, low;
+	uint8_t value[16];
 };
 
 static struct in6_addr encodeAddress(const struct std_ipv6_address* const address) {
 	struct in6_addr addr;
-	addr.s6_addr[0] = ((address->high >> 56) & 0xFF);
-	addr.s6_addr[1] = ((address->high >> 48) & 0xFF);
-	addr.s6_addr[2] = ((address->high >> 40) & 0xFF);
-	addr.s6_addr[3] = ((address->high >> 32) & 0xFF);
-	addr.s6_addr[4] = ((address->high >> 24) & 0xFF);
-	addr.s6_addr[5] = ((address->high >> 16) & 0xFF);
-	addr.s6_addr[6] = ((address->high >>  8) & 0xFF);
-	addr.s6_addr[7] = ((address->high >>  0) & 0xFF);
-	addr.s6_addr[8] = ((address->low >> 56) & 0xFF);
-	addr.s6_addr[9] = ((address->low >> 48) & 0xFF);
-	addr.s6_addr[10] = ((address->low >> 40) & 0xFF);
-	addr.s6_addr[11] = ((address->low >> 32) & 0xFF);
-	addr.s6_addr[12] = ((address->low >> 24) & 0xFF);
-	addr.s6_addr[13] = ((address->low >> 16) & 0xFF);
-	addr.s6_addr[14] = ((address->low >>  8) & 0xFF);
-	addr.s6_addr[15] = ((address->low >>  0) & 0xFF);
+	for (size_t i = 0; i < 16; i++) {
+		addr.s6_addr[i] = address->value[i];
+	}
 	return addr;
 }
 
 static struct std_ipv6_address decodeAddress(const struct in6_addr * const address) {
 	struct std_ipv6_address addr;
-	addr.high =
-		(((uint64_t) address->s6_addr[0]) << 56) |
-		(((uint64_t) address->s6_addr[1]) << 48) |
-		(((uint64_t) address->s6_addr[2]) << 40) |
-		(((uint64_t) address->s6_addr[3]) << 32) |
-		(((uint64_t) address->s6_addr[4]) << 24) |
-		(((uint64_t) address->s6_addr[5]) << 16) |
-		(((uint64_t) address->s6_addr[6]) <<  8) |
-		(((uint64_t) address->s6_addr[7]) <<  0);
-	addr.low =
-		(((uint64_t) address->s6_addr[8]) << 56) |
-		(((uint64_t) address->s6_addr[9]) << 48) |
-		(((uint64_t) address->s6_addr[10]) << 40) |
-		(((uint64_t) address->s6_addr[11]) << 32) |
-		(((uint64_t) address->s6_addr[12]) << 24) |
-		(((uint64_t) address->s6_addr[13]) << 16) |
-		(((uint64_t) address->s6_addr[14]) <<  8) |
-		(((uint64_t) address->s6_addr[15]) <<  0);
+	for (size_t i = 0; i < 16; i++) {
+		addr.value[i] = address->s6_addr[i];
+	}
 	return addr;
 }
 
