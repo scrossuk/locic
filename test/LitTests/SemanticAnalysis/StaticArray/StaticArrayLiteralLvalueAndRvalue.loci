@@ -1,0 +1,6 @@
+// RUN: %locic %s --emit-llvm -o %t
+// XFAIL: *
+
+int[4] function(int value) {
+	return { 0, value, 1, 2 };
+}
