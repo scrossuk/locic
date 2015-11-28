@@ -151,7 +151,8 @@ namespace locic {
 					const auto substitutedSwitchType = switchTypeInstance->selfType()->substitute(firstSwitchTypeIterator->second->generateTemplateVarMap());
 					
 					// Case value to switch type.
-					auto castValue = ImplicitCast(context, std::move(value), substitutedSwitchType, location);
+					auto castValue = ImplicitCast(context, std::move(value), substitutedSwitchType,
+					                              statement->switchStmt.value.location());
 					
 					const auto& astDefaultCase = statement->switchStmt.defaultCase;
 					const bool hasDefaultCase = astDefaultCase->hasScope;
