@@ -81,7 +81,6 @@ namespace locic {
 			TypeGenerator typeGen(module);
 			llvm::SmallVector<llvm::Type*, 3> structMembers;
 			structMembers.push_back(typeGen.getPtrType());
-			structMembers.push_back(typeGen.getPtrType());
 			structMembers.push_back(typeGen.getI32Type());
 			return typeGen.getStructType(structMembers);
 		}
@@ -89,7 +88,6 @@ namespace locic {
 		llvm_abi::Type templateGeneratorABIType(Module& module) {
 			auto& abiTypeBuilder = module.abiTypeBuilder();
 			llvm::SmallVector<llvm_abi::Type, 3> types;
-			types.push_back(llvm_abi::PointerTy);
 			types.push_back(llvm_abi::PointerTy);
 			types.push_back(llvm_abi::Int32Ty);
 			return llvm_abi::Type::AutoStruct(abiTypeBuilder, types);
@@ -144,34 +142,38 @@ namespace locic {
 		ArgInfo rootFunctionArgInfo(Module& module) {
 			llvm::SmallVector<TypePair, 2> types;
 			
-			// Context pointer.
+			// Type info array pointer.
 			types.push_back(pointerTypePair(module));
 			
 			// Path value.
 			types.push_back(pathType(module));
 			
-			return ArgInfo::Basic(module, typeInfoArrayType(module), types).withNoMemoryAccess().withNoExcept();
+			return ArgInfo::VoidBasic(module, types).withNoExcept();
 		}
 		
 		llvm::Value* computeTemplateArguments(Function& function, llvm::Value* generatorValue) {
 			auto& builder = function.getBuilder();
 			
+			const auto typeInfoArrayIRType = typeInfoArrayType(function.module()).second;
+			
+			IREmitter irEmitter(function);
+			const auto typesPtrArg = irEmitter.emitRawAlloca(typeInfoArrayIRType);
+			
 			const auto generatorRootFn = builder.CreateExtractValue(generatorValue, { 0 }, "rootFn");
-			const auto contextPointer = builder.CreateExtractValue(generatorValue, { 1 }, "context");
-			const auto generatorPath = builder.CreateExtractValue(generatorValue, { 2 }, "path");
+			const auto generatorPath = builder.CreateExtractValue(generatorValue, { 1 }, "path");
 			
 			const auto argInfo = rootFunctionArgInfo(function.module());
-			llvm::Value* const args[] = { contextPointer, generatorPath };
-			const auto callResult = genRawFunctionCall(function, argInfo, generatorRootFn, args);
-			callResult->setName("templateArgs");
-			return callResult;
+			llvm::Value* const args[] = { typesPtrArg, generatorPath };
+			genRawFunctionCall(function, argInfo, generatorRootFn, args);
+			const auto result = irEmitter.emitRawLoad(typesPtrArg, typeInfoArrayIRType);
+			result->setName("templateArgs");
+			return result;
 		}
 		
 		llvm::Constant* nullTemplateGenerator(Module& module) {
 			ConstantGenerator constGen(module);
 			
 			llvm::Constant* const values[] = {
-				constGen.getNull(TypeGenerator(module).getPtrType()),
 				constGen.getNull(TypeGenerator(module).getPtrType()),
 				constGen.getI32(0)
 			};
@@ -210,7 +212,6 @@ namespace locic {
 				
 				llvm::Constant* const values[] = {
 						constGen.getPointerCast(rootFunction, TypeGenerator(module).getPtrType()),
-						constGen.getNullPointer(),
 						constGen.getI32(1)
 					};
 				return constGen.getStruct(templateGeneratorLLVMType(module), values);
@@ -221,9 +222,12 @@ namespace locic {
 				const auto entryId = templateBuilder.addUse(templateInst);
 				
 				const auto parentTemplateGenerator = function.getTemplateGenerator();
+				if (entryId == (size_t) -1) {
+					return parentTemplateGenerator;
+				}
+				
 				const auto rootFunction = builder.CreateExtractValue(parentTemplateGenerator, { 0 });
-				const auto contextPointer = builder.CreateExtractValue(parentTemplateGenerator, { 1 });
-				const auto path = builder.CreateExtractValue(parentTemplateGenerator, { 2 });
+				const auto path = builder.CreateExtractValue(parentTemplateGenerator, { 1 });
 				
 				// Insert garbage value for bits required; this will be replaced
 				// later by the template builder when the actual number of bits
@@ -243,8 +247,7 @@ namespace locic {
 				
 				llvm::Value* templateGenerator = constGen.getUndef(templateGeneratorType(module).second);
 				templateGenerator = irEmitter.emitInsertValue(templateGenerator, rootFunction, { 0 });
-				templateGenerator = irEmitter.emitInsertValue(templateGenerator, contextPointer, { 1 });
-				templateGenerator = irEmitter.emitInsertValue(templateGenerator, newPath, { 2 });
+				templateGenerator = irEmitter.emitInsertValue(templateGenerator, newPath, { 1 });
 				return templateGenerator;
 			}
 		}
@@ -325,58 +328,44 @@ namespace locic {
 			
 			auto& builder = function.getBuilder();
 			
-			const auto contextPointerArg = function.getArg(0);
+			const auto typesPtrArg = function.getArg(0);
 			const auto pathArg = function.getArg(1);
 			
+			const auto typeInfoArrayIRType = typeInfoArrayType(module).second;
+			
 			ConstantGenerator constGen(module);
-			llvm::Value* newTypesValue = constGen.getUndef(typeInfoArrayType(module).second);
 			
 			for (size_t i = 0; i < templateInst.arguments().size(); i++) {
 				const auto& templateArg = templateInst.arguments()[i];
+				
+				llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
+				
 				if (templateArg.isTypeRef()) {
 					const auto vtablePointer = genVTable(module, templateArg.typeRefType()->resolveAliases()->getObjectType());
-					
-					// Create type info struct.
-					llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
 					typeInfo = irEmitter.emitInsertValue(typeInfo, vtablePointer, { 0 });
 					
 					const auto generator = getTemplateGenerator(function, TemplateInst::Type(templateArg.typeRefType()));
 					typeInfo = irEmitter.emitInsertValue(typeInfo, generator, { 1 });
-					
-					newTypesValue = irEmitter.emitInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
 				} else {
-					llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
-					
 					const auto valueFunction = genTemplateValueFunction(parentFunction, templateArg);
 					typeInfo = irEmitter.emitInsertValue(typeInfo, valueFunction, { 0 });
 					
 					const auto generator = nullTemplateGenerator(module);
 					typeInfo = irEmitter.emitInsertValue(typeInfo, generator, { 1 });
-					
-					newTypesValue = irEmitter.emitInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
 				}
+				
+				const auto typeInfoGEP = irEmitter.emitConstInBoundsGEP2_32(typeInfoArrayIRType,
+				                                                            typesPtrArg,
+				                                                            0, i);
+				irEmitter.emitRawStore(typeInfo, typeInfoGEP);
 			}
 			
 			if (templateInst.object().isTypeInstance() && templateInst.object().typeInstance()->isPrimitive()) {
 				// Primitives don't have template generators;
 				// the path must have ended by now.
-				function.returnValue(newTypesValue);
+				irEmitter.emitReturnVoid();
 				return llvmFunction;
 			}
-			
-			// If the path is 1 (i.e. just the leading 1), that means that the
-			// path terminates immediately so just return the new types struct.
-			// Otherwise, call the next intermediate template generator.
-			const auto pathEndBB = function.createBasicBlock("pathEnd");
-			const auto callNextGeneratorBB = function.createBasicBlock("callNextGenerator");
-			
-			const auto compareValue = builder.CreateICmpEQ(pathArg, constGen.getI32(1));
-			builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
-			
-			function.selectBasicBlock(pathEndBB);
-			function.returnValue(newTypesValue);
-			
-			function.selectBasicBlock(callNextGeneratorBB);
 			
 			TypeGenerator typeGen(module);
 			
@@ -385,38 +374,35 @@ namespace locic {
 			llvm::Value* const ctlzArgs[] = { pathArg, constGen.getI1(true) };
 			const auto numLeadingZeroes = irEmitter.emitCall(countLeadingZerosFunction->getFunctionType(),
 			                                                 countLeadingZerosFunction, ctlzArgs);
-			const auto numLeadingZeroesI8 = builder.CreateTrunc(numLeadingZeroes, typeGen.getI8Type());
-			const auto startPosition = builder.CreateSub(constGen.getI8(31), numLeadingZeroesI8);
+			const auto numLeadingZeroesSize = builder.CreateZExtOrTrunc(numLeadingZeroes, typeGen.getSizeTType());
+			const auto startPosition = builder.CreateSub(constGen.getSizeTValue(31), numLeadingZeroesSize);
 			
 			const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateInst.object());
 			
-			llvm::Value* const args[] = { newTypesValue, llvmFunction, contextPointerArg, pathArg, startPosition };
-			function.returnValue(genRawFunctionCall(function, intermediateFunctionArgInfo(module), nextFunction, args));
-			
+			llvm::Value* const args[] = { typesPtrArg, llvmFunction, pathArg, startPosition };
+			genRawFunctionCall(function, intermediateFunctionArgInfo(module), nextFunction, args);
+			irEmitter.emitReturnVoid();
 			return llvmFunction;
 		}
 		
 		ArgInfo intermediateFunctionArgInfo(Module& module) {
 			std::vector<TypePair> argTypes;
-			argTypes.reserve(5);
+			argTypes.reserve(4);
 			
-			// Already computed type info array.
-			argTypes.push_back(typeInfoArrayType(module));
-			
-			// Root function pointer.
+			// Type info array pointer.
 			argTypes.push_back(pointerTypePair(module));
 			
-			// Root function context pointer.
+			// Root function pointer.
 			argTypes.push_back(pointerTypePair(module));
 			
 			// Path value.
 			argTypes.push_back(pathType(module));
 			
 			// Position in path.
-			argTypes.push_back(std::make_pair(llvm_abi::Int8Ty,
-			                                  TypeGenerator(module).getI8Type()));
+			argTypes.push_back(std::make_pair(llvm_abi::SizeTy,
+			                                  TypeGenerator(module).getSizeTType()));
 			
-			return ArgInfo::Basic(module, typeInfoArrayType(module), argTypes).withNoMemoryAccess().withNoExcept();
+			return ArgInfo::VoidBasic(module, argTypes).withNoExcept();
 		}
 		
 		static llvm::GlobalValue::LinkageTypes
@@ -456,6 +442,75 @@ namespace locic {
 			return llvmFunction;
 		}
 		
+		class TypeArrayMapper {
+		public:
+			TypeArrayMapper() { }
+			
+			void scheduleAssign(const size_t index, llvm::Value* const value) {
+				SetAction action;
+				action.index = index;
+				action.value = value;
+				setActions_.push_back(action);
+			}
+			
+			void scheduleMove(const size_t sourceIndex, const size_t destIndex) {
+				if (sourceIndex == destIndex) return;
+				
+				MoveAction action;
+				action.sourceIndex = sourceIndex;
+				action.destIndex = destIndex;
+				moveActions_.push_back(action);
+			}
+			
+			void emitActions(IREmitter& irEmitter, llvm::Value* const typesPtrArg) {
+				const auto typeInfoIRType = typeInfoType(irEmitter.module()).second;
+				const auto typeInfoArrayIRType = typeInfoArrayType(irEmitter.module()).second;
+				
+				llvm::SmallVector<llvm::Value*, 8> loadedValues;
+				loadedValues.reserve(moveActions_.size());
+				
+				// First load old values.
+				for (const auto& moveAction: moveActions_) {
+					const auto loadGEP = irEmitter.emitConstInBoundsGEP2_32(typeInfoArrayIRType,
+					                                                        typesPtrArg,
+					                                                        0, moveAction.sourceIndex);
+					loadedValues.push_back(irEmitter.emitRawLoad(loadGEP, typeInfoIRType));
+				}
+				
+				// Then store the new values.
+				for (size_t i = 0; i < moveActions_.size(); i++) {
+					const auto& moveAction = moveActions_[i];
+					const auto storeGEP = irEmitter.emitConstInBoundsGEP2_32(typeInfoArrayIRType,
+					                                                         typesPtrArg,
+					                                                         0, moveAction.destIndex);
+					irEmitter.emitRawStore(loadedValues[i], storeGEP);
+				}
+				
+				for (const auto& setAction: setActions_) {
+					const auto storeGEP = irEmitter.emitConstInBoundsGEP2_32(typeInfoArrayIRType,
+					                                                         typesPtrArg,
+					                                                         0, setAction.index);
+					irEmitter.emitRawStore(setAction.value, storeGEP);
+				}
+			}
+			
+		private:
+			struct MoveAction {
+				size_t sourceIndex;
+				size_t destIndex;
+			};
+			
+			llvm::SmallVector<MoveAction, 8> moveActions_;
+			
+			struct SetAction {
+				size_t index;
+				llvm::Value* value;
+			};
+			
+			llvm::SmallVector<SetAction, 8> setActions_;
+			
+		};
+		
 		llvm::Function* genTemplateIntermediateFunction(Module& module, TemplatedObject templatedObject, const TemplateBuilder& templateBuilder) {
 			ConstantGenerator constGen(module);
 			
@@ -471,17 +526,37 @@ namespace locic {
 			// Always inline template generators.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
-			const auto typesArg = function.getArg(0);
+			const auto typesPtrArg = function.getArg(0);
 			const auto rootFnArg = function.getArg(1);
-			const auto rootContextArg = function.getArg(2);
-			const auto pathArg = function.getArg(3);
-			const auto parentPositionArg = function.getArg(4);
+			const auto pathArg = function.getArg(2);
+			const auto parentPositionArg = function.getArg(3);
 			
 			IREmitter irEmitter(function);
+			
+			if (templateBuilder.templateUseMap().empty()) {
+				irEmitter.emitReturnVoid();
+				return llvmFunction;
+			}
+			
 			auto& builder = function.getBuilder();
 			
-			const auto position = builder.CreateSub(parentPositionArg, constGen.getI8(templateBuilder.bitsRequired()));
-			const auto castPosition = builder.CreateZExt(position, TypeGenerator(module).getI32Type());
+			// If the position is 0 that means that the path terminates
+			// here so just return the types array.
+			// Otherwise continue to the next intermediate template generator.
+			const auto pathEndBB = function.createBasicBlock("pathEnd");
+			const auto callNextGeneratorBB = function.createBasicBlock("callNextGenerator");
+			
+			const auto compareValue = builder.CreateICmpEQ(parentPositionArg, constGen.getSizeTValue(0));
+			builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
+			
+			function.selectBasicBlock(pathEndBB);
+			irEmitter.emitReturnVoid();
+			
+			function.selectBasicBlock(callNextGeneratorBB);
+			
+			const auto bitsRequiredValue = constGen.getSizeTValue(templateBuilder.bitsRequired());
+			const auto position = builder.CreateSub(parentPositionArg, bitsRequiredValue);
+			const auto castPosition = builder.CreateZExtOrTrunc(position, TypeGenerator(module).getI32Type());
 			const auto subPath = builder.CreateLShr(pathArg, castPosition);
 			const auto mask = constGen.getI32((1 << templateBuilder.bitsRequired()) - 1);
 			const auto component = builder.CreateAnd(subPath, mask);
@@ -499,7 +574,7 @@ namespace locic {
 				
 				function.selectBasicBlock(caseBB);
 				
-				llvm::Value* newTypesValue = constGen.getUndef(typeInfoArrayType(module).second);
+				TypeArrayMapper typeArrayMapper;
 				
 				// Loop through each template argument and generate it.
 				for (size_t i = 0; i < templateUseInst.arguments().size(); i++) {
@@ -509,19 +584,14 @@ namespace locic {
 							// propagate the relevant argument.
 							const auto templateUseVar = templateUseInst.arguments()[i].templateVar();
 							const auto templateVarIndex = templateUseVar->index();
-							const auto templateRefEntryValue = builder.CreateExtractValue(typesArg, templateVarIndex);
-							newTypesValue = irEmitter.emitInsertValue(newTypesValue,
-							                                          templateRefEntryValue,
-							                                          { (unsigned int) i });
+							typeArrayMapper.scheduleMove(templateVarIndex, i);
 						} else {
 							// Other values are just ignored for now...
 							llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
 							typeInfo = irEmitter.emitInsertValue(typeInfo,
 							                                     nullTemplateGenerator(module),
 							                                     { 1 });
-							newTypesValue = irEmitter.emitInsertValue(newTypesValue,
-							                                          typeInfo,
-							                                          { (unsigned int) i });
+							typeArrayMapper.scheduleAssign(i, typeInfo);
 						}
 						continue;
 					}
@@ -531,8 +601,7 @@ namespace locic {
 						// For template variables, just copy across the existing type
 						// from the types provided to us by the caller.
 						const auto templateVarIndex = templateUseArg->getTemplateVar()->index();
-						const auto templateVarValue = builder.CreateExtractValue(typesArg, templateVarIndex);
-						newTypesValue = irEmitter.emitInsertValue(newTypesValue, templateVarValue, { (unsigned int) i });
+						typeArrayMapper.scheduleMove(templateVarIndex, i);
 					} else {
 						// For an object type need to obtain the vtable (and potentially
 						// also the generator function for its template arguments).
@@ -546,49 +615,48 @@ namespace locic {
 							// provide a 'null' template generator.
 							typeInfo = irEmitter.emitInsertValue(typeInfo, nullTemplateGenerator(module), { 1 });
 						} else {
-							// If there are arguments, refer to the component for them
-							// by adding the correct component in the path by computing
-							// (subPath & ~mask) | <their component>.
-							const auto argComponent = templateBuilder.templateUseMap().at(TemplateInst::Type(templateUseArg));
-							const auto maskedSubPath = builder.CreateAnd(subPath, builder.CreateNot(mask));
-							const auto argFullPath = builder.CreateOr(maskedSubPath, constGen.getI32(argComponent));
+							// If there are arguments, we need to create a template
+							// generator for them.
+							const auto argComponent = templateBuilder.getUse(TemplateInst::Type(templateUseArg));
+							assert(argComponent);
+							
+							llvm::Value* argFullPath;
+							
+							if (argComponent.value() == (size_t) -1) {
+								// Reference to self with the same template
+								// args, so use the parent path.
+								argFullPath = builder.CreateLShr(subPath, constGen.getI32(templateBuilder.bitsRequired()));
+							} else {
+								// Create a template generator for the arguments
+								// by adding the correct component in the path by
+								// computing (subPath & ~mask) | <their component>.
+								const auto maskedSubPath = builder.CreateAnd(subPath, builder.CreateNot(mask));
+								argFullPath = builder.CreateOr(maskedSubPath, constGen.getI32(argComponent.value()));
+							}
 							
 							llvm::Value* templateGenerator = constGen.getUndef(templateGeneratorType(module).second);
 							templateGenerator = irEmitter.emitInsertValue(templateGenerator, rootFnArg, { 0 });
-							templateGenerator = irEmitter.emitInsertValue(templateGenerator, rootContextArg, { 1 });
-							templateGenerator = irEmitter.emitInsertValue(templateGenerator, argFullPath, { 2 });
+							templateGenerator = irEmitter.emitInsertValue(templateGenerator, argFullPath, { 1 });
 							typeInfo = irEmitter.emitInsertValue(typeInfo, templateGenerator, { 1 });
 						}
 						
-						newTypesValue = irEmitter.emitInsertValue(newTypesValue, typeInfo, { (unsigned int) i });
+						typeArrayMapper.scheduleAssign(i, typeInfo);
 					}
 				}
+				
+				typeArrayMapper.emitActions(irEmitter, typesPtrArg);
 				
 				if (templateUseInst.object().isTypeInstance() && templateUseInst.object().typeInstance()->isPrimitive()) {
 					// Primitives don't have template generators;
 					// the path must have ended by now.
-					function.returnValue(newTypesValue);
+					irEmitter.emitReturnVoid();
 				} else {
-					// If the position is 0, that means we've reached the end of the path,
-					// so just return the new types struct. Otherwise, call the next
-					// intermediate template generator.
-					const auto pathEndBB = function.createBasicBlock("pathEnd");
-					const auto callNextGeneratorBB = function.createBasicBlock("callNextGenerator");
-					
-					const auto compareValue = builder.CreateICmpEQ(position, constGen.getI8(0));
-					builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
-					
-					function.selectBasicBlock(pathEndBB);
-					function.returnValue(newTypesValue);
-					
-					function.selectBasicBlock(callNextGeneratorBB);
-					
 					// Call the next intermediate function.
 					const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateUseInst.object());
 					
-					llvm::Value* const args[] = { newTypesValue, rootFnArg, rootContextArg, pathArg, position };
-					const auto callResult = genRawFunctionCall(function, argInfo, nextFunction, args);
-					function.returnValue(callResult);
+					llvm::Value* const args[] = { typesPtrArg, rootFnArg, pathArg, position };
+					genRawFunctionCall(function, argInfo, nextFunction, args);
+					irEmitter.emitReturnVoid();
 				}
 			}
 			

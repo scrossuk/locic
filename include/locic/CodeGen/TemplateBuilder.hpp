@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <locic/CodeGen/TemplatedObject.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic {
 	
@@ -14,7 +15,7 @@ namespace locic {
 		
 		class TemplateBuilder {
 			public:
-				TemplateBuilder();
+				TemplateBuilder(TemplatedObject object);
 				
 				/**
 				 * \brief Add template use.
@@ -24,6 +25,29 @@ namespace locic {
 				 * multiple times the same ID will be returned.
 				 */
 				size_t addUse(const TemplateInst& templateInst);
+				
+				/**
+				 * \brief Get template use.
+				 * 
+				 * Gets entry ID if template use already added,
+				 * otherwise returns None.
+				 */
+				Optional<size_t> getUse(const TemplateInst& templateInst) const;
+				
+				/**
+				 * \brief Whether using 'pass-through' optimisation.
+				 * 
+				 * The 'pass-through' optimisation allows a
+				 * template generator to call straight down into
+				 * next template generator and hence doesn't need
+				 * to allocate any space on the path.
+				 * 
+				 * This can only be used when there is exactly one
+				 * template instantiation with the same arguments
+				 * as the current templated object (or where one
+				 * is the prefix of the other).
+				 */
+				bool canUsePassThroughOptimisation() const;
 				
 				/**
 				 * \brief Bits required to identify template use.
@@ -46,8 +70,10 @@ namespace locic {
 				void updateAllInstructions(Module& module);
 				
 			private:
+				TemplatedObject object_;
 				TemplateUseMap templateUseMap_;
 				std::vector<llvm::Instruction*> instructions_;
+				bool isPassThroughOptimisationCandidate_;
 				
 		};
 		

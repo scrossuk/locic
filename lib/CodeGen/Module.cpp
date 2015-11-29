@@ -147,7 +147,9 @@ namespace locic {
 		}
 		
 		TemplateBuilder& Module::templateBuilder(TemplatedObject templatedObject) {
-			return templateBuilderMap_[templatedObject];
+			auto insertPair = std::make_pair(templatedObject,
+			                                 TemplateBuilder(templatedObject));
+			return templateBuilderMap_.insert(std::move(insertPair)).first->second;
 		}
 		
 		TemplateRootFunctionMap& Module::templateRootFunctionMap() {

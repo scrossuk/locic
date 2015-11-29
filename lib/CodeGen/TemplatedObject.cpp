@@ -51,6 +51,23 @@ namespace locic {
 			return data_.functionPair.function;
 		}
 		
+		SEM::TemplateVarArray TemplatedObject::templateVariables() const {
+			if (isTypeInstance()) {
+				return typeInstance()->templateVariables().copy();
+			} else if (parentTypeInstance() == nullptr) {
+				return function()->templateVariables().copy();
+			} else {
+				SEM::TemplateVarArray array;
+				for (const auto& templateVar: parentTypeInstance()->templateVariables()) {
+					array.push_back(templateVar);
+				}
+				for (const auto& templateVar: function()->templateVariables()) {
+					array.push_back(templateVar);
+				}
+				return array;
+			}
+		}
+		
 		bool TemplatedObject::operator==(const TemplatedObject& other) const {
 			if (kind() != other.kind()) {
 				return false;
@@ -84,6 +101,25 @@ namespace locic {
 						return parentTypeInstance() < other.parentTypeInstance();
 					}
 					return function() < other.function();
+				default:
+					llvm_unreachable("Unknown templated object kind.");
+			}
+		}
+		
+		std::string TemplatedObject::toString() const {
+			switch (kind()) {
+				case TYPEINSTANCE:
+					return makeString("TemplatedObject::TypeInstance(%s)",
+					                  typeInstance()->name().toString().c_str());
+				case FUNCTION:
+					if (parentTypeInstance() != nullptr) {
+						return makeString("TemplatedObject::Function(%s, %s)",
+						                  parentTypeInstance()->name().toString().c_str(),
+						                  function()->name().toString().c_str());
+					} else {
+						return makeString("TemplatedObject::Function(%s)",
+						                  function()->name().toString().c_str());
+					}
 				default:
 					llvm_unreachable("Unknown templated object kind.");
 			}
@@ -131,6 +167,36 @@ namespace locic {
 		
 		llvm::ArrayRef<SEM::Value> TemplateInst::arguments() const {
 			return arrayRef(arguments_);
+		}
+		
+		bool TemplateInst::allArgumentsAreTemplateVars(const SEM::TemplateVarArray& templateVariables) const {
+			assert(arguments().size() == templateVariables.size());
+			
+			for (size_t i = 0; i < arguments().size(); i++) {
+				const auto& argument = arguments()[i];
+				const auto& templateVar = templateVariables[i];
+				if (argument.isTypeRef() &&
+				    argument.typeRefType()->isTemplateVar() &&
+				    argument.typeRefType()->getTemplateVar() == templateVar) {
+					// Reference to template type var.
+					continue;
+				}
+				
+				if (argument.isTemplateVarRef() &&
+				    argument.templateVar() == templateVar) {
+					// Reference to template value var.
+					continue;
+				}
+				
+				// Not a template var.
+				return false;
+			}
+			
+			return true;
+		}
+		
+		bool TemplateInst::allArgumentsAreSelfTemplateVars() const {
+			return allArgumentsAreTemplateVars(object().templateVariables());
 		}
 		
 		bool TemplateInst::operator<(const TemplateInst& other) const {

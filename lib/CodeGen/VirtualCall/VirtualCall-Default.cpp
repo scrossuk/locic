@@ -72,8 +72,8 @@ namespace locic {
 				attributes = attributes.addAttribute(context, 1, llvm::Attribute::NoCapture);
 				
 				// Arguments struct pointer attributes.
-				attributes = attributes.addAttribute(context, 5, llvm::Attribute::NoAlias);
-				attributes = attributes.addAttribute(context, 5, llvm::Attribute::NoCapture);
+				attributes = attributes.addAttribute(context, 6, llvm::Attribute::NoAlias);
+				attributes = attributes.addAttribute(context, 6, llvm::Attribute::NoCapture);
 				
 				module.attributeMap().insert(std::make_pair(AttributeVirtualCallStub, attributes));
 				

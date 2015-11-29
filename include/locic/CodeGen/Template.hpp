@@ -70,13 +70,12 @@ namespace locic {
 		 * 
 		 * This generates code like the following:
 		 *
-		 * Type[8] <unnamed>(void* context, uint32_t path) {
-		 *     Types[8] types;
+		 * void <unnamed>(Type* types, void* context, uint32_t path) {
 		 *     types[0] = { firstTypeVTablePtr, NULL, 0 };
 		 *     types[1] = { secondTypeVTablePtr, NULL, 0 };
 		 *     // etc.
-		 *     if (path == 1) return types;
-		 *     return childFn(types, rootFn, context, path, 31 - ctlz(path));
+		 *     childFn(types, rootFn, context, path, 31 - ctlz(path));
+		 *     return;
 		 * }
 		 * 
 		 * The resulting function can therefore be called to obtain
@@ -89,7 +88,7 @@ namespace locic {
 		 * 
 		 * The function will have the signature:
 		 * 
-		 * Type[8] (Type[8] types, void* rootFn, uint32_t path, uint8_t position)
+		 * void (Type* types, void* rootFn, uint32_t path, size_t position)
 		 * 
 		 * where Type is struct { void* vtablePtr; void* rootFn, uint32_t path }.
 		 * 
@@ -104,30 +103,29 @@ namespace locic {
 		 * 
 		 * This generates code like the following:
 		 * 
-		 * Type[8] typeIntermediateFunction(Type[8] types, void* rootFn, void* context, uint32_t path, uint8_t parentPosition) {
+		 * void typeIntermediateFunction(Type* types, void* rootFn, uint32_t path, size_t parentPosition) {
+		 *     if (parentPosition == 0) return;
+		 *     
 		 *     const auto position = parentPosition - 2;
 		 *     const auto subPath = (path >> position);
 		 *     const auto mask = 0x3;
 		 *     const auto component = (subPath & mask);
-		 *     Type[8] newTypes;
 		 *     
 		 *     if (component == 0) {
-		 *         newTypes[0] = { pairType, rootFn, context, (subPath & ~mask) | 0x2 };
-		 *         if (position == 0) return newTypes;
-		 *         return firstChildIntermediateFunction(newTypes, rootFn, context, path, position);
+		 *         newTypes[0] = { pairType, rootFn, (subPath & ~mask) | 0x2 };
+		 *         firstChildIntermediateFunction(newTypes, rootFn, path, position);
+		 *         return;
 		 *     } else if (component == 1) {
-		 *         newTypes[0] = { vectorType, rootFn, context, (subPath & ~mask) | 0x3 };
-		 *         if (position == 0) return newTypes;
-		 *         return secondChildIntermediateFunction(newTypes, rootFn, context, path, position);
+		 *         newTypes[0] = { vectorType, rootFn, (subPath & ~mask) | 0x3 };
+		 *         secondChildIntermediateFunction(types, rootFn, path, position);
+		 *         return;
 		 *     } else if (component == 2) {
-		 *         newTypes[0] = types[0];
 		 *         newTypes[1] = types[0];
-		 *         if (position == 0) return newTypes;
-		 *         return thirdChildIntermediateFunction(newTypes, rootFn, context, path, position);
+		 *         thirdChildIntermediateFunction(types, rootFn, path, position);
+		 *         return;
 		 *     } else {
-		 *         newTypes[0] = types[0];
-		 *         if (position == 0) return newTypes;
-		 *         return fourthChildIntermediateFunction(newTypes, rootFn, context, path, position);
+		 *         fourthChildIntermediateFunction(types, rootFn, path, position);
+		 *         return;
 		 *     }
 		 * }
 		 * 

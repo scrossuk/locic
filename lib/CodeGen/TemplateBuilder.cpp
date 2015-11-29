@@ -33,20 +33,58 @@ namespace locic {
 			return power;
 		}
 		
-		TemplateBuilder::TemplateBuilder() { }
+		TemplateBuilder::TemplateBuilder(TemplatedObject object)
+		: object_(object),
+		isPassThroughOptimisationCandidate_(false) { }
 		
-		size_t TemplateBuilder::addUse(const TemplateInst& templateInst) {
+		Optional<size_t> TemplateBuilder::getUse(const TemplateInst& templateInst) const {
 			assert(!templateInst.arguments().empty());
 			
 			const auto it = templateUseMap_.find(templateInst);
 			if (it != templateUseMap_.end()) {
-				return it->second;
+				return make_optional(it->second);
+			}
+			
+			if (templateInst.object() == object_ &&
+			    templateInst.allArgumentsAreSelfTemplateVars()) {
+				// Don't need to add anything to the path when
+				// passing our own template arguments to ourselves.
+				return Optional<size_t>(-1);
+			}
+			
+			return None;
+		}
+		
+		size_t TemplateBuilder::addUse(const TemplateInst& templateInst) {
+			assert(!templateInst.arguments().empty());
+			
+			const auto existingId = getUse(templateInst);
+			if (existingId) {
+				return existingId.value();
 			}
 			
 			const size_t nextId = templateUseMap_.size();
 			templateUseMap_.insert(std::make_pair(templateInst.copy(), nextId));
 			
-			for (const auto& arg: templateInst.arguments()) {
+			const auto arguments = templateInst.arguments();
+			
+			const auto objectTemplateVars = object_.templateVariables();
+			if (arguments.size() == objectTemplateVars.size() &&
+			    templateInst.allArgumentsAreTemplateVars(objectTemplateVars)) {
+				// If we're passing our own template arguments to
+				// something else unchanged, then we could apply
+				// the 'pass-through optimisation', which effectively
+				// means we don't need to allocate any space on
+				// the path and just call directly down to the
+				// next template generator.
+				// 
+				// Note that this only works if there's exaclty
+				// one template call, hence it's just considered
+				// a 'candidate' at this point.
+				isPassThroughOptimisationCandidate_ = true;
+			}
+			
+			for (const auto& arg: arguments) {
 				if (arg.isTypeRef()) {
 					const auto typeArg = arg.typeRefType();
 					if (typeArg->isObject() && !typeArg->templateArguments().empty()) {
@@ -56,6 +94,11 @@ namespace locic {
 			}
 			
 			return nextId;
+		}
+		
+		bool TemplateBuilder::canUsePassThroughOptimisation() const {
+			return templateUseMap_.size() == 1 &&
+			       isPassThroughOptimisationCandidate_;
 		}
 		
 		size_t TemplateBuilder::bitsRequired() const {

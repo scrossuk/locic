@@ -1,6 +1,8 @@
 #ifndef LOCIC_CODEGEN_TEMPLATEDOBJECT_HPP
 #define LOCIC_CODEGEN_TEMPLATEDOBJECT_HPP
 
+#include <string>
+
 #include <locic/SEM/Value.hpp>
 #include <locic/Support/Array.hpp>
 
@@ -36,9 +38,13 @@ namespace locic {
 				const SEM::TypeInstance* parentTypeInstance() const;
 				SEM::Function* function() const;
 				
+				SEM::TemplateVarArray templateVariables() const;
+				
 				bool operator==(const TemplatedObject& other) const;
 				bool operator!=(const TemplatedObject& other) const;
 				bool operator<(const TemplatedObject& other) const;
+				
+				std::string toString() const;
 				
 			private:
 				TemplatedObject(Kind pKind);
@@ -68,6 +74,10 @@ namespace locic {
 				TemplatedObject object() const;
 				
 				llvm::ArrayRef<SEM::Value> arguments() const;
+				
+				bool allArgumentsAreTemplateVars(const SEM::TemplateVarArray& templateVariables) const;
+				
+				bool allArgumentsAreSelfTemplateVars() const;
 				
 				bool operator<(const TemplateInst& other) const;
 				
