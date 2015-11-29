@@ -19,61 +19,6 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genRawAlloca(Function& function, const SEM::Type* const type, llvm::Value* const hintResultValue) {
-			if (hintResultValue != nullptr) {
-				assert(hintResultValue->getType()->isPointerTy());
-				return hintResultValue;
-			}
-			
-			SetUseEntryBuilder setUseEntryBuilder(function);
-			
-			auto& module = function.module();
-			switch (type->kind()) {
-				case SEM::Type::OBJECT:
-				case SEM::Type::TEMPLATEVAR: {
-					TypeInfo typeInfo(module);
-					if (typeInfo.isSizeKnownInThisModule(type)) {
-						const auto llvmType = genType(module, type);
-						assert(!llvmType->isVoidTy());
-						return function.getBuilder().CreateAlloca(llvmType);
-					} else {
-						return function.getEntryBuilder().CreateAlloca(
-								TypeGenerator(module).getI8Type(),
-								genSizeOf(function, type));
-					}
-				}
-				
-				case SEM::Type::ALIAS: {
-					return genRawAlloca(function, type->resolveAliases(), hintResultValue);
-				}
-				
-				default: {
-					throw std::runtime_error("Unknown type enum for generating alloca.");
-				}
-			}
-		}
-		
-		llvm::Value* genAlloca(Function& function, const SEM::Type* const type, llvm::Value* const hintResultValue) {
-			auto& module = function.module();
-			const bool shouldZeroAlloca = module.buildOptions().zeroAllAllocas;
-			
-			IREmitter irEmitter(function, hintResultValue);
-			
-			const auto allocaValue = genRawAlloca(function,
-			                                      type,
-			                                      hintResultValue);
-			
-			if (shouldZeroAlloca && hintResultValue == nullptr) {
-				const auto typeSizeValue = genSizeOf(function, type);
-				irEmitter.emitMemSet(allocaValue,
-				                     ConstantGenerator(module).getI8(0),
-				                     typeSizeValue,
-				                     /*align=*/1);
-			}
-			
-			return allocaValue;
-		}
-		
 		void genStoreVar(Function& function, llvm::Value* const value, llvm::Value* const var, SEM::Var* const semVar) {
 			assert(semVar->isBasic());
 			

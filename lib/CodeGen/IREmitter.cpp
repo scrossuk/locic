@@ -295,20 +295,58 @@ namespace locic {
 			return genSizeOf(functionGenerator_, type);
 		}
 		
-		// TODO: move this inline.
-		llvm::Value* genAlloca(Function& function, const SEM::Type* type, llvm::Value* const hintResultValue = nullptr);
+		static llvm::Value*
+		genRawAlloca(IREmitter& irEmitter, const SEM::Type* const type, llvm::Value* const hintResultValue) {
+			if (hintResultValue != nullptr) {
+				assert(hintResultValue->getType()->isPointerTy());
+				return hintResultValue;
+			}
+			
+			auto& function = irEmitter.function();
+			auto& module = function.module();
+			
+			SetUseEntryBuilder setUseEntryBuilder(function);
+			
+			TypeInfo typeInfo(module);
+			if (typeInfo.isSizeKnownInThisModule(type)) {
+				const auto llvmType = genType(module, type);
+				assert(!llvmType->isVoidTy());
+				return function.getBuilder().CreateAlloca(llvmType);
+			} else {
+				return function.getEntryBuilder().CreateAlloca(
+						TypeGenerator(module).getI8Type(),
+						irEmitter.emitSizeOf(type));
+			}
+		}
+		
+		static llvm::Value*
+		genAlloca(IREmitter& irEmitter, const SEM::Type* const type, llvm::Value* const hintResultValue) {
+			auto& module = irEmitter.module();
+			const bool shouldZeroAlloca = module.buildOptions().zeroAllAllocas;
+			
+			const auto allocaValue = genRawAlloca(irEmitter,
+			                                      type,
+			                                      hintResultValue);
+			
+			if (shouldZeroAlloca && hintResultValue == nullptr) {
+				const auto typeSizeValue = irEmitter.emitSizeOf(type);
+				irEmitter.emitMemSet(allocaValue,
+				                     ConstantGenerator(module).getI8(0),
+				                     typeSizeValue,
+				                     /*align=*/1);
+			}
+			
+			return allocaValue;
+		}
 		
 		llvm::Value*
 		IREmitter::emitReturnAlloca(const SEM::Type* const type) {
-			return genAlloca(functionGenerator_,
-			                 type,
-			                 hintResultValue_);
+			return genAlloca(*this, type, hintResultValue_);
 		}
 		
 		llvm::Value*
 		IREmitter::emitAlloca(const SEM::Type* const type) {
-			return genAlloca(functionGenerator_,
-			                 type);
+			return genAlloca(*this, type, nullptr);
 		}
 		
 		// TODO: move this inline.
