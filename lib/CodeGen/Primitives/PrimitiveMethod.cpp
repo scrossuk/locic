@@ -204,7 +204,7 @@ namespace locic {
 			} else if (!returnType->isBuiltInVoid()) {
 				function.returnValue(result);
 			} else {
-				function.getBuilder().CreateRetVoid();
+				irEmitter.emitReturnVoid();
 			}
 			
 			// Check the generated function is correct.

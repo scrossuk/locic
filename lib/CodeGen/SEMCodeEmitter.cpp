@@ -95,11 +95,11 @@ namespace locic {
 				irEmitter.emitMoveStore(result,
 				                        functionGenerator_.getReturnVar(),
 				                        returnType);
-				functionGenerator_.getBuilder().CreateRetVoid();
+				irEmitter.emitReturnVoid();
 			} else if (!returnType->isBuiltInVoid()) {
 				functionGenerator_.returnValue(result);
 			} else {
-				functionGenerator_.getBuilder().CreateRetVoid();
+				irEmitter.emitReturnVoid();
 			}
 		}
 		

@@ -84,7 +84,8 @@ namespace locic {
 			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
 			
 			Function function(module, *llvmFunction, argInfo);
-			function.getBuilder().CreateRetVoid();
+			IREmitter irEmitter(function);
+			irEmitter.emitReturnVoid();
 			
 			return llvmFunction;
 		}
@@ -107,6 +108,7 @@ namespace locic {
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			Function function(module, *llvmFunction, argInfo);
+			IREmitter irEmitter(function);
 			
 			const auto debugInfo = genDebugDestructorFunction(module, typeInstance, llvmFunction);
 			function.attachDebugInfo(debugInfo);
@@ -114,7 +116,7 @@ namespace locic {
 			
 			genRawFunctionCall(function, destructorArgInfo(module, typeInstance), destructorFunction, std::vector<llvm::Value*> { function.getContextValue() });
 			
-			function.getBuilder().CreateRetVoid();
+			irEmitter.emitReturnVoid();
 			
 			return llvmFunction;
 		}

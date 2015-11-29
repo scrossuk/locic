@@ -143,6 +143,8 @@ namespace locic {
 			
 			Function functionGenerator(module, *llvmFunction, argInfo);
 			
+			IREmitter irEmitter(functionGenerator);
+			
 			const auto moveSEMFunction = typeInstance->functions().at(module.getCString("__moveto")).get();
 			
 			auto functionInfo = *(moveSEMFunction->debugInfo());
@@ -162,7 +164,7 @@ namespace locic {
 			genRawFunctionCall(functionGenerator, moveArgInfo(module, typeInstance), moveFunction,
 				std::vector<llvm::Value*> { functionGenerator.getContextValue(), functionGenerator.getArg(0), functionGenerator.getArg(1) });
 			
-			functionGenerator.getBuilder().CreateRetVoid();
+			irEmitter.emitReturnVoid();
 			
 			return llvmFunction;
 		}

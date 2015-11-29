@@ -221,7 +221,7 @@ namespace locic {
 					irEmitter.emitRawStore(llvmCallReturnValue, function.getReturnVar());
 				}
 				
-				builder.CreateRetVoid();
+				irEmitter.emitReturnVoid();
 				
 				function.selectBasicBlock(tryNextMethodBasicBlock);
 			}

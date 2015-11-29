@@ -177,7 +177,7 @@ namespace locic {
 						                           returnVarType));
 			} else {
 				if (llvmTranslatedFunctionType->getReturnType()->isVoidTy()) {
-					builder.CreateRetVoid();
+					irEmitter.emitReturnVoid();
 				} else {
 					const auto returnVarType = llvmFunction->getFunctionType()->getReturnType();
 					irEmitter.emitReturn(returnVarType,

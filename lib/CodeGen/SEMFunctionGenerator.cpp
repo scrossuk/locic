@@ -282,9 +282,9 @@ namespace locic {
 			
 			if (hasReturnVar) {
 				irEmitter.emitMoveStore(result, functionGenerator.getReturnVar(), functionType.returnType());
-				functionGenerator.getBuilder().CreateRetVoid();
+				irEmitter.emitReturnVoid();
 			} else if (result->getType()->isVoidTy()) {
-				functionGenerator.getBuilder().CreateRetVoid();
+				irEmitter.emitReturnVoid();
 			} else {
 				functionGenerator.returnValue(result);
 			}

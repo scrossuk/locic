@@ -380,7 +380,7 @@ namespace locic {
 					if (anyUnwindActions(function, UnwindStateReturn)) {
 						genUnwind(function, UnwindStateReturn);
 					} else {
-						function.getBuilder().CreateRetVoid();
+						irEmitter.emitReturnVoid();
 					}
 					return;
 				}
@@ -411,13 +411,13 @@ namespace locic {
 								// Store the return value into the return value pointer.
 								irEmitter.emitMoveStore(returnValue, function.getReturnVar(), statement.getReturnValue().type());
 								
-								function.getBuilder().CreateRetVoid();
+								irEmitter.emitReturnVoid();
 							} else {
 								const auto returnValue = genValue(function, statement.getReturnValue());
 								function.returnValue(returnValue);
 							}
 						} else {
-							function.getBuilder().CreateRetVoid();
+							irEmitter.emitReturnVoid();
 						}
 					}
 					

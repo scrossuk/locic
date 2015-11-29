@@ -296,11 +296,11 @@ namespace locic {
 				irEmitter.emitMoveStore(result,
 				                        functionGenerator.getReturnVar(),
 				                        value.type());
-				functionGenerator.getBuilder().CreateRetVoid();
+				irEmitter.emitReturnVoid();
 			} else if (!value.type()->isBuiltInVoid()) {
 				functionGenerator.returnValue(result);
 			} else {
-				functionGenerator.getBuilder().CreateRetVoid();
+				irEmitter.emitReturnVoid();
 			}
 			
 			return llvmFunction;
