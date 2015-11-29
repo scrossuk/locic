@@ -24,10 +24,12 @@ namespace locic {
 				return;
 			}
 			
+			IREmitter irEmitter(function, hintResultValue);
+			
 			if (var->isBasic()) {
 				auto& module = function.module();
 				
-				const auto stackObject = genAlloca(function, var->type(), hintResultValue);
+				const auto stackObject = irEmitter.emitReturnAlloca(var->type());
 				
 				// Generate debug information for the variable
 				// if any is available.
@@ -67,7 +69,7 @@ namespace locic {
 				scheduleDestructorCall(function, var->type(), varValue);
 			} else if (var->isComposite()) {
 				if (!initialiseValue->getType()->isPointerTy()) {
-					const auto initialisePtr = genAlloca(function, var->constructType());
+					const auto initialisePtr = irEmitter.emitAlloca(var->constructType());
 					genStore(function, initialiseValue, initialisePtr, var->constructType());
 					initialiseValue = initialisePtr;
 				}

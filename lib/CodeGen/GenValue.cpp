@@ -268,7 +268,7 @@ namespace locic {
 									variantKind++;
 								}
 								
-								const auto unionValue = hintResultValue != nullptr ? hintResultValue : genAlloca(function, destType);
+								const auto unionValue = hintResultValue != nullptr ? hintResultValue : irEmitter.emitAlloca(destType);
 								
 								const auto unionDatatypePointers = getUnionDatatypePointers(function, destType, unionValue);
 								
@@ -371,7 +371,7 @@ namespace locic {
 					const auto type = value.type();
 					assert(!type->isUnion());
 					
-					const auto objectValue = genAlloca(function, type, hintResultValue);
+					const auto objectValue = irEmitter.emitReturnAlloca(type);
 					
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(type)) {

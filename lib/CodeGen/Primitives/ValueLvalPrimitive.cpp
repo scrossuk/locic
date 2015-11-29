@@ -84,18 +84,18 @@ namespace locic {
 		namespace {
 			
 			llvm::Value* genValueLvalEmptyMethod(Function& functionGenerator, const SEM::Type* const targetType, llvm::Value* const hintResultValue) {
-				IREmitter irEmitter(functionGenerator);
-				const auto objectVar = genAlloca(functionGenerator, targetType, hintResultValue);
+				IREmitter irEmitter(functionGenerator, hintResultValue);
+				const auto objectVar = irEmitter.emitReturnAlloca(targetType);
 				genSetDeadState(functionGenerator, targetType, objectVar);
 				return irEmitter.emitMoveLoad(objectVar, targetType);
 			}
 			
 			llvm::Value* genValueLvalCreateMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args, llvm::Value* const hintResultValue) {
-				const auto objectVar = genAlloca(functionGenerator, targetType, hintResultValue);
+				IREmitter irEmitter(functionGenerator, hintResultValue);
+				const auto objectVar = irEmitter.emitReturnAlloca(targetType);
 				const auto operand = args[0].resolve(functionGenerator, hintResultValue);
 				
 				// Store the object.
-				IREmitter irEmitter(functionGenerator);
 				irEmitter.emitMoveStore(operand, objectVar, targetType);
 				return irEmitter.emitMoveLoad(objectVar, targetType);
 			}
@@ -141,8 +141,8 @@ namespace locic {
 			llvm::Value* genValueLvalMoveMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args, llvm::Value* const hintResultValue) {
 				const auto methodOwner = args[0].resolve(functionGenerator);
 				
-				IREmitter irEmitter(functionGenerator);
-				const auto returnValuePtr = genAlloca(functionGenerator, targetType, hintResultValue);
+				IREmitter irEmitter(functionGenerator, hintResultValue);
+				const auto returnValuePtr = irEmitter.emitReturnAlloca(targetType);
 				const auto loadedValue = irEmitter.emitMoveLoad(methodOwner, targetType);
 				irEmitter.emitMoveStore(loadedValue, returnValuePtr, targetType);
 				

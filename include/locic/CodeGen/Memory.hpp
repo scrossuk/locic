@@ -15,14 +15,6 @@ namespace locic {
 		class Function;
 		
 		/**
-		 * \brief Create a stack object.
-		 * 
-		 * This will allocate stack space for the given
-		 * type, and return a pointer to that space.
-		 */
-		llvm::Value* genAlloca(Function& function, const SEM::Type* type, llvm::Value* const hintResultValue = nullptr);
-		
-		/**
 		 * \brief Load a value from a memory location.
 		 * 
 		 * For most primitive types, this function will

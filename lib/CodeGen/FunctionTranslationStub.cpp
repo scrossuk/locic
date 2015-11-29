@@ -75,7 +75,8 @@ namespace locic {
 			if (!canPassByValue(module, parameterType) && canPassByValue(module, translatedParameterType)) {
 				// Create an alloca to hinner the parameter so it can be passed by pointer
 				// into the target function.
-				const auto argAlloca = genAlloca(functionGenerator, translatedParameterType);
+				IREmitter irEmitter(functionGenerator);
+				const auto argAlloca = irEmitter.emitAlloca(translatedParameterType);
 				genStore(functionGenerator, argValue, argAlloca, translatedParameterType);
 				return argAlloca;
 			} else {
@@ -151,14 +152,13 @@ namespace locic {
 			module.functionPtrStubMap().insert(std::make_pair(stubIdPair, llvmFunction));
 			
 			Function functionGenerator(module, *llvmFunction, translatedArgInfo);
-			auto& builder = functionGenerator.getBuilder();
 			IREmitter irEmitter(functionGenerator);
 			
 			const auto returnVar =
 				argInfo.hasReturnVarArgument() ?
 					translatedArgInfo.hasReturnVarArgument() ?
 						functionGenerator.getReturnVar() :
-						genAlloca(functionGenerator, translatedFunctionType.returnType())
+						irEmitter.emitAlloca(translatedFunctionType.returnType())
 					: nullptr;
 			
 			TranslatedArguments arguments = getTranslatedArguments(functionGenerator,

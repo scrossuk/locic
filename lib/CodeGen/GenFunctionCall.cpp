@@ -63,7 +63,7 @@ namespace locic {
 			
 			const auto returnType = functionType.returnType();
 			if (!canPassByValue(module, returnType)) {
-				returnVarValue = hintResultValue != nullptr ? hintResultValue : genAlloca(function, returnType);
+				returnVarValue = hintResultValue != nullptr ? hintResultValue : irEmitter.emitAlloca(returnType);
 				parameters.push_back(llvm_abi::TypedValue(returnVarValue,
 				                                          llvm_abi::PointerTy));
 			}
@@ -208,7 +208,7 @@ namespace locic {
 			
 			llvm::Value* returnVar = nullptr;
 			if (argInfo.hasReturnVarArgument()) {
-				returnVar = genAlloca(function, functionType.returnType(), hintResultValue);
+				returnVar = irEmitter.emitReturnAlloca(functionType.returnType());
 				llvmArgs.push_back(llvm_abi::TypedValue(returnVar,
 				                                        llvm_abi::PointerTy));
 			}

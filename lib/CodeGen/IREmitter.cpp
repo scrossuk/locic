@@ -295,6 +295,9 @@ namespace locic {
 			return genSizeOf(functionGenerator_, type);
 		}
 		
+		// TODO: move this inline.
+		llvm::Value* genAlloca(Function& function, const SEM::Type* type, llvm::Value* const hintResultValue = nullptr);
+		
 		llvm::Value*
 		IREmitter::emitReturnAlloca(const SEM::Type* const type) {
 			return genAlloca(functionGenerator_,

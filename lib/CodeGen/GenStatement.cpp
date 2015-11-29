@@ -253,7 +253,7 @@ namespace locic {
 					if (isSwitchValueRef) {
 						switchValuePtr = llvmSwitchValue;
 					} else {
-						switchValuePtr = genAlloca(function, switchType);
+						switchValuePtr = irEmitter.emitAlloca(switchType);
 						irEmitter.emitMoveStore(llvmSwitchValue, switchValuePtr, switchType);
 					}
 					

@@ -133,6 +133,12 @@ namespace locic {
 			llvm::Value*
 			emitSizeOf(const SEM::Type* type);
 			
+			/**
+			 * \brief Create a stack object.
+			 * 
+			 * This will allocate stack space for the given
+			 * type, and return a pointer to that space.
+			 */
 			llvm::Value*
 			emitAlloca(const SEM::Type* type);
 			

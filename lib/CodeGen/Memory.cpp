@@ -44,7 +44,7 @@ namespace locic {
 				}
 				
 				case SEM::Type::ALIAS: {
-					return genAlloca(function, type->resolveAliases(), hintResultValue);
+					return genRawAlloca(function, type->resolveAliases(), hintResultValue);
 				}
 				
 				default: {
