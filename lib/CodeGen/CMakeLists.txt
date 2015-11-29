@@ -71,7 +71,7 @@ add_library(locic-codegen
 	TypeInfo.cpp
 	UnwindAction.cpp
 	VTable.cpp
-	VirtualCall/VirtualCall-Default.cpp
+	VirtualCall/GenericVirtualCallABI.cpp
 )
 
 add_dependencies(locic-codegen ${LLVMABI_DEPENDENCIES})

@@ -18,7 +18,7 @@
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
-#include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/CodeGen/VirtualCallABI.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
@@ -118,7 +118,13 @@ namespace locic {
 				(void) genRawFunctionCall(function, argInfo, moveFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-				VirtualCall::generateMoveCall(function, typeInfo, sourceValue, destValue, positionValue);
+				
+				IREmitter irEmitter(function);
+				module.virtualCallABI().emitMoveCall(irEmitter,
+				                                     typeInfo,
+				                                     sourceValue,
+				                                     destValue,
+				                                     positionValue);
 			}
 		}
 		

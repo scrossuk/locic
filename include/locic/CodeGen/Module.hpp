@@ -18,6 +18,7 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
+#include <locic/CodeGen/VirtualCallABI.hpp>
 
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Map.hpp>
@@ -114,6 +115,8 @@ namespace locic {
 				
 				const llvm_abi::TypeBuilder& abiTypeBuilder();
 				
+				VirtualCallABI& virtualCallABI();
+				
 				llvm::LLVMContext& getLLVMContext() const;
 				
 				std::unique_ptr<llvm::Module> releaseLLVMModule();
@@ -178,6 +181,7 @@ namespace locic {
 				InternalContext& context_;
 				std::unique_ptr<llvm::Module> module_;
 				std::unique_ptr<llvm_abi::ABI> abi_;
+				std::unique_ptr<VirtualCallABI> virtualCallABI_;
 				AttributeMap attributeMap_;
 				BitsRequiredGlobalMap bitsRequiredGlobalMap_;
 				DestructorMap destructorMap_;

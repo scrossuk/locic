@@ -23,7 +23,7 @@
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
-#include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/CodeGen/VirtualCallABI.hpp>
 #include <locic/Support/Utils.hpp>
 
 namespace locic {
@@ -98,7 +98,10 @@ namespace locic {
 				
 				case SEM::Type::TEMPLATEVAR: {
 					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-					return VirtualCall::generateCountFnCall(function, typeInfo, VirtualCall::ALIGNOF);
+					IREmitter irEmitter(function);
+					return module.virtualCallABI().emitCountFnCall(irEmitter,
+					                                               typeInfo,
+					                                               VirtualCallABI::ALIGNOF);
 				}
 				
 				default: {
@@ -160,7 +163,10 @@ namespace locic {
 				
 				case SEM::Type::TEMPLATEVAR: {
 					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-					return VirtualCall::generateCountFnCall(function, typeInfo, VirtualCall::SIZEOF);
+					IREmitter irEmitter(function);
+					return module.virtualCallABI().emitCountFnCall(irEmitter,
+					                                               typeInfo,
+					                                               VirtualCallABI::SIZEOF);
 				}
 				
 				default: {

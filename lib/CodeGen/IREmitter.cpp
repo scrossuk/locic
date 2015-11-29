@@ -11,7 +11,7 @@
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
-#include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/CodeGen/VirtualCallABI.hpp>
 
 #include <locic/SEM/Type.hpp>
 
@@ -396,7 +396,9 @@ namespace locic {
 				(void) genRawFunctionCall(functionGenerator_, argInfo, destructorFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = functionGenerator_.getEntryBuilder().CreateExtractValue(functionGenerator_.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-				VirtualCall::generateDestructorCall(functionGenerator_, typeInfo, value);
+				module().virtualCallABI().emitDestructorCall(*this,
+				                                             typeInfo,
+				                                             value);
 			} else {
 				llvm_unreachable("Unknown type kind.");
 			}

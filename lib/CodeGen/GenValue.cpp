@@ -32,7 +32,7 @@
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
-#include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/CodeGen/VirtualCallABI.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
 namespace locic {
@@ -451,7 +451,10 @@ namespace locic {
 							llvmArgs.push_back(genValue(function, arg));
 						}
 						
-						return VirtualCall::generateCall(function, semCallValue.type()->asFunctionType(), methodComponents, llvmArgs, hintResultValue);
+						return module.virtualCallABI().emitCall(irEmitter,
+						                                        semCallValue.type()->asFunctionType(),
+						                                        methodComponents,
+						                                        llvmArgs);
 					}
 					
 					// TODO: merge this with the call below.

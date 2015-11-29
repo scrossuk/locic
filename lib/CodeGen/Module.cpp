@@ -17,6 +17,7 @@
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/VirtualCall/GenericVirtualCallABI.hpp>
 
 namespace locic {
 
@@ -25,6 +26,7 @@ namespace locic {
 		Module::Module(InternalContext& argContext, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions)
 			: context_(argContext), module_(new llvm::Module(name.c_str(), context_.llvmContext())),
 			  abi_(llvm_abi::createABI(*module_, context_.targetTriple())),
+			  virtualCallABI_(new GenericVirtualCallABI(*this)),
 			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions),
 			  semFunctionGenerator_(*this) {
 			
@@ -74,6 +76,10 @@ namespace locic {
 		
 		const llvm_abi::TypeBuilder& Module::abiTypeBuilder() {
 			return abi().typeInfo().typeBuilder();
+		}
+		
+		VirtualCallABI& Module::virtualCallABI() {
+			return *virtualCallABI_;
 		}
 		
 		llvm::LLVMContext& Module::getLLVMContext() const {

@@ -10,7 +10,7 @@
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/CodeGen/VirtualCallABI.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
 namespace locic {
@@ -100,7 +100,7 @@ namespace locic {
 					methods.push_back(functionHashMap.get(methodHash));
 				}
 				
-				const auto slotValue = VirtualCall::generateVTableSlot(module, typeInstance, methods);
+				const auto slotValue = module.virtualCallABI().emitVTableSlot(*typeInstance, methods);
 				methodSlotElements.push_back(ConstantGenerator(module).getPointerCast(slotValue, i8PtrType));
 			}
 			

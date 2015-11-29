@@ -2,6 +2,7 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -9,7 +10,7 @@
 #include <locic/CodeGen/SEMCodeEmitter.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/CodeGen/VirtualCallABI.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
 #include <locic/SEM/Function.hpp>
@@ -272,7 +273,12 @@ namespace locic {
 			
 			const bool hasReturnVar = !canPassByValue(module_, functionType.returnType());
 			const auto hintResultValue = hasReturnVar ? functionGenerator.getReturnVar() : nullptr;
-			const auto result = VirtualCall::generateCall(functionGenerator, functionType, methodComponents, argList, hintResultValue);
+			
+			IREmitter irEmitter(functionGenerator, hintResultValue);
+			const auto result = module_.virtualCallABI().emitCall(irEmitter,
+			                                                      functionType,
+			                                                      methodComponents,
+			                                                      argList);
 			
 			if (hasReturnVar) {
 				genMoveStore(functionGenerator, result, functionGenerator.getReturnVar(), functionType.returnType());

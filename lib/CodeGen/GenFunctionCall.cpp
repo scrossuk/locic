@@ -24,7 +24,7 @@
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
-#include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/CodeGen/VirtualCallABI.hpp>
 #include <locic/CodeGen/VTable.hpp>
 #include <locic/Support/Optional.hpp>
 
@@ -265,7 +265,13 @@ namespace locic {
 			
 			const VirtualObjectComponents objectComponents(getTypeInfoComponents(function, typeInfo), contextPointer);
 			const VirtualMethodComponents methodComponents(objectComponents, methodHashValue);
-			return VirtualCall::generateCall(function, methodInfo.functionType, methodComponents, llvmArgs, hintResultValue);
+			
+			IREmitter irEmitter(function, hintResultValue);
+			auto& module = function.module();
+			return module.virtualCallABI().emitCall(irEmitter,
+			                                        methodInfo.functionType,
+			                                        methodComponents,
+			                                        llvmArgs);
 		}
 		
 		llvm::Value* genMethodCall(Function& function, const MethodInfo& methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,

@@ -8,6 +8,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Primitives.hpp>
@@ -17,7 +18,7 @@
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
-#include <locic/CodeGen/VirtualCall.hpp>
+#include <locic/CodeGen/VirtualCallABI.hpp>
 
 namespace locic {
 	
@@ -58,7 +59,8 @@ namespace locic {
 				(void) genRawFunctionCall(function, argInfo, destructorFunction, args);
 			} else if (type->isTemplateVar()) {
 				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-				VirtualCall::generateDestructorCall(function, typeInfo, value);
+				IREmitter irEmitter(function);
+				module.virtualCallABI().emitDestructorCall(irEmitter, typeInfo, value);
 			}
 		}
 		
