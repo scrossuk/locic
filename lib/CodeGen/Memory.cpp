@@ -74,34 +74,6 @@ namespace locic {
 			return allocaValue;
 		}
 		
-		llvm::Value* genLoad(Function& function, llvm::Value* const var, const SEM::Type* const type) {
-			assert(var->getType()->isPointerTy());
-			
-			IREmitter irEmitter(function);
-			
-			switch (type->kind()) {
-				case SEM::Type::OBJECT:
-				case SEM::Type::TEMPLATEVAR: {
-					TypeInfo typeInfo(function.module());
-					if (typeInfo.isSizeAlwaysKnown(type)) {
-						const auto valueType = genType(function.module(), type);
-						return irEmitter.emitRawLoad(var,
-						                             valueType);
-					} else {
-						return var;
-					}
-				}
-				
-				case SEM::Type::ALIAS: {
-					return genLoad(function, var, type->resolveAliases());
-				}
-				
-				default: {
-					llvm_unreachable("Unknown type enum for generating load.");
-				}
-			}
-		}
-		
 		void genStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* const type) {
 			assert(var->getType()->isPointerTy());
 			

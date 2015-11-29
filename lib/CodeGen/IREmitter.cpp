@@ -336,6 +336,20 @@ namespace locic {
 		}
 		
 		llvm::Value*
+		IREmitter::emitBasicLoad(llvm::Value* const value,
+		                         const SEM::Type* const type) {
+			assert(value->getType()->isPointerTy());
+			
+			TypeInfo typeInfo(module());
+			if (typeInfo.isSizeAlwaysKnown(type)) {
+				const auto valueType = genType(module(), type);
+				return emitRawLoad(value, valueType);
+			} else {
+				return value;
+			}
+		}
+		
+		llvm::Value*
 		IREmitter::emitLoadDatatypeTag(llvm::Value* const datatypePtr) {
 			return emitRawLoad(datatypePtr,
 			                   TypeGenerator(module()).getI8Type());

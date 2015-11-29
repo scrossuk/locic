@@ -34,12 +34,13 @@ namespace locic {
 		
 		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
 			TypeInfo typeInfo(function.module());
+			IREmitter irEmitter(function);
 			if (typeInfo.hasCustomMove(type)) {
 				// Can't load since we need to run the move method.
 				return var;
 			} else {
 				// Use a normal load.
-				return genLoad(function, var, type);
+				return irEmitter.emitBasicLoad(var, type);
 			}
 		}
 		
@@ -83,8 +84,9 @@ namespace locic {
 		}
 		
 		void genBasicMove(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue) {
+			IREmitter irEmitter(function);
 			const auto destValue = makeMoveDest(function, startDestValue, positionValue);
-			const auto loadedValue = genLoad(function, sourceValue, type);
+			const auto loadedValue = irEmitter.emitBasicLoad(sourceValue, type);
 			genStore(function, loadedValue, destValue, type);
 		}
 		

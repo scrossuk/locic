@@ -15,17 +15,6 @@ namespace locic {
 		class Function;
 		
 		/**
-		 * \brief Load a value from a memory location.
-		 * 
-		 * For most primitive types, this function will
-		 * generated a load instruction. However, otherwise
-		 * this function typically returns the pointer passed
-		 * to it as-is, since class types should always be
-		 * handled as pointers.
-		 */
-		llvm::Value* genLoad(Function& function, llvm::Value* source, const SEM::Type* type);
-		
-		/**
 		 * \brief Store a value into a memory location.
 		 * 
 		 * As with the load function, this handles both

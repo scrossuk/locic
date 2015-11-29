@@ -168,6 +168,18 @@ namespace locic {
 			              llvm::Value* memDest,
 			              const SEM::Type* type);
 			
+			/**
+			 * \brief Load a value from a memory location.
+			 * 
+			 * For most primitive types, this function will
+			 * generated a load instruction. However, otherwise
+			 * this function typically returns the pointer passed
+			 * to it as-is, since class types should always be
+			 * handled as pointers.
+			 */
+			llvm::Value*
+			emitBasicLoad(llvm::Value* value, const SEM::Type* type);
+			
 			llvm::Value*
 			emitLoadDatatypeTag(llvm::Value* datatypePtr);
 			
