@@ -25,16 +25,6 @@ namespace locic {
 		 */
 		llvm::Value* makeMoveDest(Function& function, llvm::Value* startDestValue, llvm::Value* positionValue);
 		
-		/**
-		 * \brief Move a value by loading it from a memory location.
-		 * 
-		 * This function can be used to provide move operations; it will
-		 * generate a trivial load where possible but may return the
-		 * value pointer (as passed to it) if the type has a custom
-		 * move method, since this means the object must be kept in memory.
-		 */
-		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type);
-		
 		ArgInfo moveArgInfo(Module& module, const SEM::TypeInstance* typeInstance);
 		
 		void genBasicMove(Function& function,

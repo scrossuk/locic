@@ -38,6 +38,8 @@ namespace locic {
 		                                llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			
+			IREmitter irEmitter(function, hintResultValue);
+			
 			const auto functionType = semCallValue.type()->asFunctionType();
 			
 			llvm::SmallVector<llvm::Value*, 16> evaluatedArguments;
@@ -92,7 +94,7 @@ namespace locic {
 			if (returnVarValue != nullptr) {
 				// As above, if the return value pointer is used,
 				// this should be loaded (and used instead).
-				return genMoveLoad(function, returnVarValue, returnType);
+				return irEmitter.emitMoveLoad(returnVarValue, returnType);
 			} else {
 				return returnValue;
 			}
@@ -195,6 +197,8 @@ namespace locic {
 		                             llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			
+			IREmitter irEmitter(function, hintResultValue);
+			
 			const auto argInfo = getFunctionArgInfo(function.module(), functionType);
 			assert(!argInfo.isVarArg() && "This method doesn't support calling varargs functions.");
 			
@@ -235,7 +239,7 @@ namespace locic {
 			                                       llvmArgs);
 			
 			if (argInfo.hasReturnVarArgument()) {
-				return genMoveLoad(function, returnVar, functionType.returnType());
+				return irEmitter.emitMoveLoad(returnVar, functionType.returnType());
 			} else {
 				return result;
 			}

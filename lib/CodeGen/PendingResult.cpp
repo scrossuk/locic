@@ -18,7 +18,8 @@ namespace locic {
 		}
 		
 		llvm::Value* RefPendingResult::generateLoadedValue(Function& function) const {
-			return genMoveLoad(function, value_, refTargetType_);
+			IREmitter irEmitter(function);
+			return irEmitter.emitMoveLoad(value_, refTargetType_);
 		}
 		
 		ValuePendingResult::ValuePendingResult(llvm::Value* const value,

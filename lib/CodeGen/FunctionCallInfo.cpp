@@ -77,7 +77,9 @@ namespace locic {
 				}
 				
 				const auto result = genValue(function, value_);
-				return genMoveLoad(function, result, value_.type()->refTarget());
+				
+				IREmitter irEmitter(function);
+				return irEmitter.emitMoveLoad(result, value_.type()->refTarget());
 			}
 			
 		private:

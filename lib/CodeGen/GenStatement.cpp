@@ -294,7 +294,7 @@ namespace locic {
 							ScopeLifetime switchCaseLifetime(function);
 							genVarAlloca(function, switchCase->var());
 							genVarInitialise(function, switchCase->var(),
-								genMoveLoad(function, unionDatatypePointers.second, switchCase->var()->constructType()));
+								irEmitter.emitMoveLoad(unionDatatypePointers.second, switchCase->var()->constructType()));
 							genScope(function, switchCase->scope());
 						}
 						

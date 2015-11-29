@@ -80,7 +80,7 @@ namespace locic {
 					const auto childInitialiseValue = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                                            initialiseValue,
 					                                                            memberOffsetValue);
-					const auto loadedChildInitialiseValue = genMoveLoad(function, childInitialiseValue, childVar->constructType());
+					const auto loadedChildInitialiseValue = irEmitter.emitMoveLoad(childInitialiseValue, childVar->constructType());
 					genVarInitialise(function, childVar, loadedChildInitialiseValue);
 				}
 			} else {

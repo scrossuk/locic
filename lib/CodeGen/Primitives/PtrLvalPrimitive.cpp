@@ -133,9 +133,9 @@ namespace locic {
 				case METHOD_MOVE: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
 					const auto returnValuePtr = irEmitter.emitReturnAlloca(targetType);
-					const auto loadedValue = genMoveLoad(function, methodOwner, targetType);
+					const auto loadedValue = irEmitter.emitMoveLoad(methodOwner, targetType);
 					irEmitter.emitMoveStore(loadedValue, returnValuePtr, targetType);
-					return genMoveLoad(function, returnValuePtr, targetType);
+					return irEmitter.emitMoveLoad(returnValuePtr, targetType);
 				}
 				case METHOD_SETVALUE: {
 					const auto operand = args[1].resolve(function);
@@ -148,7 +148,7 @@ namespace locic {
 				}
 				case METHOD_EXTRACTVALUE: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return genMoveLoad(function, methodOwner, targetType);
+					return irEmitter.emitMoveLoad(methodOwner, targetType);
 				}
 				case METHOD_DESTROYVALUE: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);

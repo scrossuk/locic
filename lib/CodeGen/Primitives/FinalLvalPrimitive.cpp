@@ -99,7 +99,7 @@ namespace locic {
 				case METHOD_EMPTY: {
 					const auto objectVar = irEmitter.emitReturnAlloca(targetType);
 					genSetDeadState(function, targetType, objectVar);
-					return genMoveLoad(function, objectVar, targetType);
+					return irEmitter.emitMoveLoad(objectVar, targetType);
 				}
 				case METHOD_ALIGNMASK: {
 					return genAlignMask(function, targetType);
@@ -120,7 +120,7 @@ namespace locic {
 					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                               moveToPtr,
 					                                               moveToPosition);
-					const auto loadedValue = genMoveLoad(function, methodOwner, targetType);
+					const auto loadedValue = irEmitter.emitMoveLoad(methodOwner, targetType);
 					irEmitter.emitMoveStore(loadedValue, destPtr, targetType);
 					return ConstantGenerator(module).getVoidUndef();
 				}
@@ -139,7 +139,7 @@ namespace locic {
 				}
 				case METHOD_EXTRACTVALUE: {
 					const auto methodOwner = args[0].resolve(function);
-					return genMoveLoad(function, methodOwner, targetType);
+					return irEmitter.emitMoveLoad(methodOwner, targetType);
 				}
 				case METHOD_DESTROYVALUE: {
 					const auto methodOwner = args[0].resolve(function);

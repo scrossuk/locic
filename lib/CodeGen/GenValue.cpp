@@ -160,7 +160,7 @@ namespace locic {
 				
 				case SEM::Value::DEREF_REFERENCE: {
 					llvm::Value* const refValue = genValue(function, value.derefOperand());
-					return genMoveLoad(function, refValue, value.type());
+					return irEmitter.emitMoveLoad(refValue, value.type());
 				}
 				
 				case SEM::Value::UNIONDATAOFFSET: {
@@ -279,7 +279,7 @@ namespace locic {
 								// Store the union value.
 								irEmitter.emitMoveStore(codeValue, unionDatatypePointers.second, sourceType);
 								
-								return genMoveLoad(function, unionValue, destType);
+								return irEmitter.emitMoveLoad(unionValue, destType);
 							}
 							
 							assert(false && "Casts between named types not implemented.");
@@ -410,7 +410,7 @@ namespace locic {
 					// Set object into live state (e.g. set gap byte to 1).
 					setOuterLiveState(function, *(type->getObjectType()), objectValue);
 					
-					return genMoveLoad(function, objectValue, type);
+					return irEmitter.emitMoveLoad(objectValue, type);
 				}
 				
 				case SEM::Value::MEMBERACCESS: {

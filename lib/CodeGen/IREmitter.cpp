@@ -308,6 +308,9 @@ namespace locic {
 			                 type);
 		}
 		
+		// TODO: move this inline.
+		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type);
+		
 		llvm::Value*
 		IREmitter::emitMoveLoad(llvm::Value* const value,
 		                        const SEM::Type* const type) {

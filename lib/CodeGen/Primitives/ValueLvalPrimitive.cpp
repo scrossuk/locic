@@ -84,9 +84,10 @@ namespace locic {
 		namespace {
 			
 			llvm::Value* genValueLvalEmptyMethod(Function& functionGenerator, const SEM::Type* const targetType, llvm::Value* const hintResultValue) {
+				IREmitter irEmitter(functionGenerator);
 				const auto objectVar = genAlloca(functionGenerator, targetType, hintResultValue);
 				genSetDeadState(functionGenerator, targetType, objectVar);
-				return genMoveLoad(functionGenerator, objectVar, targetType);
+				return irEmitter.emitMoveLoad(objectVar, targetType);
 			}
 			
 			llvm::Value* genValueLvalCreateMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args, llvm::Value* const hintResultValue) {
@@ -96,7 +97,7 @@ namespace locic {
 				// Store the object.
 				IREmitter irEmitter(functionGenerator);
 				irEmitter.emitMoveStore(operand, objectVar, targetType);
-				return genMoveLoad(functionGenerator, objectVar, targetType);
+				return irEmitter.emitMoveLoad(objectVar, targetType);
 			}
 			
 			llvm::Value* genValueLvalCopyMethod(Function& functionGenerator,
@@ -140,12 +141,12 @@ namespace locic {
 			llvm::Value* genValueLvalMoveMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args, llvm::Value* const hintResultValue) {
 				const auto methodOwner = args[0].resolve(functionGenerator);
 				
-				const auto returnValuePtr = genAlloca(functionGenerator, targetType, hintResultValue);
-				const auto loadedValue = genMoveLoad(functionGenerator, methodOwner, targetType);
 				IREmitter irEmitter(functionGenerator);
+				const auto returnValuePtr = genAlloca(functionGenerator, targetType, hintResultValue);
+				const auto loadedValue = irEmitter.emitMoveLoad(methodOwner, targetType);
 				irEmitter.emitMoveStore(loadedValue, returnValuePtr, targetType);
 				
-				return genMoveLoad(functionGenerator, returnValuePtr, targetType);
+				return irEmitter.emitMoveLoad(returnValuePtr, targetType);
 			}
 			
 			llvm::Value* genValueLvalAssignMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
