@@ -123,7 +123,7 @@ namespace locic {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
 					
 					// Destroy existing value.
-					genDestructorCall(function, targetType, methodOwner);
+					irEmitter.emitDestructorCall(methodOwner, targetType);
 					
 					// Assign new value.
 					genMoveStore(function, operand, methodOwner, targetType);
@@ -153,7 +153,7 @@ namespace locic {
 				case METHOD_DESTROYVALUE: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
 					// Destroy existing value.
-					genDestructorCall(function, targetType, methodOwner);
+					irEmitter.emitDestructorCall(methodOwner, targetType);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				default:

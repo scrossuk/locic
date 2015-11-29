@@ -60,7 +60,7 @@ namespace locic {
 			if (var->isAny()) {
 				// Casting to 'any', which means the destructor
 				// should be called for the value.
-				genDestructorCall(function, var->constructType(), initialiseValue);
+				irEmitter.emitDestructorCall(initialiseValue, var->constructType());
 			} else if (var->isBasic()) {
 				const auto varValue = function.getLocalVarMap().get(var);
 				genStoreVar(function, initialiseValue, varValue, var);

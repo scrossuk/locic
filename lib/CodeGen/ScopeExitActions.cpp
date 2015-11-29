@@ -71,7 +71,8 @@ namespace locic {
 			
 			switch (unwindAction.kind()) {
 				case UnwindAction::DESTRUCTOR: {
-					genDestructorCall(function, unwindAction.destructorType(), unwindAction.destructorValue());
+					irEmitter.emitDestructorCall(unwindAction.destructorValue(),
+					                             unwindAction.destructorType());
 					return;
 				}
 				case UnwindAction::CATCH: {

@@ -30,40 +30,6 @@ namespace locic {
 			return argInfo.withNoExcept();
 		}
 		
-		void genDestructorCall(Function& function, const SEM::Type* const type, llvm::Value* value) {
-			auto& module = function.module();
-			
-			if (type->isObject()) {
-				TypeInfo typeInfo(module);
-				if (!typeInfo.hasCustomDestructor(type)) {
-					return;
-				}
-				
-				if (type->isPrimitive()) {
-					genPrimitiveDestructorCall(function, type, value);
-					return;
-				}
-				
-				const auto& typeInstance = *(type->getObjectType());
-				
-				// Call destructor.
-				const auto argInfo = destructorArgInfo(module, typeInstance);
-				const auto destructorFunction = genDestructorFunctionDecl(module, typeInstance);
-				
-				llvm::SmallVector<llvm::Value*, 2> args;
-				if (!type->templateArguments().empty()) {
-					args.push_back(getTemplateGenerator(function, TemplateInst::Type(type)));
-				}
-				args.push_back(value);
-				
-				(void) genRawFunctionCall(function, argInfo, destructorFunction, args);
-			} else if (type->isTemplateVar()) {
-				const auto typeInfo = function.getEntryBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-				IREmitter irEmitter(function);
-				module.virtualCallABI().emitDestructorCall(irEmitter, typeInfo, value);
-			}
-		}
-		
 		void scheduleDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
 			TypeInfo typeInfo(function.module());
 			if (!typeInfo.hasCustomDestructor(type)) {

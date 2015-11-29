@@ -248,7 +248,7 @@ namespace locic {
 						   
 					if (destType->isBuiltInVoid()) {
 						// Call destructor for the value.
-						genDestructorCall(function, sourceType, codeValue);
+						irEmitter.emitDestructorCall(codeValue, sourceType);
 						
 						// All casts to void have the same outcome.
 						return ConstantGenerator(module).getVoidUndef();

@@ -108,7 +108,8 @@ namespace locic {
 					return genSizeOf(function, targetType);
 				}
 				case METHOD_DESTROY: {
-					genDestructorCall(function, targetType, args[0].resolve(function));
+					irEmitter.emitDestructorCall(args[0].resolve(function),
+					                             targetType);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_MOVETO: {
@@ -143,7 +144,7 @@ namespace locic {
 				case METHOD_DESTROYVALUE: {
 					const auto methodOwner = args[0].resolve(function);
 					// Destroy existing value.
-					genDestructorCall(function, targetType, methodOwner);
+					irEmitter.emitDestructorCall(methodOwner, targetType);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				default:

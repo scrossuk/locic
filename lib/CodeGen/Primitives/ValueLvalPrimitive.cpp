@@ -152,8 +152,9 @@ namespace locic {
 				const auto operand = args[1].resolve(functionGenerator);
 				const auto methodOwner = args[0].resolve(functionGenerator);
 				
-				genDestructorCall(functionGenerator, targetType, methodOwner);
-				genMoveStore(functionGenerator, operand, methodOwner, targetType);
+				IREmitter irEmitter(functionGenerator);
+				irEmitter.emitDestructorCall(methodOwner, targetType);
+				irEmitter.emitMoveStore(operand, methodOwner, targetType);
 				return ConstantGenerator(module).getVoidUndef();
 			}
 			
@@ -174,7 +175,7 @@ namespace locic {
 					return genValueLvalCreateMethod(functionGenerator, targetType, std::move(args), irEmitter.hintResultValue());
 				case METHOD_DESTROY: {
 					auto& module = functionGenerator.module();
-					genDestructorCall(functionGenerator, targetType, args[0].resolve(functionGenerator));
+					irEmitter.emitDestructorCall(args[0].resolve(functionGenerator), targetType);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_IMPLICITCOPY:
