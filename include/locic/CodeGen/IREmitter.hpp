@@ -142,6 +142,13 @@ namespace locic {
 			llvm::Value*
 			emitMoveLoad(llvm::Value* value, const SEM::Type* type);
 			
+			/**
+			 * \brief Move a value by storing it into a memory location.
+			 * 
+			 * This function can be used to provide move operations; it will
+			 * generate a trivial store where possible but will invoke the
+			 * move method if the type has a custom move method.
+			 */
 			void
 			emitMoveStore(llvm::Value* value,
 			              llvm::Value* memDest,

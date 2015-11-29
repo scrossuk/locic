@@ -254,7 +254,7 @@ namespace locic {
 						switchValuePtr = llvmSwitchValue;
 					} else {
 						switchValuePtr = genAlloca(function, switchType);
-						genMoveStore(function, llvmSwitchValue, switchValuePtr, switchType);
+						irEmitter.emitMoveStore(llvmSwitchValue, switchValuePtr, switchType);
 					}
 					
 					const auto unionDatatypePointers = getUnionDatatypePointers(function, switchType, switchValuePtr);
@@ -392,7 +392,7 @@ namespace locic {
 								const auto returnValue = genValue(function, statement.getReturnValue(), function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
-								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type());
+								irEmitter.emitMoveStore(returnValue, function.getReturnVar(), statement.getReturnValue().type());
 							} else {
 								const auto returnValue = genValue(function, statement.getReturnValue());
 								
@@ -409,7 +409,7 @@ namespace locic {
 								const auto returnValue = genValue(function, statement.getReturnValue(), function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
-								genMoveStore(function, returnValue, function.getReturnVar(), statement.getReturnValue().type());
+								irEmitter.emitMoveStore(returnValue, function.getReturnVar(), statement.getReturnValue().type());
 								
 								function.getBuilder().CreateRetVoid();
 							} else {
@@ -545,7 +545,7 @@ namespace locic {
 					                                                   allocateFunction, exceptArgs);
 					
 					// Store value into allocated space.
-					genMoveStore(function, exceptionValue, allocatedException, throwType);
+					irEmitter.emitMoveStore(exceptionValue, allocatedException, throwType);
 					
 					// Call 'throw' function.
 					const auto throwFunction = getExceptionThrowFunction(module);

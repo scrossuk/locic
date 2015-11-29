@@ -195,10 +195,12 @@ namespace locic {
 			
 			const auto returnType = semFunction->type().returnType();
 			
+			IREmitter irEmitter(function);
+			
 			// Return the result in the appropriate way.
 			if (argInfo.hasReturnVarArgument()) {
-				genMoveStore(function, result, function.getReturnVar(), returnType);
-				function.getBuilder().CreateRetVoid();
+				irEmitter.emitMoveStore(result, function.getReturnVar(), returnType);
+				irEmitter.emitReturnVoid();
 			} else if (!returnType->isBuiltInVoid()) {
 				function.returnValue(result);
 			} else {

@@ -121,7 +121,7 @@ namespace locic {
 					                                               moveToPtr,
 					                                               moveToPosition);
 					const auto loadedValue = genMoveLoad(function, methodOwner, targetType);
-					genMoveStore(function, loadedValue, destPtr, targetType);
+					irEmitter.emitMoveStore(loadedValue, destPtr, targetType);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_ADDRESS:
@@ -133,7 +133,7 @@ namespace locic {
 					const auto methodOwner = args[0].resolve(function);
 					
 					// Assign new value.
-					genMoveStore(function, operand, methodOwner, targetType);
+					irEmitter.emitMoveStore(operand, methodOwner, targetType);
 					
 					return ConstantGenerator(module).getVoidUndef();
 				}

@@ -316,6 +316,9 @@ namespace locic {
 			                   type);
 		}
 		
+		// TODO: move this inline.
+		void genMoveStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type);
+		
 		void
 		IREmitter::emitMoveStore(llvm::Value* const value,
 		                         llvm::Value* const memDest,

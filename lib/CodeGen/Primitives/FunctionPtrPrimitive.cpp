@@ -202,7 +202,7 @@ namespace locic {
 				const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 				                                               moveToPtr,
 				                                               moveToPosition);
-				genMoveStore(function, methodOwner, destPtr, type);
+				irEmitter.emitMoveStore(methodOwner, destPtr, type);
 				return ConstantGenerator(module).getVoidUndef();
 			}
 			

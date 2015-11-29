@@ -5,6 +5,7 @@
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -87,12 +88,13 @@ namespace locic {
 			
 			const auto returnType = function.type().returnType();
 			
+			IREmitter irEmitter(functionGenerator_);
+			
 			// Return the result in the appropriate way.
 			if (argInfo.hasReturnVarArgument()) {
-				genMoveStore(functionGenerator_,
-				             result,
-				             functionGenerator_.getReturnVar(),
-				             returnType);
+				irEmitter.emitMoveStore(result,
+				                        functionGenerator_.getReturnVar(),
+				                        returnType);
 				functionGenerator_.getBuilder().CreateRetVoid();
 			} else if (!returnType->isBuiltInVoid()) {
 				functionGenerator_.returnValue(result);

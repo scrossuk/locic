@@ -281,7 +281,7 @@ namespace locic {
 			                                                      argList);
 			
 			if (hasReturnVar) {
-				genMoveStore(functionGenerator, result, functionGenerator.getReturnVar(), functionType.returnType());
+				irEmitter.emitMoveStore(result, functionGenerator.getReturnVar(), functionType.returnType());
 				functionGenerator.getBuilder().CreateRetVoid();
 			} else if (result->getType()->isVoidTy()) {
 				functionGenerator.getBuilder().CreateRetVoid();

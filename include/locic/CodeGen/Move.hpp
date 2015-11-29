@@ -35,15 +35,6 @@ namespace locic {
 		 */
 		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type);
 		
-		/**
-		 * \brief Move a value by storing it into a memory location.
-		 * 
-		 * This function can be used to provide move operations; it will
-		 * generate a trivial store where possible but will invoke the
-		 * move method if the type has a custom move method.
-		 */
-		void genMoveStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type);
-		
 		ArgInfo moveArgInfo(Module& module, const SEM::TypeInstance* typeInstance);
 		
 		void genBasicMove(Function& function,

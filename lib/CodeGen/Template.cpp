@@ -290,11 +290,12 @@ namespace locic {
 			                             value,
 			                             functionGenerator.getReturnVarOrNull());
 			
+			IREmitter irEmitter(functionGenerator);
+			
 			if (argInfo.hasReturnVarArgument()) {
-				genMoveStore(functionGenerator,
-				             result,
-				             functionGenerator.getReturnVar(),
-				             value.type());
+				irEmitter.emitMoveStore(result,
+				                        functionGenerator.getReturnVar(),
+				                        value.type());
 				functionGenerator.getBuilder().CreateRetVoid();
 			} else if (!value.type()->isBuiltInVoid()) {
 				functionGenerator.returnValue(result);

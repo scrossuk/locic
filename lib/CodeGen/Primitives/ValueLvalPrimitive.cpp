@@ -94,7 +94,8 @@ namespace locic {
 				const auto operand = args[0].resolve(functionGenerator, hintResultValue);
 				
 				// Store the object.
-				genMoveStore(functionGenerator, operand, objectVar, targetType);
+				IREmitter irEmitter(functionGenerator);
+				irEmitter.emitMoveStore(operand, objectVar, targetType);
 				return genMoveLoad(functionGenerator, objectVar, targetType);
 			}
 			
@@ -141,7 +142,8 @@ namespace locic {
 				
 				const auto returnValuePtr = genAlloca(functionGenerator, targetType, hintResultValue);
 				const auto loadedValue = genMoveLoad(functionGenerator, methodOwner, targetType);
-				genMoveStore(functionGenerator, loadedValue, returnValuePtr, targetType);
+				IREmitter irEmitter(functionGenerator);
+				irEmitter.emitMoveStore(loadedValue, returnValuePtr, targetType);
 				
 				return genMoveLoad(functionGenerator, returnValuePtr, targetType);
 			}

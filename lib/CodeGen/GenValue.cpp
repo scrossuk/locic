@@ -277,7 +277,7 @@ namespace locic {
 								                       unionDatatypePointers.first);
 								
 								// Store the union value.
-								genMoveStore(function, codeValue, unionDatatypePointers.second, sourceType);
+								irEmitter.emitMoveStore(codeValue, unionDatatypePointers.second, sourceType);
 								
 								return genMoveLoad(function, unionValue, destType);
 							}

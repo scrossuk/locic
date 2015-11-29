@@ -126,7 +126,7 @@ namespace locic {
 					irEmitter.emitDestructorCall(methodOwner, targetType);
 					
 					// Assign new value.
-					genMoveStore(function, operand, methodOwner, targetType);
+					irEmitter.emitMoveStore(operand, methodOwner, targetType);
 					
 					return ConstantGenerator(module).getVoidUndef();
 				}
@@ -134,7 +134,7 @@ namespace locic {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
 					const auto returnValuePtr = irEmitter.emitReturnAlloca(targetType);
 					const auto loadedValue = genMoveLoad(function, methodOwner, targetType);
-					genMoveStore(function, loadedValue, returnValuePtr, targetType);
+					irEmitter.emitMoveStore(loadedValue, returnValuePtr, targetType);
 					return genMoveLoad(function, returnValuePtr, targetType);
 				}
 				case METHOD_SETVALUE: {
@@ -142,7 +142,7 @@ namespace locic {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
 					
 					// Assign new value.
-					genMoveStore(function, operand, methodOwner, targetType);
+					irEmitter.emitMoveStore(operand, methodOwner, targetType);
 					
 					return ConstantGenerator(module).getVoidUndef();
 				}
