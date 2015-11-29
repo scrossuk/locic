@@ -1,0 +1,37 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+export {
+	
+	class TestClass() {
+		
+		// CHECK-LABEL: define void @MT1N9TestClassF1N8function
+		template <typename T>
+		void function(int i) {
+			// CHECK: %coerce.mem = alloca {{.*}}
+			// CHECK: %[[TPLGEN:[0-9]+]] = load {{.*}} %coerce.mem
+			if (i > 0) {
+				// Make sure we're passing the template generator straight into
+				// the recursive call without modifying the path argument.
+				
+				// CHECK: store {{.*}} %[[TPLGEN]], {{.*}} %coerce.arg.source
+				// CHECK-NEXT: %[[GEP0:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 0
+				// CHECK-NEXT: %[[TPL0:[0-9]+]] = load {{.*}} %[[GEP0]]
+				// CHECK-NEXT: %[[GEP1:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 1
+				// CHECK-NEXT: %[[TPL1:[0-9]+]] = load {{.*}} %[[GEP1]]
+				// CHECK-NEXT: call void @MT1N9TestClassF1N8function(i8* %[[TPL0]], i32 %[[TPL1]],
+				self.function<T>(i - 1);
+			}
+		}
+		
+		// Make sure the template generator always returns and doesn't try to recurse.
+		
+		// CHECK-LABEL: define void @TPLGENF2N9TestClassN8function
+		// CHECK-NEXT:      ret void
+		// CHECK-NEXT:  }
+		
+		// CHECK-NOT: @TPLGENT1N9TestClass
+		
+	}
+	
+}
