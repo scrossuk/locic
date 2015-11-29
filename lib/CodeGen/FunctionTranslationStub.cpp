@@ -73,11 +73,11 @@ namespace locic {
 			assert(checkImplies(canPassByValue(module, parameterType), canPassByValue(module, translatedParameterType)));
 			
 			if (!canPassByValue(module, parameterType) && canPassByValue(module, translatedParameterType)) {
-				// Create an alloca to hinner the parameter so it can be passed by pointer
+				// Create an alloca to hold the parameter so it can be passed by pointer
 				// into the target function.
 				IREmitter irEmitter(functionGenerator);
 				const auto argAlloca = irEmitter.emitAlloca(translatedParameterType);
-				genStore(functionGenerator, argValue, argAlloca, translatedParameterType);
+				irEmitter.emitBasicStore(argValue, argAlloca, translatedParameterType);
 				return argAlloca;
 			} else {
 				return argValue;

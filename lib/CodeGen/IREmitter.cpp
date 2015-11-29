@@ -349,6 +349,43 @@ namespace locic {
 			}
 		}
 		
+		void
+		IREmitter::emitBasicStore(llvm::Value* const value,
+		                          llvm::Value* const memDest,
+		                          const SEM::Type* const type) {
+			assert(memDest->getType()->isPointerTy());
+			
+			TypeInfo typeInfo(module());
+			if (typeInfo.isSizeAlwaysKnown(type)) {
+				// Most primitives will be passed around as values,
+				// rather than pointers.
+				emitRawStore(value, memDest);
+				return;
+			} else {
+				if (value->stripPointerCasts() == memDest->stripPointerCasts()) {
+					// Source and destination are same pointer, so no
+					// move operation required!
+					return;
+				}
+				
+				if (typeInfo.isSizeKnownInThisModule(type)) {
+					// If the type size is known now, it's
+					// better to generate an explicit load
+					// and store (optimisations will be able
+					// to make more sense of this).
+					const auto loadedValue = emitRawLoad(value,
+					                                     genType(module(), type));
+					emitRawStore(loadedValue, memDest);
+				} else {
+					// If the type size isn't known, then
+					// a memcpy is unavoidable.
+					emitMemCpy(memDest, value,
+					           genSizeOf(function(), type), 1);
+				}
+				return;
+			}
+		}
+		
 		llvm::Value*
 		IREmitter::emitLoadDatatypeTag(llvm::Value* const datatypePtr) {
 			return emitRawLoad(datatypePtr,

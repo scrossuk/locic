@@ -47,6 +47,8 @@ namespace locic {
 		void genMoveStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* type) {
 			assert(var->getType()->isPointerTy());
 			
+			IREmitter irEmitter(function);
+			
 			TypeInfo typeInfo(function.module());
 			if (typeInfo.hasCustomMove(type)) {
 				// Can't store since we need to run the move method.
@@ -63,7 +65,7 @@ namespace locic {
 				genMoveCall(function, type, value, var, positionValue);
 			} else {
 				// Use a normal store.
-				genStore(function, value, var, type);
+				irEmitter.emitBasicStore(value, var, type);
 			}
 		}
 		
@@ -87,7 +89,7 @@ namespace locic {
 			IREmitter irEmitter(function);
 			const auto destValue = makeMoveDest(function, startDestValue, positionValue);
 			const auto loadedValue = irEmitter.emitBasicLoad(sourceValue, type);
-			genStore(function, loadedValue, destValue, type);
+			irEmitter.emitBasicStore(loadedValue, destValue, type);
 		}
 		
 		void genMoveCall(Function& function, const SEM::Type* const type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {

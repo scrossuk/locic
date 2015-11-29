@@ -180,6 +180,20 @@ namespace locic {
 			llvm::Value*
 			emitBasicLoad(llvm::Value* value, const SEM::Type* type);
 			
+			/**
+			 * \brief Store a value into a memory location.
+			 * 
+			 * As with the load function, this handles both
+			 * value types (such as primitives) by generating
+			 * a normal store, but also handles reference types
+			 * (such as classes) by copying the memory from
+			 * one pointer to another.
+			 */
+			void
+			emitBasicStore(llvm::Value* value,
+			               llvm::Value* memDest,
+			               const SEM::Type* type);
+			
 			llvm::Value*
 			emitLoadDatatypeTag(llvm::Value* datatypePtr);
 			

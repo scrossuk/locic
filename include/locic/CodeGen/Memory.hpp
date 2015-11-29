@@ -15,17 +15,6 @@ namespace locic {
 		class Function;
 		
 		/**
-		 * \brief Store a value into a memory location.
-		 * 
-		 * As with the load function, this handles both
-		 * value types (such as primitives) by generating
-		 * a normal store, but also handles reference types
-		 * (such as classes) by copying the memory from
-		 * one pointer to another.
-		 */
-		void genStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type);
-		
-		/**
 		 * \brief Store a value into a variable.
 		 * 
 		 * Stores a value into the given memory location,

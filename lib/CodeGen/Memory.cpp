@@ -74,57 +74,6 @@ namespace locic {
 			return allocaValue;
 		}
 		
-		void genStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* const type) {
-			assert(var->getType()->isPointerTy());
-			
-			IREmitter irEmitter(function);
-			
-			switch (type->kind()) {
-				case SEM::Type::OBJECT:
-				case SEM::Type::TEMPLATEVAR: {
-					TypeInfo typeInfo(function.module());
-					if (typeInfo.isSizeAlwaysKnown(type)) {
-						// Most primitives will be passed around as values,
-						// rather than pointers.
-						irEmitter.emitRawStore(value, var);
-						return;
-					} else {
-						if (value->stripPointerCasts() == var->stripPointerCasts()) {
-							// Source and destination are same pointer, so no
-							// move operation required!
-							return;
-						}
-						
-						if (typeInfo.isSizeKnownInThisModule(type)) {
-							// If the type size is known now, it's
-							// better to generate an explicit load
-							// and store (optimisations will be able
-							// to make more sense of this).
-							const auto loadedValue = irEmitter.emitRawLoad(value,
-							                                               genType(function.module(), type));
-							irEmitter.emitRawStore(loadedValue, var);
-						} else {
-							// If the type size isn't known, then
-							// a memcpy is unavoidable.
-							irEmitter.emitMemCpy(var,
-							                     value,
-							                     genSizeOf(function, type),
-							                     1);
-						}
-						return;
-					}
-				}
-				
-				case SEM::Type::ALIAS: {
-					return genStore(function, value, var, type->resolveAliases());
-				}
-				
-				default: {
-					llvm_unreachable("Unknown type enum for generating store.");
-				}
-			}
-		}
-		
 		void genStoreVar(Function& function, llvm::Value* const value, llvm::Value* const var, SEM::Var* const semVar) {
 			assert(semVar->isBasic());
 			

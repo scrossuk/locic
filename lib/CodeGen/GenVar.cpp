@@ -70,7 +70,7 @@ namespace locic {
 			} else if (var->isComposite()) {
 				if (!initialiseValue->getType()->isPointerTy()) {
 					const auto initialisePtr = irEmitter.emitAlloca(var->constructType());
-					genStore(function, initialiseValue, initialisePtr, var->constructType());
+					irEmitter.emitBasicStore(initialiseValue, initialisePtr, var->constructType());
 					initialiseValue = initialisePtr;
 				}
 				
