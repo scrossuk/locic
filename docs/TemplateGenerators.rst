@@ -107,67 +107,54 @@ Here's an example for how the code of the first root template generator might lo
 
 .. code-block:: c++
 
-	Type[8] ROOT_0(void* context, uint32_t path) {
+	void ROOT_0(Type* types, path_t path) {
 		// Every path is terminated by a '1' bit (so that we can
 		// calculate the length of the path from a single integer).
 		assert(path >= 1);
 		
-		Types[8] types;
-		
 		// Template parameters for 'g<int>()':
 		//   * 'int': add vtable and null template generator.
-		types[0] = { VTABLE_int, { NULL, NULL, 0 } };
+		types[0] = { VTABLE_int, { NULL, 0 } };
 		
-		if (path == 1) {
-			// End of path => return type array.
-			return types;
-		} else {
-			// Still going => pass types to generator for 'g()'.
-			return TPLGEN_g(types, ROOT_0, context, path, 31 - ctlz(path));
-		}
+		// Pass types to generator for 'g()'.
+		TPLGEN_g(types, ROOT_0, path, PATH_BITS - 1 - ctlz(path));
+		return;
 	}
 
 And here's an example for the intermediate template generator for g():
 
 .. code-block:: c++
 
-	Type[8] TPLGEN_g(Type[8] types, void* rootFn, void* rootContext, uint32_t path, uint8_t parentPosition) {
+	void TPLGEN_g(Type* types, void* rootFn, path_t path, size_t parentPosition) {
+		if (parentPosition == 0) {
+			// End of path => return type array.
+			return;
+		}
+		
 		const auto position = parentPosition - 1;
 		const auto subPath = (path >> position);
 		const auto mask = 0x3;
 		const auto component = (subPath & mask);
-		
-		Type[8] newTypes;
 		
 		switch (component) {
 		case 0:
 			// Template parameters for 'i<T, byte>()':
 			//   * 'T': first argument of parent, so just copy it across.
 			//   * 'byte': add vtable and null template generator.
-			newTypes[0] = types[0];
-			newTypes[1] = { VTABLE_byte, { NULL, NULL, 0 } };
-			
-			if (position == 0) {
-				// End of path => return type array.
-				return newTypes;
-			}
+			types[1] = { VTABLE_byte, { NULL, 0 } };
 			
 			// Still going => pass types to generator for 'i()'.
-			return TPLGEN_i(newTypes, rootFn, rootContext, path, position);
+			TPLGEN_i(types, rootFn, path, position);
+			return;
 		case 1:
 			// Template parameters for 'j<T, byte>()':
 			//   * 'T': first argument of parent, so just copy it across.
 			//   * 'short': add vtable and null template generator.
-			newTypes[0] = types[0];
-			newTypes[1] = { VTABLE_short, { NULL, NULL, 0 } };
-			
-			if (position == 0) {
-				// End of path => return type array.
-				return newTypes;
-			}
+			types[1] = { VTABLE_short, { NULL, 0 } };
 			
 			// Still going => pass types to generator for 'j()'.
-			return TPLGEN_j(newTypes, rootFn, rootContext, path, position);
+			TPLGEN_j(types, rootFn, path, position);
+			return;
 		default:
 			// Unreachable!
 		}
@@ -177,8 +164,8 @@ And finally, here's how the template generator for i() might look:
 
 .. code-block:: c++
 
-	Type[8] TPLGEN_i(Type[8] types, void* rootFn, void* rootContext, uint32_t path, uint8_t parentPosition) {
-		// Unreachable!
+	void TPLGEN_i(Type* types, void* rootFn, path_t path, size_t parentPosition) {
+		return;
 	}
 
 So the purpose of the template generator functions is to return an array of template argument values for any templated function or type. They achieve this by starting at the *root template generator*, where all the initial template argument values are known, and then using a 32-bit unsigned integer that specifies the path from the *root template generator* to the relevant *intermediate template generator*, at which point the functions will exit and the correct template argument values are returned.
@@ -186,7 +173,7 @@ So the purpose of the template generator functions is to return an array of temp
 Top Down Calls
 ~~~~~~~~~~~~~~
 
-This design is probably the reverse of what most developers expect, since it's natural to think of a function accessing its own template arguments or parameters first, and then performing further operations to access template arguments in outer contexts (i.e. 'bottom up' access to template arguments). However in this case template generators always call down from the root template generator until they reach the relevant intermediate generator (i.e. 'top down').
+This design is probably the reverse of what most developers expect, since it's natural to think of a function accessing its own template arguments or parameters first, and then performing further operations to access template arguments in outer contexts (i.e. 'bottom up' access to template arguments). However template generators always call down from the root template generator until they reach the relevant intermediate generator (i.e. 'top down').
 
 To understand this design, consider:
 
@@ -220,164 +207,243 @@ The problem is of course that, unlike the top-down path, this path can't be cons
 
 Hence the solution is to create a path from the root downwards, since we do know this path at compile time (or, rather, each function knows its children in this graph at compile-time). We can then just remember the root function along with the path from the root to the relevant function (an unsigned integer computed as we perform function calls), and then we can compute the template arguments for that function. This strategy avoids needing to construct complex structures at run-time and, as discussed below, is highly amenable to optimisation.
 
-Merges
-~~~~~~
+Pass-through
+------------
 
-A merge can occur in the template generator graph where the template arguments for a type or function must be derived from *two* root template generators. This situation occurs rarely: only for templated methods inside templated classes, and only in certain cases of them. Here is such a case:
+Most recursive template instantiations are relatively trivial and typically involve passing the same template arguments in the same order. For example:
 
 .. code-block:: c++
 
 	template <typename A, typename B>
-	void someOtherFunction();
-	
-	template <typename A>
-	class TestClass() {
-		static create = default;
-		
-		template <typename B>
-		void method() {
-			// Requires merge since 'A' comes from 'TestClass'
-			// template generator and 'B' comes from 'method'
-			// template generator.
-			someOtherFunction<A, B>();
-		}
+	require(is_movable<A> and is_movable<B>)
+	A f(B value) {
+		return g<A, B>(move value);
 	}
 	
-	interface TestInterface {
-		template <typename B>
-		void method();
-	}
-	
-	void f() {
-		auto object = TestClass<int>();
-		g(object);
-	}
-	
-	void g(TestInterface& object) {
-		object.method<float>();
-	}
+	template <typename A, typename B>
+	require(is_movable<A> and is_movable<B>)
+	import A g(B value);
 
-This structure involves the aspects needed to create a merge:
-
-* Type 'TestClass' is templated.
-* Method 'method' is templated.
-* Template arguments from both 'TestClass' and 'method' are passed to 'someOtherFunction'.
-* Template arguments for 'TestClass' are not *statically* known inside 'g()' (if this isn't the case a single template generator can be passed to the method).
-
-Inside 'g()' it can obtain the template generator at run-time for 'TestClass' via the 'TestInterface' reference - interface references are fat pointers that contain:
-
-* The object pointer.
-* A vtable pointer.
-* The template generator.
-
-(Note that the 'vtable pointer' and the 'template generator' are collectively called 'type information'.)
-
-'g()' can also compute the template generator for the method statically, since all the template arguments are known.
-
-The problem is that inside the method these two template generators need to be *combined* into a single generator. Here the method is passing the template argument it received for the parent type and the template argument for the method together as arguments to 'someOtherFunction'; that function will be expecting to receive a single template generator and hence the two template generators must be merged.
-
-This merged template generator is created inside 'TestClass::method'; the logic is essentially:
-
-* Look through existing merges to see if we've previously merged these two template generators.
-* If needed, create a new merge and remember that.
-
-Merges are essentially defined by the pair of template generators that are being used to create them; these generators contain:
-
-* A root function pointer.
-* A root function context (used for merges).
-* A 32-bit path value.
-
-If all these values are identical then the template arguments produced from the template generator must be the same. Hence if a function performing a merge receives a pair of template generators identical in value to a previous pair then it knows they are the same, which means the merged result is the same, so it can return the same merged result.
-
-The merge itself uses a global block of memory that contains a list of pairs of template generators, combined with a new template generator root function that contains like:
+This could produce the following template generator for ``f()``:
 
 .. code-block:: c++
 
-	struct TemplateGeneratorPair {
-		TemplateGenerator parent;
-		TemplateGenerator method;
-	};
-	
-	Type[8] ROOT_MERGE(void* context, uint32_t path) {
-		// Every path is terminated by a '1' bit (so that we can
-		// calculate the length of the path from a single integer).
-		assert(path >= 1);
-		
-		TemplateGeneratorPair* generatorPair = (TemplateGeneratorPair*) context;
-		
-		Types[8] parentTypes = generatorPair.parent.rootFn(generatorPair.parent.context, generatorPair.parent.path);
-		Types[8] methodTypes = generatorPair.method.rootFn(generatorPair.method.context, generatorPair.method.path);
-		
-		Types[8] types;
-		
-		// Copy parent template argument.
-		types[0] = parentTypes[0];
-		
-		// Copy method template argument.
-		types[1] = methodTypes[0];
-		
-		if (path == 1) {
+	void TPLGEN_f(Type* types, void* rootFn, path_t path, size_t parentPosition) {
+		if (parentPosition == 0) {
 			// End of path => return type array.
-			return types;
-		} else {
-			// Still going => pass types to generator for 'someOtherFunction'.
-			return TPLGEN_someOtherFunction(types, ROOT_MERGE, context, path, 31 - ctlz(path));
+			return;
+		}
+		
+		const auto position = parentPosition - 1;
+		const auto subPath = (path >> position);
+		const auto mask = 0x3;
+		const auto component = (subPath & mask);
+		
+		switch (component) {
+		case 0:
+			TPLGEN_g(types, rootFn, path, position);
+			return;
+		default:
+			// Unreachable!
 		}
 	}
 
-Algorithmically, performing the merge involves the following:
+In this case we've allocated one bit on the path so that we know to continue iterating into the intermediate template generator of ``g()``. However, this isn't actually necessary; the arguments we give to ``g()`` are identical to what we are ourselves expecting so we can call straight down into its intermediate template generator and hence effectively merge these two states:
 
 .. code-block:: c++
 
-	struct TemplateGeneratorPairArray {
-		TemplateGeneratorPair elements[TPLGEN_ARRAY_SIZE];
-		TemplateGeneratorPairArray* next;
-	};
-	
-	TemplateGeneratorPair* createTemplateMerge(TemplateGeneratorPairArray* array, TemplateGeneratorPair pair) {
-		size_t i;
-		
-		while (true) {
-			// Linear scan across array entries.
-			for (i = 0; i < TPLGEN_ARRAY_SIZE; i++) {
-				if (array.elements[i]
-				
-				if (array.elements[i] == pair) {
-					// Found an existing mapping.
-					return &(array.elements[i]);
-				} else if (array.elements[i].parent.rootFn == NULL) {
-					// Reached a null entry, so this is the end of this list.
-					assert(array->next == NULL);
-					break;
-				}
-			}
-			
-			if (array->next != NULL) {
-				// Try next array.
-				array = array->next;
-			} else {
-				// No mapping found!
-				break;
-			}
-		}
-		
-		if (i == TPLGEN_ARRAY_SIZE) {
-			// Allocate new zeroed array.
-			array.next = calloc(1, sizeof(TemplateGeneratorPairArray));
-			array = array.next;
-			i = 0;
-		}
-		
-		array[i] = pair;
-		return &(array[i]);
+	void TPLGEN_f(Type* types, void* rootFn, path_t path, size_t position) {
+		TPLGEN_g(types, rootFn, path, position);
+		return;
 	}
 
-This function is then invoked with an initial globally allocated array and hence in the vast majority of cases won't need to perform a heap allocation. Note that the merge data structure and its usage is local to the function performing the merge, so it would be easily possible to modify the compiler to improve on the linear search (e.g. use a binary search for O(log n) or a hash table for O(1)).
+Now ``f()`` doesn't require any bits on the path and its template generator can use a considerably simplified control flow (aiding compiler optimisations and avoiding relying on hardware branch prediction). This works because we can rely on ``g()``'s template generator to return if we've reached the end of the path (i.e. the ``position`` argument is 0), with the same template arguments that we gave it and that were in fact provided to us.
 
-As shown, template generator merge operations are very complex and can involve generating/executing substantial blocks of code. Fortunately these constructs are very rare and developers can easily to choose avoid them, however they are provided to support those cases where they might be used.
+This improvement is called the "Pass-through Optimisation". Any template generator can choose to apply or not apply this transformation without affecting ABI compatibility, however it always makes sense to do so.
+
+Prefix pass-through
+~~~~~~~~~~~~~~~~~~~
+
+A variant of pass-through is 'prefix' pass-through, which is the same concept applied when a recursive instantiation is a prefix of the parent instantiation, or vice versa. For example:
+
+.. code-block:: c++
+
+	template <typename A, typename B>
+	require(is_movable<A> and is_movable<B>)
+	A f(B value) {
+		return g<A, B, float>(move value, 10.0f);
+	}
+	
+	template <typename A, typename B, typename C>
+	require(is_movable<A> and is_movable<B> and is_movable<C>)
+	import A g(B value, C value);
+
+Without pass-through we'd produce a template generator like the following:
+
+.. code-block:: c++
+
+	void TPLGEN_f(Type* types, void* rootFn, path_t path, size_t parentPosition) {
+		if (parentPosition == 0) {
+			// End of path => return type array.
+			return;
+		}
+		
+		const auto position = parentPosition - 1;
+		const auto subPath = (path >> position);
+		const auto mask = 0x3;
+		const auto component = (subPath & mask);
+		
+		switch (component) {
+		case 0:
+			types[2] = { VTABLE_float, { NULL, 0 } };
+			TPLGEN_g(types, rootFn, path, position);
+			return;
+		default:
+			// Unreachable!
+		}
+	}
+
+In this case ``g()`` takes slightly different template arguments to ``f()``. However the arguments received by ``f()`` are strictly a prefix of the arguments it gives to ``g()``. Hence the template generator can be reduced to:
+
+.. code-block:: c++
+
+	void TPLGEN_f(Type* types, void* rootFn, path_t path, size_t position) {
+		types[2] = { VTABLE_float, { NULL, 0 } };
+		TPLGEN_g(types, rootFn, path, position);
+		return;
+	}
+
+Now when ``f()`` queries its template arguments it gets the unexpected third argument ``float``, but this isn't a problem because ``f()`` will ignore this argument (since it doesn't have a third argument).
+
+The same concept can be applied the opposite way around:
+
+.. code-block:: c++
+
+	template <typename A, typename B, typename C>
+	require(is_movable<A> and is_movable<B> and is_movable<C>)
+	A f(B value, unused C value) {
+		return g<A, B>(move value);
+	}
+	
+	template <typename A, typename B>
+	require(is_movable<A> and is_movable<B>)
+	import A g(B value);
+
+This will produce the following optimised template generator:
+
+.. code-block:: c++
+
+	void TPLGEN_f(Type* types, void* rootFn, path_t path, size_t position) {
+		TPLGEN_g(types, rootFn, path, position);
+		return;
+	}
+
+``g()`` receives the third argument even though it has no third argument, but again this is fine because ``g()`` will ignore the third argument.
+
+Mutually-Recursive functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pass-through appears to have an obvious pathological case:
+
+.. code-block:: c++
+
+	template <typename A, typename B>
+	require(is_movable<A> and is_movable<B>)
+	void f(A a, B b, int i) {
+		if (i == 0) {
+			return;
+		} else {
+			return g<A, B>(move a, move b, i - 1);
+		}
+	}
+	
+	template <typename A, typename B>
+	require(is_movable<A> and is_movable<B>)
+	void g(A a, B b, int i) {
+		if (i == 0) {
+			return;
+		} else {
+			return f<A, B>(move a, move b, i - 1);
+		}
+	}
+
+In this case we'd expect to see the following template generators:
+
+.. code-block:: c++
+
+	void TPLGEN_f(Type* types, void* rootFn, path_t path, size_t position) {
+		TPLGEN_g(types, rootFn, path, position);
+		return;
+	}
+	
+	void TPLGEN_g(Type* types, void* rootFn, path_t path, size_t position) {
+		TPLGEN_f(types, rootFn, path, position);
+		return;
+	}
+
+Obviously this would appear to mean the intermediate template generators infinite loop.
+
+Fortunately, the dependencies of modules must form a **directed acyclic graph**. This means that if one module 'A' performs a **statically determined** call to another module 'B', it is impossible for 'B' to also perform a statically determined call to 'A'. A statically determined call is something like ``function()``, where ``function`` is known as a particular callable function by the compiler; this contrasts with function pointers or interface method calls, the destination of which is determined at run-time.
+
+So if modules can't statically call into each other, then we can't have **inter-module** mutual recursion. It is however possible to have **intra-module** mutual recursions, where a module has two functions within it that each call the other, as with ``f()`` and ``g()`` above.
+
+This case can be handled at compile-time since the compiler has all the relevant knowledge; it can identify mutually-recursive functions with pass-through applied and fix their intermediate template generators to terminate. For example, for the case given above it can create:
+
+.. code-block:: c++
+
+	void TPLGEN_f(Type* types, void* rootFn, path_t path, size_t position) {
+		return;
+	}
+	
+	void TPLGEN_g(Type* types, void* rootFn, path_t path, size_t position) {
+		return;
+	}
+
+This is fairly easy to detect; the compiler produces a graph of the template instantiations and performs cycle detection on the graph. If it finds that pass-through has led to an infinite loop then it simply modifies them to terminate.
+
+Callbacks
+~~~~~~~~~
+
+The above analysis seems to miss that modules can be mutually-recursive through the use of callbacks. For example module 'A' calls module 'B' and gives it a function pointer; module 'B' can then call module 'A' later via that function pointer.
+
+However, none of this is relevant to templates because template arguments cannot be provided to a function pointer or interface method call (as in C++). Templates are a static mechanism and are unrelated to run-time recursion. Here's an example of using a callback (note that some of the syntax for templated function pointers is still in development):
+
+.. code-block:: c++
+
+	// ---- In module 'A'.
+	template <typename T>
+	void f() {
+		g(h<T>);
+	}
+	
+	template <typename T>
+	void h() {
+		f<T>();
+	}
+	
+	// ---- In module 'B'.
+	void g((*<>)(void)() function_ptr) {
+		function_ptr();
+	}
+
+While at run-time we have a cycle of ``f()`` -> ``g()`` -> ``h()`` -> ``f()`` -> etc., the chain of template instantiations is ``f<T>()`` -> ``h<T>()`` -> ``f<T>()``. This is a cycle, but it's a cycle within module 'A' and hence amenable to the approach described previously.
+
+In case you're wondering, a templated function pointer is the following struct:
+
+.. code-block:: c++
+
+	struct templated_function_ptr {
+		void* function_ptr;
+		struct template_generator {
+			void* root_fn;
+			path_t path;
+		};
+	};
+
+So we've created a template generator for ``h()`` inside ``f()`` and we then pass this to ``g()``. This means that normal function pointers can't call templated functions, where the template arguments are **not** fully specified; functions like ``h<int>`` **are** compatible with normal function pointers because the compiler can generate a stub around them.
 
 Optimisation
-~~~~~~~~~~~~
+------------
 
 Template Generators have been carefully designed to facilitate optimisation, such that a standard optimiser (such as LLVM's *opt*) can eliminate the template generators by inlining and hence automatically instantiate the templates in a very similar way to C++.
 
