@@ -1,0 +1,19 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+// Currently fails since nest virtual calls not implemented.
+// XFAIL: *
+
+interface Interface {
+	void method();
+}
+
+// CHECK-LABEL: define void @f
+export void f(Interface& object) {
+	// CHECK:      %[[VTABLE_SLOT:[0-9]+]] = getelementptr inbounds {{.*}}%__vtable{{.*}} %[[VTABLE:[0-9]+]], i32 0, i32 4, i32 3
+	// CHECK-NEXT: %[[FUNCTION_PTR:[0-9]+]] = load {{.*}} %[[VTABLE_SLOT]]
+	// CHECK:      %[[CAST_FUNCTION_PTR:[0-9]+]] = bitcast {{.*}} %[[FUNCTION_PTR]] to void (i8*, {{.*}})*
+	// CHECK-NEXT: call void{{.*}} %[[CAST_FUNCTION_PTR]](i8* nest inttoptr (i64 -1540395131057653563 to i8*),
+	// CHECK-NEXT: ret void
+	object.method();
+}
