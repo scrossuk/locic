@@ -85,6 +85,10 @@ namespace locic {
 			return ArgInfo(module, false, false, false, false, returnType, argumentTypes);
 		}
 		
+		ArgInfo ArgInfo::VoidVarArgs(Module& module, llvm::ArrayRef<TypePair> argumentTypes) {
+			return ArgInfo(module, false, false, false, false, voidTypePair(module), argumentTypes);
+		}
+		
 		ArgInfo ArgInfo::VarArgs(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes) {
 			return ArgInfo(module, false, false, false, true, returnType, argumentTypes);
 		}
