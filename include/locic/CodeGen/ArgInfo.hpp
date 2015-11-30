@@ -67,6 +67,8 @@ namespace locic {
 				
 				ArgInfo withNoReturn() const;
 				
+				ArgInfo withNestArgument() const;
+				
 				llvm_abi::FunctionType getABIFunctionType() const;
 				
 				llvm::FunctionType* makeFunctionType() const;
@@ -77,6 +79,8 @@ namespace locic {
 				
 				bool hasContextArgument() const;
 				
+				bool hasNestArgument() const;
+				
 				bool isVarArg() const;
 				
 				bool noMemoryAccess() const;
@@ -84,6 +88,8 @@ namespace locic {
 				bool noExcept() const;
 				
 				bool noReturn() const;
+				
+				size_t nestArgumentOffset() const;
 				
 				size_t returnVarArgumentOffset() const;
 				
@@ -108,13 +114,12 @@ namespace locic {
 				bool hasReturnVarArgument_;
 				bool hasTemplateGeneratorArgument_;
 				bool hasContextArgument_;
+				bool hasNestArgument_;
 				bool isVarArg_;
-				size_t numStandardArguments_;
-				
 				bool noMemoryAccess_;
 				bool noExcept_;
 				bool noReturn_;
-				
+				size_t numStandardArguments_;
 				TypePair returnType_;
 				llvm::SmallVector<TypePair, 10> argumentTypes_;
 				

@@ -36,6 +36,10 @@ namespace locic {
 				llvmFunction->setDoesNotReturn();
 			}
 			
+			if (argInfo.hasNestArgument()) {
+				llvmFunction->addAttribute(1, llvm::Attribute::Nest);
+			}
+			
 			const auto abiFunctionType = argInfo.getABIFunctionType();
 			const auto attributes = module.abi().getAttributes(abiFunctionType,
 			                                                   abiFunctionType.argumentTypes(),
@@ -169,6 +173,11 @@ namespace locic {
 			}
 			
 			return argList;
+		}
+		
+		llvm::Value* Function::getNestArgument() const {
+			assert(argInfo_.hasNestArgument());
+			return getRawArg(argInfo_.nestArgumentOffset());
 		}
 		
 		llvm::Value* Function::getTemplateGenerator() const {

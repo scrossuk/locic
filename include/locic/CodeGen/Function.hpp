@@ -110,6 +110,8 @@ namespace locic {
 				
 				std::vector<llvm::Value*> getArgList() const;
 				
+				llvm::Value* getNestArgument() const;
+				
 				llvm::Value* getTemplateGenerator() const;
 				
 				llvm::Value* getTemplateArgs();

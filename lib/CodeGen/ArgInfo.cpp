@@ -94,11 +94,12 @@ namespace locic {
 			  hasReturnVarArgument_(hRVA),
 			  hasTemplateGeneratorArgument_(hTG),
 			  hasContextArgument_(hCA),
+			  hasNestArgument_(false),
 			  isVarArg_(pIsVarArg),
-			  numStandardArguments_(pArgumentTypes.size()),
 			  noMemoryAccess_(false),
 			  noExcept_(false),
 			  noReturn_(false),
+			  numStandardArguments_(pArgumentTypes.size()),
 			  returnType_(pReturnType) {
 			argumentTypes_.reserve(3 + pArgumentTypes.size());
 			
@@ -142,6 +143,18 @@ namespace locic {
 			return copy;
 		}
 		
+		ArgInfo ArgInfo::withNestArgument() const {
+			if (hasNestArgument()) {
+				return *this;
+			}
+			
+			ArgInfo copy(*this);
+			copy.hasNestArgument_ = true;
+			copy.argumentTypes_.insert(copy.argumentTypes_.begin(),
+			                           pointerTypePair(*module_));
+			return copy;
+		}
+		
 		llvm_abi::FunctionType ArgInfo::getABIFunctionType() const {
 			const auto voidPair = voidTypePair(*module_);
 			const auto& returnTypeRef = hasReturnVarArgument() ? voidPair : returnType();
@@ -174,6 +187,10 @@ namespace locic {
 			return hasContextArgument_;
 		}
 		
+		bool ArgInfo::hasNestArgument() const {
+			return hasNestArgument_;
+		}
+		
 		bool ArgInfo::isVarArg() const {
 			return isVarArg_;
 		}
@@ -190,12 +207,16 @@ namespace locic {
 			return noReturn_;
 		}
 		
-		size_t ArgInfo::returnVarArgumentOffset() const {
+		size_t ArgInfo::nestArgumentOffset() const {
 			return 0;
 		}
 		
+		size_t ArgInfo::returnVarArgumentOffset() const {
+			return nestArgumentOffset() + (hasNestArgument() ? 1 : 0);
+		}
+		
 		size_t ArgInfo::templateGeneratorArgumentOffset() const {
-			return hasReturnVarArgument() ? 1 : 0;
+			return returnVarArgumentOffset() + (hasReturnVarArgument() ? 1 : 0);
 		}
 		
 		size_t ArgInfo::contextArgumentOffset() const {
@@ -203,7 +224,7 @@ namespace locic {
 		}
 		
 		size_t ArgInfo::standardArgumentOffset() const {
-			return contextArgumentOffset() + (hasContextArgument() ? 1 : 0);
+			return contextArgumentOffset() + (hasContextArgument() ? 1 : 0) ;
 		}
 		
 		size_t ArgInfo::numStandardArguments() const {
@@ -226,6 +247,7 @@ namespace locic {
 			return makeString("ArgInfo(hasReturnVarArgument = %s, "
 				"hasTemplateGeneratorArgument = %s, "
 				"hasContextArgument = %s, "
+				"hasNestArgument = %s, "
 				"isVarArg = %s, "
 				"numStandardArguments = %llu, "
 				"noMemoryAccess = %s, "
@@ -236,6 +258,7 @@ namespace locic {
 				hasReturnVarArgument() ? "true" : "false",
 				hasTemplateGeneratorArgument() ? "true" : "false",
 				hasContextArgument() ? "true" : "false",
+				hasNestArgument() ? "true" : "false",
 				isVarArg() ? "true" : "false",
 				(unsigned long long) numStandardArguments(),
 				noMemoryAccess() ? "true" : "false",

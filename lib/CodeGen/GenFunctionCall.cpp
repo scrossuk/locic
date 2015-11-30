@@ -148,10 +148,14 @@ namespace locic {
 						invokeInst->setDoesNotReturn();
 					}
 					
- 					if (argInfo.noMemoryAccess()) {
- 						invokeInst->setDoesNotAccessMemory();
- 					}
- 					
+					if (argInfo.noMemoryAccess()) {
+						invokeInst->setDoesNotAccessMemory();
+					}
+					
+					if (argInfo.hasNestArgument()) {
+						invokeInst->addAttribute(1, llvm::Attribute::Nest);
+					}
+					
 					const auto attributes = module.abi().getAttributes(functionABIType,
 					                                                   functionABIType.argumentTypes(),
 					                                                   invokeInst->getAttributes());
@@ -171,10 +175,14 @@ namespace locic {
 						callInst->setDoesNotReturn();
 					}
 					
- 					if (argInfo.noMemoryAccess()) {
- 						callInst->setDoesNotAccessMemory();
- 					}
- 					
+					if (argInfo.noMemoryAccess()) {
+						callInst->setDoesNotAccessMemory();
+					}
+					
+					if (argInfo.hasNestArgument()) {
+						callInst->addAttribute(1, llvm::Attribute::Nest);
+					}
+					
 					const auto attributes = module.abi().getAttributes(functionABIType,
 					                                                   functionABIType.argumentTypes(),
 					                                                   callInst->getAttributes());
