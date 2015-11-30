@@ -103,8 +103,9 @@ namespace locic {
 		llvm::Value* genRawFunctionCall(Function& function,
 		                                const ArgInfo& argInfo,
 		                                llvm::Value* functionPtr,
-		                                llvm::ArrayRef<llvm::Value*> args) {
-			assert(!argInfo.isVarArg() && "This method doesn't support calling varargs functions.");
+		                                llvm::ArrayRef<llvm::Value*> args,
+		                                const bool musttail) {
+			assert((!argInfo.isVarArg() || musttail) && "This method doesn't support calling varargs functions.");
 			const auto functionABIType = argInfo.getABIFunctionType();
 			llvm::SmallVector<llvm_abi::TypedValue, 10> abiArgs;
 			abiArgs.reserve(args.size());
@@ -115,13 +116,15 @@ namespace locic {
 			return genRawFunctionCall(function,
 			                          argInfo,
 			                          functionPtr,
-			                          abiArgs);
+			                          abiArgs,
+			                          musttail);
 		}
 		
 		llvm::Value* genRawFunctionCall(Function& function,
 		                                const ArgInfo& argInfo,
 		                                llvm::Value* functionPtr,
-		                                llvm::ArrayRef<llvm_abi::TypedValue> args) {
+		                                llvm::ArrayRef<llvm_abi::TypedValue> args,
+		                                const bool musttail) {
 			auto& module = function.module();
 			
 			assert(args.size() >= argInfo.argumentTypes().size());
@@ -135,6 +138,8 @@ namespace locic {
 				// If the function can throw AND we have pending unwind actions,
 				// emit a landing pad to execute those actions.
 				if (!argInfo.noExcept() && anyUnwindActions(function, UnwindStateThrow)) {
+					assert(!musttail);
+					
 					const auto successPath = function.createBasicBlock("");
 					const auto failPath = genLandingPad(function, UnwindStateThrow);
 					
@@ -178,6 +183,14 @@ namespace locic {
 					if (argInfo.noMemoryAccess()) {
 						callInst->setDoesNotAccessMemory();
 					}
+					
+#if LOCIC_LLVM_VERSION >= 305
+					if (musttail) {
+						callInst->setTailCallKind(llvm::CallInst::TCK_MustTail);
+					}
+#else
+					assert(!musttail && "musttail not supported with this version of LLVM");
+#endif
 					
 					if (argInfo.hasNestArgument()) {
 						callInst->addAttribute(1, llvm::Attribute::Nest);

@@ -43,12 +43,14 @@ namespace locic {
 		llvm::Value* genRawFunctionCall(Function& function,
 		                                const ArgInfo& argInfo,
 		                                llvm::Value* functionPtr,
-		                                llvm::ArrayRef<llvm_abi::TypedValue> args);
+		                                llvm::ArrayRef<llvm_abi::TypedValue> args,
+		                                bool musttail = false);
 		
 		llvm::Value* genRawFunctionCall(Function& function,
 		                                const ArgInfo& argInfo,
 		                                llvm::Value* functionPtr,
-		                                llvm::ArrayRef<llvm::Value*> args);
+		                                llvm::ArrayRef<llvm::Value*> args,
+		                                bool musttail = false);
 		
 		/**
 		 * \brief Generate function call.
