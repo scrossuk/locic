@@ -1,0 +1,31 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+// CHECK-LABEL: declare void @g
+template <typename T>
+require(is_movable<T>)
+import void g(T i);
+
+// CHECK-LABEL: define void @f
+export void f() {
+	// CHECK: store {{.*}} { {{.*}}@template_root{{.*}}, {{.*}} 1 }, {{.*}} %coerce.arg.source
+	// CHECK-NEXT: %[[GEP0:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 0
+	// CHECK-NEXT: %[[TPL0:[0-9]+]] = load {{.*}} %[[GEP0]]
+	// CHECK-NEXT: %[[GEP1:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 1
+	// CHECK-NEXT: %[[TPL1:[0-9]+]] = load {{.*}} %[[GEP1]]
+	
+	// TODO: this should call g() directly.
+	// CHECK: call void @translateStub_g(i32 42, i8* %[[TPL0]], i32 %[[TPL1]])
+	g<int>(42);
+}
+
+// CHECK-LABEL: define internal void @template_root(i8*, i32)
+// CHECK:           %[[TYPES:[0-9]+]] = bitcast {{.*}}%0
+// CHECK-NEXT:      %[[TYPES0:[0-9]+]] = getelementptr inbounds {{.*}} %[[TYPES]], i32 0, i32 0
+// CHECK-NEXT:      store {{.*}} @__type_vtable_T1N5int_t {{.*}}, {{.*}} %[[TYPES0]]
+// CHECK-NEXT:      %[[CTLZ:[0-9]+]] = call i32 @llvm.ctlz.i32(i32 %1, i1 true)
+// CHECK-NEXT:      %[[CTLZ64:[0-9]+]] = zext i32 %[[CTLZ]] to i64
+// CHECK-NEXT:      %[[PATHSIZE:[0-9]+]] = sub i64 31, %[[CTLZ64]]
+// CHECK-NEXT:      call void @TPLGENg(i8* %0, {{.*}}@template_root{{.*}}, i32 %1, i64 %8)
+// CHECK-NEXT:      ret void
+// CHECK-NEXT:  }
