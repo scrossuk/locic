@@ -86,7 +86,11 @@ namespace locic {
 		                                const bool musttail) {
 			auto& module = function.module();
 			
-			assert(args.size() >= argInfo.argumentTypes().size());
+			if (argInfo.isVarArg()) {
+				assert(args.size() >= argInfo.numArguments());
+			} else {
+				assert(args.size() == argInfo.numArguments());
+			}
 			
 			IREmitter irEmitter(function);
 			
