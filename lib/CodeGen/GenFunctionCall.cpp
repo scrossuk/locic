@@ -42,62 +42,21 @@ namespace locic {
 			
 			const auto functionType = semCallValue.type()->asFunctionType();
 			
-			llvm::SmallVector<llvm::Value*, 16> evaluatedArguments;
-			evaluatedArguments.reserve(args.size());
+			llvm::SmallVector<llvm_abi::TypedValue, 10> parameters;
+			parameters.reserve(args.size());
 			
 			// Make sure to evaluate arguments first.
 			for (const auto& param: args) {
-				evaluatedArguments.push_back(genValue(function, param));
-			}
-			
-			const auto callInfo = genFunctionCallInfo(function, semCallValue);
-			
-			llvm::SmallVector<llvm_abi::TypedValue, 10> parameters;
-			parameters.reserve(3 + args.size());
-			
-			// Some values (e.g. classes) will be returned
-			// by assigning to a pointer passed as the first
-			// argument (this deals with the class sizes
-			// potentially being unknown).
-			llvm::Value* returnVarValue = nullptr;
-			
-			const auto returnType = functionType.returnType();
-			if (!canPassByValue(module, returnType)) {
-				returnVarValue = hintResultValue != nullptr ? hintResultValue : irEmitter.emitAlloca(returnType);
-				parameters.push_back(llvm_abi::TypedValue(returnVarValue,
-				                                          llvm_abi::PointerTy));
-			}
-			
-			if (callInfo.templateGenerator != nullptr) {
-				parameters.push_back(llvm_abi::TypedValue(callInfo.templateGenerator,
-				                                          templateGeneratorType(module).first));
-			}
-			
-			if (callInfo.contextPointer != nullptr) {
-				parameters.push_back(llvm_abi::TypedValue(callInfo.contextPointer,
-				                                          llvm_abi::PointerTy));
-			}
-			
-			for (size_t i = 0; i < args.size(); i++) {
-				const auto paramType = args[i].type();
+				const auto paramType = param.type();
 				const auto abiType = genABIArgType(module, paramType);
-				parameters.push_back(llvm_abi::TypedValue(evaluatedArguments[i],
+				const auto irValue = genValue(function, param);
+				parameters.push_back(llvm_abi::TypedValue(irValue,
 				                                          abiType));
 			}
 			
-			const auto functionArgInfo = getFunctionArgInfo(module, functionType);
-			const auto returnValue = genRawFunctionCall(function,
-			                                            functionArgInfo,
-			                                            callInfo.functionPtr,
-			                                            parameters);
-			
-			if (returnVarValue != nullptr) {
-				// As above, if the return value pointer is used,
-				// this should be loaded (and used instead).
-				return irEmitter.emitMoveLoad(returnVarValue, returnType);
-			} else {
-				return returnValue;
-			}
+			const auto callInfo = genFunctionCallInfo(function, semCallValue);
+			return genFunctionCall(function, functionType, callInfo,
+			                       parameters, hintResultValue);
 		}
 		
 		llvm::Value* genRawFunctionCall(Function& function,
@@ -211,22 +170,45 @@ namespace locic {
 			                               args);
 		}
 		
+		llvm::Value* genNonVarArgsFunctionCall(Function& function,
+		                                       SEM::FunctionType functionType,
+		                                       const FunctionCallInfo callInfo,
+		                                       PendingResultArray args,
+		                                       llvm::Value* const hintResultValue) {
+			const auto argInfo = getFunctionArgInfo(function.module(), functionType);
+			assert(!argInfo.isVarArg() && "This method doesn't support calling varargs functions.");
+			assert(args.size() == argInfo.numStandardArguments());
+			
+			const auto functionABIType = argInfo.getABIFunctionType();
+			llvm::SmallVector<llvm_abi::TypedValue, 10> abiArgs;
+			abiArgs.reserve(args.size());
+			for (size_t i = 0; i < args.size(); i++) {
+				const auto abiTypeIndex = argInfo.standardArgumentOffset() + i;
+				abiArgs.push_back(llvm_abi::TypedValue(args[i].resolve(function),
+				                                       functionABIType.argumentTypes()[abiTypeIndex]));
+			}
+			return genFunctionCall(function, functionType, callInfo,
+			                       abiArgs, hintResultValue);
+		}
+		
 		llvm::Value* genFunctionCall(Function& function,
 		                             SEM::FunctionType functionType,
 		                             const FunctionCallInfo callInfo,
-		                             PendingResultArray args,
+		                             llvm::ArrayRef<llvm_abi::TypedValue> args,
 		                             llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			
 			IREmitter irEmitter(function, hintResultValue);
 			
 			const auto argInfo = getFunctionArgInfo(function.module(), functionType);
-			assert(!argInfo.isVarArg() && "This method doesn't support calling varargs functions.");
-			
-			const auto functionABIType = argInfo.getABIFunctionType();
 			
 			llvm::SmallVector<llvm_abi::TypedValue, 10> llvmArgs;
+			llvmArgs.reserve(3 + args.size());
 			
+			// Some values (e.g. classes) will be returned
+			// by assigning to a pointer passed as the first
+			// argument (this deals with the class sizes
+			// potentially being unknown).
 			llvm::Value* returnVar = nullptr;
 			if (argInfo.hasReturnVarArgument()) {
 				returnVar = irEmitter.emitReturnAlloca(functionType.returnType());
@@ -246,12 +228,8 @@ namespace locic {
 				                                        llvm_abi::PointerTy));
 			}
 			
-			for (size_t i = 0; i < args.size(); i++) {
-				auto& pendingResult = args[i];
-				const auto argValue = pendingResult.resolve(function);
-				const auto argType = functionABIType.argumentTypes()[llvmArgs.size()];
-				llvmArgs.push_back(llvm_abi::TypedValue(argValue,
-				                                        argType));
+			for (const auto& arg: args) {
+				llvmArgs.push_back(arg);
 			}
 			
 			const auto result = genRawFunctionCall(function,
@@ -260,6 +238,8 @@ namespace locic {
 			                                       llvmArgs);
 			
 			if (argInfo.hasReturnVarArgument()) {
+				// As above, if the return value pointer is used,
+				// this should be loaded (and used instead).
 				return irEmitter.emitMoveLoad(returnVar, functionType.returnType());
 			} else {
 				return result;
@@ -332,7 +312,9 @@ namespace locic {
 						callInfo.contextPointer = methodOwner->resolve(function);
 					}
 					
-					return genFunctionCall(function, methodInfo.functionType, callInfo, std::move(args), hintResultValue);
+					return genNonVarArgsFunctionCall(function, methodInfo.functionType,
+					                                 callInfo, std::move(args),
+					                                 hintResultValue);
 				}
 			} else {
 				return genTemplateMethodCall(function, methodInfo, std::move(methodOwner), std::move(args), hintResultValue);

@@ -63,8 +63,17 @@ namespace locic {
 		 * correctly passes the special aspects of a call (such as the
 		 * template generator).
 		 */
-		llvm::Value* genFunctionCall(Function& function, SEM::FunctionType functionType, FunctionCallInfo callInfo,
-		                             PendingResultArray args, llvm::Value* const hintResultValue);
+		llvm::Value* genFunctionCall(Function& function,
+		                             SEM::FunctionType functionType,
+		                             FunctionCallInfo callInfo,
+		                             llvm::ArrayRef<llvm_abi::TypedValue> args,
+		                             llvm::Value* hintResultValue);
+		
+		llvm::Value* genNonVarArgsFunctionCall(Function& function,
+		                                       SEM::FunctionType functionType,
+		                                       FunctionCallInfo callInfo,
+		                                       PendingResultArray args,
+		                                       llvm::Value* hintResultValue);
 		
 		llvm::Value* genMethodCall(Function& function, const MethodInfo& methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
 		                           llvm::Value* const hintResultValue = nullptr);

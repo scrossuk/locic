@@ -222,7 +222,11 @@ namespace locic {
 					callArgs.push_back(std::move(args[i]));
 				}
 				
-				return genFunctionCall(function, type->asFunctionType(), callInfo, std::move(callArgs), hintResultValue);
+				return genNonVarArgsFunctionCall(function,
+				                                 type->asFunctionType(),
+				                                 callInfo,
+				                                 std::move(callArgs),
+				                                 hintResultValue);
 			}
 			
 		}
