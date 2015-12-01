@@ -196,7 +196,7 @@ namespace locic {
 				
 				const auto argInfo = destructorArgInfo(module, typeInstance);
 				const auto callArgs = argInfo.hasTemplateGeneratorArgument() ?
-							std::vector<llvm::Value*> { functionGenerator_.getTemplateGenerator(), thisValue } :
+							std::vector<llvm::Value*> { thisValue, functionGenerator_.getTemplateGenerator() } :
 							std::vector<llvm::Value*> { thisValue };
 				(void) genRawFunctionCall(functionGenerator_, argInfo, customDestructor, callArgs);
 				

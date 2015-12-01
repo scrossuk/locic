@@ -220,7 +220,7 @@ namespace locic {
 				                                        llvm_abi::PointerTy));
 			}
 			
-			if (argInfo.hasTemplateGeneratorArgument()) {
+			if (argInfo.isVarArg() && argInfo.hasTemplateGeneratorArgument()) {
 				assert(callInfo.templateGenerator != nullptr);
 				llvmArgs.push_back(llvm_abi::TypedValue(callInfo.templateGenerator,
 				                                        templateGeneratorType(module).first));
@@ -234,6 +234,12 @@ namespace locic {
 			
 			for (const auto& arg: args) {
 				llvmArgs.push_back(arg);
+			}
+			
+			if (!argInfo.isVarArg() && argInfo.hasTemplateGeneratorArgument()) {
+				assert(callInfo.templateGenerator != nullptr);
+				llvmArgs.push_back(llvm_abi::TypedValue(callInfo.templateGenerator,
+				                                        templateGeneratorType(module).first));
 			}
 			
 			const auto result = genRawFunctionCall(function,

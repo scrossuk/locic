@@ -112,12 +112,12 @@ namespace locic {
 				const auto moveFunction = genMoveFunctionDecl(module, type->getObjectType());
 				
 				llvm::SmallVector<llvm::Value*, 4> args;
-				if (!type->templateArguments().empty()) {
-					args.push_back(getTemplateGenerator(function, TemplateInst::Type(type)));
-				}
 				args.push_back(sourceValue);
 				args.push_back(destValue);
                                 args.push_back(positionValue);
+				if (!type->templateArguments().empty()) {
+					args.push_back(getTemplateGenerator(function, TemplateInst::Type(type)));
+				}
 				
 				(void) genRawFunctionCall(function, argInfo, moveFunction, args);
 			} else if (type->isTemplateVar()) {
@@ -213,12 +213,12 @@ namespace locic {
 			const auto argInfo = moveArgInfo(module, &typeInstance);
 			
 			llvm::SmallVector<llvm::Value*, 4> args;
-			if (argInfo.hasTemplateGeneratorArgument()) {
-				args.push_back(functionGenerator.getTemplateGenerator());
-			}
 			args.push_back(sourceValue);
 			args.push_back(destValue);
 			args.push_back(positionValue);
+			if (argInfo.hasTemplateGeneratorArgument()) {
+				args.push_back(functionGenerator.getTemplateGenerator());
+			}
 			
 			(void) genRawFunctionCall(functionGenerator, argInfo, llvmFunction, args);
 		}

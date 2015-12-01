@@ -116,7 +116,7 @@ namespace locic {
 				}
 			}
 			
-			if (hasTemplateGeneratorArgument_) {
+			if (isVarArg_ && hasTemplateGeneratorArgument_) {
 				argumentTypes_.push_back(templateGeneratorType(module));
 			}
 			
@@ -126,6 +126,10 @@ namespace locic {
 			
 			for (auto& argType: pArgumentTypes) {
 				argumentTypes_.push_back(argType);
+			}
+			
+			if (!isVarArg_ && hasTemplateGeneratorArgument_) {
+				argumentTypes_.push_back(templateGeneratorType(module));
 			}
 		}
 		
@@ -211,32 +215,70 @@ namespace locic {
 			return noReturn_;
 		}
 		
-		size_t ArgInfo::nestArgumentOffset() const {
-			return 0;
-		}
-		
-		size_t ArgInfo::returnVarArgumentOffset() const {
-			return nestArgumentOffset() + (hasNestArgument() ? 1 : 0);
-		}
-		
-		size_t ArgInfo::templateGeneratorArgumentOffset() const {
-			return returnVarArgumentOffset() + (hasReturnVarArgument() ? 1 : 0);
-		}
-		
-		size_t ArgInfo::contextArgumentOffset() const {
-			return templateGeneratorArgumentOffset() + (hasTemplateGeneratorArgument() ? 1 : 0);
-		}
-		
-		size_t ArgInfo::standardArgumentOffset() const {
-			return contextArgumentOffset() + (hasContextArgument() ? 1 : 0) ;
-		}
-		
 		size_t ArgInfo::numStandardArguments() const {
 			return numStandardArguments_;
 		}
 		
+		ArgOffsets ArgInfo::argumentOffsets() const {
+			ArgOffsets argOffsets;
+			
+			size_t offset = 0;
+			if (hasNestArgument()) {
+				argOffsets.nestArgumentOffset = offset++;
+			}
+			if (hasReturnVarArgument()) {
+				argOffsets.returnVarArgumentOffset = offset++;
+			}
+			if (isVarArg() && hasTemplateGeneratorArgument()) {
+				// For varargs functions we pass the template
+				// generator before the arguments, since the
+				// callee may not know the argument count at
+				// the time it queries template arguments.
+				argOffsets.templateGeneratorArgumentOffset = offset++;
+			}
+			if (hasContextArgument()) {
+				argOffsets.contextArgumentOffset = offset++;
+			}
+			
+			argOffsets.standardArgumentOffset = offset;
+			offset += numStandardArguments();
+			
+			if (!isVarArg() && hasTemplateGeneratorArgument()) {
+				// For non-varargs functions we pass the
+				// template generator after the arguments, since
+				// this allows it to be efficiently discarded in
+				// virtual method calls with a non-templated
+				// callee.
+				argOffsets.templateGeneratorArgumentOffset = offset++;
+			}
+			
+			argOffsets.numArguments = offset;
+			
+			return argOffsets;
+		}
+		
+		size_t ArgInfo::nestArgumentOffset() const {
+			return argumentOffsets().nestArgumentOffset;
+		}
+		
+		size_t ArgInfo::returnVarArgumentOffset() const {
+			return argumentOffsets().returnVarArgumentOffset;
+		}
+		
+		size_t ArgInfo::templateGeneratorArgumentOffset() const {
+			return argumentOffsets().templateGeneratorArgumentOffset;
+		}
+		
+		size_t ArgInfo::contextArgumentOffset() const {
+			return argumentOffsets().contextArgumentOffset;
+		}
+		
+		size_t ArgInfo::standardArgumentOffset() const {
+			return argumentOffsets().standardArgumentOffset;
+		}
+		
 		size_t ArgInfo::numArguments() const {
-			return standardArgumentOffset() + numStandardArguments();
+			return argumentOffsets().numArguments;
 		}
 		
 		const TypePair& ArgInfo::returnType() const {

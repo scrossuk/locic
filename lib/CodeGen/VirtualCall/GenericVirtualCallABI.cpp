@@ -79,8 +79,8 @@ namespace locic {
 			attributes = attributes.addAttribute(context, 1, llvm::Attribute::NoCapture);
 			
 			// Arguments struct pointer attributes.
-			attributes = attributes.addAttribute(context, 6, llvm::Attribute::NoAlias);
-			attributes = attributes.addAttribute(context, 6, llvm::Attribute::NoCapture);
+			attributes = attributes.addAttribute(context, 4, llvm::Attribute::NoAlias);
+			attributes = attributes.addAttribute(context, 4, llvm::Attribute::NoCapture);
 			
 			module_.attributeMap().insert(std::make_pair(AttributeVirtualCallStub, attributes));
 			
@@ -178,7 +178,7 @@ namespace locic {
 				}
 				
 				// If type is templated, pass the template generator.
-				if (argInfo.hasTemplateGeneratorArgument()) {
+				if (argInfo.isVarArg() && argInfo.hasTemplateGeneratorArgument()) {
 					parameters.push_back(function.getTemplateGenerator());
 				}
 				
@@ -211,6 +211,11 @@ namespace locic {
 					} else {
 						parameters.push_back(argPtr);
 					}
+				}
+				
+				// If type is templated, pass the template generator.
+				if (!argInfo.isVarArg() && argInfo.hasTemplateGeneratorArgument()) {
+					parameters.push_back(function.getTemplateGenerator());
 				}
 				
 				// Call the method.
@@ -271,9 +276,6 @@ namespace locic {
 			// Pass in the return var pointer.
 			parameters.push_back(returnVarPointer);
 			
-			// Pass in the template generator.
-			parameters.push_back(methodComponents.object.typeInfo.templateGenerator);
-			
 			// Pass in the object pointer.
 			parameters.push_back(methodComponents.object.objectPointer);
 			
@@ -284,6 +286,9 @@ namespace locic {
 			// and pass the pointer to the stub.
 			const auto argsStructPtr = makeArgsStruct(irEmitter, arrayRef(functionType.parameterTypes()), args);
 			parameters.push_back(argsStructPtr);
+			
+			// Pass in the template generator.
+			parameters.push_back(methodComponents.object.typeInfo.templateGenerator);
 			
 			// Call the stub function.
 			(void) genRawFunctionCall(irEmitter.function(), argInfo,
@@ -374,7 +379,7 @@ namespace locic {
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 			                                                         irEmitter.typeGenerator().getPtrType());
 			
-			llvm::Value* const args[] = { templateGeneratorValue, sourceValue, destValue, positionValue };
+			llvm::Value* const args[] = { sourceValue, destValue, positionValue, templateGeneratorValue };
 			(void) genRawFunctionCall(irEmitter.function(), argInfo, methodFunctionPointer, args);
 		}
 		
@@ -407,7 +412,7 @@ namespace locic {
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 			                                                         irEmitter.typeGenerator().getPtrType());
 			
-			llvm::Value* const args[] = { templateGeneratorValue, objectValue };
+			llvm::Value* const args[] = { objectValue, templateGeneratorValue };
 			(void) genRawFunctionCall(irEmitter.function(), argInfo, methodFunctionPointer, args);
 		}
 		

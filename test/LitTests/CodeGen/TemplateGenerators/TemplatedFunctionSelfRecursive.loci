@@ -15,7 +15,7 @@ export void function(int i) {
 		// CHECK-NEXT: %[[TPL0:[0-9]+]] = load {{.*}} %[[GEP0]]
 		// CHECK-NEXT: %[[GEP1:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 1
 		// CHECK-NEXT: %[[TPL1:[0-9]+]] = load {{.*}} %[[GEP1]]
-		// CHECK-NEXT: call void @function(i8* %[[TPL0]], i32 %[[TPL1]],
+		// CHECK-NEXT: call void @function({{.*}}, i8* %[[TPL0]], i32 %[[TPL1]])
 		function<T>(i - 1);
 	}
 }

@@ -486,10 +486,10 @@ namespace locic {
 				const auto destructorFunction = genDestructorFunctionDecl(module(), typeInstance);
 				
 				llvm::SmallVector<llvm::Value*, 2> args;
+				args.push_back(value);
 				if (!type->templateArguments().empty()) {
 					args.push_back(getTemplateGenerator(functionGenerator_, TemplateInst::Type(type)));
 				}
-				args.push_back(value);
 				
 				(void) genRawFunctionCall(functionGenerator_, argInfo, destructorFunction, args);
 			} else if (type->isTemplateVar()) {

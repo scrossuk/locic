@@ -31,6 +31,23 @@ namespace locic {
 		
 		TypePair pointerTypePair(Module& module);
 		
+		struct ArgOffsets {
+			size_t nestArgumentOffset;
+			size_t returnVarArgumentOffset;
+			size_t templateGeneratorArgumentOffset;
+			size_t contextArgumentOffset;
+			size_t standardArgumentOffset;
+			size_t numArguments;
+			
+			ArgOffsets() :
+			nestArgumentOffset(-1),
+			returnVarArgumentOffset(-1),
+			templateGeneratorArgumentOffset(-1),
+			contextArgumentOffset(-1),
+			standardArgumentOffset(0),
+			numArguments(0) { }
+		};
+		
 		class ArgInfo {
 			public:
 				static ArgInfo VoidNone(Module& module);
@@ -91,6 +108,10 @@ namespace locic {
 				
 				bool noReturn() const;
 				
+				ArgOffsets argumentOffsets() const;
+				
+				size_t numStandardArguments() const;
+				
 				size_t nestArgumentOffset() const;
 				
 				size_t returnVarArgumentOffset() const;
@@ -100,8 +121,6 @@ namespace locic {
 				size_t contextArgumentOffset() const;
 				
 				size_t standardArgumentOffset() const;
-				
-				size_t numStandardArguments() const;
 				
 				size_t numArguments() const;
 				

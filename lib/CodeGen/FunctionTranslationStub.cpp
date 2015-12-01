@@ -96,7 +96,7 @@ namespace locic {
 				args.push_back(returnVar);
 			}
 			
-			if (translatedArgInfo.hasTemplateGeneratorArgument()) {
+			if (translatedArgInfo.isVarArg() && translatedArgInfo.hasTemplateGeneratorArgument()) {
 				args.push_back(functionGenerator.getTemplateGenerator());
 			}
 			
@@ -114,6 +114,10 @@ namespace locic {
 				const auto& translatedParameterType = translatedParameterTypes[i];
 				
 				args.push_back(getSingleTranslatedArgument(functionGenerator, argValue, parameterType, translatedParameterType));
+			}
+			
+			if (!translatedArgInfo.isVarArg() && translatedArgInfo.hasTemplateGeneratorArgument()) {
+				args.push_back(functionGenerator.getTemplateGenerator());
 			}
 			
 			return args;

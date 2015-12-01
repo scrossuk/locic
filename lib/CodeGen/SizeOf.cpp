@@ -349,7 +349,7 @@ namespace locic {
 			
 			const bool hasTemplate = !type->templateArguments().empty();
 			const auto args = hasTemplate ?
-				std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)), memberIndexValue } :
+				std::vector<llvm::Value*> { memberIndexValue, getTemplateGenerator(function, TemplateInst::Type(type)) } :
 				std::vector<llvm::Value*>{ memberIndexValue };
 			const auto callResult = genRawFunctionCall(function, memberOffsetArgInfo(module, type->getObjectType()), memberOffsetFunction, args);
 			callResult->setName(callName);
