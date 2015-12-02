@@ -172,11 +172,6 @@ namespace locic {
 				assert(returnVarPointer == nullptr);
 			}
 			
-			// Add template generator.
-			if (argInfo.hasTemplateGeneratorArgument()) {
-				newArgs.push_back(methodComponents.object.typeInfo.templateGenerator);
-			}
-			
 			// Add object pointer.
 			if (argInfo.hasContextArgument()) {
 				newArgs.push_back(methodComponents.object.objectPointer);
@@ -185,6 +180,11 @@ namespace locic {
 			// Add the method arguments.
 			for (const auto& arg: args) {
 				newArgs.push_back(arg);
+			}
+			
+			// Add template generator.
+			if (argInfo.hasTemplateGeneratorArgument()) {
+				newArgs.push_back(methodComponents.object.typeInfo.templateGenerator);
 			}
 			
 			// Call the stub function.
@@ -278,7 +278,7 @@ namespace locic {
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 			                                                         irEmitter.typeGenerator().getPtrType());
 			
-			llvm::Value* const args[] = { templateGeneratorValue, sourceValue, destValue, positionValue };
+			llvm::Value* const args[] = { sourceValue, destValue, positionValue, templateGeneratorValue };
 			(void) genRawFunctionCall(irEmitter.function(), argInfo, methodFunctionPointer, args);
 		}
 		
@@ -311,7 +311,7 @@ namespace locic {
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 			                                                         irEmitter.typeGenerator().getPtrType());
 			
-			llvm::Value* const args[] = { templateGeneratorValue, objectValue };
+			llvm::Value* const args[] = { objectValue, templateGeneratorValue };
 			(void) genRawFunctionCall(irEmitter.function(), argInfo, methodFunctionPointer, args);
 		}
 		
