@@ -195,6 +195,7 @@ namespace locic {
 		}
 		
 		void TypeInstance::attachVariable(std::unique_ptr<Var> var) {
+			var->setIndex(variables_.size());
 			variables_.push_back(var.release());
 		}
 		

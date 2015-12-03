@@ -50,6 +50,9 @@ namespace locic {
 				bool isOverrideConst() const;
 				void setOverrideConst(bool isOverrideConst);
 				
+				size_t index() const;
+				void setIndex(size_t index);
+				
 				void setDebugInfo(Debug::VarInfo debugInfo);
 				Optional<Debug::VarInfo> debugInfo() const;
 				
@@ -65,6 +68,7 @@ namespace locic {
 				bool isUsed_;
 				bool isMarkedUnused_;
 				bool isOverrideConst_;
+				size_t index_;
 				Optional<Debug::VarInfo> debugInfo_;
 				
 		};
