@@ -7,13 +7,13 @@
 // CHECK-LABEL: define void @f
 template <typename T>
 export void f() {
-	// CHECK: %coerce.mem = alloca { i8*, i32 }
-	// CHECK: %[[f_TPLGEN:[0-9]+]] = load { i8*, i32 }* %coerce.mem
+	// CHECK: %coerce.mem = alloca {{.*}}
+	// CHECK: %[[f_TPLGEN:[0-9]+]] = load {{.*}} %coerce.mem
 	
-	// CHECK: store { i8*, i32 } %[[f_TPLGEN]], { i8*, i32 }* %coerce.arg.source
-	// CHECK-NEXT: %[[f_GEP0:[0-9]+]] = getelementptr { i8*, i32 }* %coerce.arg.source, i32 0, i32 0
+	// CHECK: store {{.*}} %[[f_TPLGEN]], {{.*}} %coerce.arg.source
+	// CHECK-NEXT: %[[f_GEP0:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 0
 	// CHECK-NEXT: %[[f_TPL0:[0-9]+]] = load i8** %[[f_GEP0]]
-	// CHECK-NEXT: %[[f_GEP1:[0-9]+]] = getelementptr { i8*, i32 }* %coerce.arg.source, i32 0, i32 1
+	// CHECK-NEXT: %[[f_GEP1:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 1
 	// CHECK-NEXT: %[[f_TPL1:[0-9]+]] = load i32* %[[f_GEP1]]
 	// CHECK-NEXT: call void @g(i8* %[[f_TPL0]], i32 %[[f_TPL1]])
 	g<T>();
@@ -22,13 +22,13 @@ export void f() {
 // CHECK-LABEL: define void @g
 template <typename T>
 export void g() {
-	// CHECK: %coerce.mem = alloca { i8*, i32 }
-	// CHECK: %[[g_TPLGEN:[0-9]+]] = load { i8*, i32 }* %coerce.mem
+	// CHECK: %coerce.mem = alloca {{.*}}
+	// CHECK: %[[g_TPLGEN:[0-9]+]] = load {{.*}} %coerce.mem
 	
-	// CHECK: store { i8*, i32 } %[[g_TPLGEN]], { i8*, i32 }* %coerce.arg.source
-	// CHECK-NEXT: %[[g_GEP0:[0-9]+]] = getelementptr { i8*, i32 }* %coerce.arg.source, i32 0, i32 0
+	// CHECK: store {{.*}} %[[g_TPLGEN]], {{.*}} %coerce.arg.source
+	// CHECK-NEXT: %[[g_GEP0:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 0
 	// CHECK-NEXT: %[[g_TPL0:[0-9]+]] = load i8** %[[g_GEP0]]
-	// CHECK-NEXT: %[[g_GEP1:[0-9]+]] = getelementptr { i8*, i32 }* %coerce.arg.source, i32 0, i32 1
+	// CHECK-NEXT: %[[g_GEP1:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 1
 	// CHECK-NEXT: %[[g_TPL1:[0-9]+]] = load i32* %[[g_GEP1]]
 	// CHECK-NEXT: call void @f(i8* %[[g_TPL0]], i32 %[[g_TPL1]])
 	f<T>();

@@ -13,7 +13,7 @@ class TestClass() {
 
 // CHECK-LABEL: void @function()
 void function() {
-	// CHECK: %[[OBJ:[0-9]+]] = alloca { i8 }
+	// CHECK: %[[OBJ:[0-9]+]] = alloca %T1N9TestClass
 	// CHECK: %unwindState = alloca i8
 	// CHECK-NEXT: store i8 0, i8* %unwindState
 	// CHECK-NEXT: br label %[[START:[0-9]+]]

@@ -40,6 +40,8 @@ namespace locic {
 					if (typeInstance->isPrimitive()) {
 						return getPrimitiveABIType(module, type);
 					} else {
+						const auto mangledName = mangleObjectType(module, typeInstance).asStdString();
+						
 						llvm::SmallVector<llvm_abi::Type, 8> members;
 						
 						if (typeInstance->isUnion()) {
@@ -49,7 +51,7 @@ namespace locic {
 								members.push_back(genABIType(module, var->type()));
 							}
 							
-							return abiTypeBuilder.getUnionTy(members);
+							return abiTypeBuilder.getUnionTy(members, mangledName);
 						} else if (typeInstance->isUnionDatatype()) {
 							members.reserve(typeInstance->variants().size());
 							
@@ -59,7 +61,7 @@ namespace locic {
 							
 							const auto unionType = abiTypeBuilder.getUnionTy(members);
 							return abiTypeBuilder.getStructTy({llvm_abi::Int8Ty,
-							                                   unionType});
+							                                   unionType}, mangledName);
 						} else {
 							members.reserve(typeInstance->variables().size() + 1);
 							
@@ -79,7 +81,7 @@ namespace locic {
 								members.push_back(llvm_abi::Int8Ty);
 							}
 							
-							return abiTypeBuilder.getStructTy(members);
+							return abiTypeBuilder.getStructTy(members, mangledName);
 						}
 					}
 				}

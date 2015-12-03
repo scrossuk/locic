@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <llvm-abi/ABITypeInfo.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
@@ -77,20 +79,16 @@ namespace locic {
 			                      TypeGenerator(module).getI32Type());
 		}
 		
-		llvm::StructType* templateGeneratorLLVMType(Module& module) {
-			TypeGenerator typeGen(module);
-			llvm::SmallVector<llvm::Type*, 3> structMembers;
-			structMembers.push_back(typeGen.getPtrType());
-			structMembers.push_back(typeGen.getI32Type());
-			return typeGen.getStructType(structMembers);
-		}
-		
 		llvm_abi::Type templateGeneratorABIType(Module& module) {
 			auto& abiTypeBuilder = module.abiTypeBuilder();
 			llvm::SmallVector<llvm_abi::Type, 3> types;
 			types.push_back(llvm_abi::PointerTy);
 			types.push_back(llvm_abi::Int32Ty);
-			return llvm_abi::Type::AutoStruct(abiTypeBuilder, types);
+			return llvm_abi::Type::AutoStruct(abiTypeBuilder, types, "__template_generator");
+		}
+		
+		llvm::StructType* templateGeneratorLLVMType(Module& module) {
+			return llvm::dyn_cast<llvm::StructType>(module.abi().typeInfo().getLLVMType(templateGeneratorABIType(module)));
 		}
 		
 		TypePair templateGeneratorType(Module& module) {
@@ -104,20 +102,16 @@ namespace locic {
 			return type;
 		}
 		
-		llvm::Type* typeInfoLLVMType(Module& module) {
-			TypeGenerator typeGen(module);
-			llvm::SmallVector<llvm::Type*, 2> structMembers;
-			structMembers.push_back(typeGen.getPtrType());
-			structMembers.push_back(templateGeneratorType(module).second);
-			return typeGen.getStructType(structMembers);
-		}
-		
 		llvm_abi::Type typeInfoABIType(Module& module) {
 			auto& abiTypeBuilder = module.abiTypeBuilder();
 			llvm::SmallVector<llvm_abi::Type, 2> types;
 			types.push_back(llvm_abi::PointerTy);
 			types.push_back(templateGeneratorABIType(module));
-			return llvm_abi::Type::AutoStruct(abiTypeBuilder, types);
+			return llvm_abi::Type::AutoStruct(abiTypeBuilder, types, "__type_info");
+		}
+		
+		llvm::Type* typeInfoLLVMType(Module& module) {
+			return module.abi().typeInfo().getLLVMType(typeInfoABIType(module));
 		}
 		
 		TypePair typeInfoType(Module& module) {

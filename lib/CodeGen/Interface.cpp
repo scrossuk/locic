@@ -1,3 +1,4 @@
+#include <llvm-abi/ABITypeInfo.hpp>
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
@@ -20,17 +21,15 @@ namespace locic {
 			return typeInfoValue;
 		}
 		
-		llvm::Type* interfaceStructLLVMType(Module& module) {
-			TypeGenerator typeGen(module);
-			llvm::Type* const memberTypes[] = { typeGen.getPtrType(), typeInfoType(module).second };
-			return typeGen.getStructType(memberTypes);
-		}
-		
 		llvm_abi::Type interfaceStructABIType(Module& module) {
 			llvm::SmallVector<llvm_abi::Type, 2> types;
 			types.push_back(llvm_abi::PointerTy);
 			types.push_back(typeInfoType(module).first);
-			return module.abiTypeBuilder().getStructTy(types);
+			return module.abiTypeBuilder().getStructTy(types, "__interface_ref");
+		}
+		
+		llvm::Type* interfaceStructLLVMType(Module& module) {
+			return module.abi().typeInfo().getLLVMType(interfaceStructABIType(module));
 		}
 		
 		TypePair interfaceStructType(Module& module) {
@@ -45,17 +44,15 @@ namespace locic {
 			return interfaceValue;
 		}
 		
-		llvm::Type* interfaceMethodLLVMType(Module& module) {
-			TypeGenerator typeGen(module);
-			llvm::Type* const memberTypes[] = { interfaceStructLLVMType(module), typeGen.getI64Type() };
-			return typeGen.getStructType(memberTypes);
-		}
-		
 		llvm_abi::Type interfaceMethodABIType(Module& module) {
 			llvm::SmallVector<llvm_abi::Type, 2> types;
 			types.push_back(interfaceStructABIType(module));
 			types.push_back(llvm_abi::Int64Ty);
-			return module.abiTypeBuilder().getStructTy(types);
+			return module.abiTypeBuilder().getStructTy(types, "__interface_method");
+		}
+		
+		llvm::Type* interfaceMethodLLVMType(Module& module) {
+			return module.abi().typeInfo().getLLVMType(interfaceMethodABIType(module));
 		}
 		
 		TypePair interfaceMethodType(Module& module) {
@@ -70,17 +67,15 @@ namespace locic {
 			return methodValue;
 		}
 		
-		llvm::Type* staticInterfaceMethodLLVMType(Module& module) {
-			TypeGenerator typeGen(module);
-			llvm::Type* const memberTypes[] = { typeInfoType(module).second, typeGen.getI64Type() };
-			return typeGen.getStructType(memberTypes);
-		}
-		
 		llvm_abi::Type staticInterfaceMethodABIType(Module& module) {
 			llvm::SmallVector<llvm_abi::Type, 2> types;
 			types.push_back(typeInfoType(module).first);
 			types.push_back(llvm_abi::Int64Ty);
-			return module.abiTypeBuilder().getStructTy(types);
+			return module.abiTypeBuilder().getStructTy(types, "__static_interface_method");
+		}
+		
+		llvm::Type* staticInterfaceMethodLLVMType(Module& module) {
+			return module.abi().typeInfo().getLLVMType(staticInterfaceMethodABIType(module));
 		}
 		
 		TypePair staticInterfaceMethodType(Module& module) {

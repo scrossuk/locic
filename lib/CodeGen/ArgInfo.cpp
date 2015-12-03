@@ -26,7 +26,7 @@ namespace locic {
 		}
 		
 		TypePair boolTypePair(Module& module) {
-			return std::make_pair(llvm_abi::BoolTy, TypeGenerator(module).getI1Type());
+			return std::make_pair(llvm_abi::BoolTy, TypeGenerator(module).getI8Type());
 		}
 		
 		TypePair sizeTypePair(Module& module) {

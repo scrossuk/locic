@@ -43,8 +43,8 @@ export void f7(unused e7 a0) { }
 
 // Test merging/passing of upper eightbyte with X87 class.
 //
-// CHECK-LABEL: define void @f8_1({ x86_fp80 }* noalias sret %agg.result)
-// CHECK-LABEL: define void @f8_2({ x86_fp80 }* byval align 16)
+// CHECK-LABEL: define void @f8_1(%T1N2u8* noalias sret %agg.result)
+// CHECK-LABEL: define void @f8_2(%T1N2u8* byval align 16)
 union u8 {
   long double a;
   int b;
@@ -59,7 +59,7 @@ export void f8_2(unused u8 a0) {}
 // struct s10 { int a; int b; int : 0; };
 // void f10(struct s10 a0) {}
 
-// CHECK-LABEL: define void @f11({ x86_fp80 }* noalias sret %agg.result)
+// CHECK-LABEL: define void @f11(%T1N3u11* noalias sret %agg.result)
 union u11 { long double a; float b; }
 export u11 f11() { while (true) {}; return u11(); }
 
@@ -71,7 +71,7 @@ export u11 f11() { while (true) {}; return u11(); }
 
 // Check that sret parameter is accounted for when checking available integer
 // registers.
-// CHECK: define void @f13({ [3 x i64] }* noalias sret %agg.result, i32, i32, i32, i32, { [2 x i64] }* byval align 8, i32)
+// CHECK-LABEL: define void @f13(%T1N5s13_0* noalias sret %agg.result, i32, i32, i32, i32, %T1N5s13_1* byval align 8, i32)
 
 struct s13_0 { long long[3u] f0; };
 struct s13_1 { long long[2u] f0; };
@@ -107,7 +107,7 @@ export void f18(unused int a, unused f18_s0 f18_arg1) { }
 
 // Check byval alignment.
 
-// CHECK-LABEL: define void @f19({ x86_fp80 }* byval align 16)
+// CHECK-LABEL: define void @f19(%T1N3s19* byval align 16)
 struct s19 {
   long double a;
 };
@@ -147,7 +147,7 @@ export void f23(unused int A, unused f23S B) { }
 
 struct f24s { long a; int b; };
 
-// CHECK: define { i64, i32 } @f24(i8*, i8*)
+// CHECK-LABEL: define { i64, i32 } @f24(i8*, i8*)
 export f23S f24(f23S *X, unused f24s *P2) { return *X; }
 
 struct foo26 {
@@ -155,7 +155,7 @@ struct foo26 {
   float *Y;
 };
 
-// CHECK: define { i8*, i8* } @f26(i8*)
+// CHECK: define %T1N5foo26 @f26(i8*)
 export foo26 f26(foo26 *P) { return *P; }
 
 // rdar://5711709
@@ -201,5 +201,5 @@ struct str {
 	str_union value;
 };
 
-// CHECK: declare void @f35({ { x86_fp80 } }* byval align 16)
+// CHECK: declare void @f35(%T1N3str* byval align 16)
 import void f35(str s);

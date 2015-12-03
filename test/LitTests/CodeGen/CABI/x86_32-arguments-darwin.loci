@@ -158,7 +158,7 @@ struct s26 {
 
 export s26 f26() { while (true) {}; unreachable; }
 
-// CHECK: void @f27({ { i8, i8, i8 }, { i8 } }* noalias sret %agg.result)
+// CHECK: void @f27(%T1N3s27* noalias sret %agg.result)
 struct s27_threebytes {
 	byte a;
 	byte b;
@@ -176,7 +176,7 @@ struct s27 {
 
 export s27 f27() { while (true) {}; unreachable; }
 
-// CHECK: void @f28({ i32, [0 x i32] }* noalias sret %agg.result)
+// CHECK: void @f28(%T1N3s28* noalias sret %agg.result)
 struct s28 { int a; int[0] b; };
 export s28 f28() { while (true) {}; unreachable; }
 
@@ -213,7 +213,7 @@ struct s36 { struct { int : 0; } a[2][10]; byte b; byte c; } f36() { while (true
 //struct s37 { float[1][1] c; };
 //export s37 f37() { while (true) {}; unreachable; }
 
-// CHECK-LABEL: define void @f38({ [3 x i8], i16 }* noalias sret %agg.result)
+// CHECK-LABEL: define void @f38(%T1N3s38* noalias sret %agg.result)
 struct s38 { byte[3] a; short b; };
 export s38 f38() { while (true) {}; unreachable; }
 
@@ -277,7 +277,7 @@ export void f50(unused s50 a0) { }
 struct s51 { vvbp f0; int f1; };
 export void f51(unused s51 a0) { }
 
-// CHECK-LABEL: define void @f52({ x86_fp80 }* byval align 4)
+// CHECK-LABEL: define void @f52(%T1N3s52* byval align 4)
 struct s52 {
 	long double a;
 };
@@ -397,7 +397,7 @@ int f63(int i, ...) {
 }
 */
 
-// CHECK-LABEL: define void @f64({ [0 x i8], [0 x i8] }* byval align 4)
+// CHECK-LABEL: define void @f64(%T1N3s64* byval align 4)
 struct s64 { signed byte[0] a; signed byte[0] b; };
 export void f64(unused s64 x) {}
 
