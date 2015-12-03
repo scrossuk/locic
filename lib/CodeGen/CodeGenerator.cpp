@@ -19,7 +19,6 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenTypeInstance.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
@@ -35,31 +34,8 @@
 #include <locic/CodeGen/VTable.hpp>
 
 namespace locic {
-
-	namespace CodeGen {
 	
-		void genNamespaceTypes(Module& module, const SEM::Namespace& nameSpace) {
-			for (const auto& itemPair: nameSpace.items()) {
-				const auto& item = itemPair.second;
-				if (item.isNamespace()) {
-					genNamespaceTypes(module, item.nameSpace());
-				} else if (item.isTypeInstance()) {
-					const auto& typeInstance = item.typeInstance();
-					
-					if (typeInstance.isPrimitive()) {
-						// Can't generate primitive types.
-						continue;
-					}
-					
-					if (typeInstance.isInterface()) {
-						// Can't generate interface types.
-						continue;
-					}
-					
-					(void) genTypeInstance(module, &typeInstance);
-				}
-			}
-		}
+	namespace CodeGen {
 		
 		void genTypeInstanceFunctions(Module& module, const SEM::TypeInstance& typeInstance) {
 			if (typeInstance.isInterface()) {
@@ -160,7 +136,6 @@ namespace locic {
 		}
 		
 		void CodeGenerator::genNamespace(SEM::Namespace* nameSpace) {
-			genNamespaceTypes(*module_, *nameSpace);
 			genNamespaceFunctions(*module_, *nameSpace);
 			module_->debugBuilder().finalize();
 			module_->verify();
