@@ -9,7 +9,6 @@
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenTypeInstance.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -35,28 +34,9 @@ namespace locic {
 			return getFunctionArgInfo(module, type).makeFunctionType();
 		}
 		
-		llvm::Type* genObjectType(Module& module, const SEM::Type* type) {
-			const auto typeInstance = type->getObjectType();
-			if (typeInstance->isPrimitive()) {
-				return getPrimitiveType(module, type);
-			} else {
-				assert(!typeInstance->isInterface() && "Interface types must always be converted by reference");
-				return genTypeInstance(module, type->getObjectType());
-			}
-		}
-		
 		llvm::Type* genType(Module& module, const SEM::Type* type) {
-			switch (type->kind()) {
-				case SEM::Type::OBJECT: {
-					return genObjectType(module, type);
-				}
-				case SEM::Type::ALIAS: {
-					return genType(module, type->resolveAliases());
-				}
-				default: {
-					llvm_unreachable("Unknown type enum for generating type.");
-				}
-			}
+			const auto abiType = genABIType(module, type);
+			return module.abi().typeInfo().getLLVMType(abiType);
 		}
 		
 		DISubroutineType genDebugFunctionType(Module& module, SEM::FunctionType type) {
