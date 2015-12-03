@@ -39,8 +39,6 @@ namespace locic {
 				const Type* type() const;
 				const std::vector<Var*>& children() const;
 				
-				Var* substitute(const TemplateVarMap& templateVarMap) const;
-				
 				bool isUsed() const;
 				void setUsed();
 				

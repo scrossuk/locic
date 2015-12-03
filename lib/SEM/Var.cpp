@@ -68,25 +68,6 @@ namespace locic {
 			return children_;
 		}
 		
-		Var* Var::substitute(const TemplateVarMap& templateVarMap) const {
-			switch (kind()) {
-				case ANY:
-					return Var::Any(constructType()->substitute(templateVarMap));
-				case BASIC:
-					return Var::Basic(constructType()->substitute(templateVarMap), type()->substitute(templateVarMap));
-				case COMPOSITE:
-				{
-					std::vector<Var*> substitutedChildren;
-					for (const auto var: children()) {
-						substitutedChildren.push_back(var->substitute(templateVarMap));
-					}
-					return Var::Composite(type()->substitute(templateVarMap), substitutedChildren);
-				}
-				default:
-					throw std::runtime_error("Unknown var kind.");
-			}
-		}
-		
 		bool Var::isUsed() const {
 			return isUsed_;
 		}
