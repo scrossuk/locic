@@ -1,6 +1,7 @@
 #ifndef LOCIC_SEM_VAR_HPP
 #define LOCIC_SEM_VAR_HPP
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -17,11 +18,12 @@ namespace locic {
 		
 		class Var {
 			public:
-				static Var* Any(const Type* constructType);
+				static std::unique_ptr<Var> Any(const Type* constructType);
 				
-				static Var* Basic(const Type* constructType, const Type* type);
+				static std::unique_ptr<Var> Basic(const Type* constructType, const Type* type);
 				
-				static Var* Composite(const Type* type, const std::vector<Var*>& children);
+				static std::unique_ptr<Var> Composite(const Type* type,
+				                                      std::vector<std::unique_ptr<Var>> children);
 				
 				enum Kind {
 					ANY,
@@ -37,7 +39,7 @@ namespace locic {
 				
 				const Type* constructType() const;
 				const Type* type() const;
-				const std::vector<Var*>& children() const;
+				const std::vector<std::unique_ptr<Var>>& children() const;
 				
 				bool isUsed() const;
 				void setUsed();
@@ -59,7 +61,7 @@ namespace locic {
 				Kind kind_;
 				const Type* constructType_;
 				const Type* type_;
-				std::vector<Var*> children_;
+				std::vector<std::unique_ptr<Var>> children_;
 				bool isUsed_;
 				bool isMarkedUnused_;
 				bool isOverrideConst_;

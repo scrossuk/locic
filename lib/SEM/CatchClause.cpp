@@ -1,6 +1,6 @@
-#include <assert.h>
-
+#include <cassert>
 #include <map>
+#include <memory>
 
 #include <locic/Support/String.hpp>
 
@@ -12,12 +12,12 @@ namespace locic {
 
 	namespace SEM {
 	
-		CatchClause::CatchClause()
-			: var_(nullptr) { }
+		CatchClause::CatchClause() { }
 		
-		void CatchClause::setVar(Var* pVar) {
-			assert(pVar != nullptr);
-			var_ = pVar;
+		void CatchClause::setVar(std::unique_ptr<Var> pVar) {
+			assert(var_.get() == nullptr);
+			assert(pVar.get() != nullptr);
+			var_ = std::move(pVar);
 		}
 		
 		void CatchClause::setScope(std::unique_ptr<Scope> pScope) {
@@ -26,8 +26,12 @@ namespace locic {
 			scope_ = std::move(pScope);
 		}
 		
-		Var* CatchClause::var() const {
-			return var_;
+		Var& CatchClause::var() {
+			return *var_;
+		}
+		
+		const Var& CatchClause::var() const {
+			return *var_;
 		}
 		
 		FastMap<String, Var*>& CatchClause::namedVariables() {
@@ -44,7 +48,7 @@ namespace locic {
 		
 		std::string CatchClause::toString() const {
 			return makeString("CatchClause(var: %s, scope: %s)",
-				var()->toString().c_str(),
+				var().toString().c_str(),
 				scope().toString().c_str());
 		}
 		

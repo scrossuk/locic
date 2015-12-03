@@ -18,11 +18,12 @@ namespace locic {
 			public:
 				CatchClause();
 				
-				void setVar(Var* var);
+				void setVar(std::unique_ptr<Var> var);
 				
 				void setScope(std::unique_ptr<Scope> scope);
 				
-				Var* var() const;
+				Var& var();
+				const Var& var() const;
 				
 				FastMap<String, Var*>& namedVariables();
 				const FastMap<String, Var*>& namedVariables() const;
@@ -32,7 +33,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				Var* var_;
+				std::unique_ptr<Var> var_;
 				FastMap<String, Var*> namedVariables_;
 				std::unique_ptr<Scope> scope_;
 				

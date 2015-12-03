@@ -194,7 +194,7 @@ namespace locic {
 			argVars.reserve(constructTypes.size());
 			for (const auto constructType: constructTypes) {
 				const auto lvalType = makeValueLvalType(context, constructType);
-				argVars.push_back(SEM::Var::Basic(constructType, lvalType));
+				argVars.push_back(SEM::Var::Basic(constructType, lvalType).release());
 			}
 			
 			semFunction->setParameters(std::move(argVars));
@@ -307,12 +307,12 @@ namespace locic {
 			
 			{
 				const auto lvalType = makeValueLvalType(context, voidPtrType);
-				argVars.push_back(SEM::Var::Basic(voidPtrType, lvalType));
+				argVars.push_back(SEM::Var::Basic(voidPtrType, lvalType).release());
 			}
 			
 			{
 				const auto lvalType = makeValueLvalType(context, sizeType);
-				argVars.push_back(SEM::Var::Basic(sizeType, lvalType));
+				argVars.push_back(SEM::Var::Basic(sizeType, lvalType).release());
 			}
 			
 			semFunction->setParameters(std::move(argVars));
@@ -403,7 +403,7 @@ namespace locic {
 			argTypes.push_back(argType);
 			
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), compareResultType, std::move(argTypes)));
-			semFunction->setParameters({ SEM::Var::Basic(argType, argType) });
+			semFunction->setParameters({ SEM::Var::Basic(argType, argType).release() });
 			return semFunction;
 		}
 		

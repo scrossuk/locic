@@ -109,7 +109,7 @@ namespace locic {
 						
 						caseList.push_back(semCase);
 						
-						const auto caseType = semCase->var()->constructType();
+						const auto caseType = semCase->var().constructType();
 						const auto insertResult = switchCaseTypes.insert(std::make_pair(caseType->getObjectType(), caseType));
 						
 						// Check for duplicate cases.
@@ -217,9 +217,9 @@ namespace locic {
 					std::vector<SEM::CatchClause*> catchList;
 					
 					for (const auto& astCatch: *(statement->tryStmt.catchList)) {
-						const auto semCatch = new SEM::CatchClause();
+						std::unique_ptr<SEM::CatchClause> semCatch(new SEM::CatchClause());
 						
-						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::CatchClause(semCatch));
+						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::CatchClause(semCatch.get()));
 						
 						const auto& astVar = astCatch->var;
 						
@@ -238,13 +238,13 @@ namespace locic {
 								varType->toString().c_str(), location.toString().c_str()));
 						}
 						
-						const auto semVar = SEM::Var::Basic(varType, varType);
-						attachVar(context, astVar->name(), astVar, semVar, Debug::VarInfo::VAR_LOCAL);
+						auto semVar = SEM::Var::Basic(varType, varType);
+						attachVar(context, astVar->name(), astVar, *semVar, Debug::VarInfo::VAR_LOCAL);
 						
-						semCatch->setVar(semVar);
+						semCatch->setVar(std::move(semVar));
 						semCatch->setScope(ConvertScope(context, astCatch->scope));
 						
-						catchList.push_back(semCatch);
+						catchList.push_back(semCatch.release());
 					}
 					
 					return SEM::Statement::Try(std::move(tryScope), catchList);
@@ -286,15 +286,17 @@ namespace locic {
 					
 					// Convert the AST type var.
 					const auto varType = semInitialiseValue.type();
-					const auto semVar = ConvertInitialisedVar(context, astTypeVarNode, varType);
+					auto semVar = ConvertInitialisedVar(context, astTypeVarNode, varType);
 					assert(!semVar->isAny());
 					
 					// Add the variable to the SEM scope.
 					const auto semScope = context.scopeStack().back().scope();
-					semScope->variables().push_back(semVar);
+					
+					const auto varPtr = semVar.get();
+					semScope->variables().push_back(semVar.release());
 					
 					// Generate the initialise statement.
-					return SEM::Statement::InitialiseStmt(semVar, std::move(semInitialiseValue));
+					return SEM::Statement::InitialiseStmt(varPtr, std::move(semInitialiseValue));
 				}
 				case AST::Statement::ASSIGN: {
 					const auto assignKind = statement->assignStmt.assignKind;

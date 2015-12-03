@@ -52,10 +52,10 @@ namespace locic {
 		}
 		
 		// Attach the variable to the SemanticAnalysis node tree.
-		void attachVar(Context& context, const String& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var* const var, const Debug::VarInfo::Kind varKind) {
-			assert(var->isBasic());
+		void attachVar(Context& context, const String& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var& var, const Debug::VarInfo::Kind varKind) {
+			assert(var.isBasic());
 			
-			const auto insertResult = insertVar(context.scopeStack().back(), name, var);
+			const auto insertResult = insertVar(context.scopeStack().back(), name, &var);
 			if (!insertResult.second) {
 				const auto existingVar = insertResult.first->second;
 				throw ErrorException(makeString("Variable name '%s' at position %s duplicates existing variable of the same name at position %s.",
@@ -63,7 +63,7 @@ namespace locic {
 					existingVar->debugInfo()->declLocation.toString().c_str()));
 			}
 			
-			var->setDebugInfo(makeVarInfo(varKind, astTypeVarNode));
+			var.setDebugInfo(makeVarInfo(varKind, astTypeVarNode));
 		}
 		
 		const SEM::Type* getVarType(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType) {
@@ -95,7 +95,9 @@ namespace locic {
 				return value.type();
 			}
 			
-			SEM::Var* ConvertInitialisedVarRecurse(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType, bool isTopLevel) {
+			std::unique_ptr<SEM::Var> ConvertInitialisedVarRecurse(Context& context,
+			                                                       const AST::Node<AST::TypeVar>& astTypeVarNode,
+			                                                       const SEM::Type* initialiseType, bool isTopLevel) {
 				const auto& location = astTypeVarNode.location();
 				
 				switch (astTypeVarNode->kind()) {
@@ -130,10 +132,10 @@ namespace locic {
 						
 						const auto lvalType = makeLvalType(context, isFinalLval, varType);
 						
-						const auto var = SEM::Var::Basic(varType, lvalType);
+						auto var = SEM::Var::Basic(varType, lvalType);
 						var->setMarkedUnused(astTypeVarNode->isUnused());
 						var->setOverrideConst(astTypeVarNode->isOverrideConst());
-						attachVar(context, varName, astTypeVarNode, var, Debug::VarInfo::VAR_LOCAL);
+						attachVar(context, varName, astTypeVarNode, *var, Debug::VarInfo::VAR_LOCAL);
 						return var;
 					}
 					
@@ -162,7 +164,7 @@ namespace locic {
 						
 						const auto templateVarMap = varType->generateTemplateVarMap();
 						
-						std::vector<SEM::Var*> children;
+						std::vector<std::unique_ptr<SEM::Var>> children;
 						
 						for (size_t i = 0; i < typeChildVars.size(); i++) {
 							const auto& astVar = astChildTypeVars->at(i);
@@ -173,7 +175,7 @@ namespace locic {
 							children.push_back(ConvertInitialisedVarRecurse(context, astVar, childInitialiseType, childIsTopLevel));
 						}
 						
-						return SEM::Var::Composite(varType, children);
+						return SEM::Var::Composite(varType, std::move(children));
 					}
 				}
 				
@@ -182,7 +184,7 @@ namespace locic {
 			
 		}
 		
-		SEM::Var* ConvertVar(Context& context, const Debug::VarInfo::Kind varKind, const AST::Node<AST::TypeVar>& astTypeVarNode) {
+		std::unique_ptr<SEM::Var> ConvertVar(Context& context, const Debug::VarInfo::Kind varKind, const AST::Node<AST::TypeVar>& astTypeVarNode) {
 			const auto& location = astTypeVarNode.location();
 			
 			switch (astTypeVarNode->kind()) {
@@ -208,10 +210,10 @@ namespace locic {
 					
 					const auto lvalType = makeLvalType(context, isFinalLval, varType);
 					
-					const auto var = SEM::Var::Basic(varType, lvalType);
+					auto var = SEM::Var::Basic(varType, lvalType);
 					var->setMarkedUnused(astTypeVarNode->isUnused());
 					var->setOverrideConst(astTypeVarNode->isOverrideConst());
-					attachVar(context, varName, astTypeVarNode, var, varKind);
+					attachVar(context, varName, astTypeVarNode, *var, varKind);
 					return var;
 				}
 				
@@ -236,21 +238,22 @@ namespace locic {
 					
 					const auto templateVarMap = varType->generateTemplateVarMap();
 					
-					std::vector<SEM::Var*> children;
+					std::vector<std::unique_ptr<SEM::Var>> children;
 					
 					for (size_t i = 0; i < typeChildVars.size(); i++) {
 						const auto& astVar = astChildTypeVars->at(i);
 						children.push_back(ConvertVar(context, varKind, astVar));
 					}
 					
-					return SEM::Var::Composite(varType, children);
+					return SEM::Var::Composite(varType, std::move(children));
 				}
 			}
 			
 			std::terminate();
 		}
 		
-		SEM::Var* ConvertInitialisedVar(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* const initialiseType) {
+		std::unique_ptr<SEM::Var> ConvertInitialisedVar(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode,
+		                                                const SEM::Type* const initialiseType) {
 			const bool isTopLevel = true;
 			return ConvertInitialisedVarRecurse(context, astTypeVarNode, initialiseType, isTopLevel);
 		}

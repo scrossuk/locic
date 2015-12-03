@@ -270,7 +270,7 @@ namespace locic {
 					bool allTerminate = true;
 					
 					for (auto switchCase : statement.getSwitchCaseList()) {
-						const auto caseType = switchCase->var()->constructType();
+						const auto caseType = switchCase->var().constructType();
 						
 						// Start from 1 so 0 can represent 'empty'.
 						uint8_t tag = 1;
@@ -292,9 +292,9 @@ namespace locic {
 						
 						{
 							ScopeLifetime switchCaseLifetime(function);
-							genVarAlloca(function, switchCase->var());
-							genVarInitialise(function, switchCase->var(),
-								irEmitter.emitMoveLoad(unionDatatypePointers.second, switchCase->var()->constructType()));
+							genVarAlloca(function, &(switchCase->var()));
+							genVarInitialise(function, &(switchCase->var()),
+								irEmitter.emitMoveLoad(unionDatatypePointers.second, switchCase->var().constructType()));
 							genScope(function, switchCase->scope());
 						}
 						
@@ -431,7 +431,7 @@ namespace locic {
 					llvm::SmallVector<llvm::Constant*, 5> catchTypeList;
 					
 					for (const auto catchClause : statement.getTryCatchList()) {
-						catchTypeList.push_back(genCatchInfo(module, catchClause->var()->constructType()->getObjectType()));
+						catchTypeList.push_back(genCatchInfo(module, catchClause->var().constructType()->getObjectType()));
 					}
 					
 					assert(catchTypeList.size() == statement.getTryCatchList().size());
@@ -492,8 +492,8 @@ namespace locic {
 							exceptionPtrValue->setDoesNotAccessMemory();
 							exceptionPtrValue->setDoesNotThrow();
 							
-							assert(catchClause->var()->isBasic());
-							function.getLocalVarMap().forceInsert(catchClause->var(), exceptionPtrValue);
+							assert(catchClause->var().isBasic());
+							function.getLocalVarMap().forceInsert(&(catchClause->var()), exceptionPtrValue);
 							
 							{
 								ScopeLifetime catchScopeLifetime(function);

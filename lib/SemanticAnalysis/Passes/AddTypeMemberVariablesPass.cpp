@@ -20,8 +20,7 @@ namespace locic {
 			if (semTypeInstance->isEnum()) {
 				// Enums have underlying type 'int'.
 				const auto underlyingType = getBuiltInType(context, context.getCString("int_t"), {});
-				const auto var = SEM::Var::Basic(underlyingType, underlyingType);
-				semTypeInstance->variables().push_back(var);
+				semTypeInstance->attachVariable(SEM::Var::Basic(underlyingType, underlyingType));
 			}
 			
 			if (semTypeInstance->isException()) {
@@ -65,8 +64,7 @@ namespace locic {
 					semTypeInstance->setParentType(semType);
 					
 					// Also add parent as first member variable.
-					const auto var = SEM::Var::Basic(semType, semType);
-					semTypeInstance->variables().push_back(var);
+					semTypeInstance->attachVariable(SEM::Var::Basic(semType, semType));
 				}
 			}
 			
@@ -76,11 +74,11 @@ namespace locic {
 						astTypeVarNode.location().toString().c_str()));
 				}
 				
-				const auto var = ConvertVar(context, Debug::VarInfo::VAR_MEMBER, astTypeVarNode);
+				auto var = ConvertVar(context, Debug::VarInfo::VAR_MEMBER, astTypeVarNode);
 				assert(var->isBasic());
 				
 				// Add mapping from position to variable.
-				semTypeInstance->variables().push_back(var);
+				semTypeInstance->attachVariable(std::move(var));
 			}
 			
 			if (astTypeInstanceNode->noTagSet.isNull() && !semTypeInstance->isPrimitive()) {

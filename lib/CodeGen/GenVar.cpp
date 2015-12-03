@@ -48,8 +48,8 @@ namespace locic {
 				// any SEM vars can be mapped to the actual value.
 				function.getLocalVarMap().insert(var, stackObject);
 			} else if (var->isComposite()) {
-				for (const auto childVar: var->children()) {
-					genVarAlloca(function, childVar);
+				for (const auto& childVar: var->children()) {
+					genVarAlloca(function, childVar.get());
 				}
 			} else {
 				throw std::runtime_error("Unknown variable kind.");
@@ -77,13 +77,13 @@ namespace locic {
 				// For composite variables, extract each member of
 				// the type and assign it to its variable.
 				for (size_t i = 0; i < var->children().size(); i++) {
-					const auto childVar = var->children().at(i);
+					const auto& childVar = var->children()[i];
 					const auto memberOffsetValue = genMemberOffset(function, var->constructType(), i);
 					const auto childInitialiseValue = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                                            initialiseValue,
 					                                                            memberOffsetValue);
 					const auto loadedChildInitialiseValue = irEmitter.emitMoveLoad(childInitialiseValue, childVar->constructType());
-					genVarInitialise(function, childVar, loadedChildInitialiseValue);
+					genVarInitialise(function, childVar.get(), loadedChildInitialiseValue);
 				}
 			} else {
 				throw std::runtime_error("Unknown var kind.");

@@ -39,7 +39,7 @@ namespace locic {
 				std::vector<SEM::Var*> parameters;
 				for (const auto varType: constructTypes) {
 					const auto lvalType = makeValueLvalType(context, varType);
-					parameters.push_back(SEM::Var::Basic(varType, lvalType));
+					parameters.push_back(SEM::Var::Basic(varType, lvalType).release());
 				}
 				return parameters;
 			}

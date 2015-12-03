@@ -257,8 +257,9 @@ namespace locic {
 				 * 
 				 * \return Member variable array.
 				 */
-				std::vector<Var*>& variables();
 				const std::vector<Var*>& variables() const;
+				
+				void attachVariable(std::unique_ptr<Var> var);
 				
 				/**
 				 * \brief Get methods.

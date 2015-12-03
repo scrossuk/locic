@@ -1,4 +1,5 @@
 #include <cassert>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -11,27 +12,27 @@ namespace locic {
 
 	namespace SEM {
 	
-		Var* Var::Any(const Type* constructType) {
-			Var* var = new Var;
+		std::unique_ptr<Var> Var::Any(const Type* constructType) {
+			std::unique_ptr<Var> var(new Var());
 			var->kind_ = ANY;
 			var->constructType_ = constructType;
 			return var;
 		}
 		
-		Var* Var::Basic(const Type* constructType, const Type* type) {
-			Var* var = new Var;
+		std::unique_ptr<Var> Var::Basic(const Type* constructType, const Type* type) {
+			std::unique_ptr<Var> var(new Var());
 			var->kind_ = BASIC;
 			var->constructType_ = constructType;
 			var->type_ = type;
 			return var;
 		}
 		
-		Var* Var::Composite(const Type* type, const std::vector<Var*>& children) {
-			Var* var = new Var;
+		std::unique_ptr<Var> Var::Composite(const Type* type, std::vector<std::unique_ptr<Var>> children) {
+			std::unique_ptr<Var> var(new Var());
 			var->kind_ = COMPOSITE;
 			var->constructType_ = type;
 			var->type_ = type;
-			var->children_ = children;
+			var->children_ = std::move(children);
 			return var;
 		}
 		
@@ -63,7 +64,7 @@ namespace locic {
 			return type_;
 		}
 		
-		const std::vector<Var*>& Var::children() const {
+		const std::vector<std::unique_ptr<Var>>& Var::children() const {
 			assert(isComposite());
 			return children_;
 		}

@@ -12,15 +12,15 @@ namespace locic {
 
 	namespace SEM {
 	
-		SwitchCase::SwitchCase()
-			: var_(nullptr), scope_(nullptr) { }
+		SwitchCase::SwitchCase() { }
 		
-		SwitchCase::SwitchCase(Var* pVar, std::unique_ptr<Scope> pScope)
-			: var_(pVar), scope_(std::move(pScope)) { }
+		SwitchCase::SwitchCase(std::unique_ptr<Var> pVar, std::unique_ptr<Scope> pScope)
+		: var_(std::move(pVar)), scope_(std::move(pScope)) { }
 		
-		void SwitchCase::setVar(Var* pVar) {
+		void SwitchCase::setVar(std::unique_ptr<Var> pVar) {
+			assert(var_.get() == nullptr);
 			assert(pVar != nullptr);
-			var_ = pVar;
+			var_ = std::move(pVar);
 		}
 		
 		void SwitchCase::setScope(std::unique_ptr<Scope> pScope) {
@@ -29,8 +29,12 @@ namespace locic {
 			scope_ = std::move(pScope);
 		}
 		
-		Var* SwitchCase::var() const {
-			return var_;
+		Var& SwitchCase::var() {
+			return *var_;
+		}
+		
+		const Var& SwitchCase::var() const {
+			return *var_;
 		}
 		
 		FastMap<String, Var*>& SwitchCase::namedVariables() {
@@ -47,7 +51,7 @@ namespace locic {
 		
 		std::string SwitchCase::toString() const {
 			return makeString("SwitchCase(var: %s, scope: %s)",
-				var()->toString().c_str(),
+				var().toString().c_str(),
 				scope().toString().c_str());
 		}
 		

@@ -322,11 +322,11 @@ namespace locic {
 						astTypeVarNode.location().toString().c_str()));
 				}
 				
-				const auto paramVar = ConvertVar(context, Debug::VarInfo::VAR_ARGUMENT, astTypeVarNode);
+				auto paramVar = ConvertVar(context, Debug::VarInfo::VAR_ARGUMENT, astTypeVarNode);
 				assert(paramVar->isBasic());
 				
 				parameterTypes.push_back(paramVar->constructType());
-				parameterVars.push_back(paramVar);
+				parameterVars.push_back(paramVar.release());
 			}
 			
 			function.setParameters(std::move(parameterVars));

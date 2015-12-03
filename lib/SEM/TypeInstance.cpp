@@ -190,12 +190,12 @@ namespace locic {
 			return namedVariables_;
 		}
 		
-		std::vector<Var*>& TypeInstance::variables() {
+		const std::vector<Var*>& TypeInstance::variables() const {
 			return variables_;
 		}
 		
-		const std::vector<Var*>& TypeInstance::variables() const {
-			return variables_;
+		void TypeInstance::attachVariable(std::unique_ptr<Var> var) {
+			variables_.push_back(var.release());
 		}
 		
 		FastMap<String, std::unique_ptr<Function>>& TypeInstance::functions() {
