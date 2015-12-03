@@ -132,14 +132,6 @@ namespace locic {
 			return memberOffsetFunctionMap_;
 		}
 		
-		MemberVarMap& Module::getMemberVarMap() {
-			return memberVarMap_;
-		}
-		
-		const MemberVarMap& Module::getMemberVarMap() const {
-			return memberVarMap_;
-		}
-		
 		MoveFunctionMap& Module::getMoveFunctionMap() {
 			return moveFunctionMap_;
 		}
