@@ -113,11 +113,10 @@ namespace locic {
 			
 			for (size_t i = 0; i < typeInstance.variables().size(); i++) {
 				const auto& memberVar = typeInstance.variables()[i];
-				const size_t memberIndex = module.getMemberVarMap().at(memberVar);
 				
 				const auto memberType = memberVar->constructType()->resolveAliases();
 				
-				const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberIndex);
+				const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberVar->index());
 				
 				irEmitter.emitMoveStore(args[i].resolve(functionGenerator_),
 				                        resultPtr,
@@ -206,8 +205,8 @@ namespace locic {
 				// parent object, in *REVERSE* order.
 				for (size_t i = 0; i < memberVars.size(); i++) {
 					const auto memberVar = memberVars.at((memberVars.size() - 1) - i);
-					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
-					const auto memberOffsetValue = genMemberOffset(functionGenerator_, typeInstance.selfType(), memberIndex);
+					const auto memberOffsetValue = genMemberOffset(functionGenerator_, typeInstance.selfType(),
+					                                               memberVar->index());
 					const auto ptrToMember = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                                   thisValue,
 					                                                   memberOffsetValue);
@@ -382,7 +381,7 @@ namespace locic {
 			} else {
 				// Move member variables.
 				for (const auto& memberVar: typeInstance.variables()) {
-					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
+					const auto memberIndex = memberVar->index();
 					const auto ptrToMember = genMemberPtr(functionGenerator_, sourceValue, type, memberIndex);
 					llvm::Value* adjustedPositionValue;
 					if (memberIndex != 0) {
@@ -571,8 +570,7 @@ namespace locic {
 				case LivenessIndicator::MEMBER_INVALID_STATE: {
 					// Set the relevant member into an invalid state.
 					const auto memberVar = &(livenessIndicator.memberVar());
-					const auto memberIndex = module.getMemberVarMap().at(memberVar);
-					const auto memberPtr = genMemberPtr(functionGenerator_, contextValue, type, memberIndex);
+					const auto memberPtr = genMemberPtr(functionGenerator_, contextValue, type, memberVar->index());
 					genSetInvalidState(functionGenerator_, memberVar->constructType(), memberPtr);
 					break;
 				}
@@ -619,11 +617,10 @@ namespace locic {
 				case LivenessIndicator::MEMBER_INVALID_STATE: {
 					// Query whether member has invalid state.
 					const auto& memberVar = livenessIndicator.memberVar();
-					const auto memberIndex = module.getMemberVarMap().at(&memberVar);
 					const auto memberPtr = genMemberPtr(functionGenerator_,
 					                                    contextValue,
 					                                    type,
-					                                    memberIndex);
+					                                    memberVar.index());
 					const auto memberType = memberVar.constructType();
 					const MethodInfo methodInfo(memberType, module.getCString("__isvalid"), functionType, {});
 					const auto contextArg = RefPendingResult(memberPtr, memberType);
@@ -740,7 +737,7 @@ namespace locic {
 				functionGenerator_.selectBasicBlock(endBB);
 			} else {
 				for (const auto& memberVar: typeInstance.variables()) {
-					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
+					const auto memberIndex = memberVar->index();
 					const auto ptrToMember = genMemberPtr(functionGenerator_,
 					                                      thisPointer,
 					                                      type,
@@ -901,11 +898,10 @@ namespace locic {
 				
 				for (size_t i = 0; i < typeInstance.variables().size(); i++) {
 					const auto& memberVar = typeInstance.variables()[i];
-					const size_t memberIndex = module.getMemberVarMap().at(memberVar);
+					const auto memberIndex = memberVar->index();
 					const auto thisMemberPtr = genMemberPtr(functionGenerator_,
 					                                        thisPointer,
-					                                        type,
-					                                        memberIndex);
+					                                        type, memberIndex);
 					const auto otherMemberPtr = genMemberPtr(functionGenerator_,
 					                                         otherPointer,
 					                                         type,

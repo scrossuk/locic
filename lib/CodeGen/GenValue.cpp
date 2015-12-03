@@ -414,7 +414,7 @@ namespace locic {
 				}
 				
 				case SEM::Value::MEMBERACCESS: {
-					const auto memberIndex = module.getMemberVarMap().at(&(value.memberAccessVar()));
+					const auto memberIndex = value.memberAccessVar().index();
 					
 					const auto& dataRefValue = value.memberAccessObject();
 					assert(dataRefValue.type()->isRef() && dataRefValue.type()->isBuiltInReference());
