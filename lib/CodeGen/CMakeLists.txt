@@ -17,7 +17,6 @@ add_library(locic-codegen
 	GenFunctionCall.cpp
 	GenStatement.cpp
 	GenType.cpp
-	GenTypeInstance.cpp
 	GenValue.cpp
 	GenVar.cpp
 	GenVTable.cpp
