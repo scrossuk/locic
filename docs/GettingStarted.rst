@@ -177,7 +177,7 @@ Other pieces of infrastructure for the project:
 * `Website <http://loci-lang.org>`_
 * `Travis CI <https://travis-ci.org/scross99/locic>`_ - Continuous integration build jobs.
 * `Travis CI Artifacts <http://loci-lang.org/travis/>`_ - Artifacts (binaries) from Travis CI jobs.
-* `Phabricator <https://locic.phoreplay.com/>`_ - Issue tracker and code review.
+* `Phabricator <https://locic.exana.io/>`_ - Issue tracker and code review.
 * `Twitter account <https://twitter.com/loci_lang>`_
 * `Google Groups Mailing List <https://groups.google.com/group/loci-dev>`_
 
