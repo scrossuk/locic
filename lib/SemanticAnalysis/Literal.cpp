@@ -197,9 +197,9 @@ namespace locic {
 			}
 			
 			TypeBuilder typeBuilder(context);
-			const auto functionRefType = typeBuilder.getFunctionPointerType(searchResult.function()->type());
+			const auto functionRefType = typeBuilder.getFunctionPointerType(searchResult.function().type());
 			
-			auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, functionRefType);
+			auto functionRef = SEM::Value::FunctionRef(nullptr, &(searchResult.function()), {}, functionRefType);
 			return CallValue(context, std::move(functionRef), makeHeapArray( std::move(constantValue) ), location);
 		}
 		

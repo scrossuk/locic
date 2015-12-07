@@ -25,7 +25,7 @@ namespace locic {
 			} else {
 				// Extension method.
 				const auto searchResult = performSearch(context, name.getPrefix());
-				return *(searchResult.typeInstance()->functions().at(CanonicalizeMethodName(name.last())));
+				return *(searchResult.typeInstance().functions().at(CanonicalizeMethodName(name.last())));
 			}
 		}
 		
@@ -41,11 +41,11 @@ namespace locic {
 			} else {
 				// Extension method.
 				const auto searchResult = performSearch(context, name->getPrefix());
-				const auto semTypeInstance = searchResult.typeInstance();
+				auto& semTypeInstance = searchResult.typeInstance();
 				
-				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(*semTypeInstance));
+				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semTypeInstance));
 				
-				auto& semChildFunction = semTypeInstance->functions().at(CanonicalizeMethodName(name->last()));
+				auto& semChildFunction = semTypeInstance.functions().at(CanonicalizeMethodName(name->last()));
 				
 				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*semChildFunction));
 				

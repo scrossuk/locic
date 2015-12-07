@@ -28,15 +28,15 @@ namespace locic {
 				
 				static SearchResult None();
 				
-				static SearchResult Alias(SEM::Alias* alias);
+				static SearchResult Alias(SEM::Alias& alias);
 				
-				static SearchResult Function(SEM::Function* function);
+				static SearchResult Function(SEM::Function& function);
 				
-				static SearchResult TemplateVar(SEM::TemplateVar* templateVar);
+				static SearchResult TemplateVar(SEM::TemplateVar& templateVar);
 				
-				static SearchResult TypeInstance(SEM::TypeInstance* typeInstance);
+				static SearchResult TypeInstance(SEM::TypeInstance& typeInstance);
 				
-				static SearchResult Var(SEM::Var* var);
+				static SearchResult Var(SEM::Var& var);
 				
 				Kind kind() const;
 				
@@ -47,11 +47,11 @@ namespace locic {
 				bool isTypeInstance() const;
 				bool isVar() const;
 				
-				SEM::Alias* alias() const;
-				SEM::Function* function() const;
-				SEM::TemplateVar* templateVar() const;
-				SEM::TypeInstance* typeInstance() const;
-				SEM::Var* var() const;
+				SEM::Alias& alias() const;
+				SEM::Function& function() const;
+				SEM::TemplateVar& templateVar() const;
+				SEM::TypeInstance& typeInstance() const;
+				SEM::Var& var() const;
 				
 			private:
 				SearchResult(Kind pKind);

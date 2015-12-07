@@ -62,14 +62,14 @@ namespace locic {
 					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, SEM::Predicate::True());
 				} else {
 					const auto searchResult = performSearch(context, name->getPrefix());
-					const auto parentTypeInstance = searchResult.typeInstance();
+					auto& parentTypeInstance = searchResult.typeInstance();
 					
 					// Push the type instance on the scope stack, since the extension method is
 					// effectively within the scope of the type instance.
-					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(*parentTypeInstance));
+					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(parentTypeInstance));
 					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
 					
-					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, parentTypeInstance->requiresPredicate());
+					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, parentTypeInstance.requiresPredicate());
 				}
 			}
 			

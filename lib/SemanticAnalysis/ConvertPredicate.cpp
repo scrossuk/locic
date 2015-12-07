@@ -54,10 +54,10 @@ namespace locic {
 					const auto templateVarMap = GenerateSymbolTemplateVarMap(context, astSymbolNode);
 					
 					if (searchResult.isAlias()) {
-						const auto alias = searchResult.alias();
-						(void) context.aliasTypeResolver().resolveAliasType(*alias);
+						auto& alias = searchResult.alias();
+						(void) context.aliasTypeResolver().resolveAliasType(alias);
 						
-						const auto aliasValue = alias->value().substitute(templateVarMap);
+						const auto aliasValue = alias.value().substitute(templateVarMap);
 						if (!aliasValue.type()->isBuiltInBool()) {
 							throw ErrorException(makeString("Alias '%s' has non-boolean type '%s' "
 								"and therefore cannot be used in predicate, at position %s.",
@@ -68,17 +68,17 @@ namespace locic {
 						
 						return aliasValue.makePredicate();
 					} else if (searchResult.isTemplateVar()) {
-						const auto templateVar = searchResult.templateVar();
+						auto& templateVar = searchResult.templateVar();
 						
-						if (!templateVar->type()->isBuiltInBool()) {
+						if (!templateVar.type()->isBuiltInBool()) {
 							throw ErrorException(makeString("Template variable '%s' has non-boolean type '%s' "
 								"and therefore cannot be used in predicate, at position %s.",
 								name.toString().c_str(),
-								templateVar->type()->toString().c_str(),
+								templateVar.type()->toString().c_str(),
 								location.toString().c_str()));
 						}
 						
-						return SEM::Predicate::Variable(templateVar);
+						return SEM::Predicate::Variable(&templateVar);
 					} else if (!searchResult.isNone()) {
 						throw ErrorException(makeString("Invalid symbol '%s' "
 							"in predicate, at position %s.",

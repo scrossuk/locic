@@ -15,7 +15,7 @@ namespace locic {
 		SearchResult performFunctionSearch(SEM::Function& function, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
-			if (size == 0) return SearchResult::Function(&function);
+			if (size == 0) return SearchResult::Function(function);
 			
 			return SearchResult::None();
 		}
@@ -23,7 +23,7 @@ namespace locic {
 		SearchResult performAliasSearch(SEM::Alias& alias, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
-			if (size == 0) return SearchResult::Alias(&alias);
+			if (size == 0) return SearchResult::Alias(alias);
 			
 			return SearchResult::None();
 		}
@@ -31,7 +31,7 @@ namespace locic {
 		SearchResult performTypeInstanceSearch(SEM::TypeInstance& typeInstance, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
-			if (size == 0) return SearchResult::TypeInstance(&typeInstance);
+			if (size == 0) return SearchResult::TypeInstance(typeInstance);
 			
 			const auto canonicalName = CanonicalizeMethodName(name.at(pos));
 			const auto iterator = typeInstance.functions().find(canonicalName);
@@ -74,7 +74,7 @@ namespace locic {
 			{
 				const auto iterator = function.namedTemplateVariables().find(name.at(0));
 				if (iterator != function.namedTemplateVariables().end()) {
-					return SearchResult::TemplateVar(iterator->second);
+					return SearchResult::TemplateVar(*(iterator->second));
 				}
 			}
 			
@@ -82,7 +82,7 @@ namespace locic {
 			{
 				const auto iterator = function.namedVariables().find(name.at(0));
 				if (iterator != function.namedVariables().end()) {
-					return SearchResult::Var(iterator->second);
+					return SearchResult::Var(*(iterator->second));
 				}
 			}
 			
@@ -94,7 +94,7 @@ namespace locic {
 			
 			const auto iterator = alias.namedTemplateVariables().find(name.at(0));
 			if (iterator != alias.namedTemplateVariables().end()) {
-				return SearchResult::TemplateVar(iterator->second);
+				return SearchResult::TemplateVar(*(iterator->second));
 			}
 			
 			return SearchResult::None();
@@ -105,7 +105,7 @@ namespace locic {
 			
 			const auto iterator = typeInstance.namedTemplateVariables().find(name.at(0));
 			if (iterator != typeInstance.namedTemplateVariables().end()) {
-				return SearchResult::TemplateVar(iterator->second);
+				return SearchResult::TemplateVar(*(iterator->second));
 			}
 			
 			return SearchResult::None();
@@ -116,7 +116,7 @@ namespace locic {
 			
 			const auto iterator = scope->namedVariables().find(name.at(0));
 			if (iterator != scope->namedVariables().end()) {
-				return SearchResult::Var(iterator->second);
+				return SearchResult::Var(*(iterator->second));
 			}
 			
 			return SearchResult::None();
@@ -127,7 +127,7 @@ namespace locic {
 			
 			const auto iterator = switchCase->namedVariables().find(name.at(0));
 			if (iterator != switchCase->namedVariables().end()) {
-				return SearchResult::Var(iterator->second);
+				return SearchResult::Var(*(iterator->second));
 			}
 			
 			return SearchResult::None();
@@ -138,7 +138,7 @@ namespace locic {
 			
 			const auto iterator = catchClause->namedVariables().find(name.at(0));
 			if (iterator != catchClause->namedVariables().end()) {
-				return SearchResult::Var(iterator->second);
+				return SearchResult::Var(*(iterator->second));
 			}
 			
 			return SearchResult::None();

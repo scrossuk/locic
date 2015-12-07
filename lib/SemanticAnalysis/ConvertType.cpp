@@ -46,24 +46,24 @@ namespace locic {
 			const auto templateVarMap = GenerateSymbolTemplateVarMap(context, symbol);
 			
 			if (searchResult.isTypeInstance()) {
-				const auto typeInstance = searchResult.typeInstance();
+				auto& typeInstance = searchResult.typeInstance();
 				
-				assert(templateVarMap.size() == typeInstance->templateVariables().size());
+				assert(templateVarMap.size() == typeInstance.templateVariables().size());
 				
-				return SEM::Type::Object(typeInstance, GetTemplateValues(templateVarMap, typeInstance->templateVariables()));
+				return SEM::Type::Object(&typeInstance, GetTemplateValues(templateVarMap, typeInstance.templateVariables()));
 			} else if (searchResult.isTemplateVar()) {
 				assert(templateVarMap.empty());
 				
-				return SEM::Type::TemplateVarRef(searchResult.templateVar());
+				return SEM::Type::TemplateVarRef(&(searchResult.templateVar()));
 			} else if (searchResult.isAlias()) {
-				const auto alias = searchResult.alias();
+				auto& alias = searchResult.alias();
 				
-				assert(templateVarMap.size() == alias->templateVariables().size());
+				assert(templateVarMap.size() == alias.templateVariables().size());
 				
-				auto templateValues = GetTemplateValues(templateVarMap, alias->templateVariables());
-				assert(templateValues.size() == alias->templateVariables().size());
+				auto templateValues = GetTemplateValues(templateVarMap, alias.templateVariables());
+				assert(templateValues.size() == alias.templateVariables().size());
 				
-				return SEM::Type::Alias(*alias, std::move(templateValues));
+				return SEM::Type::Alias(alias, std::move(templateValues));
 			} else {
 				throw ErrorException(makeString("Unknown type with name '%s' at position %s.",
 					name.toString().c_str(), symbol.location().toString().c_str()));

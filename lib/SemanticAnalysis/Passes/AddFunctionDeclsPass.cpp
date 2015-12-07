@@ -151,17 +151,17 @@ namespace locic {
 						name->toString().c_str(), name.location().toString().c_str()));
 				}
 				
-				const auto& parentTypeInstance = searchResult.typeInstance();
+				auto& parentTypeInstance = searchResult.typeInstance();
 				
 				// Push the type instance on the scope stack, since the extension method is
 				// effectively within the scope of the type instance.
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*parentTypeInstance));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(parentTypeInstance));
 				
-				const auto fullName = parentTypeInstance->name() + name->last();
+				const auto fullName = parentTypeInstance.name() + name->last();
 				
 				auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 				
-				parentTypeInstance->functions().insert(std::make_pair(CanonicalizeMethodName(name->last()), std::move(semFunction)));
+				parentTypeInstance.functions().insert(std::make_pair(CanonicalizeMethodName(name->last()), std::move(semFunction)));
 			}
 		}
 		

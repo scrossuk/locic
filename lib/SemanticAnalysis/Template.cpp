@@ -25,7 +25,7 @@ namespace locic {
 		
 		namespace {
 			
-			SEM::TemplatedObject* getTemplatedObject(const SearchResult& searchResult) {
+			SEM::TemplatedObject& getTemplatedObject(const SearchResult& searchResult) {
 				switch (searchResult.kind()) {
 					case SearchResult::ALIAS:
 						return searchResult.alias();
@@ -177,8 +177,8 @@ namespace locic {
 				const auto searchResult = performSearch(context, name);
 				
 				if (searchResult.isFunction() || searchResult.isAlias() || searchResult.isTypeInstance()) {
-					const auto templatedObject = getTemplatedObject(searchResult);
-					const auto& templateVariables = templatedObject->templateVariables();
+					const auto& templatedObject = getTemplatedObject(searchResult);
+					const auto& templateVariables = templatedObject.templateVariables();
 					
 					if (templateVariables.size() != numTemplateArguments) {
 						throw ErrorException(makeString("Incorrect number of template "
@@ -195,7 +195,7 @@ namespace locic {
 						templateValues.push_back(ConvertValue(context, astTemplateArg));
 					}
 					
-					variableAssignments = GenerateTemplateVarMap(context, *templatedObject, std::move(templateValues), location, std::move(variableAssignments));
+					variableAssignments = GenerateTemplateVarMap(context, templatedObject, std::move(templateValues), location, std::move(variableAssignments));
 				} else {
 					if (numTemplateArguments > 0) {
 						throw ErrorException(makeString("%llu template "

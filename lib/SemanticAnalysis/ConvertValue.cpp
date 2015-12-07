@@ -222,15 +222,14 @@ namespace locic {
 						throw ErrorException(makeString("Couldn't find symbol or value '%s' at %s.",
 							name.toString().c_str(), location.toString().c_str()));
 					} else if (searchResult.isFunction()) {
-						const auto function = searchResult.function();
-						assert(function != nullptr && "Function pointer must not be NULL (as indicated by isFunction() being true)");
+						auto& function = searchResult.function();
 						
-						auto functionTemplateArguments = GetTemplateValues(templateVarMap, function->templateVariables());
+						auto functionTemplateArguments = GetTemplateValues(templateVarMap, function.templateVariables());
 						TypeBuilder typeBuilder(context);
-						const auto functionType = typeBuilder.getFunctionPointerType(function->type().substitute(templateVarMap));
+						const auto functionType = typeBuilder.getFunctionPointerType(function.type().substitute(templateVarMap));
 						
-						if (function->isMethod()) {
-							if (!function->isStaticMethod()) {
+						if (function.isMethod()) {
+							if (!function.isStaticMethod()) {
 								throw ErrorException(makeString("Cannot refer directly to non-static class method '%s' at %s.",
 									name.toString().c_str(), location.toString().c_str()));
 							}
@@ -238,44 +237,44 @@ namespace locic {
 							const auto typeSearchResult = performSearch(context, name.getPrefix());
 							assert(typeSearchResult.isTypeInstance());
 							
-							const auto typeInstance = typeSearchResult.typeInstance();
+							auto& typeInstance = typeSearchResult.typeInstance();
 							
-							auto parentTemplateArguments = GetTemplateValues(templateVarMap, typeInstance->templateVariables());
-							const auto parentType = SEM::Type::Object(typeInstance, std::move(parentTemplateArguments));
+							auto parentTemplateArguments = GetTemplateValues(templateVarMap, typeInstance.templateVariables());
+							const auto parentType = SEM::Type::Object(&typeInstance, std::move(parentTemplateArguments));
 							
-							return SEM::Value::FunctionRef(parentType, function, std::move(functionTemplateArguments), functionType);
+							return SEM::Value::FunctionRef(parentType, &function, std::move(functionTemplateArguments), functionType);
 						} else {
-							return SEM::Value::FunctionRef(nullptr, function, std::move(functionTemplateArguments), functionType);
+							return SEM::Value::FunctionRef(nullptr, &function, std::move(functionTemplateArguments), functionType);
 						}
 					} else if (searchResult.isTypeInstance()) {
-						const auto typeInstance = searchResult.typeInstance();
+						auto& typeInstance = searchResult.typeInstance();
 						
-						if (typeInstance->isInterface()) {
+						if (typeInstance.isInterface()) {
 							throw ErrorException(makeString("Can't construct interface type '%s' at %s.",
 								name.toString().c_str(), location.toString().c_str()));
 						}
 						
 						const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
-						const auto parentType = SEM::Type::Object(typeInstance, GetTemplateValues(templateVarMap, typeInstance->templateVariables()));
+						const auto parentType = SEM::Type::Object(&typeInstance, GetTemplateValues(templateVarMap, typeInstance.templateVariables()));
 						return SEM::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
 					} else if (searchResult.isAlias()) {
-						const auto alias = searchResult.alias();
-						(void) context.aliasTypeResolver().resolveAliasType(*alias);
-						auto templateArguments = GetTemplateValues(templateVarMap, alias->templateVariables());
-						return alias->selfRefValue(std::move(templateArguments));
+						auto& alias = searchResult.alias();
+						(void) context.aliasTypeResolver().resolveAliasType(alias);
+						auto templateArguments = GetTemplateValues(templateVarMap, alias.templateVariables());
+						return alias.selfRefValue(std::move(templateArguments));
 					} else if (searchResult.isVar()) {
 						// Variables must just be a single plain string,
 						// and be a relative name (so no precending '::').
 						assert(astSymbolNode->size() == 1);
 						assert(astSymbolNode->isRelative());
 						assert(astSymbolNode->first()->templateArguments()->empty());
-						const auto var = searchResult.var();
-						var->setUsed();
-						return SEM::Value::LocalVar(*var, getBuiltInType(context, context.getCString("__ref"), { var->type() })->createRefType(var->type()));
+						auto& var = searchResult.var();
+						var.setUsed();
+						return SEM::Value::LocalVar(var, getBuiltInType(context, context.getCString("__ref"), { var.type() })->createRefType(var.type()));
 					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
-						const auto templateVar = searchResult.templateVar();
-						return templateVar->selfRefValue();
+						auto& templateVar = searchResult.templateVar();
+						return templateVar.selfRefValue();
 					}
 					
 					std::terminate();

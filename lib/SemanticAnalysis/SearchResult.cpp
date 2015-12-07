@@ -10,33 +10,33 @@ namespace locic {
 			return SearchResult(NONE);
 		}
 		
-		SearchResult SearchResult::Alias(SEM::Alias* alias) {
+		SearchResult SearchResult::Alias(SEM::Alias& alias) {
 			SearchResult element(ALIAS);
-			element.data_.alias = alias;
+			element.data_.alias = &alias;
 			return element;
 		}
 		
-		SearchResult SearchResult::Function(SEM::Function* function) {
+		SearchResult SearchResult::Function(SEM::Function& function) {
 			SearchResult element(FUNCTION);
-			element.data_.function = function;
+			element.data_.function = &function;
 			return element;
 		}
 		
-		SearchResult SearchResult::TemplateVar(SEM::TemplateVar* templateVar) {
+		SearchResult SearchResult::TemplateVar(SEM::TemplateVar& templateVar) {
 			SearchResult element(TEMPLATEVAR);
-			element.data_.templateVar = templateVar;
+			element.data_.templateVar = &templateVar;
 			return element;
 		}
 		
-		SearchResult SearchResult::TypeInstance(SEM::TypeInstance* typeInstance) {
+		SearchResult SearchResult::TypeInstance(SEM::TypeInstance& typeInstance) {
 			SearchResult element(TYPEINSTANCE);
-			element.data_.typeInstance = typeInstance;
+			element.data_.typeInstance = &typeInstance;
 			return element;
 		}
 		
-		SearchResult SearchResult::Var(SEM::Var* var) {
+		SearchResult SearchResult::Var(SEM::Var& var) {
 			SearchResult element(VAR);
-			element.data_.var = var;
+			element.data_.var = &var;
 			return element;
 		}
 		
@@ -68,29 +68,29 @@ namespace locic {
 			return kind() == VAR;
 		}
 		
-		SEM::Alias* SearchResult::alias() const {
+		SEM::Alias& SearchResult::alias() const {
 			assert(isAlias());
-			return data_.alias;
+			return *(data_.alias);
 		}
 		
-		SEM::Function* SearchResult::function() const {
+		SEM::Function& SearchResult::function() const {
 			assert(isFunction());
-			return data_.function;
+			return *(data_.function);
 		}
 		
-		SEM::TemplateVar* SearchResult::templateVar() const {
+		SEM::TemplateVar& SearchResult::templateVar() const {
 			assert(isTemplateVar());
-			return data_.templateVar;
+			return *(data_.templateVar);
 		}
 		
-		SEM::TypeInstance* SearchResult::typeInstance() const {
+		SEM::TypeInstance& SearchResult::typeInstance() const {
 			assert(isTypeInstance());
-			return data_.typeInstance;
+			return *(data_.typeInstance);
 		}
 		
-		SEM::Var* SearchResult::var() const {
+		SEM::Var& SearchResult::var() const {
 			assert(isVar());
-			return data_.var;
+			return *(data_.var);
 		}
 		
 		SearchResult::SearchResult(Kind pKind)
