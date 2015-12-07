@@ -26,16 +26,16 @@ namespace locic {
 			}
 			
 			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name()).nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
-				EvaluateNamespaceStaticAsserts(context, astNamespaceNode->data);
+				EvaluateNamespaceStaticAsserts(context, astNamespaceNode->data());
 			}
 		}
 		
 		void EvaluateStaticAssertsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			for (auto astNamespaceNode: rootASTNamespaces) {
-				EvaluateNamespaceStaticAsserts(context, astNamespaceNode->data);
+				EvaluateNamespaceStaticAsserts(context, astNamespaceNode->data());
 			}
 		}
 		

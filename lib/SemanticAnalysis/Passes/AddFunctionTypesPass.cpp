@@ -38,10 +38,10 @@ namespace locic {
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name()).nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
-				AddNamespaceDataFunctionTypes(context, astNamespaceNode->data);
+				AddNamespaceDataFunctionTypes(context, astNamespaceNode->data());
 			}
 			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
@@ -58,7 +58,7 @@ namespace locic {
 		
 		void AddFunctionTypesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			for (auto astNamespaceNode: rootASTNamespaces) {
-				AddNamespaceDataFunctionTypes(context, astNamespaceNode->data);
+				AddNamespaceDataFunctionTypes(context, astNamespaceNode->data());
 			}
 		}
 		

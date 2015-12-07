@@ -92,10 +92,10 @@ namespace locic {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace.items().at(astChildNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astChildNamespaceNode->name()).nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
-				AddNamespaceDataTypeMemberVariables(context, astChildNamespaceNode->data, typeInstancesToGenerateNoTagSets);
+				AddNamespaceDataTypeMemberVariables(context, astChildNamespaceNode->data(), typeInstancesToGenerateNoTagSets);
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
@@ -152,7 +152,7 @@ namespace locic {
 		void AddTypeMemberVariablesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			std::vector<SEM::TypeInstance*> typeInstancesToGenerateNoTagSets;
 			for (auto astNamespaceNode: rootASTNamespaces) {
-				AddNamespaceDataTypeMemberVariables(context, astNamespaceNode->data, typeInstancesToGenerateNoTagSets);
+				AddNamespaceDataTypeMemberVariables(context, astNamespaceNode->data(), typeInstancesToGenerateNoTagSets);
 			}
 			
 			for (const auto& typeInstance: typeInstancesToGenerateNoTagSets) {

@@ -58,10 +58,18 @@ namespace locic {
 		}
 		
 		NamespaceDecl::NamespaceDecl(const String& n, AST::Node<NamespaceData> d)
-		: name(n), data(d) { }
+		: name_(n), data_(d) { }
+		
+		String NamespaceDecl::name() const {
+			return name_;
+		}
+		
+		const AST::Node<NamespaceData>& NamespaceDecl::data() const {
+			return data_;
+		}
 		
 		std::string NamespaceDecl::toString() const {
-			return makeString("NamespaceDecl[name = %s](", name.c_str()) + data->toString() + ")";
+			return makeString("NamespaceDecl[name = %s](", name().c_str()) + data()->toString() + ")";
 		}
 		
 	}

@@ -167,7 +167,7 @@ namespace locic {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
-				const auto& childNamespaceName = astChildNamespaceNode->name;
+				const auto& childNamespaceName = astChildNamespaceNode->name();
 				
 				SEM::Namespace* semChildNamespace = nullptr;
 				
@@ -182,7 +182,7 @@ namespace locic {
 				}
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(*semChildNamespace));
-				AddNamespaceData(context, astChildNamespaceNode->data, moduleScope);
+				AddNamespaceData(context, astChildNamespaceNode->data(), moduleScope);
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
@@ -241,7 +241,7 @@ namespace locic {
 		// Get all namespaces and type names, and build initial type instance structures.
 		void AddGlobalStructuresPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			for (auto astNamespaceNode: rootASTNamespaces) {
-				AddNamespaceData(context, astNamespaceNode->data, SEM::ModuleScope::Internal());
+				AddNamespaceData(context, astNamespaceNode->data(), SEM::ModuleScope::Internal());
 			}
 		}
 		

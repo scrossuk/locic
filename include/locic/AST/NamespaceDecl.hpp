@@ -14,7 +14,7 @@ namespace locic {
 		struct Alias;
 		struct Function;
 		struct ModuleScope;
-		struct NamespaceDecl;
+		class NamespaceDecl;
 		class StaticAssert;
 		struct TypeInstance;
 		
@@ -29,13 +29,20 @@ namespace locic {
 			std::string toString() const;
 		};
 		
-		struct NamespaceDecl {
-			String name;
-			AST::Node<NamespaceData> data;
-			
+		class NamespaceDecl {
+		public:
 			NamespaceDecl(const String& n, AST::Node<NamespaceData> d);
 				
+			String name() const;
+			
+			const AST::Node<NamespaceData>& data() const;
+			
 			std::string toString() const;
+			
+		private:
+			String name_;
+			AST::Node<NamespaceData> data_;
+			
 		};
 		
 		typedef std::vector<Node<NamespaceDecl>> NamespaceList;

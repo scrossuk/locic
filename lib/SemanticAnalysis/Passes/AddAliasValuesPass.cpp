@@ -17,10 +17,10 @@ namespace locic {
 			}
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace.items().at(astChildNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astChildNamespaceNode->name()).nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
-				AddNamespaceDataAliasValues(context, astChildNamespaceNode->data);
+				AddNamespaceDataAliasValues(context, astChildNamespaceNode->data());
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
@@ -31,7 +31,7 @@ namespace locic {
 		// Add alias values.
 		void AddAliasValuesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			for (auto astNamespaceNode: rootASTNamespaces) {
-				AddNamespaceDataAliasValues(context, astNamespaceNode->data);
+				AddNamespaceDataAliasValues(context, astNamespaceNode->data());
 			}
 		}
 		
