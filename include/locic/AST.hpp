@@ -8,7 +8,7 @@
 #include <locic/AST/Function.hpp>
 #include <locic/AST/IfClause.hpp>
 #include <locic/AST/ModuleScope.hpp>
-#include <locic/AST/Namespace.hpp>
+#include <locic/AST/NamespaceDecl.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Predicate.hpp>
 #include <locic/AST/RequireSpecifier.hpp>

@@ -172,7 +172,7 @@ static locic::AST::Node<locic::AST::Value> * mergeValue(LOCIC_PARSER_GENERATEDPA
 	// Structures.
 	locic::AST::Node<locic::AST::Alias>* alias;
 	locic::AST::Node<locic::AST::NamespaceData>* namespaceData;
-	locic::AST::Node<locic::AST::Namespace>* nameSpace;
+	locic::AST::Node<locic::AST::NamespaceDecl>* nameSpace;
 	locic::AST::Node<locic::AST::TypeInstance>* typeInstance;
 	locic::AST::Node<locic::AST::TypeInstanceList>* typeInstanceList;
 	locic::AST::Node<locic::AST::Function>* function;
@@ -536,7 +536,7 @@ start:
 rootNamespace:
 	namespaceData
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::Namespace(parserContext->getCString(""), GETSYM($1))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::NamespaceDecl(parserContext->getCString(""), GETSYM($1))));
 	}
 	;
 
@@ -639,7 +639,7 @@ moduleScope:
 nameSpace:
 	NAMESPACE NAME LCURLYBRACKET namespaceData RCURLYBRACKET
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::Namespace($2, GETSYM($4))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::NamespaceDecl($2, GETSYM($4))));
 	}
 	;
 

@@ -36,7 +36,7 @@ namespace locic{
 					errors_.push_back(Error(message, location));
 				}
 				
-				void fileCompleted(const AST::Node<AST::Namespace>& namespaceNode) {
+				void fileCompleted(const AST::Node<AST::NamespaceDecl>& namespaceNode) {
 					rootNamespaceList_.push_back(namespaceNode);
 				}
 				

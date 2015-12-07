@@ -1,5 +1,5 @@
-#ifndef LOCIC_AST_NAMESPACE_HPP
-#define LOCIC_AST_NAMESPACE_HPP
+#ifndef LOCIC_AST_NAMESPACEDECL_HPP
+#define LOCIC_AST_NAMESPACEDECL_HPP
 
 #include <string>
 #include <vector>
@@ -14,7 +14,7 @@ namespace locic {
 		struct Alias;
 		struct Function;
 		struct ModuleScope;
-		struct Namespace;
+		struct NamespaceDecl;
 		class StaticAssert;
 		struct TypeInstance;
 		
@@ -22,23 +22,23 @@ namespace locic {
 			std::vector< AST::Node<Alias> > aliases;
 			std::vector< AST::Node<Function> > functions;
 			std::vector< AST::Node<ModuleScope> > moduleScopes;
-			std::vector< AST::Node<Namespace> > namespaces;
+			std::vector< AST::Node<NamespaceDecl> > namespaces;
 			std::vector< AST::Node<StaticAssert> > staticAsserts;
 			std::vector< AST::Node<TypeInstance> > typeInstances;
 			
 			std::string toString() const;
 		};
 		
-		struct Namespace {
+		struct NamespaceDecl {
 			String name;
 			AST::Node<NamespaceData> data;
 			
-			Namespace(const String& n, AST::Node<NamespaceData> d);
+			NamespaceDecl(const String& n, AST::Node<NamespaceData> d);
 				
 			std::string toString() const;
 		};
 		
-		typedef std::vector<Node<Namespace>> NamespaceList;
+		typedef std::vector<Node<NamespaceDecl>> NamespaceList;
 		
 	}
 	

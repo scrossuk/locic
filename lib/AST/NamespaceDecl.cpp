@@ -6,7 +6,7 @@
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/ModuleScope.hpp>
-#include <locic/AST/Namespace.hpp>
+#include <locic/AST/NamespaceDecl.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/TypeInstance.hpp>
 
@@ -57,11 +57,11 @@ namespace locic {
 			return s;
 		}
 		
-		Namespace::Namespace(const String& n, AST::Node<NamespaceData> d)
+		NamespaceDecl::NamespaceDecl(const String& n, AST::Node<NamespaceData> d)
 		: name(n), data(d) { }
 		
-		std::string Namespace::toString() const {
-			return makeString("Namespace[name = %s](", name.c_str()) + data->toString() + ")";
+		std::string NamespaceDecl::toString() const {
+			return makeString("NamespaceDecl[name = %s](", name.c_str()) + data->toString() + ")";
 		}
 		
 	}

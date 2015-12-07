@@ -7,7 +7,7 @@
 #include <locic/Support/String.hpp>
 #include <locic/Support/Version.hpp>
 
-#include <locic/AST/Namespace.hpp>
+#include <locic/AST/NamespaceDecl.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/StringList.hpp>
 
