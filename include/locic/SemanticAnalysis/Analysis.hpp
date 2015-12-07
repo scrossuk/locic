@@ -15,7 +15,7 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class Context;
+		class Module;
 		
 	}
 	
@@ -30,7 +30,8 @@ namespace locic {
 		 * 
 		 * TODO: error handling needs to be improved!
 		 */
-		void Run(const SharedMaps& sharedMaps, const AST::NamespaceList& rootASTNamespaces, SEM::Context& semContext, Debug::Module& debugModule);
+		void Run(const SharedMaps& sharedMaps, const AST::NamespaceList& rootASTNamespaces,
+		         SEM::Module& semModule, Debug::Module& debugModule);
 		
 	}
 	

@@ -11,10 +11,8 @@ namespace locic {
 	
 		class ContextImpl {
 		public:
-			ContextImpl()
-			: rootNamespace(new SEM::Namespace()) { }
+			ContextImpl() { }
 			
-			std::unique_ptr<Namespace> rootNamespace;
 			mutable StableSet<FunctionTypeData> functionTypes;
 			mutable StableSet<Type> types;
 		};
@@ -39,10 +37,6 @@ namespace locic {
 		const Type* Context::getType(Type&& type) const {
 			const auto result = impl_->types.insert(std::move(type));
 			return &(*(result.first));
-		}
-		
-		Namespace* Context::rootNamespace() {
-			return impl_->rootNamespace.get();
 		}
 		
 	}

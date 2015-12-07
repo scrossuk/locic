@@ -9,7 +9,6 @@ namespace locic {
 		
 		class FunctionType;
 		class FunctionTypeData;
-		class Namespace;
 		class Type;
 		
 		class Context {
@@ -20,8 +19,6 @@ namespace locic {
 				FunctionType getFunctionType(FunctionTypeData functionType) const;
 				
 				const Type* getType(Type&& type) const;
-				
-				Namespace* rootNamespace();
 				
 			private:
 				// Non-copyable.

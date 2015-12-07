@@ -240,11 +240,13 @@ int main(int argc, char* argv[]) {
 		Debug::Module debugModule;
 		
 		SEM::Context semContext;
+		SEM::Module semModule(semContext);
 		
 		// Perform semantic analysis.
 		{
 			Timer timer;
-			SemanticAnalysis::Run(sharedMaps, astRootNamespaceList, semContext, debugModule);
+			SemanticAnalysis::Run(sharedMaps, astRootNamespaceList,
+			                      semModule, debugModule);
 			
 			if (timingsEnabled) {
 				printf("Semantic Analysis: %f seconds.\n", timer.getTime());
@@ -256,7 +258,7 @@ int main(int argc, char* argv[]) {
 			
 			// If requested, dump SEM tree information.
 			std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
-			ofs << formatMessage(semContext.rootNamespace()->toString());
+			ofs << formatMessage(semModule.rootNamespace().toString());
 			
 			if (timingsEnabled) {
 				printf("Dump SEM: %f seconds.\n", timer.getTime());
@@ -279,7 +281,7 @@ int main(int argc, char* argv[]) {
 		
 		{
 			Timer timer;
-			codeGenerator.genNamespace(semContext.rootNamespace());
+			codeGenerator.genNamespace(&(semModule.rootNamespace()));
 			
 			if (timingsEnabled) {
 				printf("Code Generation: %f seconds.\n", timer.getTime());

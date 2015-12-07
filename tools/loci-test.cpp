@@ -307,10 +307,12 @@ bool runTest(TestOptions& options) {
 		printf("Performing semantic analysis...\n");
 		
 		SEM::Context semContext;
+		SEM::Module semModule(semContext);
 		
 		// TODO: Clean up this try-catch!
 		try {
-			SemanticAnalysis::Run(sharedMaps, astRootNamespaceList, semContext, debugModule);
+			SemanticAnalysis::Run(sharedMaps, astRootNamespaceList,
+			                      semModule, debugModule);
 		} catch (const Exception& e) {
 			if (!options.expectedErrorFileName.empty()) {
 				const auto testError = e.toString();
@@ -332,7 +334,7 @@ bool runTest(TestOptions& options) {
 			// Dump SEM tree information.
 			const auto semDebugFileName = options.testName + "_semdebug.txt";
 			std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
-			ofs << formatMessage(semContext.rootNamespace()->toString());
+			ofs << formatMessage(semModule.rootNamespace().toString());
 		}
 		
 		// Perform code generation.
@@ -342,7 +344,7 @@ bool runTest(TestOptions& options) {
 		CodeGen::Context codeGenContext(sharedMaps, CodeGen::TargetOptions());
 		CodeGen::CodeGenerator codeGenerator(codeGenContext, "test", debugModule, buildOptions);
 		
-		codeGenerator.genNamespace(semContext.rootNamespace());
+		codeGenerator.genNamespace(&(semModule.rootNamespace()));
 		
 		if (options.dumpOutput) {
 			// Dump LLVM IR.
