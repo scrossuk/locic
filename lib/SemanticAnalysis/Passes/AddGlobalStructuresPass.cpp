@@ -232,6 +232,8 @@ namespace locic {
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(*semAlias));
 				context.aliasTypeResolver().addAlias(*semAlias, astAliasNode->value(), context.scopeStack().copy());
 				
+				astAliasNode->setAlias(*semAlias);
+				
 				semNamespace.items().insert(std::make_pair(aliasName, SEM::NamespaceItem::Alias(std::move(semAlias))));
 			}
 			

@@ -67,7 +67,7 @@ namespace locic {
 			}
 			
 			for (auto astAliasNode: astNamespaceDataNode->aliases) {
-				auto& semChildAlias = semNamespace.items().at(astAliasNode->name()).alias();
+				auto& semChildAlias = astAliasNode->alias();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(semChildAlias));
 				AddAliasTemplateVariableTypes(context, astAliasNode);

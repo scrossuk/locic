@@ -10,7 +10,13 @@
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
+	
+	namespace SEM {
+		
+		class Alias;
+		
+	}
+	
 	namespace AST {
 	
 		class AliasDecl {
@@ -25,6 +31,11 @@ namespace locic {
 			void setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier);
 			void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
 			
+			void setAlias(SEM::Alias& alias);
+			
+			SEM::Alias& alias();
+			const SEM::Alias& alias() const;
+			
 			std::string toString() const;
 			
 		private:
@@ -32,6 +43,7 @@ namespace locic {
 			Node<TemplateTypeVarList> templateVariables_;
 			Node<RequireSpecifier> requireSpecifier_;
 			AST::Node<AST::Value> value_;
+			SEM::Alias* alias_;
 			
 		};
 		
