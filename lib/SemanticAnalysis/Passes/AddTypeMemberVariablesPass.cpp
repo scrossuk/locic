@@ -92,7 +92,7 @@ namespace locic {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace.items().at(astChildNamespaceNode->name()).nameSpace();
+				auto& semChildNamespace = astChildNamespaceNode->nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				AddNamespaceDataTypeMemberVariables(context, astChildNamespaceNode->data(), typeInstancesToGenerateNoTagSets);

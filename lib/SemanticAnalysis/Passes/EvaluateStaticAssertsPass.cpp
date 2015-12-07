@@ -10,8 +10,6 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void EvaluateNamespaceStaticAsserts(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
-			auto& semNamespace = context.scopeStack().back().nameSpace();
-			
 			for (const auto& astStaticAssertNode: astNamespaceDataNode->staticAsserts) {
 				const auto& astPredicateNode = astStaticAssertNode->expression();
 				const auto semPredicate = ConvertPredicate(context, astPredicateNode);
@@ -26,7 +24,7 @@ namespace locic {
 			}
 			
 			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name()).nameSpace();
+				auto& semChildNamespace = astNamespaceNode->nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				EvaluateNamespaceStaticAsserts(context, astNamespaceNode->data());

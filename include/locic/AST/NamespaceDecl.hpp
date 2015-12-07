@@ -9,6 +9,12 @@
 
 namespace locic {
 	
+	namespace SEM {
+		
+		class Namespace;
+		
+	}
+	
 	namespace AST {
 		
 		struct Alias;
@@ -37,11 +43,17 @@ namespace locic {
 			
 			const AST::Node<NamespaceData>& data() const;
 			
+			void setNamespace(SEM::Namespace& nameSpace);
+			
+			SEM::Namespace& nameSpace();
+			const SEM::Namespace& nameSpace() const;
+			
 			std::string toString() const;
 			
 		private:
 			String name_;
 			AST::Node<NamespaceData> data_;
+			SEM::Namespace* namespace_;
 			
 		};
 		

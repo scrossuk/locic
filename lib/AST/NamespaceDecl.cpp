@@ -58,7 +58,7 @@ namespace locic {
 		}
 		
 		NamespaceDecl::NamespaceDecl(const String& n, AST::Node<NamespaceData> d)
-		: name_(n), data_(d) { }
+		: name_(n), data_(d), namespace_(nullptr) { }
 		
 		String NamespaceDecl::name() const {
 			return name_;
@@ -66,6 +66,21 @@ namespace locic {
 		
 		const AST::Node<NamespaceData>& NamespaceDecl::data() const {
 			return data_;
+		}
+		
+		void NamespaceDecl::setNamespace(SEM::Namespace& nameSpace) {
+			assert(namespace_ == nullptr);
+			namespace_ = &nameSpace;
+		}
+		
+		SEM::Namespace& NamespaceDecl::nameSpace() {
+			assert(namespace_ != nullptr);
+			return *namespace_;
+		}
+		
+		const SEM::Namespace& NamespaceDecl::nameSpace() const {
+			assert(namespace_ != nullptr);
+			return *namespace_;
 		}
 		
 		std::string NamespaceDecl::toString() const {

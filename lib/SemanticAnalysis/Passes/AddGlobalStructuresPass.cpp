@@ -181,6 +181,8 @@ namespace locic {
 					semChildNamespace = &(iterator->second.nameSpace());
 				}
 				
+				astChildNamespaceNode->setNamespace(*semChildNamespace);
+				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(*semChildNamespace));
 				AddNamespaceData(context, astChildNamespaceNode->data(), moduleScope);
 			}

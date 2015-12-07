@@ -60,7 +60,7 @@ namespace locic {
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name()).nameSpace();
+				auto& semChildNamespace = astNamespaceNode->nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				AddNamespaceDataTypeTemplateVariableTypes(context, astNamespaceNode->data());

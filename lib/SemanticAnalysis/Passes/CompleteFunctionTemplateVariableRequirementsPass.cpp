@@ -78,7 +78,7 @@ namespace locic {
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name()).nameSpace();
+				auto& semChildNamespace = astNamespaceNode->nameSpace();
 				
 				PushScopeElement pushNamespace(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				CompleteNamespaceDataFunctionTemplateVariableRequirements(context, astNamespaceNode->data());
