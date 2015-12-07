@@ -722,6 +722,7 @@ namespace locic {
 					
 					const auto isFirstType = (first->kind() == AST::Value::TYPEREF);
 					const auto isSecondType = (second->kind() == AST::Value::TYPEREF);
+					(void) isSecondType;
 					
 					// We're expecting to see an ambiguity
 					// between types and values where an
