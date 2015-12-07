@@ -24,7 +24,7 @@ namespace locic {
 				
 				// Push root namespace on to the stack.
 				PushScopeElement pushScopeElement(context.scopeStack(),
-				                                  ScopeElement::Namespace(&(semModule.rootNamespace())));
+				                                  ScopeElement::Namespace(semModule.rootNamespace()));
 				
 				// ---- Add namespaces, type names and template variables.
 				AddGlobalStructuresPass(context, rootASTNamespaces);

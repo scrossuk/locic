@@ -49,7 +49,7 @@ namespace locic {
 			auto outerScope = SEM::Scope::Create();
 			
 			{
-				PushScopeElement pushOuterScope(context.scopeStack(), ScopeElement::Scope(outerScope.get()));
+				PushScopeElement pushOuterScope(context.scopeStack(), ScopeElement::Scope(*outerScope));
 				
 				auto initValue = ConvertValue(context, astInitValueNode);
 				
@@ -73,7 +73,7 @@ namespace locic {
 					auto iterationScope = SEM::Scope::Create();
 					
 					{
-						PushScopeElement pushIterationScope(context.scopeStack(), ScopeElement::Scope(iterationScope.get()));
+						PushScopeElement pushIterationScope(context.scopeStack(), ScopeElement::Scope(*iterationScope));
 						
 						auto currentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, *initVarPtr), context.getCString("front"), location), {}, location);
 						

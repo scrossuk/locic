@@ -18,10 +18,10 @@ namespace locic {
 	
 		SEM::Function& findNamespaceFunction(Context& context, const Name& name) {
 			assert(!name.empty());
-			const auto semNamespace = context.scopeStack().back().nameSpace();
+			auto& semNamespace = context.scopeStack().back().nameSpace();
 			if (name.size() == 1) {
 				// Normal namespace function.
-				return semNamespace->items().at(name.last()).function();
+				return semNamespace.items().at(name.last()).function();
 			} else {
 				// Extension method.
 				const auto searchResult = performSearch(context, name.getPrefix());
@@ -31,30 +31,30 @@ namespace locic {
 		
 		void ConvertNamespaceFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
 			const auto& name = astFunctionNode->name();
-			const auto semNamespace = context.scopeStack().back().nameSpace();
+			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			if (name->size() == 1) {
 				// Normal namespace function.
-				auto& semChildFunction = semNamespace->items().at(name->last()).function();
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(&semChildFunction));
+				auto& semChildFunction = semNamespace.items().at(name->last()).function();
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
 				ConvertFunctionDef(context, astFunctionNode);
 			} else {
 				// Extension method.
 				const auto searchResult = performSearch(context, name->getPrefix());
 				const auto semTypeInstance = searchResult.typeInstance();
 				
-				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semTypeInstance));
+				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(*semTypeInstance));
 				
 				auto& semChildFunction = semTypeInstance->functions().at(CanonicalizeMethodName(name->last()));
 				
-				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction.get()));
+				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*semChildFunction));
 				
 				ConvertFunctionDef(context, astFunctionNode);
 			}
 		}
 		
 		void ConvertNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
-			const auto semNamespace = context.scopeStack().back().nameSpace();
+			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (auto astFunctionNode: astNamespaceDataNode->functions) {
 				ConvertNamespaceFunctionDef(context, astFunctionNode);
@@ -65,24 +65,24 @@ namespace locic {
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name).nameSpace();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(&semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				ConvertNamespaceData(context, astNamespaceNode->data);
 			}
 			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				{
-					auto& semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+					auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 					
-					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(&semChildTypeInstance));
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 					ConvertTypeInstance(context, astTypeInstanceNode);
 				}
 				
 				for (const auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-					auto& semVariantTypeInstance = semNamespace->items().at(astVariantNode->name).typeInstance();
+					auto& semVariantTypeInstance = semNamespace.items().at(astVariantNode->name).typeInstance();
 					
-					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(&semVariantTypeInstance));
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semVariantTypeInstance));
 					ConvertTypeInstance(context, astTypeInstanceNode);
 				}
 			}

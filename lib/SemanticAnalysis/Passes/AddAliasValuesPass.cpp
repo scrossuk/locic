@@ -8,18 +8,18 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void AddNamespaceDataAliasValues(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
-			const auto semNamespace = context.scopeStack().back().nameSpace();
+			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astAliasNode: astNamespaceDataNode->aliases) {
-				auto& semAlias = semNamespace->items().at(astAliasNode->name).alias();
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(&semAlias));
+				auto& semAlias = semNamespace.items().at(astAliasNode->name).alias();
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(semAlias));
 				semAlias.setValue(ConvertValue(context, astAliasNode->value));
 			}
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace->items().at(astChildNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astChildNamespaceNode->name).nameSpace();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(&semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				AddNamespaceDataAliasValues(context, astChildNamespaceNode->data);
 			}
 			

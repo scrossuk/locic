@@ -33,7 +33,7 @@ namespace locic {
 				const auto& element = scopeStack[pos];
 				
 				if (element.isTypeInstance()) {
-					return element.typeInstance();
+					return &(element.typeInstance());
 				}
 			}
 			
@@ -46,7 +46,7 @@ namespace locic {
 				const auto& element = scopeStack[pos];
 				
 				if (element.isFunction()) {
-					return element.function();
+					return &(element.function());
 				}
 			}
 			
@@ -59,11 +59,11 @@ namespace locic {
 				const auto& element = scopeStack[pos];
 				
 				if (element.isFunction()) {
-					return element.function();
+					return &(element.function());
 				} else if (element.isAlias()) {
-					return element.alias();
+					return &(element.alias());
 				} else if (element.isTypeInstance()) {
-					return element.typeInstance();
+					return &(element.typeInstance());
 				}
 			}
 			
@@ -81,8 +81,8 @@ namespace locic {
 			const auto rootElement = scopeStack[0];
 			assert(rootElement.isNamespace());
 			
-			const auto iterator = rootElement.nameSpace()->items().find(typeName);
-			assert(iterator != rootElement.nameSpace()->items().end() && "Failed to find built-in type!");
+			const auto iterator = rootElement.nameSpace().items().find(typeName);
+			assert(iterator != rootElement.nameSpace().items().end() && "Failed to find built-in type!");
 			return iterator->second;
 		}
 		

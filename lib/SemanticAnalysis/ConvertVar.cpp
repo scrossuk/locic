@@ -34,15 +34,15 @@ namespace locic {
 			
 			std::pair<FastMap<String, SEM::Var*>::iterator, bool> insertVar(const ScopeElement& element, const String& name, SEM::Var* var) {
 				if (element.isScope()) {
-					return element.scope()->namedVariables().insert(std::make_pair(name, var));
+					return element.scope().namedVariables().insert(std::make_pair(name, var));
 				} else if (element.isSwitchCase()) {
-					return element.switchCase()->namedVariables().insert(std::make_pair(name, var));
+					return element.switchCase().namedVariables().insert(std::make_pair(name, var));
 				} else if (element.isCatchClause()) {
-					return element.catchClause()->namedVariables().insert(std::make_pair(name, var));
+					return element.catchClause().namedVariables().insert(std::make_pair(name, var));
 				} else if (element.isFunction()) {
-					return element.function()->namedVariables().insert(std::make_pair(name, var));
+					return element.function().namedVariables().insert(std::make_pair(name, var));
 				} else if (element.isTypeInstance()) {
-					return element.typeInstance()->namedVariables().insert(std::make_pair(name, var));
+					return element.typeInstance().namedVariables().insert(std::make_pair(name, var));
 				} else {
 					assert(false && "Invalid element kind for inserting var.");
 					throw std::logic_error("Invalid element kind for inserting var.");

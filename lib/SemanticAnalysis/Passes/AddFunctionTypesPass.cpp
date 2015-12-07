@@ -13,7 +13,7 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void AddNamespaceDataFunctionTypes(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
-			const auto semNamespace = context.scopeStack().back().nameSpace();
+			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (auto astFunctionNode: astNamespaceDataNode->functions) {
 				auto& semChildFunction = findNamespaceFunction(context, *(astFunctionNode->name()));
@@ -28,7 +28,7 @@ namespace locic {
 					
 					// Push the type instance on the scope stack, since the extension method is
 					// effectively within the scope of the type instance.
-					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(parentTypeInstance));
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*parentTypeInstance));
 					ConvertFunctionDeclType(context, semChildFunction);
 				}
 			}
@@ -38,16 +38,16 @@ namespace locic {
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name).nameSpace();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(&semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				AddNamespaceDataFunctionTypes(context, astNamespaceNode->data);
 			}
 			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(&semChildTypeInstance));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
 					const auto methodName = CanonicalizeMethodName(astFunctionNode->name()->last());
 					auto& semChildFunction = semChildTypeInstance.functions().at(methodName);

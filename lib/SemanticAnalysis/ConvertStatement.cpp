@@ -98,16 +98,14 @@ namespace locic {
 					
 					std::vector<SEM::SwitchCase*> caseList;
 					for (const auto& astCase: *(statement->switchStmt.caseList)) {
-						const auto semCase = new SEM::SwitchCase();
+						std::unique_ptr<SEM::SwitchCase> semCase(new SEM::SwitchCase());
 						
 						{
-							PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::SwitchCase(semCase));
+							PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::SwitchCase(*semCase));
 							
 							semCase->setVar(ConvertVar(context, Debug::VarInfo::VAR_LOCAL, astCase->var));
 							semCase->setScope(ConvertScope(context, astCase->scope));
 						}
-						
-						caseList.push_back(semCase);
 						
 						const auto caseType = semCase->var().constructType();
 						const auto insertResult = switchCaseTypes.insert(std::make_pair(caseType->getObjectType(), caseType));
@@ -118,6 +116,8 @@ namespace locic {
 								(insertResult.first->first)->refToString().c_str(),
 								location.toString().c_str()));
 						}
+						
+						caseList.push_back(semCase.release());
 					}
 					
 					if (caseList.empty()) {
@@ -219,7 +219,7 @@ namespace locic {
 					for (const auto& astCatch: *(statement->tryStmt.catchList)) {
 						std::unique_ptr<SEM::CatchClause> semCatch(new SEM::CatchClause());
 						
-						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::CatchClause(semCatch.get()));
+						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::CatchClause(*semCatch));
 						
 						const auto& astVar = astCatch->var;
 						
@@ -290,10 +290,10 @@ namespace locic {
 					assert(!semVar->isAny());
 					
 					// Add the variable to the SEM scope.
-					const auto semScope = context.scopeStack().back().scope();
+					auto& semScope = context.scopeStack().back().scope();
 					
 					const auto varPtr = semVar.get();
-					semScope->variables().push_back(semVar.release());
+					semScope.variables().push_back(semVar.release());
 					
 					// Generate the initialise statement.
 					return SEM::Statement::InitialiseStmt(varPtr, std::move(semInitialiseValue));

@@ -146,19 +146,19 @@ namespace locic {
 		
 		SearchResult performInnerSearch(const ScopeElement& element, const Name& name) {
 			if (element.isNamespace()) {
-				return performNamespaceSearch(*(element.nameSpace()), name, 0);
+				return performNamespaceSearch(element.nameSpace(), name, 0);
 			} else if (element.isFunction()) {
-				return performInnerFunctionSearch(*(element.function()), name);
+				return performInnerFunctionSearch(element.function(), name);
 			} else if (element.isAlias()) {
-				return performInnerAliasSearch(*(element.alias()), name);
+				return performInnerAliasSearch(element.alias(), name);
 			} else if (element.isTypeInstance()) {
-				return performInnerTypeInstanceSearch(*(element.typeInstance()), name);
+				return performInnerTypeInstanceSearch(element.typeInstance(), name);
 			} else if (element.isScope()) {
-				return performInnerScopeSearch(element.scope(), name);
+				return performInnerScopeSearch(&(element.scope()), name);
 			} else if (element.isSwitchCase()) {
-				return performInnerSwitchCaseSearch(element.switchCase(), name);
+				return performInnerSwitchCaseSearch(&(element.switchCase()), name);
 			} else if (element.isCatchClause()) {
-				return performInnerCatchClauseSearch(element.catchClause(), name);
+				return performInnerCatchClauseSearch(&(element.catchClause()), name);
 			} else {
 				return SearchResult::None();
 			}

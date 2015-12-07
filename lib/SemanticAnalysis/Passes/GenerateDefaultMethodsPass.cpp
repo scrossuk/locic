@@ -104,8 +104,8 @@ namespace locic {
 		}
 		
 		void GenerateDefaultMethodsPass(Context& context) {
-			const auto semNamespace = context.scopeStack().back().nameSpace();
-			GenerateNamespaceDefaultMethods(context, *semNamespace);
+			auto& semNamespace = context.scopeStack().back().nameSpace();
+			GenerateNamespaceDefaultMethods(context, semNamespace);
 			
 			// All methods are now known so we can start producing method sets.
 			context.setMethodSetsComplete();

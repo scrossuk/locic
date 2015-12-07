@@ -10,7 +10,7 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void CompleteAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::Alias>& astAliasNode) {
-			const auto alias = context.scopeStack().back().alias();
+			auto& alias = context.scopeStack().back().alias();
 			
 			// Add any requirements in require() specifier.
 			auto predicate =
@@ -21,7 +21,7 @@ namespace locic {
 			// Add requirements specified inline for template variables.
 			for (auto astTemplateVarNode: *(astAliasNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = alias->namedTemplateVariables().at(templateVarName);
+				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
 				
 				const auto& astSpecType = astTemplateVarNode->specType;
 				
@@ -37,11 +37,11 @@ namespace locic {
 				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
 			
-			alias->setRequiresPredicate(std::move(predicate));
+			alias.setRequiresPredicate(std::move(predicate));
 		}
 		
 		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
-			const auto typeInstance = context.scopeStack().back().typeInstance();
+			auto& typeInstance = context.scopeStack().back().typeInstance();
 			
 			// Add any requirements in move() specifier, if any is provided.
 			auto movePredicate =
@@ -58,7 +58,7 @@ namespace locic {
 			// Add requirements specified inline for template variables.
 			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = typeInstance->namedTemplateVariables().at(templateVarName);
+				const auto semTemplateVar = typeInstance.namedTemplateVariables().at(templateVarName);
 				
 				const auto& astSpecType = astTemplateVarNode->specType;
 				
@@ -75,7 +75,7 @@ namespace locic {
 			}
 			
 			// Copy requires predicate to all variant types.
-			for (const auto variantTypeInstance: typeInstance->variants()) {
+			for (const auto variantTypeInstance: typeInstance.variants()) {
 				if (movePredicate) {
 					variantTypeInstance->setMovePredicate(movePredicate->copy());
 				}
@@ -83,36 +83,36 @@ namespace locic {
 			}
 			
 			if (movePredicate) {
-				typeInstance->setMovePredicate(std::move(*movePredicate));
+				typeInstance.setMovePredicate(std::move(*movePredicate));
 			}
-			typeInstance->setRequiresPredicate(std::move(requirePredicate));
+			typeInstance.setRequiresPredicate(std::move(requirePredicate));
 		}
 		
 		void CompleteNamespaceDataTypeTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
-			const auto semNamespace = context.scopeStack().back().nameSpace();
+			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
 				CompleteNamespaceDataTypeTemplateVariableRequirements(context, astModuleScopeNode->data);
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name).nameSpace();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(&semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				CompleteNamespaceDataTypeTemplateVariableRequirements(context, astNamespaceNode->data);
 			}
 			
 			for (auto astAliasNode: astNamespaceDataNode->aliases) {
-				auto& semChildAlias = semNamespace->items().at(astAliasNode->name).alias();
+				auto& semChildAlias = semNamespace.items().at(astAliasNode->name).alias();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(&semChildAlias));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(semChildAlias));
 				CompleteAliasTemplateVariableRequirements(context, astAliasNode);
 			}
 			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(&semChildTypeInstance));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 				CompleteTypeInstanceTemplateVariableRequirements(context, astTypeInstanceNode);
 			}
 		}

@@ -175,24 +175,24 @@ namespace locic {
 		}
 		
 		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
-			const auto semFunction = context.scopeStack().back().function();
+			auto& semFunction = context.scopeStack().back().function();
 			
 			// Function should currently be a declaration
 			// (it is about to be made into a definition).
-			assert(semFunction->isDeclaration());
+			assert(semFunction.isDeclaration());
 			
-			const auto functionType = semFunction->type();
+			const auto functionType = semFunction.type();
 			
 			if (!supportsMove(context, functionType.returnType())) {
 				throw ErrorException(makeString("Return type '%s' of function '%s' is not movable, at position %s.",
 					functionType.returnType()->toString().c_str(),
-					semFunction->name().toString().c_str(),
+					semFunction.name().toString().c_str(),
 					astFunctionNode.location().toString().c_str()));
 			}
 			
 			if (astFunctionNode->isDefaultDefinition()) {
 				// Has a default definition.
-				CreateDefaultMethod(context, lookupParentType(context.scopeStack()), semFunction, astFunctionNode.location());
+				CreateDefaultMethod(context, lookupParentType(context.scopeStack()), &semFunction, astFunctionNode.location());
 				return;
 			}
 			
@@ -216,7 +216,7 @@ namespace locic {
 				if (!returnType->isBuiltInVoid()) {
 					// Functions with non-void return types must return a value.
 					throw ErrorException(makeString("Control reaches end of function '%s' with non-void return type; it needs a return statement, at location %s.",
-						semFunction->name().toString().c_str(),
+						semFunction.name().toString().c_str(),
 						astFunctionNode.location().toString().c_str()));
 				} else {
 					// Need to add a void return statement if the program didn't.
@@ -232,22 +232,22 @@ namespace locic {
 			if (!declaredNoexceptPredicate.implies(actualNoexceptPredicate)) {
 				if (declaredNoexceptPredicate.isTrue() && actualNoexceptPredicate.isFalse()) {
 					throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw, at location %s.",
-					                                semFunction->name().toString().c_str(),
+					                                semFunction.name().toString().c_str(),
 					                                astFunctionNode.location().toString().c_str()));
 				}
 				
 				throw ErrorException(makeString("Function '%s' has noexcept predicate '%s' which isn't implied by explicitly declared noexcept predicate '%s', at location %s.",
-					semFunction->name().toString().c_str(),
+					semFunction.name().toString().c_str(),
 					exitStates.noexceptPredicate().toString().c_str(),
 					functionType.attributes().noExceptPredicate().toString().c_str(),
 					astFunctionNode.location().toString().c_str()));
 			}
 			
-			semFunction->setScope(std::move(semScope));
+			semFunction.setScope(std::move(semScope));
 			
 			// Check all variables are either used and not marked unused,
 			// or are unused and marked as such.
-			for (const auto& varPair: semFunction->namedVariables()) {
+			for (const auto& varPair: semFunction.namedVariables()) {
 				const auto& varName = varPair.first;
 				const auto& var = varPair.second;
 				if (var->isUsed() && var->isMarkedUnused()) {
@@ -255,13 +255,13 @@ namespace locic {
 					assert(debugInfo);
 					const auto& location = debugInfo->declLocation;
 					throw ErrorException(makeString("Parameter variable '%s' is marked unused but is used in function '%s', at position %s.",
-						varName.c_str(), semFunction->name().toString().c_str(), location.toString().c_str()));
+						varName.c_str(), semFunction.name().toString().c_str(), location.toString().c_str()));
 				} else if (!var->isUsed() && !var->isMarkedUnused()) {
 					const auto& debugInfo = var->debugInfo();
 					assert(debugInfo);
 					const auto& location = debugInfo->declLocation;
 					throw ErrorException(makeString("Parameter variable '%s' is unused in function '%s', at position %s.",
-						varName.c_str(), semFunction->name().toString().c_str(), location.toString().c_str()));
+						varName.c_str(), semFunction.name().toString().c_str(), location.toString().c_str()));
 				}
 			}
 			

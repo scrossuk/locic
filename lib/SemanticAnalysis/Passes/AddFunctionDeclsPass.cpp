@@ -71,8 +71,8 @@ namespace locic {
 			
 			const auto moduleScope = getFunctionScope(astFunctionNode, parentModuleScope);
 			
-			const bool isParentInterface = topElement.isTypeInstance() && topElement.typeInstance()->isInterface();
-			const bool isParentPrimitive = topElement.isTypeInstance() && topElement.typeInstance()->isPrimitive();
+			const bool isParentInterface = topElement.isTypeInstance() && topElement.typeInstance().isInterface();
+			const bool isParentPrimitive = topElement.isTypeInstance() && topElement.typeInstance().isPrimitive();
 			
 			switch (moduleScope.kind()) {
 				case SEM::ModuleScope::INTERNAL: {
@@ -105,8 +105,9 @@ namespace locic {
 				assert(topElement.isTypeInstance());
 				
 				// Create the declaration for the default method.
-				return CreateDefaultMethodDecl(context, topElement.typeInstance(), astFunctionNode->isStatic(),
-					fullName, astFunctionNode.location());
+				return CreateDefaultMethodDecl(context, &(topElement.typeInstance()),
+				                               astFunctionNode->isStatic(),
+				                               fullName, astFunctionNode.location());
 			}
 			
 			auto semFunction = ConvertFunctionDecl(context, astFunctionNode, moduleScope.copy());
@@ -118,24 +119,24 @@ namespace locic {
 		}
 		
 		void AddNamespaceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
-			const auto parentNamespace = context.scopeStack().back().nameSpace();
+			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
 			const auto& name = astFunctionNode->name();
 			assert(!name->empty());
 			
 			if (name->size() == 1) {
 				// Just a normal function.
-				const auto fullName = parentNamespace->name() + name->last();
+				const auto fullName = parentNamespace.name() + name->last();
 				
-				const auto iterator = parentNamespace->items().find(name->last());
-				if (iterator != parentNamespace->items().end()) {
+				const auto iterator = parentNamespace.items().find(name->last());
+				if (iterator != parentNamespace.items().end()) {
 					throw ErrorException(makeString("Function name '%s' clashes with existing name, at position %s.",
 						fullName.toString().c_str(), name.location().toString().c_str()));
 				}
 				
 				auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 				
-				parentNamespace->items().insert(std::make_pair(name->last(), SEM::NamespaceItem::Function(std::move(semFunction))));
+				parentNamespace.items().insert(std::make_pair(name->last(), SEM::NamespaceItem::Function(std::move(semFunction))));
 			} else {
 				// An extension method; search for the parent type.
 				assert(name->size() > 1);
@@ -150,11 +151,11 @@ namespace locic {
 						name->toString().c_str(), name.location().toString().c_str()));
 				}
 				
-				const auto parentTypeInstance = searchResult.typeInstance();
+				const auto& parentTypeInstance = searchResult.typeInstance();
 				
 				// Push the type instance on the scope stack, since the extension method is
 				// effectively within the scope of the type instance.
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(parentTypeInstance));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*parentTypeInstance));
 				
 				const auto fullName = parentTypeInstance->name() + name->last();
 				
@@ -165,39 +166,39 @@ namespace locic {
 		}
 		
 		void AddTypeInstanceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
-			const auto parentTypeInstance = context.scopeStack().back().typeInstance();
+			auto& parentTypeInstance = context.scopeStack().back().typeInstance();
 			
 			const auto& name = astFunctionNode->name()->last();
 			auto canonicalMethodName = CanonicalizeMethodName(name);
-			const auto fullName = parentTypeInstance->name() + name;
+			const auto fullName = parentTypeInstance.name() + name;
 			
-			const auto iterator = parentTypeInstance->functions().find(canonicalMethodName);
-			if (iterator != parentTypeInstance->functions().end()) {
+			const auto iterator = parentTypeInstance.functions().find(canonicalMethodName);
+			if (iterator != parentTypeInstance.functions().end()) {
 				throw ErrorException(makeString("Function name '%s' clashes with existing name, at position %s.",
 					fullName.toString().c_str(), astFunctionNode->name().location().toString().c_str()));
 			}
 			
 			auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 			
-			parentTypeInstance->functions().insert(std::make_pair(std::move(canonicalMethodName), std::move(semFunction)));
+			parentTypeInstance.functions().insert(std::make_pair(std::move(canonicalMethodName), std::move(semFunction)));
 		}
 		
 		void AddEnumConstructorDecls(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
-			const auto semTypeInstance = context.scopeStack().back().typeInstance();
+			auto& semTypeInstance = context.scopeStack().back().typeInstance();
 			
 			for (const auto& constructorName: *(astTypeInstanceNode->constructors)) {
 				const auto canonicalMethodName = CanonicalizeMethodName(constructorName);
-				auto fullName = semTypeInstance->name() + constructorName;
+				auto fullName = semTypeInstance.name() + constructorName;
 				
-				const auto iterator = semTypeInstance->functions().find(canonicalMethodName);
-				if (iterator != semTypeInstance->functions().end()) {
+				const auto iterator = semTypeInstance.functions().find(canonicalMethodName);
+				if (iterator != semTypeInstance.functions().end()) {
 				throw ErrorException(makeString("Enum constructor name '%s' clashes with existing name, at position %s.",
 					fullName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
 				}
 				
-				std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*semTypeInstance),
-				                                                             std::move(fullName), semTypeInstance->moduleScope().copy()));
-				semFunction->setDebugInfo(makeDefaultFunctionInfo(*semTypeInstance, *semFunction));
+				std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(semTypeInstance),
+				                                                             std::move(fullName), semTypeInstance.moduleScope().copy()));
+				semFunction->setDebugInfo(makeDefaultFunctionInfo(semTypeInstance, *semFunction));
 				
 				semFunction->setMethod(true);
 				semFunction->setStaticMethod(true);
@@ -206,17 +207,17 @@ namespace locic {
 				const bool isDynamicMethod = false;
 				const bool isTemplatedMethod = false;
 				auto noExceptPredicate = SEM::Predicate::True();
-				const auto returnType = semTypeInstance->selfType();
+				const auto returnType = semTypeInstance.selfType();
 				
 				SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
 				semFunction->setType(SEM::FunctionType(std::move(attributes), returnType, {}));
 				
-				semTypeInstance->functions().insert(std::make_pair(canonicalMethodName, std::move(semFunction)));
+				semTypeInstance.functions().insert(std::make_pair(canonicalMethodName, std::move(semFunction)));
 			}
 		}
 		
 		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
-			const auto semNamespace = context.scopeStack().back().nameSpace();
+			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (auto astFunctionNode: astNamespaceDataNode->functions) {
 				AddNamespaceFunctionDecl(context, astFunctionNode, moduleScope);
@@ -228,16 +229,16 @@ namespace locic {
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name).nameSpace();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(&semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data, moduleScope);
 			}
 			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(&semChildTypeInstance));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
 					AddTypeInstanceFunctionDecl(context, astFunctionNode, moduleScope);
 				}

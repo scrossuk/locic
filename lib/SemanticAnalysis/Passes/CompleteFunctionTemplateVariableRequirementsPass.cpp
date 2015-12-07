@@ -12,14 +12,14 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void CompleteFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::Predicate& parentRequiresPredicate) {
-			const auto function = context.scopeStack().back().function();
+			auto& function = context.scopeStack().back().function();
 			
 			// Add any requirements specified by parent.
 			auto predicate = parentRequiresPredicate.copy();
 			
 			// Add previous requirements added by default methods.
 			predicate = SEM::Predicate::And(std::move(predicate),
-			                                function->requiresPredicate().copy());
+			                                function.requiresPredicate().copy());
 			
 			// Add any requirements in require() specifier.
 			if (!astFunctionNode->requireSpecifier().isNull()) {
@@ -29,7 +29,7 @@ namespace locic {
 			// Add requirements specified inline for template variables.
 			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
 				const auto& templateVarName = astTemplateVarNode->name;
-				const auto semTemplateVar = function->namedTemplateVariables().at(templateVarName);
+				const auto semTemplateVar = function.namedTemplateVariables().at(templateVarName);
 				
 				const auto& astSpecType = astTemplateVarNode->specType;
 				
@@ -45,11 +45,11 @@ namespace locic {
 				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
 			
-			function->setRequiresPredicate(std::move(predicate));
+			function.setRequiresPredicate(std::move(predicate));
 		}
 		
 		void CompleteNamespaceDataFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
-			const auto semNamespace = context.scopeStack().back().nameSpace();
+			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (auto astFunctionNode: astNamespaceDataNode->functions) {
 				auto& semChildFunction = findNamespaceFunction(context, *(astFunctionNode->name()));
@@ -58,7 +58,7 @@ namespace locic {
 				assert(!name->empty());
 				
 				if (name->size() == 1) {
-					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(&semChildFunction));
+					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
 					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, SEM::Predicate::True());
 				} else {
 					const auto searchResult = performSearch(context, name->getPrefix());
@@ -66,8 +66,8 @@ namespace locic {
 					
 					// Push the type instance on the scope stack, since the extension method is
 					// effectively within the scope of the type instance.
-					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(parentTypeInstance));
-					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(&semChildFunction));
+					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(*parentTypeInstance));
+					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
 					
 					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, parentTypeInstance->requiresPredicate());
 				}
@@ -78,21 +78,21 @@ namespace locic {
 			}
 			
 			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace->items().at(astNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astNamespaceNode->name).nameSpace();
 				
-				PushScopeElement pushNamespace(context.scopeStack(), ScopeElement::Namespace(&semChildNamespace));
+				PushScopeElement pushNamespace(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				CompleteNamespaceDataFunctionTemplateVariableRequirements(context, astNamespaceNode->data);
 			}
 			
 			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
-				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(&semChildTypeInstance));
+				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 				for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
 					const auto methodName = CanonicalizeMethodName(astFunctionNode->name()->last());
 					auto& semChildFunction = semChildTypeInstance.functions().at(methodName);
 					
-					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction.get()));
+					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*semChildFunction));
 					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, semChildTypeInstance.requiresPredicate());
 				}
 			}

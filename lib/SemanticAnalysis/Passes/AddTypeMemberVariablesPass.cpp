@@ -12,18 +12,18 @@ namespace locic {
 		// Fill in type instance structures with member variable information.
 		void AddTypeInstanceMemberVariables(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
 				std::vector<SEM::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
-			const auto semTypeInstance = context.scopeStack().back().typeInstance();
+			auto& semTypeInstance = context.scopeStack().back().typeInstance();
 			
-			assert(semTypeInstance->variables().empty());
-			assert(semTypeInstance->constructTypes().empty());
+			assert(semTypeInstance.variables().empty());
+			assert(semTypeInstance.constructTypes().empty());
 			
-			if (semTypeInstance->isEnum()) {
+			if (semTypeInstance.isEnum()) {
 				// Enums have underlying type 'int'.
 				const auto underlyingType = getBuiltInType(context, context.getCString("int_t"), {});
-				semTypeInstance->attachVariable(SEM::Var::Basic(underlyingType, underlyingType));
+				semTypeInstance.attachVariable(SEM::Var::Basic(underlyingType, underlyingType));
 			}
 			
-			if (semTypeInstance->isException()) {
+			if (semTypeInstance.isException()) {
 				// Add exception type parent using initializer.
 				const auto& astInitializerNode = astTypeInstanceNode->initializer;
 				if (astInitializerNode->kind == AST::ExceptionInitializer::INITIALIZE) {
@@ -42,7 +42,7 @@ namespace locic {
 						
 						if (childType->isObject()) {
 							const auto childTypeInstance = childType->getObjectType();
-							if (childTypeInstance == semTypeInstance) {
+							if (childTypeInstance == &semTypeInstance) {
 								throw ErrorException(makeString("Circular reference for exception type '%s' at location %s.",
 									semType->toString().c_str(), astInitializerNode.location().toString().c_str()));
 							}
@@ -61,10 +61,10 @@ namespace locic {
 					
 					visitor(&visitor, semType);
 					
-					semTypeInstance->setParentType(semType);
+					semTypeInstance.setParentType(semType);
 					
 					// Also add parent as first member variable.
-					semTypeInstance->attachVariable(SEM::Var::Basic(semType, semType));
+					semTypeInstance.attachVariable(SEM::Var::Basic(semType, semType));
 				}
 			}
 			
@@ -78,23 +78,23 @@ namespace locic {
 				assert(var->isBasic());
 				
 				// Add mapping from position to variable.
-				semTypeInstance->attachVariable(std::move(var));
+				semTypeInstance.attachVariable(std::move(var));
 			}
 			
-			if (astTypeInstanceNode->noTagSet.isNull() && !semTypeInstance->isPrimitive()) {
+			if (astTypeInstanceNode->noTagSet.isNull() && !semTypeInstance.isPrimitive()) {
 				// No tag set was specified so generate one from member variables.
-				typeInstancesToGenerateNoTagSets.push_back(semTypeInstance);
+				typeInstancesToGenerateNoTagSets.push_back(&semTypeInstance);
 			}
 		}
 		
 		void AddNamespaceDataTypeMemberVariables(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode,
 				std::vector<SEM::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
-			const auto semNamespace = context.scopeStack().back().nameSpace();
+			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = semNamespace->items().at(astChildNamespaceNode->name).nameSpace();
+				auto& semChildNamespace = semNamespace.items().at(astChildNamespaceNode->name).nameSpace();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(&semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				AddNamespaceDataTypeMemberVariables(context, astChildNamespaceNode->data, typeInstancesToGenerateNoTagSets);
 			}
 			
@@ -103,18 +103,18 @@ namespace locic {
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = semNamespace->items().at(astTypeInstanceNode->name).typeInstance();
+				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
 				{
-					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(&semChildTypeInstance));
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 					AddTypeInstanceMemberVariables(context, astTypeInstanceNode, typeInstancesToGenerateNoTagSets);
 				}
 				
 				if (semChildTypeInstance.isUnionDatatype()) {
 					for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-						auto& semVariantTypeInstance = semNamespace->items().at(astVariantNode->name).typeInstance();
+						auto& semVariantTypeInstance = semNamespace.items().at(astVariantNode->name).typeInstance();
 						
-						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(&semVariantTypeInstance));
+						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semVariantTypeInstance));
 						AddTypeInstanceMemberVariables(context, astVariantNode, typeInstancesToGenerateNoTagSets);
 					}
 				}

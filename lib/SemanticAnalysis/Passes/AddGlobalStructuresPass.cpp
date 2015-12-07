@@ -50,15 +50,15 @@ namespace locic {
 		}
 		
 		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, const SEM::ModuleScope& moduleScope) {
-			const auto parentNamespace = context.scopeStack().back().nameSpace();
+			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
 			const auto& typeInstanceName = astTypeInstanceNode->name;
 			
-			const Name fullTypeName = parentNamespace->name() + typeInstanceName;
+			const Name fullTypeName = parentNamespace.name() + typeInstanceName;
 			
 			// Check if there's anything with the same name.
-			const auto iterator = parentNamespace->items().find(typeInstanceName);
-			if (iterator != parentNamespace->items().end()) {
+			const auto iterator = parentNamespace.items().find(typeInstanceName);
+			if (iterator != parentNamespace.items().end()) {
 				const auto& existingTypeInstance = iterator->second.typeInstance();
 				const auto& debugInfo = *(existingTypeInstance.debugInfo());
 				throw ErrorException(makeString("Type instance name '%s', at position %s, clashes with existing name, at position %s.",
@@ -70,7 +70,7 @@ namespace locic {
 			
 			// Create a placeholder type instance.
 			std::unique_ptr<SEM::TypeInstance> semTypeInstance(new SEM::TypeInstance(context.semContext(),
-			                                                                         SEM::GlobalStructure::Namespace(*parentNamespace),
+			                                                                         SEM::GlobalStructure::Namespace(parentNamespace),
 			                                                                         fullTypeName.copy(),
 			                                                                         typeInstanceKind,
 			                                                                         moduleScope.copy()));
@@ -158,30 +158,30 @@ namespace locic {
 			
 			const auto typeInstancePtr = semTypeInstance.get();
 			
-			parentNamespace->items().insert(std::make_pair(typeInstanceName, SEM::NamespaceItem::TypeInstance(std::move(semTypeInstance))));
+			parentNamespace.items().insert(std::make_pair(typeInstanceName, SEM::NamespaceItem::TypeInstance(std::move(semTypeInstance))));
 			
 			return typeInstancePtr;
 		}
 		
 		void AddNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
-			const auto semNamespace = context.scopeStack().back().nameSpace();
+			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
 				const auto& childNamespaceName = astChildNamespaceNode->name;
 				
 				SEM::Namespace* semChildNamespace = nullptr;
 				
-				const auto iterator = semNamespace->items().find(childNamespaceName);
-				if (iterator == semNamespace->items().end()) {
-					std::unique_ptr<SEM::Namespace> childNamespace(new SEM::Namespace(semNamespace->name() + childNamespaceName,
-					                                                                  SEM::GlobalStructure::Namespace(*semNamespace)));
+				const auto iterator = semNamespace.items().find(childNamespaceName);
+				if (iterator == semNamespace.items().end()) {
+					std::unique_ptr<SEM::Namespace> childNamespace(new SEM::Namespace(semNamespace.name() + childNamespaceName,
+					                                                                  SEM::GlobalStructure::Namespace(semNamespace)));
 					semChildNamespace = childNamespace.get();
-					semNamespace->items().insert(std::make_pair(childNamespaceName, SEM::NamespaceItem::Namespace(std::move(childNamespace))));
+					semNamespace.items().insert(std::make_pair(childNamespaceName, SEM::NamespaceItem::Namespace(std::move(childNamespace))));
 				} else {
 					semChildNamespace = &(iterator->second.nameSpace());
 				}
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(*semChildNamespace));
 				AddNamespaceData(context, astChildNamespaceNode->data, moduleScope);
 			}
 			
@@ -195,15 +195,15 @@ namespace locic {
 			
 			for (const auto& astAliasNode: astNamespaceDataNode->aliases) {
 				const auto& aliasName = astAliasNode->name;
-				const auto fullTypeName = semNamespace->name() + aliasName;
-				const auto iterator = semNamespace->items().find(aliasName);
-				if (iterator != semNamespace->items().end()) {
+				const auto fullTypeName = semNamespace.name() + aliasName;
+				const auto iterator = semNamespace.items().find(aliasName);
+				if (iterator != semNamespace.items().end()) {
 					throw ErrorException(makeString("Type alias name '%s' clashes with existing name, at position %s.",
 						fullTypeName.toString().c_str(), astAliasNode.location().toString().c_str()));
 				}
 				
 				std::unique_ptr<SEM::Alias> semAlias(new SEM::Alias(context.semContext(),
-				                                                    SEM::GlobalStructure::Namespace(*semNamespace),
+				                                                    SEM::GlobalStructure::Namespace(semNamespace),
 				                                                    fullTypeName.copy()));
 				
 				// Add template variables.
@@ -227,10 +227,10 @@ namespace locic {
 					semAlias->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
 				}
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(semAlias.get()));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(*semAlias));
 				context.aliasTypeResolver().addAlias(*semAlias, astAliasNode->value, context.scopeStack().copy());
 				
-				semNamespace->items().insert(std::make_pair(aliasName, SEM::NamespaceItem::Alias(std::move(semAlias))));
+				semNamespace.items().insert(std::make_pair(aliasName, SEM::NamespaceItem::Alias(std::move(semAlias))));
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {

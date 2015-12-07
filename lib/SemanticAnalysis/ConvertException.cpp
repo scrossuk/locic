@@ -116,7 +116,7 @@ namespace locic {
 			attachParameters(*function, astTypeInstanceNode->variables, function->parameters());
 			
 			// Push function on to scope stack (to resolve references to parameters).
-			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(function));
+			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(*function));
 			
 			HeapArray<SEM::Value> parentArguments;
 			for (const auto& astValueNode: *(initializerNode->valueList)) {

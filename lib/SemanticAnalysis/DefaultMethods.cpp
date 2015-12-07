@@ -665,7 +665,7 @@ namespace locic {
 			assert(!typeInstance->isClassDecl() && !typeInstance->isInterface());
 			assert(function->isDeclaration());
 			
-			PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(function));
+			PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*function));
 			
 			const auto& name = function->name();
 			const auto canonicalName = CanonicalizeMethodName(name.last());

@@ -41,55 +41,61 @@ namespace locic {
 		}
 		
 		void ConvertTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
-			const auto semTypeInstance = context.scopeStack().back().typeInstance();
+			auto& semTypeInstance = context.scopeStack().back().typeInstance();
 			
 			for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
 				const auto methodName = CanonicalizeMethodName(astFunctionNode->name()->last());
 				
-				auto& semChildFunction = semTypeInstance->functions().at(methodName);
+				auto& semChildFunction = semTypeInstance.functions().at(methodName);
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction.get()));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(*semChildFunction));
 				ConvertFunctionDef(context, astFunctionNode);
 			}
 			
-			if (semTypeInstance->isEnum()) {
+			if (semTypeInstance.isEnum()) {
 				size_t enumValue = 0;
 				// Generate enum constructors.
 				for (const auto& constructorName: *(astTypeInstanceNode->constructors)) {
 					const auto canonicalMethodName = CanonicalizeMethodName(constructorName);
-					CreateEnumConstructorMethod(context, semTypeInstance,
-						*(semTypeInstance->functions().at(canonicalMethodName)), enumValue++);
+					CreateEnumConstructorMethod(context, &semTypeInstance,
+						*(semTypeInstance.functions().at(canonicalMethodName)), enumValue++);
 				}
 			}
 			
 			// Generate default constructor for applicable types.
-			if (semTypeInstance->isException()) {
-				CreateExceptionConstructor(context, astTypeInstanceNode, semTypeInstance, semTypeInstance->functions().at(context.getCString("create")).get());
-			} else if (semTypeInstance->isDatatype() || semTypeInstance->isStruct() || semTypeInstance->isUnion()) {
-				(void) CreateDefaultMethod(context, semTypeInstance, semTypeInstance->functions().at(context.getCString("create")).get(), astTypeInstanceNode.location());
+			if (semTypeInstance.isException()) {
+				CreateExceptionConstructor(context, astTypeInstanceNode, &semTypeInstance,
+				                           semTypeInstance.functions().at(context.getCString("create")).get());
+			} else if (semTypeInstance.isDatatype() || semTypeInstance.isStruct() || semTypeInstance.isUnion()) {
+				(void) CreateDefaultMethod(context, &semTypeInstance,
+				                           semTypeInstance.functions().at(context.getCString("create")).get(),
+				                           astTypeInstanceNode.location());
 			}
 			
 			// Generate default implicitCopy if relevant.
-			if (semTypeInstance->isEnum() || semTypeInstance->isStruct() || semTypeInstance->isDatatype() ||
-					semTypeInstance->isUnionDatatype() || semTypeInstance->isUnion()) {
-				const auto iterator = semTypeInstance->functions().find(context.getCString("implicitcopy"));
-				if (iterator != semTypeInstance->functions().end()) {
-					CreateDefaultMethodOrRemove(context, semTypeInstance, iterator->second.get(), astTypeInstanceNode.location());
+			if (semTypeInstance.isEnum() || semTypeInstance.isStruct() || semTypeInstance.isDatatype() ||
+					semTypeInstance.isUnionDatatype() || semTypeInstance.isUnion()) {
+				const auto iterator = semTypeInstance.functions().find(context.getCString("implicitcopy"));
+				if (iterator != semTypeInstance.functions().end()) {
+					CreateDefaultMethodOrRemove(context, &semTypeInstance, iterator->second.get(),
+					                            astTypeInstanceNode.location());
 				}
 			}
 			
 			// Generate default compare if relevant.
-			if (semTypeInstance->isEnum() || semTypeInstance->isStruct() || semTypeInstance->isDatatype() || semTypeInstance->isUnionDatatype()) {
-				const auto iterator = semTypeInstance->functions().find(context.getCString("compare"));
-				if (iterator != semTypeInstance->functions().end()) {
-					CreateDefaultMethodOrRemove(context, semTypeInstance, iterator->second.get(), astTypeInstanceNode.location());
+			if (semTypeInstance.isEnum() || semTypeInstance.isStruct() || semTypeInstance.isDatatype() || semTypeInstance.isUnionDatatype()) {
+				const auto iterator = semTypeInstance.functions().find(context.getCString("compare"));
+				if (iterator != semTypeInstance.functions().end()) {
+					CreateDefaultMethodOrRemove(context, &semTypeInstance,
+					                            iterator->second.get(),
+					                            astTypeInstanceNode.location());
 				}
 			}
 			
 			// Simplify all predicates to avoid confusing CodeGen.
-			for (auto& functionPair: semTypeInstance->functions()) {
+			for (auto& functionPair: semTypeInstance.functions()) {
 				auto& function = *(functionPair.second);
-				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(&function));
+				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(function));
 				function.setConstPredicate(reducePredicate(context, function.constPredicate().copy()));
 				function.setRequiresPredicate(reducePredicate(context, function.requiresPredicate().copy()));
 				
