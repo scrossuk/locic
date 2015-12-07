@@ -11,9 +11,9 @@ namespace locic {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astAliasNode: astNamespaceDataNode->aliases) {
-				auto& semAlias = semNamespace.items().at(astAliasNode->name).alias();
+				auto& semAlias = semNamespace.items().at(astAliasNode->name()).alias();
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(semAlias));
-				semAlias.setValue(ConvertValue(context, astAliasNode->value));
+				semAlias.setValue(ConvertValue(context, astAliasNode->value()));
 			}
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {

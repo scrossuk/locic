@@ -196,7 +196,7 @@ namespace locic {
 			}
 			
 			for (const auto& astAliasNode: astNamespaceDataNode->aliases) {
-				const auto& aliasName = astAliasNode->name;
+				const auto& aliasName = astAliasNode->name();
 				const auto fullTypeName = semNamespace.name() + aliasName;
 				const auto iterator = semNamespace.items().find(aliasName);
 				if (iterator != semNamespace.items().end()) {
@@ -210,7 +210,7 @@ namespace locic {
 				
 				// Add template variables.
 				size_t templateVarIndex = 0;
-				for (auto astTemplateVarNode: *(astAliasNode->templateVariables)) {
+				for (auto astTemplateVarNode: *(astAliasNode->templateVariables())) {
 					const auto& templateVarName = astTemplateVarNode->name;
 					
 					// TODO!
@@ -230,7 +230,7 @@ namespace locic {
 				}
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(*semAlias));
-				context.aliasTypeResolver().addAlias(*semAlias, astAliasNode->value, context.scopeStack().copy());
+				context.aliasTypeResolver().addAlias(*semAlias, astAliasNode->value(), context.scopeStack().copy());
 				
 				semNamespace.items().insert(std::make_pair(aliasName, SEM::NamespaceItem::Alias(std::move(semAlias))));
 			}

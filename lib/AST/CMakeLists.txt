@@ -1,5 +1,5 @@
 add_library(locic-ast
-	Alias.cpp
+	AliasDecl.cpp
 	ConstSpecifier.cpp
 	ExceptionInitializer.cpp
 	Function.cpp

@@ -170,7 +170,7 @@ static locic::AST::Node<locic::AST::Value> * mergeValue(LOCIC_PARSER_GENERATEDPA
 	locic::AST::Node<locic::Constant>* constant;
 	
 	// Structures.
-	locic::AST::Node<locic::AST::Alias>* alias;
+	locic::AST::Node<locic::AST::AliasDecl>* alias;
 	locic::AST::Node<locic::AST::NamespaceData>* namespaceData;
 	locic::AST::Node<locic::AST::NamespaceDecl>* nameSpace;
 	locic::AST::Node<locic::AST::TypeInstance>* typeInstance;
@@ -646,7 +646,7 @@ nameSpace:
 nonTemplatedAlias:
 	USING NAME SETEQUAL value SEMICOLON
 	{
-		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::Alias($2, GETSYM($4))));
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), new locic::AST::AliasDecl($2, GETSYM($4))));
 	}
 	;
 

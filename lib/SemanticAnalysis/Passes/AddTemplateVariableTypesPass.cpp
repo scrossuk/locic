@@ -8,11 +8,11 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void AddAliasTemplateVariableTypes(Context& context, const AST::Node<AST::Alias>& astAliasNode) {
+		void AddAliasTemplateVariableTypes(Context& context, const AST::Node<AST::AliasDecl>& astAliasNode) {
 			auto& alias = context.scopeStack().back().alias();
 			
 			// Add types of template variables.
-			for (auto astTemplateVarNode: *(astAliasNode->templateVariables)) {
+			for (auto astTemplateVarNode: *(astAliasNode->templateVariables())) {
 				const auto& templateVarName = astTemplateVarNode->name;
 				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
 				
@@ -67,7 +67,7 @@ namespace locic {
 			}
 			
 			for (auto astAliasNode: astNamespaceDataNode->aliases) {
-				auto& semChildAlias = semNamespace.items().at(astAliasNode->name).alias();
+				auto& semChildAlias = semNamespace.items().at(astAliasNode->name()).alias();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(semChildAlias));
 				AddAliasTemplateVariableTypes(context, astAliasNode);
