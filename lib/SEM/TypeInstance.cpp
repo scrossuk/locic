@@ -29,7 +29,8 @@ namespace locic {
 			parentTypeInstance_(nullptr),
 			parentType_(nullptr),
 			requiresPredicate_(Predicate::True()),
-			noexceptPredicate_(Predicate::False()) { }
+			noexceptPredicate_(Predicate::False()),
+			cachedSelfType_(nullptr) { }
 		
 		Context& TypeInstance::context() const {
 			return context_;
@@ -123,7 +124,12 @@ namespace locic {
 		}
 		
 		const Type* TypeInstance::selfType() const {
-			return SEM::Type::Object(this, selfTemplateArgs());
+			if (cachedSelfType_ != nullptr) {
+				return cachedSelfType_;
+			}
+			
+			cachedSelfType_ = SEM::Type::Object(this, selfTemplateArgs());
+			return cachedSelfType_;
 		}
 		
 		ValueArray TypeInstance::selfTemplateArgs() const {

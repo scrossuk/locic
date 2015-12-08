@@ -358,6 +358,7 @@ namespace locic {
 				FastMap<String, std::unique_ptr<Function>> functions_;
 				
 				TemplateVarArray noTagSet_;
+				mutable const Type* cachedSelfType_;
 				
 		};
 		
