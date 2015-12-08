@@ -225,7 +225,7 @@ namespace locic {
 						auto& function = searchResult.function();
 						
 						auto functionTemplateArguments = GetTemplateValues(templateVarMap, function.templateVariables());
-						TypeBuilder typeBuilder(context);
+						auto& typeBuilder = context.typeBuilder();
 						const auto functionType = typeBuilder.getFunctionPointerType(function.type().substitute(templateVarMap));
 						
 						if (function.isMethod()) {
@@ -706,7 +706,7 @@ namespace locic {
 						}
 					}
 					
-					TypeBuilder typeBuilder(context);
+					auto& typeBuilder = context.typeBuilder();
 					const auto arrayType = typeBuilder.getConstantStaticArrayType(elementType,
 					                                                              elementValues.size(),
 					                                                              location);

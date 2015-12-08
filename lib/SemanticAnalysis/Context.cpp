@@ -20,6 +20,7 @@
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TemplateInst.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 
 namespace locic {
 
@@ -36,6 +37,7 @@ namespace locic {
 			stringHost(sharedMaps.stringHost()),
 			debugModule(pDebugModule),
 			semContext(pSemContext),
+			typeBuilder(context),
 			methodSetsComplete(false),
 			templateRequirementsComplete(false) {
 				validVarArgTypes.insert(String(stringHost, "byte_t"));
@@ -80,6 +82,7 @@ namespace locic {
 			Debug::Module& debugModule;
 			ScopeStack scopeStack;
 			SEM::Context& semContext;
+			TypeBuilder typeBuilder;
 			bool methodSetsComplete;
 			bool templateRequirementsComplete;
 			std::vector<TemplateInst> templateInstantiations;
@@ -130,6 +133,10 @@ namespace locic {
 		
 		SEM::Context& Context::semContext() {
 			return impl_->semContext;
+		}
+		
+		TypeBuilder& Context::typeBuilder() {
+			return impl_->typeBuilder;
 		}
 		
 		const MethodSet* Context::findMethodSet(const SEM::TemplatedObject* const templatedObject,

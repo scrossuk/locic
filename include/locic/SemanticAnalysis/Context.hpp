@@ -40,6 +40,7 @@ namespace locic {
 		class MethodSet;
 		class ScopeStack;
 		class TemplateInst;
+		class TypeBuilder;
 		
 		class Context {
 			public:
@@ -58,6 +59,8 @@ namespace locic {
 				const ScopeStack& scopeStack() const;
 				
 				SEM::Context& semContext();
+				
+				TypeBuilder& typeBuilder();
 				
 				const MethodSet* findMethodSet(const SEM::TemplatedObject* templatedObject,
 				                               const SEM::Type* type) const;

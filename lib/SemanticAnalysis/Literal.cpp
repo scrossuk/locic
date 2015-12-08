@@ -196,7 +196,7 @@ namespace locic {
 					specifier.c_str(), location.toString().c_str(), functionName.c_str()));
 			}
 			
-			TypeBuilder typeBuilder(context);
+			auto& typeBuilder = context.typeBuilder();
 			const auto functionRefType = typeBuilder.getFunctionPointerType(searchResult.function().type());
 			
 			auto functionRef = SEM::Value::FunctionRef(nullptr, &(searchResult.function()), {}, functionRefType);

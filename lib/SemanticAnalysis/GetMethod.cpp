@@ -71,7 +71,7 @@ namespace locic {
 					location.toString().c_str()));
 			}
 			
-			TypeBuilder typeBuilder(context);
+			auto& typeBuilder = context.typeBuilder();
 			
 			if (targetType->isObject()) {
 				// Get the actual function so we can refer to it.
@@ -219,7 +219,7 @@ namespace locic {
 					location.toString().c_str()));
 			}
 			
-			TypeBuilder typeBuilder(context);
+			auto& typeBuilder = context.typeBuilder();
 			
 			if (function != nullptr) {
 				const auto functionType = simplifyFunctionType(context, function->type().substitute(templateVariableAssignments));

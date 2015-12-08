@@ -91,7 +91,7 @@ namespace locic {
 			SEM::ValueArray templateArgs;
 			templateArgs.reserve(1 + parameterTypes.size());
 			
-			TypeBuilder typeBuilder(context);
+			auto& typeBuilder = context.typeBuilder();
 			
 			const auto boolType = typeBuilder.getBoolType();
 			
