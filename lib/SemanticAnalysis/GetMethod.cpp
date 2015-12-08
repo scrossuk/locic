@@ -157,7 +157,7 @@ namespace locic {
 						function->constPredicate().isVariable() &&
 						function->constPredicate().variableTemplateVar() == templateVariables[0]
 					) {
-						const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+						const auto boolType = context.typeBuilder().getBoolType();
 						templateArguments.push_back(SEM::Value::PredicateExpr(objectConstPredicate.copy(), boolType));
 					} else {
 						throw ErrorException(makeString("Incorrect number of template "

@@ -254,7 +254,7 @@ namespace locic {
 								name.toString().c_str(), location.toString().c_str()));
 						}
 						
-						const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+						const auto typenameType = context.typeBuilder().getTypenameType();
 						const auto parentType = SEM::Type::Object(&typeInstance, GetTemplateValues(templateVarMap, typeInstance.templateVariables()));
 						return SEM::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
 					} else if (searchResult.isAlias()) {
@@ -281,7 +281,7 @@ namespace locic {
 				}
 				case AST::Value::TYPEREF: {
 					const auto type = ConvertType(context, astValueNode->typeRef.type);
-					const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+					const auto typenameType = context.typeBuilder().getTypenameType();
 					return SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
 				}
 				case AST::Value::MEMBERREF: {
@@ -303,13 +303,13 @@ namespace locic {
 				}
 				case AST::Value::ALIGNOF: {
 					const auto type = ConvertType(context, astValueNode->alignOf.type);
-					const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+					const auto typenameType = context.typeBuilder().getTypenameType();
 					auto typeRefValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
 					
 					auto alignMaskMethod = GetStaticMethod(context, std::move(typeRefValue), context.getCString("__alignmask"), location);
 					auto alignMaskValue = CallValue(context, std::move(alignMaskMethod), {}, location);
 					
-					const auto sizeType = getBuiltInType(context, context.getCString("size_t"), {});
+					const auto sizeType = context.typeBuilder().getSizeType();
 					
 					auto alignMaskValueAddMethod = GetMethod(context, std::move(alignMaskValue), context.getCString("add"), location);
 					auto oneValue = SEM::Value::Constant(Constant::Integer(1), sizeType);
@@ -317,7 +317,7 @@ namespace locic {
 				}
 				case AST::Value::SIZEOF: {
 					const auto type = ConvertType(context, astValueNode->sizeOf.type);
-					const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+					const auto typenameType = context.typeBuilder().getTypenameType();
 					auto typeRefValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
 					
 					auto sizeOfMethod = GetStaticMethod(context, std::move(typeRefValue), context.getCString("__sizeof"), location);
@@ -461,7 +461,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_LOGICALAND: {
-							const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+							const auto boolType = context.typeBuilder().getBoolType();
 							auto boolValue = ImplicitCast(context, std::move(leftOperand), boolType, location);
 							
 							// Logical AND only evaluates the right operand if the left
@@ -469,7 +469,7 @@ namespace locic {
 							return SEM::Value::Ternary(std::move(boolValue), std::move(rightOperand), SEM::Value::Constant(Constant::False(), boolType));
 						}
 						case AST::OP_LOGICALOR: {
-							const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+							const auto boolType = context.typeBuilder().getBoolType();
 							auto boolValue = ImplicitCast(context, std::move(leftOperand), boolType, location);
 							
 							// Logical OR only evaluates the right operand if the left
@@ -499,7 +499,7 @@ namespace locic {
 				case AST::Value::TERNARY: {
 					auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
-					const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+					const auto boolType = context.typeBuilder().getBoolType();
 					auto boolValue = ImplicitCast(context, std::move(cond), boolType, location);
 					
 					auto ifTrue = ConvertValue(context, astValueNode->ternary.ifTrue);
@@ -678,8 +678,7 @@ namespace locic {
 					                                   astValueNode->capabilityTest.checkType);
 					const auto capabilityType = ConvertType(context,
 					                                        astValueNode->capabilityTest.capabilityType);
-					const auto boolType = getBuiltInType(context,
-					                                     context.getCString("bool"), {});
+					const auto boolType = context.typeBuilder().getBoolType();
 					return SEM::Value::CapabilityTest(checkType,
 					                                  capabilityType,
 					                                  boolType);

@@ -9,6 +9,7 @@
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -68,7 +69,7 @@ namespace locic {
 					
 					auto isEmpty = CallValue(context, GetMethod(context, createLocalVarRef(context, *initVarPtr), context.getCString("empty"), location), {}, location);
 					auto isNotEmpty = CallValue(context, GetMethod(context, std::move(isEmpty), context.getCString("not"), location), {}, location);
-					auto loopCondition = ImplicitCast(context, std::move(isNotEmpty), getBuiltInType(context, context.getCString("bool"), {}), location);
+					auto loopCondition = ImplicitCast(context, std::move(isNotEmpty), context.typeBuilder().getBoolType(), location);
 					
 					auto iterationScope = SEM::Scope::Create();
 					

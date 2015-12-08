@@ -3,6 +3,7 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 
 namespace locic {
 
@@ -103,7 +104,7 @@ namespace locic {
 		}
 		
 		SEM::Value createTypeRef(Context& context, const SEM::Type* targetType) {
-			const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+			const auto typenameType = context.typeBuilder().getTypenameType();
 			return SEM::Value::TypeRef(targetType, typenameType->createStaticRefType(targetType));
 		}
 		

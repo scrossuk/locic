@@ -14,6 +14,7 @@
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -221,7 +222,7 @@ namespace locic {
 			// alignmask never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto sizeType = getBuiltInType(context, context.getCString("size_t"), {});
+			const auto sizeType = context.typeBuilder().getSizeType();
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), sizeType, {}));
 			return semFunction;
 		}
@@ -245,7 +246,7 @@ namespace locic {
 			// sizeof never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto sizeType = getBuiltInType(context, context.getCString("size_t"), {});
+			const auto sizeType = context.typeBuilder().getSizeType();
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), sizeType, {}));
 			return semFunction;
 		}
@@ -295,7 +296,7 @@ namespace locic {
 			const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
 			const auto voidPtrType = getBuiltInType(context, context.getCString("__ptr"), { voidType });
 			
-			const auto sizeType = getBuiltInType(context, context.getCString("size_t"), {});
+			const auto sizeType = context.typeBuilder().getSizeType();
 			
 			SEM::TypeArray argTypes;
 			argTypes.reserve(2);
@@ -446,7 +447,7 @@ namespace locic {
 			// Never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+			const auto boolType = context.typeBuilder().getBoolType();
 			
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), boolType, {}));
 			return semFunction;

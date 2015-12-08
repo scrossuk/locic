@@ -17,6 +17,7 @@
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
@@ -77,7 +78,7 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scopeStmt.scope));
 				}
 				case AST::Statement::IF: {
-					const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+					const auto boolType = context.typeBuilder().getBoolType();
 					
 					std::vector<SEM::IfClause*> clauseList;
 					for (const auto& astIfClause: *(statement->ifStmt.clauseList)) {
@@ -190,7 +191,7 @@ namespace locic {
 					
 					auto iterationScope = ConvertScope(context, statement->whileStmt.whileTrue);
 					auto advanceScope = SEM::Scope::Create();
-					auto loopCondition = ImplicitCast(context, std::move(condition), getBuiltInType(context, context.getCString("bool"), {}), location);
+					auto loopCondition = ImplicitCast(context, std::move(condition), context.typeBuilder().getBoolType(), location);
 					return SEM::Statement::Loop(std::move(loopCondition), std::move(iterationScope), std::move(advanceScope));
 				}
 				case AST::Statement::FOR: {
@@ -481,7 +482,7 @@ namespace locic {
 				case AST::Statement::ASSERT: {
 					assert(statement->assertStmt.value.get() != nullptr);
 					
-					const auto boolType = getBuiltInType(context, context.getCString("bool"), {});
+					const auto boolType = context.typeBuilder().getBoolType();
 					auto condition = ConvertValue(context, statement->assertStmt.value);
 					auto boolValue = ImplicitCast(context, std::move(condition), boolType, location);
 					return SEM::Statement::Assert(std::move(boolValue), statement->assertStmt.name);
