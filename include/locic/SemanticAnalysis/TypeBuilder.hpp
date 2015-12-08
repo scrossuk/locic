@@ -79,6 +79,7 @@ namespace locic {
 			
 		private:
 			Context& context_;
+			const SEM::Type* cachedBoolType_;
 			
 		};
 		
