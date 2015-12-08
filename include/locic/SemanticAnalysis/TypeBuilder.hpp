@@ -27,6 +27,9 @@ namespace locic {
 			getSizeType();
 			
 			const SEM::Type*
+			getTypenameType();
+			
+			const SEM::Type*
 			getPointerType(const SEM::Type* elementType);
 		
 			const SEM::Type*
@@ -80,6 +83,7 @@ namespace locic {
 		private:
 			Context& context_;
 			const SEM::Type* cachedBoolType_;
+			const SEM::Type* cachedTypenameType_;
 			
 		};
 		

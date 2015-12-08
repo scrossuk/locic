@@ -13,7 +13,8 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		TypeBuilder::TypeBuilder(Context& argContext)
-		: context_(argContext), cachedBoolType_(nullptr) { }
+		: context_(argContext), cachedBoolType_(nullptr),
+		cachedTypenameType_(nullptr) { }
 		
 		const SEM::Type*
 		TypeBuilder::getBoolType() {
@@ -32,6 +33,18 @@ namespace locic {
 			return getBuiltInType(context_,
 			                      context_.getCString("size_t"),
 			                      {});
+		}
+		
+		const SEM::Type*
+		TypeBuilder::getTypenameType() {
+			if (cachedTypenameType_ != nullptr) {
+				return cachedTypenameType_;
+			}
+			
+			cachedTypenameType_ = getBuiltInType(context_,
+			                                     context_.getCString("typename_t"),
+			                                     {});
+			return cachedTypenameType_;
 		}
 		
 		const SEM::Type*
@@ -98,7 +111,7 @@ namespace locic {
 			auto reducedNoexceptPredicate = reducePredicate(context, functionType.attributes().noExceptPredicate().copy());
 			templateArgs.push_back(SEM::Value::PredicateExpr(std::move(reducedNoexceptPredicate), boolType));
 			
-			const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
+			const auto typenameType = typeBuilder.getTypenameType();
 			
 			const auto returnType = functionType.returnType();
 			templateArgs.push_back(SEM::Value::TypeRef(returnType, typenameType->createStaticRefType(returnType)));
