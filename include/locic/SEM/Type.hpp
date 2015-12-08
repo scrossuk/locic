@@ -180,6 +180,7 @@ namespace locic {
 				mutable const Type* cachedResolvedType_;
 				mutable const Type* cachedWithoutTagsType_;
 				mutable Optional<size_t> cachedHashValue_;
+				mutable Optional<FunctionType> cachedFunctionType_;
 				
 		};
 		

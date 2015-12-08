@@ -671,6 +671,10 @@ namespace locic {
 		
 		FunctionType Type::asFunctionType() const {
 			assert(isCallable());
+			if (cachedFunctionType_) {
+				return *cachedFunctionType_;
+			}
+			
 			Predicate noexceptPredicate = templateArguments()[0].makePredicate();
 			
 			SEM::TypeArray parameterTypes;
@@ -682,7 +686,9 @@ namespace locic {
 			                              isCallableMethod(),
 			                              isCallableTemplated(),
 			                              std::move(noexceptPredicate));
-			return FunctionType(std::move(attributes), templateArguments()[1].typeRefType(), std::move(parameterTypes));
+			FunctionType functionType(std::move(attributes), templateArguments()[1].typeRefType(), std::move(parameterTypes));
+			cachedFunctionType_ = make_optional(functionType);
+			return functionType;
 		}
 		
 		static const Type* basicSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
