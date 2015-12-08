@@ -14,15 +14,15 @@ function(loci_module name output_name flags)
 	
 	separate_arguments(flags)
 	
-	add_custom_command(OUTPUT ${output_name} ${output_name}.ast.txt ${output_name}.sem.txt ${output_name}.codegen.ll ${output_name}.opt.ll
+	add_custom_command(OUTPUT ${output_name}
 		COMMAND # Run compiler.
-			${LOCIC} ${flags} -o ${output_name} --ast-debug-file=${output_name}.ast.txt --sem-debug-file=${output_name}.sem.txt --codegen-debug-file=${output_name}.codegen.ll --opt-debug-file=${output_name}.opt.ll ${_build_sources}
+			${LOCIC} ${flags} -o ${output_name} ${_build_sources}
 		DEPENDS ${LOCIC} ${_build_sources}
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
-	add_custom_command(OUTPUT ${output_name}.unsafe.bc ${output_name}.ast.txt ${output_name}.sem.txt ${output_name}.codegen.ll ${output_name}.opt.ll
+	add_custom_command(OUTPUT ${output_name}.unsafe.bc
 		COMMAND # Run compiler.
-			${LOCIC} ${flags} -o ${output_name}.unsafe.bc --ast-debug-file=${output_name}.ast.txt --sem-debug-file=${output_name}.sem.txt --codegen-debug-file=${output_name}.codegen.ll --opt-debug-file=${output_name}.opt.ll --unsafe ${_build_sources}
+			${LOCIC} ${flags} -o ${output_name}.unsafe.bc --unsafe ${_build_sources}
 		DEPENDS ${LOCIC} ${_build_sources}
 		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 	
