@@ -87,6 +87,7 @@ namespace locic {
 			Context& context_;
 			const SEM::Type* cachedVoidType_;
 			const SEM::Type* cachedBoolType_;
+			const SEM::Type* cachedSizeType_;
 			const SEM::Type* cachedTypenameType_;
 			
 		};

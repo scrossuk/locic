@@ -14,7 +14,7 @@ namespace locic {
 		
 		TypeBuilder::TypeBuilder(Context& argContext)
 		: context_(argContext), cachedVoidType_(nullptr), cachedBoolType_(nullptr),
-		cachedTypenameType_(nullptr) { }
+		cachedSizeType_(nullptr), cachedTypenameType_(nullptr) { }
 		
 		const SEM::Type*
 		TypeBuilder::getVoidType() {
@@ -42,9 +42,14 @@ namespace locic {
 		
 		const SEM::Type*
 		TypeBuilder::getSizeType() {
-			return getBuiltInType(context_,
-			                      context_.getCString("size_t"),
-			                      {});
+			if (cachedSizeType_ != nullptr) {
+				return cachedSizeType_;
+			}
+			
+			cachedSizeType_ = getBuiltInType(context_,
+			                                 context_.getCString("size_t"),
+			                                 {});
+			return cachedSizeType_;
 		}
 		
 		const SEM::Type*
