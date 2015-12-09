@@ -269,7 +269,7 @@ namespace locic {
 			// Destructor never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
+			const auto voidType = context.typeBuilder().getVoidType();
 			
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), voidType, /*argTypes=*/{}));
 			return semFunction;
@@ -293,7 +293,7 @@ namespace locic {
 			// Move never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
+			const auto voidType = context.typeBuilder().getVoidType();
 			const auto voidPtrType = getBuiltInType(context, context.getCString("__ptr"), { voidType });
 			
 			const auto sizeType = context.typeBuilder().getSizeType();
@@ -424,7 +424,7 @@ namespace locic {
 			// Never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
+			const auto voidType = context.typeBuilder().getVoidType();
 			
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), voidType, {}));
 			return semFunction;

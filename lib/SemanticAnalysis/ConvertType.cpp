@@ -100,7 +100,7 @@ namespace locic {
 					return ConvertType(context, type->getStaticRefType())->createStaticRefType(targetType);
 				}
 				case AST::Type::VOID: {
-					return getBuiltInType(context, context.getCString("void_t"), {});
+					return context.typeBuilder().getVoidType();
 				}
 				case AST::Type::INTEGER: {
 					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);

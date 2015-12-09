@@ -64,7 +64,7 @@ namespace locic {
 							throw ErrorException(makeString("Void explicitly ignored in expression '%s' at position %s.",
 								value.toString().c_str(), location.toString().c_str()));
 						}
-						const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
+						const auto voidType = context.typeBuilder().getVoidType();
 						return SEM::Statement::ValueStmt(SEM::Value::Cast(voidType, std::move(value)));
 					} else {
 						if (!value.type()->isBuiltInVoid()) {
@@ -324,7 +324,7 @@ namespace locic {
 						return SEM::Statement::ValueStmt(std::move(opResult));
 					} else {
 						// Automatically cast to void if necessary.
-						const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
+						const auto voidType = context.typeBuilder().getVoidType();
 						auto voidCastedValue = SEM::Value::Cast(voidType, std::move(opResult));
 						return SEM::Statement::ValueStmt(std::move(voidCastedValue));
 					}
@@ -338,7 +338,7 @@ namespace locic {
 						return SEM::Statement::ValueStmt(std::move(opResult));
 					} else {
 						// Automatically cast to void if necessary.
-						const auto voidType = getBuiltInType(context, context.getCString("void_t"), {});
+						const auto voidType = context.typeBuilder().getVoidType();
 						auto voidCastedValue = SEM::Value::Cast(voidType, std::move(opResult));
 						return SEM::Statement::ValueStmt(std::move(voidCastedValue));
 					}

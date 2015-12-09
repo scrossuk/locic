@@ -13,8 +13,20 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		TypeBuilder::TypeBuilder(Context& argContext)
-		: context_(argContext), cachedBoolType_(nullptr),
+		: context_(argContext), cachedVoidType_(nullptr), cachedBoolType_(nullptr),
 		cachedTypenameType_(nullptr) { }
+		
+		const SEM::Type*
+		TypeBuilder::getVoidType() {
+			if (cachedVoidType_ != nullptr) {
+				return cachedVoidType_;
+			}
+			
+			cachedVoidType_ = getBuiltInType(context_,
+			                                 context_.getCString("void_t"),
+			                                 {});
+			return cachedVoidType_;
+		}
 		
 		const SEM::Type*
 		TypeBuilder::getBoolType() {
