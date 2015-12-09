@@ -4,6 +4,7 @@
 
 #include <locic/Support/MethodID.hpp>
 #include <locic/Support/MethodIDMap.hpp>
+#include <locic/Support/Optional.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/PrimitiveIDMap.hpp>
 #include <locic/Support/String.hpp>
@@ -110,24 +111,33 @@ namespace locic {
 	
 	MethodIDMap::~MethodIDMap() { }
 	
-	MethodID MethodIDMap::getMethodID(const String& name) const {
+	Optional<MethodID> MethodIDMap::tryGetMethodID(const String& name) const {
 		const auto iterator = impl_->map_.find(name);
 		if (iterator != impl_->map_.end()) {
-			return iterator->second;
+			return make_optional(iterator->second);
 		}
 		
 		if (name.starts_with("implicitcast")) {
 			assert(name != "implicitcast");
 			constexpr size_t IMPLICITCAST_LENGTH = 12;
 			const auto primitiveName = name.substr(IMPLICITCAST_LENGTH);
-			return MethodID(METHOD_IMPLICITCASTFROM,
-			                impl_->primitiveIDMap_.getPrimitiveID(primitiveName));
+			return make_optional(MethodID(METHOD_IMPLICITCASTFROM,
+			                              impl_->primitiveIDMap_.getPrimitiveID(primitiveName)));
 		} else if (name.starts_with("cast")) {
 			assert(name != "cast");
 			constexpr size_t CAST_LENGTH = 4;
 			const auto primitiveName = name.substr(CAST_LENGTH);
-			return MethodID(METHOD_CASTFROM,
-			                impl_->primitiveIDMap_.getPrimitiveID(primitiveName));
+			return make_optional(MethodID(METHOD_CASTFROM,
+			                              impl_->primitiveIDMap_.getPrimitiveID(primitiveName)));
+		}
+		
+		return None;
+	}
+	
+	MethodID MethodIDMap::getMethodID(const String& name) const {
+		const auto methodID = tryGetMethodID(name);
+		if (methodID) {
+			return *methodID;
 		}
 		
 		printf("%s\n", name.c_str());

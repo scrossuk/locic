@@ -3,6 +3,8 @@
 
 #include <memory>
 
+#include <locic/Support/Optional.hpp>
+
 namespace locic {
 	
 	class MethodID;
@@ -15,6 +17,8 @@ namespace locic {
 		MethodIDMap(const StringHost& stringHost,
 		            const PrimitiveIDMap& primitiveIDMap);
 		~MethodIDMap();
+		
+		Optional<MethodID> tryGetMethodID(const String& name) const;
 		
 		MethodID getMethodID(const String& name) const;
 		
