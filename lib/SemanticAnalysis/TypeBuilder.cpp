@@ -14,7 +14,8 @@ namespace locic {
 		
 		TypeBuilder::TypeBuilder(Context& argContext)
 		: context_(argContext), cachedVoidType_(nullptr), cachedBoolType_(nullptr),
-		cachedSizeType_(nullptr), cachedTypenameType_(nullptr) { }
+		cachedSizeType_(nullptr), cachedTypenameType_(nullptr),
+		cachedMovableType_(nullptr) { }
 		
 		const SEM::Type*
 		TypeBuilder::getVoidType() {
@@ -62,6 +63,18 @@ namespace locic {
 			                                     context_.getCString("typename_t"),
 			                                     {});
 			return cachedTypenameType_;
+		}
+		
+		const SEM::Type*
+		TypeBuilder::getMovableInterfaceType() {
+			if (cachedMovableType_ != nullptr) {
+				return cachedMovableType_;
+			}
+			
+			cachedMovableType_ = getBuiltInType(context_,
+			                                    context_.getCString("movable"),
+			                                    {});
+			return cachedMovableType_;
 		}
 		
 		const SEM::Type*

@@ -33,6 +33,9 @@ namespace locic {
 			getTypenameType();
 			
 			const SEM::Type*
+			getMovableInterfaceType();
+			
+			const SEM::Type*
 			getPointerType(const SEM::Type* elementType);
 		
 			const SEM::Type*
@@ -89,6 +92,7 @@ namespace locic {
 			const SEM::Type* cachedBoolType_;
 			const SEM::Type* cachedSizeType_;
 			const SEM::Type* cachedTypenameType_;
+			const SEM::Type* cachedMovableType_;
 			
 		};
 		

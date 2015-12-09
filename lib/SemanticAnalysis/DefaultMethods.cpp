@@ -53,7 +53,7 @@ namespace locic {
 		SEM::Predicate getAutoDefaultMovePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
 			auto requirePredicate = SEM::Predicate::True();
 			
-			const auto movableType = getBuiltInType(context, context.getCString("movable"), {});
+			const auto movableType = context.typeBuilder().getMovableInterfaceType();
 			
 			// All member variables need to be movable.
 			for (const auto& var: typeInstance->variables()) {
@@ -84,7 +84,7 @@ namespace locic {
 		SEM::Predicate getDefaultCopyMovePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
 			auto requirePredicate = SEM::Predicate::True();
 			
-			const auto movableType = getBuiltInType(context, context.getCString("movable"), {});
+			const auto movableType = context.typeBuilder().getMovableInterfaceType();
 			
 			// All member variables need to be movable.
 			for (const auto& var: typeInstance->variables()) {
