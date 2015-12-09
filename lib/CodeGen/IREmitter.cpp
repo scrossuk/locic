@@ -442,6 +442,7 @@ namespace locic {
 		IREmitter::emitGetDatatypeVariantPtr(llvm::Value* const datatypePtr,
 		                                     const SEM::Type* const datatypeType,
 		                                     const SEM::Type* const variantType) {
+			(void) variantType;
 			assert(datatypePtr->getType()->isPointerTy());
 			assert(datatypeType->isUnionDatatype());
 			assert(variantType->isDatatype());
