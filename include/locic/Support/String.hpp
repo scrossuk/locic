@@ -10,6 +10,13 @@ namespace locic{
 	
 	class String {
 	public:
+		static String Null() {
+			String string;
+			string.host_ = nullptr;
+			string.string_ = nullptr;
+			return string;
+		}
+		
 		String() = default;
 		
 		String(const StringHost& argHost)
@@ -146,8 +153,11 @@ namespace locic{
 		}
 		
 		const char* c_str() const {
-			assert(string_ != nullptr);
-			return string_->c_str();
+			if (string_ == nullptr) {
+				return "";
+			} else {
+				return string_->c_str();
+			}
 		}
 		
 		const StringHost& host() const {
