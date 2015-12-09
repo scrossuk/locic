@@ -149,6 +149,10 @@ namespace locic {
 		}
 		
 		FunctionType FunctionType::substitute(const TemplateVarMap& templateVarMap) const {
+			if (templateVarMap.empty()) {
+				return *this;
+			}
+			
 			const auto substitutedReturnType = returnType()->substitute(templateVarMap);
 			
 			bool changed = (substitutedReturnType != returnType());
