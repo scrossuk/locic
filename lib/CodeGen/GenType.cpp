@@ -63,7 +63,7 @@ namespace locic {
 			
 			const auto& typeInstanceInfo = *debugInfo;
 			const auto& location = typeInstanceInfo.location;
-			const auto file = module.debugBuilder().createFile(location.fileName());
+			const auto file = module.debugBuilder().createFile(location.fileName().asStdString());
 			const auto lineNumber = location.range().start().lineNumber();
 			
 			TypeInfo typeInfo(module);

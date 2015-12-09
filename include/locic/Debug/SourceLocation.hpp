@@ -10,6 +10,7 @@
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
 #include <locic/Support/MakeString.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 	
@@ -19,17 +20,17 @@ namespace locic {
 			public:
 				static SourceLocation Null() {
 					const auto nullPosition = SourcePosition(0, 0);
-					return SourceLocation("", SourceRange(nullPosition, nullPosition),
+					return SourceLocation(String::Null(), SourceRange(nullPosition, nullPosition),
 						std::make_pair<size_t, size_t>(0, 0), std::make_pair<size_t, size_t>(0, 0));
 				}
 				
-				SourceLocation(std::string pFileName, SourceRange pRange,
+				SourceLocation(String pFileName, SourceRange pRange,
 						std::pair<size_t, size_t> pByteRange,
 						std::pair<size_t, size_t> pLineByteRange)
 					: fileName_(std::move(pFileName)), range_(pRange),
 					byteRange_(pByteRange), lineByteRange_(pLineByteRange) { }
 					
-				const std::string& fileName() const {
+				String fileName() const {
 					return fileName_;
 				}
 				
@@ -51,7 +52,7 @@ namespace locic {
 				}
 				
 			private:
-				std::string fileName_;
+				String fileName_;
 				SourceRange range_;
 				std::pair<size_t, size_t> byteRange_;
 				std::pair<size_t, size_t> lineByteRange_;

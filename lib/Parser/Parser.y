@@ -26,7 +26,7 @@
 int Locic_Parser_GeneratedParser_error(locic::Parser::LocationInfo* locationInfo, void * scanner, locic::Parser::Context * parserContext, const char *s);
 int Locic_Parser_GeneratedParser_lex(locic::Parser::Token * token, locic::Parser::LocationInfo* locationInfo, void * lexer, locic::Parser::Context * parserContext);
 
-static locic::Debug::SourceLocation convertLocationInfo(const std::string& fileName, const locic::Parser::LocationInfo* locationInfo) {
+static locic::Debug::SourceLocation convertLocationInfo(const locic::String fileName, const locic::Parser::LocationInfo* locationInfo) {
 	return locic::Debug::SourceLocation(fileName,
 		locic::Debug::SourceRange(
 			locic::Debug::SourcePosition(locationInfo->first_line, locationInfo->first_column),
@@ -37,7 +37,7 @@ static locic::Debug::SourceLocation convertLocationInfo(const std::string& fileN
 	);
 }
 
-static locic::String readString(const locic::Parser::Context* const parserContext, const std::string& fileName, const locic::Parser::LocationInfo* locationInfo) {
+static locic::String readString(const locic::Parser::Context* const parserContext, const locic::String fileName, const locic::Parser::LocationInfo* locationInfo) {
 	// TODO: this needs a lot of improvement, and should probably
 	//       be moved out of here entirely.
 	const auto handle = fopen(fileName.c_str(), "rb");

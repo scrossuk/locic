@@ -193,7 +193,7 @@ namespace locic {
 		                              llvm::Function* function,
 		                              const bool isInternal,
 		                              const bool isDefinition) {
-			const auto file = module.debugBuilder().createFile(functionInfo.declLocation.fileName());
+			const auto file = module.debugBuilder().createFile(functionInfo.declLocation.fileName().asStdString());
 			const auto lineNumber = functionInfo.declLocation.range().start().lineNumber();
 			return module.debugBuilder().createFunction(file,
 			                                            lineNumber,
@@ -225,7 +225,7 @@ namespace locic {
 		                               DIType type,
 		                               llvm::Value* varValue) {
 			auto& module = function.module();
-			const auto file = module.debugBuilder().createFile(varInfo.declLocation.fileName());
+			const auto file = module.debugBuilder().createFile(varInfo.declLocation.fileName().asStdString());
 			const auto lineNumber = varInfo.declLocation.range().start().lineNumber();
 			const bool isParam = (varInfo.kind == Debug::VarInfo::VAR_ARGUMENT);
 			

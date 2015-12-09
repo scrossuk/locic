@@ -8,6 +8,7 @@
 #include <locic/AST.hpp>
 #include <locic/Constant.hpp>
 #include <locic/Debug/SourceLocation.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic{
 
@@ -24,11 +25,11 @@ namespace locic{
 		class Context{
 			public:
 				Context(const StringHost& h, AST::NamespaceList& l, const std::string& n)
-					: stringHost_(h), rootNamespaceList_(l), fileName_(n),
+					: stringHost_(h), rootNamespaceList_(l), fileName_(h, n),
 					nextAnonymousVariable_(0), column_(1),
 					byteOffset_(0), columnByteOffset_(0) { }
 				
-				const std::string& fileName() const {
+				String fileName() const {
 					return fileName_;
 				}
 				
@@ -94,7 +95,7 @@ namespace locic{
 			private:
 				const StringHost& stringHost_;
 				AST::NamespaceList& rootNamespaceList_;
-				std::string fileName_;
+				String fileName_;
 				std::vector<Error> errors_;
 				std::string stringConstant_;
 				size_t nextAnonymousVariable_;

@@ -53,7 +53,7 @@ namespace locic {
 			
 			const auto position = getDebugDestructorPosition(module, typeInstance);
 			
-			const auto file = module.debugBuilder().createFile(typeInstanceInfo.location.fileName());
+			const auto file = module.debugBuilder().createFile(typeInstanceInfo.location.fileName().asStdString());
 			const auto lineNumber = position.lineNumber();
 			const bool isInternal = typeInstance.moduleScope().isInternal();
 			const bool isDefinition = true;
