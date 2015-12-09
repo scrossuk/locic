@@ -50,8 +50,7 @@ namespace locic {
 			
 			const SEM::Type*
 			getPrimitiveCallableType(SEM::FunctionType functionType,
-			                         const std::string& prefix,
-			                         const std::string& suffix);
+			                         const char* functionTypeName);
 			
 			const SEM::Type*
 			getTrivialFunctionPointerType(SEM::FunctionType functionType);

@@ -155,38 +155,84 @@ namespace locic {
 		
 		const SEM::Type*
 		TypeBuilder::getPrimitiveCallableType(const SEM::FunctionType functionType,
-		                                      const std::string& prefix,
-		                                      const std::string& suffix) {
-			const auto& parameterTypes = functionType.parameterTypes();
-			const auto functionTypeName = makeString("%s%llu_%s", prefix.c_str(), static_cast<unsigned long long>(parameterTypes.size()), suffix.c_str());
+		                                      const char* const functionTypeName) {
 			return getBuiltInTypeWithValueArgs(context_,
-			                                   context_.getString(functionTypeName),
+			                                   context_.getCString(functionTypeName),
 			                                   getFunctionTemplateArgs(context_, functionType));
+		}
+
+#define NAMESWITCH(prefix, suffix) \
+	switch (numArguments) { \
+		case 0: \
+			return prefix "0_" suffix; \
+		case 1: \
+			return prefix "1_" suffix; \
+		case 2: \
+			return prefix "2_" suffix; \
+		case 3: \
+			return prefix "3_" suffix; \
+		case 4: \
+			return prefix "4_" suffix; \
+		case 5: \
+			return prefix "5_" suffix; \
+		case 6: \
+			return prefix "6_" suffix; \
+		case 7: \
+			return prefix "7_" suffix; \
+		case 8: \
+			return prefix "8_" suffix; \
+		default: \
+			return nullptr; \
+	}
+		
+		static const char* getFunctionPointerName(const size_t numArguments) {
+			NAMESWITCH("function", "ptr_t");
 		}
 		
 		const SEM::Type*
 		TypeBuilder::getTrivialFunctionPointerType(const SEM::FunctionType functionType) {
-			return getPrimitiveCallableType(functionType, "function", "ptr_t");
+			return getPrimitiveCallableType(functionType,
+			                                getFunctionPointerName(functionType.parameterTypes().size()));
+		}
+		
+		static const char* getTemplatedFunctionPointerName(const size_t numArguments) {
+			NAMESWITCH("templatedfunction", "ptr_t");
 		}
 		
 		const SEM::Type*
 		TypeBuilder::getTemplatedFunctionPointerType(const SEM::FunctionType functionType) {
-			return getPrimitiveCallableType(functionType, "templatedfunction", "ptr_t");
+			return getPrimitiveCallableType(functionType,
+			                                getTemplatedFunctionPointerName(functionType.parameterTypes().size()));
+		}
+		
+		static const char* getMethodFunctionPointerName(const size_t numArguments) {
+			NAMESWITCH("methodfunction", "ptr_t");
 		}
 		
 		const SEM::Type*
 		TypeBuilder::getMethodFunctionPointerType(const SEM::FunctionType functionType) {
-			return getPrimitiveCallableType(functionType, "methodfunction", "ptr_t");
+			return getPrimitiveCallableType(functionType,
+			                                getMethodFunctionPointerName(functionType.parameterTypes().size()));
+		}
+		
+		static const char* getTemplatedMethodFunctionPointerName(const size_t numArguments) {
+			NAMESWITCH("templatedmethodfunction", "ptr_t");
 		}
 		
 		const SEM::Type*
 		TypeBuilder::getTemplatedMethodFunctionPointerType(const SEM::FunctionType functionType) {
-			return getPrimitiveCallableType(functionType, "templatedmethodfunction", "ptr_t");
+			return getPrimitiveCallableType(functionType,
+			                                getTemplatedMethodFunctionPointerName(functionType.parameterTypes().size()));
+		}
+		
+		static const char* getVarArgFunctionPointerName(const size_t numArguments) {
+			NAMESWITCH("varargfunction", "ptr_t");
 		}
 		
 		const SEM::Type*
 		TypeBuilder::getVarArgFunctionPointerType(const SEM::FunctionType functionType) {
-			return getPrimitiveCallableType(functionType, "varargfunction", "ptr_t");
+			return getPrimitiveCallableType(functionType,
+			                                getVarArgFunctionPointerName(functionType.parameterTypes().size()));
 		}
 		
 		const SEM::Type*
@@ -210,14 +256,24 @@ namespace locic {
 			}
 		}
 		
+		static const char* getTrivialMethodName(const size_t numArguments) {
+			NAMESWITCH("method", "t");
+		}
+		
 		const SEM::Type*
 		TypeBuilder::getTrivialMethodType(const SEM::FunctionType functionType) {
-			return getPrimitiveCallableType(functionType, "method", "t");
+			return getPrimitiveCallableType(functionType,
+			                                getTrivialMethodName(functionType.parameterTypes().size()));
+		}
+		
+		static const char* getTemplatedMethodName(const size_t numArguments) {
+			NAMESWITCH("templatedmethod", "t");
 		}
 		
 		const SEM::Type*
 		TypeBuilder::getTemplatedMethodType(const SEM::FunctionType functionType) {
-			return getPrimitiveCallableType(functionType, "templatedmethod", "t");
+			return getPrimitiveCallableType(functionType,
+			                                getTemplatedMethodName(functionType.parameterTypes().size()));
 		}
 		
 		const SEM::Type*
@@ -233,6 +289,10 @@ namespace locic {
 			}
 		}
 		
+		static const char* getInterfaceMethodName(const size_t numArguments) {
+			NAMESWITCH("interfacemethod", "t");
+		}
+		
 		const SEM::Type*
 		TypeBuilder::getInterfaceMethodType(const SEM::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
@@ -240,7 +300,12 @@ namespace locic {
 			assert(!attributes.isVarArg());
 			assert(attributes.isMethod());
 			
-			return getPrimitiveCallableType(functionType, "interfacemethod", "t");
+			return getPrimitiveCallableType(functionType,
+			                                getInterfaceMethodName(functionType.parameterTypes().size()));
+		}
+		
+		static const char* getStaticInterfaceMethodName(const size_t numArguments) {
+			NAMESWITCH("staticinterfacemethod", "t");
 		}
 		
 		const SEM::Type*
@@ -250,7 +315,8 @@ namespace locic {
 			assert(!attributes.isVarArg());
 			assert(!attributes.isMethod());
 			
-			return getPrimitiveCallableType(functionType, "staticinterfacemethod", "t");
+			return getPrimitiveCallableType(functionType,
+			                                getStaticInterfaceMethodName(functionType.parameterTypes().size()));
 		}
 		
 	}
