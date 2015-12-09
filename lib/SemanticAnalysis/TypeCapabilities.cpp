@@ -8,13 +8,22 @@
 #include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/SemanticAnalysis/TypeCapabilities.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		bool checkCapability(Context& context, const SEM::Type* const rawType, const String& capability, SEM::TypeArray templateArgs) {
+		const SEM::Type* getCapabilityType(Context& context, const String capability, SEM::TypeArray templateArgs) {
+			for (auto& arg: templateArgs) {
+				arg = arg->resolveAliases();
+			}
+			
+			return getBuiltInType(context, capability, std::move(templateArgs))->resolveAliases();
+		}
+		
+		bool checkCapabilityWithType(Context& context, const SEM::Type* const rawType, const String capability, const SEM::Type* requireType) {
 			const auto type = rawType->resolveAliases();
 			if (!type->isObject() && !type->isTemplateVar()) {
 				return false;
@@ -25,18 +34,16 @@ namespace locic {
 				return *previousResult;
 			}
 			
-			for (auto& arg: templateArgs) {
-				arg = arg->resolveAliases();
-			}
-			
-			const auto requireType = getBuiltInType(context, capability, std::move(templateArgs))->resolveAliases();
-			
 			const auto sourceMethodSet = getTypeMethodSet(context, type);
 			const auto requireMethodSet = getTypeMethodSet(context, requireType);
 			
 			const bool result = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
 			context.setCapability(type, capability, result);
 			return result;
+		}
+		
+		bool checkCapability(Context& context, const SEM::Type* const rawType, const String capability, SEM::TypeArray templateArgs) {
+			return checkCapabilityWithType(context, rawType, capability, getCapabilityType(context, capability, std::move(templateArgs)));
 		}
 		
 		bool supportsImplicitCast(Context& context, const SEM::Type* type) {
@@ -103,7 +110,7 @@ namespace locic {
 		}
 		
 		bool supportsMove(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, context.getCString("movable"), {});
+			return checkCapabilityWithType(context, type, context.getCString("movable"), context.typeBuilder().getMovableInterfaceType());
 		}
 		
 		bool supportsDissolve(Context& context, const SEM::Type* const type) {
