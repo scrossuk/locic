@@ -1,5 +1,0 @@
-
-static assert is_movable<int[10u]>;
-static assert is_movable<int*[10u]>;
-static assert is_movable<int&[10u]>;
-static assert is_movable<int[10u][10u]>;
