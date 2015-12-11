@@ -117,7 +117,7 @@ namespace locic {
 				return type->isBuiltInBool();
 			} else if (name == "__setdead") {
 				return type->isBuiltInVoid();
-			} else if (name == "__empty") {
+			} else if (name == "__dead") {
 				// TODO
 				return true;
 			} else if (name == "__isvalid") {
@@ -143,9 +143,8 @@ namespace locic {
 				return argCount == 0;
 			} else if (name == "__setdead") {
 				return argCount == 0;
-			} else if (name == "__empty") {
-				// TODO
-				return true;
+			} else if (name == "__dead") {
+				return argCount == 0;
 			} else if (name == "__isvalid") {
 				return argCount == 0;
 			} else if (name == "__setinvalid") {
@@ -173,8 +172,7 @@ namespace locic {
 				return true;
 			} else if (name == "__setdead") {
 				return true;
-			} else if (name == "__empty") {
-				// TODO
+			} else if (name == "__dead") {
 				return true;
 			} else if (name == "__isvalid") {
 				return true;
@@ -199,8 +197,7 @@ namespace locic {
 				return constPredicate.isTrue();
 			} else if (name == "__setdead") {
 				return constPredicate.isFalse();
-			} else if (name == "__empty") {
-				// TODO
+			} else if (name == "__dead") {
 				return true;
 			} else if (name == "__isvalid") {
 				return constPredicate.isTrue();
@@ -225,7 +222,7 @@ namespace locic {
 				return !isStatic;
 			} else if (name == "__setdead") {
 				return !isStatic;
-			} else if (name == "__empty") {
+			} else if (name == "__dead") {
 				return isStatic;
 			} else if (name == "__isvalid") {
 				return !isStatic;

@@ -8,7 +8,7 @@ namespace locic {
 	MethodID::MethodKind MethodID::kind() const {
 		switch (value_) {
 			case METHOD_CREATE:
-			case METHOD_EMPTY:
+			case METHOD_DEAD:
 			case METHOD_NULL:
 			case METHOD_ZERO:
 			case METHOD_UNIT:

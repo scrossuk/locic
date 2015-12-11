@@ -96,7 +96,7 @@ namespace locic {
 			const auto targetType = typeTemplateArguments.front().typeRefType();
 			
 			switch (methodID) {
-				case METHOD_EMPTY: {
+				case METHOD_DEAD: {
 					const auto objectVar = irEmitter.emitReturnAlloca(targetType);
 					genSetDeadState(function, targetType, objectVar);
 					return irEmitter.emitMoveLoad(objectVar, targetType);

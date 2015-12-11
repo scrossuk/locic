@@ -34,7 +34,7 @@ namespace locic {
 	: impl_(new MethodIDMapImpl(stringHost,
 	                            primitiveIDMap)) {
 		impl_->add(METHOD_CREATE);
-		impl_->add(METHOD_EMPTY);
+		impl_->add(METHOD_DEAD);
 		impl_->add(METHOD_NULL);
 		impl_->add(METHOD_ZERO);
 		impl_->add(METHOD_UNIT);

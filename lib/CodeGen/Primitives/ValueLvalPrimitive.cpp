@@ -83,7 +83,7 @@ namespace locic {
 		
 		namespace {
 			
-			llvm::Value* genValueLvalEmptyMethod(Function& functionGenerator, const SEM::Type* const targetType, llvm::Value* const hintResultValue) {
+			llvm::Value* genValueLvalDeadMethod(Function& functionGenerator, const SEM::Type* const targetType, llvm::Value* const hintResultValue) {
 				IREmitter irEmitter(functionGenerator, hintResultValue);
 				const auto objectVar = irEmitter.emitReturnAlloca(targetType);
 				genSetDeadState(functionGenerator, targetType, objectVar);
@@ -172,8 +172,8 @@ namespace locic {
 			const auto targetType = typeTemplateArguments.front().typeRefType();
 			
 			switch (methodID) {
-				case METHOD_EMPTY:
-					return genValueLvalEmptyMethod(functionGenerator, targetType, irEmitter.hintResultValue());
+				case METHOD_DEAD:
+					return genValueLvalDeadMethod(functionGenerator, targetType, irEmitter.hintResultValue());
 				case METHOD_CREATE:
 					return genValueLvalCreateMethod(functionGenerator, targetType, std::move(args), irEmitter.hintResultValue());
 				case METHOD_DESTROY: {

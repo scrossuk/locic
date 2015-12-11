@@ -60,7 +60,7 @@ namespace locic {
 					case METHOD_SIZEOF:
 					case METHOD_ISLIVE:
 					case METHOD_SETDEAD:
-					case METHOD_EMPTY:
+					case METHOD_DEAD:
 					case METHOD_ISVALID:
 					case METHOD_SETINVALID:
 						// These are known lifetime methods.

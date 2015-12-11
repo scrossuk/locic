@@ -9,7 +9,7 @@ interface queryislive {
 template <typename T>
 notag(T)
 __primitive value_lval {
-	static value_lval<T> __empty() noexcept require(T : deadstateable and T : movable);
+	static value_lval<T> __dead() noexcept require(T : deadstateable and T : movable);
 	
 	static value_lval<T> create(T value) noexcept require(T : movable);
 	

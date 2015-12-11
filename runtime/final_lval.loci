@@ -1,7 +1,7 @@
 template <typename T>
 notag(T)
 __primitive final_lval {
-	static final_lval<T> __empty() noexcept require(T : movable);
+	static final_lval<T> __dead() noexcept require(T : movable);
 	
 	static size_t __alignmask() noexcept require(T : sized_type);
 	static size_t __sizeof() noexcept require(T : sized_type);

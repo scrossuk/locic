@@ -11,7 +11,7 @@ namespace locic {
 	enum MethodIDEnum {
 		// Constructor methods.
 		METHOD_CREATE,
-		METHOD_EMPTY,
+		METHOD_DEAD,
 		METHOD_NULL,
 		METHOD_ZERO,
 		METHOD_UNIT,
@@ -154,8 +154,8 @@ namespace locic {
 			switch (value_) {
 				case METHOD_CREATE:
 					return "create";
-				case METHOD_EMPTY:
-					return "__empty";
+				case METHOD_DEAD:
+					return "__dead";
 				case METHOD_NULL:
 					return "null";
 				case METHOD_ZERO:

@@ -15,7 +15,7 @@ interface internal_thread_api {
 datatype thread_ref(lval<internal_thread_api&> value_lval<internal_thread_api&> thread);
 
 static thread_ref thread_ref::empty() noexcept {
-	return @(lval<internal_thread_api&>(value_lval<internal_thread_api&>.__empty()));
+	return @(lval<internal_thread_api&>(value_lval<internal_thread_api&>.__dead()));
 }
 
 template <typename T>
