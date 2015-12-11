@@ -1,0 +1,38 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+static assert is_noexcept_implicit_copyable<byte>;
+static assert is_noexcept_implicit_copyable<short>;
+static assert is_noexcept_implicit_copyable<int>;
+static assert is_noexcept_implicit_copyable<long>;
+static assert is_noexcept_implicit_copyable<long long>;
+
+static assert is_noexcept_implicit_copyable<unsigned byte>;
+static assert is_noexcept_implicit_copyable<unsigned short>;
+static assert is_noexcept_implicit_copyable<unsigned int>;
+static assert is_noexcept_implicit_copyable<unsigned long>;
+static assert is_noexcept_implicit_copyable<unsigned long long>;
+
+static assert is_noexcept_implicit_copyable<int8_t>;
+static assert is_noexcept_implicit_copyable<int16_t>;
+static assert is_noexcept_implicit_copyable<int32_t>;
+static assert is_noexcept_implicit_copyable<int64_t>;
+
+static assert is_noexcept_implicit_copyable<uint8_t>;
+static assert is_noexcept_implicit_copyable<uint16_t>;
+static assert is_noexcept_implicit_copyable<uint32_t>;
+static assert is_noexcept_implicit_copyable<uint64_t>;
+
+static assert is_noexcept_implicit_copyable<size_t>;
+static assert is_noexcept_implicit_copyable<ssize_t>;
+static assert is_noexcept_implicit_copyable<ptrdiff_t>;
+
+static assert is_noexcept_implicit_copyable<float>;
+static assert is_noexcept_implicit_copyable<double>;
+static assert is_noexcept_implicit_copyable<long double>;
+
+static assert is_noexcept_implicit_copyable<int*>;
+
+static assert is_noexcept_implicit_copyable<int[10u]>;
+static assert is_noexcept_implicit_copyable<int*[10u]>;
+static assert is_noexcept_implicit_copyable<int&[10u]>;
+static assert is_noexcept_implicit_copyable<int[10u][10u]>;
