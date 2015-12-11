@@ -13,6 +13,7 @@ set(RUNTIME_FILES
 	copyable.loci
 	decrementable.loci
 	default_constructible.loci
+	destructible.loci
 	dissolvable.loci
 	double_t.loci
 	final_lval.loci

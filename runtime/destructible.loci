@@ -1,0 +1,6 @@
+interface destructible_t {
+	void __destroy() noexcept;
+}
+
+template <typename T>
+using is_destructible = T : destructible_t;
