@@ -1,0 +1,19 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+// Not yet implemented.
+// XFAIL: *
+
+// CHECK-LABEL: declare void @g(i32)
+import void g(int i);
+
+// CHECK-LABEL: define void @f
+export void f() {
+	for (auto x: range<int>(-1, 2)) {
+		// CHECK-NEXT: call void @g(i32 -1)
+		// CHECK-NEXT: call void @g(i32 0)
+		// CHECK-NEXT: call void @g(i32 1)
+		g(x);
+	}
+	// CHECK-NEXT: ret void
+}
