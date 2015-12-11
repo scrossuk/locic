@@ -1,3 +1,4 @@
+// RUN: %locic %s --emit-llvm -o %t
 
 int_t[10u] getIntArray(static_array_t<int, 10u> array) {
 	return move array;
