@@ -59,6 +59,7 @@ set(RUNTIME_FILES
 	value_lval.loci
 	varargfunction_ptr_t.loci
 	void_t.loci
+	zero.loci
 )
 
 add_custom_command(OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/BuiltInTypes.loci"
