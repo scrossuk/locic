@@ -336,6 +336,22 @@ namespace locic {
 					return builder.CreateSelect(isLessThan, minusOneResult,
 							builder.CreateSelect(isGreaterThan, plusOneResult, zeroResult));
 				}
+				case METHOD_INCREMENT: {
+					// TODO: add safety checks!
+					const auto methodOwnerPtr = args[0].resolve(function);
+					const auto unit = constantGenerator.getPrimitiveInt(primitiveID, 1);
+					const auto incrementedValue = builder.CreateAdd(methodOwner, unit);
+					irEmitter.emitRawStore(incrementedValue, methodOwnerPtr);
+					return constantGenerator.getVoidUndef();
+				}
+				case METHOD_DECREMENT: {
+					// TODO: add safety checks!
+					const auto methodOwnerPtr = args[0].resolve(function);
+					const auto unit = constantGenerator.getPrimitiveInt(primitiveID, 1);
+					const auto decrementedValue = builder.CreateSub(methodOwner, unit);
+					irEmitter.emitRawStore(decrementedValue, methodOwnerPtr);
+					return constantGenerator.getVoidUndef();
+				}
 				default:
 					llvm_unreachable("Unknown primitive method.");
 			}
