@@ -128,7 +128,7 @@ namespace locic {
 		
 		void TemplateBuilder::updateAllInstructions(Module& module) {
 			for (const auto instruction: instructions_) {
-				instruction->setOperand(1, ConstantGenerator(module).getI32(bitsRequired()));
+				instruction->setOperand(1, ConstantGenerator(module).getI64(bitsRequired()));
 			}
 		}
 		

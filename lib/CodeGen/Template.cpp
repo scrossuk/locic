@@ -75,15 +75,15 @@ namespace locic {
 		constexpr size_t TYPE_INFO_ARRAY_SIZE = 8;
 		
 		TypePair pathType(Module& module) {
-			return std::make_pair(llvm_abi::Int32Ty,
-			                      TypeGenerator(module).getI32Type());
+			return std::make_pair(llvm_abi::Int64Ty,
+			                      TypeGenerator(module).getI64Type());
 		}
 		
 		llvm_abi::Type templateGeneratorABIType(Module& module) {
 			auto& abiTypeBuilder = module.abiTypeBuilder();
 			llvm::SmallVector<llvm_abi::Type, 3> types;
 			types.push_back(llvm_abi::PointerTy);
-			types.push_back(llvm_abi::Int32Ty);
+			types.push_back(llvm_abi::Int64Ty);
 			return llvm_abi::Type::AutoStruct(abiTypeBuilder, types, "__template_generator");
 		}
 		
@@ -169,7 +169,7 @@ namespace locic {
 			
 			llvm::Constant* const values[] = {
 				constGen.getNull(TypeGenerator(module).getPtrType()),
-				constGen.getI32(0)
+				constGen.getI64(0)
 			};
 			return constGen.getStruct(templateGeneratorLLVMType(module), values);
 		}
@@ -206,7 +206,7 @@ namespace locic {
 				
 				llvm::Constant* const values[] = {
 						constGen.getPointerCast(rootFunction, TypeGenerator(module).getPtrType()),
-						constGen.getI32(1)
+						constGen.getI64(1)
 					};
 				return constGen.getStruct(templateGeneratorLLVMType(module), values);
 			} else {
@@ -226,7 +226,7 @@ namespace locic {
 				// Insert garbage value for bits required; this will be replaced
 				// later by the template builder when the actual number of bits
 				// required is known.
-				const auto bitsRequiredGarbageValue = constGen.getI32(4242);
+				const auto bitsRequiredGarbageValue = constGen.getI64(4242);
 				
 				const auto shiftedPath = builder.CreateShl(path, bitsRequiredGarbageValue);
 				
@@ -235,7 +235,7 @@ namespace locic {
 				// hence know the bits required).
 				templateBuilder.addInstruction(llvm::dyn_cast<llvm::Instruction>(shiftedPath));
 				
-				const auto newPath = builder.CreateOr(shiftedPath, constGen.getI32(entryId));
+				const auto newPath = builder.CreateOr(shiftedPath, constGen.getI64(entryId));
 				
 				SetUseEntryBuilder setUseEntryBuilder(function);
 				
@@ -364,13 +364,13 @@ namespace locic {
 			
 			TypeGenerator typeGen(module);
 			
-			llvm::Type* const ctlzTypes[] = { typeGen.getI32Type() };
+			llvm::Type* const ctlzTypes[] = { typeGen.getI64Type() };
 			const auto countLeadingZerosFunction = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::ctlz, ctlzTypes);
 			llvm::Value* const ctlzArgs[] = { pathArg, constGen.getI1(true) };
 			const auto numLeadingZeroes = irEmitter.emitCall(countLeadingZerosFunction->getFunctionType(),
 			                                                 countLeadingZerosFunction, ctlzArgs);
 			const auto numLeadingZeroesSize = builder.CreateZExtOrTrunc(numLeadingZeroes, typeGen.getSizeTType());
-			const auto startPosition = builder.CreateSub(constGen.getSizeTValue(31), numLeadingZeroesSize);
+			const auto startPosition = builder.CreateSub(constGen.getSizeTValue(63), numLeadingZeroesSize);
 			
 			const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateInst.object());
 			
@@ -551,9 +551,9 @@ namespace locic {
 			
 			const auto bitsRequiredValue = constGen.getSizeTValue(templateBuilder.bitsRequired());
 			const auto position = builder.CreateSub(parentPositionArg, bitsRequiredValue);
-			const auto castPosition = builder.CreateZExtOrTrunc(position, TypeGenerator(module).getI32Type());
+			const auto castPosition = builder.CreateZExtOrTrunc(position, TypeGenerator(module).getI64Type());
 			const auto subPath = builder.CreateLShr(pathArg, castPosition);
-			const auto mask = constGen.getI32((1 << templateBuilder.bitsRequired()) - 1);
+			const auto mask = constGen.getI64((1 << templateBuilder.bitsRequired()) - 1);
 			const auto component = builder.CreateAnd(subPath, mask);
 			
 			const auto endBB = function.createBasicBlock("");
@@ -565,7 +565,7 @@ namespace locic {
 				const auto templateUseComponent = templateUsePair.second;
 				
 				const auto caseBB = function.createBasicBlock("");
-				switchInstruction->addCase(constGen.getI32(templateUseComponent), caseBB);
+				switchInstruction->addCase(constGen.getI64(templateUseComponent), caseBB);
 				
 				function.selectBasicBlock(caseBB);
 				
@@ -620,13 +620,13 @@ namespace locic {
 							if (argComponent.value() == (size_t) -1) {
 								// Reference to self with the same template
 								// args, so use the parent path.
-								argFullPath = builder.CreateLShr(subPath, constGen.getI32(templateBuilder.bitsRequired()));
+								argFullPath = builder.CreateLShr(subPath, constGen.getI64(templateBuilder.bitsRequired()));
 							} else {
 								// Create a template generator for the arguments
 								// by adding the correct component in the path by
 								// computing (subPath & ~mask) | <their component>.
 								const auto maskedSubPath = builder.CreateAnd(subPath, builder.CreateNot(mask));
-								argFullPath = builder.CreateOr(maskedSubPath, constGen.getI32(argComponent.value()));
+								argFullPath = builder.CreateOr(maskedSubPath, constGen.getI64(argComponent.value()));
 							}
 							
 							llvm::Value* templateGenerator = constGen.getUndef(templateGeneratorType(module).second);

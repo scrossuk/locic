@@ -17,23 +17,23 @@ export void f() {
 	
 	// CHECK: %[[TPLGEN_fn0:[0-9]+]] = extractvalue {{.*}} %[[TPLGEN]], 0
 	// CHECK-NEXT: %[[TPLGEN_path0:[0-9]+]] = extractvalue {{.*}} %[[TPLGEN]], 1
-	// CHECK-NEXT: %[[g_path:[0-9]+]] = shl i32 %[[TPLGEN_path0]], 1
+	// CHECK-NEXT: %[[g_path:[0-9]+]] = shl i64 %[[TPLGEN_path0]], 1
 	// CHECK-NEXT: %[[TPLGEN_g_part:[0-9]+]] = insertvalue {{.*}} undef, i8* %[[TPLGEN_fn0]], 0
-	// CHECK-NEXT: %[[TPLGEN_g:[0-9]+]] = insertvalue {{.*}} %[[TPLGEN_g_part]], i32 %[[g_path]], 1
+	// CHECK-NEXT: %[[TPLGEN_g:[0-9]+]] = insertvalue {{.*}} %[[TPLGEN_g_part]], i64 %[[g_path]], 1
 	
 	// CHECK: %[[TPLGEN_fn1:[0-9]+]] = extractvalue {{.*}} %[[TPLGEN]], 0
 	// CHECK-NEXT: %[[TPLGEN_path1:[0-9]+]] = extractvalue {{.*}} %[[TPLGEN]], 1
-	// CHECK-NEXT: %[[h_path_part:[0-9]+]] = shl i32 %[[TPLGEN_path1]], 1
-	// CHECK-NEXT: %[[h_path:[0-9]+]] = or i32 %[[h_path_part]], 1
+	// CHECK-NEXT: %[[h_path_part:[0-9]+]] = shl i64 %[[TPLGEN_path1]], 1
+	// CHECK-NEXT: %[[h_path:[0-9]+]] = or i64 %[[h_path_part]], 1
 	// CHECK-NEXT: %[[TPLGEN_h_part:[0-9]+]] = insertvalue {{.*}} undef, i8* %[[TPLGEN_fn1]], 0
-	// CHECK-NEXT: %[[TPLGEN_h:[0-9]+]] = insertvalue {{.*}} %[[TPLGEN_h_part]], i32 %[[h_path]], 1
+	// CHECK-NEXT: %[[TPLGEN_h:[0-9]+]] = insertvalue {{.*}} %[[TPLGEN_h_part]], i64 %[[h_path]], 1
 	
 	// CHECK: store {{.*}} %[[TPLGEN_g]], {{.*}} %coerce.arg.source
 	// CHECK-NEXT: %[[g_GEP0:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 0
 	// CHECK-NEXT: %[[g_TPL0:[0-9]+]] = load {{.*}} %[[g_GEP0]]
 	// CHECK-NEXT: %[[g_GEP1:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source, i32 0, i32 1
 	// CHECK-NEXT: %[[g_TPL1:[0-9]+]] = load {{.*}} %[[g_GEP1]]
-	// CHECK-NEXT: call void @g(i8* %[[g_TPL0]], i32 %[[g_TPL1]])
+	// CHECK-NEXT: call void @g(i8* %[[g_TPL0]], i64 %[[g_TPL1]])
 	g<T>();
 	
 	// CHECK: store {{.*}} %[[TPLGEN_h]], {{.*}} %coerce.arg.source1
@@ -41,26 +41,25 @@ export void f() {
 	// CHECK-NEXT: %[[h_TPL0:[0-9]+]] = load {{.*}} %[[h_GEP0]]
 	// CHECK-NEXT: %[[h_GEP1:[0-9]+]] = getelementptr {{.*}} %coerce.arg.source1, i32 0, i32 1
 	// CHECK-NEXT: %[[h_TPL1:[0-9]+]] = load {{.*}} %[[h_GEP1]]
-	// CHECK-NEXT: call void @h(i8* %[[h_TPL0]], i32 %[[h_TPL1]])
+	// CHECK-NEXT: call void @h(i8* %[[h_TPL0]], i64 %[[h_TPL1]])
 	h<T>();
 }
 
 // CHECK-LABEL: define void @TPLGENf
 // CHECK:           %[[pos:[0-9]+]] = sub i64 %3, 1
-// CHECK-NEXT:      %[[pos_32:[0-9]+]] = trunc i64 %[[pos]] to i32
-// CHECK-NEXT:      %[[subpath:[0-9]+]] = lshr i32 %2, %[[pos_32]]
-// CHECK-NEXT:      %[[subpath_masked:[0-9]+]] = and i32 %[[subpath]], 1
-// CHECK-NEXT:      switch i32 %[[subpath_masked]]
-// CHECK-NEXT:          i32 0, label %[[g_label:[0-9]+]]
-// CHECK-NEXT:          i32 1, label %[[h_label:[0-9]+]]
+// CHECK-NEXT:      %[[subpath:[0-9]+]] = lshr i64 %2, %[[pos]]
+// CHECK-NEXT:      %[[subpath_masked:[0-9]+]] = and i64 %[[subpath]], 1
+// CHECK-NEXT:      switch i64 %[[subpath_masked]]
+// CHECK-NEXT:          i64 0, label %[[g_label:[0-9]+]]
+// CHECK-NEXT:          i64 1, label %[[h_label:[0-9]+]]
 // CHECK-NEXT:      ]
 
 // CHECK:         ; <label>:[[g_label]]
-// CHECK-NEXT:      call void @TPLGENg(i8* %0, i8* %1, i32 %2, i64 %[[pos]])
+// CHECK-NEXT:      call void @TPLGENg(i8* %0, i8* %1, i64 %2, i64 %[[pos]])
 // CHECK-NEXT:      ret void
 
 // CHECK:         ; <label>:[[h_label]]
-// CHECK-NEXT:      call void @TPLGENh(i8* %0, i8* %1, i32 %2, i64 %[[pos]])
+// CHECK-NEXT:      call void @TPLGENh(i8* %0, i8* %1, i64 %2, i64 %[[pos]])
 // CHECK-NEXT:      ret void
 
 // CHECK:       }
