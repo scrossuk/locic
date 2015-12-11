@@ -1,0 +1,13 @@
+interface decrementable_t {
+	void decrement();
+}
+
+template <typename T>
+using is_decrementable = T : decrementable_t;
+
+interface noexcept_decrementable_t {
+	void decrement() noexcept;
+}
+
+template <typename T>
+using is_noexcept_decrementable = T : noexcept_decrementable_t;
