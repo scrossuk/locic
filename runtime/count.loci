@@ -1,0 +1,51 @@
+template <typename T>
+notag(T)
+__primitive count {
+	static count<T> create(T end) noexcept(has_noexcept_zero<T>) require(has_zero<T> and is_movable<T>);
+	
+	static size_t __alignmask() noexcept require(is_sized_type<T>);
+	static size_t __sizeof() noexcept require(is_sized_type<T>);
+	
+	size_t implicit_copy() const noexcept require(is_implicit_copyable<T>);
+	size_t copy() const noexcept require(is_copyable<T>);
+	
+	void __destroy() noexcept require(is_destructible<T>);
+	
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	
+	const T& front() const noexcept;
+	
+	void skip_front() noexcept(is_noexcept_incrementable<T>) require(is_incrementable<T>);
+	
+	bool empty() const noexcept(is_noexcept_comparable<T>) require(is_comparable<T>);
+	
+	void __moveto(void* ptr, size_t position) noexcept require(is_movable<T>);
+}
+
+template <typename T>
+notag(T)
+__primitive count_incl {
+	static count_incl<T> create(T end) noexcept(has_noexcept_zero<T>) require(has_zero<T> and is_movable<T>);
+	
+	static size_t __alignmask() noexcept require(is_sized_type<T>);
+	static size_t __sizeof() noexcept require(is_sized_type<T>);
+	
+	size_t implicit_copy() const noexcept require(is_implicit_copyable<T>);
+	size_t copy() const noexcept require(is_copyable<T>);
+	
+	void __destroy() noexcept require(is_destructible<T>);
+	
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	
+	const T& front() const noexcept;
+	const T& back() const noexcept;
+	
+	void skip_front() noexcept(is_noexcept_incrementable<T>) require(is_incrementable<T>);
+	void skip_back() noexcept(is_noexcept_decrementable<T>) require(is_decrementable<T>);
+	
+	bool empty() const noexcept(is_noexcept_comparable<T>) require(is_comparable<T>);
+	
+	void __moveto(void* ptr, size_t position) noexcept require(is_movable<T>);
+}

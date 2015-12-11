@@ -11,6 +11,7 @@ set(RUNTIME_FILES
 	comparable.loci
 	compare_result_t.loci
 	copyable.loci
+	count.loci
 	decrementable.loci
 	default_constructible.loci
 	destructible.loci
@@ -36,6 +37,7 @@ set(RUNTIME_FILES
 	ptrdiff_t.loci
 	ptr.loci
 	ptr_lval.loci
+	range.loci
 	ref.loci
 	short_t.loci
 	size_t.loci
