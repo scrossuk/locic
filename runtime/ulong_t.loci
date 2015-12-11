@@ -44,6 +44,9 @@ __primitive ulong_t {
 	bool isZero() const noexcept;
 	
 	void __moveto(void* ptr, size_t position) noexcept;
+	
+	void increment() noexcept;
+	void decrement() noexcept;
 }
 
 template <typename T : movable>

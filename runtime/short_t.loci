@@ -40,6 +40,9 @@ __primitive short_t {
 	compare_result_t compare(const short_t& v) const noexcept;
 	
 	void __moveto(void* ptr, size_t position) noexcept;
+	
+	void increment() noexcept;
+	void decrement() noexcept;
 }
 
 template <typename T : movable>
