@@ -258,7 +258,6 @@ namespace locic {
 					const bool isSigned = false;
 					return builder.CreateIntCast(bitCount, typeGenerator.getSizeTType(), isSigned);
 				}
-				case METHOD_SQRT:
 				case METHOD_INCREMENT: {
 					// TODO: add safety checks!
 					const auto methodOwnerPtr = args[0].resolve(function);
