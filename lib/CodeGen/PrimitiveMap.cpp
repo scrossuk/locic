@@ -10,6 +10,7 @@
 #include <locic/CodeGen/Primitives/NullPrimitive.hpp>
 #include <locic/CodeGen/Primitives/PtrLvalPrimitive.hpp>
 #include <locic/CodeGen/Primitives/PtrPrimitive.hpp>
+#include <locic/CodeGen/Primitives/RangePrimitive.hpp>
 #include <locic/CodeGen/Primitives/RefPrimitive.hpp>
 #include <locic/CodeGen/Primitives/SignedIntegerPrimitive.hpp>
 #include <locic/CodeGen/Primitives/StaticArrayPrimitive.hpp>
@@ -99,6 +100,14 @@ namespace locic {
 				}
 				case PrimitiveTypename: {
 					return new TypenamePrimitive(typeInstance);
+				}
+				case PrimitiveCount:
+				case PrimitiveCountIncl:
+				case PrimitiveRange:
+				case PrimitiveRangeIncl:
+				case PrimitiveReverseRange:
+				case PrimitiveReverseRangeIncl: {
+					return new RangePrimitive(typeInstance);
 				}
 				case PrimitiveStaticArray: {
 					return new StaticArrayPrimitive(typeInstance);
