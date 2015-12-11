@@ -345,6 +345,18 @@ namespace locic {
 				return "final_lval";
 			case PrimitiveTypename:
 				return "typename_t";
+			case PrimitiveCount:
+				return "count";
+			case PrimitiveCountIncl:
+				return "count_incl";
+			case PrimitiveRange:
+				return "range";
+			case PrimitiveRangeIncl:
+				return "range_incl";
+			case PrimitiveReverseRange:
+				return "reverse_range";
+			case PrimitiveReverseRangeIncl:
+				return "reverse_range_incl";
 			case PrimitiveStaticArray:
 				return "static_array_t";
 		}
