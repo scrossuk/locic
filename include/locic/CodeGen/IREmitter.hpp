@@ -169,6 +169,15 @@ namespace locic {
 			              const SEM::Type* type);
 			
 			/**
+			 * \brief Emit a call to a __moveto method.
+			 */
+			void
+			emitMoveCall(llvm::Value* memSource,
+			             llvm::Value* memDest,
+			             llvm::Value* destOffset,
+			             const SEM::Type* type);
+			
+			/**
 			 * \brief Load a value from a memory location.
 			 * 
 			 * For most primitive types, this function will

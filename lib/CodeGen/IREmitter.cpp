@@ -373,6 +373,15 @@ namespace locic {
 			                    type);
 		}
 		
+		void
+		IREmitter::emitMoveCall(llvm::Value* const memSource,
+		                        llvm::Value* const memDest,
+		                        llvm::Value* const destOffset,
+		                        const SEM::Type* const type) {
+			genMoveCall(functionGenerator_, type, memSource, memDest,
+			            destOffset);
+		}
+		
 		llvm::Value*
 		IREmitter::emitBasicLoad(llvm::Value* const value,
 		                         const SEM::Type* const type) {
