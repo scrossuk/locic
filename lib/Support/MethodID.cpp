@@ -31,6 +31,11 @@ namespace locic {
 			case METHOD_PLUS:
 			case METHOD_MINUS:
 			case METHOD_NOT:
+			case METHOD_FRONT:
+			case METHOD_SKIPFRONT:
+			case METHOD_BACK:
+			case METHOD_SKIPBACK:
+			case METHOD_EMPTY:
 			case METHOD_ISZERO:
 			case METHOD_ISPOSITIVE:
 			case METHOD_ISNEGATIVE:

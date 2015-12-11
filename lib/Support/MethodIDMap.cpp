@@ -54,6 +54,11 @@ namespace locic {
 		impl_->add(METHOD_PLUS);
 		impl_->add(METHOD_MINUS);
 		impl_->add(METHOD_NOT);
+		impl_->add(METHOD_FRONT);
+		impl_->add(METHOD_SKIPFRONT);
+		impl_->add(METHOD_BACK);
+		impl_->add(METHOD_SKIPBACK);
+		impl_->add(METHOD_EMPTY);
 		impl_->add(METHOD_ISZERO);
 		impl_->add(METHOD_ISPOSITIVE);
 		impl_->add(METHOD_ISNEGATIVE);

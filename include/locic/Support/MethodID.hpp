@@ -34,6 +34,11 @@ namespace locic {
 		METHOD_PLUS,
 		METHOD_MINUS,
 		METHOD_NOT,
+		METHOD_FRONT,
+		METHOD_SKIPFRONT,
+		METHOD_BACK,
+		METHOD_SKIPBACK,
+		METHOD_EMPTY,
 		METHOD_ISZERO,
 		METHOD_ISPOSITIVE,
 		METHOD_ISNEGATIVE,
@@ -199,6 +204,16 @@ namespace locic {
 					return "minus";
 				case METHOD_NOT:
 					return "not";
+				case METHOD_FRONT:
+					return "front";
+				case METHOD_SKIPFRONT:
+					return "skipfront";
+				case METHOD_BACK:
+					return "back";
+				case METHOD_SKIPBACK:
+					return "skipback";
+				case METHOD_EMPTY:
+					return "empty";
 				case METHOD_ISZERO:
 					return "iszero";
 				case METHOD_ISPOSITIVE:
