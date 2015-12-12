@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
 		targetOptions.floatABI = targetFloatABIString;
 		targetOptions.fpu = targetFPUString;
 		
-		CodeGen::Context codeGenContext(sharedMaps, targetOptions);
+		CodeGen::Context codeGenContext(semContext, sharedMaps, targetOptions);
 		CodeGen::CodeGenerator codeGenerator(codeGenContext, outputFileName, debugModule, buildOptions);
 		
 		{

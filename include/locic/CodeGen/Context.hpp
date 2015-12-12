@@ -7,6 +7,12 @@ namespace locic {
 	
 	class SharedMaps;
 	
+	namespace SEM {
+		
+		class Context;
+		
+	}
+	
 	namespace CodeGen {
 		
 		class InternalContext;
@@ -14,7 +20,9 @@ namespace locic {
 		
 		class Context {
 			public:
-				Context(const SharedMaps& sharedMaps, const TargetOptions& targetOptions);
+				Context(const SEM::Context& semContext,
+				        const SharedMaps& sharedMaps,
+				        const TargetOptions& targetOptions);
 				~Context();
 				
 				InternalContext& internal();

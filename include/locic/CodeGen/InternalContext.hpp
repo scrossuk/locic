@@ -11,13 +11,21 @@ namespace locic {
 	class String;
 	class StringHost;
 	
+	namespace SEM {
+		
+		class Context;
+		
+	}
+	
 	namespace CodeGen {
 		
 		struct TargetOptions;
 		
 		class InternalContext {
 			public:
-				InternalContext(const SharedMaps& sharedMaps, const TargetOptions& targetOptions);
+				InternalContext(const SEM::Context& semContext,
+				                const SharedMaps& sharedMaps,
+				                const TargetOptions& targetOptions);
 				~InternalContext();
 				
 				const StringHost& stringHost() const;
@@ -25,6 +33,8 @@ namespace locic {
 				MethodID getMethodID(const String& name) const;
 				
 				PrimitiveID getPrimitiveID(const String& name) const;
+				
+				const SEM::Context& semContext() const;
 				
 				llvm::LLVMContext& llvmContext();
 				
@@ -37,6 +47,7 @@ namespace locic {
 				const llvm::DataLayout& dataLayout() const;
 				
 			private:
+				const SEM::Context& semContext_;
 				const SharedMaps& sharedMaps_;
 				llvm::LLVMContext llvmContext_;
 				llvm::Triple targetTriple_;

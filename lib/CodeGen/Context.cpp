@@ -5,8 +5,10 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		Context::Context(const SharedMaps& sharedMaps, const TargetOptions& targetOptions)
-		: internalContext_(new InternalContext(sharedMaps, targetOptions)) { }
+		Context::Context(const SEM::Context& semContext,
+		                 const SharedMaps& sharedMaps,
+		                 const TargetOptions& targetOptions)
+		: internalContext_(new InternalContext(semContext, sharedMaps, targetOptions)) { }
 		
 		Context::~Context() { }
 		

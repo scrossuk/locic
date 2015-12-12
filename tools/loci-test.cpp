@@ -341,7 +341,7 @@ bool runTest(TestOptions& options) {
 		printf("Performing code generation...\n");
 		
 		// Use default (host) target options.
-		CodeGen::Context codeGenContext(sharedMaps, CodeGen::TargetOptions());
+		CodeGen::Context codeGenContext(semContext, sharedMaps, CodeGen::TargetOptions());
 		CodeGen::CodeGenerator codeGenerator(codeGenContext, "test", debugModule, buildOptions);
 		
 		codeGenerator.genNamespace(&(semModule.rootNamespace()));
