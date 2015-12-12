@@ -160,33 +160,9 @@ namespace locic {
 			                                   context_.getCString(functionTypeName),
 			                                   getFunctionTemplateArgs(context_, functionType));
 		}
-
-#define NAMESWITCH(prefix, suffix) \
-	switch (numArguments) { \
-		case 0: \
-			return prefix "0_" suffix; \
-		case 1: \
-			return prefix "1_" suffix; \
-		case 2: \
-			return prefix "2_" suffix; \
-		case 3: \
-			return prefix "3_" suffix; \
-		case 4: \
-			return prefix "4_" suffix; \
-		case 5: \
-			return prefix "5_" suffix; \
-		case 6: \
-			return prefix "6_" suffix; \
-		case 7: \
-			return prefix "7_" suffix; \
-		case 8: \
-			return prefix "8_" suffix; \
-		default: \
-			return nullptr; \
-	}
 		
 		static const char* getFunctionPointerName(const size_t numArguments) {
-			NAMESWITCH("function", "ptr_t");
+			return PrimitiveID::FunctionPtr(numArguments).toCString();
 		}
 		
 		const SEM::Type*
@@ -196,7 +172,7 @@ namespace locic {
 		}
 		
 		static const char* getTemplatedFunctionPointerName(const size_t numArguments) {
-			NAMESWITCH("templatedfunction", "ptr_t");
+			return PrimitiveID::TemplatedFunctionPtr(numArguments).toCString();
 		}
 		
 		const SEM::Type*
@@ -206,7 +182,7 @@ namespace locic {
 		}
 		
 		static const char* getMethodFunctionPointerName(const size_t numArguments) {
-			NAMESWITCH("methodfunction", "ptr_t");
+			return PrimitiveID::MethodFunctionPtr(numArguments).toCString();
 		}
 		
 		const SEM::Type*
@@ -216,7 +192,7 @@ namespace locic {
 		}
 		
 		static const char* getTemplatedMethodFunctionPointerName(const size_t numArguments) {
-			NAMESWITCH("templatedmethodfunction", "ptr_t");
+			return PrimitiveID::TemplatedMethodFunctionPtr(numArguments).toCString();
 		}
 		
 		const SEM::Type*
@@ -226,7 +202,7 @@ namespace locic {
 		}
 		
 		static const char* getVarArgFunctionPointerName(const size_t numArguments) {
-			NAMESWITCH("varargfunction", "ptr_t");
+			return PrimitiveID::VarArgFunctionPtr(numArguments).toCString();
 		}
 		
 		const SEM::Type*
@@ -257,7 +233,7 @@ namespace locic {
 		}
 		
 		static const char* getTrivialMethodName(const size_t numArguments) {
-			NAMESWITCH("method", "t");
+			return PrimitiveID::Method(numArguments).toCString();
 		}
 		
 		const SEM::Type*
@@ -267,7 +243,7 @@ namespace locic {
 		}
 		
 		static const char* getTemplatedMethodName(const size_t numArguments) {
-			NAMESWITCH("templatedmethod", "t");
+			return PrimitiveID::TemplatedMethod(numArguments).toCString();
 		}
 		
 		const SEM::Type*
@@ -290,7 +266,7 @@ namespace locic {
 		}
 		
 		static const char* getInterfaceMethodName(const size_t numArguments) {
-			NAMESWITCH("interfacemethod", "t");
+			return PrimitiveID::InterfaceMethod(numArguments).toCString();
 		}
 		
 		const SEM::Type*
@@ -305,7 +281,7 @@ namespace locic {
 		}
 		
 		static const char* getStaticInterfaceMethodName(const size_t numArguments) {
-			NAMESWITCH("staticinterfacemethod", "t");
+			return PrimitiveID::StaticInterfaceMethod(numArguments).toCString();
 		}
 		
 		const SEM::Type*

@@ -104,7 +104,7 @@ namespace locic {
 		static PrimitiveID MethodFunctionPtr(const size_t argumentCount);
 		static PrimitiveID TemplatedFunctionPtr(const size_t argumentCount);
 		static PrimitiveID TemplatedMethodFunctionPtr(const size_t argumentCount);
-		static PrimitiveID VarArgFunctionnPtr(const size_t argumentCount);
+		static PrimitiveID VarArgFunctionPtr(const size_t argumentCount);
 		static PrimitiveID Method(const size_t argumentCount);
 		static PrimitiveID TemplatedMethod(const size_t argumentCount);
 		static PrimitiveID InterfaceMethod(const size_t argumentCount);

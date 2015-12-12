@@ -32,7 +32,7 @@ namespace locic {
 		                             argumentCount);
 	}
 	
-	PrimitiveID PrimitiveID::VarArgFunctionnPtr(const size_t argumentCount) {
+	PrimitiveID PrimitiveID::VarArgFunctionPtr(const size_t argumentCount) {
 		return PrimitiveID::Callable(PrimitiveVarArgFunctionPtr0,
 		                             argumentCount);
 	}
