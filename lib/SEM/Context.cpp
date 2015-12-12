@@ -1,3 +1,4 @@
+#include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/StableSet.hpp>
 
 #include <locic/SEM/Context.hpp>
@@ -11,10 +12,15 @@ namespace locic {
 	
 		class ContextImpl {
 		public:
-			ContextImpl() { }
+			ContextImpl() {
+				for (size_t i = 0; i < PRIMITIVE_COUNT; i++) {
+					primitiveTypes[i] = nullptr;
+				}
+			}
 			
 			mutable StableSet<FunctionTypeData> functionTypes;
 			mutable StableSet<Type> types;
+			mutable const TypeInstance* primitiveTypes[PRIMITIVE_COUNT];
 		};
 		
 		// Allocate a large amount of space up-front for
@@ -37,6 +43,18 @@ namespace locic {
 		const Type* Context::getType(Type&& type) const {
 			const auto result = impl_->types.insert(std::move(type));
 			return &(*(result.first));
+		}
+		
+		void Context::setPrimitive(const PrimitiveID primitiveID,
+		                           const SEM::TypeInstance& typeInstance) {
+			assert(impl_->primitiveTypes[primitiveID] == nullptr);
+			impl_->primitiveTypes[primitiveID] = &typeInstance;
+		}
+		
+		const TypeInstance& Context::getPrimitive(const PrimitiveID primitiveID) const {
+			assert(impl_->primitiveTypes[primitiveID] != nullptr);
+			return *(impl_->primitiveTypes[primitiveID]);
+			
 		}
 		
 	}

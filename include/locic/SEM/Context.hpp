@@ -5,11 +5,14 @@
 
 namespace locic {
 	
+	class PrimitiveID;
+	
 	namespace SEM {
 		
 		class FunctionType;
 		class FunctionTypeData;
 		class Type;
+		class TypeInstance;
 		
 		class Context {
 			public:
@@ -19,6 +22,11 @@ namespace locic {
 				FunctionType getFunctionType(FunctionTypeData functionType) const;
 				
 				const Type* getType(Type&& type) const;
+				
+				void setPrimitive(PrimitiveID primitiveID,
+				                  const SEM::TypeInstance& typeInstance);
+				
+				const TypeInstance& getPrimitive(PrimitiveID primitiveID) const;
 				
 			private:
 				// Non-copyable.
