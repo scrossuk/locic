@@ -554,10 +554,7 @@ namespace locic {
 			                               type,
 			                               {});
 			
-			const auto methodName =
-				methodID == METHOD_IMPLICITCOPY ?
-					module().getCString("implicitcopy") :
-					module().getCString("copy");
+			const auto methodName = module().getCString(methodID.toCString());
 			
 			MethodInfo methodInfo(type,
 			                      methodName,
