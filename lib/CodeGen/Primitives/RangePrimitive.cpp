@@ -71,14 +71,16 @@ namespace locic {
 		                                          const llvm_abi::TypeBuilder& abiTypeBuilder,
 		                                          llvm::ArrayRef<SEM::Value> templateArguments) const {
 			const auto memberType = genABIType(module, templateArguments.front().typeRefType());
-			return abiTypeBuilder.getStructTy({ memberType, memberType });
+			llvm_abi::Type memberTypes[] = { memberType, memberType };
+			return abiTypeBuilder.getStructTy(memberTypes);
 		}
 		
 		llvm::Type* RangePrimitive::getIRType(Module& module,
 		                                      const TypeGenerator& typeGenerator,
 		                                      llvm::ArrayRef<SEM::Value> templateArguments) const {
 			const auto memberType = genType(module, templateArguments.front().typeRefType());
-			return typeGenerator.getStructType({ memberType, memberType });
+			llvm::Type* const memberTypes[] = { memberType, memberType };
+			return typeGenerator.getStructType(memberTypes);
 		}
 		
 		llvm::Value* RangePrimitive::emitMethod(IREmitter& irEmitter,
