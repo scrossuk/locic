@@ -98,6 +98,18 @@ namespace locic {
 		PrimitiveID(const PrimitiveIDEnum value)
 		: value_(value) { }
 		
+		static PrimitiveID Callable(const PrimitiveIDEnum baseValue,
+		                            const size_t argumentCount);
+		static PrimitiveID FunctionPtr(const size_t argumentCount);
+		static PrimitiveID MethodFunctionPtr(const size_t argumentCount);
+		static PrimitiveID TemplatedFunctionPtr(const size_t argumentCount);
+		static PrimitiveID TemplatedMethodFunctionPtr(const size_t argumentCount);
+		static PrimitiveID VarArgFunctionnPtr(const size_t argumentCount);
+		static PrimitiveID Method(const size_t argumentCount);
+		static PrimitiveID TemplatedMethod(const size_t argumentCount);
+		static PrimitiveID InterfaceMethod(const size_t argumentCount);
+		static PrimitiveID StaticInterfaceMethod(const size_t argumentCount);
+		
 		bool operator==(const PrimitiveID& other) const {
 			return value_ == other.value_;
 		}

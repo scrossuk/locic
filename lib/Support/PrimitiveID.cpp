@@ -6,6 +6,57 @@
 
 namespace locic {
 	
+	PrimitiveID PrimitiveID::Callable(const PrimitiveIDEnum baseValue,
+	                                  const size_t argumentCount) {
+		assert(0 <= argumentCount && argumentCount <= 8);
+		return PrimitiveID(static_cast<PrimitiveIDEnum>(baseValue + argumentCount));
+	}
+	
+	PrimitiveID PrimitiveID::FunctionPtr(const size_t argumentCount) {
+		return PrimitiveID::Callable(PrimitiveFunctionPtr0,
+		                             argumentCount);
+	}
+	
+	PrimitiveID PrimitiveID::MethodFunctionPtr(const size_t argumentCount) {
+		return PrimitiveID::Callable(PrimitiveMethodFunctionPtr0,
+		                             argumentCount);
+	}
+	
+	PrimitiveID PrimitiveID::TemplatedFunctionPtr(const size_t argumentCount) {
+		return PrimitiveID::Callable(PrimitiveTemplatedFunctionPtr0,
+		                             argumentCount);
+	}
+	
+	PrimitiveID PrimitiveID::TemplatedMethodFunctionPtr(const size_t argumentCount) {
+		return PrimitiveID::Callable(PrimitiveTemplatedMethodFunctionPtr0,
+		                             argumentCount);
+	}
+	
+	PrimitiveID PrimitiveID::VarArgFunctionnPtr(const size_t argumentCount) {
+		return PrimitiveID::Callable(PrimitiveVarArgFunctionPtr0,
+		                             argumentCount);
+	}
+	
+	PrimitiveID PrimitiveID::Method(const size_t argumentCount) {
+		return PrimitiveID::Callable(PrimitiveMethod0,
+		                             argumentCount);
+	}
+	
+	PrimitiveID PrimitiveID::TemplatedMethod(const size_t argumentCount) {
+		return PrimitiveID::Callable(PrimitiveTemplatedMethod0,
+		                             argumentCount);
+	}
+	
+	PrimitiveID PrimitiveID::InterfaceMethod(const size_t argumentCount) {
+		return PrimitiveID::Callable(PrimitiveInterfaceMethod0,
+		                             argumentCount);
+	}
+	
+	PrimitiveID PrimitiveID::StaticInterfaceMethod(const size_t argumentCount) {
+		return PrimitiveID::Callable(PrimitiveStaticInterfaceMethod0,
+		                             argumentCount);
+	}
+	
 	bool PrimitiveID::isLval() const {
 		switch (value_) {
 			case PrimitivePtrLval:
