@@ -132,11 +132,11 @@ namespace locic {
 					}
 				}
 					return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front().typeRefType()));
-				case PrimitiveFunctionPtr:
-				case PrimitiveMethodFunctionPtr:
-				case PrimitiveTemplatedFunctionPtr:
-				case PrimitiveTemplatedMethodFunctionPtr:
-				case PrimitiveVarArgFunctionPtr: {
+				CASE_CALLABLE_ID(PrimitiveFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveTemplatedFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr): {
 					const auto functionType = type->asFunctionType();
 					// TODO!
 					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
@@ -150,16 +150,16 @@ namespace locic {
 					
 					return module.debugBuilder().createFunctionType(file, parameterTypes);
 				}
-				case PrimitiveMethod:
-				case PrimitiveTemplatedMethod: {
+				CASE_CALLABLE_ID(PrimitiveMethod):
+				CASE_CALLABLE_ID(PrimitiveTemplatedMethod): {
 					// TODO!
 					return module.debugBuilder().createUnspecifiedType(module.getCString("method"));
 				}
-				case PrimitiveInterfaceMethod: {
+				CASE_CALLABLE_ID(PrimitiveInterfaceMethod): {
 					// TODO!
 					return module.debugBuilder().createUnspecifiedType(module.getCString("interfacemethod"));
 				}
-				case PrimitiveStaticInterfaceMethod: {
+				CASE_CALLABLE_ID(PrimitiveStaticInterfaceMethod): {
 					// TODO!
 					return module.debugBuilder().createUnspecifiedType(module.getCString("staticinterfacemethod"));
 				}

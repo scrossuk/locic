@@ -42,15 +42,15 @@ namespace locic {
 				case PrimitiveCompareResult: {
 					return new CompareResultPrimitive(typeInstance);
 				}
-				case PrimitiveFunctionPtr:
-				case PrimitiveMethodFunctionPtr:
-				case PrimitiveTemplatedFunctionPtr:
-				case PrimitiveTemplatedMethodFunctionPtr:
-				case PrimitiveVarArgFunctionPtr:
-				case PrimitiveMethod:
-				case PrimitiveTemplatedMethod:
-				case PrimitiveInterfaceMethod:
-				case PrimitiveStaticInterfaceMethod: {
+				CASE_CALLABLE_ID(PrimitiveFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveTemplatedFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveMethod):
+				CASE_CALLABLE_ID(PrimitiveTemplatedMethod):
+				CASE_CALLABLE_ID(PrimitiveInterfaceMethod):
+				CASE_CALLABLE_ID(PrimitiveStaticInterfaceMethod): {
 					return new FunctionPtrPrimitive(typeInstance);
 				}
 				case PrimitiveInt8:

@@ -16,20 +16,7 @@ namespace locic {
 		: stringHost_(stringHost) { }
 		
 		void add(const PrimitiveID id) {
-			if (id.isCallable()) {
-				// Currently callable primitives have multiple
-				// type instances for the number of parameters.
-				// TODO: Remove this when variadic templates
-				//       are supported.
-				constexpr size_t MAX_NUMBER_ARGUMENTS = 8;
-				for (size_t i = 0; i <= MAX_NUMBER_ARGUMENTS; i++) {
-					insertMapping(String(stringHost_, id.getName(i)),
-					              id);
-				}
-			} else {
-				insertMapping(String(stringHost_, id.toCString()),
-				              id);
-			}
+			insertMapping(String(stringHost_, id.toCString()), id);
 		}
 		
 		void insertMapping(const String name, const PrimitiveID id) {
@@ -54,16 +41,27 @@ namespace locic {
 		impl_->add(PrimitiveBool);
 		impl_->add(PrimitiveCompareResult);
 		
-		impl_->add(PrimitiveFunctionPtr);
-		impl_->add(PrimitiveMethodFunctionPtr);
-		impl_->add(PrimitiveTemplatedFunctionPtr);
-		impl_->add(PrimitiveTemplatedMethodFunctionPtr);
-		impl_->add(PrimitiveVarArgFunctionPtr);
+#define ADD_CALLABLE_ID(id) \
+	impl_->add(id ## 0); \
+	impl_->add(id ## 1); \
+	impl_->add(id ## 2); \
+	impl_->add(id ## 3); \
+	impl_->add(id ## 4); \
+	impl_->add(id ## 5); \
+	impl_->add(id ## 6); \
+	impl_->add(id ## 7); \
+	impl_->add(id ## 8)
 		
-		impl_->add(PrimitiveMethod);
-		impl_->add(PrimitiveTemplatedMethod);
-		impl_->add(PrimitiveInterfaceMethod);
-		impl_->add(PrimitiveStaticInterfaceMethod);
+		ADD_CALLABLE_ID(PrimitiveFunctionPtr);
+		ADD_CALLABLE_ID(PrimitiveMethodFunctionPtr);
+		ADD_CALLABLE_ID(PrimitiveTemplatedFunctionPtr);
+		ADD_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr);
+		ADD_CALLABLE_ID(PrimitiveVarArgFunctionPtr);
+		
+		ADD_CALLABLE_ID(PrimitiveMethod);
+		ADD_CALLABLE_ID(PrimitiveTemplatedMethod);
+		ADD_CALLABLE_ID(PrimitiveInterfaceMethod);
+		ADD_CALLABLE_ID(PrimitiveStaticInterfaceMethod);
 		
 		impl_->add(PrimitiveInt8);
 		impl_->add(PrimitiveUInt8);

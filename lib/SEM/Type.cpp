@@ -439,19 +439,19 @@ namespace locic {
 		}
 		
 		bool Type::isBuiltInFunctionPtr() const {
-			return isPrimitive() && primitiveID() == PrimitiveFunctionPtr;
+			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveFunctionPtr0;
 		}
 		
 		bool Type::isBuiltInInterfaceMethod() const {
-			return isPrimitive() && primitiveID() == PrimitiveInterfaceMethod;
+			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveInterfaceMethod0;
 		}
 		
 		bool Type::isBuiltInMethod() const {
-			return isPrimitive() && primitiveID() == PrimitiveMethod;
+			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveMethod0;
 		}
 		
 		bool Type::isBuiltInMethodFunctionPtr() const {
-			return isPrimitive() && primitiveID() == PrimitiveMethodFunctionPtr;
+			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveMethodFunctionPtr0;
 		}
 		
 		bool Type::isBuiltInReference() const {
@@ -459,19 +459,19 @@ namespace locic {
 		}
 		
 		bool Type::isBuiltInStaticInterfaceMethod() const {
-			return isPrimitive() && primitiveID() == PrimitiveStaticInterfaceMethod;
+			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveStaticInterfaceMethod0;
 		}
 		
 		bool Type::isBuiltInTemplatedFunctionPtr() const {
-			return isPrimitive() && primitiveID() == PrimitiveTemplatedFunctionPtr;
+			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveTemplatedFunctionPtr0;
 		}
 		
 		bool Type::isBuiltInTemplatedMethod() const {
-			return isPrimitive() && primitiveID() == PrimitiveTemplatedMethod;
+			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveTemplatedMethod0;
 		}
 		
 		bool Type::isBuiltInTemplatedMethodFunctionPtr() const {
-			return isPrimitive() && primitiveID() == PrimitiveTemplatedMethodFunctionPtr;
+			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveTemplatedMethodFunctionPtr0;
 		}
 		
 		bool Type::isBuiltInTypename() const {
@@ -479,7 +479,7 @@ namespace locic {
 		}
 		
 		bool Type::isBuiltInVarArgFunctionPtr() const {
-			return isPrimitive() && primitiveID() == PrimitiveVarArgFunctionPtr;
+			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveVarArgFunctionPtr0;
 		}
 		
 		const TemplateVar* Type::getTemplateVar() const {

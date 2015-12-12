@@ -6,22 +6,45 @@
 
 namespace locic {
 	
+	// TODO: implement variadic templates so this can be removed.
+#define REPEAT_CALLABLE_ID(id) \
+	id ## 0, \
+	id ## 1, \
+	id ## 2, \
+	id ## 3, \
+	id ## 4, \
+	id ## 5, \
+	id ## 6, \
+	id ## 7, \
+	id ## 8
+	
+#define CASE_CALLABLE_ID(id) \
+	case id ## 0: \
+	case id ## 1: \
+	case id ## 2: \
+	case id ## 3: \
+	case id ## 4: \
+	case id ## 5: \
+	case id ## 6: \
+	case id ## 7: \
+	case id ## 8
+	
 	enum PrimitiveIDEnum {
 		PrimitiveVoid = 0,
 		PrimitiveNull,
 		PrimitiveBool,
 		PrimitiveCompareResult,
 		
-		PrimitiveFunctionPtr,
-		PrimitiveMethodFunctionPtr,
-		PrimitiveTemplatedFunctionPtr,
-		PrimitiveTemplatedMethodFunctionPtr,
-		PrimitiveVarArgFunctionPtr,
+		REPEAT_CALLABLE_ID(PrimitiveFunctionPtr),
+		REPEAT_CALLABLE_ID(PrimitiveMethodFunctionPtr),
+		REPEAT_CALLABLE_ID(PrimitiveTemplatedFunctionPtr),
+		REPEAT_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr),
+		REPEAT_CALLABLE_ID(PrimitiveVarArgFunctionPtr),
 		
-		PrimitiveMethod,
-		PrimitiveTemplatedMethod,
-		PrimitiveInterfaceMethod,
-		PrimitiveStaticInterfaceMethod,
+		REPEAT_CALLABLE_ID(PrimitiveMethod),
+		REPEAT_CALLABLE_ID(PrimitiveTemplatedMethod),
+		REPEAT_CALLABLE_ID(PrimitiveInterfaceMethod),
+		REPEAT_CALLABLE_ID(PrimitiveStaticInterfaceMethod),
 		
 		PrimitiveInt8,
 		PrimitiveUInt8,
@@ -107,10 +130,10 @@ namespace locic {
 		
 		size_t getIntegerMinByteSize() const;
 		
+		PrimitiveID baseCallableID() const;
+		
 		bool isSubsetOf(const PrimitiveID other) const;
 		bool isSupersetOf(const PrimitiveID other) const;
-		
-		std::string getName(const size_t count) const;
 		
 		const char* toCString() const;
 		

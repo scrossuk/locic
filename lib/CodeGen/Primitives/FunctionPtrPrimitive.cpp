@@ -70,36 +70,36 @@ namespace locic {
 		                                                const llvm_abi::TypeBuilder& abiTypeBuilder,
 		                                                llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
 			switch (typeInstance_.primitiveID()) {
-				case PrimitiveFunctionPtr:
-				case PrimitiveMethodFunctionPtr:
-				case PrimitiveVarArgFunctionPtr:
+				CASE_CALLABLE_ID(PrimitiveFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr):
 					return llvm_abi::PointerTy;
-				case PrimitiveTemplatedFunctionPtr:
-				case PrimitiveTemplatedMethodFunctionPtr: {
+				CASE_CALLABLE_ID(PrimitiveTemplatedFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr): {
 					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
 					types.push_back(llvm_abi::PointerTy);
 					types.push_back(templateGeneratorType(module).first);
 					return abiTypeBuilder.getStructTy(types);
 				}
-				case PrimitiveMethod: {
+				CASE_CALLABLE_ID(PrimitiveMethod): {
 					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
 					types.push_back(llvm_abi::PointerTy);
-					types.push_back(getBasicPrimitiveABIType(module, PrimitiveMethodFunctionPtr));
+					types.push_back(getBasicPrimitiveABIType(module, PrimitiveMethodFunctionPtr0));
 					return abiTypeBuilder.getStructTy(types);
 				}
-				case PrimitiveTemplatedMethod: {
+				CASE_CALLABLE_ID(PrimitiveTemplatedMethod): {
 					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
 					types.push_back(llvm_abi::PointerTy);
-					types.push_back(getBasicPrimitiveABIType(module, PrimitiveTemplatedMethodFunctionPtr));
+					types.push_back(getBasicPrimitiveABIType(module, PrimitiveTemplatedMethodFunctionPtr0));
 					return abiTypeBuilder.getStructTy(types);
 				}
-				case PrimitiveInterfaceMethod: {
+				CASE_CALLABLE_ID(PrimitiveInterfaceMethod): {
 					return interfaceMethodType(module).first;
 				}
-				case PrimitiveStaticInterfaceMethod: {
+				CASE_CALLABLE_ID(PrimitiveStaticInterfaceMethod): {
 					return staticInterfaceMethodType(module).first;
 				}
 				default:
@@ -111,36 +111,36 @@ namespace locic {
 		                                            const TypeGenerator& typeGenerator,
 		                                            llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
 			switch (typeInstance_.primitiveID()) {
-				case PrimitiveFunctionPtr:
-				case PrimitiveMethodFunctionPtr:
-				case PrimitiveVarArgFunctionPtr:
+				CASE_CALLABLE_ID(PrimitiveFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr):
 					return typeGenerator.getPtrType();
-				case PrimitiveTemplatedFunctionPtr:
-				case PrimitiveTemplatedMethodFunctionPtr: {
+				CASE_CALLABLE_ID(PrimitiveTemplatedFunctionPtr):
+				CASE_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr): {
 					llvm::Type* const memberTypes[] = {
 						typeGenerator.getPtrType(),
 						templateGeneratorType(module).second
 					};
 					return typeGenerator.getStructType(memberTypes);
 				}
-				case PrimitiveMethod: {
+				CASE_CALLABLE_ID(PrimitiveMethod): {
 					llvm::Type* const memberTypes[] = {
 						typeGenerator.getPtrType(),
-						getBasicPrimitiveType(module, PrimitiveMethodFunctionPtr)
+						getBasicPrimitiveType(module, PrimitiveMethodFunctionPtr0)
 					};
 					return typeGenerator.getStructType(memberTypes);
 				}
-				case PrimitiveTemplatedMethod: {
+				CASE_CALLABLE_ID(PrimitiveTemplatedMethod): {
 					llvm::Type* const memberTypes[] = {
 						typeGenerator.getPtrType(),
-						getBasicPrimitiveType(module, PrimitiveTemplatedMethodFunctionPtr)
+						getBasicPrimitiveType(module, PrimitiveTemplatedMethodFunctionPtr0)
 					};
 					return typeGenerator.getStructType(memberTypes);
 				}
-				case PrimitiveInterfaceMethod: {
+				CASE_CALLABLE_ID(PrimitiveInterfaceMethod): {
 					return interfaceMethodType(module).second;
 				}
-				case PrimitiveStaticInterfaceMethod: {
+				CASE_CALLABLE_ID(PrimitiveStaticInterfaceMethod): {
 					return staticInterfaceMethodType(module).second;
 				}
 				default:

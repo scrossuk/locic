@@ -89,18 +89,52 @@ namespace locic {
 	
 	bool PrimitiveID::isCallable() const {
 		switch (value_) {
-			case PrimitiveFunctionPtr:
-			case PrimitiveMethodFunctionPtr:
-			case PrimitiveTemplatedFunctionPtr:
-			case PrimitiveTemplatedMethodFunctionPtr:
-			case PrimitiveVarArgFunctionPtr:
-			case PrimitiveMethod:
-			case PrimitiveTemplatedMethod:
-			case PrimitiveInterfaceMethod:
-			case PrimitiveStaticInterfaceMethod:
+			CASE_CALLABLE_ID(PrimitiveFunctionPtr):
+			CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):
+			CASE_CALLABLE_ID(PrimitiveTemplatedFunctionPtr):
+			CASE_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr):
+			CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr):
+			CASE_CALLABLE_ID(PrimitiveMethod):
+			CASE_CALLABLE_ID(PrimitiveTemplatedMethod):
+			CASE_CALLABLE_ID(PrimitiveInterfaceMethod):
+			CASE_CALLABLE_ID(PrimitiveStaticInterfaceMethod):
 				return true;
 			default:
 				return false;
+		}
+	}
+	
+	PrimitiveID PrimitiveID::baseCallableID() const {
+		switch (value_) {
+			CASE_CALLABLE_ID(PrimitiveFunctionPtr):
+				return PrimitiveFunctionPtr0;
+			
+			CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):
+				return PrimitiveMethodFunctionPtr0;
+			
+			CASE_CALLABLE_ID(PrimitiveTemplatedFunctionPtr):
+				return PrimitiveTemplatedFunctionPtr0;
+			
+			CASE_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr):
+				return PrimitiveTemplatedMethodFunctionPtr0;
+			
+			CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr):
+				return PrimitiveVarArgFunctionPtr0;
+			
+			CASE_CALLABLE_ID(PrimitiveMethod):
+				return PrimitiveMethod0;
+			
+			CASE_CALLABLE_ID(PrimitiveTemplatedMethod):
+				return PrimitiveTemplatedMethod0;
+			
+			CASE_CALLABLE_ID(PrimitiveInterfaceMethod):
+				return PrimitiveInterfaceMethod0;
+			
+			CASE_CALLABLE_ID(PrimitiveStaticInterfaceMethod):
+				return PrimitiveStaticInterfaceMethod0;
+			
+			default:
+				return *this;
 		}
 	}
 	
@@ -223,39 +257,25 @@ namespace locic {
 		return other.isSubsetOf(*this);
 	}
 	
-	std::string PrimitiveID::getName(const size_t count) const {
-		switch (value_) {
-			case PrimitiveFunctionPtr:
-				return makeString("function%llu_ptr_t",
-					(unsigned long long) count);
-			case PrimitiveMethodFunctionPtr:
-				return makeString("methodfunction%llu_ptr_t",
-					(unsigned long long) count);
-			case PrimitiveTemplatedFunctionPtr:
-				return makeString("templatedfunction%llu_ptr_t",
-					(unsigned long long) count);
-			case PrimitiveTemplatedMethodFunctionPtr:
-				return makeString("templatedmethodfunction%llu_ptr_t",
-					(unsigned long long) count);
-			case PrimitiveVarArgFunctionPtr:
-				return makeString("varargfunction%llu_ptr_t",
-					(unsigned long long) count);
-			case PrimitiveMethod:
-				return makeString("method%llu_t",
-					(unsigned long long) count);
-			case PrimitiveTemplatedMethod:
-				return makeString("templatedmethod%llu_t",
-					(unsigned long long) count);
-			case PrimitiveInterfaceMethod:
-				return makeString("interfacemethod%llu_t",
-					(unsigned long long) count);
-			case PrimitiveStaticInterfaceMethod:
-				return makeString("staticinterfacemethod%llu_t",
-					(unsigned long long) count);
-			default:
-				return toString();
-		}
-	}
+#define NAME_CASE(id, prefix, suffix) \
+	case id ## 0: \
+		return prefix "0_" suffix; \
+	case id ## 1: \
+		return prefix "1_" suffix; \
+	case id ## 2: \
+		return prefix "2_" suffix; \
+	case id ## 3: \
+		return prefix "3_" suffix; \
+	case id ## 4: \
+		return prefix "4_" suffix; \
+	case id ## 5: \
+		return prefix "5_" suffix; \
+	case id ## 6: \
+		return prefix "6_" suffix; \
+	case id ## 7: \
+		return prefix "7_" suffix; \
+	case id ## 8: \
+		return prefix "8_" suffix
 	
 	const char* PrimitiveID::toCString() const {
 		switch (value_) {
@@ -267,24 +287,15 @@ namespace locic {
 				return "bool";
 			case PrimitiveCompareResult:
 				return "compare_result_t";
-			case PrimitiveFunctionPtr:
-				return "function_ptr_t";
-			case PrimitiveMethodFunctionPtr:
-				return "methodfunction_ptr_t";
-			case PrimitiveTemplatedFunctionPtr:
-				return "templatedfunction_ptr_t";
-			case PrimitiveTemplatedMethodFunctionPtr:
-				return "templatedmethodfunction_ptr_t";
-			case PrimitiveVarArgFunctionPtr:
-				return "varargfunction_ptr_t";
-			case PrimitiveMethod:
-				return "method_t";
-			case PrimitiveTemplatedMethod:
-				return "templatedmethod_t";
-			case PrimitiveInterfaceMethod:
-				return "interfacemethod_t";
-			case PrimitiveStaticInterfaceMethod:
-				return "staticinterfacemethod_t";
+			NAME_CASE(PrimitiveFunctionPtr, "function", "ptr_t");
+			NAME_CASE(PrimitiveMethodFunctionPtr, "methodfunction", "ptr_t");
+			NAME_CASE(PrimitiveTemplatedFunctionPtr, "templatedfunction", "ptr_t");
+			NAME_CASE(PrimitiveTemplatedMethodFunctionPtr, "templatedmethodfunction", "ptr_t");
+			NAME_CASE(PrimitiveVarArgFunctionPtr, "varargfunction", "ptr_t");
+			NAME_CASE(PrimitiveMethod, "method", "t");
+			NAME_CASE(PrimitiveTemplatedMethod, "templatedmethod", "t");
+			NAME_CASE(PrimitiveInterfaceMethod, "interfacemethod", "t");
+			NAME_CASE(PrimitiveStaticInterfaceMethod, "staticinterfacemethod", "t");
 			case PrimitiveInt8:
 				return "int8_t";
 			case PrimitiveUInt8:
