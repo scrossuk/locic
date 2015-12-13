@@ -72,6 +72,7 @@ namespace locic {
 			assert(isPrimitive());
 			assert(!primitiveID_);
 			primitiveID_ = make_optional(newPrimitiveID);
+			context_.setPrimitive(newPrimitiveID, *this);
 		}
 		
 		PrimitiveID TypeInstance::primitiveID() const {
