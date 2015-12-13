@@ -9,10 +9,12 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
+#include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/PrimitiveFunctionEmitter.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/Support.hpp>
@@ -25,6 +27,8 @@
 #include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
+
+#include <locic/Support/MethodID.hpp>
 
 namespace locic {
 
@@ -107,6 +111,8 @@ namespace locic {
 		                                  llvm::ArrayRef<SEM::Value> valueArgs,
 		                                  Optional<PendingResult> contextValue,
 		                                  llvm::Value* const hintResultValue) {
+			auto& module = function.module();
+			
 			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
 					PendingResultArray args;
@@ -124,13 +130,19 @@ namespace locic {
 						args.push_back(pendingResultArgs.back());
 					}
 					
-					if (value.functionRefFunction()->isPrimitive()) {
-						MethodInfo methodInfo(value.functionRefParentType(), value.functionRefFunction()->name().last(),
-							value.type()->asFunctionType(), value.functionRefTemplateArguments().copy());
-						return genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(args), hintResultValue);
+					if (!value.functionRefFunction()->isPrimitive()) {
+						llvm_unreachable("Can't perform trivial call to non-primitive function.");
 					}
 					
-					llvm_unreachable("Unknown trivial function.");
+					const auto& methodName = value.functionRefFunction()->name().last();
+					const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
+					
+					IREmitter irEmitter(function, hintResultValue);
+					PrimitiveFunctionEmitter primitiveFunctionEmitter(irEmitter);
+					return primitiveFunctionEmitter.emitFunction(methodID,
+					                                             value.functionRefParentType(),
+					                                             arrayRef(value.functionRefTemplateArguments()),
+					                                             std::move(args));
 				}
 				
 				case SEM::Value::METHODOBJECT: {
