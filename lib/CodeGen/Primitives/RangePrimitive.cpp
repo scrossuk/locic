@@ -273,8 +273,19 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_SKIPBACK: {
-					// TODO: call decrement() method on second element of range pair.
-					llvm_unreachable("TODO");
+					const auto pairSecondPtr = elementAccess.getSecondPtr(args[0].resolve(function));
+					if (typeInstance_.primitiveID() == PrimitiveCount ||
+					    typeInstance_.primitiveID() == PrimitiveRange ||
+					    typeInstance_.primitiveID() == PrimitiveRangeIncl) {
+						irEmitter.emitNoArgNoReturnCall(METHOD_DECREMENT,
+						                                pairSecondPtr,
+						                                targetType);
+					} else {
+						irEmitter.emitNoArgNoReturnCall(METHOD_INCREMENT,
+						                                pairSecondPtr,
+						                                targetType);
+					}
+					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_EMPTY: {
 					// TODO: compare range pair elements.
