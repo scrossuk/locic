@@ -1,0 +1,18 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+// CHECK-LABEL: define i32 @function(i32, i32)
+export int function(int first, int second) {
+	// CHECK:      %[[FIRST:[0-9]+]] = alloca i32
+	// CHECK:      %[[SECOND:[0-9]+]] = alloca i32
+	// CHECK:      store i32 %0, {{.*}}%[[FIRST]]
+	// CHECK-NEXT: store i32 %1, {{.*}}%[[SECOND]]
+	// CHECK-NEXT: %[[FIRSTVAL:[0-9]+]] = load {{.*}}%[[FIRST]]
+	// CHECK-NEXT: %[[SECONDVAL:[0-9]+]] = load {{.*}}%[[SECOND]]
+	// CHECK-NEXT: %[[COMPARERESULT:[0-9]+]] = icmp slt i32 %[[SECONDVAL]], %[[FIRSTVAL]]
+	// CHECK-NEXT: %[[COMPARERESULT_i8:[0-9]+]] = zext i1 %[[COMPARERESULT]] to i8
+	// CHECK-NEXT: %[[COMPARERESULT_i1:[0-9]+]] = icmp ne i8 %[[COMPARERESULT_i8]], 0
+	// CHECK-NEXT: %[[RESULT:[0-9]+]] = select i1 %[[COMPARERESULT_i1]], i32 %[[SECONDVAL]], i32 %[[FIRSTVAL]]
+	// CHECK-NEXT: ret i32 %[[RESULT]]
+	return min<int>(first, second);
+}
