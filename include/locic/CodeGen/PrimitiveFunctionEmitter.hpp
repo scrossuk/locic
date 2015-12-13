@@ -22,6 +22,11 @@ namespace locic {
 		public:
 			PrimitiveFunctionEmitter(IREmitter& irEmitter);
 			
+			llvm::Value*
+			emitMinOrMax(MethodID methodID,
+			             llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+			             PendingResultArray args);
+			
 			/**
 			 * \brief Emit function code for primitive.
 			 * 
