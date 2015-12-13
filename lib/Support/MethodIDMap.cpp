@@ -112,6 +112,9 @@ namespace locic {
 		impl_->add(METHOD_SETVALUE);
 		impl_->add(METHOD_EXTRACTVALUE);
 		impl_->add(METHOD_DESTROYVALUE);
+		
+		impl_->add(METHOD_MIN);
+		impl_->add(METHOD_MAX);
 	}
 	
 	MethodIDMap::~MethodIDMap() { }

@@ -92,6 +92,10 @@ namespace locic {
 			case METHOD_EXTRACTVALUE:
 			case METHOD_DESTROYVALUE:
 				return UTIL;
+			
+			case METHOD_MIN:
+			case METHOD_MAX:
+				return FUNCTION;
 		}
 		
 		throw std::logic_error("Unknown Method ID.");
@@ -107,6 +111,10 @@ namespace locic {
 	
 	bool MethodID::isBinary() const {
 		return kind() == BINARY;
+	}
+	
+	bool MethodID::isStandaloneFunction() const {
+		return kind() == FUNCTION;
 	}
 	
 	PrimitiveID MethodID::primitiveID() const {

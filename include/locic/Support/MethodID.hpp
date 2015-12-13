@@ -93,7 +93,11 @@ namespace locic {
 		METHOD_INRANGE,
 		METHOD_SETVALUE,
 		METHOD_EXTRACTVALUE,
-		METHOD_DESTROYVALUE
+		METHOD_DESTROYVALUE,
+		
+		// Functions.
+		METHOD_MIN,
+		METHOD_MAX
 	};
 	
 	/**
@@ -142,7 +146,8 @@ namespace locic {
 			CONSTRUCTOR,
 			UNARY,
 			BINARY,
-			UTIL
+			UTIL,
+			FUNCTION
 		};
 		
 		MethodKind kind() const;
@@ -152,6 +157,8 @@ namespace locic {
 		bool isUnary() const;
 		
 		bool isBinary() const;
+		
+		bool isStandaloneFunction() const;
 		
 		PrimitiveID primitiveID() const;
 		
@@ -318,6 +325,11 @@ namespace locic {
 					return "extractvalue";
 				case METHOD_DESTROYVALUE:
 					return "destroyvalue";
+				
+				case METHOD_MIN:
+					return "min";
+				case METHOD_MAX:
+					return "max";
 			}
 			
 			throw std::logic_error("Unknown Method ID.");
