@@ -620,6 +620,44 @@ namespace locic {
 			                     /*args=*/{ rightValuePendingResult });
 		}
 		
+		llvm::Value*
+		IREmitter::emitComparisonCall(const MethodID methodID,
+		                              llvm::Value* const leftValue,
+		                              llvm::Value* const rightValue,
+		                              const SEM::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
+			
+			const bool isTemplated = type->isObject() &&
+			                         !type->templateArguments().empty();
+			
+			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			                                   /*isMethod=*/true,
+			                                   isTemplated,
+			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			
+			const auto boolType = module().context().semContext().getPrimitive(PrimitiveBool).selfType();
+			const auto typenameType = module().context().semContext().getPrimitive(PrimitiveTypename).selfType();
+			const auto& refTypeInstance = module().context().semContext().getPrimitive(PrimitiveRef);
+			const auto thisRefType = createRefType(type, refTypeInstance, typenameType);
+			
+			SEM::FunctionType functionType(std::move(attributes),
+			                               boolType,
+			                               { thisRefType });
+			
+			MethodInfo methodInfo(type,
+			                      module().getCString(methodID.toCString()),
+			                      functionType,
+			                      {});
+			
+			RefPendingResult leftValuePendingResult(leftValue, type);
+			RefPendingResult rightValuePendingResult(rightValue, type);
+			
+			return genMethodCall(functionGenerator_,
+			                     methodInfo,
+			                     Optional<PendingResult>(leftValuePendingResult),
+			                     /*args=*/{ rightValuePendingResult });
+		}
+		
 		llvm::IRBuilder<>& IREmitter::builder() {
 			return functionGenerator_.getBuilder();
 		}

@@ -254,6 +254,12 @@ namespace locic {
 			                llvm::Value* rightValue,
 			                const SEM::Type* type);
 			
+			llvm::Value*
+			emitComparisonCall(MethodID methodID,
+			                   llvm::Value* leftValue,
+			                   llvm::Value* rightValue,
+			                   const SEM::Type* type);
+			
 			// Needed to support existing code.
 			// FIXME: Remove these.
  			llvm::IRBuilder<>& builder();
