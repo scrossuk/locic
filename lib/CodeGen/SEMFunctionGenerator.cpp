@@ -152,12 +152,9 @@ namespace locic {
 			module_.getFunctionDeclMap().insert(std::make_pair(&function, llvmFunction));
 			
 			if (function.isPrimitive()) {
+				assert(!isInnerMethod);
 				// Generate primitive methods as needed.
-				createPrimitiveMethod(module_,
-				                      typeInstance,
-				                      // FIXME: Remove const_cast.
-				                      const_cast<SEM::Function*>(&function),
-				                      *llvmFunction);
+				return genDef(typeInstance, function, isInnerMethod);
 			}
 			
 			return llvmFunction;
@@ -170,20 +167,15 @@ namespace locic {
 			assert(!isInnerMethod ||
 			       function.name().last() == "__moveto" ||
 			       function.name().last() == "__destroy");
+			assert(!isInnerMethod || !function.isPrimitive());
 			const auto llvmFunction = getDecl(typeInstance,
 			                                  function,
 			                                  isInnerMethod);
 			
-			if (function.isPrimitive()) {
-				// Already generated in genFunctionDecl().
-				assert(!isInnerMethod);
-				return llvmFunction;
-			}
-			
 			const bool isClassDecl = typeInstance != nullptr &&
 			                         typeInstance->isClassDecl();
 			
-			if (function.isDeclaration() &&
+			if (function.isDeclaration() && !function.isPrimitive() &&
 			    (!function.isDefault() || isClassDecl)) {
 				// A declaration, so it has no associated code.
 				assert(!isInnerMethod);
@@ -224,7 +216,7 @@ namespace locic {
 			                             function,
 			                             isInnerMethod);
 			
-			if (!function.templateVariables().empty()) {
+			if (!function.templateVariables().empty() && !function.isPrimitive()) {
 				(void) genTemplateIntermediateFunction(module_,
 				                                       templatedObject,
 				                                       templateBuilder);
