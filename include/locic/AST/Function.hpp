@@ -62,6 +62,7 @@ namespace locic {
 				bool isNoExcept() const;
 				bool isImported() const;
 				bool isExported() const;
+				bool isPrimitive() const;
 				
 				const Node<Name>& name() const;
 				
@@ -77,6 +78,7 @@ namespace locic {
 				void setRequireSpecifier(const Node<RequireSpecifier>& requireSpecifier);
 				void setImport();
 				void setExport();
+				void setPrimitive();
 				
 				std::string toString() const;
 				
@@ -86,6 +88,7 @@ namespace locic {
 				bool isDefinition_, isDefaultDefinition_;
 				bool isVarArg_, isStatic_;
 				bool isImported_, isExported_;
+				bool isPrimitive_;
 				
 				Node<Name> name_;
 				Node<TemplateTypeVarList> templateVariables_;

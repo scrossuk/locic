@@ -135,6 +135,7 @@ namespace locic {
 			isDefinition_(false), isDefaultDefinition_(false),
 			isVarArg_(false), isStatic_(false),
 			isImported_(false), isExported_(false),
+			isPrimitive_(false),
 			name_(pName), templateVariables_(makeDefaultNode<TemplateTypeVarList>()) { }
 		
 		bool Function::isDeclaration() const {
@@ -163,6 +164,10 @@ namespace locic {
 		
 		bool Function::isExported() const {
 			return isExported_;
+		}
+		
+		bool Function::isPrimitive() const {
+			return isPrimitive_;
 		}
 		
 		const Node<Name>& Function::name() const {
@@ -217,6 +222,10 @@ namespace locic {
 		
 		void Function::setExport() {
 			isExported_ = true;
+		}
+		
+		void Function::setPrimitive() {
+			isPrimitive_ = true;
 		}
 		
 		std::string Function::toString() const {
