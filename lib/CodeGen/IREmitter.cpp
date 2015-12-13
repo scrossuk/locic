@@ -658,6 +658,39 @@ namespace locic {
 			                     /*args=*/{ rightValuePendingResult });
 		}
 		
+		llvm::Value*
+		IREmitter::emitNoArgNoReturnCall(const MethodID methodID,
+		                                 llvm::Value* const value,
+		                                 const SEM::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
+			
+			const bool isTemplated = type->isObject() &&
+			                         !type->templateArguments().empty();
+			
+			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			                                   /*isMethod=*/true,
+			                                   isTemplated,
+			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			
+			const auto voidType = module().context().semContext().getPrimitive(PrimitiveVoid).selfType();
+			
+			SEM::FunctionType functionType(std::move(attributes),
+			                               voidType,
+			                               {});
+			
+			MethodInfo methodInfo(type,
+			                      module().getCString(methodID.toCString()),
+			                      functionType,
+			                      {});
+			
+			RefPendingResult objectPendingResult(value, type);
+			
+			return genMethodCall(functionGenerator_,
+			                     methodInfo,
+			                     Optional<PendingResult>(objectPendingResult),
+			                     /*args=*/{});
+		}
+		
 		llvm::IRBuilder<>& IREmitter::builder() {
 			return functionGenerator_.getBuilder();
 		}

@@ -260,6 +260,11 @@ namespace locic {
 			                   llvm::Value* rightValue,
 			                   const SEM::Type* type);
 			
+			llvm::Value*
+			emitNoArgNoReturnCall(MethodID methodID,
+			                      llvm::Value* value,
+			                      const SEM::Type* type);
+			
 			// Needed to support existing code.
 			// FIXME: Remove these.
  			llvm::IRBuilder<>& builder();
