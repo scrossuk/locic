@@ -1,0 +1,20 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+import {
+	
+	class TestClass {
+		bool less_than(const TestClass& other) const;
+	}
+	
+}
+
+// CHECK-LABEL: define void @function(i8* noalias nocapture sret, i8*, i8*)
+export TestClass function(TestClass first, TestClass second) {
+	// CHECK: %[[CMP_i8:[0-9]+]] = invoke i8 @MT1N9TestClassF1N9less_than({{.*}}%2, {{.*}}%1)
+	// CHECK: %[[CMP:[0-9]+]] = icmp ne i8 %[[CMP_i8]], 0
+	// CHECK-NEXT: %[[RESULT:[0-9]+]] = select i1 %[[CMP]], {{.*}}%2, {{.*}}%1
+	// CHECK-NEXT: call void @MT1N9TestClassF1N8__moveto({{.*}}%[[RESULT]], {{.*}}%0, i64 0)
+	// CHECK: ret void
+	return min<TestClass>(move first, move second);
+}
