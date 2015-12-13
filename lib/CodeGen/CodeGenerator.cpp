@@ -89,6 +89,10 @@ namespace locic {
 			for (const auto& itemPair: nameSpace.items()) {
 				const auto& item = itemPair.second;
 				if (item.isFunction()) {
+					if (item.function().isPrimitive()) {
+						// Only generate 'primitive' functions when needed.
+						continue;
+					}
 					auto& semFunctionGenerator = module.semFunctionGenerator();
 					(void) semFunctionGenerator.genDef(/*parent=*/nullptr,
 					                                   item.function());
