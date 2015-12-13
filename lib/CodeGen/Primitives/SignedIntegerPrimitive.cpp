@@ -340,7 +340,10 @@ namespace locic {
 					// TODO: add safety checks!
 					const auto methodOwnerPtr = args[0].resolve(function);
 					const auto unit = constantGenerator.getPrimitiveInt(primitiveID, 1);
-					const auto incrementedValue = builder.CreateAdd(methodOwner, unit);
+					const auto incrementedValue = builder.CreateAdd(methodOwner, unit,
+					                                                /*name=*/"",
+					                                                /*hasNUW=*/false,
+					                                                /*hasNSW=*/true);
 					irEmitter.emitRawStore(incrementedValue, methodOwnerPtr);
 					return constantGenerator.getVoidUndef();
 				}
@@ -348,7 +351,10 @@ namespace locic {
 					// TODO: add safety checks!
 					const auto methodOwnerPtr = args[0].resolve(function);
 					const auto unit = constantGenerator.getPrimitiveInt(primitiveID, 1);
-					const auto decrementedValue = builder.CreateSub(methodOwner, unit);
+					const auto decrementedValue = builder.CreateSub(methodOwner, unit,
+					                                                /*name=*/"",
+					                                                /*hasNUW=*/false,
+					                                                /*hasNSW=*/true);
 					irEmitter.emitRawStore(decrementedValue, methodOwnerPtr);
 					return constantGenerator.getVoidUndef();
 				}
