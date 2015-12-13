@@ -138,15 +138,11 @@ namespace locic {
 				return args[0].resolve(functionGenerator);
 			}
 			
-			llvm::Value* genValueLvalMoveMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args, llvm::Value* const hintResultValue) {
+			llvm::Value* genValueLvalMoveMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
 				const auto methodOwner = args[0].resolve(functionGenerator);
 				
-				IREmitter irEmitter(functionGenerator, hintResultValue);
-				const auto returnValuePtr = irEmitter.emitReturnAlloca(targetType);
-				const auto loadedValue = irEmitter.emitMoveLoad(methodOwner, targetType);
-				irEmitter.emitMoveStore(loadedValue, returnValuePtr, targetType);
-				
-				return irEmitter.emitMoveLoad(returnValuePtr, targetType);
+				IREmitter irEmitter(functionGenerator);
+				return irEmitter.emitMoveLoad(methodOwner, targetType);
 			}
 			
 			llvm::Value* genValueLvalAssignMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
@@ -197,7 +193,7 @@ namespace locic {
 				case METHOD_DISSOLVE:
 					return genValueLvalDissolveMethod(functionGenerator, std::move(args));
 				case METHOD_MOVE:
-					return genValueLvalMoveMethod(functionGenerator, targetType, std::move(args), irEmitter.hintResultValue());
+					return genValueLvalMoveMethod(functionGenerator, targetType, std::move(args));
 				case METHOD_ASSIGN:
 					return genValueLvalAssignMethod(functionGenerator, targetType, std::move(args));
 				default:

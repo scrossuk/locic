@@ -132,10 +132,7 @@ namespace locic {
 				}
 				case METHOD_MOVE: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
-					const auto returnValuePtr = irEmitter.emitReturnAlloca(targetType);
-					const auto loadedValue = irEmitter.emitMoveLoad(methodOwner, targetType);
-					irEmitter.emitMoveStore(loadedValue, returnValuePtr, targetType);
-					return irEmitter.emitMoveLoad(returnValuePtr, targetType);
+					return irEmitter.emitMoveLoad(methodOwner, targetType);
 				}
 				case METHOD_SETVALUE: {
 					const auto operand = args[1].resolve(function);
