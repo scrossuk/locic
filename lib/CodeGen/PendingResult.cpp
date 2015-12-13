@@ -2,25 +2,12 @@
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/PendingResult.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/SEM/Type.hpp>
 
 namespace locic {
 	
 	namespace CodeGen {
-		
-		RefPendingResult::RefPendingResult(llvm::Value* const value,
-		                                       const SEM::Type* const refTargetType)
-		: value_(value),
-		  refTargetType_(refTargetType) { }
-		
-		llvm::Value* RefPendingResult::generateValue(Function& /*function*/, llvm::Value* /*hintResultValue*/) const {
-			return value_;
-		}
-		
-		llvm::Value* RefPendingResult::generateLoadedValue(Function& function) const {
-			IREmitter irEmitter(function);
-			return irEmitter.emitMoveLoad(value_, refTargetType_);
-		}
 		
 		ValuePendingResult::ValuePendingResult(llvm::Value* const value,
 		                                       const SEM::Type* const type)
@@ -44,6 +31,20 @@ namespace locic {
 			
 			IREmitter irEmitter(function);
 			return irEmitter.emitRawLoad(value_, loadType);
+		}
+		
+		RefPendingResult::RefPendingResult(llvm::Value* const refValue,
+		                                   const SEM::Type* const refTargetType)
+		: refValue_(refValue),
+		refTargetType_(refTargetType) { }
+		
+		llvm::Value* RefPendingResult::generateValue(Function& /*function*/, llvm::Value* /*hintResultValue*/) const {
+			return refValue_;
+		}
+		
+		llvm::Value* RefPendingResult::generateLoadedValue(Function& function) const {
+			IREmitter irEmitter(function);
+			return irEmitter.emitMoveLoad(refValue_, refTargetType_);
 		}
 		
 		PendingResult::PendingResult(const PendingResultBase& base)

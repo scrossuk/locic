@@ -51,20 +51,12 @@ namespace locic {
 			
 		};
 		
-		class RefPendingResult: public PendingResultBase {
-		public:
-			RefPendingResult(llvm::Value* value, const SEM::Type* refTargetType);
-			
-			llvm::Value* generateValue(Function& function, llvm::Value* hintResultValue) const;
-			
-			llvm::Value* generateLoadedValue(Function& function) const;
-			
-		private:
-			llvm::Value* value_;
-			const SEM::Type* refTargetType_;
-			
-		};
-		
+		/**
+		 * \brief Value Pending Result
+		 * 
+		 * A pending result where the LLVM value given could be anything
+		 * and the type given is the type of that value.
+		 */
 		class ValuePendingResult: public PendingResultBase {
 		public:
 			ValuePendingResult(llvm::Value* value, const SEM::Type* type);
@@ -76,6 +68,28 @@ namespace locic {
 		private:
 			llvm::Value* value_;
 			const SEM::Type* type_;
+			
+		};
+		
+		/**
+		 * \brief Ref Pending Result
+		 * 
+		 * A pending result where the LLVM value given is a reference
+		 * (i.e. a pointer) and hence the type given is the reference's
+		 * target type. This is useful to avoid needing to create a SEM
+		 * reference type.
+		 */
+		class RefPendingResult: public PendingResultBase {
+		public:
+			RefPendingResult(llvm::Value* refValue, const SEM::Type* refTargetType);
+			
+			llvm::Value* generateValue(Function& function, llvm::Value* hintResultValue) const;
+			
+			llvm::Value* generateLoadedValue(Function& function) const;
+			
+		private:
+			llvm::Value* refValue_;
+			const SEM::Type* refTargetType_;
 			
 		};
 		
