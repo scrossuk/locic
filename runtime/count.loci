@@ -18,7 +18,7 @@ __primitive count {
 	
 	void skip_front() noexcept(is_noexcept_incrementable<T>) require(is_incrementable<T>);
 	
-	bool empty() const noexcept(is_noexcept_comparable<T>) require(is_comparable<T>);
+	bool empty() const noexcept(is_noexcept_lessthancomparable<T>) require(is_lessthancomparable<T>);
 	
 	void __moveto(void* ptr, size_t position) noexcept require(is_movable<T>);
 }
@@ -45,7 +45,7 @@ __primitive count_incl {
 	void skip_front() noexcept(is_noexcept_incrementable<T>) require(is_incrementable<T>);
 	void skip_back() noexcept(is_noexcept_decrementable<T>) require(is_decrementable<T>);
 	
-	bool empty() const noexcept(is_noexcept_comparable<T>) require(is_comparable<T>);
+	bool empty() const noexcept(is_noexcept_lessthancomparable<T>) require(is_lessthancomparable<T>);
 	
 	void __moveto(void* ptr, size_t position) noexcept require(is_movable<T>);
 }

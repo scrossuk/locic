@@ -13,3 +13,19 @@ interface noexcept_comparable {
 
 template <typename T>
 using is_noexcept_comparable = T : noexcept_comparable<T>;
+
+template <typename T>
+interface lessthancomparable_t {
+	bool less_than(const T& v) const;
+}
+
+template <typename T>
+using is_lessthancomparable = T : lessthancomparable_t<T>;
+
+template <typename T>
+interface noexcept_lessthancomparable_t {
+	bool less_than(const T& v) const noexcept;
+}
+
+template <typename T>
+using is_noexcept_lessthancomparable = T : noexcept_lessthancomparable_t<T>;
