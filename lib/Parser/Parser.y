@@ -295,6 +295,8 @@ static locic::AST::Node<locic::AST::Value> * mergeValue(LOCIC_PARSER_GENERATEDPA
 %token TYPEID
 
 %token PRIMITIVE
+%token PRIMITIVEFUNCTION
+
 %token STRUCT
 %token CLASS
 %token DATATYPE

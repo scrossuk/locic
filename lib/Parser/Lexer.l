@@ -110,7 +110,9 @@ class                   { return CLASS; }
 interface               { return INTERFACE; }
 namespace               { return NAMESPACE; }
 datatype                { return DATATYPE; }
+
 __primitive             { return PRIMITIVE; }
+__primitivefunction     { return PRIMITIVEFUNCTION; }
 
 auto                    { return AUTO; }
 const                   { return CONST; }
