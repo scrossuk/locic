@@ -49,7 +49,7 @@ bool checkThreads(std::concurrency::mutex& logMutex, std::varray<std::concurrenc
 	
 	printf(C"Stopped: { ");
 	
-	for (auto i: std::counter<size_t>(0u, threads.size(), 1u)) {
+	for (auto i: range<size_t>(0, threads.size())) {
 		auto& thread = threads[i];
 		if (thread.event_source().poll()) {
 			if (b) {
@@ -79,7 +79,7 @@ void runThreadsExample() {
 	
 	final size_t NUM_THREADS = 20u;
 	
-	for (auto i: std::counter<size_t>(0u, NUM_THREADS, 1u)) {
+	for (auto i: range<size_t>(0, NUM_THREADS)) {
 		threadArray.push_back(std::new_thread<example_thread>(example_thread(mutex, logMutex, i)));
 	}
 	
@@ -96,7 +96,7 @@ void runThreadsExample() {
 		waitSet.wait();
 	}
 	
-	for (auto i: std::counter<size_t>(0u, threadArray.size(), 1u)) {
+	for (auto i: range<size_t>(0, threadArray.size())) {
 		auto& thread = threadArray[i];
 		{
 			unused auto logLock = std::concurrency::unique_lock(logMutex);
