@@ -15,6 +15,7 @@ namespace locic {
 		
 		class ConstantGenerator;
 		class Function;
+		class Module;
 		class TypeGenerator;
 		
 		/**
