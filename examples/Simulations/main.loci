@@ -64,17 +64,13 @@ export int main(unused int argc, unused ubyte ** argv) {
 						}
 						case sf::Keyboard::Up() {
 							currentZoom *= zoomRate;
-							if (currentZoom > maxZoom) {
-								currentZoom = maxZoom;
-							}
+							currentZoom = min<float>(currentZoom, maxZoom);
 							
 							view.setSize(sf::Vector2f(2.0f * (halfSize / currentZoom), 2.0f * (halfSize / currentZoom)));
 						}
 						case sf::Keyboard::Down() {
 							currentZoom *= 1.0f / zoomRate;
-							if (currentZoom < minZoom) {
-								currentZoom = minZoom;
-							}
+							currentZoom = max<float>(currentZoom, minZoom);
 							
 							view.setSize(sf::Vector2f(2.0f * (halfSize / currentZoom), 2.0f * (halfSize / currentZoom)));
 						}
