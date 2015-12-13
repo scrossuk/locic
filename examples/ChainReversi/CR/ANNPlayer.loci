@@ -5,8 +5,8 @@ namespace CR {
 	std::varray<double> getBoardData(const Board& board) {
 		auto boardData = std::varray<double>();
 		
-		for (auto x: std::counter<size_t>(0, board.size().width, 1)) {
-			for (auto y: std::counter<size_t>(0, board.size().height, 1)) {
+		for (auto x: range<size_t>(0, board.size().width)) {
+			for (auto y: range<size_t>(0, board.size().height)) {
 				const auto position = Position(x, y);
 				boardData.push_back(board[position] == board.opponent() ? 1.0 : 0.0);
 				boardData.push_back(board[position] == board.player() ? 1.0 : 0.0);
@@ -37,8 +37,8 @@ namespace CR {
 			
 			const bool explore = (Random() < @exploreProbability);
 			
-			for (auto x: std::counter<size_t>(0, board.size().width, 1)) {
-				for (auto y: std::counter<size_t>(0, board.size().height, 1)) {
+			for (auto x: range<size_t>(0, board.size().width)) {
+				for (auto y: range<size_t>(0, board.size().height)) {
 					const auto position = Position(x, y);
 					if (board.isValid(position)) {
 						Board copy = board.copy();

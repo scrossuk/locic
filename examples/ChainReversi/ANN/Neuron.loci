@@ -17,17 +17,17 @@ namespace ANN {
 			
 			auto weights = std::varray<double>();
 			
-			for (auto i: std::counter<size_t>(0u, neuronNumInputs, 1u)) {
+			for (auto i: range<size_t>(0, neuronNumInputs)) {
 				weights.push_back(0.1 * Random());
 			}
 			
 			auto elig = { std::varray<double>(),
 			              std::varray<double>() };
 			
-			for (auto i: std::counter<size_t>(0u, 2u, 1u)) {
+			for (auto i: range<size_t>(0, 2)) {
 				auto& eligElement = elig[i];
 				
-				for (auto j: std::counter<size_t>(0u, neuronNumInputs, 1u)) {
+				for (auto j: range<size_t>(0, neuronNumInputs)) {
 					eligElement.push_back(0.0);
 				}
 			}
@@ -42,13 +42,13 @@ namespace ANN {
 		}
 		
 		void getWeights(std::varray<double>& weights) {
-			for (auto i: std::counter<size_t>(0u, @numInputs, 1u)) {
+			for (auto i: range<size_t>(0, @numInputs)) {
 				weights.push_back(@weights[i]);
 			}
 		}
 		
 		void setWeights(size_t* pos, std::varray<double>& weights) {
-			for (auto i: std::counter<size_t>(0u, @numInputs, 1u)) {
+			for (auto i: range<size_t>(0, @numInputs)) {
 				@weights[i] = weights[*pos];
 				*pos++;
 			}
@@ -68,7 +68,7 @@ namespace ANN {
 			
 			@inputs[@numInputs - 1u] = -1.0;
 			
-			for (auto i: std::counter<size_t>(0u, @numInputs, 1u)) {
+			for (auto i: range<size_t>(0, @numInputs)) {
 				result += @inputs[i] * @weights[i];
 			}
 			
@@ -83,7 +83,7 @@ namespace ANN {
 		void zeroGradient(size_t index) {
 			auto& elig = @elig[index];
 			
-			for (auto i: std::counter<size_t>(0u, @numInputs, 1u)) {
+			for (auto i: range<size_t>(0, @numInputs)) {
 				elig[i] = 0.0;
 			}
 		}
@@ -93,7 +93,7 @@ namespace ANN {
 			
 			auto& elig = @elig[index];
 			
-			for (auto i: std::counter<size_t>(0u, @numInputs, 1u)) {
+			for (auto i: range<size_t>(0, @numInputs)) {
 				elig[i] = 1.0 * elig[i] + @gradient * @inputs[i];
 			}
 		}
@@ -101,7 +101,7 @@ namespace ANN {
 		void error(size_t index, double error) {
 			auto& elig = @elig[index];
 			
-			for (auto i: std::counter<size_t>(0u, @numInputs - 1u, 1u)) {
+			for (auto i: range<size_t>(0, @numInputs - 1u)) {
 				@weights[i] += @learnRate * error * elig[i];
 			}
 		}

@@ -22,7 +22,7 @@ namespace ANN {
 				layers.push_back(Layer(numNeuronsPerLayer,
 				                       numInputs));
 				
-				for (auto i: std::counter<size_t>(0u, numLayers - 1u, 1u)) {
+				for (auto i: range<size_t>(0, numLayers - 1u)) {
 					layers.push_back(Layer(numNeuronsPerLayer,
 					                       numNeuronsPerLayer));
 				}
@@ -47,7 +47,7 @@ namespace ANN {
 				return false;
 			}
 			
-			for (auto i: std::counter<size_t>(0u, weights.size(), 1u)) {
+			for (auto i: range<size_t>(0, weights.size())) {
 				float v = 0.0f;
 				if (fscanf(fh, C"%f ", &v) <= 0) {
 					return false;
@@ -70,7 +70,7 @@ namespace ANN {
 				return false;
 			}
 			
-			for (auto i: std::counter<size_t>(0u, weights.size(), 1u)) {
+			for (auto i: range<size_t>(0, weights.size())) {
 				fprintf(fh, C"%f ", weights[i]);
 			}
 			
@@ -82,7 +82,7 @@ namespace ANN {
 		std::varray<double> getWeights(){
 			auto weights = std::varray<double>();
 			
-			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+			for (auto i: range<size_t>(0, @layers.size())) {
 				@layers[i].getWeights(weights);
 			}
 			
@@ -93,7 +93,7 @@ namespace ANN {
 		void setWeights(std::varray<double>& weights) {
 			size_t p = 0u;
 			
-			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+			for (auto i: range<size_t>(0, @layers.size())) {
 				@layers[i].setWeights(&p, weights);
 			}
 		}
@@ -101,7 +101,7 @@ namespace ANN {
 		size_t getNumWeights() {
 			size_t t = 0u;
 			
-			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+			for (auto i: range<size_t>(0, @layers.size())) {
 				t += @layers[i].getNumWeights();
 			}
 			
@@ -117,7 +117,7 @@ namespace ANN {
 			
 			vals = move input;
 			
-			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+			for (auto i: range<size_t>(0, @layers.size())) {
 				vals = @layers[i].update(vals);
 			}
 			
@@ -125,7 +125,7 @@ namespace ANN {
 		}
 		
 		void zeroGradient(size_t index) {
-			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+			for (auto i: range<size_t>(0, @layers.size())) {
 				@layers[i].zeroGradient(index);
 			}
 		}
@@ -134,7 +134,7 @@ namespace ANN {
 			auto gradient = std::varray<double>();
 			gradient.resize(@numOutputs, 1.0);
 			
-			for (auto i: std::reverse_counter<size_t>(@layers.size() - 1u, 0u, 1u)) {
+			for (auto i: reverse_range<size_t>(@layers.size() - 1u, 0)) {
 				@layers[i].gradient(index, gradient);
 			}
 			
@@ -142,7 +142,7 @@ namespace ANN {
 		}
 		
 		void error(size_t index, double error) {
-			for (auto i: std::counter<size_t>(0u, @layers.size(), 1u)) {
+			for (auto i: range<size_t>(0, @layers.size())) {
 				@layers[i].error(index, error);
 			}
 		}

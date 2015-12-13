@@ -8,7 +8,7 @@ namespace ANN {
 			auto neurons = std::varray<Neuron>();
 			neurons.reserve(numNeurons);
 			
-			for (auto i: std::counter<size_t>(0u, numNeurons, 1u)) {
+			for (auto i: range<size_t>(0, numNeurons)) {
 				neurons.push_back(Neuron(numInputsPerNeuron));
 			}
 			
@@ -16,13 +16,13 @@ namespace ANN {
 		}
 		
 		void getWeights(std::varray<double>& weights) {
-			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+			for (auto i: range<size_t>(0, @numNeurons)) {
 				@neurons[i].getWeights(weights);
 			}
 		}
 		
 		void setWeights(size_t* pos, std::varray<double>& weights) {
-			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+			for (auto i: range<size_t>(0, @numNeurons)) {
 				@neurons[i].setWeights(pos, weights);
 			}
 		}
@@ -30,7 +30,7 @@ namespace ANN {
 		size_t getNumWeights() {
 			size_t t = 0u;
 			
-			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+			for (auto i: range<size_t>(0, @numNeurons)) {
 				t += @neurons[i].getNumWeights();
 			}
 			
@@ -41,7 +41,7 @@ namespace ANN {
 			auto outputs = std::varray<double>();
 			outputs.reserve(@numNeurons);
 		
-			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+			for (auto i: range<size_t>(0, @numNeurons)) {
 				outputs.push_back(@neurons[i].update(input));
 			}
 			
@@ -49,28 +49,28 @@ namespace ANN {
 		}
 		
 		void error(size_t index, double error) {
-			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+			for (auto i: range<size_t>(0, @numNeurons)) {
 				@neurons[i].error(index, error);
 			}
 		}
 		
 		void zeroGradient(size_t index) {
-			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+			for (auto i: range<size_t>(0, @numNeurons)) {
 				@neurons[i].zeroGradient(index);
 			}
 		}
 		
 		void gradient(size_t index, std::varray<double>& gradient) {
-			for (auto i: std::counter<size_t>(0u, @numNeurons, 1u)) {
+			for (auto i: range<size_t>(0, @numNeurons)) {
 				@neurons[i].gradient(index, gradient[i]);
 			}
 			
 			gradient.resize(@numInputsPerNeuron, 0.0);
 			
-			for (auto i: std::counter<size_t>(0u, @numInputsPerNeuron, 1u)) {
+			for (auto i: range<size_t>(0, @numInputsPerNeuron)) {
 				gradient[i] = 0.0;
 				
-				for (auto j: std::counter<size_t>(0u, @numNeurons, 1u)) {
+				for (auto j: range<size_t>(0, @numNeurons)) {
 					gradient[i] += @neurons[j].getGradient(i);
 				}
 			}
