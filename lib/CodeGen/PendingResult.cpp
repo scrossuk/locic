@@ -26,11 +26,9 @@ namespace locic {
 			assert(value_->getType()->isPointerTy());
 			
 			const auto refTargetType = type_->templateArguments().front().typeRefType();
-			const auto loadType = genType(function.module(),
-			                              refTargetType);
 			
 			IREmitter irEmitter(function);
-			return irEmitter.emitRawLoad(value_, loadType);
+			return irEmitter.emitMoveLoad(value_, refTargetType);
 		}
 		
 		RefPendingResult::RefPendingResult(llvm::Value* const refValue,
