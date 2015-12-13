@@ -32,6 +32,7 @@ set(RUNTIME_FILES
 	long_t.loci
 	method_t.loci
 	methodfunction_ptr_t.loci
+	minmax.loci
 	movable.loci
 	null_t.loci
 	ptrdiff_t.loci

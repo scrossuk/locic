@@ -1,0 +1,7 @@
+template <typename T>
+require(is_movable<T> and is_lessthancomparable<T>)
+__primitivefunction T min(T first, T second) noexcept(is_noexcept_lessthancomparable<T>);
+
+template <typename T>
+require(is_movable<T> and is_lessthancomparable<T>)
+__primitivefunction T max(T first, T second) noexcept(is_noexcept_lessthancomparable<T>);
