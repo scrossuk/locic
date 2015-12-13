@@ -835,6 +835,11 @@ importedFunctionDecl:
 		(GETSYM($2))->setImport();
 		$$ = $2;
 	}
+	| PRIMITIVEFUNCTION nonTemplatedFunctionDecl
+	{
+		(GETSYM($2))->setPrimitive();
+		$$ = $2;
+	}
 	;
 
 functionDecl:
