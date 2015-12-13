@@ -83,6 +83,58 @@ namespace locic {
 			return typeGenerator.getStructType(memberTypes);
 		}
 		
+		class RangeElementAccess {
+		public:
+			RangeElementAccess(IREmitter& irEmitter, const SEM::Type* const targetType)
+			: irEmitter_(irEmitter), targetType_(targetType),
+			sizeValue_(nullptr) { }
+			
+			llvm::Value* getTargetSize() {
+				if (sizeValue_ == nullptr) {
+					sizeValue_ = irEmitter_.emitSizeOf(targetType_);
+				}
+				return sizeValue_;
+			}
+			
+			llvm::Value* getFirstPtr(llvm::Value* const ptr) {
+				auto& module = irEmitter_.module();
+				
+				TypeInfo typeInfo(module);
+				if (typeInfo.isSizeAlwaysKnown(targetType_)) {
+					// If possible use a GEP rather than a bitcast.
+					const auto targetIRType = genType(module, targetType_);
+					llvm::Type* const memberTypes[] = { targetIRType, targetIRType };
+					const auto structType = irEmitter_.typeGenerator().getStructType(memberTypes);
+					return irEmitter_.emitConstInBoundsGEP2_32(structType,
+					                                           ptr, 0, 0);
+				} else {
+					return ptr;
+				}
+			}
+			
+			llvm::Value* getSecondPtr(llvm::Value* const ptr) {
+				auto& module = irEmitter_.module();
+				
+				TypeInfo typeInfo(module);
+				if (typeInfo.isSizeAlwaysKnown(targetType_)) {
+					const auto targetIRType = genType(module, targetType_);
+					llvm::Type* const memberTypes[] = { targetIRType, targetIRType };
+					const auto structType = irEmitter_.typeGenerator().getStructType(memberTypes);
+					return irEmitter_.emitConstInBoundsGEP2_32(structType,
+					                                           ptr, 0, 1);
+				} else {
+					return irEmitter_.emitInBoundsGEP(irEmitter_.typeGenerator().getI8Type(),
+					                                  ptr, getTargetSize());
+				}
+			}
+			
+		private:
+			IREmitter& irEmitter_;
+			const SEM::Type* targetType_;
+			llvm::Value* sizeValue_;
+			
+		};
+		
 		llvm::Value* RangePrimitive::emitMethod(IREmitter& irEmitter,
 		                                      const MethodID methodID,
 		                                      llvm::ArrayRef<SEM::Value> typeTemplateArguments,
@@ -100,6 +152,8 @@ namespace locic {
 			
 			const auto targetType = typeTemplateArguments.front().typeRefType();
 			
+			RangeElementAccess elementAccess(irEmitter, targetType);
+			
 			switch (methodID) {
 				case METHOD_ALIGNMASK: {
 					return irEmitter.emitAlignMask(targetType);
@@ -115,16 +169,13 @@ namespace locic {
 					}
 					
 					const auto result = irEmitter.emitReturnAlloca(type);
-					const auto targetSize = irEmitter.emitSizeOf(targetType);
 					
-					const auto destPtrFirst = result;
+					const auto destPtrFirst = elementAccess.getFirstPtr(result);
 					const auto firstArgumentValue = args[0].resolve(function, destPtrFirst); 
 					irEmitter.emitMoveStore(firstArgumentValue,
 					                        destPtrFirst, targetType);
 					
-					const auto destPtrSecond = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                                     result,
-					                                                     targetSize);
+					const auto destPtrSecond = elementAccess.getSecondPtr(result);
 					const auto secondArgumentValue = args[1].resolve(function, destPtrSecond);
 					irEmitter.emitMoveStore(secondArgumentValue,
 					                        destPtrSecond, targetType);
@@ -134,12 +185,12 @@ namespace locic {
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY: {
 					auto methodOwner = args[0].resolve(function);
+					
 					const auto result = irEmitter.emitReturnAlloca(type);
-					const auto targetSize = irEmitter.emitSizeOf(targetType);
 					
 					// Copy first element of range pair.
-					const auto copySourcePtrFirst = methodOwner;
-					const auto copyDestPtrFirst = result;
+					const auto copySourcePtrFirst = elementAccess.getFirstPtr(methodOwner);
+					const auto copyDestPtrFirst = elementAccess.getFirstPtr(result);
 					const auto copyResultFirst =
 					    irEmitter.emitCopyCall(methodID,
 					                           copySourcePtrFirst,
@@ -150,12 +201,8 @@ namespace locic {
 					                        targetType);
 					
 					// Copy second element of range pair.
-					const auto copySourcePtrSecond = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                                           methodOwner,
-					                                                           targetSize);
-					const auto copyDestPtrSecond = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                                         result,
-					                                                         targetSize);
+					const auto copySourcePtrSecond = elementAccess.getSecondPtr(methodOwner);
+					const auto copyDestPtrSecond = elementAccess.getSecondPtr(result);
 					const auto copyResultSecond =
 					    irEmitter.emitCopyCall(methodID,
 					                           copySourcePtrSecond,
@@ -180,20 +227,17 @@ namespace locic {
 					auto methodOwner = args[0].resolve(function);
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
-					const auto targetSize = irEmitter.emitSizeOf(targetType);
 					
 					// Move first element of range pair.
-					const auto pairFirstPtr = methodOwner;
+					const auto pairFirstPtr = elementAccess.getFirstPtr(methodOwner);
 					const auto moveToPositionFirst = moveToPosition;
 					irEmitter.emitMoveCall(pairFirstPtr, moveToPtr,
 					                       moveToPositionFirst, targetType);
 					
 					// Move second element of range pair.
-					const auto pairSecondPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                                     methodOwner,
-					                                                     targetSize);
+					const auto pairSecondPtr = elementAccess.getSecondPtr(methodOwner);
 					const auto moveToPositionSecond = irEmitter.builder().CreateAdd(moveToPosition,
-					                                                                targetSize);
+					                                                                elementAccess.getTargetSize());
 					irEmitter.emitMoveCall(pairSecondPtr, moveToPtr,
 					                       moveToPositionSecond, targetType);
 					
@@ -201,30 +245,17 @@ namespace locic {
 				}
 				case METHOD_DESTROY: {
 					auto methodOwner = args[0].resolve(function);
-					const auto targetSize = irEmitter.emitSizeOf(targetType);
-					
-					// Destroy first element of range pair.
-					const auto pairFirstPtr = methodOwner;
-					irEmitter.emitDestructorCall(pairFirstPtr, targetType);
-					
-					// Destroy second element of range pair.
-					const auto pairSecondPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                                     methodOwner,
-					                                                     targetSize);
-					irEmitter.emitDestructorCall(pairSecondPtr, targetType);
-					
+					irEmitter.emitDestructorCall(elementAccess.getSecondPtr(methodOwner),
+					                             targetType);
+					irEmitter.emitDestructorCall(elementAccess.getFirstPtr(methodOwner),
+					                             targetType);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_FRONT: {
-					return args[0].resolve(function);
+					return elementAccess.getFirstPtr(args[0].resolve(function));
 				}
 				case METHOD_BACK: {
-					auto methodOwner = args[0].resolve(function);
-					const auto targetSize = irEmitter.emitSizeOf(targetType);
-					const auto pairSecondPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                                     methodOwner,
-					                                                     targetSize);
-					return pairSecondPtr;
+					return elementAccess.getSecondPtr(args[0].resolve(function));
 				}
 				case METHOD_SKIPFRONT: {
 					// TODO: call increment() method on first element of range pair.
