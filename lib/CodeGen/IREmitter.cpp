@@ -622,8 +622,8 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::emitComparisonCall(const MethodID methodID,
-		                              llvm::Value* const leftValue,
-		                              llvm::Value* const rightValue,
+		                              PendingResult leftValue,
+		                              PendingResult rightValue,
 		                              const SEM::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			
@@ -649,13 +649,10 @@ namespace locic {
 			                      functionType,
 			                      {});
 			
-			RefPendingResult leftValuePendingResult(leftValue, type);
-			RefPendingResult rightValuePendingResult(rightValue, type);
-			
 			return genMethodCall(functionGenerator_,
 			                     methodInfo,
-			                     Optional<PendingResult>(leftValuePendingResult),
-			                     /*args=*/{ rightValuePendingResult });
+			                     Optional<PendingResult>(std::move(leftValue)),
+			                     /*args=*/{ std::move(rightValue) });
 		}
 		
 		llvm::Value*

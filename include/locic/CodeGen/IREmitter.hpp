@@ -16,6 +16,7 @@ namespace locic {
 		class ConstantGenerator;
 		class Function;
 		class Module;
+		class PendingResult;
 		class TypeGenerator;
 		
 		/**
@@ -257,8 +258,8 @@ namespace locic {
 			
 			llvm::Value*
 			emitComparisonCall(MethodID methodID,
-			                   llvm::Value* leftValue,
-			                   llvm::Value* rightValue,
+			                   PendingResult leftValue,
+			                   PendingResult rightValue,
 			                   const SEM::Type* type);
 			
 			llvm::Value*

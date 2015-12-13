@@ -292,11 +292,14 @@ namespace locic {
 					const auto pairFirstPtr = elementAccess.getFirstPtr(methodOwner);
 					const auto pairSecondPtr = elementAccess.getSecondPtr(methodOwner);
 					
+					RefPendingResult pairFirstPendingResult(pairFirstPtr, targetType);
+					RefPendingResult pairSecondPendingResult(pairSecondPtr, targetType);
+					
 					if (typeInstance_.primitiveID() == PrimitiveCount ||
 					    typeInstance_.primitiveID() == PrimitiveRange) {
 						const auto result = irEmitter.emitComparisonCall(METHOD_LESSTHAN,
-						                                                 pairFirstPtr,
-						                                                 pairSecondPtr,
+						                                                 pairFirstPendingResult,
+						                                                 pairSecondPendingResult,
 						                                                 targetType);
 						const auto i1Value = irEmitter.emitBoolToI1(result);
 						const auto i1NotValue = irEmitter.builder().CreateNot(i1Value);
@@ -304,21 +307,21 @@ namespace locic {
 					} else if (typeInstance_.primitiveID() == PrimitiveCountIncl ||
 					           typeInstance_.primitiveID() == PrimitiveRangeIncl) {
 						return irEmitter.emitComparisonCall(METHOD_LESSTHAN,
-						                                    pairSecondPtr,
-						                                    pairFirstPtr,
+						                                    pairSecondPendingResult,
+						                                    pairFirstPendingResult,
 						                                    targetType);
 					} else if (typeInstance_.primitiveID() == PrimitiveReverseRange) {
 						const auto result = irEmitter.emitComparisonCall(METHOD_LESSTHAN,
-						                                                 pairSecondPtr,
-						                                                 pairFirstPtr,
+						                                                 pairSecondPendingResult,
+						                                                 pairFirstPendingResult,
 						                                                 targetType);
 						const auto i1Value = irEmitter.emitBoolToI1(result);
 						const auto i1NotValue = irEmitter.builder().CreateNot(i1Value);
 						return irEmitter.emitI1ToBool(i1NotValue);
 					} else {
 						return irEmitter.emitComparisonCall(METHOD_LESSTHAN,
-						                                    pairFirstPtr,
-						                                    pairSecondPtr,
+						                                    pairFirstPendingResult,
+						                                    pairSecondPendingResult,
 						                                    targetType);
 					}
 				}
