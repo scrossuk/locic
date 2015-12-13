@@ -47,6 +47,27 @@ namespace locic {
 			return irEmitter.emitMoveLoad(refValue_, refTargetType_);
 		}
 		
+		ValueToRefPendingResult::ValueToRefPendingResult(llvm::Value* const value,
+		                                                 const SEM::Type* const refTargetType)
+		: value_(value), refTargetType_(refTargetType) { }
+		
+		llvm::Value* ValueToRefPendingResult::generateValue(Function& function,
+		                                                    llvm::Value* const hintResultValue) const {
+			if (!TypeInfo(function.module()).canPassByValue(refTargetType_)) {
+				// Already a pointer.
+				assert(value_->getType()->isPointerTy());
+				return value_;
+			}
+			IREmitter irEmitter(function, hintResultValue);
+			const auto result = irEmitter.emitReturnAlloca(refTargetType_);
+			irEmitter.emitMoveStore(value_, result, refTargetType_);
+			return result;
+		}
+		
+		llvm::Value* ValueToRefPendingResult::generateLoadedValue(Function& /*function*/) const {
+			return value_;
+		}
+		
 		PendingResult::PendingResult(const PendingResultBase& base)
 		: base_(&base),
 		 cacheLastHintResultValue_(nullptr),

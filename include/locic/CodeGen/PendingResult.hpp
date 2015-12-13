@@ -94,6 +94,31 @@ namespace locic {
 		};
 		
 		/**
+		 * \brief Value-to-reference Pending Result
+		 * 
+		 * A pending result where the LLVM value given is a value,
+		 * whereas the result's type is actually a reference to that
+		 * value. Hence if the (non-loaded) value is generated then an
+		 * alloca will be created.
+		 * 
+		 * The type passed is the reference's target type, to avoid
+		 * needing to create a SEM reference type.
+		 */
+		class ValueToRefPendingResult: public PendingResultBase {
+		public:
+			ValueToRefPendingResult(llvm::Value* value, const SEM::Type* refTargetType);
+			
+			llvm::Value* generateValue(Function& function, llvm::Value* hintResultValue) const;
+			
+			llvm::Value* generateLoadedValue(Function& function) const;
+			
+		private:
+			llvm::Value* value_;
+			const SEM::Type* refTargetType_;
+			
+		};
+		
+		/**
 		 * \brief Pending result.
 		 * 
 		 * This class provides a way to delay the generation
