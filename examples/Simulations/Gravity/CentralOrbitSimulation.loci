@@ -27,7 +27,7 @@ namespace Simulations {
 				system.addParticle(0u, centralParticle);
 				particleColors.insert(std::pair<size_t, sf::Color>(0u, sf::Color::White()));
 				
-				for (const size_t i: std::counter<size_t>(0u, NumParticles(), 1u)) {
+				for (const size_t i: range<size_t>(0, NumParticles())) {
 					const auto particlePosition = Vector(RandomDouble(0.0f, 499.0f), RandomDouble(0.0f, 499.0f), 0.0);
 					const auto particleVelocity = Vector.Zero();
 					const auto particleMass = 0.1;
@@ -103,7 +103,7 @@ namespace Simulations {
 			
 			void render(sf::RenderWindow& renderWindow) {
 				// Draw trackers first.
-				for (const size_t id: std::counter<size_t>(0u, NumParticles(), 1u)) {
+				for (const size_t id: range<size_t>(0, NumParticles())) {
 					const auto& color = @particleColors[id];
 					
 					const auto& positions = @trackers.get_or_insert(id);
@@ -117,7 +117,7 @@ namespace Simulations {
 				}
 				
 				// Draw the particles.
-				for (const size_t id: std::counter<size_t>(0u, NumParticles(), 1u)) {
+				for (const size_t id: range<size_t>(0, NumParticles())) {
 					sf::Color color = @particleColors[id];
 					
 					const Particle particle = @system.getParticle(id);

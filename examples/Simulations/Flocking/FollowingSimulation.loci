@@ -15,7 +15,7 @@ namespace Simulations {
 				auto fields = std::list<Field>();
 				auto boidColorMap = std::map<size_t, sf::Color>();
 				
-				for (const size_t id: std::counter<size_t>(0u, NumBoids(), 1u)) {
+				for (const size_t id: range<size_t>(0, NumBoids())) {
 					const auto boidPosition = Vector(RandomDouble(0.0, 1000.0), RandomDouble(0.0, 1000.0), 0.0);
 					const auto boidVelocity = Vector(RandomDouble(-5.0, 5.0), RandomDouble(-5.0, 5.0), 0.0);
 					const auto boid = Boid(boidPosition, boidVelocity);
@@ -23,7 +23,7 @@ namespace Simulations {
 					boidColorMap.insert(std::pair<size_t, sf::Color>(id, RandomColor()));
 				}
 				
-				for (unused const size_t id: std::counter<size_t>(0u, NumObstacles(), 1u)) {
+				for (unused const size_t id: range<size_t>(0, NumObstacles())) {
 					const auto obstacleRadius = RandomDouble(1.0, 10.0);
 					const auto obstaclePosition = Vector(RandomDouble(0.0, 1000.0), RandomDouble(0.0, 1000.0), 0.0);
 					const auto obstacle = Obstacle(obstacleRadius, obstaclePosition);
@@ -55,7 +55,7 @@ namespace Simulations {
 			}
 			
 			void render(sf::RenderWindow& renderWindow) {
-				for (const size_t id: std::counter<size_t>(0u, NumBoids(), 1u)) {
+				for (const size_t id: range<size_t>(0, NumBoids())) {
 					const Boid boid = @system.getBoid(id);
 					const auto shape = MakeCircleShape(boid.position.x().cast<float>(), boid.position.y().cast<float>(), 2.0f, @boidColorMap[id], 0.0f, sf::Color::Black());
 					renderWindow.draw(shape);

@@ -29,7 +29,7 @@ namespace Simulations {
 				auto targets = std::varray<Target>();
 				targets.reserve(NumTargets);
 				
-				for (const size_t i: std::counter<size_t>(0u, NumTargets, 1u)) {
+				for (const size_t i: range<size_t>(0, NumTargets)) {
 					const auto position = Vector(RandomDouble(0.0, 1000.0), RandomDouble(0.0, 1000.0), 0.0);
 					const auto velocity = Vector(RandomDouble(-0.1, 0.1), RandomDouble(-0.1, 0.1), 0.0);
 					const auto radius = RandomDouble(2.0f, 6.0f);
@@ -62,7 +62,7 @@ namespace Simulations {
 				
 				Vector acceleration = (toCurrentTarget.unit() * 1.0) + (toMouse.unit() * 0.1);
 				
-				for (const size_t i: std::counter<size_t>(0u, @targets.size(), 1u)) {
+				for (const size_t i: range<size_t>(0, @targets.size())) {
 					const Target& target = @targets[i];
 					
 					const Vector toTarget = target.position - @particle.position;
@@ -100,7 +100,7 @@ namespace Simulations {
 				}
 				
 				// Move targets.
-				for (const size_t i: std::counter<size_t>(0u, @targets.size(), 1u)) {
+				for (const size_t i: range<size_t>(0, @targets.size())) {
 					Target& target = @targets[i];
 					const Vector targetAccelerationBase = Vector(RandomDouble(-0.02, 0.02), RandomDouble(-0.02, 0.02), 0.0);
 					
@@ -116,7 +116,7 @@ namespace Simulations {
 			
 			void render(sf::RenderWindow& renderWindow) {
 				// Draw targets.
-				for (const size_t i: std::counter<size_t>(0u, @targets.size(), 1u)) {
+				for (const size_t i: range<size_t>(0, @targets.size())) {
 					const Target& target = @targets[i];
 					sf::Color color = (i == @currentTarget) ? sf::Color::Green() : sf::Color(50u, 50u, 50u, 255u);				
 					auto shape = MakeCircleShape(target.position.x().cast<float>(), target.position.y().cast<float>(), target.radius.cast<float>(), color, 0.0f, sf::Color::Black());
