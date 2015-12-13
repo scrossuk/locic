@@ -49,7 +49,10 @@ namespace locic {
 			}
 			
 			// Don't treat extension methods as primitive methods.
-			semFunction->setPrimitive(isMethod && thisTypeInstance->isPrimitive() && astFunctionNode->name()->size() == 1);
+			const bool isPrimitiveMethod = isMethod && thisTypeInstance->isPrimitive() && astFunctionNode->name()->size() == 1;
+			const bool isPrimitiveFunction = astFunctionNode->isPrimitive();
+			
+			semFunction->setPrimitive(isPrimitiveMethod || isPrimitiveFunction);
 			
 			semFunction->setMethod(isMethod);
 			semFunction->setStaticMethod(astFunctionNode->isStatic());

@@ -84,7 +84,8 @@ namespace locic {
 			
 			switch (moduleScope.kind()) {
 				case SEM::ModuleScope::INTERNAL: {
-					if (!isParentInterface && !isParentPrimitive && astFunctionNode->isDeclaration()) {
+					const bool isPrimitive = isParentPrimitive || astFunctionNode->isPrimitive();
+					if (!isParentInterface && !isPrimitive && astFunctionNode->isDeclaration()) {
 						throw ErrorException(makeString("Definition required for internal function '%s', at location %s.",
 							fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
 					}
