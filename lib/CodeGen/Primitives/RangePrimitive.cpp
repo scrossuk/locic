@@ -288,8 +288,39 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_EMPTY: {
-					// TODO: compare range pair elements.
-					llvm_unreachable("TODO");
+					auto methodOwner = args[0].resolve(function);
+					const auto pairFirstPtr = elementAccess.getFirstPtr(methodOwner);
+					const auto pairSecondPtr = elementAccess.getSecondPtr(methodOwner);
+					
+					if (typeInstance_.primitiveID() == PrimitiveCount ||
+					    typeInstance_.primitiveID() == PrimitiveRange) {
+						const auto result = irEmitter.emitComparisonCall(METHOD_LESSTHAN,
+						                                                 pairFirstPtr,
+						                                                 pairSecondPtr,
+						                                                 targetType);
+						const auto i1Value = irEmitter.emitBoolToI1(result);
+						const auto i1NotValue = irEmitter.builder().CreateNot(i1Value);
+						return irEmitter.emitI1ToBool(i1NotValue);
+					} else if (typeInstance_.primitiveID() == PrimitiveCountIncl ||
+					           typeInstance_.primitiveID() == PrimitiveRangeIncl) {
+						return irEmitter.emitComparisonCall(METHOD_LESSTHAN,
+						                                    pairSecondPtr,
+						                                    pairFirstPtr,
+						                                    targetType);
+					} else if (typeInstance_.primitiveID() == PrimitiveReverseRange) {
+						const auto result = irEmitter.emitComparisonCall(METHOD_LESSTHAN,
+						                                                 pairSecondPtr,
+						                                                 pairFirstPtr,
+						                                                 targetType);
+						const auto i1Value = irEmitter.emitBoolToI1(result);
+						const auto i1NotValue = irEmitter.builder().CreateNot(i1Value);
+						return irEmitter.emitI1ToBool(i1NotValue);
+					} else {
+						return irEmitter.emitComparisonCall(METHOD_LESSTHAN,
+						                                    pairFirstPtr,
+						                                    pairSecondPtr,
+						                                    targetType);
+					}
 				}
 				default:
 					llvm_unreachable("Unknown range primitive method.");
