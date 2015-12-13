@@ -3,6 +3,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/MethodInfo.hpp>
@@ -570,34 +571,48 @@ namespace locic {
 			                     callHintResultValue);
 		}
 		
+		static const SEM::Type*
+		createRefType(const SEM::Type* const refTargetType,
+		              const SEM::TypeInstance& refTypeInstance,
+		              const SEM::Type* const typenameType) {
+			auto typeRef = SEM::Value::TypeRef(refTargetType,
+			                                   typenameType->createStaticRefType(refTargetType));
+			SEM::ValueArray templateArguments;
+			templateArguments.push_back(std::move(typeRef));
+			return SEM::Type::Object(&refTypeInstance,
+			                         std::move(templateArguments))->createRefType(refTargetType);
+		}
+		
 		llvm::Value*
 		IREmitter::emitCompareCall(llvm::Value* const leftValue,
 		                           llvm::Value* const rightValue,
-		                           const SEM::Type* const compareResultType,
-		                           const SEM::Type* const rawThisType,
-		                           const SEM::Type* const rawThisRefType) {
-			const auto thisType = rawThisType->resolveAliases();
-			const auto thisRefType = rawThisRefType->resolveAliases();
+		                           const SEM::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
 			
-			const bool isTemplated = thisType->isObject() &&
-			                         !thisType->templateArguments().empty();
+			const bool isTemplated = type->isObject() &&
+			                         !type->templateArguments().empty();
 			
 			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/SEM::Predicate::False());
 			
+			const auto compareResultType = module().context().semContext().getPrimitive(PrimitiveCompareResult).selfType();
+			const auto typenameType = module().context().semContext().getPrimitive(PrimitiveTypename).selfType();
+			const auto& refTypeInstance = module().context().semContext().getPrimitive(PrimitiveRef);
+			const auto thisRefType = createRefType(type, refTypeInstance, typenameType);
+			
 			SEM::FunctionType functionType(std::move(attributes),
 			                               compareResultType,
 			                               { thisRefType });
 			
-			MethodInfo methodInfo(thisType,
+			MethodInfo methodInfo(type,
 			                      module().getCString("compare"),
 			                      functionType,
 			                      {});
 			
-			RefPendingResult leftValuePendingResult(leftValue, thisType);
-			RefPendingResult rightValuePendingResult(rightValue, thisType);
+			RefPendingResult leftValuePendingResult(leftValue, type);
+			RefPendingResult rightValuePendingResult(rightValue, type);
 			
 			return genMethodCall(functionGenerator_,
 			                     methodInfo,

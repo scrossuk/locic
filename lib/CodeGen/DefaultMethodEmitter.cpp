@@ -766,21 +766,9 @@ namespace locic {
 			return irEmitter.emitMoveLoad(resultValue, type);
 		}
 		
-		static const SEM::Type*
-		createRefType(const SEM::Type* const refTargetType,
-		              const SEM::TypeInstance& refTypeInstance,
-		              const SEM::Type* const typenameType) {
-			auto typeRef = SEM::Value::TypeRef(refTargetType,
-			                                   typenameType->createStaticRefType(refTargetType));
-			SEM::ValueArray templateArguments;
-			templateArguments.push_back(std::move(typeRef));
-			return SEM::Type::Object(&refTypeInstance,
-			                         std::move(templateArguments))->createRefType(refTargetType);
-		}
-		
 		llvm::Value*
 		DefaultMethodEmitter::emitCompare(const SEM::Type* const type,
-		                                  const SEM::FunctionType functionType,
+		                                  const SEM::FunctionType /*functionType*/,
 		                                  PendingResultArray args) {
 			const auto& typeInstance = *(type->getObjectType());
 			assert(!typeInstance.isUnion() &&
@@ -793,10 +781,6 @@ namespace locic {
 			
 			auto& module = functionGenerator_.module();
 			const auto i8Type = TypeGenerator(module).getI8Type();
-			
-			const auto compareResultType = functionType.returnType();
-			const auto& refTypeInstance = *(functionType.parameterTypes()[0]->getObjectType());
-			const auto typenameType = refTypeInstance.templateVariables()[0]->type();
 			
 			if (typeInstance.isUnionDatatype()) {
 				const auto thisTag = irEmitter.emitLoadDatatypeTag(thisPointer);
@@ -852,9 +836,6 @@ namespace locic {
 					functionGenerator_.selectBasicBlock(matchBB);
 					
 					const auto variantType = SEM::Type::Object(variantTypeInstance, type->templateArguments().copy());
-					const auto variantRefType = createRefType(variantType,
-					                                          refTypeInstance,
-					                                          typenameType);
 					
 					const auto thisValuePtr = irEmitter.emitGetDatatypeVariantPtr(thisPointer,
 					                                                              type,
@@ -866,9 +847,7 @@ namespace locic {
 					
 					const auto compareResult = irEmitter.emitCompareCall(thisValuePtr,
 					                                                     otherValuePtr,
-					                                                     compareResultType,
-					                                                     variantType,
-					                                                     variantRefType);
+					                                                     variantType);
 					
 					phiNode->addIncoming(compareResult,
 					                     matchBB);
@@ -908,15 +887,10 @@ namespace locic {
 					                                         memberIndex);
 					
 					const auto memberType = memberVar->constructType()->resolveAliases();
-					const auto memberRefType = createRefType(memberType,
-					                                         refTypeInstance,
-					                                         typenameType);
 					
 					const auto compareResult = irEmitter.emitCompareCall(thisMemberPtr,
 					                                                     otherMemberPtr,
-					                                                     compareResultType,
-					                                                     memberType,
-					                                                     memberRefType);
+					                                                     memberType);
 					
 					if (typeInstance.variables().size() == 1) {
 						return compareResult;

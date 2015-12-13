@@ -252,9 +252,7 @@ namespace locic {
 			llvm::Value*
 			emitCompareCall(llvm::Value* leftValue,
 			                llvm::Value* rightValue,
-			                const SEM::Type* compareResultType,
-			                const SEM::Type* thisType,
-			                const SEM::Type* thisRefType);
+			                const SEM::Type* type);
 			
 			// Needed to support existing code.
 			// FIXME: Remove these.
