@@ -1,7 +1,11 @@
 #ifndef LOCIC_CODEGEN_SEMCODEEMITTER_HPP
 #define LOCIC_CODEGEN_SEMCODEEMITTER_HPP
 
+#include <locic/CodeGen/PendingResult.hpp>
+
 namespace locic {
+	
+	class MethodID;
 	
 	namespace SEM {
 		
@@ -22,7 +26,15 @@ namespace locic {
 			                      const SEM::Function& function,
 			                      bool isInnerMethod);
 			
-			void emitDefaultFunctionCode(const SEM::TypeInstance& typeInstance,
+			llvm::Value*
+			emitBuiltInFunctionContents(MethodID methodID,
+			                            bool isInnerMethod,
+			                            const SEM::TypeInstance* typeInstance,
+			                            const SEM::Function& function,
+			                            PendingResultArray args,
+			                            llvm::Value* hintResultValue);
+			
+			void emitBuiltInFunctionCode(const SEM::TypeInstance* typeInstance,
 			                             const SEM::Function& function,
 			                             bool isInnerMethod);
 			

@@ -9,8 +9,10 @@
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/PrimitiveFunctionEmitter.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/SEMCodeEmitter.hpp>
+#include <locic/CodeGen/Support.hpp>
 
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -26,16 +28,15 @@ namespace locic {
 		: functionGenerator_(functionGenerator) { }
 		
 		void
-		SEMCodeEmitter::emitFunctionCode(const SEM::TypeInstance* typeInstance,
+		SEMCodeEmitter::emitFunctionCode(const SEM::TypeInstance* const typeInstance,
 		                                 const SEM::Function& function,
 		                                 const bool isInnerMethod) {
 			// TODO: remove this horrible code...
 			const bool isOuterMethod = (function.name().last() == "__moveto" ||
 			                            function.name().last() == "__destroy") &&
 			                           !isInnerMethod;
-			if (function.isDefault() || isOuterMethod) {
-				assert(typeInstance != nullptr);
-				emitDefaultFunctionCode(*typeInstance,
+			if (function.isDefault() || function.isPrimitive() || isOuterMethod) {
+				emitBuiltInFunctionCode(typeInstance,
 				                        function,
 				                        isInnerMethod);
 			} else {
@@ -43,8 +44,41 @@ namespace locic {
 			}
 		}
 		
+		llvm::Value*
+		SEMCodeEmitter::emitBuiltInFunctionContents(const MethodID methodID,
+		                                            const bool isInnerMethod,
+		                                            const SEM::TypeInstance* const typeInstance,
+		                                            const SEM::Function& function,
+		                                            PendingResultArray args,
+		                                            llvm::Value* const hintResultValue) {
+			if (!function.isPrimitive()) {
+				DefaultMethodEmitter defaultMethodEmitter(functionGenerator_);
+				return defaultMethodEmitter.emitMethod(methodID,
+				                                       isInnerMethod,
+				                                       typeInstance->selfType(),
+				                                       function.type(),
+				                                       std::move(args),
+				                                       hintResultValue);
+			} else {
+				assert(!isInnerMethod);
+				
+				SEM::ValueArray templateArgs;
+				for (const auto& templateVar: function.templateVariables()) {
+					templateArgs.push_back(templateVar->selfRefValue());
+				}
+				
+				const auto type = typeInstance != nullptr ? typeInstance->selfType() : nullptr;
+				
+				IREmitter irEmitter(functionGenerator_, hintResultValue);
+				PrimitiveFunctionEmitter primitiveFunctionEmitter(irEmitter);
+				return primitiveFunctionEmitter.emitFunction(methodID, type,
+				                                             arrayRef(templateArgs),
+				                                             std::move(args));
+			}
+		}
+		
 		void
-		SEMCodeEmitter::emitDefaultFunctionCode(const SEM::TypeInstance& typeInstance,
+		SEMCodeEmitter::emitBuiltInFunctionCode(const SEM::TypeInstance* const typeInstance,
 		                                        const SEM::Function& function,
 		                                        const bool isInnerMethod) {
 			auto& module = functionGenerator_.module();
@@ -52,13 +86,14 @@ namespace locic {
 			const auto& argInfo = functionGenerator_.getArgInfo();
 			
 			PendingResultArray args;
-			const auto contextValue =
-				argInfo.hasContextArgument() ?
-					functionGenerator_.getContextValue() :
-					nullptr;
-			RefPendingResult contextPendingResult(contextValue, typeInstance.selfType());
+			
+			Array<RefPendingResult, 1> contextPendingResult;
 			if (argInfo.hasContextArgument()) {
-				args.push_back(contextPendingResult);
+				assert(typeInstance != nullptr);
+				const auto contextValue = functionGenerator_.getContextValue();
+				contextPendingResult.push_back(RefPendingResult(contextValue,
+				                                                typeInstance->selfType()));
+				args.push_back(contextPendingResult.back());
 			}
 			
 			// Need an array to store all the pending results
@@ -77,14 +112,12 @@ namespace locic {
 			
 			const auto hintResultValue = functionGenerator_.getReturnVarOrNull();
 			
-			DefaultMethodEmitter defaultMethodEmitter(functionGenerator_);
-			
-			const auto result = defaultMethodEmitter.emitMethod(methodID,
-			                                                    isInnerMethod,
-			                                                    typeInstance.selfType(),
-			                                                    function.type(),
-			                                                    std::move(args),
-			                                                    hintResultValue);
+			const auto result = emitBuiltInFunctionContents(methodID,
+			                                                isInnerMethod,
+			                                                typeInstance,
+			                                                function,
+			                                                std::move(args),
+			                                                hintResultValue);
 			
 			const auto returnType = function.type().returnType();
 			
