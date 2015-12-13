@@ -18,6 +18,8 @@ namespace locic {
 		public:
 			TypeInfo(Module& module);
 			
+			bool canPassByValue(const SEM::Type* type) const;
+			
 			bool isSizeAlwaysKnown(const SEM::Type* type) const;
 			
 			bool isObjectSizeAlwaysKnown(const SEM::TypeInstance& typeInstance) const;

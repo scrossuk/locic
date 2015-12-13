@@ -313,13 +313,7 @@ namespace locic {
 		}
 		
 		bool canPassByValue(Module& module, const SEM::Type* type) {
-			// Can only pass by value if the type's size is always known
-			// (it's not enough for its size to be known in this module
-			// since other modules may end up using it) and if it
-			// doesn't have a custom move method (which means it
-			// must stay in memory and we must hold references to it).
-			TypeInfo typeInfo(module);
-			return typeInfo.isSizeAlwaysKnown(type) && !typeInfo.hasCustomMove(type);
+			return TypeInfo(module).canPassByValue(type);
 		}
 		
 		ArgInfo getFunctionArgInfo(Module& module, const SEM::FunctionType functionType) {

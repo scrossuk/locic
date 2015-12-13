@@ -14,6 +14,15 @@ namespace locic {
 		TypeInfo::TypeInfo(Module& module)
 		: module_(module) { }
 		
+		bool TypeInfo::canPassByValue(const SEM::Type* const type) const {
+			// Can only pass by value if the type's size is always known
+			// (it's not enough for its size to be known in this module
+			// since other modules may end up using it) and if it
+			// doesn't have a custom move method (which means it
+			// must stay in memory and we must hold references to it).
+			return isSizeAlwaysKnown(type) && !hasCustomMove(type);
+		}
+		
 		bool TypeInfo::isSizeAlwaysKnown(const SEM::Type* const type) const {
 			switch (type->kind()) {
 				case SEM::Type::OBJECT:
