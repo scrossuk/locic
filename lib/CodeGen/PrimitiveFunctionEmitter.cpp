@@ -1,4 +1,5 @@
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/PendingResult.hpp>
@@ -43,6 +44,43 @@ namespace locic {
 			                                         secondValue, firstValue);
 		}
 		
+		static PrimitiveID getRangePrimitiveID(const MethodID methodID) {
+			switch (methodID) {
+				case METHOD_RANGE:
+					return PrimitiveRange;
+				case METHOD_RANGE_INCL:
+					return PrimitiveRangeIncl;
+				case METHOD_REVERSE_RANGE:
+					return PrimitiveReverseRange;
+				case METHOD_REVERSE_RANGE_INCL:
+					return PrimitiveReverseRangeIncl;
+				default:
+					llvm_unreachable("Unknown range() function method ID.");
+			}
+		}
+		
+		llvm::Value*
+		PrimitiveFunctionEmitter::emitRange(const MethodID methodID,
+		                                    llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                    PendingResultArray args) {
+			llvm::SmallVector<SEM::Value, 1> typeTemplateArguments;
+			
+			const auto targetType = functionTemplateArguments[0].typeRefType();
+			const auto typenameType = irEmitter_.module().context().semContext().getPrimitive(PrimitiveTypename).selfType();
+			typeTemplateArguments.push_back(SEM::Value::TypeRef(targetType,
+			                                                    typenameType->createStaticRefType(targetType)));
+			
+			llvm::SmallVector<SEM::Value, 1> methodFunctionTemplateArguments;
+			
+			const auto rangePrimitiveID = getRangePrimitiveID(methodID);
+			const auto& rangeTypeInstance = irEmitter_.module().context().semContext().getPrimitive(rangePrimitiveID);
+			const auto& primitive = irEmitter_.module().getPrimitive(rangeTypeInstance);
+			return primitive.emitMethod(irEmitter_, METHOD_CREATE,
+			                            typeTemplateArguments,
+			                            methodFunctionTemplateArguments,
+			                            std::move(args));
+		}
+		
 		llvm::Value*
 		PrimitiveFunctionEmitter::emitStandaloneFunction(const MethodID methodID,
 		                                                 llvm::ArrayRef<SEM::Value> functionTemplateArguments,
@@ -54,6 +92,12 @@ namespace locic {
 					return emitMinOrMax(methodID,
 					                    functionTemplateArguments,
 					                    std::move(args));
+				case METHOD_RANGE:
+				case METHOD_RANGE_INCL:
+				case METHOD_REVERSE_RANGE:
+				case METHOD_REVERSE_RANGE_INCL:
+					return emitRange(methodID, functionTemplateArguments,
+					                 std::move(args));
 				default:
 					llvm_unreachable("Unknown standalone function.");
 			}

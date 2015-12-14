@@ -27,6 +27,11 @@ namespace locic {
 			             llvm::ArrayRef<SEM::Value> functionTemplateArguments,
 			             PendingResultArray args);
 			
+			llvm::Value*
+			emitRange(MethodID methodID,
+			          llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+			          PendingResultArray args);
+			
 			/**
 			 * \brief Emit function code for primitive.
 			 * 
