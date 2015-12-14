@@ -148,6 +148,7 @@ and                     { return AND; }
 or                      { return OR; }
 
 void                    { return VOID; }
+bool                    { return BOOL; }
 signed                  { return SIGNED; }
 unsigned                { return UNSIGNED; }
 byte                    { return BYTE; }

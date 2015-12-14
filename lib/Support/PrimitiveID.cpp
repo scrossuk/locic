@@ -335,7 +335,7 @@ namespace locic {
 			case PrimitiveNull:
 				return "null_t";
 			case PrimitiveBool:
-				return "bool";
+				return "bool_t";
 			case PrimitiveCompareResult:
 				return "compare_result_t";
 			NAME_CASE(PrimitiveFunctionPtr, "function", "ptr_t");

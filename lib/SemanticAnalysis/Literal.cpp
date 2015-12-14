@@ -130,7 +130,7 @@ namespace locic {
 				}
 				case Constant::BOOLEAN: {
 					if (specifier.empty()) {
-						return context.getCString("bool");
+						return context.getCString("bool_t");
 					} else {
 						throw ErrorException(makeString("Invalid boolean literal specifier '%s'.",
 							specifier.c_str()));

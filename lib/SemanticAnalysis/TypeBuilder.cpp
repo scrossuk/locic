@@ -36,7 +36,7 @@ namespace locic {
 			}
 			
 			cachedBoolType_ = getBuiltInType(context_,
-			                                 context_.getCString("bool"),
+			                                 context_.getCString("bool_t"),
 			                                 {});
 			return cachedBoolType_;
 		}

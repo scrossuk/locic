@@ -319,6 +319,7 @@ static locic::AST::Node<locic::AST::Value> * mergeValue(LOCIC_PARSER_GENERATEDPA
 %token COLON
 %token DOUBLE_COLON
 %token VOID
+%token BOOL
 %token FINAL
 %token CONST
 %token MUTABLE
@@ -1342,6 +1343,10 @@ typePrecision4:
 	VOID
 	{
 		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Void()));
+	}
+	| BOOL
+	{
+		$$ = MAKESYM(locic::AST::makeNode(LOC(&@$), locic::AST::Type::Bool()));
 	}
 	| AUTO
 	{
