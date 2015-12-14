@@ -17,21 +17,26 @@ export void f() {
 	// CHECK-NEXT: %[[RANGEEND_INIT:[0-9]+]] = getelementptr inbounds {{.*}}%[[RANGEVAR]], i32 0, i32 1
 	// CHECK-NEXT: store i32 3, {{.*}}%[[RANGEEND_INIT]]
 	// CHECK: br label %loopCondition
-	for (auto x: count_incl<int>(3)) {
+	for (auto x: range<int>(3)) {
 		// CHECK-LABEL: loopCondition:
 		// CHECK-NEXT: %[[RANGESTART_COND:[0-9]+]] = getelementptr inbounds {{.*}}%[[RANGEVAR]], i32 0, i32 0
 		// CHECK-NEXT: %[[RANGEEND_COND:[0-9]+]] = getelementptr inbounds {{.*}}%[[RANGEVAR]], i32 0, i32 1
-		// CHECK-NEXT: %[[RANGEEND_COND_VALUE:[0-9]+]] = load{{.*}}%[[RANGEEND_COND]]
 		// CHECK-NEXT: %[[RANGESTART_COND_VALUE:[0-9]+]] = load{{.*}}%[[RANGESTART_COND]]
+		// CHECK-NEXT: %[[RANGEEND_COND_VALUE:[0-9]+]] = load{{.*}}%[[RANGEEND_COND]]
 		
-		// CHECK-NEXT: %[[IS_NOT_EMPTY:[0-9]+]] = icmp slt i32 %[[RANGEEND_COND_VALUE]], %[[RANGESTART_COND_VALUE]]
+		// CHECK-NEXT: %[[IS_NOT_EMPTY:[0-9]+]] = icmp slt i32 %[[RANGESTART_COND_VALUE]], %[[RANGEEND_COND_VALUE]]
 		// CHECK-NEXT: %[[IS_NOT_EMPTY_U8:[0-9]+]] = zext i1 %[[IS_NOT_EMPTY]] to i8
 		
+		// All this is generated for a double NOT!
+		// TODO: Don't emit this dead code.
 		// CHECK-NEXT: %[[V0:[0-9]+]] = icmp ne i8 %[[IS_NOT_EMPTY_U8]], 0
 		// CHECK-NEXT: %[[V1:[0-9]+]] = xor i1 %[[V0]], true
 		// CHECK-NEXT: %[[V2:[0-9]+]] = zext i1 %[[V1]] to i8
+		// CHECK-NEXT: %[[V3:[0-9]+]] = icmp ne i8 %[[V2]], 0
+		// CHECK-NEXT: %[[V4:[0-9]+]] = xor i1 %[[V3]], true
+		// CHECK-NEXT: %[[V5:[0-9]+]] = zext i1 %[[V4]] to i8
 		
-		// CHECK-NEXT: %[[IS_NOT_EMPTY_RESULT:[0-9]+]] = icmp ne i8 %[[V2]], 0
+		// CHECK-NEXT: %[[IS_NOT_EMPTY_RESULT:[0-9]+]] = icmp ne i8 %[[V5]], 0
 		// CHECK-NEXT: br i1 %[[IS_NOT_EMPTY_RESULT]], label %loopIteration, label %loopEnd
 		
 		// CHECK-LABEL: loopIteration:
