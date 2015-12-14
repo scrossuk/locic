@@ -1,0 +1,27 @@
+template <typename T>
+notag(T)
+__primitive reverse_range_t {
+	static reverse_range_t<T> create(T begin, T end) noexcept require(is_movable<T>);
+	
+	static size_t __alignmask() noexcept require(is_sized_type<T>);
+	static size_t __sizeof() noexcept require(is_sized_type<T>);
+	
+	size_t implicit_copy() const noexcept require(is_implicit_copyable<T>);
+	size_t copy() const noexcept require(is_copyable<T>);
+	
+	void __destroy() noexcept require(is_destructible<T>);
+	
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	
+	const T& front() const noexcept;
+	
+	void skip_front() noexcept(is_noexcept_incrementable<T>) require(is_incrementable<T>);
+	
+	bool empty() const noexcept(is_noexcept_lessthancomparable<T>) require(is_lessthancomparable<T>);
+	
+	void __moveto(void* ptr, size_t position) noexcept require(is_movable<T>);
+}
+
+template <typename T>
+__primitivefunction reverse_range_t<T> reverse_range(T begin, T end) noexcept require(is_movable<T>);

@@ -38,8 +38,11 @@ set(RUNTIME_FILES
 	ptrdiff_t.loci
 	ptr.loci
 	ptr_lval.loci
-	range.loci
+	range_incl_t.loci
+	range_t.loci
 	ref.loci
+	reverse_range_incl_t.loci
+	reverse_range_t.loci
 	short_t.loci
 	size_t.loci
 	sized_type.loci

@@ -412,13 +412,13 @@ namespace locic {
 			case PrimitiveCountIncl:
 				return "count_incl";
 			case PrimitiveRange:
-				return "range";
+				return "range_t";
 			case PrimitiveRangeIncl:
-				return "range_incl";
+				return "range_incl_t";
 			case PrimitiveReverseRange:
-				return "reverse_range";
+				return "reverse_range_t";
 			case PrimitiveReverseRangeIncl:
-				return "reverse_range_incl";
+				return "reverse_range_incl_t";
 			case PrimitiveStaticArray:
 				return "static_array_t";
 		}
