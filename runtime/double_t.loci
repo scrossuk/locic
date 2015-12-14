@@ -27,10 +27,10 @@ __primitive double_t {
 	bool __islive() const noexcept;
 	
 	template <typename T>
-	T implicit_cast() const noexcept require(T : __implicit_cast_from_double_t<T> and T : movable);
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_double_t<T> and is_movable<T>);
 	
 	template <typename T>
-	T cast() const noexcept require(T : __cast_from_double_t<T> and T : movable);
+	T cast() const noexcept require(T : __cast_from_double_t<T> and is_movable<T>);
 	
 	double_t plus() const noexcept;
 	double_t minus() const noexcept;

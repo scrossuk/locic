@@ -2,7 +2,7 @@
 import void testPrint(const ubyte * str, ...);
 
 template <typename T>
-require(notag(T) : movable)
+require(is_movable<notag(T)>)
 interface PrimitiveInterface {
 	notag(T) add(const T& value) const;
 }

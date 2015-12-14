@@ -10,7 +10,7 @@ interface SecondInterface {
 }
 
 template <typename T>
-require(T : FirstInterface and T : movable)
+require(T : FirstInterface and is_movable<T>)
 class TestClass(T value) {
 	static Create(T value) {
 		return @(move value);

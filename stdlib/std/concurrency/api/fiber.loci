@@ -5,7 +5,7 @@ import std.concurrency 0.1.0 {
 		namespace concurrency {
 			
 			template <typename T>
-			require (T : runnable and T : movable)
+			require (T : runnable and is_movable<T>)
 			class fiber {
 				static fiber<T> create(T runnable_object);
 				

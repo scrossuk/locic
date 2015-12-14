@@ -14,7 +14,7 @@ class PrintableClass(int value) {
 }
 
 template <typename T>
-require(T : Printable and T : movable)
+require(T : Printable and is_movable<T>)
 class TestClass(T value) {
 	static Create = default;
 	
@@ -25,7 +25,7 @@ class TestClass(T value) {
 }
 
 template <typename T>
-require(T : Printable and T : movable)
+require(T : Printable and is_movable<T>)
 using TestClassAlias = TestClass<T>;
 
 // Entry point.

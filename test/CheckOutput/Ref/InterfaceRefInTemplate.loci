@@ -2,7 +2,7 @@
 import void testPrint(const ubyte * str, ...) noexcept;
 
 template <typename T>
-require(T : movable)
+require(is_movable<T>)
 class TemplatedClass(T object) {
 	static create(T object) noexcept {
 		return @(move object);

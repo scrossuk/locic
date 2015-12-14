@@ -118,7 +118,7 @@ export std.string 0.1.0 {
 			}
 			
 			template <typename LvalType: readable_lval<string>>
-			string join(input_range<string, LvalType>& range) const require (LvalType : movable) {
+			string join(input_range<string, LvalType>& range) const require (is_movable<LvalType>) {
 				string joinedString = "";
 				bool isFirst = true;
 				for (const auto& stringValue: range) {

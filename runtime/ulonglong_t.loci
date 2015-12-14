@@ -26,10 +26,10 @@ __primitive ulonglong_t {
 	bool __islive() const noexcept;
 	
 	template <typename T>
-	T implicit_cast() const noexcept require(T : __implicit_cast_from_ulonglong_t<T> and T : movable);
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_ulonglong_t<T> and is_movable<T>);
 	
 	template <typename T>
-	T cast() const noexcept require(T : __cast_from_ulonglong_t<T> and T : movable);
+	T cast() const noexcept require(T : __cast_from_ulonglong_t<T> and is_movable<T>);
 	
 	ulonglong_t add(const ulonglong_t& v) const noexcept;
 	ulonglong_t subtract(const ulonglong_t& v) const noexcept;

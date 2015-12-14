@@ -10,10 +10,10 @@ __primitive int64_t {
 	int64_t copy() const noexcept;
 	
 	template <typename T>
-	T implicit_cast() const noexcept require(T : __implicit_cast_from_int64_t<T> and T : movable);
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_int64_t<T> and is_movable<T>);
 	
 	template <typename T>
-	T cast() const noexcept require(T : __cast_from_int64_t<T> and T : movable);
+	T cast() const noexcept require(T : __cast_from_int64_t<T> and is_movable<T>);
 	
 	int64_t plus() const noexcept;
 	int64_t minus() const noexcept;

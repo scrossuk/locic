@@ -14,9 +14,9 @@ import std.concurrency 0.1.0 {
 				
 				bool empty() const;
 				
-				void send(T message) require(T : movable);
+				void send(T message) require(is_movable<T>);
 				
-				T receive() require(T : movable);
+				T receive() require(is_movable<T>);
 				
 				event::source event_source() const noexcept;
 			}

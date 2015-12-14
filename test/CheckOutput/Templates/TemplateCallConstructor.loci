@@ -20,7 +20,7 @@ interface Constructible {
 }
 
 template <typename T>
-require(T : Constructible<T> and T : movable)
+require(T : Constructible<T> and is_movable<T>)
 class TestClass(T value) {
 	static Create(int value) {
 		testPrint(C"TestClass.Create()");

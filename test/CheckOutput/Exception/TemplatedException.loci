@@ -10,7 +10,7 @@ template <typename T : movable>
 exception ParentError(T value);
 
 template <typename T>
-require(T : Copyable<T> and T : movable)
+require(T : Copyable<T> and is_movable<T>)
 exception ChildError(T value0, T value1) : ParentError<T>(value0);
 
 // Entry point.

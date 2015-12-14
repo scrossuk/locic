@@ -5,15 +5,15 @@ import std.string 0.1.0 {
 		exception utf8_decode_error(const ubyte* error);
 		
 		template <typename LvalType: readable_lval<const unichar>>
-		void utf8_encode(input_range<const unichar, LvalType>& source, output_range<ubyte>& dest) require(LvalType : movable);
+		void utf8_encode(input_range<const unichar, LvalType>& source, output_range<ubyte>& dest) require(is_movable<LvalType>);
 		
 		template <typename LvalType: readable_lval<const ubyte>>
-		void utf8_decode(input_range<const ubyte, LvalType>& source, output_range<unichar>& dest) require(LvalType : movable);
+		void utf8_decode(input_range<const ubyte, LvalType>& source, output_range<unichar>& dest) require(is_movable<LvalType>);
 		
 		void utf8_encode_character(unichar character, output_range<ubyte>& dest);
 		
 		template <typename LvalType: readable_lval<const ubyte>>
-		unichar utf8_decode_character(input_range<const ubyte, LvalType>& source) require(LvalType : movable);
+		unichar utf8_decode_character(input_range<const ubyte, LvalType>& source) require(is_movable<LvalType>);
 		
 	}
 	

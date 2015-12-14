@@ -34,7 +34,7 @@ export std.string 0.1.0 {
 			}
 			
 			template <typename LvalType: readable_lval<unichar>>
-			void append_range(input_range<unichar, LvalType>& range) require(LvalType : movable) {
+			void append_range(input_range<unichar, LvalType>& range) require(is_movable<LvalType>) {
 				@buffer.append_range<LvalType>(range);
 			}
 			

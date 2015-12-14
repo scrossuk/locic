@@ -4,7 +4,7 @@ export std.container 0.1.0 {
 	namespace std {
 		
 		template <typename T0, typename T1>
-		move(T0 : movable and T1 : movable)
+		move(is_movable<T0> and is_movable<T1>)
 		datatype pair(T0 first, T1 second);
 		
 		template <typename Key, typename Value, bool IsMapConst>
