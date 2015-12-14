@@ -33,7 +33,7 @@ namespace locic {
 		SEM::Predicate getDefaultSizedTypePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
 			auto requirePredicate = SEM::Predicate::True();
 			
-			const auto sizedType = getBuiltInType(context, context.getCString("sized_type"), {});
+			const auto sizedType = getBuiltInType(context, context.getCString("sized_type_t"), {});
 			
 			// All member variables need to be sized.
 			for (const auto& var: typeInstance->variables()) {

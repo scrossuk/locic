@@ -1,7 +1,7 @@
-interface sized_type {
+interface sized_type_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 }
 
 template <typename T>
-using is_sized_type = T : sized_type;
+using is_sized_type = T : sized_type_t;

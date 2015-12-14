@@ -1,1 +1,1 @@
-Template arguments do not satisfy require predicate 'satisfies\(type: OpaqueStruct, requirement: sized_type\)' of method 'add' at position SourceLocation\(filename = (.*)/OpaqueStructPointerArithmetic\.loci, range = \(line 4, column 9\) to \(line 4, column 17\)\)\.
+Template arguments do not satisfy require predicate 'satisfies\(type: OpaqueStruct, requirement: sized_type_t\)' of method 'add' at position SourceLocation\(filename = (.*)/OpaqueStructPointerArithmetic\.loci, range = \(line 4, column 9\) to \(line 4, column 17\)\)\.
