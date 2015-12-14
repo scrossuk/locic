@@ -39,7 +39,7 @@ set(RUNTIME_FILES
 	ptr_lval.loci
 	range_incl_t.loci
 	range_t.loci
-	ref.loci
+	ref_t.loci
 	reverse_range_incl_t.loci
 	reverse_range_t.loci
 	short_t.loci

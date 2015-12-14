@@ -110,7 +110,7 @@ namespace locic {
 			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
 				// TODO!
-				const bool isVirtual = (typeInstanceName == "__ref");
+				const bool isVirtual = (typeInstanceName == "ref_t");
 				const auto semTemplateVar =
 					new SEM::TemplateVar(context.semContext(),
 						fullTypeName + templateVarName,

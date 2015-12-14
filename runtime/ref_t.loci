@@ -1,10 +1,10 @@
 template <typename T>
-__primitive __ref {
+__primitive ref_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
-	__ref<T> implicit_copy() const noexcept;
-	__ref<T> copy() const noexcept;
+	ref_t<T> implicit_copy() const noexcept;
+	ref_t<T> copy() const noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;

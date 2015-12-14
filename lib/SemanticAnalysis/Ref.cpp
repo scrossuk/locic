@@ -109,7 +109,7 @@ namespace locic {
 		}
 		
 		const SEM::Type* createReferenceType(Context& context, const SEM::Type* const varType) {
-			return getBuiltInType(context, context.getCString("__ref"), { varType})->createRefType(varType);
+			return getBuiltInType(context, context.getCString("ref_t"), { varType})->createRefType(varType);
 		}
 		
 		SEM::Value bindReference(Context& context, SEM::Value value) {

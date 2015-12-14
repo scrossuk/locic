@@ -131,7 +131,7 @@ namespace locic {
 			constructValues.push_back(CallValue(context, GetStaticMethod(context, std::move(typeRefValue), context.getCString("create"), location), std::move(parentArguments), location));
 			
 			for (const auto semVar: function->parameters()) {
-				const auto varType = getBuiltInType(context, context.getCString("__ref"), { semVar->type() })->createRefType(semVar->type());
+				const auto varType = getBuiltInType(context, context.getCString("ref_t"), { semVar->type() })->createRefType(semVar->type());
 				auto varValue = SEM::Value::LocalVar(*semVar, varType);
 				
 				// Move from each value_lval into the internal constructor.
