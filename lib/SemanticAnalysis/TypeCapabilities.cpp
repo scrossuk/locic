@@ -115,8 +115,8 @@ namespace locic {
 		
 		bool supportsDissolve(Context& context, const SEM::Type* const type) {
 			assert(type->isLval());
-			return checkCapability(context, type, context.getCString("dissolvable"), { type->lvalTarget() }) ||
-				checkCapability(context, type, context.getCString("const_dissolvable"), { type->lvalTarget() });
+			return checkCapability(context, type, context.getCString("dissolvable_t"), { type->lvalTarget() }) ||
+				checkCapability(context, type, context.getCString("const_dissolvable_t"), { type->lvalTarget() });
 		}
 		
 		bool supportsCall(Context& context, const SEM::Type* const type) {

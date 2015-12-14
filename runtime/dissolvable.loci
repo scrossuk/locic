@@ -1,15 +1,15 @@
 template <typename T>
-interface dissolvable {
+interface dissolvable_t {
 	T& dissolve();
 }
 
 template <typename T>
-using is_dissolvable = T : dissolvable<T>;
+using is_dissolvable = T : dissolvable_t<T>;
 
 template <typename T>
-interface const_dissolvable {
+interface const_dissolvable_t {
 	const T& dissolve() const;
 }
 
 template <typename T>
-using is_const_dissolvable = T : const_dissolvable<T>;
+using is_const_dissolvable = T : const_dissolvable_t<T>;
