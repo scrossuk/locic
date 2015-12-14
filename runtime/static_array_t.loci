@@ -16,7 +16,7 @@ __primitive static_array_t {
 	static_array_t<notag(T), element_count> copy() const noexcept(is_noexcept_copyable<T>) require(is_copyable<T>);
 	
 	template <bool IsConst>
-	lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept require(T : sized_type);
+	lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept require(is_sized_type<T>);
 	
 	// Temporarily disabled until support is implemented.
 	//compare_result_t compare(const size_t& v) const noexcept(is_noexcept_comparable<T>) require(is_comparable<T>);

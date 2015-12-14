@@ -1,7 +1,7 @@
 // Test output.
 import void testPrint(const ubyte * str, ...);
 
-lval<int> ptr_lval<int> getPtrLval(int* ptr) {
+lval<int> ptr_lval_t<int> getPtrLval(int* ptr) {
 	testPrint(C"getPtrLval");
 	return *ptr;
 }

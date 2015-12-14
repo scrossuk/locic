@@ -13,7 +13,7 @@ import std.memory 0.1.0 {
 			shared_ptr<T> implicit_copy() const noexcept;
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept;
+			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> deref() const(IsConst) noexcept;
 		}
 		
 		template <typename T>

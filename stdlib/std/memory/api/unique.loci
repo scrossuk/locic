@@ -9,7 +9,7 @@ import std.memory 0.1.0 {
 			static unique_ptr<T> null() noexcept;
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> deref() const(IsConst) noexcept;
+			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> deref() const(IsConst) noexcept;
 			
 			template <bool IsConst>
 			const<IsConst>(T)* get() const(IsConst) noexcept;

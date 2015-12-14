@@ -69,19 +69,19 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst) noexcept {
+			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> front() const(IsConst) noexcept {
 				assert !self.empty();
 				return self[0u];
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> back() const(IsConst) noexcept {
+			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> back() const(IsConst) noexcept {
 				assert !self.empty();
 				return self[self.size() - 1u];
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> index(const size_t index) const(IsConst) noexcept {
+			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> index(const size_t index) const(IsConst) noexcept {
 				if (index >= self.contiguous_data_length()) {
 					// Wrap around to start of array.
 					return @data[index - self.contiguous_data_length()];
@@ -148,7 +148,7 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst or IsQueueConst>(T)> ptr_lval<const<IsConst or IsQueueConst>(T)> front() const(IsConst) noexcept {
+			lval<const<IsConst or IsQueueConst>(T)> ptr_lval_t<const<IsConst or IsQueueConst>(T)> front() const(IsConst) noexcept {
 				return @data[@position];
 			}
 		}

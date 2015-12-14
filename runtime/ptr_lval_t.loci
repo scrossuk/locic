@@ -1,20 +1,20 @@
 template <typename T>
-__primitive ptr_lval {
+__primitive ptr_lval_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
 	template <bool IsConst>
 	const<IsConst>(T)* address() const(IsConst) noexcept;
 	
-	void assign(T value) noexcept require(T : movable);
+	void assign(T value) noexcept require(is_movable<T>);
 	
 	template <bool IsConst>
 	const<IsConst>(T)& dissolve() const(IsConst) noexcept;
 	
-	T move() noexcept require(T : movable);
+	T move() noexcept require(is_movable<T>);
 	
-	void setvalue(T value) noexcept require(T : movable);
-	T extractvalue() noexcept require(T : movable);
+	void setvalue(T value) noexcept require(is_movable<T>);
+	T extractvalue() noexcept require(is_movable<T>);
 	void destroyvalue() noexcept;
 	
 	void __moveto(void* ptr, size_t position) noexcept;

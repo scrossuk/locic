@@ -195,7 +195,7 @@ export std.string 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval<const<IsConst>(T)> front() const(IsConst) noexcept {
+			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> front() const(IsConst) noexcept {
 				return *@ptr;
 			}
 			
@@ -207,7 +207,7 @@ export std.string 0.1.0 {
 		class string_lval(unichar character) {
 			static create(const ubyte* utf8Ptr) {
 				auto ptrRange = ptr_range<const ubyte>(utf8Ptr);
-				return @(utf8_decode_character<ptr_lval<const ubyte>>(ptrRange));
+				return @(utf8_decode_character<ptr_lval_t<const ubyte>>(ptrRange));
 			}
 			
 			const unichar& dissolve() const noexcept {

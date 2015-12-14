@@ -21,7 +21,7 @@ import std.event 0.1.0 {
 				
 				void skip_front();
 				
-				lval<source> ptr_lval<source> front() const;
+				lval<source> ptr_lval_t<source> front() const;
 			}
 			
 		}

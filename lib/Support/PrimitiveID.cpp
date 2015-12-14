@@ -400,7 +400,7 @@ namespace locic {
 			case PrimitivePtr:
 				return "ptr_t";
 			case PrimitivePtrLval:
-				return "ptr_lval";
+				return "ptr_lval_t";
 			case PrimitiveValueLval:
 				return "value_lval";
 			case PrimitiveFinalLval:
