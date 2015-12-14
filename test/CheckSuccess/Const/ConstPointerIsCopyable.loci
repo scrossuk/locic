@@ -1,5 +1,5 @@
 template <typename T>
-require(notag(T) : movable and T : implicit_copyable<T>)
+require(is_movable<notag(T)> and is_implicit_copyable<T>)
 class CheckIsCopyable() { }
 
 import CheckIsCopyable<int*> checkMutablePointerIsCopyable();

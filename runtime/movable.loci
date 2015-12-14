@@ -1,8 +1,8 @@
-interface movable {
+interface movable_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	void __moveto(void* ptr, size_t position) noexcept;
 }
 
 template <typename T>
-using is_movable = T : movable;
+using is_movable = T : movable_t;

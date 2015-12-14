@@ -110,7 +110,7 @@ namespace locic {
 		}
 		
 		bool supportsMove(Context& context, const SEM::Type* const type) {
-			return checkCapabilityWithType(context, type, context.getCString("movable"), context.typeBuilder().getMovableInterfaceType());
+			return checkCapabilityWithType(context, type, context.getCString("movable_t"), context.typeBuilder().getMovableInterfaceType());
 		}
 		
 		bool supportsDissolve(Context& context, const SEM::Type* const type) {

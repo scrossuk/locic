@@ -1,12 +1,12 @@
 // Test output.
 import void testPrint(const ubyte * str, ...);
 
-template <typename T : movable>
+template <typename T : movable_t>
 interface Copyable {
 	T implicitCopy() const;
 }
 
-template <typename T : movable>
+template <typename T : movable_t>
 exception ParentError(T value);
 
 template <typename T>

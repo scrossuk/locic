@@ -59,12 +59,12 @@ __primitive int_t {
 	void decrement() noexcept;
 }
 
-template <typename T : movable>
+template <typename T : movable_t>
 interface __implicit_cast_from_int_t {
 	static T implicit_cast_int_t(int_t value) noexcept;
 }
 
-template <typename T : movable>
+template <typename T : movable_t>
 interface __cast_from_int_t {
 	static T cast_int_t(int_t value) noexcept;
 }

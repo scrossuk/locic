@@ -1,4 +1,4 @@
-template <typename T: movable>
+template <typename T: movable_t>
 size_t getTypeSize() {
 	return sizeof(T);
 }

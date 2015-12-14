@@ -12,7 +12,7 @@ class BuildClass(int value) {
 	}
 }
 
-template <typename T : movable>
+template <typename T : movable_t>
 interface Constructible {
 	static T Create(int value);
 	

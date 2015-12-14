@@ -9,7 +9,7 @@ import B 1.0.0 {
 	}
 	
 	template <typename T>
-	require(T : Printable and T : movable)
+	require(T : Printable and is_movable<T>)
 	class TestClass {
 		static TestClass<T> Create(T value);
 		

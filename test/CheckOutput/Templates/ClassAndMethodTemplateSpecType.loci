@@ -11,7 +11,7 @@ interface PrintOther {
 }
 
 template <typename S>
-require(S : movable and S : Printable)
+require(S : movable_t and S : Printable)
 class TestClass(S object) {
 	static create = default;
 	

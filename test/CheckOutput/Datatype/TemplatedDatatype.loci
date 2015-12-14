@@ -1,10 +1,10 @@
 // Test output.
 import void testPrint(const ubyte * str, ...);
 
-template <typename T : movable>
+template <typename T : movable_t>
 datatype TestBasicDatatype(T a, T b, T c);
 
-template <typename T : movable>
+template <typename T : movable_t>
 datatype TestUnionDatatype =
 	TestUnionDatatype0(T a) |
 	TestUnionDatatype1(T a, T b) |

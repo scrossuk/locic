@@ -44,12 +44,12 @@ __primitive int64_t {
 	void decrement() noexcept;
 }
 
-template <typename T : movable>
+template <typename T : movable_t>
 interface __implicit_cast_from_int64_t {
 	static T implicit_cast_int64_t(int64_t value) noexcept;
 }
 
-template <typename T : movable>
+template <typename T : movable_t>
 interface __cast_from_int64_t {
 	static T cast_int64_t(int64_t value) noexcept;
 }

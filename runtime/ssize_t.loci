@@ -48,12 +48,12 @@ __primitive ssize_t {
 	void decrement() noexcept;
 }
 
-template <typename T : movable>
+template <typename T : movable_t>
 interface __implicit_cast_from_ssize_t {
 	static T implicit_cast_ssize_t(ssize_t value) noexcept;
 }
 
-template <typename T : movable>
+template <typename T : movable_t>
 interface __cast_from_ssize_t {
 	static T cast_ssize_t(ssize_t value) noexcept;
 }

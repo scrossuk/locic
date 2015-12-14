@@ -1,7 +1,7 @@
 // Test output.
 import void testPrint(const ubyte * str, ...);
 
-template <typename T: sized_type>
+template <typename T: sized_type_t>
 size_t getTypeSize() {
 	return sizeof(T);
 }

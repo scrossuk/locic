@@ -1,7 +1,7 @@
 // Test output.
 import void testPrint(const ubyte * str, ...);
 
-template <typename T : movable>
+template <typename T : movable_t>
 class TestClass(T value) {
 	static Create(T value) {
 		return @(move value);

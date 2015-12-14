@@ -22,7 +22,7 @@ class SecondClass(int i) {
 }
 
 template <typename A, typename B>
-require(A : Printable and A : movable and B : Printable and B : movable)
+require(A : Printable and A : movable_t and B : Printable and B : movable_t)
 class TestClass(A a, B b) {
 	static Create = default;
 	

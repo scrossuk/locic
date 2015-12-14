@@ -19,7 +19,7 @@ class TestClass (int value) {
 	
 }
 
-template <typename T : movable>
+template <typename T : movable_t>
 interface ValueHolder {
 	T getValue() const;
 	

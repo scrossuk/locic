@@ -72,7 +72,7 @@ namespace locic {
 			}
 			
 			cachedMovableType_ = getBuiltInType(context_,
-			                                    context_.getCString("movable"),
+			                                    context_.getCString("movable_t"),
 			                                    {});
 			return cachedMovableType_;
 		}
