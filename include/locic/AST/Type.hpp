@@ -35,6 +35,7 @@ namespace locic {
 				REF,
 				STATICREF,
 				VOID,
+				BOOL,
 				INTEGER,
 				FLOAT,
 				OBJECT,
@@ -114,6 +115,10 @@ namespace locic {
 			
 			inline static Type* Void() {
 				return new Type(VOID);
+			}
+			
+			inline static Type* Bool() {
+				return new Type(BOOL);
 			}
 			
 			inline static Type* Const(Node<Type> targetType) {

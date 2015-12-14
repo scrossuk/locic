@@ -33,6 +33,9 @@ namespace locic {
 					
 				case VOID:
 					return "void";
+					
+				case BOOL:
+					return "bool";
 				
 				case INTEGER: {
 					const auto signedString = (integerSignedModifier() == SIGNED ?

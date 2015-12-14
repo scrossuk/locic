@@ -102,6 +102,9 @@ namespace locic {
 				case AST::Type::VOID: {
 					return context.typeBuilder().getVoidType();
 				}
+				case AST::Type::BOOL: {
+					return context.typeBuilder().getBoolType();
+				}
 				case AST::Type::INTEGER: {
 					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);
 				}
