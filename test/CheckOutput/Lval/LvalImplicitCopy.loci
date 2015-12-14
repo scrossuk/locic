@@ -34,7 +34,7 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	unused TestClass& inst1Ref = inst1;
 	
 	// Should have no effect.
-	unused lval<TestClass> value_lval<TestClass>& inst1LvalRef = inst1;
+	unused lval<TestClass> value_lval_t<TestClass>& inst1LvalRef = inst1;
 	
 	TestClass inst2 = inst1;
 	

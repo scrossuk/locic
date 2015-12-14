@@ -402,7 +402,7 @@ namespace locic {
 			case PrimitivePtrLval:
 				return "ptr_lval_t";
 			case PrimitiveValueLval:
-				return "value_lval";
+				return "value_lval_t";
 			case PrimitiveFinalLval:
 				return "final_lval_t";
 			case PrimitiveTypename:

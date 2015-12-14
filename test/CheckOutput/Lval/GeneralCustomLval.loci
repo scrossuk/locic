@@ -8,10 +8,10 @@ interface serializable {
 template <typename T>
 require(T : serializable and is_movable<T>)
 // Use a 'value_lval' since it supports move operations.
-class custom_lval(bool hasValue, lval<T> value_lval<T> value) {
+class custom_lval(bool hasValue, lval<T> value_lval_t<T> value) {
 	static Create(T value) {
 		testPrint(C"custom_lval.Create: Value = %s", value.toCString());
-		return @(true, lval<T>(value_lval<T>(move value)));
+		return @(true, lval<T>(value_lval_t<T>(move value)));
 	}
 	
 	T* address() {

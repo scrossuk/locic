@@ -1,9 +1,9 @@
 // Test output.
 import void testPrint(const ubyte * str, ...) noexcept;
 
-class TestClass(lval<MemberClass> value_lval<MemberClass> member) {
+class TestClass(lval<MemberClass> value_lval_t<MemberClass> member) {
 	static create(MemberClass value) noexcept {
-		return @(lval<MemberClass>(value_lval<MemberClass>(move value)));
+		return @(lval<MemberClass>(value_lval_t<MemberClass>(move value)));
 	}
 }
 
