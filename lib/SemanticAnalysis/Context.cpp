@@ -61,7 +61,7 @@ namespace locic {
 				validVarArgTypes.insert(String(stringHost, "float_t"));
 				validVarArgTypes.insert(String(stringHost, "double_t"));
 				validVarArgTypes.insert(String(stringHost, "longdouble_t"));
-				validVarArgTypes.insert(String(stringHost, "__ptr"));
+				validVarArgTypes.insert(String(stringHost, "ptr_t"));
 			}
 			
 			template <typename Key, typename Value>
@@ -290,7 +290,7 @@ namespace locic {
 			
 			const auto selfType = thisTypeInstance->selfType();
 			const auto selfConstType = selfType->createTransitiveConstType(thisFunction->constPredicate().copy());
-			return SEM::Value::This(getBuiltInType(context, context.getCString("__ptr"), { selfConstType }));
+			return SEM::Value::This(getBuiltInType(context, context.getCString("ptr_t"), { selfConstType }));
 		}
 		
 	}

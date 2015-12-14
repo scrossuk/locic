@@ -35,7 +35,7 @@ set(RUNTIME_FILES
 	movable.loci
 	null_t.loci
 	ptrdiff_t.loci
-	ptr.loci
+	ptr_t.loci
 	ptr_lval.loci
 	range_incl_t.loci
 	range_t.loci

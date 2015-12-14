@@ -523,9 +523,9 @@ namespace locic {
 						case AST::Value::CAST_DYNAMIC:
 							throw ErrorException("dynamic_cast not yet implemented.");
 						case AST::Value::CAST_REINTERPRET:
-							if (!sourceType->isPrimitive() || sourceType->getObjectType()->name().last() != "__ptr"
-								|| !targetType->isPrimitive() || targetType->getObjectType()->name().last() != "__ptr") {
-								throw ErrorException(makeString("reinterpret_cast currently only supports ptr<T>, "
+							if (!sourceType->isPrimitive() || sourceType->getObjectType()->name().last() != "ptr_t"
+								|| !targetType->isPrimitive() || targetType->getObjectType()->name().last() != "ptr_t") {
+								throw ErrorException(makeString("reinterpret_cast currently only supports ptr_t<T>, "
 									"in cast from value %s of type %s to type %s at position %s.",
 									sourceValue.toString().c_str(), sourceType->toString().c_str(),
 									targetType->toString().c_str(), location.toString().c_str()));

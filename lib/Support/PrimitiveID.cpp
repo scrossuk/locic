@@ -398,7 +398,7 @@ namespace locic {
 			case PrimitiveRef:
 				return "__ref";
 			case PrimitivePtr:
-				return "__ptr";
+				return "ptr_t";
 			case PrimitivePtrLval:
 				return "ptr_lval";
 			case PrimitiveValueLval:

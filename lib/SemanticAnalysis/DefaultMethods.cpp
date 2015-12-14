@@ -294,7 +294,7 @@ namespace locic {
 			auto noExceptPredicate = SEM::Predicate::True();
 			
 			const auto voidType = context.typeBuilder().getVoidType();
-			const auto voidPtrType = getBuiltInType(context, context.getCString("__ptr"), { voidType });
+			const auto voidPtrType = getBuiltInType(context, context.getCString("ptr_t"), { voidType });
 			
 			const auto sizeType = context.typeBuilder().getSizeType();
 			

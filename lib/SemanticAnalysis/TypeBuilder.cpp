@@ -80,7 +80,7 @@ namespace locic {
 		const SEM::Type*
 		TypeBuilder::getPointerType(const SEM::Type* const elementType) {
 			return getBuiltInType(context_,
-			                      context_.getCString("__ptr"),
+			                      context_.getCString("ptr_t"),
 			                      { elementType });
 		}
 		
