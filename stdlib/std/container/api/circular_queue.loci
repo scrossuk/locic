@@ -7,7 +7,7 @@ import std.container 0.1.0 {
 		 * \brief Circular Queue
 		 */
 		template <typename T>
-		require(T : sized_type)
+		require(is_sized_type<T>)
 		class circular_queue {
 			static circular_queue<T> create(size_t size);
 			
@@ -38,7 +38,7 @@ import std.container 0.1.0 {
 		}
 		
 		template <typename T, bool IsQueueConst>
-		require(T : sized_type)
+		require(is_sized_type<T>)
 		class circular_queue_range {
 			circular_queue_range<T, IsQueueConst> implicit_copy() const noexcept;
 			

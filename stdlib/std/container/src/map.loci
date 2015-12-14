@@ -8,7 +8,7 @@ export std.container 0.1.0 {
 		datatype pair(T0 first, T1 second);
 		
 		template <typename Key, typename Value, bool IsMapConst>
-		require(Key : sized_type and Value : sized_type)
+		require(is_sized_type<Key> and is_sized_type<Value>)
 		class map_range(varray_range<const<IsMapConst>(pair<Key, Value>), IsMapConst> range) {
 			static create = default;
 			
@@ -41,7 +41,7 @@ export std.container 0.1.0 {
 		 * \brief Map.
 		 */
 		template <typename Key, typename Value>
-		require(Key : sized_type and Value : sized_type)
+		require(is_sized_type<Key> and is_sized_type<Value>)
 		// TODO: use a proper tree structure rather than an array!
 		class map(std::varray<pair<Key, Value>> array) {
 			static map<Key, Value> create() {

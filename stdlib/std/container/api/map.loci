@@ -10,7 +10,7 @@ import std.container 0.1.0 {
 		 * \brief Map.
 		 */
 		template <typename Key, typename Value>
-		require(Key : sized_type and Value : sized_type)
+		require(is_sized_type<Key> and is_sized_type<Value>)
 		class map {
 			static map<Key, Value> create();
 			
@@ -36,7 +36,7 @@ import std.container 0.1.0 {
 		}
 		
 		template <typename Key, typename Value, bool IsMapConst>
-		require(Key : sized_type and Value : sized_type)
+		require(is_sized_type<Key> and is_sized_type<Value>)
 		class map_range {
 			map_range<Key, Value, IsMapConst> implicit_copy() const noexcept;
 			

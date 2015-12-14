@@ -3,7 +3,7 @@ export std.container 0.1.0 {
 	namespace std {
 	
 		template <typename T>
-		require(T : sized_type)
+		require(is_sized_type<T>)
 		class circular_queue(T* data, size_t capacity, size_t read_pos, size_t write_pos, bool read_pos_msb, bool write_pos_msb) {
 			static circular_queue<T> create(const size_t size) {
 				return @(reinterpret_cast<void*, T*>(allocate(sizeof(T) * size)), size, 0u, 0u, false, false);
@@ -125,7 +125,7 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T, bool IsQueueConst>
-		require(T : sized_type)
+		require(is_sized_type<T>)
 		class circular_queue_range(const<IsQueueConst>(T)* data, size_t capacity, size_t position, size_t size) {
 			static create = default;
 			

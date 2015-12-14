@@ -4,7 +4,7 @@ export std.container 0.1.0 {
 	namespace std {
 		
 		template <typename T, bool IsSetConst>
-		require(T : sized_type)
+		require(is_sized_type<T>)
 		class set_range(varray_range<const<IsSetConst>(T), IsSetConst> range) {
 			static create = default;
 			
@@ -37,7 +37,7 @@ export std.container 0.1.0 {
 		 * \brief Set.
 		 */
 		template <typename T>
-		require(T : sized_type)
+		require(is_sized_type<T>)
 		// TODO: use a proper tree structure rather than an array!
 		class set(std::varray<T> array) {
 			static set<T> create() {

@@ -8,7 +8,7 @@ import std.concurrency 0.1.0 {
 			 * \brief Single-reader, single-writer message queue.
 			 */
 			template <typename T>
-			require(T : sized_type)
+			require(is_sized_type<T>)
 			class message_queue {
 				static message_queue<T> create();
 				
