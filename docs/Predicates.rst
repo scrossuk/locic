@@ -8,11 +8,11 @@ Here's a relevant example:
 .. code-block:: c++
 
 	template <typename T>
-	require(T : movable)
+	require(is_movable<T>)
 	class TestClass(T value) {
 		// ...
 		
-		TestClass<T> copy() const require(T : copyable<T>) {
+		TestClass<T> copy() const require(is_copyable<T>) {
 			return @(@value.copy());
 		}
 		
@@ -114,7 +114,7 @@ Move predicates are just require() predicates for the type's implicitly generate
 .. code-block:: c++
 
 	template <typename T>
-	move(T : movable)
+	move(is_movable<T>)
 	class TestClass { }
 
 This just says that TestClass is only movable if the type parameter T is movable.

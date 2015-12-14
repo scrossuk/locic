@@ -117,8 +117,9 @@ You can use :ref:`predicates in the *noexcept* specifier <noexcept-predicates>`:
 
 .. code-block:: c++
 
-	template <typename T : comparable>
-	bool are_backwards(const T& a, const T& b) noexcept(T : noexcept_comparable) {
+	template <typename T>
+	require(is_comparable<T>)
+	bool are_backwards(const T& a, const T& b) noexcept(is_noexcept_comparable<T>) {
 		return b < a;
 	}
 
