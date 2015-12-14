@@ -81,8 +81,6 @@ namespace locic {
 		PrimitiveFinalLval,
 		PrimitiveTypename,
 		
-		PrimitiveCount,
-		PrimitiveCountIncl,
 		PrimitiveRange,
 		PrimitiveRangeIncl,
 		PrimitiveReverseRange,

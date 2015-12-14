@@ -162,12 +162,6 @@ namespace locic {
 					return irEmitter.emitSizeOf(targetType);
 				}
 				case METHOD_CREATE: {
-					if (typeInstance_.primitiveID() == PrimitiveCount ||
-					    typeInstance_.primitiveID() == PrimitiveCountIncl) {
-						// TODO: call zero() method to get start of range.
-						llvm_unreachable("TODO");
-					}
-					
 					const auto result = irEmitter.emitReturnAlloca(type);
 					
 					const auto destPtrFirst = elementAccess.getFirstPtr(result);
@@ -259,8 +253,7 @@ namespace locic {
 				}
 				case METHOD_SKIPFRONT: {
 					const auto pairFirstPtr = elementAccess.getFirstPtr(args[0].resolve(function));
-					if (typeInstance_.primitiveID() == PrimitiveCount ||
-					    typeInstance_.primitiveID() == PrimitiveRange ||
+					if (typeInstance_.primitiveID() == PrimitiveRange ||
 					    typeInstance_.primitiveID() == PrimitiveRangeIncl) {
 						irEmitter.emitNoArgNoReturnCall(METHOD_INCREMENT,
 						                                pairFirstPtr,
@@ -274,8 +267,7 @@ namespace locic {
 				}
 				case METHOD_SKIPBACK: {
 					const auto pairSecondPtr = elementAccess.getSecondPtr(args[0].resolve(function));
-					if (typeInstance_.primitiveID() == PrimitiveCount ||
-					    typeInstance_.primitiveID() == PrimitiveRange ||
+					if (typeInstance_.primitiveID() == PrimitiveRange ||
 					    typeInstance_.primitiveID() == PrimitiveRangeIncl) {
 						irEmitter.emitNoArgNoReturnCall(METHOD_DECREMENT,
 						                                pairSecondPtr,
@@ -295,8 +287,7 @@ namespace locic {
 					RefPendingResult pairFirstPendingResult(pairFirstPtr, targetType);
 					RefPendingResult pairSecondPendingResult(pairSecondPtr, targetType);
 					
-					if (typeInstance_.primitiveID() == PrimitiveCount ||
-					    typeInstance_.primitiveID() == PrimitiveRange) {
+					if (typeInstance_.primitiveID() == PrimitiveRange) {
 						const auto result = irEmitter.emitComparisonCall(METHOD_LESSTHAN,
 						                                                 pairFirstPendingResult,
 						                                                 pairSecondPendingResult,
@@ -304,8 +295,7 @@ namespace locic {
 						const auto i1Value = irEmitter.emitBoolToI1(result);
 						const auto i1NotValue = irEmitter.builder().CreateNot(i1Value);
 						return irEmitter.emitI1ToBool(i1NotValue);
-					} else if (typeInstance_.primitiveID() == PrimitiveCountIncl ||
-					           typeInstance_.primitiveID() == PrimitiveRangeIncl) {
+					} else if (typeInstance_.primitiveID() == PrimitiveRangeIncl) {
 						return irEmitter.emitComparisonCall(METHOD_LESSTHAN,
 						                                    pairSecondPendingResult,
 						                                    pairFirstPendingResult,

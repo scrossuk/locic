@@ -97,8 +97,6 @@ namespace locic {
 		impl_->add(PrimitiveFinalLval);
 		impl_->add(PrimitiveTypename);
 		
-		impl_->add(PrimitiveCount);
-		impl_->add(PrimitiveCountIncl);
 		impl_->add(PrimitiveRange);
 		impl_->add(PrimitiveRangeIncl);
 		impl_->add(PrimitiveReverseRange);

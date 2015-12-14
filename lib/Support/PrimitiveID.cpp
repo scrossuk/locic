@@ -407,10 +407,6 @@ namespace locic {
 				return "final_lval";
 			case PrimitiveTypename:
 				return "typename_t";
-			case PrimitiveCount:
-				return "count";
-			case PrimitiveCountIncl:
-				return "count_incl";
 			case PrimitiveRange:
 				return "range_t";
 			case PrimitiveRangeIncl:

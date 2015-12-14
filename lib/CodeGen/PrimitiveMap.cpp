@@ -101,8 +101,6 @@ namespace locic {
 				case PrimitiveTypename: {
 					return new TypenamePrimitive(typeInstance);
 				}
-				case PrimitiveCount:
-				case PrimitiveCountIncl:
 				case PrimitiveRange:
 				case PrimitiveRangeIncl:
 				case PrimitiveReverseRange:

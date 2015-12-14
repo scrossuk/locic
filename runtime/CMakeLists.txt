@@ -11,7 +11,6 @@ set(RUNTIME_FILES
 	comparable.loci
 	compare_result_t.loci
 	copyable.loci
-	count.loci
 	decrementable.loci
 	default_constructible.loci
 	destructible.loci
