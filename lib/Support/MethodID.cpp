@@ -95,6 +95,10 @@ namespace locic {
 			
 			case METHOD_MIN:
 			case METHOD_MAX:
+			case METHOD_RANGE:
+			case METHOD_RANGE_INCL:
+			case METHOD_REVERSE_RANGE:
+			case METHOD_REVERSE_RANGE_INCL:
 				return FUNCTION;
 		}
 		

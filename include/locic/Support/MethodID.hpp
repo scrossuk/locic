@@ -97,7 +97,11 @@ namespace locic {
 		
 		// Functions.
 		METHOD_MIN,
-		METHOD_MAX
+		METHOD_MAX,
+		METHOD_RANGE,
+		METHOD_RANGE_INCL,
+		METHOD_REVERSE_RANGE,
+		METHOD_REVERSE_RANGE_INCL
 	};
 	
 	/**
@@ -330,6 +334,14 @@ namespace locic {
 					return "min";
 				case METHOD_MAX:
 					return "max";
+				case METHOD_RANGE:
+					return "range";
+				case METHOD_RANGE_INCL:
+					return "rangeincl";
+				case METHOD_REVERSE_RANGE:
+					return "reverserange";
+				case METHOD_REVERSE_RANGE_INCL:
+					return "reverserangeincl";
 			}
 			
 			throw std::logic_error("Unknown Method ID.");
