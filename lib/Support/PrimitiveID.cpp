@@ -404,7 +404,7 @@ namespace locic {
 			case PrimitiveValueLval:
 				return "value_lval";
 			case PrimitiveFinalLval:
-				return "final_lval";
+				return "final_lval_t";
 			case PrimitiveTypename:
 				return "typename_t";
 			case PrimitiveRange:

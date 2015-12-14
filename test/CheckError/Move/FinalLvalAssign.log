@@ -1,1 +1,1 @@
-Cannot find method 'assign' for type 'lval<TestClass>\(final_lval<TestClass>\)' at position SourceLocation\(filename = (.*).loci, range = \(line 13, column 2\) to \(line 13, column 28\)\)\.
+Cannot find method 'assign' for type 'lval<TestClass>\(final_lval_t<TestClass>\)' at position SourceLocation\(filename = (.*).loci, range = \(line 13, column 2\) to \(line 13, column 28\)\)\.

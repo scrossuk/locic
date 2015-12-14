@@ -20,7 +20,7 @@ namespace locic {
 		}
 		
 		const SEM::Type* makeFinalLvalType(Context& context, const SEM::Type* const valueType) {
-			return getBuiltInType(context, context.getCString("final_lval"), { valueType })->createLvalType(valueType);
+			return getBuiltInType(context, context.getCString("final_lval_t"), { valueType })->createLvalType(valueType);
 		}
 		
 		const SEM::Type* makeLvalType(Context& context, const bool isFinal, const SEM::Type* const valueType) {
