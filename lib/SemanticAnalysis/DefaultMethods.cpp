@@ -123,19 +123,19 @@ namespace locic {
 		}
 		
 		SEM::Predicate getDefaultImplicitCopyNoExceptPredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
-			return getDefaultCopyPredicate(context, typeInstance, context.getCString("noexcept_implicit_copyable"));
+			return getDefaultCopyPredicate(context, typeInstance, context.getCString("noexcept_implicit_copyable_t"));
 		}
 		
 		SEM::Predicate getDefaultImplicitCopyRequirePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
-			return getDefaultCopyPredicate(context, typeInstance, context.getCString("implicit_copyable"));
+			return getDefaultCopyPredicate(context, typeInstance, context.getCString("implicit_copyable_t"));
 		}
 		
 		SEM::Predicate getDefaultExplicitCopyNoExceptPredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
-			return getDefaultCopyPredicate(context, typeInstance, context.getCString("noexcept_copyable"));
+			return getDefaultCopyPredicate(context, typeInstance, context.getCString("noexcept_copyable_t"));
 		}
 		
 		SEM::Predicate getDefaultExplicitCopyRequirePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
-			return getDefaultCopyPredicate(context, typeInstance, context.getCString("copyable"));
+			return getDefaultCopyPredicate(context, typeInstance, context.getCString("copyable_t"));
 		}
 		
 		SEM::Predicate getDefaultComparePredicate(Context& context, const SEM::TypeInstance* const typeInstance, const String& propertyName) {

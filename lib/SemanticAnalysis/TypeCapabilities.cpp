@@ -83,22 +83,22 @@ namespace locic {
 		
 		bool supportsImplicitCopy(Context& context, const SEM::Type* const type) {
 			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
-				checkCapability(context, type, context.getCString("implicit_copyable"), { type->resolveAliases()->withoutTags() });
+				checkCapability(context, type, context.getCString("implicit_copyable_t"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsNoExceptImplicitCopy(Context& context, const SEM::Type* const type) {
 			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
-				checkCapability(context, type, context.getCString("noexcept_implicit_copyable"), { type->resolveAliases()->withoutTags() });
+				checkCapability(context, type, context.getCString("noexcept_implicit_copyable_t"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsExplicitCopy(Context& context, const SEM::Type* const type) {
 			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
-				checkCapability(context, type, context.getCString("copyable"), { type->resolveAliases()->withoutTags() });
+				checkCapability(context, type, context.getCString("copyable_t"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsNoExceptExplicitCopy(Context& context, const SEM::Type* const type) {
 			return supportsMove(context, type->resolveAliases()->withoutTags()) &&
-				checkCapability(context, type, context.getCString("noexcept_copyable"), { type->resolveAliases()->withoutTags() });
+				checkCapability(context, type, context.getCString("noexcept_copyable_t"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsCompare(Context& context, const SEM::Type* const type) {

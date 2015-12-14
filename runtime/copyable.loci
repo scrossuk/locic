@@ -1,39 +1,39 @@
 template <typename T>
-require(notag(T) : movable)
-interface copyable {
+require(is_movable<notag(T)>)
+interface copyable_t {
 	notag(T) copy() const;
 }
 
 template <typename T>
-require(notag(T) : movable)
-using is_copyable = notag(T) : movable and T : copyable<T>;
+require(is_movable<notag(T)>)
+using is_copyable = is_movable<notag(T)> and T : copyable_t<T>;
 
 template <typename T>
-require(notag(T) : movable)
-interface implicit_copyable {
+require(is_movable<notag(T)>)
+interface implicit_copyable_t {
 	notag(T) implicit_copy() const;
 }
 
 template <typename T>
-require(notag(T) : movable)
-using is_implicit_copyable = notag(T) : movable and T : implicit_copyable<T>;
+require(is_movable<notag(T)>)
+using is_implicit_copyable = is_movable<notag(T)> and T : implicit_copyable_t<T>;
 
 template <typename T>
-require(notag(T) : movable)
-interface noexcept_copyable {
+require(is_movable<notag(T)>)
+interface noexcept_copyable_t {
 	notag(T) copy() const noexcept;
 }
 
 template <typename T>
-require(notag(T) : movable)
-using is_noexcept_copyable = notag(T) : movable and T : noexcept_copyable<T>;
+require(is_movable<notag(T)>)
+using is_noexcept_copyable = is_movable<notag(T)> and T : noexcept_copyable_t<T>;
 
 template <typename T>
-require(notag(T) : movable)
-interface noexcept_implicit_copyable {
+require(is_movable<notag(T)>)
+interface noexcept_implicit_copyable_t {
 	notag(T) implicit_copy() const noexcept;
 }
 
 template <typename T>
-require(notag(T) : movable)
-using is_noexcept_implicit_copyable = notag(T) : movable and T : noexcept_implicit_copyable<T>;
+require(is_movable<notag(T)>)
+using is_noexcept_implicit_copyable = is_movable<notag(T)> and T : noexcept_implicit_copyable_t<T>;
