@@ -102,11 +102,11 @@ namespace locic {
 		}
 		
 		bool supportsCompare(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, context.getCString("comparable"), { type->resolveAliases()->withoutTags() });
+			return checkCapability(context, type, context.getCString("comparable_t"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsNoExceptCompare(Context& context, const SEM::Type* const type) {
-			return checkCapability(context, type, context.getCString("noexcept_comparable"), { type->resolveAliases()->withoutTags() });
+			return checkCapability(context, type, context.getCString("noexcept_comparable_t"), { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool supportsMove(Context& context, const SEM::Type* const type) {

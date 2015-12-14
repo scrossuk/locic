@@ -159,12 +159,12 @@ namespace locic {
 		}
 		
 		SEM::Predicate getDefaultCompareNoExceptPredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
-			const auto propertyName = context.getCString("noexcept_comparable");
+			const auto propertyName = context.getCString("noexcept_comparable_t");
 			return getDefaultComparePredicate(context, typeInstance, propertyName);
 		}
 		
 		SEM::Predicate getDefaultCompareRequirePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
-			const auto propertyName = context.getCString("comparable");
+			const auto propertyName = context.getCString("comparable_t");
 			return getDefaultComparePredicate(context, typeInstance, propertyName);
 		}
 		

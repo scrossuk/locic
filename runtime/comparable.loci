@@ -1,18 +1,18 @@
 template <typename T>
-interface comparable {
+interface comparable_t {
 	compare_result_t compare(const T& other) const;
 }
 
 template <typename T>
-using is_comparable = T : comparable<T>;
+using is_comparable = T : comparable_t<T>;
 
 template <typename T>
-interface noexcept_comparable {
+interface noexcept_comparable_t {
 	compare_result_t compare(const T& other) const noexcept;
 }
 
 template <typename T>
-using is_noexcept_comparable = T : noexcept_comparable<T>;
+using is_noexcept_comparable = T : noexcept_comparable_t<T>;
 
 template <typename T>
 interface lessthancomparable_t {

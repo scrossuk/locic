@@ -1,1 +1,1 @@
-Template arguments do not satisfy require predicate 'satisfies\(type: TestClass, requirement: comparable<TestClass>\)' of method 'compare' at position SourceLocation\(filename = (.*)/CompareNonComparableDatatype\.loci, range = \(line 8, column 9\) to \(line 8, column 15\)\)\.
+Template arguments do not satisfy require predicate 'satisfies\(type: TestClass, requirement: comparable_t<TestClass>\)' of method 'compare' at position SourceLocation\(filename = (.*)/CompareNonComparableDatatype\.loci, range = \(line 8, column 9\) to \(line 8, column 15\)\)\.
