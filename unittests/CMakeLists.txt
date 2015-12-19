@@ -21,6 +21,7 @@ function(add_unit_test name)
 	target_link_libraries(locic-unittest-${name}
 		locic-unittestmain
 		locic-util-gtest
+		locic-lex
 		locic-support
 		${CMAKE_DL_LIBS}
 		${CMAKE_THREAD_LIBS_INIT}
@@ -29,5 +30,6 @@ function(add_unit_test name)
 	add_test(NAME UnitTest${name} COMMAND locic-unittest-${name})
 endfunction()
 
+add_subdirectory(Lex)
 add_subdirectory(Support)
 
