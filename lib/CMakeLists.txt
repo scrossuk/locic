@@ -6,6 +6,9 @@ add_subdirectory(AST)
 # Build code generator.
 add_subdirectory(CodeGen)
 
+# Build lexer.
+add_subdirectory(Lex)
+
 # Build parser.
 add_subdirectory(Parser)
 
