@@ -1,0 +1,32 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+// XFAIL: *
+
+static assert true == true;
+static assert true != false;
+
+static assert 1 == 1;
+static assert 1 != 2;
+
+static assert int == int;
+static assert int != float;
+static assert int* == int*;
+static assert int* != float*;
+
+class TestFirstClass { }
+class TestSecondClass { }
+
+static assert TestFirstClass == TestFirstClass;
+static assert TestFirstClass != TestSecondClass;
+static assert TestSecondClass == TestSecondClass;
+static assert TestSecondClass != TestFirstClass;
+
+template <typename T>
+class TestTemplatedClass { }
+
+static assert TestTemplatedClass<int> != TestTemplatedClass<float>;
+static assert TestTemplatedClass<int> == TestTemplatedClass<int>;
+static assert TestTemplatedClass<TestTemplatedClass<int>> !=
+              TestTemplatedClass<TestTemplatedClass<float>>;
+static assert TestTemplatedClass<TestTemplatedClass<int>> ==
+              TestTemplatedClass<TestTemplatedClass<int>>;
