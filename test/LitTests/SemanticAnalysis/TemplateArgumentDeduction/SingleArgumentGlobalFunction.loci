@@ -1,0 +1,12 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+// XFAIL: *
+
+template <typename T>
+import T function(T value);
+
+class TestClass {
+	static TestClass create();
+}
+
+static assert typeof(function(TestClass())) == TestClass;
