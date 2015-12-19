@@ -1,3 +1,4 @@
 add_library(locic-lex
 	CharacterReader.cpp
+	Lexer.cpp
 )
