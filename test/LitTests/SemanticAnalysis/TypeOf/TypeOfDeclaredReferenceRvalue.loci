@@ -1,0 +1,7 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+// XFAIL: *
+
+import int& function();
+
+static assert typeof(function()) == int&;

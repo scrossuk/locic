@@ -1,0 +1,7 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+// XFAIL: *
+
+export void function(int x) {
+	static assert typeof(x) == int;
+}
