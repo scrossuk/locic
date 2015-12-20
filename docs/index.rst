@@ -166,6 +166,7 @@ These features are currently not implemented but are planned for upcoming releas
 .. toctree::
 	:maxdepth: 1
 	
+	InteractingWithC++
 	NamedParameters
 	RTTI
 	VectorTypes

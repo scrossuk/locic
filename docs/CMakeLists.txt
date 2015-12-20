@@ -16,6 +16,7 @@ set(SPHINX_INPUT_FILES
 	GettingStarted.rst
 	HeapMemoryManagement.rst
 	ImplicitOperations.rst
+	InteractingWithC++.rst
 	index.rst
 	LanguageGoals.rst
 	LifetimeMethods.rst
