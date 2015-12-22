@@ -66,7 +66,7 @@ In Loci the equivalent idiomatic code would be:
 .. code-block:: c++
 
 	void example() {
-		for (int i: std::counter<int>(0, 5, 1)) {
+		for (int i: range<int>(0, 5)) {
 			printf(C"i = %d\n", i);
 		}
 	}
@@ -76,12 +76,12 @@ These examples are very similar, though the latter is arguably better since it d
 .. code-block:: c++
 
 	void example() {
-		for (const int i: std::counter<int>(0, 5, 1)) {
+		for (const int i: range<int>(0, 5)) {
 			printf(C"i = %d\n", i);
 		}
 	}
 
-*std::counter* is an example of a standard library :doc:`Value Generator <ValueGenerators>`.
+``range()`` is an example of a :doc:`Value Generator <ValueGenerators>`.
 
 Break/Continue
 --------------
@@ -93,7 +93,7 @@ Here's an example:
 .. code-block:: c++
 
 	void example() {
-		for (final int i: std::counter<int>(0, 5, 1)) {
+		for (const int i: range<int>(0, 5)) {
 			if (i == 1) {
 				continue;
 			} else if (i == 4) {
