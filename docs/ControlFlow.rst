@@ -36,7 +36,7 @@ This will of course print:
 For-each Loop
 -------------
 
-Again, this is very similar to constructs offered by many languages. In this case, the syntax and semantics are essentially identical to C++11's *for-each* loop.
+A for-each loop is used to iterate over :doc:`ranges <Ranges>`. Again, this is very similar to constructs offered by many languages. In this case, the syntax and semantics are essentially identical to C++11's *for-each* loop.
 
 Here's an example:
 
