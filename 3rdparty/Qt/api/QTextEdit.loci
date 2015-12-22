@@ -1,0 +1,12 @@
+
+import {
+	
+	class QTextEdit {
+		static QTextEdit create();
+		
+		void show();
+		
+		void setText(const QString& text) noexcept;
+	}
+	
+}

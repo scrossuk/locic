@@ -1,0 +1,16 @@
+
+QString string_literal_Q(const ubyte* stringConstant) {
+	return QString.createCString(stringConstant);
+}
+
+import {
+	
+	class QString {
+		static QString createCString(const ubyte* cstring);
+		
+		QString implicitCopy() const;
+		
+		QString copy() const;
+	}
+	
+}

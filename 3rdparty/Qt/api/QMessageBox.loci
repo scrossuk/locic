@@ -1,0 +1,12 @@
+
+import {
+	
+	class QMessageBox {
+		static QMessageBox create();
+		
+		void show();
+		
+		void setText(const QString& text) noexcept;
+	}
+	
+}

@@ -1,0 +1,10 @@
+
+import {
+	
+	class QApplication {
+		static QApplication create(int& argc, ubyte** argv);
+		
+		int exec();
+	}
+	
+}

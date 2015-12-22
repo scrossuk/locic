@@ -1,4 +1,5 @@
 
+add_subdirectory(Qt)
 add_subdirectory(SFML)
 
 set(LOCIC_THIRDPARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING
@@ -9,6 +10,9 @@ function(loci_get_3rdparty_unprefixed_api_files API_FILES MODULE_NAME)
 	if ("${MODULE_NAME}" STREQUAL "SFML")
 		loci_get_sfml_api_files(SFML_API_FILES)
 		set(${API_FILES} "${SFML_API_FILES}" PARENT_SCOPE)
+	elseif("${MODULE_NAME}" STREQUAL "Qt")
+		loci_get_qt_api_files(QT_API_FILES)
+		set(${API_FILES} "${QT_API_FILES}" PARENT_SCOPE)
 	else()
 		message(FATAL_ERROR "Unknown 3rd-party module '${MODULE_NAME}'.")
 	endif()
