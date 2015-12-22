@@ -1,7 +1,8 @@
 Function Overloading
 ====================
 
-**Note:** This feature is **completely different** from :doc:`Operator Overloading <OperatorOverloading>`, which is enthusiastically supported by Loci.
+.. Note::
+	This feature is **completely different** from :doc:`Operator Overloading <OperatorOverloading>`, which is enthusiastically supported by Loci.
 
 Function/method overloading is a common feature in other languages, such as C++ and Java (though not C). Loci was designed to intentionally avoid this feature and hence the problems that it creates:
 
