@@ -93,11 +93,12 @@ Developers need not restrict themselves to the generators available in the stand
 			return @(1, 1);
 		}
 		
-		const int& front() const noexcept {
-			return @currentValue;
+		lval<const int> ptr_lval_t<const int> front() const noexcept {
+			// This is a bit convoluted as we need to return an lval type by-value (this allows ranges to support multiple kinds of lval).
+			return *(&@currentValue);
 		}
 		
-		void pop_front() noexcept {
+		void skip_front() noexcept {
 			int previousValue = @currentValue;
 			@currentValue = @nextValue;
 			@nextValue += previousValue;
