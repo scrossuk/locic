@@ -10,7 +10,7 @@ New object types can be constructed using existing object types, but at the lowe
 * **Fixed size integers:** int8_t, int16_t, int32_t, int64_t and unsigned equivalents.
 * **System-sized integers:** size_t, ptrdiff_t etc.
 * **Indirect types:** pointers and references.
-* **Lvals:** final_lval, member_lval, ptr_lval and value_lval.
+* **Lvals:** final_lval_t, ptr_lval_t and value_lval_t.
 * **Misc:** void, bool, compare_result_t, null_t, typename, 
 
 You can view the methods of these in /runtime in the source tree, where they're declared as primitives.
