@@ -130,6 +130,7 @@ Language
 	StructuralTyping
 	Templates
 	UnusedValues
+	ValueGenerators
 
 Standard Library
 ----------------
@@ -142,7 +143,6 @@ Standard Library
 	HeapMemoryManagement
 	Strings
 	Tuples
-	ValueGenerators
 
 Compiler
 --------
