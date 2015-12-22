@@ -1,7 +1,7 @@
 Value Generators
 ================
 
-Value Generators are ranges that produce a sequence of values. These are usually integers incrementing by 1 for use in :doc:`Control Flow <ControlFlow>`, however they could produce almost any sequence.
+Value Generators are :doc:`ranges <Ranges>` that produce a sequence of values. These are usually integers incrementing by 1 for use in :doc:`Control Flow <ControlFlow>`, however they could produce almost any sequence.
 
 Counters
 --------
@@ -84,7 +84,7 @@ As with ``range()``, there's also a variant of this called ``reverse_range_incl(
 Custom Value Generators
 -----------------------
 
-Developers need not restrict themselves to the generators available in the standard library. Here's a custom generator for Fibonacci values:
+Developers need not restrict themselves to the generators available in the standard library. They can simply implement one of the :doc:`standard ranges <Ranges>` or their own custom range. Here's a custom generator for Fibonacci values:
 
 .. code-block:: c++
 
