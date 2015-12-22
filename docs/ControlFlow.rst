@@ -48,6 +48,19 @@ Here's an example:
 		}
 	}
 
+This is equivalent to:
+
+.. code-block:: c++
+
+	void example(std::varray<int> array) {
+		const auto& range = array.all();
+		while (!range.empty()) {
+			int element = range.front();
+			printf(C"element = %d\n", element);
+			range.skip_front();
+		}
+	}
+
 C/C++ For Loop
 --------------
 
