@@ -53,9 +53,14 @@ macro(loci_module name output_name flags)
 			get_filename_component(_file_source_name "${_file_source_path}" NAME)
 			set(_file_object_name "${CMAKE_CURRENT_BINARY_DIR}/CModule_${_file_source_name}.bc")
 			list(APPEND _c_build_objects "${_file_object_name}")
+			
+			set(cmd_flags "${CFLAGS}" "${flags}")
+			if("${_file_source_path}" MATCHES "^(.+)\\.cpp$")
+				list(APPEND cmd_flags "-std=c++11")
+			endif()
 			add_custom_command(OUTPUT "${_file_object_name}"
 				COMMAND
-					${CLANG_EXECUTABLE} -o "${_file_object_name}" ${CFLAGS} ${flags} -c -emit-llvm "${_file_source_path}"
+					${CLANG_EXECUTABLE} -o "${_file_object_name}" ${cmd_flags} -c -emit-llvm "${_file_source_path}"
 				DEPENDS "${_file_source_path}"
 				WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 			)
