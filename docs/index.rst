@@ -126,6 +126,7 @@ Language
 	OperatorOverloading
 	Predicates
 	PrimitiveObjects
+	Ranges
 	References
 	StructuralTyping
 	Templates
