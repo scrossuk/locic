@@ -31,6 +31,8 @@ This will of course print:
 	i = 3
 	i = 4
 
+.. _foreachloop:
+
 For-each Loop
 -------------
 
