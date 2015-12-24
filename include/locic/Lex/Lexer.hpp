@@ -31,6 +31,8 @@ namespace locic {
 			Token::Kind getDoubleSymbolTokenKind(Character first,
 			                                     Character second);
 			
+			Token lexToken(const StringHost& stringHost);
+			
 			Token lexStringLiteralToken(const StringHost& stringHost);
 			
 			String lexStringLiteral(const StringHost& stringHost);

@@ -83,6 +83,36 @@ namespace locic {
 			}
 		}
 		
+		Token Lexer::lexToken(const StringHost& stringHost) {
+			while (true) {
+				const auto nextValue = reader_.peek();
+				if (nextValue.isAlpha() || nextValue == '_') {
+					return lexNameToken(stringHost);
+				} else if (nextValue.isDigit()) {
+					return lexNumericToken();
+				} else if (nextValue == '"') {
+					return lexStringLiteralToken(stringHost);
+				}
+				
+				reader_.consume();
+				const auto nextNextValue = reader_.peek();
+				
+				const auto doubleSymbolKind = getDoubleSymbolTokenKind(nextValue,
+				                                                       nextNextValue);
+				if (doubleSymbolKind != Token::Kind::UNKNOWN) {
+					reader_.consume();
+					return Token::Basic(doubleSymbolKind);
+				}
+				
+				if (nextValue == '/' && (nextNextValue == '*' || nextNextValue == '/')) {
+					lexComment();
+					continue;
+				}
+				
+				return Token::Basic(getSymbolTokenKind(nextValue));
+			}
+		}
+		
 		Token Lexer::lexStringLiteralToken(const StringHost& stringHost) {
 			const auto stringLiteral = lexStringLiteral(stringHost);
 			return Token::Constant(Constant::StringVal(stringLiteral));
