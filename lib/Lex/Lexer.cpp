@@ -243,6 +243,39 @@ namespace locic {
 			return getVersionConstant(digits);
 		}
 		
+		void Lexer::lexShortComment() {
+			while (true) {
+				const auto character = reader_.get();
+				if (character.isNewline()) {
+					break;
+				}
+			}
+		}
+		
+		void Lexer::lexLongComment() {
+			while (true) {
+				const auto character = reader_.get();
+				if (character == '*') {
+					const auto next = reader_.get();
+					if (next == '/') {
+						break;
+					}
+				}
+			}
+		}
+		
+		void Lexer::lexComment() {
+			const auto commentDefiningCharacter = reader_.get();
+			assert(commentDefiningCharacter == '/' ||
+			       commentDefiningCharacter == '*');
+			
+			if (commentDefiningCharacter == '/') {
+				lexShortComment();
+			} else {
+				lexLongComment();
+			}
+		}
+		
 	}
 	
 }

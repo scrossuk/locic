@@ -37,6 +37,12 @@ namespace locic {
 			
 			NumericValue lexNumericConstant();
 			
+			void lexShortComment();
+			
+			void lexLongComment();
+			
+			void lexComment();
+			
 		private:
 			CharacterReader reader_;
 			DiagnosticReceiver& diagnosticReceiver_;
