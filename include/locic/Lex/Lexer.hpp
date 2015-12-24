@@ -33,6 +33,8 @@ namespace locic {
 			
 			String lexStringLiteral(const StringHost& stringHost);
 			
+			Token lexNumericToken();
+			
 			NumericValue lexNumericConstant();
 			
 		private:

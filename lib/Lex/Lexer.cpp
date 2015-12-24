@@ -187,6 +187,18 @@ namespace locic {
 			return NumericValue::Version(Version::FromString(data));
 		}
 		
+		Token Lexer::lexNumericToken() {
+			const auto numericValue = lexNumericConstant();
+			switch (numericValue.kind()) {
+				case NumericValue::INTEGER:
+					return Token::Constant(Constant::Integer(numericValue.integerValue()));
+				case NumericValue::FLOAT:
+					return Token::Constant(Constant::Float(numericValue.floatValue()));
+				case NumericValue::VERSION:
+					return Token::Version(numericValue.versionValue());
+			}
+		}
+		
 		NumericValue Lexer::lexNumericConstant() {
 			Array<Character, 16> digits;
 			
