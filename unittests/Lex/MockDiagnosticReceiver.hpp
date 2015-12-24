@@ -17,6 +17,14 @@ public:
 		errors_.push_back(kind);
 	}
 	
+	size_t numErrors() const {
+		return errors_.size();
+	}
+	
+	locic::Lex::Diag getError(size_t index) const {
+		return errors_[index];
+	}
+	
 	bool hasNoErrorsOrWarnings() const {
 		return warnings_.empty() && errors_.empty();
 	}
