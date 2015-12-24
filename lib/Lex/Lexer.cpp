@@ -117,11 +117,26 @@ namespace locic {
 					case '"':
 						stringLiteral.append('"');
 						break;
+					case 'a':
+						stringLiteral.append('\a');
+						break;
+					case 'b':
+						stringLiteral.append('\b');
+						break;
+					case 'f':
+						stringLiteral.append('\f');
+						break;
 					case 'n':
 						stringLiteral.append('\n');
 						break;
+					case 'r':
+						stringLiteral.append('\r');
+						break;
 					case 't':
 						stringLiteral.append('\t');
+						break;
+					case 'v':
+						stringLiteral.append('\v');
 						break;
 					default:
 						issueError(Diag::InvalidStringLiteralEscape);
