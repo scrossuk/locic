@@ -9,6 +9,8 @@ namespace locic {
 		public:
 			static Version FromString(const std::string& versionString);
 			
+			Version() = default;
+			
 			Version(size_t pMajor, size_t pMinor, size_t pBuild);
 			
 			size_t majorVersion() const;
