@@ -27,6 +27,62 @@ namespace locic {
 			diagnosticReceiver_.issueError(kind);
 		}
 		
+		Token::Kind Lexer::getSymbolTokenKind(const Character value) {
+			switch (value.value()) {
+				case '%': return Token::Kind::PERCENT;
+				case '=': return Token::Kind::SETEQUAL;
+				case '+': return Token::Kind::PLUS;
+				case '-': return Token::Kind::MINUS;
+				case '*': return Token::Kind::STAR;
+				case '/': return Token::Kind::FORWARDSLASH;
+				case '!': return Token::Kind::EXCLAIMMARK;
+				case '&': return Token::Kind::AMPERSAND;
+				case '|': return Token::Kind::VERTICAL_BAR;
+				case '?': return Token::Kind::QUESTIONMARK;
+				case '@': return Token::Kind::AT;
+				case ',': return Token::Kind::COMMA;
+				case ':': return Token::Kind::COLON;
+				case ';': return Token::Kind::SEMICOLON;
+				case '(': return Token::Kind::LROUNDBRACKET;
+				case ')': return Token::Kind::RROUNDBRACKET;
+				case '{': return Token::Kind::LCURLYBRACKET;
+				case '}': return Token::Kind::RCURLYBRACKET;
+				case '[': return Token::Kind::LSQUAREBRACKET;
+				case ']': return Token::Kind::RSQUAREBRACKET;
+				case '.': return Token::Kind::DOT;
+				case '<': return Token::Kind::LTRIBRACKET;
+				case '>': return Token::Kind::RTRIBRACKET;
+				case '~': return Token::Kind::TILDA;
+				default: return Token::Kind::UNKNOWN;
+			}
+		}
+		
+		constexpr uint64_t JOIN(uint32_t a, uint32_t b) {
+			return (static_cast<uint64_t>(a) << 32) | static_cast<uint64_t>(b);
+		}
+		
+		Token::Kind Lexer::getDoubleSymbolTokenKind(const Character first, const Character second) {
+			switch (JOIN(first.value(), second.value())) {
+				case JOIN('=', '='): return Token::Kind::ISEQUAL;
+				case JOIN('!', '='): return Token::Kind::NOTEQUAL;
+				case JOIN('>', '='): return Token::Kind::GREATEROREQUAL;
+				case JOIN('<', '='): return Token::Kind::LESSOREQUAL;
+				case JOIN('-', '>'): return Token::Kind::PTRACCESS;
+				case JOIN('+', '='): return Token::Kind::ADDEQUAL;
+				case JOIN('-', '='): return Token::Kind::SUBEQUAL;
+				case JOIN('*', '='): return Token::Kind::MULEQUAL;
+				case JOIN('/', '='): return Token::Kind::DIVEQUAL;
+				case JOIN('%', '='): return Token::Kind::PERCENTEQUAL;
+				case JOIN('+', '+'): return Token::Kind::DOUBLE_PLUS;
+				case JOIN('-', '-'): return Token::Kind::DOUBLE_MINUS;
+				case JOIN('&', '&'): return Token::Kind::DOUBLE_AMPERSAND;
+				case JOIN('|', '|'): return Token::Kind::DOUBLE_VERTICAL_BAR;
+				case JOIN(':', ':'): return Token::Kind::DOUBLE_COLON;
+				case JOIN('<', '<'): return Token::Kind::DOUBLE_LTRIBRACKET;
+				default: return Token::Kind::UNKNOWN;
+			}
+		}
+		
 		String Lexer::lexStringLiteral(const StringHost& stringHost) {
 			StringBuilder stringLiteral(stringHost);
 			reader_.expect('"');
