@@ -54,6 +54,10 @@ namespace locic {
 				       value_ == '\t' || value_ == '\r';
 			}
 			
+			bool isNewline() const {
+				return value_ == '\n';
+			}
+			
 			bool isHexLowerCaseCharacter() const {
 				if (!isASCII()) {
 					return false;
