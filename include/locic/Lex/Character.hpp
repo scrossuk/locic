@@ -29,6 +29,26 @@ namespace locic {
 				return '0' <= value_ && value_ <= '9';
 			}
 			
+			bool isLowerAlpha() const {
+				if (!isASCII()) {
+					return false;
+				}
+				
+				return 'a' <= value_ && value_ <= 'z';
+			}
+			
+			bool isUpperAlpha() const {
+				if (!isASCII()) {
+					return false;
+				}
+				
+				return 'A' <= value_ && value_ <= 'Z';
+			}
+			
+			bool isAlpha() const {
+				return isLowerAlpha() || isUpperAlpha();
+			}
+			
 			bool isHexLowerCaseCharacter() const {
 				if (!isASCII()) {
 					return false;
