@@ -243,6 +243,28 @@ namespace locic {
 			return getVersionConstant(digits);
 		}
 		
+		Token Lexer::lexNameToken(const StringHost& stringHost) {
+			StringBuilder stringLiteral(stringHost);
+			
+			while (true) {
+				const auto value = reader_.peek();
+				if (!value.isAlpha() && !value.isDigit() && value != '_') {
+					break;
+				}
+				stringLiteral.append(value.asciiValue());
+				reader_.consume();
+			}
+			
+			const auto string = stringLiteral.getString();
+			if (string.size() == 1 && string[0] == '_') {
+				return Token::Basic(Token::UNDERSCORE);
+			}
+			
+			// TODO: keywords!
+			
+			return Token::Name(string);
+		}
+		
 		void Lexer::lexShortComment() {
 			while (true) {
 				const auto character = reader_.get();

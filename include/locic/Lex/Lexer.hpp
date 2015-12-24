@@ -37,6 +37,8 @@ namespace locic {
 			
 			NumericValue lexNumericConstant();
 			
+			Token lexNameToken(const StringHost& stringHost);
+			
 			void lexShortComment();
 			
 			void lexLongComment();
