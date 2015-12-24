@@ -27,13 +27,9 @@ namespace locic {
 				return value;
 			}
 			
-			static NumericValue Version(unsigned long long major,
-			                            unsigned long long minor,
-			                            unsigned long long build) {
+			static NumericValue Version(const Version versionValue) {
 				NumericValue value(VERSION);
-				value.data_.versionValue.major = major;
-				value.data_.versionValue.minor = minor;
-				value.data_.versionValue.build = build;
+				value.data_.versionValue = versionValue;
 				return value;
 			}
 			
@@ -59,6 +55,15 @@ namespace locic {
 				return data_.floatValue;
 			}
 			
+			bool isVersion() const {
+				return kind() == VERSION;
+			}
+			
+			class Version versionValue() const {
+				assert(isVersion());
+				return data_.versionValue;
+			}
+			
 		private:
 			NumericValue(Kind argKind)
 			: kind_(argKind) { }
@@ -68,11 +73,7 @@ namespace locic {
 			union {
 				unsigned long long integerValue;
 				long double floatValue;
-				struct {
-					unsigned long long major;
-					unsigned long long minor;
-					unsigned long long build;
-				} versionValue;
+				class Version versionValue;
 			} data_;
 			
 		};

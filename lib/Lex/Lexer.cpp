@@ -106,8 +106,13 @@ namespace locic {
 		}
 		
 		NumericValue getVersionConstant(const Array<Character, 16>& digits) {
-			// TODO
-			return NumericValue::Version(42, 42, 42);
+			std::string data;
+			
+			for (const auto value: digits) {
+				data += value.asciiValue();
+			}
+			
+			return NumericValue::Version(Version::FromString(data));
 		}
 		
 		NumericValue Lexer::lexNumericConstant() {
