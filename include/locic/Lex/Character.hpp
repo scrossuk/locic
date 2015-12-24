@@ -49,6 +49,11 @@ namespace locic {
 				return isLowerAlpha() || isUpperAlpha();
 			}
 			
+			bool isSpace() const {
+				return value_ == '\n' || value_ == ' ' ||
+				       value_ == '\t' || value_ == '\r';
+			}
+			
 			bool isHexLowerCaseCharacter() const {
 				if (!isASCII()) {
 					return false;
