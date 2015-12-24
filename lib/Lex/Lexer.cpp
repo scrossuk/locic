@@ -104,6 +104,7 @@ namespace locic {
 				
 				if (reader_.isEnd()) {
 					issueError(Diag::UnterminatedStringLiteral);
+					stringLiteral.append(next.asciiValue());
 					return stringLiteral.getString();
 				}
 				
