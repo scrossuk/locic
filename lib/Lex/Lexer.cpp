@@ -83,6 +83,11 @@ namespace locic {
 			}
 		}
 		
+		Token Lexer::lexStringLiteralToken(const StringHost& stringHost) {
+			const auto stringLiteral = lexStringLiteral(stringHost);
+			return Token::Constant(Constant::StringVal(stringLiteral));
+		}
+		
 		String Lexer::lexStringLiteral(const StringHost& stringHost) {
 			StringBuilder stringLiteral(stringHost);
 			reader_.expect('"');
