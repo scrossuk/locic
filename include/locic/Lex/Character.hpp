@@ -29,6 +29,14 @@ namespace locic {
 				return '0' <= value_ && value_ <= '9';
 			}
 			
+			bool isOctalDigit() const {
+				if (!isASCII()) {
+					return false;
+				}
+				
+				return '0' <= value_ && value_ <= '7';
+			}
+			
 			bool isLowerAlpha() const {
 				if (!isASCII()) {
 					return false;

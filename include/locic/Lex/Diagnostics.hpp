@@ -7,7 +7,8 @@ namespace locic {
 		
 		enum class Diag {
 			UnterminatedStringLiteral,
-			InvalidStringLiteralEscape
+			InvalidStringLiteralEscape,
+			InvalidOctalCharacter
 		};
 		
 	}

@@ -184,13 +184,23 @@ namespace locic {
 		}
 		
 		NumericValue getHexIntegerConstant(const Array<Character, 16>& digits) {
-			std::string data = "0x";
+			std::string data = "";
 			
 			for (const auto value: digits) {
 				data += value.asciiValue();
 			}
 			
 			return NumericValue::Integer(strtoll(data.c_str(), NULL, 16));
+		}
+		
+		NumericValue getOctalIntegerConstant(const Array<Character, 16>& digits) {
+			std::string data = "";
+			
+			for (const auto value: digits) {
+				data += value.asciiValue();
+			}
+			
+			return NumericValue::Integer(strtoll(data.c_str(), NULL, 8));
 		}
 		
 		NumericValue getIntegerConstant(const Array<Character, 16>& digits) {
@@ -241,14 +251,29 @@ namespace locic {
 			const auto startDigit = reader_.peek();
 			if (startDigit == '0') {
 				reader_.consume();
+				digits.push_back(startDigit);
+				
 				if (reader_.peek() == 'x') {
-					reader_.consume();
+					digits.push_back(reader_.get());
 					while (reader_.peek().isHexDigit()) {
 						digits.push_back(reader_.get());
 					}
 					return getHexIntegerConstant(digits);
+				} else if (reader_.peek().isDigit()) {
+					while (true) {
+						const auto next = reader_.peek();
+						if (!next.isDigit()) {
+							break;
+						}
+						if (!next.isOctalDigit()) {
+							issueError(Diag::InvalidOctalCharacter);
+						}
+						digits.push_back(next);
+						reader_.consume();
+					}
+					
+					return getOctalIntegerConstant(digits);
 				}
-				digits.push_back(startDigit);
 			}
 			
 			while (reader_.peek().isDigit()) {
