@@ -38,6 +38,20 @@ TEST(NumericLexTest, Integer) {
 	testInteger("123", 123);
 }
 
+TEST(NumericLexTest, OctalInteger) {
+	testInteger("00", 0);
+	testInteger("01", 1);
+	testInteger("02", 2);
+	testInteger("03", 3);
+	testInteger("04", 4);
+	testInteger("05", 5);
+	testInteger("06", 6);
+	testInteger("07", 7);
+	testInteger("010", 8);
+	testInteger("011", 9);
+	testInteger("012", 10);
+}
+
 TEST(NumericLexTest, HexInteger) {
 	testInteger("0x0", 0);
 	testInteger("0x1", 1);
