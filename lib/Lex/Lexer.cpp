@@ -1,3 +1,5 @@
+#include <locic/Debug/SourcePosition.hpp>
+#include <locic/Debug/SourceRange.hpp>
 #include <locic/Lex/Character.hpp>
 #include <locic/Lex/CharacterReader.hpp>
 #include <locic/Lex/CharacterSource.hpp>
@@ -20,12 +22,18 @@ namespace locic {
 		
 		Lexer::~Lexer() { }
 		
-		void Lexer::issueWarning(const Diag kind) {
-			diagnosticReceiver_.issueWarning(kind);
+		void Lexer::issueWarning(const Diag kind, const Debug::SourcePosition startPosition,
+		                         const Debug::SourcePosition endPosition) {
+			const Debug::SourceRange sourceRange(startPosition,
+			                                     endPosition);
+			diagnosticReceiver_.issueWarning(kind, sourceRange);
 		}
 		
-		void Lexer::issueError(const Diag kind) {
-			diagnosticReceiver_.issueError(kind);
+		void Lexer::issueError(const Diag kind, const Debug::SourcePosition startPosition,
+		                       const Debug::SourcePosition endPosition) {
+			const Debug::SourceRange sourceRange(startPosition,
+			                                     endPosition);
+			diagnosticReceiver_.issueError(kind, sourceRange);
 		}
 		
 		Token::Kind Lexer::getSymbolTokenKind(const Character value) {
@@ -120,13 +128,18 @@ namespace locic {
 		}
 		
 		String Lexer::lexStringLiteral(const StringHost& stringHost) {
+			const auto start = reader_.position();
+			
 			StringBuilder stringLiteral(stringHost);
 			reader_.expect('"');
 			while (true) {
 				if (reader_.isEnd()) {
-					issueError(Diag::UnterminatedStringLiteral);
+					issueError(Diag::UnterminatedStringLiteral, start,
+					           reader_.position());
 					return stringLiteral.getString();
 				}
+				
+				const auto charStart = reader_.position();
 				
 				const auto next = reader_.get();
 				if (next == '"') {
@@ -139,7 +152,8 @@ namespace locic {
 				}
 				
 				if (reader_.isEnd()) {
-					issueError(Diag::UnterminatedStringLiteral);
+					issueError(Diag::UnterminatedStringLiteral, start,
+					           reader_.position());
 					stringLiteral.append(next.asciiValue());
 					return stringLiteral.getString();
 				}
@@ -175,7 +189,8 @@ namespace locic {
 						stringLiteral.append('\v');
 						break;
 					default:
-						issueError(Diag::InvalidStringLiteralEscape);
+						issueError(Diag::InvalidStringLiteralEscape,
+						           charStart, reader_.position());
 						stringLiteral.append('\\');
 						stringLiteral.append(escapeChar.asciiValue());
 						break;
@@ -246,6 +261,8 @@ namespace locic {
 		}
 		
 		NumericValue Lexer::lexNumericConstant() {
+			const auto start = reader_.position();
+			
 			Array<Character, 16> digits;
 			
 			const auto startDigit = reader_.peek();
@@ -265,11 +282,12 @@ namespace locic {
 						if (!next.isDigit()) {
 							break;
 						}
+						reader_.consume();
 						if (!next.isOctalDigit()) {
-							issueError(Diag::InvalidOctalCharacter);
+							issueError(Diag::InvalidOctalCharacter, start,
+							           reader_.position());
 						}
 						digits.push_back(next);
-						reader_.consume();
 					}
 					
 					return getOctalIntegerConstant(digits);

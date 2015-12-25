@@ -10,6 +10,12 @@ namespace locic {
 	class String;
 	class StringHost;
 	
+	namespace Debug {
+		
+		class SourcePosition;
+		
+	}
+	
 	namespace Lex {
 		
 		class CharacterSource;
@@ -22,9 +28,11 @@ namespace locic {
 			Lexer(CharacterSource& source, DiagnosticReceiver& diagnosticReceiver);
 			~Lexer();
 			
-			void issueWarning(Diag kind);
+			void issueWarning(Diag kind, Debug::SourcePosition startPosition,
+			                  Debug::SourcePosition endPosition);
 			
-			void issueError(Diag kind);
+			void issueError(Diag kind, Debug::SourcePosition startPosition,
+			                Debug::SourcePosition endPosition);
 			
 			Token::Kind getSymbolTokenKind(Character value);
 			

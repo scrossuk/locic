@@ -3,6 +3,12 @@
 
 namespace locic {
 	
+	namespace Debug {
+		
+		class SourceRange;
+		
+	}
+	
 	namespace Lex {
 		
 		enum class Diag;
@@ -12,9 +18,9 @@ namespace locic {
 			~DiagnosticReceiver() { }
 			
 		public:
-			virtual void issueWarning(Diag kind) = 0;
+			virtual void issueWarning(Diag kind, Debug::SourceRange range) = 0;
 			
-			virtual void issueError(Diag kind) = 0;
+			virtual void issueError(Diag kind, Debug::SourceRange range) = 0;
 			
 		};
 		

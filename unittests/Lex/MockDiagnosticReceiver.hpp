@@ -1,6 +1,7 @@
 #ifndef MOCKDIAGNOSTICRECEIVER_HPP
 #define MOCKDIAGNOSTICRECEIVER_HPP
 
+#include <locic/Debug/SourceRange.hpp>
 #include <locic/Lex/Diagnostics.hpp>
 #include <locic/Lex/DiagnosticReceiver.hpp>
 #include <locic/Support/Array.hpp>
@@ -9,11 +10,11 @@ class MockDiagnosticReceiver: public locic::Lex::DiagnosticReceiver {
 public:
 	MockDiagnosticReceiver() { }
 	
-	void issueWarning(locic::Lex::Diag kind) {
+	void issueWarning(locic::Lex::Diag kind, locic::Debug::SourceRange /*range*/) {
 		warnings_.push_back(kind);
 	}
 	
-	void issueError(locic::Lex::Diag kind) {
+	void issueError(locic::Lex::Diag kind, locic::Debug::SourceRange /*range*/) {
 		errors_.push_back(kind);
 	}
 	
