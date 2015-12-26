@@ -1,9 +1,9 @@
 #ifndef LOCIC_DEBUG_SOURCEPOSITION_HPP
 #define LOCIC_DEBUG_SOURCEPOSITION_HPP
 
-#include <assert.h>
 #include <stdint.h>
 
+#include <cassert>
 #include <string>
 
 #include <locic/Support/MakeString.hpp>
