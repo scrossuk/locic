@@ -58,7 +58,7 @@ TEST(StringLiteralLexTest, LegalEscapeCharacter) {
 	}
 }
 
-TEST(StringLiteralLexTest, DISABLED_OctalEscapeCharacter) {
+TEST(StringLiteralLexTest, OctalEscapeCharacter) {
 	for (unsigned char i = 0; i < 128; i++) {
 		const auto valueString = locic::makeString("%o", (unsigned) i);
 		testValidEscapeString(valueString, i);
