@@ -65,7 +65,9 @@ TEST(StringLiteralLexTest, DISABLED_OctalEscapeCharacter) {
 	}
 }
 
-void testStringLiteralError(const std::string& literal, const std::string& result, const locic::Lex::Diag diag) {
+void testStringLiteralError(const std::string& literal, const std::string& result, const std::initializer_list<locic::Lex::Diag> diags) {
+	assert(diags.size() != 0);
+	
 	locic::Array<locic::Lex::Character, 16> characters;
 	for (const auto c: literal) {
 		characters.push_back(c);
@@ -77,23 +79,29 @@ void testStringLiteralError(const std::string& literal, const std::string& resul
 	locic::Lex::Lexer lexer(source, diagnosticReceiver);
 	const auto token = lexer.lexToken(stringHost);
 	EXPECT_TRUE(source.empty());
-	EXPECT_EQ(diagnosticReceiver.numErrors(), 1);
-	EXPECT_EQ(diagnosticReceiver.getError(0), diag);
+	EXPECT_EQ(diagnosticReceiver.numErrors(), diags.size());
+	
+	size_t pos = 0;
+	for (auto diag: diags) {
+		EXPECT_EQ(diagnosticReceiver.getError(pos), diag);
+		pos++;
+	}
 	EXPECT_EQ(token.kind(), locic::Lex::Token::CONSTANT);
 	EXPECT_EQ(token.constant().kind(), locic::Constant::STRING);
 	EXPECT_EQ(result, token.constant().stringValue().asStdString());
 }
 
 TEST(StringLiteralLexTest, UnterminatedStringLiteral) {
-	testStringLiteralError("\"", "", locic::Lex::Diag::UnterminatedStringLiteral);
-	testStringLiteralError("\"\\", "\\", locic::Lex::Diag::UnterminatedStringLiteral);
-	testStringLiteralError("\"\\\\", "\\", locic::Lex::Diag::UnterminatedStringLiteral);
-	testStringLiteralError("\"\\\"", "\"", locic::Lex::Diag::UnterminatedStringLiteral);
+	testStringLiteralError("\"", "", { locic::Lex::Diag::UnterminatedStringLiteral });
+	testStringLiteralError("\"\\", "\\", { locic::Lex::Diag::InvalidStringLiteralEscape,
+	                       locic::Lex::Diag::UnterminatedStringLiteral });
+	testStringLiteralError("\"\\\\", "\\", { locic::Lex::Diag::UnterminatedStringLiteral });
+	testStringLiteralError("\"\\\"", "\"", { locic::Lex::Diag::UnterminatedStringLiteral });
 }
 
 void testInvalidEscape(const char c) {
 	testStringLiteralError(std::string("\"\\") + c + "\"", std::string("\\") + c,
-	                       locic::Lex::Diag::InvalidStringLiteralEscape);
+			       { locic::Lex::Diag::InvalidStringLiteralEscape });
 }
 
 TEST(StringLiteralLexTest, IllegalEscapeCharacter) {

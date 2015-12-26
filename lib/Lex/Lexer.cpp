@@ -8,6 +8,7 @@
 #include <locic/Lex/IdentifierLexer.hpp>
 #include <locic/Lex/Lexer.hpp>
 #include <locic/Lex/NumericValue.hpp>
+#include <locic/Lex/StringLiteralLexer.hpp>
 #include <locic/Support/Array.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/StringBuilder.hpp>
@@ -100,7 +101,7 @@ namespace locic {
 				} else if (nextValue.isDigit()) {
 					return lexNumericToken();
 				} else if (nextValue == '"') {
-					return lexStringLiteralToken(stringHost);
+					return lexStringLiteral(stringHost);
 				}
 				
 				reader_.consume();
@@ -122,80 +123,9 @@ namespace locic {
 			}
 		}
 		
-		Token Lexer::lexStringLiteralToken(const StringHost& stringHost) {
-			const auto stringLiteral = lexStringLiteral(stringHost);
-			return Token::Constant(Constant::StringVal(stringLiteral));
-		}
-		
-		String Lexer::lexStringLiteral(const StringHost& stringHost) {
-			const auto start = reader_.position();
-			
-			StringBuilder stringLiteral(stringHost);
-			reader_.expect('"');
-			while (true) {
-				if (reader_.isEnd()) {
-					issueError(Diag::UnterminatedStringLiteral, start,
-					           reader_.position());
-					return stringLiteral.getString();
-				}
-				
-				const auto charStart = reader_.position();
-				
-				const auto next = reader_.get();
-				if (next == '"') {
-					return stringLiteral.getString();
-				}
-				
-				if (next != '\\') {
-					stringLiteral.append(next.asciiValue());
-					continue;
-				}
-				
-				if (reader_.isEnd()) {
-					issueError(Diag::UnterminatedStringLiteral, start,
-					           reader_.position());
-					stringLiteral.append(next.asciiValue());
-					return stringLiteral.getString();
-				}
-				
-				const auto escapeChar = reader_.get();
-				
-				switch (escapeChar.value()) {
-					case '\\':
-						stringLiteral.append('\\');
-						break;
-					case '"':
-						stringLiteral.append('"');
-						break;
-					case 'a':
-						stringLiteral.append('\a');
-						break;
-					case 'b':
-						stringLiteral.append('\b');
-						break;
-					case 'f':
-						stringLiteral.append('\f');
-						break;
-					case 'n':
-						stringLiteral.append('\n');
-						break;
-					case 'r':
-						stringLiteral.append('\r');
-						break;
-					case 't':
-						stringLiteral.append('\t');
-						break;
-					case 'v':
-						stringLiteral.append('\v');
-						break;
-					default:
-						issueError(Diag::InvalidStringLiteralEscape,
-						           charStart, reader_.position());
-						stringLiteral.append('\\');
-						stringLiteral.append(escapeChar.asciiValue());
-						break;
-				}
-			}
+		Token Lexer::lexStringLiteral(const StringHost& stringHost) {
+			StringLiteralLexer stringLiteralLexer(reader_, diagnosticReceiver_);
+			return stringLiteralLexer.lexStringLiteral(stringHost);
 		}
 		
 		NumericValue getHexIntegerConstant(const Array<Character, 16>& digits) {
