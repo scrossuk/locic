@@ -6,7 +6,7 @@
 #include <locic/Parser/Context.hpp>
 #include <locic/Support/Version.hpp>
 
-#include "Lexer.hpp"
+#include "FlexLexer.hpp"
 #include "LocationInfo.hpp"
 #include "Token.hpp"
 

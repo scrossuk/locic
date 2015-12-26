@@ -23,8 +23,7 @@ namespace locic {
 				std::vector<Error> getErrors();
 				
 			private:
-				void * lexer_;
-				Context context_;
+				std::unique_ptr<class DefaultParserImpl> impl_;
 				
 		};
 		

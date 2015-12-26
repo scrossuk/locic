@@ -19,7 +19,7 @@
 #include <locic/Support/String.hpp>
 #include <locic/Support/Version.hpp>
 
-#include "Lexer.hpp"
+#include "LexerAPI.hpp"
 #include "LocationInfo.hpp"
 #include "Token.hpp"
 
@@ -2519,7 +2519,7 @@ templateValue:
 
 int Locic_Parser_GeneratedParser_lex(locic::Parser::Token * token, locic::Parser::LocationInfo* locationInfo, void * lexer, locic::Parser::Context * parserContext){
 	(void) parserContext;
-	return locic::Parser::LexGetToken(token, locationInfo, lexer);
+	return ((locic::Parser::LexerAPI*) lexer)->getToken(token, locationInfo);
 }
 
 int Locic_Parser_GeneratedParser_error(locic::Parser::LocationInfo* locationInfo, void * scanner, locic::Parser::Context * parserContext, const char *s) {
