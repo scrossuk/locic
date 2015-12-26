@@ -19,6 +19,10 @@ namespace locic {
 			
 			size_t buildVersion() const;
 			
+			bool operator<(const Version& other) const;
+			bool operator==(const Version& other) const;
+			bool operator!=(const Version& other) const;
+			
 			std::string toString() const;
 			
 		private:

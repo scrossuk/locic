@@ -31,6 +31,26 @@ namespace locic {
 		return build_;
 	}
 	
+	bool Version::operator<(const Version& other) const {
+		if (majorVersion() != other.majorVersion()) {
+			return majorVersion() < other.majorVersion();
+		}
+		
+		if (minorVersion() != other.minorVersion()) {
+			return minorVersion() < other.minorVersion();
+		}
+		
+		return buildVersion() < other.buildVersion();
+	}
+	
+	bool Version::operator==(const Version& other) const {
+		return !(*this < other) && !(other < *this);
+	}
+	
+	bool Version::operator!=(const Version& other) const {
+		return !(*this == other);
+	}
+	
 	std::string Version::toString() const {
 		return makeString("%llu.%llu.%llu",
 			(unsigned long long) majorVersion(),
