@@ -31,6 +31,8 @@ namespace locic {
 			void issueError(Diag kind, Debug::SourcePosition startPosition,
 			                Debug::SourcePosition endPosition);
 			
+			Token lexCharacterLiteral();
+			
 			Token lexStringLiteral(const StringHost& stringHost);
 			
 			Character lexCharacter();

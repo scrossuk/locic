@@ -41,6 +41,8 @@ namespace locic {
 			
 			Token lexToken(const StringHost& stringHost);
 			
+			Token lexCharacterLiteral();
+			
 			Token lexStringLiteral(const StringHost& stringHost);
 			
 			Token lexNumericToken();

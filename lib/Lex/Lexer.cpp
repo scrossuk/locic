@@ -100,6 +100,8 @@ namespace locic {
 					return lexNameToken(stringHost);
 				} else if (nextValue.isDigit()) {
 					return lexNumericToken();
+				} else if (nextValue == '\'') {
+					return lexCharacterLiteral();
 				} else if (nextValue == '"') {
 					return lexStringLiteral(stringHost);
 				}
@@ -121,6 +123,11 @@ namespace locic {
 				
 				return Token::Basic(getSymbolTokenKind(nextValue));
 			}
+		}
+		
+		Token Lexer::lexCharacterLiteral() {
+			StringLiteralLexer stringLiteralLexer(reader_, diagnosticReceiver_);
+			return stringLiteralLexer.lexCharacterLiteral();
 		}
 		
 		Token Lexer::lexStringLiteral(const StringHost& stringHost) {

@@ -37,6 +37,43 @@ namespace locic {
 			diagnosticReceiver_.issueError(kind, sourceRange);
 		}
 		
+		Token StringLiteralLexer::lexCharacterLiteral() {
+			const auto charPosition = reader_.position();
+			
+			Array<Character, 4> characters;
+			
+			reader_.expect('\'');
+			while (true) {
+				if (reader_.isEnd()) {
+					issueError(Diag::UnterminatedCharacterLiteral,
+					           charPosition, reader_.position());
+					const auto value = characters.empty() ? 0 : characters.front().value();
+					return Token::Constant(Constant::Character(value));
+				}
+				
+				if (reader_.peek() == '\'') {
+					reader_.consume();
+					break;
+				}
+				
+				const auto character = lexCharacter();
+				characters.push_back(character);
+			}
+			
+			if (characters.empty()) {
+				issueError(Diag::EmptyCharacterLiteral,
+				           charPosition, reader_.position());
+				return Token::Constant(Constant::Character(0));
+			}
+			
+			if (characters.size() > 1) {
+				issueError(Diag::MultiCharCharacterLiteral,
+				           charPosition, reader_.position());
+			}
+			
+			return Token::Constant(Constant::Character(characters[0].value()));
+		}
+		
 		Token StringLiteralLexer::lexStringLiteral(const StringHost& stringHost) {
 			const auto start = reader_.position();
 			
