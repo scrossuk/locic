@@ -37,6 +37,8 @@ namespace locic {
 			
 			Character lexEscapeSequence();
 			
+			Character lexOctalEscapeSequenceSuffix(Debug::SourcePosition sequencePosition);
+			
 			Character lexSymbolEscapeSequenceSuffix(Debug::SourcePosition sequencePosition);
 			
 		private:

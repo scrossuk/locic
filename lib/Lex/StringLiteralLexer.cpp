@@ -82,7 +82,38 @@ namespace locic {
 				return Character('\\');
 			}
 			
-			return lexSymbolEscapeSequenceSuffix(charPosition);
+			const auto firstEscapeChar = reader_.peek();
+			
+			if (firstEscapeChar.isOctalDigit()) {
+				return lexOctalEscapeSequenceSuffix(charPosition);
+			} else {
+				return lexSymbolEscapeSequenceSuffix(charPosition);
+			}
+		}
+		
+		Character StringLiteralLexer::lexOctalEscapeSequenceSuffix(const Debug::SourcePosition sequencePosition) {
+			assert(reader_.peek().isOctalDigit());
+			
+			std::string octalDigits;
+			
+			while (true) {
+				const auto escapeChar = reader_.peek();
+				if (!escapeChar.isOctalDigit()) {
+					break;
+				}
+				octalDigits += escapeChar.asciiValue();
+				reader_.consume();
+			}
+			
+			auto value = strtoll(octalDigits.c_str(), NULL, 8);
+			if (value > 255) {
+				issueError(Diag::OctalEscapeSequenceOutOfRange,
+				           sequencePosition,
+				           reader_.position());
+				value = 0;
+			}
+			
+			return Character(value);
 		}
 		
 		Character StringLiteralLexer::lexSymbolEscapeSequenceSuffix(const Debug::SourcePosition sequencePosition) {
