@@ -161,6 +161,9 @@ namespace locic {
 				case '"':
 					reader_.consume();
 					return Character('"');
+				case '\'':
+					reader_.consume();
+					return Character('\'');
 				case 'a':
 					reader_.consume();
 					return Character('\a');
