@@ -29,6 +29,10 @@ namespace locic{
 					nextAnonymousVariable_(0), column_(1),
 					byteOffset_(0), columnByteOffset_(0) { }
 				
+				const StringHost& stringHost() const {
+					return stringHost_;
+				}
+				
 				String fileName() const {
 					return fileName_;
 				}
