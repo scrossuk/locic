@@ -19,7 +19,7 @@ namespace locic {
 		class SourceLocation {
 			public:
 				static SourceLocation Null() {
-					const auto nullPosition = SourcePosition(0, 0);
+					const auto nullPosition = SourcePosition(0, 0, 0);
 					return SourceLocation(String::Null(), SourceRange(nullPosition, nullPosition),
 						std::make_pair<size_t, size_t>(0, 0), std::make_pair<size_t, size_t>(0, 0));
 				}

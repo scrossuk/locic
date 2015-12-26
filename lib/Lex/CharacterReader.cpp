@@ -8,8 +8,10 @@ namespace locic {
 	namespace Lex {
 		
 		CharacterReader::CharacterReader(CharacterSource& source)
-		: source_(source), currentCharacter_(source.get()),
-		position_(Debug::SourcePosition(1, 1)) { }
+		: source_(source), currentCharacter_(0),
+		position_(1, 1, source.byteOffset()) {
+			currentCharacter_ = source.get();
+		}
 		
 		bool CharacterReader::isEnd() const {
 			return currentCharacter_ == 0;
@@ -27,13 +29,16 @@ namespace locic {
 		}
 		
 		void CharacterReader::consume() {
+			const auto byteOffset = source_.byteOffset();
 			currentCharacter_ = source_.get();
 			if (currentCharacter_.isNewline()) {
 				position_ = Debug::SourcePosition(/*lineNumber=*/position_.lineNumber() + 1,
-				                                  /*column=*/1);
+				                                  /*column=*/1,
+				                                  byteOffset);
 			} else {
 				position_ = Debug::SourcePosition(/*lineNumber=*/position_.lineNumber(),
-				                                  /*column=*/position_.column() + 1);
+				                                  /*column=*/position_.column() + 1,
+				                                  byteOffset);
 			}
 		}
 		

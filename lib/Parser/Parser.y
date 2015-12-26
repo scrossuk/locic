@@ -29,8 +29,10 @@ int Locic_Parser_GeneratedParser_lex(locic::Parser::Token * token, locic::Parser
 static locic::Debug::SourceLocation convertLocationInfo(const locic::String fileName, const locic::Parser::LocationInfo* locationInfo) {
 	return locic::Debug::SourceLocation(fileName,
 		locic::Debug::SourceRange(
-			locic::Debug::SourcePosition(locationInfo->first_line, locationInfo->first_column),
-			locic::Debug::SourcePosition(locationInfo->last_line, locationInfo->last_column)
+			locic::Debug::SourcePosition(locationInfo->first_line, locationInfo->first_column,
+			                             locationInfo->first_byte),
+			locic::Debug::SourcePosition(locationInfo->last_line, locationInfo->last_column,
+			                             locationInfo->last_byte)
 		),
 		std::make_pair(locationInfo->first_byte, locationInfo->last_byte),
 		std::make_pair(locationInfo->first_line_byte, locationInfo->last_line_byte)

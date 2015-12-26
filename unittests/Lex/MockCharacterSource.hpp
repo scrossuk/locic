@@ -20,6 +20,10 @@ public:
 		}
 	}
 	
+	size_t byteOffset() const {
+		return position_;
+	}
+	
 	bool empty() const {
 		return position_ == (characters_.size() + 1);
 	}
