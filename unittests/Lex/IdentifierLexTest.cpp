@@ -65,6 +65,7 @@ TEST(IdentifierLexTest, Keywords) {
 	
 	testKeyword("let", locic::Lex::Token::Kind::LET);
 	testKeyword("long", locic::Lex::Token::Kind::LONG);
+	testKeyword("longlong", locic::Lex::Token::Kind::LONGLONG);
 	testKeyword("lval", locic::Lex::Token::Kind::LVAL);
 	
 	testKeyword("move", locic::Lex::Token::Kind::MOVE);
@@ -102,11 +103,16 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("typename", locic::Lex::Token::Kind::TYPENAME);
 	testKeyword("typeof", locic::Lex::Token::Kind::TYPEOF);
 	
+	testKeyword("ubyte", locic::Lex::Token::Kind::UBYTE);
+	testKeyword("uint", locic::Lex::Token::Kind::UINT);
+	testKeyword("ulong", locic::Lex::Token::Kind::ULONG);
+	testKeyword("ulonglong", locic::Lex::Token::Kind::ULONGLONG);
 	testKeyword("union", locic::Lex::Token::Kind::UNION);
 	testKeyword("unreachable", locic::Lex::Token::Kind::UNREACHABLE);
 	testKeyword("unsigned", locic::Lex::Token::Kind::UNSIGNED);
 	testKeyword("unused", locic::Lex::Token::Kind::UNUSED);
 	testKeyword("unused_result", locic::Lex::Token::Kind::UNUSED_RESULT);
+	testKeyword("ushort", locic::Lex::Token::Kind::USHORT);
 	testKeyword("using", locic::Lex::Token::Kind::USING);
 	
 	testKeyword("virtual", locic::Lex::Token::Kind::VIRTUAL);
