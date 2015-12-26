@@ -116,6 +116,16 @@ namespace locic {
 		Optional<Token> Lexer::lexTokenWithoutLocation(const StringHost& stringHost) {
 			assert(!reader_.isEnd());
 			
+			const auto nextValue = reader_.peek();
+			if (nextValue.isSpace()) {
+				auto spaceValue = nextValue;
+				while (spaceValue.isSpace()) {
+					reader_.consume();
+					spaceValue = reader_.peek();
+				}
+				return Optional<Token>();
+			}
+			
 			if (nextValue.isAlpha() || nextValue == '_') {
 				return make_optional(lexNameToken(stringHost));
 			} else if (nextValue.isDigit()) {
