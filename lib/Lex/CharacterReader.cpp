@@ -29,17 +29,16 @@ namespace locic {
 		}
 		
 		void CharacterReader::consume() {
-			const auto byteOffset = source_.byteOffset();
-			currentCharacter_ = source_.get();
 			if (currentCharacter_.isNewline()) {
 				position_ = Debug::SourcePosition(/*lineNumber=*/position_.lineNumber() + 1,
 				                                  /*column=*/1,
-				                                  byteOffset);
+				                                  /*byteOffset=*/source_.byteOffset());
 			} else {
 				position_ = Debug::SourcePosition(/*lineNumber=*/position_.lineNumber(),
 				                                  /*column=*/position_.column() + 1,
-				                                  byteOffset);
+				                                  /*byteOffset=*/source_.byteOffset());
 			}
+			currentCharacter_ = source_.get();
 		}
 		
 		void CharacterReader::expect(const Character character) {
