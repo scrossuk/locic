@@ -229,6 +229,28 @@ namespace locic {
 				return sourceRange_;
 			}
 			
+			bool operator==(const Token& other) const {
+				if (kind() != other.kind()) {
+					return false;
+				}
+				
+				if (sourceRange() != other.sourceRange()) {
+					return false;
+				}
+				
+				switch (kind()) {
+					case NAME:
+						return name() == other.name();
+					case VERSION:
+						return version() == other.version();
+					case CONSTANT:
+						return constant() == other.constant();
+					default:
+						assert(!hasAssociatedData());
+						return true;
+				}
+			}
+			
 		private:
 			Token(const Kind argKind, const Debug::SourceRange argSourceRange)
 			: kind_(argKind), sourceRange_(argSourceRange) { }
