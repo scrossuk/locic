@@ -38,6 +38,17 @@ namespace locic {
 					       end().isNull();
 				}
 				
+				bool operator==(const SourceRange& other) const {
+					assert(!isNull() && !other.isNull());
+					return start() == other.start() &&
+					       end() == other.end();
+				}
+				
+				bool operator!=(const SourceRange& other) const {
+					assert(!isNull() && !other.isNull());
+					return !(*this == other);
+				}
+				
 				std::string toString() const {
 					return makeString("SourceRange(start = %s, end = %s)",
 						start_.toShortString().c_str(), end_.toShortString().c_str());
