@@ -32,6 +32,12 @@ namespace locic {
 					return byteOffset_;
 				}
 				
+				bool isNull() const {
+					return lineNumber() == 0 &&
+					       column() == 0 &&
+					       byteOffset() == 0;
+				}
+				
 				bool operator<=(const SourcePosition& position) const {
 					checkComparisonInvariants(position);
 					return byteOffset() <= position.byteOffset();
