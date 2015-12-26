@@ -28,6 +28,23 @@ namespace locic {
 			return value;
 		}
 		
+		bool IdentifierLexer::lexCommonPrefix(const char* const prefix) {
+			size_t position = savedValues_.size();
+			
+			while (true) {
+				if (prefix[position] == 0) {
+					return true;
+				}
+				
+				const auto value = get();
+				if (value != prefix[position]) {
+					return false;
+				}
+				
+				position++;
+			}
+		}
+		
 		Token IdentifierLexer::lexPossibleKeyword(const char* const name,
 		                                          const Token::Kind tokenKind) {
 			size_t position = savedValues_.size();
@@ -338,9 +355,28 @@ namespace locic {
 				case 'e':
 					return lexPossibleKeyword("let", Token::LET);
 				case 'o':
-					return lexPossibleKeyword("long", Token::LONG);
+					return lexPrefixLo();
 				case 'v':
 					return lexPossibleKeyword("lval", Token::LVAL);
+				default:
+					return lexGeneralIdentifier();
+			}
+		}
+		
+		Token IdentifierLexer::lexPrefixLo() {
+			if (lexCommonPrefix("long")) {
+				return lexPrefixLong();
+			} else {
+				return lexGeneralIdentifier();
+			}
+		}
+		
+		Token IdentifierLexer::lexPrefixLong() {
+			switch (get().value()) {
+				case 0:
+					return Token::Basic(Token::LONG);
+				case 'l':
+					return lexPossibleKeyword("longlong", Token::LONGLONG);
 				default:
 					return lexGeneralIdentifier();
 			}
@@ -558,10 +594,35 @@ namespace locic {
 		
 		Token IdentifierLexer::lexPrefixU() {
 			switch (get().value()) {
+				case 'b':
+					return lexPossibleKeyword("ubyte", Token::UBYTE);
+				case 'i':
+					return lexPossibleKeyword("uint", Token::UINT);
+				case 'l':
+					return lexPrefixUl();
 				case 'n':
 					return lexPrefixUn();
 				case 's':
-					return lexPossibleKeyword("using", Token::USING);
+					return lexPrefixUs();
+				default:
+					return lexGeneralIdentifier();
+			}
+		}
+		
+		Token IdentifierLexer::lexPrefixUl() {
+			if (lexCommonPrefix("ulong")) {
+				return lexPrefixUlong();
+			} else {
+				return lexGeneralIdentifier();
+			}
+		}
+		
+		Token IdentifierLexer::lexPrefixUlong() {
+			switch (get().value()) {
+				case 0:
+					return Token::Basic(Token::ULONG);
+				case 'l':
+					return lexPossibleKeyword("ulonglong", Token::ULONGLONG);
 				default:
 					return lexGeneralIdentifier();
 			}
@@ -583,29 +644,10 @@ namespace locic {
 		}
 		
 		Token IdentifierLexer::lexPrefixUnu() {
-			switch (get().value()) {
-				case 's':
-					return lexPrefixUnus();
-				default:
-					return lexGeneralIdentifier();
-			}
-		}
-		
-		Token IdentifierLexer::lexPrefixUnus() {
-			switch (get().value()) {
-				case 'e':
-					return lexPrefixUnuse();
-				default:
-					return lexGeneralIdentifier();
-			}
-		}
-		
-		Token IdentifierLexer::lexPrefixUnuse() {
-			switch (get().value()) {
-				case 'd':
-					return lexPrefixUnused();
-				default:
-					return lexGeneralIdentifier();
+			if (lexCommonPrefix("unused")) {
+				return lexPrefixUnused();
+			} else {
+				return lexGeneralIdentifier();
 			}
 		}
 		
@@ -615,6 +657,17 @@ namespace locic {
 					return lexPossibleKeyword("unused", Token::UNUSED);
 				case '_':
 					return lexPossibleKeyword("unused_result", Token::UNUSED_RESULT);
+				default:
+					return lexGeneralIdentifier();
+			}
+		}
+		
+		Token IdentifierLexer::lexPrefixUs() {
+			switch (get().value()) {
+				case 'h':
+					return lexPossibleKeyword("ushort", Token::USHORT);
+				case 'i':
+					return lexPossibleKeyword("using", Token::USING);
 				default:
 					return lexGeneralIdentifier();
 			}

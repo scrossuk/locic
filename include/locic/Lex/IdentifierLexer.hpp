@@ -22,6 +22,8 @@ namespace locic {
 			
 			Character get();
 			
+			bool lexCommonPrefix(const char* prefix);
+			
 			Token lexPossibleKeyword(const char* name,
 			                         Token::Kind tokenKind);
 			
@@ -60,6 +62,8 @@ namespace locic {
 			Token lexPrefixInt();
 			
 			Token lexPrefixL();
+			Token lexPrefixLo();
+			Token lexPrefixLong();
 			
 			Token lexPrefixM();
 			
@@ -85,11 +89,12 @@ namespace locic {
 			Token lexPrefixType();
 			
 			Token lexPrefixU();
+			Token lexPrefixUl();
+			Token lexPrefixUlong();
 			Token lexPrefixUn();
 			Token lexPrefixUnu();
-			Token lexPrefixUnus();
-			Token lexPrefixUnuse();
 			Token lexPrefixUnused();
+			Token lexPrefixUs();
 			
 			Token lexPrefixV();
 			
