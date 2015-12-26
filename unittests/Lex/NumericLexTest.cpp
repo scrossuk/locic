@@ -3,24 +3,17 @@
 #include <locic/Lex/Lexer.hpp>
 #include <locic/Lex/NumericValue.hpp>
 
+#include "LexTest.hpp"
 #include "MockCharacterSource.hpp"
 #include "MockDiagnosticReceiver.hpp"
 
 void testInteger(const std::string& text, const unsigned long long result) {
-	locic::Array<locic::Lex::Character, 16> characters;
-	for (const auto c: text) {
-		characters.push_back(c);
-	}
-	
-	locic::StringHost stringHost;
-	MockCharacterSource source(std::move(characters));
-	MockDiagnosticReceiver diagnosticReceiver;
-	locic::Lex::Lexer lexer(source, diagnosticReceiver);
-	const auto token = lexer.lexToken(stringHost);
-	EXPECT_TRUE(source.empty());
-	EXPECT_TRUE(diagnosticReceiver.hasNoErrorsOrWarnings());
-	EXPECT_EQ(token.kind(), locic::Lex::Token::CONSTANT);
-	EXPECT_EQ(token.constant().integerValue(), result);
+	const auto start = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/1,
+	                                         /*byteOffset=*/0);
+	const auto end = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/text.size() + 1,
+	                                       /*byteOffset=*/text.size());
+	const auto range = locic::Debug::SourceRange(start, end);
+	testLexer(text, { locic::Lex::Token::Constant(locic::Constant::Integer(result), range) }, /*diags=*/{});
 }
 
 TEST(NumericLexTest, Integer) {
@@ -86,20 +79,12 @@ TEST(NumericLexTest, HexInteger) {
 }
 
 void testFloat(const std::string& text, const double result) {
-	locic::Array<locic::Lex::Character, 16> characters;
-	for (const auto c: text) {
-		characters.push_back(c);
-	}
-	
-	locic::StringHost stringHost;
-	MockCharacterSource source(std::move(characters));
-	MockDiagnosticReceiver diagnosticReceiver;
-	locic::Lex::Lexer lexer(source, diagnosticReceiver);
-	const auto token = lexer.lexToken(stringHost);
-	EXPECT_TRUE(source.empty());
-	EXPECT_TRUE(diagnosticReceiver.hasNoErrorsOrWarnings());
-	EXPECT_EQ(token.kind(), locic::Lex::Token::CONSTANT);
-	EXPECT_EQ(token.constant().floatValue(), result);
+	const auto start = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/1,
+	                                         /*byteOffset=*/0);
+	const auto end = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/text.size() + 1,
+	                                       /*byteOffset=*/text.size());
+	const auto range = locic::Debug::SourceRange(start, end);
+	testLexer(text, { locic::Lex::Token::Constant(locic::Constant::Float(result), range) }, /*diags=*/{});
 }
 
 TEST(NumericLexTest, Float) {

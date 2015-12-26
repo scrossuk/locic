@@ -93,30 +93,37 @@ namespace locic {
 			}
 		}
 		
-		Token Lexer::lexToken(const StringHost& stringHost) {
+		Optional<Token> Lexer::lexToken(const StringHost& stringHost) {
 			while (true) {
+				if (reader_.isEnd()) {
+					return Optional<Token>();
+				}
+				
 				const auto startPosition = reader_.position();
 				auto token = lexTokenWithoutLocation(stringHost);
+				if (!token) {
+					continue;
+				}
 				
 				const auto endPosition = reader_.position();
 				const auto range = Debug::SourceRange(startPosition,
 				                                      endPosition);
-				token.setSourceRange(range);
+				token->setSourceRange(range);
 				return token;
 			}
 		}
 		
-		Token Lexer::lexTokenWithoutLocation(const StringHost& stringHost) {
+		Optional<Token> Lexer::lexTokenWithoutLocation(const StringHost& stringHost) {
 			assert(!reader_.isEnd());
 			
 			if (nextValue.isAlpha() || nextValue == '_') {
-				return lexNameToken(stringHost);
+				return make_optional(lexNameToken(stringHost));
 			} else if (nextValue.isDigit()) {
-				return lexNumericToken();
+				return make_optional(lexNumericToken());
 			} else if (nextValue == '\'') {
-				return lexCharacterLiteral();
+				return make_optional(lexCharacterLiteral());
 			} else if (nextValue == '"') {
-				return lexStringLiteral(stringHost);
+				return make_optional(lexStringLiteral(stringHost));
 			}
 			
 			reader_.consume();
@@ -126,15 +133,15 @@ namespace locic {
 			                                                       nextNextValue);
 			if (doubleSymbolKind != Token::Kind::UNKNOWN) {
 				reader_.consume();
-				return Token::Basic(doubleSymbolKind);
+				return make_optional(Token::Basic(doubleSymbolKind));
 			}
 			
 			if (nextValue == '/' && (nextNextValue == '*' || nextNextValue == '/')) {
 				lexComment();
-				return lexTokenWithoutLocation(stringHost);
+				return Optional<Token>();
 			}
 			
-			return Token::Basic(getSymbolTokenKind(nextValue));
+			return make_optional(Token::Basic(getSymbolTokenKind(nextValue)));
 		}
 		
 		Token Lexer::lexCharacterLiteral() {

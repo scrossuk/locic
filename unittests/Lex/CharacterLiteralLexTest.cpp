@@ -4,25 +4,17 @@
 #include <locic/Lex/Token.hpp>
 #include <locic/Support/StringHost.hpp>
 
+#include "LexTest.hpp"
 #include "MockCharacterSource.hpp"
 #include "MockDiagnosticReceiver.hpp"
 
 void testCharacterLiteral(const std::string& literal, const uint32_t result) {
-	locic::Array<locic::Lex::Character, 16> characters;
-	for (const auto c: literal) {
-		characters.push_back(c);
-	}
-	
-	locic::StringHost stringHost;
-	MockCharacterSource source(std::move(characters));
-	MockDiagnosticReceiver diagnosticReceiver;
-	locic::Lex::Lexer lexer(source, diagnosticReceiver);
-	const auto token = lexer.lexToken(stringHost);
-	EXPECT_TRUE(source.empty());
-	EXPECT_TRUE(diagnosticReceiver.hasNoErrorsOrWarnings());
-	EXPECT_EQ(token.kind(), locic::Lex::Token::CONSTANT);
-	EXPECT_EQ(token.constant().kind(), locic::Constant::CHARACTER);
-	EXPECT_EQ(result, token.constant().characterValue());
+	const auto start = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/1,
+	                                                /*byteOffset=*/0);
+	const auto end = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/literal.size() + 1,
+	                                              /*byteOffset=*/literal.size());
+	const auto range = locic::Debug::SourceRange(start, end);
+	testLexer(literal, { locic::Lex::Token::Constant(locic::Constant::Character(result), range) }, /*diags=*/{});
 }
 
 TEST(CharacterLiteralLexTest, Alphabet) {
@@ -80,28 +72,12 @@ TEST(CharacterLiteralLexTest, OctalEscapeCharacter) {
 
 void testCharacterLiteralError(const std::string& literal, const uint32_t result, const std::initializer_list<locic::Lex::Diag> diags) {
 	assert(diags.size() != 0);
-	
-	locic::Array<locic::Lex::Character, 16> characters;
-	for (const auto c: literal) {
-		characters.push_back(c);
-	}
-	
-	locic::StringHost stringHost;
-	MockCharacterSource source(std::move(characters));
-	MockDiagnosticReceiver diagnosticReceiver;
-	locic::Lex::Lexer lexer(source, diagnosticReceiver);
-	const auto token = lexer.lexToken(stringHost);
-	EXPECT_TRUE(source.empty());
-	EXPECT_EQ(diagnosticReceiver.numErrors(), diags.size());
-	
-	size_t pos = 0;
-	for (auto diag: diags) {
-		EXPECT_EQ(diagnosticReceiver.getError(pos), diag);
-		pos++;
-	}
-	EXPECT_EQ(token.kind(), locic::Lex::Token::CONSTANT);
-	EXPECT_EQ(token.constant().kind(), locic::Constant::CHARACTER);
-	EXPECT_EQ(result, token.constant().characterValue());
+	const auto start = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/1,
+	                                                /*byteOffset=*/0);
+	const auto end = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/literal.size() + 1,
+	                                              /*byteOffset=*/literal.size());
+	const auto range = locic::Debug::SourceRange(start, end);
+	testLexer(literal, { locic::Lex::Token::Constant(locic::Constant::Character(result), range) }, diags);
 }
 
 TEST(CharacterLiteralLexTest, EmptyCharacterLiteral) {

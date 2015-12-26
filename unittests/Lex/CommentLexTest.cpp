@@ -4,75 +4,66 @@
 #include <locic/Lex/Token.hpp>
 #include <locic/Support/StringHost.hpp>
 
+#include "LexTest.hpp"
 #include "MockCharacterSource.hpp"
 #include "MockDiagnosticReceiver.hpp"
 
-void testComment(const std::string& text) {
+void testComment(const std::string& text, const size_t lineNumber, const size_t column) {
 	// Add a '0' so there's a token to read.
 	const auto textWithToken = text + "1";
-	
-	locic::Array<locic::Lex::Character, 16> characters;
-	for (const auto c: textWithToken) {
-		characters.push_back(c);
-	}
-	
-	locic::StringHost stringHost;
-	MockCharacterSource source(std::move(characters));
-	MockDiagnosticReceiver diagnosticReceiver;
-	locic::Lex::Lexer lexer(source, diagnosticReceiver);
-	const auto token = lexer.lexToken(stringHost);
-	EXPECT_TRUE(source.empty());
-	EXPECT_TRUE(diagnosticReceiver.hasNoErrorsOrWarnings());
-	EXPECT_EQ(token.kind(), locic::Lex::Token::CONSTANT);
-	EXPECT_EQ(token.constant().kind(), locic::Constant::INTEGER);
-	EXPECT_EQ(1, token.constant().integerValue());
+	const auto start = locic::Debug::SourcePosition(lineNumber, column,
+	                                                /*byteOffset=*/text.size());
+	const auto end = locic::Debug::SourcePosition(lineNumber, column + 1,
+	                                              /*byteOffset=*/text.size() + 1);
+	const auto range = locic::Debug::SourceRange(start, end);
+	testLexer(textWithToken, { locic::Lex::Token::Constant(locic::Constant::Integer(1), range) }, /*diags=*/{});
 }
 
 TEST(CommentLexTest, ShortComment) {
-	testComment("//\n");
-	testComment("//text\n");
+	testComment("//\n", /*lineNumber=*/2, /*column=*/1);
+	testComment("//text\n", /*lineNumber=*/2, /*column=*/1);
 }
 
 TEST(CommentLexTest, NestedShortComment) {
-	testComment("///\n");
-	testComment("////\n");
-	testComment("/////\n");
-	testComment("//////\n");
-	testComment("//text\n");
-	testComment("///text\n");
-	testComment("////text\n");
-	testComment("/////text\n");
-	testComment("//////text\n");
+	testComment("///\n", /*lineNumber=*/2, /*column=*/1);
+	testComment("////\n", /*lineNumber=*/2, /*column=*/1);
+	testComment("/////\n", /*lineNumber=*/2, /*column=*/1);
+	testComment("//////\n", /*lineNumber=*/2, /*column=*/1);
+	testComment("//text\n", /*lineNumber=*/2, /*column=*/1);
+	testComment("///text\n", /*lineNumber=*/2, /*column=*/1);
+	testComment("////text\n", /*lineNumber=*/2, /*column=*/1);
+	testComment("/////text\n", /*lineNumber=*/2, /*column=*/1);
+	testComment("//////text\n", /*lineNumber=*/2, /*column=*/1);
 }
 
 TEST(CommentLexTest, SideBySideShortComments) {
-	testComment("//\n//\n");
+	testComment("//\n//\n", /*lineNumber=*/3, /*column=*/1);
 }
 
 TEST(CommentLexTest, SpacesInShortComment) {
-	testComment("// \n");
-	testComment("//\t\n");
+	testComment("// \n", /*lineNumber=*/2, /*column=*/1);
+	testComment("//\t\n", /*lineNumber=*/2, /*column=*/1);
 }
 
 TEST(CommentLexTest, EmptyLongComment) {
-	testComment("/**/");
+	testComment("/**/", /*lineNumber=*/1, /*column=*/5);
 }
 
 TEST(CommentLexTest, TrivialLongComment) {
-	testComment("/*text*/");
+	testComment("/*text*/", /*lineNumber=*/1, /*column=*/9);
 }
 
 TEST(CommentLexTest, NewlineInLongComment) {
-	testComment("/*\n*/");
-	testComment("/*\n\n*/");
-	testComment("/*\n\n\n*/");
+	testComment("/*\n*/", /*lineNumber=*/2, /*column=*/3);
+	testComment("/*\n\n*/", /*lineNumber=*/3, /*column=*/3);
+	testComment("/*\n\n\n*/", /*lineNumber=*/4, /*column=*/3);
 }
 
 TEST(CommentLexTest, SideBySideLongComments) {
-	testComment("/**//**/");
+	testComment("/**//**/", /*lineNumber=*/1, /*column=*/9);
 }
 
 TEST(CommentLexTest, SpacesInLongComment) {
-	testComment("/* */");
-	testComment("/*\t*/");
+	testComment("/* */", /*lineNumber=*/1, /*column=*/6);
+	testComment("/*\t*/", /*lineNumber=*/1, /*column=*/6);
 }

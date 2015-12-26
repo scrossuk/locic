@@ -4,23 +4,17 @@
 #include <locic/Lex/Token.hpp>
 #include <locic/Support/StringHost.hpp>
 
+#include "LexTest.hpp"
 #include "MockCharacterSource.hpp"
 #include "MockDiagnosticReceiver.hpp"
 
 void testSymbol(const std::string& text, const locic::Lex::Token::Kind result) {
-	locic::Array<locic::Lex::Character, 16> characters;
-	for (const auto c: text) {
-		characters.push_back(c);
-	}
-	
-	locic::StringHost stringHost;
-	MockCharacterSource source(std::move(characters));
-	MockDiagnosticReceiver diagnosticReceiver;
-	locic::Lex::Lexer lexer(source, diagnosticReceiver);
-	const auto token = lexer.lexToken(stringHost);
-	EXPECT_TRUE(source.empty());
-	EXPECT_TRUE(diagnosticReceiver.hasNoErrorsOrWarnings());
-	EXPECT_EQ(token.kind(), result);
+	const auto start = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/1,
+	                                         /*byteOffset=*/0);
+	const auto end = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/text.size() + 1,
+	                                       /*byteOffset=*/text.size());
+	const auto range = locic::Debug::SourceRange(start, end);
+	testLexer(text, { locic::Lex::Token::Basic(result, range) }, /*diags=*/{});
 }
 
 TEST(SymbolLexTest, SingleCharacterSymbol) {

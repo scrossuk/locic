@@ -3,6 +3,7 @@
 
 #include <locic/Lex/CharacterReader.hpp>
 #include <locic/Lex/Token.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic {
 	
@@ -39,9 +40,9 @@ namespace locic {
 			Token::Kind getDoubleSymbolTokenKind(Character first,
 			                                     Character second);
 			
-			Token lexToken(const StringHost& stringHost);
+			Optional<Token> lexToken(const StringHost& stringHost);
 			
-			Token lexTokenWithoutLocation(const StringHost& stringHost);
+			Optional<Token> lexTokenWithoutLocation(const StringHost& stringHost);
 			
 			Token lexCharacterLiteral();
 			
