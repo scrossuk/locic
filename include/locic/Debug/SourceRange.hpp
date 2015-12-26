@@ -15,6 +15,11 @@ namespace locic {
 	
 		class SourceRange {
 			public:
+				static SourceRange Null() {
+					const auto nullPosition = SourcePosition(0, 0, 0);
+					return SourceRange(nullPosition, nullPosition);
+				}
+				
 				SourceRange(SourcePosition pStart, SourcePosition pEnd)
 				: start_(pStart), end_(pEnd) {
 					assert(pStart <= pEnd);
@@ -26,6 +31,11 @@ namespace locic {
 				
 				SourcePosition end() const {
 					return end_;
+				}
+				
+				bool isNull() const {
+					return start().isNull() &&
+					       end().isNull();
 				}
 				
 				std::string toString() const {
