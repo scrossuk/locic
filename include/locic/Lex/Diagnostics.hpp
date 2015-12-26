@@ -9,6 +9,7 @@ namespace locic {
 			UnterminatedStringLiteral,
 			InvalidStringLiteralEscape,
 			InvalidOctalCharacter,
+			OctalEscapeSequenceOutOfRange,
 			EmptyCharacterLiteral,
 			UnterminatedCharacterLiteral,
 			MultiCharCharacterLiteral
