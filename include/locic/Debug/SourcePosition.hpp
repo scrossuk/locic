@@ -38,6 +38,15 @@ namespace locic {
 					       byteOffset() == 0;
 				}
 				
+				bool operator==(const SourcePosition& position) const {
+					checkComparisonInvariants(position);
+					return byteOffset() == position.byteOffset();
+				}
+				
+				bool operator!=(const SourcePosition& position) const {
+					return !(*this == position);
+				}
+				
 				bool operator<=(const SourcePosition& position) const {
 					checkComparisonInvariants(position);
 					return byteOffset() <= position.byteOffset();
