@@ -50,8 +50,8 @@ void testValidEscapeString(const std::string& string, const char escapeChar) {
 }
 
 TEST(StringLiteralLexTest, LegalEscapeCharacter) {
-	const auto validEscapes = { 'a', 'b', 'f', 'n', 'r', 't', 'v', '\\', '"' };
-	const auto escapeValues = { '\a', '\b', '\f', '\n', '\r', '\t', '\v', '\\', '"' };
+	const auto validEscapes = { 'a', 'b', 'f', 'n', 'r', 't', 'v', '\\', '"', '\'' };
+	const auto escapeValues = { '\a', '\b', '\f', '\n', '\r', '\t', '\v', '\\', '"', '\'' };
 	for (auto i = validEscapes.begin(), j = escapeValues.begin();
 	     i != validEscapes.end(); ++i, ++j) {
 		testValidEscape(*i, *j);
