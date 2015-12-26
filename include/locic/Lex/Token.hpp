@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include <locic/Constant.hpp>
+#include <locic/Debug/SourceRange.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/Version.hpp>
 
@@ -162,26 +163,30 @@ namespace locic {
 				THIS
 			};
 			
-			static Token Name(const String stringValue) {
-				Token token(NAME);
+			static Token Name(const String stringValue,
+			                  const Debug::SourceRange sourceRange = Debug::SourceRange::Null()) {
+				Token token(NAME, sourceRange);
 				token.data_.stringValue = stringValue;
 				return token;
 			}
 			
-			static Token Version(const Version versionValue) {
-				Token token(VERSION);
+			static Token Version(const Version versionValue,
+			                     const Debug::SourceRange sourceRange = Debug::SourceRange::Null()) {
+				Token token(VERSION, sourceRange);
 				token.data_.versionValue = versionValue;
 				return token;
 			}
 			
-			static Token Constant(const Constant constantValue) {
-				Token token(CONSTANT);
+			static Token Constant(const Constant constantValue,
+			                      const Debug::SourceRange sourceRange = Debug::SourceRange::Null()) {
+				Token token(CONSTANT, sourceRange);
 				token.data_.constantValue = constantValue;
 				return token;
 			}
 			
-			static Token Basic(const Kind kind) {
-				Token token(kind);
+			static Token Basic(const Kind kind,
+			                   const Debug::SourceRange sourceRange = Debug::SourceRange::Null()) {
+				Token token(kind, sourceRange);
 				assert(!token.hasAssociatedData());
 				return token;
 			}
@@ -216,11 +221,20 @@ namespace locic {
 				return data_.constantValue;
 			}
 			
+			void setSourceRange(const Debug::SourceRange sourceRange) {
+				sourceRange_ = sourceRange;
+			}
+			
+			const Debug::SourceRange& sourceRange() const {
+				return sourceRange_;
+			}
+			
 		private:
-			Token(const Kind argKind)
-			: kind_(argKind) { }
+			Token(const Kind argKind, const Debug::SourceRange argSourceRange)
+			: kind_(argKind), sourceRange_(argSourceRange) { }
 			
 			Kind kind_;
+			Debug::SourceRange sourceRange_;
 			
 			union {
 				String stringValue;
