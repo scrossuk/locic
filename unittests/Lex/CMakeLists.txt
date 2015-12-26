@@ -7,5 +7,6 @@ add_unit_test(Lex
 	NumericLexTest.cpp
 	StringLiteralLexTest.cpp
 	SymbolLexTest.cpp
+	WhitespaceLexTest.cpp
 )
 
