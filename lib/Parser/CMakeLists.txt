@@ -17,3 +17,7 @@ add_library(locic-parser
 	${CMAKE_CURRENT_BINARY_DIR}/GeneratedParser.cpp
 )
 
+add_library(locic-newparser
+	TypeParser.cpp
+)
+
