@@ -27,6 +27,7 @@ target_link_libraries(locic
 	locic-codegen
 	locic-sem
 	locic-ast
+	locic-lex
 	locic-support
 	loci-builtintypes
 	${REQ_LIBS}
@@ -47,6 +48,7 @@ target_link_libraries(loci-test
 	locic-codegen
 	locic-sem
 	locic-ast
+	locic-lex
 	locic-support
 	loci-builtintypes
 	loci-runtime
@@ -63,6 +65,7 @@ target_link_libraries(loci-vtable
 	locic-semanalysis
 	locic-codegen
 	locic-sem
+	locic-lex
 	locic-support
 	${REQ_LIBS}
 )

@@ -9,6 +9,7 @@
 
 #include "FlexLexer.hpp"
 #include "LexerAPI.hpp"
+#include "LexLexer.hpp"
 #include "Token.hpp"
 
 namespace locic {
@@ -31,7 +32,7 @@ namespace locic {
 			
 		private:
 			Context context_;
-			FlexLexer lexer_;
+			LexLexer lexer_;
 			
 		};
 		
