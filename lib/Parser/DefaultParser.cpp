@@ -7,7 +7,6 @@
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/Support/StringHost.hpp>
 
-#include "FlexLexer.hpp"
 #include "LexerAPI.hpp"
 #include "LexLexer.hpp"
 #include "Token.hpp"
