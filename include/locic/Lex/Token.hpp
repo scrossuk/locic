@@ -139,6 +139,7 @@ namespace locic {
 
 				AND,
 				OR,
+				XOR,
 
 				IS_A,
 				DOT,
