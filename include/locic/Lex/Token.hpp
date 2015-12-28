@@ -161,6 +161,7 @@ namespace locic {
 				LESSOREQUAL,
 				QUESTIONMARK,
 				TILDA,
+				CARET,
 
 				SELF,
 				THIS
