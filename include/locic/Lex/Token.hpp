@@ -15,6 +15,8 @@ namespace locic {
 		class Token {
 		public:
 			enum Kind {
+				END,
+				
 				NAME,
 				VERSION,
 				CONSTANT,
@@ -193,6 +195,10 @@ namespace locic {
 			
 			Kind kind() const {
 				return kind_;
+			}
+			
+			bool isEnd() const {
+				return kind() == END;
 			}
 			
 			bool hasAssociatedData() const {
