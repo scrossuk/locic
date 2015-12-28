@@ -36,11 +36,9 @@ namespace locic {
 						reader_.consume();
 						throw std::logic_error("TODO");
 					default:
-						break;
+						return type;
 				}
 			}
-			
-			return type;
 		}
 		
 		AST::Node<AST::Type> TypeParser::parseQualifiedType() {
