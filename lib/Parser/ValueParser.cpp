@@ -2,6 +2,7 @@
 #include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
+#include <locic/Parser/TypeParser.hpp>
 #include <locic/Parser/ValueBuilder.hpp>
 #include <locic/Parser/ValueParser.hpp>
 #include <locic/Support/PrimitiveID.hpp>
@@ -405,13 +406,13 @@ namespace locic {
 					return builder_.makeThisValue(start);
 				case Token::ALIGNOF: {
 					reader_.consume();
-					const auto value = parseValue();
-					return builder_.makeAlignOfValue(value, start);
+					const auto type = TypeParser(reader_).parseType();
+					return builder_.makeAlignOfValue(type, start);
 				}
 				case Token::SIZEOF: {
 					reader_.consume();
-					const auto value = parseValue();
-					return builder_.makeSizeOfValue(value, start);
+					const auto type = TypeParser(reader_).parseType();
+					return builder_.makeSizeOfValue(type, start);
 				}
 				case Token::LCURLYBRACKET:
 					reader_.consume();

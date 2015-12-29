@@ -86,11 +86,11 @@ namespace locic {
 			makeThisValue(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
-			makeAlignOfValue(AST::Node<AST::Value> operand,
+			makeAlignOfValue(AST::Node<AST::Type> operand,
 			                 const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
-			makeSizeOfValue(AST::Node<AST::Value> operand,
+			makeSizeOfValue(AST::Node<AST::Type> operand,
 			                const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
