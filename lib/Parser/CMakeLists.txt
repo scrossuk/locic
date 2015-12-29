@@ -21,6 +21,7 @@ add_library(locic-newparser
 	StatementParser.cpp
 	TokenReader.cpp
 	TypeParser.cpp
+	ValueBuilder.cpp
 	ValueParser.cpp
 )
 
