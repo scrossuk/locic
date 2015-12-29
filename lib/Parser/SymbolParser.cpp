@@ -65,7 +65,7 @@ namespace locic {
 			AST::ValueList valueList;
 			
 			while (true) {
-				const auto value = ValueParser(reader_).parseValue();
+				const auto value = ValueParser(reader_).parseValue(ValueParser::IN_TEMPLATE);
 				valueList.push_back(value);
 				
 				if (reader_.peek().kind() != Token::COMMA) {
