@@ -360,22 +360,24 @@ namespace locic {
 			throw std::logic_error("TODO");
 		}
 		
-// 		String ValueParser::parseMethodName(const Debug::SourcePosition& start) {
-// 			const auto token = reader_.peek();
-// 			switch (token.kind()) {
-// 				case Token::NAME:
-// 					reader_.consume();
-// 					return token.name();
-// 				case Token::MOVE:
-// 					reader_.consume();
+		String ValueParser::parseMethodName(const Debug::SourcePosition& /*start*/) {
+			const auto token = reader_.peek();
+			switch (token.kind()) {
+				case Token::NAME:
+					reader_.consume();
+					return token.name();
+				case Token::MOVE:
+					reader_.consume();
 // 					return stringHost_.getCString("move");
-// 				case Token::NULLVAL:
-// 					reader_.consume();
+					throw std::logic_error("TODO");
+				case Token::NULLVAL:
+					reader_.consume();
 // 					return stringHost_.getCString("null");
-// 				default:
-// 					throw std::logic_error("TODO");
-// 			}
-// 		}
+					throw std::logic_error("TODO");
+				default:
+					throw std::logic_error("TODO");
+			}
+		}
 		
 		AST::Node<AST::Value> ValueParser::parseAtomicValue() {
 			const auto start = reader_.position();
