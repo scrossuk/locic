@@ -29,6 +29,12 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Type>
+		TypeBuilder::makeSymbolType(AST::Node<AST::Symbol> symbol,
+		                            const Debug::SourcePosition& start) {
+			return makeTypeNode(AST::Type::Object(symbol), start);
+		}
+		
+		AST::Node<AST::Type>
 		TypeBuilder::makeNamedType(const String& /*name*/,
 		                           const Debug::SourcePosition& /*start*/) {
 			throw std::logic_error("TODO");
