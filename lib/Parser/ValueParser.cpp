@@ -158,14 +158,14 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseValue() {
-			return parseTernaryValue();
+		AST::Node<AST::Value> ValueParser::parseValue(const Context context) {
+			return parseTernaryValue(context);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseTernaryValue() {
+		AST::Node<AST::Value> ValueParser::parseTernaryValue(const Context context) {
 			const auto start = reader_.position();
 			
-			const auto value = parseLogicalOrValue();
+			const auto value = parseLogicalOrValue(context);
 			
 			const auto token = reader_.peek();
 			switch (token.kind()) {
@@ -177,17 +177,17 @@ namespace locic {
 			
 			reader_.consume();
 			
-			const auto ifTrueValue = parseValue();
+			const auto ifTrueValue = parseValue(context);
 			reader_.expect(Token::COLON);
-			const auto ifFalseValue = parseTernaryValue();
+			const auto ifFalseValue = parseTernaryValue(context);
 			return builder_.makeTernaryValue(value, ifTrueValue,
 			                                 ifFalseValue, start);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseLogicalOrValue() {
+		AST::Node<AST::Value> ValueParser::parseLogicalOrValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseLogicalAndValue();
+			auto value = parseLogicalAndValue(context);
 			
 			while (true) {
 				const auto token = reader_.peek();
@@ -200,15 +200,15 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseLogicalAndValue();
+				const auto operand = parseLogicalAndValue(context);
 				value = builder_.makeLogicalOrValue(value, operand, start);
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseLogicalAndValue() {
+		AST::Node<AST::Value> ValueParser::parseLogicalAndValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseBitwiseOrValue();
+			auto value = parseBitwiseOrValue(context);
 			
 			while (true) {
 				const auto token = reader_.peek();
@@ -221,15 +221,15 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseBitwiseOrValue();
+				const auto operand = parseBitwiseOrValue(context);
 				value = builder_.makeLogicalAndValue(value, operand, start);
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseBitwiseOrValue() {
+		AST::Node<AST::Value> ValueParser::parseBitwiseOrValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseBitwiseXorValue();
+			auto value = parseBitwiseXorValue(context);
 			
 			while (true) {
 				const auto token = reader_.peek();
@@ -243,15 +243,15 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseBitwiseXorValue();
+				const auto operand = parseBitwiseXorValue(context);
 				value = builder_.makeBitwiseOrValue(value, operand, start);
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseBitwiseXorValue() {
+		AST::Node<AST::Value> ValueParser::parseBitwiseXorValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseBitwiseAndValue();
+			auto value = parseBitwiseAndValue(context);
 			
 			while (true) {
 				const auto token = reader_.peek();
@@ -265,15 +265,15 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseBitwiseAndValue();
+				const auto operand = parseBitwiseAndValue(context);
 				value = builder_.makeBitwiseXorValue(value, operand, start);
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseBitwiseAndValue() {
+		AST::Node<AST::Value> ValueParser::parseBitwiseAndValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseComparisonValue();
+			auto value = parseComparisonValue(context);
 			
 			while (true) {
 				const auto token = reader_.peek();
@@ -287,15 +287,15 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseComparisonValue();
+				const auto operand = parseComparisonValue(context);
 				value = builder_.makeBitwiseAndValue(value, operand, start);
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseComparisonValue() {
+		AST::Node<AST::Value> ValueParser::parseComparisonValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseShiftValue();
+			auto value = parseShiftValue(context);
 			
 			while (true) {
 				AST::BinaryOpKind opKind;
@@ -326,16 +326,16 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseShiftValue();
+				const auto operand = parseShiftValue(context);
 				value = builder_.makeBinaryOpValue(value, operand,
 				                                   opKind, start);
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseShiftValue() {
+		AST::Node<AST::Value> ValueParser::parseShiftValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseAddOperatorValue();
+			auto value = parseAddOperatorValue(context);
 			
 			while (true) {
 				AST::BinaryOpKind opKind;
@@ -355,16 +355,16 @@ namespace locic {
 						return value;
 				}
 				
-				const auto operand = parseAddOperatorValue();
+				const auto operand = parseAddOperatorValue(context);
 				value = builder_.makeBinaryOpValue(value, operand,
 				                                   opKind, start);
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseAddOperatorValue() {
+		AST::Node<AST::Value> ValueParser::parseAddOperatorValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseMultiplyOperatorValue();
+			auto value = parseMultiplyOperatorValue(context);
 			
 			while (true) {
 				AST::BinaryOpKind opKind;
@@ -382,16 +382,16 @@ namespace locic {
 				}
 				
 				reader_.consume();
-				const auto operand = parseMultiplyOperatorValue();
+				const auto operand = parseMultiplyOperatorValue(context);
 				value = builder_.makeBinaryOpValue(value, operand,
 				                                   opKind, start);
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseMultiplyOperatorValue() {
+		AST::Node<AST::Value> ValueParser::parseMultiplyOperatorValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseUnaryValue();
+			auto value = parseUnaryValue(context);
 			
 			while (true) {
 				AST::BinaryOpKind opKind;
@@ -412,13 +412,13 @@ namespace locic {
 				}
 				
 				reader_.consume();
-				const auto operand = parseUnaryValue();
+				const auto operand = parseUnaryValue(context);
 				value = builder_.makeBinaryOpValue(value, operand,
 				                                   opKind, start);
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseUnaryValue() {
+		AST::Node<AST::Value> ValueParser::parseUnaryValue(const Context context) {
 			const auto start = reader_.position();
 			
 			const auto token = reader_.peek();
@@ -445,19 +445,19 @@ namespace locic {
 					opKind = AST::OP_MOVE;
 					break;
 				default:
-					return parseCallValue();
+					return parseCallValue(context);
 			}
 			
 			reader_.consume();
 			
-			const auto value = parseUnaryValue();
+			const auto value = parseUnaryValue(context);
 			return builder_.makeUnaryOpValue(value, opKind, start);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseCallValue() {
+		AST::Node<AST::Value> ValueParser::parseCallValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseAtomicValue();
+			auto value = parseAtomicValue(context);
 			
 			while (true) {
 				const auto token = reader_.peek();

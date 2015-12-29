@@ -23,6 +23,21 @@ namespace locic {
 		
 		class ValueParser {
 		public:
+			enum Context {
+				GENERIC,
+				
+				// If we're in the middle of parsing template
+				// arguments, we can't accept comparison (<, >)
+				// operations or right shifts (>>).
+				IN_TEMPLATE,
+				
+				// If we're in the middle of a possible type
+				// declaration, then 'VAL & NAME' should be
+				// treated as a variable definition rather than
+				// bitwise AND.
+				IN_TYPEDECL
+			};
+			
 			ValueParser(TokenReader& reader);
 			~ValueParser();
 			
@@ -30,31 +45,31 @@ namespace locic {
 			
 			bool isValueStartToken(Token::Kind kind) const;
 			
-			AST::Node<AST::Value> parseValue();
+			AST::Node<AST::Value> parseValue(Context context = GENERIC);
 			
-			AST::Node<AST::Value> parseTernaryValue();
+			AST::Node<AST::Value> parseTernaryValue(Context context);
 			
-			AST::Node<AST::Value> parseLogicalOrValue();
+			AST::Node<AST::Value> parseLogicalOrValue(Context context);
 			
-			AST::Node<AST::Value> parseLogicalAndValue();
+			AST::Node<AST::Value> parseLogicalAndValue(Context context);
 			
-			AST::Node<AST::Value> parseBitwiseOrValue();
+			AST::Node<AST::Value> parseBitwiseOrValue(Context context);
 			
-			AST::Node<AST::Value> parseBitwiseXorValue();
+			AST::Node<AST::Value> parseBitwiseXorValue(Context context);
 			
-			AST::Node<AST::Value> parseBitwiseAndValue();
+			AST::Node<AST::Value> parseBitwiseAndValue(Context context);
 			
-			AST::Node<AST::Value> parseComparisonValue();
+			AST::Node<AST::Value> parseComparisonValue(Context context);
 			
-			AST::Node<AST::Value> parseShiftValue();
+			AST::Node<AST::Value> parseShiftValue(Context context);
 			
-			AST::Node<AST::Value> parseAddOperatorValue();
+			AST::Node<AST::Value> parseAddOperatorValue(Context context);
 			
-			AST::Node<AST::Value> parseMultiplyOperatorValue();
+			AST::Node<AST::Value> parseMultiplyOperatorValue(Context context);
 			
-			AST::Node<AST::Value> parseUnaryValue();
+			AST::Node<AST::Value> parseUnaryValue(Context context);
 			
-			AST::Node<AST::Value> parseCallValue();
+			AST::Node<AST::Value> parseCallValue(Context context);
 			
 			AST::Node<AST::Value> parseMemberAccessExpression(AST::Node<AST::Value> value,
 			                                                  bool isDeref,
