@@ -75,6 +75,14 @@ namespace locic {
 			                 const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
+			makeAssertNoexceptStatement(AST::Node<AST::Scope> scope,
+			                            const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Statement>
+			makeAssertStatement(AST::Node<AST::Value> value,
+			                    const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Statement>
 			makeVarDeclStatement(AST::Node<AST::TypeVar> var,
 			                     AST::Node<AST::Value> value,
 			                     const Debug::SourcePosition& start);
