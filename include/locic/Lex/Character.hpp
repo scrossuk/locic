@@ -10,8 +10,8 @@ namespace locic {
 		
 		class Character {
 		public:
-			Character(uint32_t value)
-			: value_(value) { }
+			Character(const uint32_t argValue)
+			: value_(argValue) { }
 			
 			bool isNull() const {
 				return value_ == 0;

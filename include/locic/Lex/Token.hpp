@@ -229,8 +229,8 @@ namespace locic {
 				return data_.constantValue;
 			}
 			
-			void setSourceRange(const Debug::SourceRange sourceRange) {
-				sourceRange_ = sourceRange;
+			void setSourceRange(const Debug::SourceRange argSourceRange) {
+				sourceRange_ = argSourceRange;
 			}
 			
 			const Debug::SourceRange& sourceRange() const {
