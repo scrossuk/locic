@@ -309,9 +309,17 @@ namespace locic {
 						opKind = AST::OP_NOTEQUAL;
 						break;
 					case Token::LTRIBRACKET:
+						if (context == IN_TEMPLATE) {
+							// Can't have '<' in template values.
+							return value;
+						}
 						opKind = AST::OP_LESSTHAN;
 						break;
 					case Token::RTRIBRACKET:
+						if (context == IN_TEMPLATE) {
+							// Can't have '>' in template values.
+							return value;
+						}
 						opKind = AST::OP_GREATERTHAN;
 						break;
 					case Token::LESSOREQUAL:
@@ -347,6 +355,10 @@ namespace locic {
 						opKind = AST::OP_LEFTSHIFT;
 						break;
 					case Token::RTRIBRACKET:
+						if (context == IN_TEMPLATE) {
+							// Can't have '>>' in template values.
+							return value;
+						}
 						if (reader_.peek(/*offset=*/1).kind() != Token::RTRIBRACKET) {
 							return value;
 						}
