@@ -1,0 +1,167 @@
+#include <locic/AST.hpp>
+#include <locic/Debug/SourceLocation.hpp>
+#include <locic/Debug/SourceRange.hpp>
+#include <locic/Debug/SourcePosition.hpp>
+#include <locic/Parser/TokenReader.hpp>
+#include <locic/Parser/ValueBuilder.hpp>
+
+namespace locic {
+	
+	namespace Parser {
+		
+// 		static AST::Value* UnaryOp(const String& name, AST::Node<AST::Value> operand) {
+// 			const auto paramNode = AST::Node<AST::ValueList>(operand.location(), new AST::ValueList());
+// 			return AST::Value::FunctionCall(AST::makeNode(operand.location(), AST::Value::MemberAccess(operand, name)), paramNode);
+// 		}
+// 		
+// 		static AST::Value* BinaryOp(const String& name, AST::Node<AST::Value> leftOperand, AST::Node<AST::Value> rightOperand) {
+// 			const auto paramNode = AST::makeNode(rightOperand.location(), new AST::ValueList(1, rightOperand));
+// 			return AST::Value::FunctionCall(AST::makeNode(leftOperand.location(), AST::Value::MemberAccess(leftOperand, name)), paramNode);
+// 		}
+		
+		ValueBuilder::ValueBuilder(const TokenReader& reader)
+		: reader_(reader) { }
+		
+		ValueBuilder::~ValueBuilder() { }
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeValueNode(AST::Value* const value,
+		                            const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, value);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeTernaryValue(AST::Node<AST::Value> conditionValue,
+		                               AST::Node<AST::Value> ifTrueValue,
+		                               AST::Node<AST::Value> ifFalseValue,
+		                               const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::Ternary(conditionValue, ifTrueValue,
+			                                         ifFalseValue), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeLogicalOrValue(AST::Node<AST::Value> leftValue,
+		                                 AST::Node<AST::Value> rightValue,
+		                                 const Debug::SourcePosition& start) {
+			return makeBinaryOpValue(leftValue, rightValue,
+			                         AST::OP_LOGICALOR, start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeLogicalAndValue(AST::Node<AST::Value> leftValue,
+		                                  AST::Node<AST::Value> rightValue,
+		                                  const Debug::SourcePosition& start) {
+			return makeBinaryOpValue(leftValue, rightValue,
+			                         AST::OP_LOGICALAND, start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeBitwiseOrValue(AST::Node<AST::Value> leftValue,
+		                                 AST::Node<AST::Value> rightValue,
+		                                 const Debug::SourcePosition& start) {
+			return makeBinaryOpValue(leftValue, rightValue,
+			                         AST::OP_BITWISEOR, start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeBitwiseXorValue(AST::Node<AST::Value> /*leftValue*/,
+		                                  AST::Node<AST::Value> /*rightValue*/,
+		                                  const Debug::SourcePosition& /*start*/) {
+			throw std::logic_error("TODO");
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeBitwiseAndValue(AST::Node<AST::Value> leftValue,
+		                                  AST::Node<AST::Value> rightValue,
+		                                  const Debug::SourcePosition& start) {
+			return makeBinaryOpValue(leftValue, rightValue,
+			                         AST::OP_BITWISEAND, start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeBinaryOpValue(AST::Node<AST::Value> leftValue,
+		                                AST::Node<AST::Value> rightValue,
+		                                const AST::BinaryOpKind opKind,
+		                                const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::BinaryOp(opKind, leftValue,
+			                                          rightValue), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeUnaryOpValue(AST::Node<AST::Value> operand,
+		                               const AST::UnaryOpKind opKind,
+		                               const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::UnaryOp(opKind, operand), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeCallValue(AST::Node<AST::Value> callableValue,
+		                            const AST::Node<AST::ValueList>& parameters,
+		                            const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::FunctionCall(callableValue, parameters), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeIndexValue(AST::Node<AST::Value> /*value*/,
+		                             AST::Node<AST::Value> /*indexValue*/,
+		                             const Debug::SourcePosition& /*start*/) {
+// 			return makeValueNode(BinaryOp(reader_.getCString("index"),
+// 			                              value, indexValue), start);
+			throw std::logic_error("TODO");
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeLiteralValue(const Constant constant,
+		                               const String literalSpecifier,
+		                               const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			const auto constantNode = AST::makeNode(location, new Constant(constant));
+			return makeValueNode(AST::Value::Literal(literalSpecifier,
+			                                         constantNode), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeSelfValue(const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::Self(), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeThisValue(const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::This(), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeAlignOfValue(const AST::Node<AST::Type> operand,
+		                               const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::AlignOf(operand), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeSizeOfValue(AST::Node<AST::Type> operand,
+		                              const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::SizeOf(operand), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeSelfMemberAccess(const String name,
+		                                   const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::MemberRef(name), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeArrayLiteralValue(AST::Node<AST::ValueList> values,
+		                                    const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::ArrayLiteral(values), start);
+		}
+		
+		AST::Node<AST::ValueList>
+		ValueBuilder::makeValueList(AST::ValueList values,
+		                            const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, new AST::ValueList(std::move(values)));
+		}
+		
+	}
+	
+}
