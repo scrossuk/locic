@@ -472,7 +472,7 @@ namespace locic {
 		AST::Node<AST::Value> ValueParser::parseCallValue(const Context context) {
 			const auto start = reader_.position();
 			
-			auto value = parseAtomicValue(context);
+			auto value = parseTypeValue(context);
 			
 			while (true) {
 				const auto token = reader_.peek();
@@ -531,6 +531,40 @@ namespace locic {
 					throw std::logic_error("TODO");
 				default:
 					throw std::logic_error("TODO");
+			}
+		}
+		
+		AST::Node<AST::Value> ValueParser::parseTypeValue(const Context context) {
+			auto value = parseAtomicValue();
+			
+			while (true) {
+				const auto token = reader_.peek();
+				switch (token.kind()) {
+					case Token::STAR:
+					case Token::AMPERSAND:
+						break;
+					case Token::LSQUAREBRACKET: {
+						// TODO
+					}
+					default:
+						return value;
+				}
+				
+				const auto secondToken = reader_.peek(/*offset=*/1);
+				if (secondToken.kind() == Token::NAME) {
+					if (context != IN_TYPEDECL) {
+						// If we're not in a vardecl, then a NAME after
+						// STAR/AMPERSAND means this is a multiply or
+						// bitwise-AND value.
+						return value;
+					}
+				} else if (isValueStartToken(secondToken.kind())) {
+					// Next token is a value, so this is a
+					// multiply/bitwise-AND value.
+					return value;
+				}
+				
+				throw std::logic_error("TODO: pointer/reference type value");
 			}
 		}
 		

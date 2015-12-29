@@ -77,6 +77,8 @@ namespace locic {
 			
 			String parseMethodName(const Debug::SourcePosition& start);
 			
+			AST::Node<AST::Value> parseTypeValue(Context context);
+			
 			AST::Node<AST::Value> parseAtomicValue();
 			
 			AST::Node<AST::Value> parseAtExpression(const Debug::SourcePosition& start);
