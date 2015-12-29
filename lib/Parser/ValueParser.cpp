@@ -347,6 +347,9 @@ namespace locic {
 						opKind = AST::OP_LEFTSHIFT;
 						break;
 					case Token::RTRIBRACKET:
+						if (reader_.peek(/*offset=*/1).kind() != Token::RTRIBRACKET) {
+							return value;
+						}
 						reader_.consume();
 						reader_.expect(Token::RTRIBRACKET);
 						opKind = AST::OP_RIGHTSHIFT;
