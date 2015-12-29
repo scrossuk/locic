@@ -28,6 +28,8 @@ namespace locic {
 			
 			void issueError(Diag diag, const Debug::SourcePosition& start);
 			
+			bool isValueStartToken(Token::Kind kind) const;
+			
 			AST::Node<AST::Value> parseValue();
 			
 			AST::Node<AST::Value> parseTernaryValue();
