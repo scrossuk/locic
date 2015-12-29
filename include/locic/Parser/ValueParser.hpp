@@ -93,9 +93,6 @@ namespace locic {
 			
 			AST::Node<AST::Value> parseArrayLiteral(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value> parseSymbolSuffix(String firstName,
-			                                        const Debug::SourcePosition& start);
-			
 			AST::Node<AST::ValueList> parseValueList();
 			
 		private:

@@ -679,11 +679,6 @@ namespace locic {
 			return builder_.makeArrayLiteralValue(valueList, start);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseSymbolSuffix(String /*firstName*/,
-		                                                     const Debug::SourcePosition& /*start*/) {
-			throw std::logic_error("TODO");
-		}
-		
 		AST::Node<AST::ValueList> ValueParser::parseValueList() {
 			const auto start = reader_.position();
 			
