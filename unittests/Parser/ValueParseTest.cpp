@@ -193,6 +193,71 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, SymbolTwoComponents) {
+			const auto tokens = {
+				Token::NAME,
+				Token::DOUBLE_COLON,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->symbolRef.symbol->size(), 2);
+				EXPECT_EQ(value->symbolRef.symbol->at(0)->templateArguments()->size(), 0);
+				EXPECT_EQ(value->symbolRef.symbol->at(1)->templateArguments()->size(), 0);
+			});
+		}
+		
+		TEST(ValueParseTest, SymbolThreeComponents) {
+			const auto tokens = {
+				Token::NAME,
+				Token::DOUBLE_COLON,
+				Token::NAME,
+				Token::DOUBLE_COLON,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->symbolRef.symbol->size(), 3);
+				EXPECT_EQ(value->symbolRef.symbol->at(0)->templateArguments()->size(), 0);
+				EXPECT_EQ(value->symbolRef.symbol->at(1)->templateArguments()->size(), 0);
+				EXPECT_EQ(value->symbolRef.symbol->at(2)->templateArguments()->size(), 0);
+			});
+		}
+		
+		TEST(ValueParseTest, SymbolTemplatedChild) {
+			const auto tokens = {
+				Token::NAME,
+				Token::DOUBLE_COLON,
+				Token::NAME,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->symbolRef.symbol->size(), 2);
+				EXPECT_EQ(value->symbolRef.symbol->at(0)->templateArguments()->size(), 0);
+				EXPECT_EQ(value->symbolRef.symbol->at(1)->templateArguments()->size(), 1);
+			});
+		}
+		
+		TEST(ValueParseTest, SymbolTemplatedParent) {
+			const auto tokens = {
+				Token::NAME,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::DOUBLE_COLON,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->symbolRef.symbol->size(), 2);
+				EXPECT_EQ(value->symbolRef.symbol->at(0)->templateArguments()->size(), 1);
+				EXPECT_EQ(value->symbolRef.symbol->at(1)->templateArguments()->size(), 0);
+			});
+		}
+		
 	}
 	
 }
