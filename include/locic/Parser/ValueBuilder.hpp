@@ -84,6 +84,10 @@ namespace locic {
 			                 const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
+			makeSymbolValue(AST::Node<AST::Symbol> symbol,
+			                const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Value>
 			makeSelfValue(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>

@@ -122,6 +122,12 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
+		ValueBuilder::makeSymbolValue(AST::Node<AST::Symbol> symbol,
+		                              const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::SymbolRef(symbol), start);
+		}
+		
+		AST::Node<AST::Value>
 		ValueBuilder::makeSelfValue(const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::Self(), start);
 		}
