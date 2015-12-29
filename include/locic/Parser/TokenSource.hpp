@@ -5,6 +5,8 @@
 
 namespace locic {
 	
+	class String;
+	
 	namespace Parser {
 		
 		class TokenSource {
@@ -13,6 +15,8 @@ namespace locic {
 			
 		public:
 			virtual Token get() = 0;
+			
+			virtual String fileName() = 0;
 			
 		};
 		
