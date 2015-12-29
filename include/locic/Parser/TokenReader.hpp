@@ -26,10 +26,13 @@ namespace locic {
 			
 			Debug::SourcePosition position() const;
 			
+			Debug::SourcePosition lastTokenEndPosition() const;
+			
 		private:
 			TokenSource& source_;
 			Token currentToken_;
 			Debug::SourcePosition position_;
+			Debug::SourcePosition lastEndPosition_;
 			
 		};
 		
