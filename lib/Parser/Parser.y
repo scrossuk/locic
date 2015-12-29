@@ -33,9 +33,7 @@ static locic::Debug::SourceLocation convertLocationInfo(const locic::String file
 			                             locationInfo->first_byte),
 			locic::Debug::SourcePosition(locationInfo->last_line, locationInfo->last_column,
 			                             locationInfo->last_byte)
-		),
-		std::make_pair(locationInfo->first_byte, locationInfo->last_byte),
-		std::make_pair(locationInfo->first_line_byte, locationInfo->last_line_byte)
+		)
 	);
 }
 

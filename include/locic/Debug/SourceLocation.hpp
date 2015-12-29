@@ -19,31 +19,18 @@ namespace locic {
 		class SourceLocation {
 			public:
 				static SourceLocation Null() {
-					const auto nullPosition = SourcePosition(0, 0, 0);
-					return SourceLocation(String::Null(), SourceRange(nullPosition, nullPosition),
-						std::make_pair<size_t, size_t>(0, 0), std::make_pair<size_t, size_t>(0, 0));
+					return SourceLocation(String::Null(), SourceRange::Null());
 				}
 				
-				SourceLocation(String pFileName, SourceRange pRange,
-						std::pair<size_t, size_t> pByteRange,
-						std::pair<size_t, size_t> pLineByteRange)
-					: fileName_(std::move(pFileName)), range_(pRange),
-					byteRange_(pByteRange), lineByteRange_(pLineByteRange) { }
-					
+				SourceLocation(String pFileName, SourceRange pRange)
+				: fileName_(std::move(pFileName)), range_(pRange) { }
+				
 				String fileName() const {
 					return fileName_;
 				}
 				
 				SourceRange range() const {
 					return range_;
-				}
-				
-				std::pair<size_t, size_t> byteRange() const {
-					return byteRange_;
-				}
-				
-				std::pair<size_t, size_t> lineByteRange() const {
-					return lineByteRange_;
 				}
 				
 				std::string toString() const {
@@ -54,8 +41,6 @@ namespace locic {
 			private:
 				String fileName_;
 				SourceRange range_;
-				std::pair<size_t, size_t> byteRange_;
-				std::pair<size_t, size_t> lineByteRange_;
 				
 		};
 		
