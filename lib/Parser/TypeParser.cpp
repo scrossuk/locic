@@ -2,6 +2,7 @@
 #include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
+#include <locic/Parser/TypeBuilder.hpp>
 #include <locic/Parser/TypeParser.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 
@@ -12,7 +13,7 @@ namespace locic {
 	namespace Parser {
 		
 		TypeParser::TypeParser(TokenReader& reader)
-		: reader_(reader) { }
+		: reader_(reader), builder_(reader) { }
 		
 		TypeParser::~TypeParser() { }
 		
@@ -26,11 +27,11 @@ namespace locic {
 				switch (token.kind()) {
 					case Token::STAR:
 						reader_.consume();
-						type = makePointerType(type, start);
+						type = builder_.makePointerType(type, start);
 						break;
 					case Token::AMPERSAND:
 						reader_.consume();
-						type = makeReferenceType(type, start);
+						type = builder_.makeReferenceType(type, start);
 						break;
 					case Token::LSQUAREBRACKET:
 						reader_.consume();
@@ -81,11 +82,11 @@ namespace locic {
 			
 			switch (qualifier) {
 				case Token::LVAL:
-					return makeLvalType(targetType, type, start);
+					return builder_.makeLvalType(targetType, type, start);
 				case Token::REF:
-					return makeRefType(targetType, type, start);
+					return builder_.makeRefType(targetType, type, start);
 				case Token::STATICREF:
-					return makeStaticRefType(targetType, type, start);
+					return builder_.makeStaticRefType(targetType, type, start);
 				default:
 					throw std::logic_error("Unknown type qualifier kind.");
 			}
@@ -98,13 +99,13 @@ namespace locic {
 			switch (token.kind()) {
 				case Token::AUTO:
 					reader_.consume();
-					return makeAutoType(start);
+					return builder_.makeAutoType(start);
 				case Token::VOID:
 					reader_.consume();
-					return makePrimitiveType(PrimitiveVoid, start);
+					return builder_.makePrimitiveType(PrimitiveVoid, start);
 				case Token::BOOL:
 					reader_.consume();
-					return makePrimitiveType(PrimitiveBool, start);
+					return builder_.makePrimitiveType(PrimitiveBool, start);
 				case Token::UNSIGNED:
 					reader_.consume();
 					return parseIntegerTypeWithSignedness(start,
@@ -115,25 +116,25 @@ namespace locic {
 					                                      /*isSigned=*/true);
 				case Token::UBYTE:
 					reader_.consume();
-					return makePrimitiveType(PrimitiveUByte, start);
+					return builder_.makePrimitiveType(PrimitiveUByte, start);
 				case Token::USHORT:
 					reader_.consume();
-					return makePrimitiveType(PrimitiveUShort, start);
+					return builder_.makePrimitiveType(PrimitiveUShort, start);
 				case Token::UINT:
 					reader_.consume();
-					return makePrimitiveType(PrimitiveUInt, start);
+					return builder_.makePrimitiveType(PrimitiveUInt, start);
 				case Token::ULONG:
 					reader_.consume();
-					return makePrimitiveType(PrimitiveULong, start);
+					return builder_.makePrimitiveType(PrimitiveULong, start);
 				case Token::ULONGLONG:
 					reader_.consume();
-					return makePrimitiveType(PrimitiveULongLong, start);
+					return builder_.makePrimitiveType(PrimitiveULongLong, start);
 				case Token::FLOAT:
 					reader_.consume();
-					return makePrimitiveType(PrimitiveFloat, start);
+					return builder_.makePrimitiveType(PrimitiveFloat, start);
 				case Token::DOUBLE:
 					reader_.consume();
-					return makePrimitiveType(PrimitiveDouble, start);
+					return builder_.makePrimitiveType(PrimitiveDouble, start);
 				case Token::LONG:
 					reader_.consume();
 					return parseLongIntOrFloatType(start);
@@ -146,13 +147,13 @@ namespace locic {
 					                                      /*isSigned=*/true);
 				case Token::NAME:
 					reader_.consume();
-					return makeNamedType(token.name(), start);
+					return builder_.makeNamedType(token.name(), start);
 				default:
 					issueError(Diag::InvalidType, start);
 					reader_.consume();
 					
 					// Pretend we got an int type.
-					return makePrimitiveType(PrimitiveInt, start);
+					return builder_.makePrimitiveType(PrimitiveInt, start);
 			}
 		}
 		
@@ -160,7 +161,7 @@ namespace locic {
 			switch (reader_.peek().kind()) {
 				case Token::DOUBLE:
 					reader_.consume();
-					return makePrimitiveType(PrimitiveLongDouble, start);
+					return builder_.makePrimitiveType(PrimitiveLongDouble, start);
 				default:
 					return parseLongIntegerType(start,
 					                            /*isSigned=*/true);
@@ -186,24 +187,24 @@ namespace locic {
 					}
 					case Token::BYTE:
 						reader_.consume();
-						return makePrimitiveType(PrimitiveByte, start, isSigned);
+						return builder_.makePrimitiveType(PrimitiveByte, start, isSigned);
 					case Token::SHORT:
 						reader_.consume();
 						if (reader_.peek().kind() == Token::INT) {
 							reader_.consume();
 						}
-						return makePrimitiveType(PrimitiveShort, start, isSigned);
+						return builder_.makePrimitiveType(PrimitiveShort, start, isSigned);
 					case Token::INT:
 						reader_.consume();
-						return makePrimitiveType(PrimitiveInt, start, isSigned);
+						return builder_.makePrimitiveType(PrimitiveInt, start, isSigned);
 					case Token::LONG:
 						reader_.consume();
 						return parseLongIntegerType(start, isSigned);
 					case Token::LONGLONG:
 						reader_.consume();
-						return makePrimitiveType(PrimitiveLongLong, start, isSigned);
+						return builder_.makePrimitiveType(PrimitiveLongLong, start, isSigned);
 					default:
-						return makePrimitiveType(PrimitiveInt, start, isSigned);
+						return builder_.makePrimitiveType(PrimitiveInt, start, isSigned);
 				}
 			}
 		}
@@ -221,7 +222,7 @@ namespace locic {
 				reader_.consume();
 			}
 			
-			return makePrimitiveType(primitiveKind, start, isSigned);
+			return builder_.makePrimitiveType(primitiveKind, start, isSigned);
 		}
 		
 	}

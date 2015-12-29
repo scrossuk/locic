@@ -4,6 +4,7 @@
 #include <locic/AST.hpp>
 #include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/Token.hpp>
+#include <locic/Parser/TypeBuilder.hpp>
 
 namespace locic {
 	
@@ -27,28 +28,6 @@ namespace locic {
 			
 			void issueError(Diag diag, const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type> makePrimitiveType(PrimitiveID primitiveID,
-			                                       const Debug::SourcePosition& start,
-			                                       bool isSigned = true);
-			AST::Node<AST::Type> makeNamedType(const String& name,
-			                                   const Debug::SourcePosition& start);
-			
-			AST::Node<AST::Type> makeLvalType(AST::Node<AST::Type> targetType,
-			                                  AST::Node<AST::Type> type,
-			                                  const Debug::SourcePosition& start);
-			AST::Node<AST::Type> makeRefType(AST::Node<AST::Type> targetType,
-			                                 AST::Node<AST::Type> type,
-			                                 const Debug::SourcePosition& start);
-			AST::Node<AST::Type> makeStaticRefType(AST::Node<AST::Type> targetType,
-			                                       AST::Node<AST::Type> type,
-			                                       const Debug::SourcePosition& start);
-			
-			AST::Node<AST::Type> makeAutoType(const Debug::SourcePosition& start);
-			AST::Node<AST::Type> makeReferenceType(AST::Node<AST::Type> targetType,
-			                                       const Debug::SourcePosition& start);
-			AST::Node<AST::Type> makePointerType(AST::Node<AST::Type> targetType,
-			                                     const Debug::SourcePosition& start);
-			
 			AST::Node<AST::Type> parseType();
 			
 			AST::Node<AST::Type> parseQualifiedType();
@@ -70,6 +49,7 @@ namespace locic {
 			
 		private:
 			TokenReader& reader_;
+			TypeBuilder builder_;
 			
 		};
 		
