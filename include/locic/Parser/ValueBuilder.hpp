@@ -24,6 +24,10 @@ namespace locic {
 			~ValueBuilder();
 			
 			AST::Node<AST::Value>
+			makeValueNode(AST::Value* value,
+			              const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Value>
 			makeTernaryValue(AST::Node<AST::Value> conditionValue,
 			                 AST::Node<AST::Value> ifTrueValue,
 			                 AST::Node<AST::Value> ifFalseValue,
