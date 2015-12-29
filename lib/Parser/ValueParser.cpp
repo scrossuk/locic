@@ -38,6 +38,7 @@ namespace locic {
 			reader_.consume();
 			
 			const auto ifTrueValue = parseValue();
+			reader_.expect(Token::COLON);
 			const auto ifFalseValue = parseTernaryValue();
 			return builder_.makeTernaryValue(value, ifTrueValue,
 			                                 ifFalseValue, start);
