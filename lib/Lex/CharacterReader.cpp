@@ -42,6 +42,7 @@ namespace locic {
 		}
 		
 		void CharacterReader::expect(const Character character) {
+			(void) character;
 			assert(currentCharacter_ == character);
 			consume();
 		}

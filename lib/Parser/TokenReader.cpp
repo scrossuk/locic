@@ -52,6 +52,7 @@ namespace locic {
 		}
 		
 		void TokenReader::expect(const Token::Kind tokenKind) {
+			(void) tokenKind;
 			assert(!tokens_.empty());
 			assert(peek().kind() == tokenKind);
 			consume();
