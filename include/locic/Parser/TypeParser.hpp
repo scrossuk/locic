@@ -30,6 +30,9 @@ namespace locic {
 			
 			AST::Node<AST::Type> parseType();
 			
+			AST::Node<AST::Type> parseIndirectTypeBasedOnType(AST::Node<AST::Type> type,
+			                                                  const Debug::SourcePosition& start);
+			
 			AST::Node<AST::Type> parseQualifiedType();
 			
 			AST::Node<AST::Type> parseConstType();

@@ -23,9 +23,12 @@ namespace locic {
 		
 		AST::Node<AST::Type> TypeParser::parseType() {
 			const auto start = reader_.position();
-			
 			auto type = parseQualifiedType();
-			
+			return parseIndirectTypeBasedOnType(type, start);
+		}
+		
+		AST::Node<AST::Type> TypeParser::parseIndirectTypeBasedOnType(AST::Node<AST::Type> type,
+		                                                              const Debug::SourcePosition& start) {
 			while (true) {
 				const auto token = reader_.peek();
 				switch (token.kind()) {
