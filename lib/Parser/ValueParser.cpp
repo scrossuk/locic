@@ -1,5 +1,6 @@
 #include <locic/AST.hpp>
 #include <locic/Parser/Diagnostics.hpp>
+#include <locic/Parser/SymbolParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeParser.hpp>
@@ -394,8 +395,7 @@ namespace locic {
 					reader_.consume();
 					return parseAtExpression(start);
 				case Token::NAME:
-					reader_.consume();
-					return parseSymbolOrLiteral(token.name(), start);
+					return parseSymbolOrLiteralValue();
 				case Token::CONSTANT:
 					reader_.consume();
 					return parseLiteral(token.constant(), start);
@@ -443,17 +443,27 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseSymbolOrLiteral(const String name,
-		                                                        const Debug::SourcePosition& start) {
-			const auto token = reader_.peek();
-			switch (token.kind()) {
+		AST::Node<AST::Value> ValueParser::parseSymbolOrLiteralValue() {
+			const auto start = reader_.position();
+			
+			const auto firstToken = reader_.peek(/*offset=*/0);
+			assert(firstToken.kind() == Token::NAME);
+			
+			const auto secondToken = reader_.peek(/*offset=*/1);
+			
+			switch (secondToken.kind()) {
 				case Token::CONSTANT: {
+					// This is a literal specifier in prefix form
+					// (i.e. NAME then CONSTANT).
 					reader_.consume();
-					return builder_.makeLiteralValue(token.constant(),
-					                                 name, start);
+					reader_.consume();
+					return builder_.makeLiteralValue(secondToken.constant(),
+					                                 firstToken.name(), start);
 				}
-				default:
-					return parseSymbolSuffix(name, start);
+				default: {
+					const auto symbol = SymbolParser(reader_).parseSymbol();
+					return builder_.makeSymbolValue(symbol, start);
+				}
 			}
 		}
 		
