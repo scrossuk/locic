@@ -1,6 +1,8 @@
 #ifndef LOCIC_PARSER_TOKENREADER_HPP
 #define LOCIC_PARSER_TOKENREADER_HPP
 
+#include <deque>
+
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Parser/Token.hpp>
 
@@ -25,7 +27,7 @@ namespace locic {
 			
 			Token get();
 			
-			Token peek();
+			Token peek(size_t offset = 0);
 			
 			void consume();
 			
@@ -41,7 +43,7 @@ namespace locic {
 			
 		private:
 			TokenSource& source_;
-			Token currentToken_;
+			std::deque<Token> tokens_;
 			Debug::SourcePosition position_;
 			Debug::SourcePosition lastEndPosition_;
 			

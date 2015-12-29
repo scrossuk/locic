@@ -1,3 +1,5 @@
+#include <deque>
+
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
@@ -10,34 +12,48 @@ namespace locic {
 	namespace Parser {
 		
 		TokenReader::TokenReader(TokenSource& source)
-		: source_(source), currentToken_(source.get()),
-		position_(currentToken_.sourceRange().start()),
+		: source_(source), tokens_(1, source.get()),
+		position_(tokens_.front().sourceRange().start()),
 		lastEndPosition_(position_) { }
 		
 		bool TokenReader::isEnd() const {
-			return currentToken_.isEnd();
+			return tokens_.front().isEnd();
 		}
 		
 		Token TokenReader::get() {
+			assert(!tokens_.empty());
 			assert(!isEnd());
-			const auto currentToken = currentToken_;
+			const auto currentToken = peek();
 			consume();
 			return currentToken;
 		}
 		
-		Token TokenReader::peek() {
-			return currentToken_;
+		Token TokenReader::peek(const size_t offset) {
+			assert(!tokens_.empty());
+			
+			while (offset >= tokens_.size()) {
+				assert(!tokens_.back().isEnd());
+				tokens_.push_back(source_.get());
+			}
+			
+			return tokens_[offset];
 		}
 		
 		void TokenReader::consume() {
+			assert(!tokens_.empty());
 			assert(!isEnd());
-			lastEndPosition_ = currentToken_.sourceRange().end();
-			currentToken_ = source_.get();
-			position_ = currentToken_.sourceRange().start();
+			lastEndPosition_ = tokens_.front().sourceRange().end();
+			tokens_.pop_front();
+			if (tokens_.empty()) {
+				tokens_.push_back(source_.get());
+			}
+			position_ = tokens_.front().sourceRange().start();
+			assert(!tokens_.empty());
 		}
 		
 		void TokenReader::expect(const Token::Kind tokenKind) {
-			assert(currentToken_.kind() == tokenKind);
+			assert(!tokens_.empty());
+			assert(peek().kind() == tokenKind);
 			consume();
 		}
 		
