@@ -47,7 +47,7 @@ namespace locic {
 					throw std::logic_error("TODO");
 				}
 				case Token::ASSERT: {
-					throw std::logic_error("TODO");
+					return parseAssertStatement();
 				}
 				case Token::RETURN: {
 					reader_.consume();
@@ -202,6 +202,20 @@ namespace locic {
 			reader_.expect(Token::RROUNDBRACKET);
 			const auto scope = ScopeParser(reader_).parseScope();
 			return builder_.makeForStatement(var, value, scope, start);
+		}
+		
+		AST::Node<AST::Statement> StatementParser::parseAssertStatement() {
+			const auto start = reader_.position();
+			reader_.expect(Token::ASSERT);
+			
+			if (reader_.peek().kind() == Token::NOEXCEPT) {
+				reader_.consume();
+				const auto scope = ScopeParser(reader_).parseScope();
+				return builder_.makeAssertNoexceptStatement(scope, start);
+			}
+			
+			const auto value = ValueParser(reader_).parseValue();
+			return builder_.makeAssertStatement(value, start);
 		}
 		
 		bool StatementParser::isVarDeclStartToken(const Token::Kind kind) {
