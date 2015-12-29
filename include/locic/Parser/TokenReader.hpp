@@ -6,6 +6,13 @@
 
 namespace locic {
 	
+	namespace Debug {
+		
+		class SourceLocation;
+		class SourceRange;
+		
+	}
+	
 	namespace Parser {
 		
 		class TokenSource;
@@ -27,6 +34,10 @@ namespace locic {
 			Debug::SourcePosition position() const;
 			
 			Debug::SourcePosition lastTokenEndPosition() const;
+			
+			Debug::SourceRange rangeFrom(Debug::SourcePosition start) const;
+			
+			Debug::SourceLocation locationWithRangeFrom(Debug::SourcePosition start) const;
 			
 		private:
 			TokenSource& source_;
