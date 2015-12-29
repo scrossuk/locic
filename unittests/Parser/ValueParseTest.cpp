@@ -102,7 +102,7 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, LeftShift) {
-			const auto tokens = {
+			auto tokens = {
 				Token::NAME,
 				Token::DOUBLE_LTRIBRACKET,
 				Token::NAME
@@ -116,7 +116,7 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, RightShift) {
-			const auto tokens = {
+			auto tokens = {
 				Token::NAME,
 				Token::RTRIBRACKET,
 				Token::RTRIBRACKET,
@@ -131,7 +131,7 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, Add) {
-			const auto tokens = {
+			auto tokens = {
 				Token::NAME,
 				Token::PLUS,
 				Token::NAME
@@ -143,7 +143,7 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, AddLeftAssociative) {
-			const auto tokens = {
+			auto tokens = {
 				Token::NAME,
 				Token::PLUS,
 				Token::NAME,
@@ -160,7 +160,7 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, MultiplyInAddLeft) {
-			const auto tokens = {
+			auto tokens = {
 				Token::NAME,
 				Token::STAR,
 				Token::NAME,
@@ -177,7 +177,7 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, MultiplyInAddRight) {
-			const auto tokens = {
+			auto tokens = {
 				Token::NAME,
 				Token::PLUS,
 				Token::NAME,
@@ -194,7 +194,7 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, SymbolTwoComponents) {
-			const auto tokens = {
+			auto tokens = {
 				Token::NAME,
 				Token::DOUBLE_COLON,
 				Token::NAME
@@ -208,7 +208,7 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, SymbolThreeComponents) {
-			const auto tokens = {
+			auto tokens = {
 				Token::NAME,
 				Token::DOUBLE_COLON,
 				Token::NAME,
@@ -225,7 +225,7 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, SymbolTemplatedChild) {
-			const auto tokens = {
+			auto tokens = {
 				Token::NAME,
 				Token::DOUBLE_COLON,
 				Token::NAME,
@@ -242,7 +242,7 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, SymbolTemplatedParent) {
-			const auto tokens = {
+			auto tokens = {
 				Token::NAME,
 				Token::LTRIBRACKET,
 				Token::NAME,
