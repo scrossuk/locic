@@ -56,7 +56,6 @@ namespace locic {
 			const auto token = reader_.peek();
 			switch (token.kind()) {
 				case Token::CONST:
-					reader_.consume();
 					return parseConstType();
 				case Token::LVAL:
 				case Token::REF:
@@ -75,7 +74,16 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Type> TypeParser::parseConstType() {
-			throw std::logic_error("TODO");
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::CONST);
+			
+			if (reader_.peek().kind() == Token::LTRIBRACKET) {
+				throw std::logic_error("TODO: parse const predicate");
+			}
+			
+			const auto targetType = parseQualifiedType();
+			return builder_.makeConstType(targetType, start);
 		}
 		
 		AST::Node<AST::Type> TypeParser::parseTypeWithQualifier(const Debug::SourcePosition& start,
