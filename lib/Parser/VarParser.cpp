@@ -75,7 +75,7 @@ namespace locic {
 			
 			String name;
 			if (nameToken.kind() != Token::NAME) {
-				// TODO
+				throw std::logic_error("TODO: didn't find NAME.");
 			} else {
 				name = nameToken.name();
 				reader_.consume();
