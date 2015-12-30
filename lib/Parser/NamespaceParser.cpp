@@ -3,6 +3,8 @@
 #include <locic/Parser/FunctionParser.hpp>
 #include <locic/Parser/NamespaceBuilder.hpp>
 #include <locic/Parser/NamespaceParser.hpp>
+#include <locic/Parser/TemplateInfo.hpp>
+#include <locic/Parser/TemplateParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeInstanceParser.hpp>
@@ -88,8 +90,30 @@ namespace locic {
 			return builder_.makeNamespaceData(data, start);
 		}
 		
-		void NamespaceParser::parseTemplatedObject(AST::NamespaceData& /*data*/) {
-			throw std::logic_error("TODO: parse templated object");
+		void NamespaceParser::parseTemplatedObject(AST::NamespaceData& data) {
+			const auto start = reader_.position();
+			auto templateInfo = TemplateParser(reader_).parseTemplate();
+			
+			const auto token = reader_.peek();
+			switch (token.kind()) {
+				case Token::CLASS:
+				case Token::DATATYPE:
+				case Token::EXCEPTION:
+				case Token::INTERFACE:
+				case Token::STRUCT:
+				case Token::UNION: {
+					parseTemplatedTypeInstance(data, templateInfo, start);
+					break;
+				}
+				case Token::USING: {
+					parseTemplatedAlias(data, templateInfo, start);
+					break;
+				}
+				default: {
+					parseTemplatedFunction(data, templateInfo, start);
+					break;
+				}
+			}
 		}
 		
 		bool NamespaceParser::isNextObjectModuleScope() {
