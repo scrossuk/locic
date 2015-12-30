@@ -9,6 +9,8 @@
 
 namespace locic {
 	
+	class String;
+	
 	namespace Debug {
 		
 		class SourceLocation;
@@ -35,6 +37,8 @@ namespace locic {
 			void expect(Token::Kind tokenKind);
 			
 			Token expectOneOf(const Array<Token::Kind, 4>& tokenKinds);
+			
+			String expectName();
 			
 			Debug::SourcePosition position() const;
 			

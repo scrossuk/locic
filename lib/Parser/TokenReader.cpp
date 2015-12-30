@@ -77,6 +77,17 @@ namespace locic {
 			}
 		}
 		
+		String TokenReader::expectName() {
+			String name;
+			if (peek().kind() == Token::NAME) {
+				name = peek().name();
+			} else {
+				throw std::logic_error("TODO: name expected");
+			}
+			expect(Token::NAME);
+			return name;
+		}
+		
 		Debug::SourcePosition TokenReader::position() const {
 			return position_;
 		}
