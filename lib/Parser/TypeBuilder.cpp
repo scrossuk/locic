@@ -35,12 +35,6 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Type>
-		TypeBuilder::makeNamedType(const String& /*name*/,
-		                           const Debug::SourcePosition& /*start*/) {
-			throw std::logic_error("TODO");
-		}
-		
-		AST::Node<AST::Type>
 		TypeBuilder::makeLvalType(AST::Node<AST::Type> targetType,
 		                          AST::Node<AST::Type> type,
 		                          const Debug::SourcePosition& start) {
