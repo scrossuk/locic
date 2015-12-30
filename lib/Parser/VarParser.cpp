@@ -45,7 +45,10 @@ namespace locic {
 			
 			if (reader_.peek().kind() == Token::LROUNDBRACKET) {
 				// This is a pattern variable.
-				throw std::logic_error("TODO");
+				reader_.consume();
+				const auto varList = parseVarOrAnyList();
+				reader_.expect(Token::RROUNDBRACKET);
+				return builder_.makePatternVar(symbol, varList, start);
 			} else {
 				// This is a normal type variable.
 				const auto symbolType = TypeBuilder(reader_).makeSymbolType(symbol, start);
