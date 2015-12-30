@@ -34,6 +34,9 @@ namespace locic {
 			AST::Node<AST::Type> makeSymbolType(AST::Node<AST::Symbol> symbol,
 			                                    const Debug::SourcePosition& start);
 			
+			AST::Node<AST::Type> makeConstType(AST::Node<AST::Type> targetType,
+			                                   const Debug::SourcePosition& start);
+			
 			AST::Node<AST::Type> makeLvalType(AST::Node<AST::Type> targetType,
 			                                  AST::Node<AST::Type> type,
 			                                  const Debug::SourcePosition& start);
