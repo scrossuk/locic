@@ -5,6 +5,7 @@
 
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Parser/Token.hpp>
+#include <locic/Support/Array.hpp>
 
 namespace locic {
 	
@@ -32,6 +33,8 @@ namespace locic {
 			void consume();
 			
 			void expect(Token::Kind tokenKind);
+			
+			Token expectOneOf(const Array<Token::Kind, 4>& tokenKinds);
 			
 			Debug::SourcePosition position() const;
 			

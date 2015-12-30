@@ -52,10 +52,29 @@ namespace locic {
 		}
 		
 		void TokenReader::expect(const Token::Kind tokenKind) {
-			(void) tokenKind;
+			(void) expectOneOf({ tokenKind });
+		}
+		
+		Token TokenReader::expectOneOf(const Array<Token::Kind, 4>& tokenKinds) {
 			assert(!tokens_.empty());
-			assert(peek().kind() == tokenKind);
-			consume();
+			assert(!tokenKinds.empty());
+			
+			const auto token = peek();
+			
+			bool found = false;
+			for (const auto kind: tokenKinds) {
+				if (token.kind() == kind) {
+					found = true;
+					break;
+				}
+			}
+			
+			if (found) {
+				consume();
+				return token;
+			} else {
+				throw std::logic_error("TODO: expected token not found");
+			}
 		}
 		
 		Debug::SourcePosition TokenReader::position() const {
