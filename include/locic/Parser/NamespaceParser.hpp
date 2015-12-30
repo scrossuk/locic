@@ -14,6 +14,7 @@ namespace locic {
 	
 	namespace Parser {
 		
+		class TemplateInfo;
 		class TokenReader;
 		
 		class NamespaceParser {
@@ -26,6 +27,18 @@ namespace locic {
 			AST::Node<AST::NamespaceData> parseNamespaceData();
 			
 			void parseTemplatedObject(AST::NamespaceData& data);
+			
+			void parseTemplatedTypeInstance(AST::NamespaceData& data,
+			                                TemplateInfo templateInfo,
+			                                const Debug::SourcePosition& start);
+			
+			void parseTemplatedAlias(AST::NamespaceData& data,
+			                         TemplateInfo templateInfo,
+			                         const Debug::SourcePosition& start);
+			
+			void parseTemplatedFunction(AST::NamespaceData& data,
+			                            TemplateInfo templateInfo,
+			                            const Debug::SourcePosition& start);
 			
 			bool isNextObjectModuleScope();
 			
