@@ -69,6 +69,16 @@ namespace locic {
 			return parseTypeVarWithType(type, start);
 		}
 		
+		AST::Node<AST::TypeVar> VarParser::parseVarOrAny() {
+			if (reader_.peek().kind() == Token::UNDERSCORE) {
+				const auto start = reader_.position();
+				reader_.consume();
+				return builder_.makeAnyVar(start);
+			} else {
+				return parseVar();
+			}
+		}
+		
 		AST::Node<AST::TypeVar> VarParser::parseTypeVarWithType(AST::Node<AST::Type> type,
 		                                                        const Debug::SourcePosition& start) {
 			const auto nameToken = reader_.peek();
