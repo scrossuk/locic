@@ -20,6 +20,10 @@ namespace locic {
 					return location_;
 				}
 				
+				void setLocation(const Debug::SourceLocation argLocation) {
+					location_ = argLocation;
+				}
+				
 				inline bool isNull() const {
 					return contents_ == NULL;
 				}
