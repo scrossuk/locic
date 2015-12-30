@@ -92,6 +92,34 @@ namespace locic {
 			throw std::logic_error("TODO: parse templated object");
 		}
 		
+		bool NamespaceParser::isNextObjectModuleScope() {
+			assert(reader_.peek().kind() == Token::IMPORT ||
+			       reader_.peek().kind() == Token::EXPORT);
+			const auto nextToken = reader_.peek(/*offset=*/1);
+			switch (nextToken.kind()) {
+				case Token::LCURLYBRACKET:
+					// Definitely a module scope.
+					return true;
+				case Token::NAME:
+					// Unknown; could be function or module scope.
+					break;
+				default:
+					// Definitely a function.
+					return false;
+			}
+			
+			const auto nextNextToken = reader_.peek(/*offset=*/2);
+			switch (nextNextToken.kind()) {
+				case Token::DOT:
+				case Token::VERSION:
+					// Definitely a module scope.
+					return true;
+				default:
+					// Definitely a function.
+					return false;
+			}
+		}
+		
 		AST::Node<AST::ModuleScope> NamespaceParser::parseModuleScope() {
 			const auto start = reader_.position();
 			

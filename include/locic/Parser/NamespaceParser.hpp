@@ -27,6 +27,8 @@ namespace locic {
 			
 			void parseTemplatedObject(AST::NamespaceData& data);
 			
+			bool isNextObjectModuleScope();
+			
 			AST::Node<AST::ModuleScope> parseModuleScope();
 			
 		private:
