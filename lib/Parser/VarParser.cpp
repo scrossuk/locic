@@ -69,6 +69,28 @@ namespace locic {
 			return parseTypeVarWithType(type, start);
 		}
 		
+		AST::Node<AST::TypeVarList> VarParser::parseVarOrAnyList() {
+			const auto start = reader_.position();
+			
+			AST::TypeVarList typeVarList;
+			
+			if (reader_.peek().kind() != Token::RROUNDBRACKET) {
+				typeVarList.push_back(parseVarOrAny());
+				
+				while (true) {
+					if (reader_.peek().kind() != Token::COMMA) {
+						break;
+					}
+					
+					reader_.consume();
+					
+					typeVarList.push_back(parseVarOrAny());
+				}
+			}
+			
+			return builder_.makeTypeVarList(std::move(typeVarList), start);
+		}
+		
 		AST::Node<AST::TypeVar> VarParser::parseVarOrAny() {
 			if (reader_.peek().kind() == Token::UNDERSCORE) {
 				const auto start = reader_.position();

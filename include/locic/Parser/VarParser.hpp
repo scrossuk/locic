@@ -28,6 +28,8 @@ namespace locic {
 			
 			AST::Node<AST::TypeVar> parseTypeVar();
 			
+			AST::Node<AST::TypeVarList> parseVarOrAnyList();
+			
 			AST::Node<AST::TypeVar> parseVarOrAny();
 			
 			AST::Node<AST::TypeVar>
