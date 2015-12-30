@@ -1,5 +1,6 @@
 #include <locic/AST.hpp>
 #include <locic/Parser/Diagnostics.hpp>
+#include <locic/Parser/SymbolParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeBuilder.hpp>
@@ -152,9 +153,10 @@ namespace locic {
 					// Default to 'signed'.
 					return parseIntegerTypeWithSignedness(start,
 					                                      /*isSigned=*/true);
-				case Token::NAME:
-					reader_.consume();
-					return builder_.makeNamedType(token.name(), start);
+				case Token::NAME: {
+					const auto symbol = SymbolParser(reader_).parseSymbol();
+					return builder_.makeSymbolType(symbol, start);
+				}
 				default:
 					issueError(Diag::InvalidType, start);
 					reader_.consume();
