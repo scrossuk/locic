@@ -1,82 +1,19 @@
 #include "gtest/gtest.h"
 
-#include <locic/Constant.hpp>
 #include <locic/Parser/TokenReader.hpp>
-#include <locic/Parser/TokenSource.hpp>
 #include <locic/Parser/ValueParser.hpp>
-#include <locic/Support/String.hpp>
 #include <locic/Support/StringHost.hpp>
+
+#include "MockTokenSource.hpp"
 
 namespace locic {
 	
 	namespace Parser {
 		
-		class MockTokenSource: public TokenSource {
-		public:
-			MockTokenSource(const StringHost& stringHost,
-			                const Array<Token, 16>& tokens)
-			: stringHost_(stringHost), tokens_(tokens),
-			position_(0) { }
-			
-			Token get() {
-				if (position_ == tokens_.size()) {
-					return Token::Basic(Token::END);
-				} else {
-					return tokens_[position_++];
-				}
-			}
-			
-			String fileName() {
-				return String(stringHost_, "<test file>");
-			}
-			
-			bool allConsumed() const {
-				return position_ == tokens_.size();
-			}
-			
-		private:
-			const StringHost& stringHost_;
-			const Array<Token, 16>& tokens_;
-			size_t position_;
-			
-		};
-		
-		class TokenGenerator {
-		public:
-			TokenGenerator(const StringHost& stringHost)
-			: stringHost_(stringHost), nextInteger_(0) { }
-			
-			Token makeToken(const Token::Kind kind) {
-				switch (kind) {
-					case Token::NAME:
-						return Token::Name(String(stringHost_, "test"));
-					case Token::CONSTANT:
-						return Token::Constant(Constant::Integer(nextInteger_++));
-					case Token::VERSION:
-						return Token::Version(Version(1, 0, 0));
-					default:
-						return Token::Basic(kind);
-				}
-			}
-			
-		private:
-			const StringHost& stringHost_;
-			unsigned long long nextInteger_;
-			
-		};
-		
 		template <typename FnType>
 		void testParseValue(const Array<Token::Kind, 16>& tokenKinds, FnType fn) {
 			StringHost stringHost;
-			
-			TokenGenerator tokenGenerator(stringHost);
-			
-			Array<Token, 16> tokens;
-			for (const auto tokenKind: tokenKinds) {
-				tokens.push_back(tokenGenerator.makeToken(tokenKind));
-			}
-			
-			MockTokenSource tokenSource(stringHost, tokens);
+			MockTokenSource tokenSource(stringHost, tokenKinds);
 			TokenReader tokenReader(tokenSource);
 			const auto value = ValueParser(tokenReader).parseValue();
 			EXPECT_TRUE(tokenSource.allConsumed());
