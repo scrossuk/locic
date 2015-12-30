@@ -74,7 +74,12 @@ namespace locic {
 					}
 					case Token::IMPORT:
 					case Token::EXPORT:
-						data.moduleScopes.push_back(parseModuleScope());
+						if (isNextObjectModuleScope()) {
+							data.moduleScopes.push_back(parseModuleScope());
+						} else {
+							auto function = FunctionParser(reader_).parseGlobalFunction();
+							data.functions.push_back(function);
+						}
 						break;
 					case Token::NAMESPACE:
 						data.namespaces.push_back(parseNamespace());
