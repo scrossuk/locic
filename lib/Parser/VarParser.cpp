@@ -78,6 +78,7 @@ namespace locic {
 				// TODO
 			} else {
 				name = nameToken.name();
+				reader_.consume();
 			}
 			
 			return builder_.makeTypeVar(type, name, start);
