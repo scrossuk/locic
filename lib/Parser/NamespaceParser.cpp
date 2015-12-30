@@ -121,6 +121,53 @@ namespace locic {
 			}
 		}
 		
+		void NamespaceParser::parseTemplatedTypeInstance(AST::NamespaceData& data,
+		                                                 TemplateInfo templateInfo,
+		                                                 const Debug::SourcePosition& start) {
+			auto typeInstance = TypeInstanceParser(reader_).parseTypeInstance();
+			
+			typeInstance->setTemplateVariables(templateInfo.templateVariables());
+			
+			if (templateInfo.hasRequireSpecifier()) {
+				typeInstance->setRequireSpecifier(templateInfo.requireSpecifier());
+			}
+			if (templateInfo.hasMoveSpecifier()) {
+				typeInstance->setMoveSpecifier(templateInfo.moveSpecifier());
+			}
+			if (templateInfo.hasNoTagSet()) {
+				typeInstance->setNoTagSet(templateInfo.noTagSet());
+			}
+			
+			typeInstance.setLocation(reader_.locationWithRangeFrom(start));
+			
+			data.typeInstances.push_back(typeInstance);
+		}
+		
+		void NamespaceParser::parseTemplatedAlias(AST::NamespaceData& /*data*/,
+		                                          TemplateInfo /*templateInfo*/,
+		                                          const Debug::SourcePosition& /*start*/) {
+			throw std::logic_error("TODO: parse templated alias");
+		}
+		
+		void NamespaceParser::parseTemplatedFunction(AST::NamespaceData& data,
+		                                             TemplateInfo templateInfo,
+		                                             const Debug::SourcePosition& start) {
+			auto function = FunctionParser(reader_).parseGlobalFunction();
+			
+			function->setTemplateVariables(templateInfo.templateVariables());
+			
+			if (templateInfo.hasRequireSpecifier()) {
+				// TODO: reject duplicate require() specifier.
+				function->setRequireSpecifier(templateInfo.requireSpecifier());
+			}
+			
+			// TODO: reject move() or notag().
+			
+			function.setLocation(reader_.locationWithRangeFrom(start));
+			
+			data.functions.push_back(function);
+		}
+		
 		bool NamespaceParser::isNextObjectModuleScope() {
 			assert(reader_.peek().kind() == Token::IMPORT ||
 			       reader_.peek().kind() == Token::EXPORT);
