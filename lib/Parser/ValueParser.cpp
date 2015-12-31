@@ -505,14 +505,23 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseMemberAccessExpression(AST::Node<AST::Value> /*value*/,
-		                                                               const bool /*isDeref*/,
+		AST::Node<AST::Value> ValueParser::parseMemberAccessExpression(AST::Node<AST::Value> value,
+		                                                               const bool isDeref,
 		                                                               const Debug::SourcePosition& start) {
-			const auto methodName = parseMethodName(start);
-			//const auto templateArgs = parseOptionalTemplateArguments(start);
+			const auto memberName = parseMethodName(start);
+			const auto templateArgs = SymbolParser(reader_).parseSymbolTemplateArgumentList();
 			
-			(void) methodName;
-			throw std::logic_error("TODO");
+			if (isDeref) {
+				throw std::logic_error("TODO: ->");
+			}
+			
+			if (templateArgs->empty()) {
+				return builder_.makeMemberAccess(value, memberName, start);
+			} else {
+				return builder_.makeTemplatedMemberAccess(value, memberName,
+				                                          templateArgs,
+				                                          start);
+			}
 		}
 		
 		String ValueParser::parseMethodName(const Debug::SourcePosition& /*start*/) {
