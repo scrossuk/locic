@@ -62,6 +62,34 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, LessThan) {
+			auto tokens = {
+				Token::NAME,
+				Token::LTRIBRACKET,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->binaryOp.kind, AST::OP_LESSTHAN);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::Value::SYMBOLREF);
+			});
+		}
+		
+		TEST(ValueParseTest, GreaterThan) {
+			auto tokens = {
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->binaryOp.kind, AST::OP_GREATERTHAN);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::Value::SYMBOLREF);
+			});
+		}
+		
 		TEST(ValueParseTest, LeftShift) {
 			auto tokens = {
 				Token::NAME,
