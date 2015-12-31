@@ -112,6 +112,20 @@ namespace locic {
 		}
 			
 		AST::Node<AST::Value>
+		ValueBuilder::makeMemberAccess(AST::Node<AST::Value> value, String name,
+		                               const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::MemberAccess(value, name), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeTemplatedMemberAccess(AST::Node<AST::Value> value, String name,
+		                                        AST::Node<AST::ValueList> templateArguments,
+		                                        const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::TemplatedMemberAccess(value, name,
+			                                                       templateArguments), start);
+		}
+		
+		AST::Node<AST::Value>
 		ValueBuilder::makeTypeValue(AST::Node<AST::Type> type,
 		                            const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::TypeRef(type), start);
