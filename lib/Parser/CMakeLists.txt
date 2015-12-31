@@ -20,6 +20,7 @@ add_library(locic-parser
 add_library(locic-newparser
 	FunctionParser.cpp
 	NamespaceParser.cpp
+	ScopeParser.cpp
 	StatementParser.cpp
 	SymbolBuilder.cpp
 	SymbolParser.cpp
