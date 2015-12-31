@@ -24,6 +24,10 @@ namespace locic {
 			~StatementBuilder();
 			
 			AST::Node<AST::Statement>
+			makeStatementNode(AST::Statement* statement,
+			                  const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Statement>
 			makeScopeStatement(AST::Node<AST::Scope> scope,
 			                   const Debug::SourcePosition& start);
 			
