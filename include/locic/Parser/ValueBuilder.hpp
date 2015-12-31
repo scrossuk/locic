@@ -80,6 +80,15 @@ namespace locic {
 			               const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
+			makeMemberAccess(AST::Node<AST::Value> value, String name,
+			                 const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Value>
+			makeTemplatedMemberAccess(AST::Node<AST::Value> value, String name,
+			                          AST::Node<AST::ValueList> templateArguments,
+			                          const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Value>
 			makeTypeValue(AST::Node<AST::Type> type,
 			              const Debug::SourcePosition& start);
 			
