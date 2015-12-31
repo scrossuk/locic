@@ -75,6 +75,20 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, DivideAssignConstant) {
+			auto tokens = {
+				Token::NAME,
+				Token::DIVEQUAL,
+				Token::CONSTANT
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isAssign());
+				EXPECT_EQ(statement->assignKind(), AST::ASSIGN_DIV);
+				EXPECT_TRUE(statement->assignLvalue()->isSymbol());
+				EXPECT_TRUE(statement->assignRvalue()->isLiteral());
+			});
+		}
+		
 		TEST(StatementParseTest, VarDeclNamedTypeAssignConstant) {
 			auto tokens = {
 				Token::NAME,
