@@ -33,6 +33,20 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, AddAssignConstant) {
+			auto tokens = {
+				Token::NAME,
+				Token::ADDEQUAL,
+				Token::CONSTANT
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isAssign());
+				EXPECT_EQ(statement->assignKind(), AST::ASSIGN_ADD);
+				EXPECT_TRUE(statement->assignLvalue()->isSymbol());
+				EXPECT_TRUE(statement->assignRvalue()->isLiteral());
+			});
+		}
+		
 		TEST(StatementParseTest, VarDeclNamedTypeAssignConstant) {
 			auto tokens = {
 				Token::NAME,
