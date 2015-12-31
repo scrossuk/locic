@@ -123,7 +123,16 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseUnion() {
-			throw std::logic_error("TODO: parse union");
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::UNION);
+			const auto name = reader_.expectName();
+			
+			reader_.expect(Token::LCURLYBRACKET);
+			const auto variables = VarParser(reader_).parseCStyleVarList();
+			reader_.expect(Token::RCURLYBRACKET);
+			
+			return builder_.makeStruct(name, variables, start);
 		}
 		
 	}
