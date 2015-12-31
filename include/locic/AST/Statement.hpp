@@ -287,6 +287,11 @@ namespace locic {
 				return kind() == ASSIGN;
 			}
 			
+			AssignKind assignKind() const {
+				assert(isAssign());
+				return assignStmt.assignKind;
+			}
+			
 			const Node<Value>& assignLvalue() const {
 				assert(isAssign());
 				return assignStmt.var;
