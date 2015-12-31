@@ -24,6 +24,8 @@ namespace locic {
 			
 			AST::Node<AST::TypeVarList> parseVarList();
 			
+			AST::Node<AST::TypeVarList> parseCStyleVarList();
+			
 			AST::Node<AST::TypeVar> parseVar();
 			
 			bool scanOptionalToken(Token::Kind kind);
