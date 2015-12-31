@@ -38,6 +38,30 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, PointerType) {
+			auto tokens = {
+				Token::NAME,
+				Token::STAR
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				ASSERT_TRUE(value->typeRef.type->isPointer());
+				EXPECT_TRUE(value->typeRef.type->getPointerTarget()->isObjectType());
+			});
+		}
+		
+		TEST(ValueParseTest, ReferenceType) {
+			auto tokens = {
+				Token::NAME,
+				Token::AMPERSAND
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				ASSERT_TRUE(value->typeRef.type->isReference());
+				EXPECT_TRUE(value->typeRef.type->getReferenceTarget()->isObjectType());
+			});
+		}
+		
 		TEST(ValueParseTest, LeftShift) {
 			auto tokens = {
 				Token::NAME,
