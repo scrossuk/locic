@@ -46,6 +46,14 @@ namespace locic {
 			makeInterface(String name, AST::Node<AST::FunctionList> methods,
 			              const Debug::SourcePosition& start);
 			
+			AST::Node<AST::TypeInstance>
+			makeStruct(String name, AST::Node<AST::TypeVarList> variables,
+			           const Debug::SourcePosition& start);
+			
+			AST::Node<AST::TypeInstance>
+			makeUnion(String name, AST::Node<AST::TypeVarList> variables,
+			          const Debug::SourcePosition& start);
+			
 		private:
 			const TokenReader& reader_;
 			
