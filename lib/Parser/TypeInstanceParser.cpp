@@ -110,7 +110,16 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseStruct() {
-			throw std::logic_error("TODO: parse struct");
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::STRUCT);
+			const auto name = reader_.expectName();
+			
+			reader_.expect(Token::LCURLYBRACKET);
+			const auto variables = VarParser(reader_).parseCStyleVarList();
+			reader_.expect(Token::RCURLYBRACKET);
+			
+			return builder_.makeStruct(name, variables, start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseUnion() {
