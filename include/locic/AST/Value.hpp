@@ -351,6 +351,14 @@ namespace locic {
 			
 			TypeEnum kind() const;
 			
+			bool isLiteral() const {
+				return kind() == LITERAL;
+			}
+			
+			bool isSymbol() const {
+				return kind() == SYMBOLREF;
+			}
+			
 			std::string toString() const;
 		};
 		
