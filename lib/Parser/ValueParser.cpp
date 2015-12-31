@@ -535,6 +535,8 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseTypeValue(const Context context) {
+			const auto start = reader_.position();
+			
 			auto value = parseAtomicValue();
 			
 			while (true) {
@@ -564,7 +566,16 @@ namespace locic {
 					return value;
 				}
 				
-				throw std::logic_error("TODO: pointer/reference type value");
+				auto type = interpretValueAsType(value);
+				if (token.kind() == Token::STAR) {
+					type = TypeBuilder(reader_).makePointerType(type, start);
+				} else {
+					type = TypeBuilder(reader_).makeReferenceType(type, start);
+				}
+				
+				reader_.consume();
+				
+				value = builder_.makeTypeValue(type, start);
 			}
 		}
 		
