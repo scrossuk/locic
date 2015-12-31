@@ -44,6 +44,8 @@ namespace locic {
 			
 			AST::Node<AST::Statement> parseValueOrVarDeclStatement();
 			
+			AST::Node<AST::Type> interpretValueAsType(const AST::Node<AST::Value>& value);
+			
 		private:
 			TokenReader& reader_;
 			StatementBuilder builder_;
