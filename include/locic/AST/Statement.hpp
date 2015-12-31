@@ -282,6 +282,20 @@ namespace locic {
 				assert(isVarDecl());
 				return varDecl.value;
 			}
+			
+			bool isAssign() const {
+				return kind() == ASSIGN;
+			}
+			
+			const Node<Value>& assignLvalue() const {
+				assert(isAssign());
+				return assignStmt.var;
+			}
+			
+			const Node<Value>& assignRvalue() const {
+				assert(isAssign());
+				return assignStmt.value;
+			}
 		};
 		
 		typedef std::vector<Node<Statement>> StatementList;
