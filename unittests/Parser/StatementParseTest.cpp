@@ -28,6 +28,7 @@ namespace locic {
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isAssign());
+				EXPECT_EQ(statement->assignKind(), AST::ASSIGN_DIRECT);
 				EXPECT_TRUE(statement->assignLvalue()->isSymbol());
 				EXPECT_TRUE(statement->assignRvalue()->isLiteral());
 			});
