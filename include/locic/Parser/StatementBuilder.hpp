@@ -127,7 +127,7 @@ namespace locic {
 			                    const Debug::SourcePosition& start);
 			
 		private:
-			TokenReader& reader_;
+			const TokenReader& reader_;
 			
 		};
 		
