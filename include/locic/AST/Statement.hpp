@@ -268,6 +268,20 @@ namespace locic {
 			TypeEnum kind() const {
 				return typeEnum;
 			}
+			
+			bool isVarDecl() const {
+				return kind() == VARDECL;
+			}
+			
+			const Node<TypeVar>& varDeclVar() const {
+				assert(isVarDecl());
+				return varDecl.typeVar;
+			}
+			
+			const Node<Value>& varDeclValue() const {
+				assert(isVarDecl());
+				return varDecl.value;
+			}
 		};
 		
 		typedef std::vector<Node<Statement>> StatementList;
