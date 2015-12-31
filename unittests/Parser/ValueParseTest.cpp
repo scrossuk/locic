@@ -148,6 +148,18 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, Multiply) {
+			auto tokens = {
+				Token::NAME,
+				Token::STAR,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->binaryOp.kind, AST::OP_MULTIPLY);
+			});
+		}
+		
 		TEST(ValueParseTest, MultiplyInAddLeft) {
 			auto tokens = {
 				Token::NAME,
