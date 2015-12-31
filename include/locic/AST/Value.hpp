@@ -359,6 +359,10 @@ namespace locic {
 				return kind() == SYMBOLREF;
 			}
 			
+			const Node<Symbol>& symbol() const {
+				return symbolRef.symbol;
+			}
+			
 			std::string toString() const;
 		};
 		
