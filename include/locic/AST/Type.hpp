@@ -360,6 +360,10 @@ namespace locic {
 				return typeEnum == OBJECT;
 			}
 			
+			const Node<Symbol>& symbol() const {
+				return objectType.symbol;
+			}
+			
 			std::string toString() const;
 			
 		};
