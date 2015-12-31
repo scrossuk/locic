@@ -21,6 +21,10 @@ namespace locic {
 			~TypeInstanceBuilder();
 			
 			AST::Node<AST::TypeInstance>
+			makeTypeInstanceNode(AST::TypeInstance* typeInstance,
+			                     const Debug::SourcePosition& start);
+			
+			AST::Node<AST::TypeInstance>
 			makeClassDecl(String name, AST::Node<AST::FunctionList> methods,
 			              const Debug::SourcePosition& start);
 			
