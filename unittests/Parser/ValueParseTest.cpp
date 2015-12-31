@@ -293,6 +293,29 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, CallTwoComparisons) {
+			auto tokens = {
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::COMMA,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::FUNCTIONCALL);
+				EXPECT_TRUE(value->functionCall.functionValue->isSymbol());
+				const auto& parameters = value->functionCall.parameters;
+				ASSERT_EQ(parameters->size(), 2);
+				EXPECT_EQ(parameters->at(0)->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(parameters->at(1)->kind(), AST::Value::BINARYOP);
+			});
+		}
+		
 	}
 	
 }
