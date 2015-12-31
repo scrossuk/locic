@@ -48,6 +48,43 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, VarDeclTemplatedTypeAssignConstant) {
+			auto tokens = {
+				Token::NAME,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::NAME,
+				Token::SETEQUAL,
+				Token::CONSTANT
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				const auto& var = statement->varDeclVar();
+				ASSERT_TRUE(var->isNamed());
+				ASSERT_TRUE(var->namedType()->isObjectType());
+				ASSERT_EQ(var->namedType()->symbol()->size(), 1);
+				EXPECT_EQ(var->namedType()->symbol()->at(0)->templateArguments()->size(), 1);
+				EXPECT_TRUE(statement->varDeclValue()->isLiteral());
+			});
+		}
+		
+		TEST(StatementParseTest, VarDeclPointerTypeAssignConstant) {
+			auto tokens = {
+				Token::NAME,
+				Token::STAR,
+				Token::NAME,
+				Token::SETEQUAL,
+				Token::CONSTANT
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				ASSERT_TRUE(statement->varDeclVar()->isNamed());
+				EXPECT_TRUE(statement->varDeclVar()->namedType()->isPointer());
+				EXPECT_TRUE(statement->varDeclValue()->isLiteral());
+			});
+		}
+		
 	}
 	
 }
