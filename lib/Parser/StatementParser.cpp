@@ -258,7 +258,7 @@ namespace locic {
 		AST::Node<AST::Statement> StatementParser::parseValueOrVarDeclStatement() {
 			const auto start = reader_.position();
 			
-			const auto value = ValueParser(reader_).parseValue();
+			const auto value = ValueParser(reader_).parseValue(ValueParser::IN_TYPEDECL);
 			
 			AST::AssignKind assignKind;
 			
