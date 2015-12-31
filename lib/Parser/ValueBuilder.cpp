@@ -110,6 +110,12 @@ namespace locic {
 // 			                              value, indexValue), start);
 			throw std::logic_error("TODO");
 		}
+			
+		AST::Node<AST::Value>
+		ValueBuilder::makeTypeValue(AST::Node<AST::Type> type,
+		                            const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::TypeRef(type), start);
+		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeLiteralValue(const Constant constant,
