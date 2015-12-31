@@ -21,6 +21,10 @@ namespace locic {
 			
 			AST::Node<AST::ValueList> parseSymbolTemplateArgumentList();
 			
+			bool isNowAtTemplateArgumentList();
+			
+			bool isValidTokenAfterTemplateArguments(size_t offset);
+			
 		private:
 			TokenReader& reader_;
 			SymbolBuilder builder_;
