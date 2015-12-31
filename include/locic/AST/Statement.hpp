@@ -264,6 +264,10 @@ namespace locic {
 			inline static Statement* Unreachable() {
 				return new Statement(UNREACHABLE);
 			}
+			
+			TypeEnum kind() const {
+				return typeEnum;
+			}
 		};
 		
 		typedef std::vector<Node<Statement>> StatementList;
