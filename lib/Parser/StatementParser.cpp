@@ -6,6 +6,7 @@
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/ValueParser.hpp>
+#include <locic/Parser/VarBuilder.hpp>
 #include <locic/Parser/VarParser.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 
@@ -281,9 +282,17 @@ namespace locic {
 				case Token::PERCENTEQUAL:
 					assignKind = AST::ASSIGN_MOD;
 					break;
-				case Token::NAME:
+				case Token::NAME: {
 					// This is actually a var decl.
-					throw std::logic_error("TODO");
+					const auto type = interpretValueAsType(value);
+					const auto name = reader_.expectName();
+					const auto var = VarBuilder(reader_).makeTypeVar(type, name,
+					                                                 start);
+					reader_.expect(Token::SETEQUAL);
+					const auto rvalue = ValueParser(reader_).parseValue();
+					return builder_.makeVarDeclStatement(var, rvalue,
+					                                     start);
+				}
 				case Token::DOUBLE_PLUS:
 					return builder_.makeIncrementStatement(value, start);
 				case Token::DOUBLE_MINUS:
