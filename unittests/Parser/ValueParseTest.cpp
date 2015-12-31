@@ -259,6 +259,40 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, CallLiteralMethod) {
+			auto tokens = {
+				Token::CONSTANT,
+				Token::DOT,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::FUNCTIONCALL);
+				ASSERT_EQ(value->functionCall.functionValue->kind(), AST::Value::MEMBERACCESS);
+				const auto& object = value->functionCall.functionValue->memberAccess.object;
+				EXPECT_TRUE(object->isLiteral());
+			});
+		}
+		
+		TEST(ValueParseTest, CallTemplatedSymbol) {
+			auto tokens = {
+				Token::NAME,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::FUNCTIONCALL);
+				ASSERT_TRUE(value->functionCall.functionValue->isSymbol());
+				const auto& symbol = value->functionCall.functionValue->symbol();
+				ASSERT_EQ(symbol->size(), 1);
+				EXPECT_EQ(symbol->at(0)->templateArguments()->size(), 1);
+			});
+		}
+		
 	}
 	
 }
