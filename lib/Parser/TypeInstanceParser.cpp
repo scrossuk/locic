@@ -115,6 +115,11 @@ namespace locic {
 			reader_.expect(Token::STRUCT);
 			const auto name = reader_.expectName();
 			
+			if (reader_.peek().kind() == Token::SEMICOLON) {
+				reader_.consume();
+				return builder_.makeOpaqueStruct(name, start);
+			}
+			
 			reader_.expect(Token::LCURLYBRACKET);
 			const auto variables = VarParser(reader_).parseCStyleVarList();
 			reader_.expect(Token::RCURLYBRACKET);
