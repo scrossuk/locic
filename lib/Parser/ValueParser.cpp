@@ -568,6 +568,41 @@ namespace locic {
 			}
 		}
 		
+		AST::Node<AST::Type> ValueParser::interpretValueAsType(const AST::Node<AST::Value>& value) {
+			switch (value->kind()) {
+				case AST::Value::BRACKET:
+					return interpretValueAsType(value->bracket.value);
+				case AST::Value::SYMBOLREF:
+					return AST::makeNode(value.location(),
+					                     AST::Type::Object(value->symbolRef.symbol));
+				case AST::Value::TYPEREF:
+					return value->typeRef.type;
+				case AST::Value::SELF:
+				case AST::Value::THIS:
+				case AST::Value::LITERAL:
+				case AST::Value::MEMBERREF:
+				case AST::Value::ALIGNOF:
+				case AST::Value::SIZEOF:
+				case AST::Value::UNARYOP:
+				case AST::Value::BINARYOP:
+				case AST::Value::TERNARY:
+				case AST::Value::CAST:
+				case AST::Value::LVAL:
+				case AST::Value::NOLVAL:
+				case AST::Value::REF:
+				case AST::Value::NOREF:
+				case AST::Value::INTERNALCONSTRUCT:
+				case AST::Value::MEMBERACCESS:
+				case AST::Value::TEMPLATEDMEMBERACCESS:
+				case AST::Value::FUNCTIONCALL:
+				case AST::Value::CAPABILITYTEST:
+				case AST::Value::ARRAYLITERAL:
+				case AST::Value::MERGE: {
+					throw std::logic_error("TODO: Invalid value to be interpreted as type");
+				}
+			}
+		}
+		
 		AST::Node<AST::Value> ValueParser::parseAtomicValue() {
 			const auto start = reader_.position();
 			
