@@ -83,6 +83,8 @@ namespace locic {
 			
 			AST::Node<AST::Value> parseAtExpression(const Debug::SourcePosition& start);
 			
+			AST::Node<AST::ValueList> parseOptionalTemplateArguments();
+			
 			AST::Node<AST::Value> parseSymbolOrLiteralValue();
 			
 			AST::Node<AST::Value> parseLiteral(Constant constant,

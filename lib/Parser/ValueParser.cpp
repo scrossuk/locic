@@ -668,6 +668,20 @@ namespace locic {
 			}
 		}
 		
+		AST::Node<AST::ValueList> ValueParser::parseOptionalTemplateArguments() {
+			const auto start = reader_.position();
+			
+			if (reader_.peek().kind() != Token::LTRIBRACKET) {
+				return builder_.makeValueList(AST::ValueList(), start);
+			}
+			
+			reader_.consume();
+			const auto valueList = parseValueList(IN_TEMPLATE);
+			reader_.expect(Token::RTRIBRACKET);
+			
+			return valueList;
+		}
+		
 		AST::Node<AST::Value> ValueParser::parseSymbolOrLiteralValue() {
 			const auto start = reader_.position();
 			
