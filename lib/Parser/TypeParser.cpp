@@ -19,7 +19,7 @@ namespace locic {
 		TypeParser::~TypeParser() { }
 		
 		void TypeParser::issueError(Diag /*diag*/, const Debug::SourcePosition& /*start*/) {
-			throw std::logic_error("TODO");
+			throw std::logic_error("TODO: issue an error");
 		}
 		
 		AST::Node<AST::Type> TypeParser::parseType() {
@@ -43,7 +43,7 @@ namespace locic {
 						break;
 					case Token::LSQUAREBRACKET:
 						reader_.consume();
-						throw std::logic_error("TODO");
+						throw std::logic_error("TODO: type[]");
 					default:
 						return type;
 				}
