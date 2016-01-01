@@ -1,5 +1,6 @@
 #include <locic/AST.hpp>
 #include <locic/Parser/Diagnostics.hpp>
+#include <locic/Parser/FunctionParser.hpp>
 #include <locic/Parser/SymbolParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
@@ -190,6 +191,48 @@ namespace locic {
 			reader_.expect(Token::RCURLYBRACKET);
 			
 			return builder_.makeStruct(name, variables, start);
+		}
+		
+		AST::Node<AST::FunctionList> TypeInstanceParser::parseMethodDeclList() {
+			const auto start = reader_.position();
+			
+			AST::FunctionList list;
+			
+			while (true) {
+				while (reader_.peek().kind() == Token::SEMICOLON) {
+					reader_.consume();
+				}
+				
+				if (reader_.peek().kind() == Token::RCURLYBRACKET) {
+					break;
+				}
+				
+				const auto function = FunctionParser(reader_).parseMethodDecl();
+				list.push_back(function);
+			}
+			
+			return builder_.makeFunctionList(std::move(list), start);
+		}
+		
+		AST::Node<AST::FunctionList> TypeInstanceParser::parseMethodDefList() {
+			const auto start = reader_.position();
+			
+			AST::FunctionList list;
+			
+			while (true) {
+				while (reader_.peek().kind() == Token::SEMICOLON) {
+					reader_.consume();
+				}
+				
+				if (reader_.peek().kind() == Token::RCURLYBRACKET) {
+					break;
+				}
+				
+				const auto function = FunctionParser(reader_).parseMethodDef();
+				list.push_back(function);
+			}
+			
+			return builder_.makeFunctionList(std::move(list), start);
 		}
 		
 	}
