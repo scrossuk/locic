@@ -2,8 +2,10 @@
 #include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/PredicateBuilder.hpp>
 #include <locic/Parser/PredicateParser.hpp>
+#include <locic/Parser/SymbolParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
+#include <locic/Parser/TypeParser.hpp>
 
 namespace locic {
 	
@@ -64,7 +66,25 @@ namespace locic {
 					break;
 			}
 			
-			throw std::logic_error("TODO: (type:type) or symbol");
+			const auto symbol = SymbolParser(reader_).parseSymbol();
+			switch (reader_.peek().kind()) {
+				case Token::RROUNDBRACKET:
+				case Token::RTRIBRACKET:
+				case Token::AND:
+				case Token::OR:
+					return builder_.makeSymbolPredicate(symbol, start);
+				default:
+					break;
+			}
+			
+			auto type = TypeBuilder(reader_).makeSymbolType(symbol, start);
+			type = TypeParser(reader_).parseIndirectTypeBasedOnType(type, start);
+			
+			reader_.expect(Token::COLON);
+			
+			const auto capabilityType = TypeParser(reader_).parseType();
+			
+			return builder_.makeTypeSpecPredicate(type, capabilityType, start);
 		}
 		
 	}
