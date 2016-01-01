@@ -93,6 +93,8 @@ namespace locic {
 	
 	class PrimitiveID {
 	public:
+		PrimitiveID() = default;
+		
 		PrimitiveID(const PrimitiveIDEnum value)
 		: value_(value) { }
 		
