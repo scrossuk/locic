@@ -20,6 +20,61 @@ namespace locic {
 			fn(value);
 		}
 		
+		void testPrimitiveTypeValue(const Array<Token::Kind, 16>& tokenKinds, const PrimitiveID primitiveID) {
+			testParseValue(tokenKinds, [=](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				ASSERT_TRUE(value->typeRef.type->isPrimitive());
+				EXPECT_EQ(value->typeRef.type->primitiveID(), primitiveID);
+			});
+		}
+		
+		TEST(ValueParseTest, CoreTypes) {
+			testPrimitiveTypeValue({ Token::VOID }, PrimitiveVoid);
+			testPrimitiveTypeValue({ Token::BOOL }, PrimitiveBool);
+			testPrimitiveTypeValue({ Token::TYPENAME }, PrimitiveTypename);
+		}
+		
+		TEST(ValueParseTest, IntegerTypes) {
+			testPrimitiveTypeValue({ Token::BYTE }, PrimitiveByte);
+			testPrimitiveTypeValue({ Token::SHORT }, PrimitiveShort);
+			testPrimitiveTypeValue({ Token::SIGNED, Token::SHORT }, PrimitiveShort);
+			testPrimitiveTypeValue({ Token::SHORT, Token::INT }, PrimitiveShort);
+			testPrimitiveTypeValue({ Token::SIGNED, Token::SHORT, Token::INT }, PrimitiveShort);
+			testPrimitiveTypeValue({ Token::INT }, PrimitiveInt);
+			testPrimitiveTypeValue({ Token::SIGNED }, PrimitiveInt);
+			testPrimitiveTypeValue({ Token::SIGNED, Token::INT }, PrimitiveInt);
+			testPrimitiveTypeValue({ Token::LONG }, PrimitiveLong);
+			testPrimitiveTypeValue({ Token::LONG, Token::INT }, PrimitiveLong);
+			testPrimitiveTypeValue({ Token::LONG, Token::LONG }, PrimitiveLongLong);
+			testPrimitiveTypeValue({ Token::SIGNED, Token::LONG, Token::LONG }, PrimitiveLongLong);
+			testPrimitiveTypeValue({ Token::LONG, Token::LONG, Token::INT }, PrimitiveLongLong);
+			testPrimitiveTypeValue({ Token::SIGNED, Token::LONG, Token::LONG, Token::INT }, PrimitiveLongLong);
+			testPrimitiveTypeValue({ Token::LONGLONG }, PrimitiveLongLong);
+			testPrimitiveTypeValue({ Token::SIGNED, Token::LONGLONG }, PrimitiveLongLong);
+			
+			testPrimitiveTypeValue({ Token::UNSIGNED, Token::BYTE }, PrimitiveUByte);
+			testPrimitiveTypeValue({ Token::UBYTE }, PrimitiveUByte);
+			testPrimitiveTypeValue({ Token::UNSIGNED, Token::SHORT }, PrimitiveUShort);
+			testPrimitiveTypeValue({ Token::UNSIGNED, Token::SHORT, Token::INT }, PrimitiveUShort);
+			testPrimitiveTypeValue({ Token::USHORT}, PrimitiveUShort);
+			testPrimitiveTypeValue({ Token::UNSIGNED, Token::INT }, PrimitiveUInt);
+			testPrimitiveTypeValue({ Token::UNSIGNED }, PrimitiveUInt);
+			testPrimitiveTypeValue({ Token::UINT }, PrimitiveUInt);
+			testPrimitiveTypeValue({ Token::UNSIGNED, Token::LONG }, PrimitiveULong);
+			testPrimitiveTypeValue({ Token::UNSIGNED, Token::LONG, Token::INT }, PrimitiveULong);
+			testPrimitiveTypeValue({ Token::ULONG }, PrimitiveULong);
+			testPrimitiveTypeValue({ Token::UNSIGNED, Token::LONG, Token::LONG }, PrimitiveULongLong);
+			testPrimitiveTypeValue({ Token::UNSIGNED, Token::LONG, Token::LONG, Token::INT }, PrimitiveULongLong);
+			testPrimitiveTypeValue({ Token::UNSIGNED, Token::LONGLONG }, PrimitiveULongLong);
+			testPrimitiveTypeValue({ Token::ULONGLONG }, PrimitiveULongLong);
+		}
+		
+		TEST(ValueParseTest, FloatTypes) {
+			testPrimitiveTypeValue({ Token::FLOAT }, PrimitiveFloat);
+			testPrimitiveTypeValue({ Token::DOUBLE }, PrimitiveDouble);
+			testPrimitiveTypeValue({ Token::LONG, Token::DOUBLE }, PrimitiveLongDouble);
+		}
+		
 		TEST(ValueParseTest, Literal) {
 			testParseValue({ Token::CONSTANT }, [](const AST::Node<AST::Value>& value) {
 				EXPECT_EQ(value->kind(), AST::Value::LITERAL);
