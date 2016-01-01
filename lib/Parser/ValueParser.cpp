@@ -1,5 +1,6 @@
 #include <locic/AST.hpp>
 #include <locic/Parser/Diagnostics.hpp>
+#include <locic/Parser/FunctionParser.hpp>
 #include <locic/Parser/SymbolParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
@@ -508,7 +509,7 @@ namespace locic {
 		AST::Node<AST::Value> ValueParser::parseMemberAccessExpression(AST::Node<AST::Value> value,
 		                                                               const bool isDeref,
 		                                                               const Debug::SourcePosition& start) {
-			const auto memberName = parseMethodName(start);
+			const auto memberName = FunctionParser(reader_).parseFunctionNameElement();
 			const auto templateArgs = SymbolParser(reader_).parseSymbolTemplateArgumentList();
 			
 			if (isDeref) {
