@@ -38,6 +38,49 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, InternalConstructNoArguments) {
+			auto tokens = {
+				Token::AT,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::INTERNALCONSTRUCT);
+				EXPECT_EQ(value->internalConstruct.templateArgs->size(), 0);
+				EXPECT_EQ(value->internalConstruct.parameters->size(), 0);
+			});
+		}
+		
+		TEST(ValueParseTest, InternalConstructOneArgument) {
+			auto tokens = {
+				Token::AT,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::INTERNALCONSTRUCT);
+				EXPECT_EQ(value->internalConstruct.templateArgs->size(), 0);
+				EXPECT_EQ(value->internalConstruct.parameters->size(), 1);
+			});
+		}
+		
+		TEST(ValueParseTest, InternalConstructTwoArguments) {
+			auto tokens = {
+				Token::AT,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::COMMA,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::INTERNALCONSTRUCT);
+				EXPECT_EQ(value->internalConstruct.templateArgs->size(), 0);
+				EXPECT_EQ(value->internalConstruct.parameters->size(), 2);
+			});
+		}
+		
 		TEST(ValueParseTest, PointerType) {
 			auto tokens = {
 				Token::NAME,
