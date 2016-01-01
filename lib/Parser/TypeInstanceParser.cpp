@@ -1,9 +1,11 @@
 #include <locic/AST.hpp>
 #include <locic/Parser/Diagnostics.hpp>
+#include <locic/Parser/SymbolParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeInstanceBuilder.hpp>
 #include <locic/Parser/TypeInstanceParser.hpp>
+#include <locic/Parser/ValueParser.hpp>
 #include <locic/Parser/VarParser.hpp>
 
 namespace locic {
@@ -124,6 +126,26 @@ namespace locic {
 			const auto initializer = parseExceptionInitializer();
 			
 			return builder_.makeException(name, varList, initializer, start);
+		}
+		
+		AST::Node<AST::ExceptionInitializer>
+		TypeInstanceParser::parseExceptionInitializer() {
+			const auto start = reader_.position();
+			
+			if (reader_.peek().kind() != Token::COLON) {
+				return builder_.makeNoneExceptionInitializer(start);
+			}
+			
+			reader_.consume();
+			
+			const auto symbol = SymbolParser(reader_).parseSymbol();
+			
+			reader_.expect(Token::LROUNDBRACKET);
+			const auto valueList = ValueParser(reader_).parseValueList();
+			reader_.expect(Token::RROUNDBRACKET);
+			
+			return builder_.makeExceptionInitializer(symbol, valueList,
+			                                         start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseInterface() {
