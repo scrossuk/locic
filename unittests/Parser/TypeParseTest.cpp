@@ -2,6 +2,7 @@
 
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeParser.hpp>
+#include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/StringHost.hpp>
 
 #include "MockTokenSource.hpp"
@@ -18,6 +19,60 @@ namespace locic {
 			const auto type = TypeParser(tokenReader).parseType();
 			EXPECT_TRUE(tokenSource.allConsumed());
 			fn(type);
+		}
+		
+		void testPrimitiveType(const Array<Token::Kind, 16>& tokenKinds, const PrimitiveID primitiveID) {
+			testParseType(tokenKinds, [=](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isPrimitive());
+				EXPECT_EQ(type->primitiveID(), primitiveID);
+			});
+		}
+		
+		TEST(TypeParseTest, CoreTypes) {
+			testPrimitiveType({ Token::VOID }, PrimitiveVoid);
+			testPrimitiveType({ Token::BOOL }, PrimitiveBool);
+			testPrimitiveType({ Token::TYPENAME }, PrimitiveTypename);
+		}
+		
+		TEST(TypeParseTest, IntegerTypes) {
+			testPrimitiveType({ Token::BYTE }, PrimitiveByte);
+			testPrimitiveType({ Token::SHORT }, PrimitiveShort);
+			testPrimitiveType({ Token::SIGNED, Token::SHORT }, PrimitiveShort);
+			testPrimitiveType({ Token::SHORT, Token::INT }, PrimitiveShort);
+			testPrimitiveType({ Token::SIGNED, Token::SHORT, Token::INT }, PrimitiveShort);
+			testPrimitiveType({ Token::INT }, PrimitiveInt);
+			testPrimitiveType({ Token::SIGNED }, PrimitiveInt);
+			testPrimitiveType({ Token::SIGNED, Token::INT }, PrimitiveInt);
+			testPrimitiveType({ Token::LONG }, PrimitiveLong);
+			testPrimitiveType({ Token::LONG, Token::INT }, PrimitiveLong);
+			testPrimitiveType({ Token::LONG, Token::LONG }, PrimitiveLongLong);
+			testPrimitiveType({ Token::SIGNED, Token::LONG, Token::LONG }, PrimitiveLongLong);
+			testPrimitiveType({ Token::LONG, Token::LONG, Token::INT }, PrimitiveLongLong);
+			testPrimitiveType({ Token::SIGNED, Token::LONG, Token::LONG, Token::INT }, PrimitiveLongLong);
+			testPrimitiveType({ Token::LONGLONG }, PrimitiveLongLong);
+			testPrimitiveType({ Token::SIGNED, Token::LONGLONG }, PrimitiveLongLong);
+			
+			testPrimitiveType({ Token::UNSIGNED, Token::BYTE }, PrimitiveUByte);
+			testPrimitiveType({ Token::UBYTE }, PrimitiveUByte);
+			testPrimitiveType({ Token::UNSIGNED, Token::SHORT }, PrimitiveUShort);
+			testPrimitiveType({ Token::UNSIGNED, Token::SHORT, Token::INT }, PrimitiveUShort);
+			testPrimitiveType({ Token::USHORT}, PrimitiveUShort);
+			testPrimitiveType({ Token::UNSIGNED, Token::INT }, PrimitiveUInt);
+			testPrimitiveType({ Token::UNSIGNED }, PrimitiveUInt);
+			testPrimitiveType({ Token::UINT }, PrimitiveUInt);
+			testPrimitiveType({ Token::UNSIGNED, Token::LONG }, PrimitiveULong);
+			testPrimitiveType({ Token::UNSIGNED, Token::LONG, Token::INT }, PrimitiveULong);
+			testPrimitiveType({ Token::ULONG }, PrimitiveULong);
+			testPrimitiveType({ Token::UNSIGNED, Token::LONG, Token::LONG }, PrimitiveULongLong);
+			testPrimitiveType({ Token::UNSIGNED, Token::LONG, Token::LONG, Token::INT }, PrimitiveULongLong);
+			testPrimitiveType({ Token::UNSIGNED, Token::LONGLONG }, PrimitiveULongLong);
+			testPrimitiveType({ Token::ULONGLONG }, PrimitiveULongLong);
+		}
+		
+		TEST(TypeParseTest, FloatTypes) {
+			testPrimitiveType({ Token::FLOAT }, PrimitiveFloat);
+			testPrimitiveType({ Token::DOUBLE }, PrimitiveDouble);
+			testPrimitiveType({ Token::LONG, Token::DOUBLE }, PrimitiveLongDouble);
 		}
 		
 		TEST(TypeParseTest, SymbolOneComponent) {
