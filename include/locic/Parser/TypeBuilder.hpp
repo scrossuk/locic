@@ -28,8 +28,7 @@ namespace locic {
 			                                  const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Type> makePrimitiveType(PrimitiveID primitiveID,
-			                                       const Debug::SourcePosition& start,
-			                                       bool isSigned = true);
+			                                       const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Type> makeSymbolType(AST::Node<AST::Symbol> symbol,
 			                                    const Debug::SourcePosition& start);

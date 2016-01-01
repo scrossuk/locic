@@ -22,10 +22,9 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Type>
-		TypeBuilder::makePrimitiveType(const PrimitiveID /*primitiveID*/,
-		                               const Debug::SourcePosition& /*start*/,
-		                               const bool /*isSigned*/) {
-			throw std::logic_error("TODO");
+		TypeBuilder::makePrimitiveType(const PrimitiveID primitiveID,
+		                               const Debug::SourcePosition& start) {
+			return makeTypeNode(AST::Type::Primitive(primitiveID), start);
 		}
 		
 		AST::Node<AST::Type>

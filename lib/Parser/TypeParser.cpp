@@ -202,36 +202,46 @@ namespace locic {
 						}
 						break;
 					}
-					case Token::BYTE:
+					case Token::BYTE: {
 						reader_.consume();
-						return builder_.makePrimitiveType(PrimitiveByte, start, isSigned);
-					case Token::SHORT:
+						const auto primitiveID = isSigned ? PrimitiveByte : PrimitiveUByte;
+						return builder_.makePrimitiveType(primitiveID, start);
+					}
+					case Token::SHORT: {
 						reader_.consume();
 						if (reader_.peek().kind() == Token::INT) {
 							reader_.consume();
 						}
-						return builder_.makePrimitiveType(PrimitiveShort, start, isSigned);
-					case Token::INT:
+						const auto primitiveID = isSigned ? PrimitiveShort : PrimitiveUShort;
+						return builder_.makePrimitiveType(primitiveID, start);
+					}
+					case Token::INT: {
 						reader_.consume();
-						return builder_.makePrimitiveType(PrimitiveInt, start, isSigned);
+						const auto primitiveID = isSigned ? PrimitiveInt : PrimitiveUInt;
+						return builder_.makePrimitiveType(primitiveID, start);
+					}
 					case Token::LONG:
 						reader_.consume();
 						return parseLongIntegerType(start, isSigned);
-					case Token::LONGLONG:
+					case Token::LONGLONG: {
 						reader_.consume();
-						return builder_.makePrimitiveType(PrimitiveLongLong, start, isSigned);
-					default:
-						return builder_.makePrimitiveType(PrimitiveInt, start, isSigned);
+						const auto primitiveID = isSigned ? PrimitiveLongLong : PrimitiveULongLong;
+						return builder_.makePrimitiveType(primitiveID, start);
+					}
+					default: {
+						const auto primitiveID = isSigned ? PrimitiveInt : PrimitiveUInt;
+						return builder_.makePrimitiveType(primitiveID, start);
+					}
 				}
 			}
 		}
 		
 		AST::Node<AST::Type> TypeParser::parseLongIntegerType(const Debug::SourcePosition& start,
 		                                                      const bool isSigned) {
-			auto primitiveKind = PrimitiveLong;
+			auto primitiveKind = isSigned ? PrimitiveLong : PrimitiveULong;
 			
 			if (reader_.peek().kind() == Token::LONG) {
-				primitiveKind = PrimitiveLongLong;
+				primitiveKind = isSigned ? PrimitiveLongLong : PrimitiveULongLong;
 				reader_.consume();
 			}
 			
@@ -239,7 +249,7 @@ namespace locic {
 				reader_.consume();
 			}
 			
-			return builder_.makePrimitiveType(primitiveKind, start, isSigned);
+			return builder_.makePrimitiveType(primitiveKind, start);
 		}
 		
 	}
