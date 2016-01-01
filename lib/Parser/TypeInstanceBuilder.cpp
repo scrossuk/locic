@@ -61,6 +61,20 @@ namespace locic {
 			                                                         initializer), start);
 		}
 		
+		AST::Node<AST::ExceptionInitializer>
+		TypeInstanceBuilder::makeNoneExceptionInitializer(const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, AST::ExceptionInitializer::None());
+		}
+		
+		AST::Node<AST::ExceptionInitializer>
+		TypeInstanceBuilder::makeExceptionInitializer(AST::Node<AST::Symbol> symbol,
+		                                              AST::Node<AST::ValueList> valueList,
+		                                              const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, AST::ExceptionInitializer::Initialize(symbol, valueList));
+		}
+		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeInterface(String name, AST::Node<AST::FunctionList> methods,
 		                                   const Debug::SourcePosition& start) {

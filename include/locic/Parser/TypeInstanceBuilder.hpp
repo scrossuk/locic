@@ -50,6 +50,14 @@ namespace locic {
 			              AST::Node<AST::ExceptionInitializer> initializer,
 			              const Debug::SourcePosition& start);
 			
+			AST::Node<AST::ExceptionInitializer>
+			makeNoneExceptionInitializer(const Debug::SourcePosition& start);
+			
+			AST::Node<AST::ExceptionInitializer>
+			makeExceptionInitializer(AST::Node<AST::Symbol> symbol,
+			                         AST::Node<AST::ValueList> valueList,
+			                         const Debug::SourcePosition& start);
+			
 			AST::Node<AST::TypeInstance>
 			makeInterface(String name, AST::Node<AST::FunctionList> methods,
 			              const Debug::SourcePosition& start);
