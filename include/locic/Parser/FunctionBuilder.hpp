@@ -5,6 +5,8 @@
 
 namespace locic {
 	
+	class Name;
+	
 	namespace Debug {
 		
 		class SourcePosition;
@@ -36,6 +38,9 @@ namespace locic {
 			                AST::Node<AST::RequireSpecifier> requireSpecifier,
 			                AST::Node<AST::Scope> scope,
 			                const Debug::SourcePosition& start);
+			
+			AST::Node<Name>
+			makeName(Name name, const Debug::SourcePosition& start);
 			
 		private:
 			const TokenReader& reader_;
