@@ -149,6 +149,18 @@ namespace locic {
 			throw std::logic_error("TODO: parse templated alias");
 		}
 		
+		AST::Node<AST::AliasDecl> NamespaceParser::parseAlias() {
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::USING);
+			const auto name = reader_.expectName();
+			reader_.expect(Token::SETEQUAL);
+			const auto value = ValueParser(reader_).parseValue();
+			reader_.expect(Token::SEMICOLON);
+			
+			return builder_.makeAlias(name, value, start);
+		}
+		
 		void NamespaceParser::parseTemplatedFunction(AST::NamespaceData& data,
 		                                             TemplateInfo templateInfo,
 		                                             const Debug::SourcePosition& start) {

@@ -36,6 +36,8 @@ namespace locic {
 			                         TemplateInfo templateInfo,
 			                         const Debug::SourcePosition& start);
 			
+			AST::Node<AST::AliasDecl> parseAlias();
+			
 			void parseTemplatedFunction(AST::NamespaceData& data,
 			                            TemplateInfo templateInfo,
 			                            const Debug::SourcePosition& start);
