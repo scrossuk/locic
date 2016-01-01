@@ -1,5 +1,6 @@
 #include <locic/AST.hpp>
 #include <locic/Parser/Diagnostics.hpp>
+#include <locic/Parser/PredicateParser.hpp>
 #include <locic/Parser/SymbolParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
@@ -84,7 +85,12 @@ namespace locic {
 			reader_.expect(Token::CONST);
 			
 			if (reader_.peek().kind() == Token::LTRIBRACKET) {
-				throw std::logic_error("TODO: parse const predicate");
+				reader_.consume();
+				const auto predicate = PredicateParser(reader_).parsePredicate();
+				reader_.expect(Token::RTRIBRACKET);
+				const auto targetType = parseQualifiedType();
+				return builder_.makeConstPredicateType(predicate, targetType,
+				                                       start);
 			}
 			
 			const auto targetType = parseQualifiedType();
