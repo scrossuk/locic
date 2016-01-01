@@ -113,6 +113,12 @@ namespace locic {
 			return builder_.makeName(std::move(name), start);
 		}
 		
+		AST::Node<Name> FunctionParser::parseMethodName() {
+			const auto start = reader_.position();
+			auto name = Name::Relative() + parseFunctionNameElement();
+			return builder_.makeName(std::move(name), start);
+		}
+		
 		String FunctionParser::parseFunctionNameElement() {
 			auto validTokens = {
 				Token::NAME,

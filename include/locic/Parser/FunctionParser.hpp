@@ -39,6 +39,8 @@ namespace locic {
 			
 			AST::Node<Name> parseFunctionName();
 			
+			AST::Node<Name> parseMethodName();
+			
 			String parseFunctionNameElement();
 			
 		private:
