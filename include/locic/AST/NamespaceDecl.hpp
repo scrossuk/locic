@@ -32,6 +32,12 @@ namespace locic {
 			std::vector< AST::Node<StaticAssert> > staticAsserts;
 			std::vector< AST::Node<TypeInstance> > typeInstances;
 			
+			bool empty() const {
+				return aliases.empty() && functions.empty() &&
+				       moduleScopes.empty() && namespaces.empty() &&
+				       staticAsserts.empty() && typeInstances.empty();
+			}
+			
 			std::string toString() const;
 		};
 		
