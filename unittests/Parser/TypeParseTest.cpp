@@ -207,6 +207,39 @@ namespace locic {
 			});
 		}
 		
+		TEST(TypeParseTest, StaticArrayType) {
+			auto tokens = {
+				Token::NAME,
+				Token::LSQUAREBRACKET,
+				Token::NAME,
+				Token::RSQUAREBRACKET
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isStaticArray());
+				EXPECT_TRUE(type->getStaticArrayTarget()->isObjectType());
+				EXPECT_TRUE(type->getArraySize()->isSymbol());
+			});
+		}
+		
+		TEST(TypeParseTest, ChainedStaticArrayType) {
+			auto tokens = {
+				Token::NAME,
+				Token::LSQUAREBRACKET,
+				Token::NAME,
+				Token::RSQUAREBRACKET,
+				Token::LSQUAREBRACKET,
+				Token::NAME,
+				Token::RSQUAREBRACKET
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isStaticArray());
+				ASSERT_TRUE(type->getStaticArrayTarget()->isStaticArray());
+				EXPECT_TRUE(type->getStaticArrayTarget()->getStaticArrayTarget()->isObjectType());
+				EXPECT_TRUE(type->getStaticArrayTarget()->getArraySize()->isSymbol());
+				EXPECT_TRUE(type->getArraySize()->isSymbol());
+			});
+		}
+		
 	}
 	
 }
