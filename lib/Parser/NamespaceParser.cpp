@@ -56,8 +56,7 @@ namespace locic {
 						parseTemplatedObject(data);
 						break;
 					case Token::USING:
-						//data.aliases.push_back(parseAlias());
-						throw std::logic_error("TODO: parse alias");
+						data.aliases.push_back(parseAlias());
 						break;
 					case Token::STATIC:
 						//data.staticAsserts.push_back(parseStaticAssert());
