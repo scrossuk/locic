@@ -34,6 +34,14 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Type>
+		TypeBuilder::makeConstPredicateType(AST::Node<AST::Predicate> predicate,
+		                                    AST::Node<AST::Type> targetType,
+		                                    const Debug::SourcePosition& start) {
+			return makeTypeNode(AST::Type::ConstPredicate(predicate, targetType),
+			                    start);
+		}
+		
+		AST::Node<AST::Type>
 		TypeBuilder::makeConstType(AST::Node<AST::Type> targetType,
 		                           const Debug::SourcePosition& start) {
 			return makeTypeNode(AST::Type::Const(targetType), start);

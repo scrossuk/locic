@@ -33,6 +33,11 @@ namespace locic {
 			AST::Node<AST::Type> makeSymbolType(AST::Node<AST::Symbol> symbol,
 			                                    const Debug::SourcePosition& start);
 			
+			AST::Node<AST::Type>
+			makeConstPredicateType(AST::Node<AST::Predicate> predicate,
+			                       AST::Node<AST::Type> targetType,
+			                       const Debug::SourcePosition& start);
+			
 			AST::Node<AST::Type> makeConstType(AST::Node<AST::Type> targetType,
 			                                   const Debug::SourcePosition& start);
 			
