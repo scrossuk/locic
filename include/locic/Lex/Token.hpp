@@ -259,6 +259,145 @@ namespace locic {
 				}
 			}
 			
+			static std::string kindToString(const Kind kind) {
+				switch (kind) {
+					case END: return "END";
+					case NAME: return "NAME";
+					case VERSION: return "VERSION";
+					case CONSTANT: return "CONSTANT";
+					case TRUEVAL: return "TRUEVAL";
+					case FALSEVAL: return "FALSEVAL";
+					case UNKNOWN: return "UNKNOWN";
+					case ERROR: return "ERROR";
+					case INTERFACE: return "INTERFACE";
+					case SEMICOLON: return "SEMICOLON";
+					case NAMESPACE: return "NAMESPACE";
+					case UNDERSCORE: return "UNDERSCORE";
+					case LCURLYBRACKET: return "LCURLYBRACKET";
+					case RCURLYBRACKET: return "RCURLYBRACKET";
+					case LSQUAREBRACKET: return "LSQUAREBRACKET";
+					case RSQUAREBRACKET: return "RSQUAREBRACKET";
+					case LROUNDBRACKET: return "LROUNDBRACKET";
+					case RROUNDBRACKET: return "RROUNDBRACKET";
+					case DOUBLE_LTRIBRACKET: return "DOUBLE_LTRIBRACKET";
+					case LTRIBRACKET: return "LTRIBRACKET";
+					case RTRIBRACKET: return "RTRIBRACKET";
+					case AUTO: return "AUTO";
+					case STATIC: return "STATIC";
+					case IMPORT: return "IMPORT";
+					case EXPORT: return "EXPORT";
+					case MOVE: return "MOVE";
+					case LVAL: return "LVAL";
+					case NOLVAL: return "NOLVAL";
+					case REF: return "REF";
+					case STATICREF: return "STATICREF";
+					case NOREF: return "NOREF";
+					case NOTAG: return "NOTAG";
+					case TEMPLATE: return "TEMPLATE";
+					case TYPENAME: return "TYPENAME";
+					case VIRTUAL: return "VIRTUAL";
+					case REQUIRE: return "REQUIRE";
+					case UNUSED: return "UNUSED";
+					case UNUSED_RESULT: return "UNUSED_RESULT";
+					case USING: return "USING";
+					case LET: return "LET";
+					case ENUM: return "ENUM";
+					case UNION: return "UNION";
+					case CASE: return "CASE";
+					case SWITCH: return "SWITCH";
+					case DEFAULT: return "DEFAULT";
+					case CONTINUE: return "CONTINUE";
+					case BREAK: return "BREAK";
+					case EXCEPTION: return "EXCEPTION";
+					case THROW: return "THROW";
+					case TRY: return "TRY";
+					case CATCH: return "CATCH";
+					case SCOPE: return "SCOPE";
+					case NOEXCEPT: return "NOEXCEPT";
+					case ALIGNOF: return "ALIGNOF";
+					case SIZEOF: return "SIZEOF";
+					case TYPEOF: return "TYPEOF";
+					case TYPEID: return "TYPEID";
+					case PRIMITIVE: return "PRIMITIVE";
+					case PRIMITIVEFUNCTION: return "PRIMITIVEFUNCTION";
+					case STRUCT: return "STRUCT";
+					case CLASS: return "CLASS";
+					case DATATYPE: return "DATATYPE";
+					case SIGNED: return "SIGNED";
+					case UNSIGNED: return "UNSIGNED";
+					case BYTE: return "BYTE";
+					case UBYTE: return "UBYTE";
+					case SHORT: return "SHORT";
+					case USHORT: return "USHORT";
+					case INT: return "INT";
+					case UINT: return "UINT";
+					case LONG: return "LONG";
+					case ULONG: return "ULONG";
+					case LONGLONG: return "LONGLONG";
+					case ULONGLONG: return "ULONGLONG";
+					case FLOAT: return "FLOAT";
+					case DOUBLE: return "DOUBLE";
+					case COLON: return "COLON";
+					case DOUBLE_COLON: return "DOUBLE_COLON";
+					case VOID: return "VOID";
+					case BOOL: return "BOOL";
+					case FINAL: return "FINAL";
+					case CONST: return "CONST";
+					case MUTABLE: return "MUTABLE";
+					case OVERRIDE_CONST: return "OVERRIDE_CONST";
+					case STAR: return "STAR";
+					case COMMA: return "COMMA";
+					case IF: return "IF";
+					case ELSE: return "ELSE";
+					case FOR: return "FOR";
+					case WHILE: return "WHILE";
+					case SETEQUAL: return "SETEQUAL";
+					case ADDEQUAL: return "ADDEQUAL";
+					case SUBEQUAL: return "SUBEQUAL";
+					case MULEQUAL: return "MULEQUAL";
+					case DIVEQUAL: return "DIVEQUAL";
+					case PERCENTEQUAL: return "PERCENTEQUAL";
+					case RETURN: return "RETURN";
+					case ASSERT: return "ASSERT";
+					case UNREACHABLE: return "UNREACHABLE";
+					case AT: return "AT";
+					case NULLVAL: return "NULLVAL";
+					case CONST_CAST: return "CONST_CAST";
+					case DYNAMIC_CAST: return "DYNAMIC_CAST";
+					case REINTERPRET_CAST: return "REINTERPRET_CAST";
+					case AND: return "AND";
+					case OR: return "OR";
+					case XOR: return "XOR";
+					case IS_A: return "IS_A";
+					case DOT: return "DOT";
+					case PTRACCESS: return "PTRACCESS";
+					case PLUS: return "PLUS";
+					case DOUBLE_PLUS: return "DOUBLE_PLUS";
+					case MINUS: return "MINUS";
+					case DOUBLE_MINUS: return "DOUBLE_MINUS";
+					case EXCLAIMMARK: return "EXCLAIMMARK";
+					case AMPERSAND: return "AMPERSAND";
+					case DOUBLE_AMPERSAND: return "DOUBLE_AMPERSAND";
+					case VERTICAL_BAR: return "VERTICAL_BAR";
+					case DOUBLE_VERTICAL_BAR: return "DOUBLE_VERTICAL_BAR";
+					case FORWARDSLASH: return "FORWARDSLASH";
+					case PERCENT: return "PERCENT";
+					case ISEQUAL: return "ISEQUAL";
+					case NOTEQUAL: return "NOTEQUAL";
+					case GREATEROREQUAL: return "GREATEROREQUAL";
+					case LESSOREQUAL: return "LESSOREQUAL";
+					case QUESTIONMARK: return "QUESTIONMARK";
+					case TILDA: return "TILDA";
+					case CARET: return "CARET";
+					case SELF: return "SELF";
+					case THIS: return "THIS";
+				}
+			}
+			
+			std::string toString() const {
+				return kindToString(kind());
+			}
+			
 		private:
 			Token(const Kind argKind, const Debug::SourceRange argSourceRange)
 			: kind_(argKind), sourceRange_(argSourceRange) { }
