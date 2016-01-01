@@ -77,6 +77,14 @@ namespace locic {
 			return makeTypeNode(AST::Type::Pointer(targetType), start);
 		}
 		
+		AST::Node<AST::Type>
+		TypeBuilder::makeStaticArrayType(AST::Node<AST::Type> targetType,
+		                                 AST::Node<AST::Value> sizeValue,
+		                                 const Debug::SourcePosition& start) {
+			return makeTypeNode(AST::Type::StaticArray(targetType,
+			                                           sizeValue), start);
+		}
+		
 	}
 	
 }

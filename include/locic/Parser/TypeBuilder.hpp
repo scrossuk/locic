@@ -51,6 +51,9 @@ namespace locic {
 			                                       const Debug::SourcePosition& start);
 			AST::Node<AST::Type> makePointerType(AST::Node<AST::Type> targetType,
 			                                     const Debug::SourcePosition& start);
+			AST::Node<AST::Type> makeStaticArrayType(AST::Node<AST::Type> targetType,
+			                                         AST::Node<AST::Value> sizeValue,
+			                                         const Debug::SourcePosition& start);
 			
 		private:
 			const TokenReader& reader_;
