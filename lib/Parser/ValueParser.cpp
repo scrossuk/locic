@@ -646,8 +646,15 @@ namespace locic {
 					reader_.consume();
 					return parseArrayLiteral(start);
 				default:
-					throw std::logic_error("TODO: invalid atomic value");
+					break;
 			}
+			
+			if (TypeParser(reader_).isTypeStartToken(token.kind())) {
+				const auto type = TypeParser(reader_).parseType();
+				return builder_.makeTypeValue(type, start);
+			}
+			
+			throw std::logic_error("TODO: invalid atomic value");
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseAtExpression(const Debug::SourcePosition& start) {
