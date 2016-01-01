@@ -52,6 +52,10 @@ namespace locic {
 					return std::string("[float type: ") + floatName().asStdString() + std::string("]");	
 				}
 				
+				case PRIMITIVE: {
+					return std::string("[primitive type: ") + primitiveID().toString() + std::string("]");
+				}
+				
 				case OBJECT:
 					return std::string("[object type: ") + objectType.symbol->toString() + std::string("]");
 					

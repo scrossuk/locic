@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <locic/AST/Node.hpp>
+#include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
@@ -38,6 +39,7 @@ namespace locic {
 				BOOL,
 				INTEGER,
 				FLOAT,
+				PRIMITIVE,
 				OBJECT,
 				REFERENCE,
 				POINTER,
@@ -81,6 +83,10 @@ namespace locic {
 			struct {
 				String name;
 			} floatType;
+			
+			struct {
+				PrimitiveID primitiveID;
+			} primitiveType;
 			
 			struct {
 				Node<Symbol> symbol;
@@ -171,6 +177,12 @@ namespace locic {
 			inline static Type* Float(const String& name) {
 				Type* type = new Type(FLOAT);
 				type->floatType.name = name;
+				return type;
+			}
+			
+			inline static Type* Primitive(const PrimitiveID primitiveID) {
+				Type* type = new Type(PRIMITIVE);
+				type->primitiveType.primitiveID = primitiveID;
 				return type;
 			}
 			
@@ -354,6 +366,15 @@ namespace locic {
 			inline const String& floatName() const {
 				assert(isFloat());
 				return floatType.name;
+			}
+			
+			bool isPrimitive() const {
+				return typeEnum == PRIMITIVE;
+			}
+			
+			PrimitiveID primitiveID() const {
+				assert(isPrimitive());
+				return primitiveType.primitiveID;
 			}
 			
 			inline bool isObjectType() const {
