@@ -29,6 +29,8 @@ namespace locic {
 			
 			AST::Node<AST::TypeInstanceList> parseDatatypeVariantList();
 			
+			AST::Node<AST::TypeInstance> parseDatatypeVariant();
+			
 			AST::Node<AST::TypeInstance> parseException();
 			
 			AST::Node<AST::ExceptionInitializer> parseExceptionInitializer();

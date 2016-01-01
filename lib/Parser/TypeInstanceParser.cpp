@@ -81,6 +81,36 @@ namespace locic {
 			return builder_.makeUnionDatatype(name, variants, start);
 		}
 		
+		AST::Node<AST::TypeInstanceList>
+		TypeInstanceParser::parseDatatypeVariantList() {
+			const auto start = reader_.position();
+			
+			AST::TypeInstanceList list;
+			list.push_back(parseDatatypeVariant());
+			
+			while (true) {
+				if (reader_.peek().kind() != Token::VERTICAL_BAR) {
+					break;
+				}
+				
+				reader_.consume();
+				list.push_back(parseDatatypeVariant());
+			}
+			
+			return builder_.makeTypeInstanceList(list, start);
+		}
+		
+		AST::Node<AST::TypeInstance> TypeInstanceParser::parseDatatypeVariant() {
+			const auto start = reader_.position();
+			
+			const auto name = reader_.expectName();
+			
+			reader_.expect(Token::LROUNDBRACKET);
+			const auto varList = VarParser(reader_).parseVarList();
+			reader_.expect(Token::RROUNDBRACKET);
+			return builder_.makeDatatype(name, varList, start);
+		}
+		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseException() {
 			const auto start = reader_.position();
 			
