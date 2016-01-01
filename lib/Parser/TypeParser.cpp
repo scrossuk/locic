@@ -260,6 +260,38 @@ namespace locic {
 			return builder_.makePrimitiveType(primitiveKind, start);
 		}
 		
+		bool TypeParser::isTypeStartToken(const Token::Kind kind) {
+			switch (kind) {
+				case Token::AUTO:
+				case Token::VOID:
+				case Token::BOOL:
+				case Token::TYPENAME:
+				case Token::BYTE:
+				case Token::UBYTE:
+				case Token::SHORT:
+				case Token::USHORT:
+				case Token::INT:
+				case Token::UINT:
+				case Token::LONG:
+				case Token::ULONG:
+				case Token::LONGLONG:
+				case Token::ULONGLONG:
+				case Token::SIGNED:
+				case Token::UNSIGNED:
+				case Token::FLOAT:
+				case Token::DOUBLE:
+				case Token::CONST:
+				case Token::LVAL:
+				case Token::REF:
+				case Token::STATICREF:
+				case Token::NAME:
+				case Token::LROUNDBRACKET:
+					return true;
+				default:
+					return false;
+			}
+		}
+		
 	}
 	
 }

@@ -50,6 +50,8 @@ namespace locic {
 			AST::Node<AST::Type> parseLongIntegerType(const Debug::SourcePosition& start,
 			                                          bool isSigned);
 			
+			bool isTypeStartToken(Token::Kind kind);
+			
 		private:
 			TokenReader& reader_;
 			TypeBuilder builder_;
