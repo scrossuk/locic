@@ -37,6 +37,16 @@ namespace locic {
 			AST::Node<AST::RequireSpecifier>
 			parseOptionalRequireSpecifier();
 			
+			AST::Node<AST::Function> parseMethodDecl();
+			
+			AST::Node<AST::Function>
+			parseNonTemplatedMethodDecl(const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Function> parseMethodDef();
+			
+			AST::Node<AST::Function>
+			parseNonTemplatedMethodDef(const Debug::SourcePosition& start);
+			
 			AST::Node<Name> parseFunctionName();
 			
 			AST::Node<Name> parseMethodName();
