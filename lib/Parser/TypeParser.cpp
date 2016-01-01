@@ -122,6 +122,9 @@ namespace locic {
 				case Token::BOOL:
 					reader_.consume();
 					return builder_.makePrimitiveType(PrimitiveBool, start);
+				case Token::TYPENAME:
+					reader_.consume();
+					return builder_.makePrimitiveType(PrimitiveTypename, start);
 				case Token::UNSIGNED:
 					reader_.consume();
 					return parseIntegerTypeWithSignedness(start,
