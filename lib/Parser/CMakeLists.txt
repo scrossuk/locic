@@ -18,13 +18,21 @@ add_library(locic-parser
 )
 
 add_library(locic-newparser
+	AttributeBuilder.cpp
+	AttributeParser.cpp
+	FunctionBuilder.cpp
 	FunctionParser.cpp
+	NamespaceBuilder.cpp
 	NamespaceParser.cpp
+	PredicateBuilder.cpp
+	PredicateParser.cpp
 	ScopeParser.cpp
 	StatementBuilder.cpp
 	StatementParser.cpp
 	SymbolBuilder.cpp
 	SymbolParser.cpp
+	TemplateBuilder.cpp
+	TemplateInfo.cpp
 	TemplateParser.cpp
 	TokenReader.cpp
 	TypeBuilder.cpp
