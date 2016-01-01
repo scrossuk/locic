@@ -61,7 +61,7 @@ namespace locic {
 		
 		AST::Node<AST::Function> FunctionParser::parseBasicFunction(const Debug::SourcePosition& start) {
 			const auto returnType = TypeParser(reader_).parseType();
-			const auto name = reader_.expectName();
+			const auto name = parseFunctionName();
 			
 			reader_.expect(Token::LROUNDBRACKET);
 			
@@ -85,15 +85,17 @@ namespace locic {
 			
 			if (reader_.peek().kind() == Token::SEMICOLON) {
 				reader_.consume();
-				return builder_.makeFunctionDecl(returnType, name, varList,
+				return builder_.makeFunctionDecl(isVarArg, /*isStatic=*/false,
+				                                 returnType, name, varList,
 				                                 constSpecifier, noexceptSpecifier,
 				                                 requireSpecifier, start);
 			}
 			
 			const auto scope = ScopeParser(reader_).parseScope();
-			return builder_.makeFunctionDef(returnType, name, varList,
-			                                constSpecifier, noexceptSpecifier,
-			                                requireSpecifier, scope, start);
+			return builder_.makeFunctionDef(isVarArg, /*isStatic=*/false, returnType,
+			                                name, varList, constSpecifier,
+			                                noexceptSpecifier, requireSpecifier,
+			                                scope, start);
 		}
 		
 		AST::Node<Name> FunctionParser::parseFunctionName() {

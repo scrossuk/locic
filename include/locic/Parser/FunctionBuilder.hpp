@@ -23,17 +23,19 @@ namespace locic {
 			~FunctionBuilder();
 			
 			AST::Node<AST::Function>
-			makeFunctionDecl(AST::Node<AST::Type> returnType,
-			                 String name, AST::Node<AST::TypeVarList> varList,
-			                 AST::Node<AST::RequireSpecifier> constSpecifier,
+			makeFunctionDecl(bool isVarArg, bool isStatic,
+			                 AST::Node<AST::Type> returnType, AST::Node<Name> name,
+			                 AST::Node<AST::TypeVarList> parameters,
+			                 AST::Node<AST::ConstSpecifier> constSpecifier,
 			                 AST::Node<AST::RequireSpecifier> noexceptSpecifier,
 			                 AST::Node<AST::RequireSpecifier> requireSpecifier,
 			                 const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Function>
-			makeFunctionDef(AST::Node<AST::Type> returnType,
-			                String name, AST::Node<AST::TypeVarList> varList,
-			                AST::Node<AST::RequireSpecifier> constSpecifier,
+			makeFunctionDef(bool isVarArg, bool isStatic,
+			                AST::Node<AST::Type> returnType, AST::Node<Name> name,
+			                AST::Node<AST::TypeVarList> parameters,
+			                AST::Node<AST::ConstSpecifier> constSpecifier,
 			                AST::Node<AST::RequireSpecifier> noexceptSpecifier,
 			                AST::Node<AST::RequireSpecifier> requireSpecifier,
 			                AST::Node<AST::Scope> scope,
