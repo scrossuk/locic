@@ -4,6 +4,8 @@
 #include <locic/Parser/FunctionBuilder.hpp>
 #include <locic/Parser/FunctionParser.hpp>
 #include <locic/Parser/ScopeParser.hpp>
+#include <locic/Parser/TemplateInfo.hpp>
+#include <locic/Parser/TemplateParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeParser.hpp>
@@ -96,6 +98,92 @@ namespace locic {
 			                                name, varList, constSpecifier,
 			                                noexceptSpecifier, requireSpecifier,
 			                                scope, start);
+		}
+		
+		AST::Node<AST::Function> FunctionParser::parseMethodDecl() {
+			const auto start = reader_.position();
+			
+			if (reader_.peek().kind() != Token::TEMPLATE) {
+				return parseNonTemplatedMethodDecl(start);
+			}
+			
+			const auto templateInfo = TemplateParser(reader_).parseTemplate();
+			auto function = parseNonTemplatedMethodDecl(start);
+			
+			function->setTemplateVariables(templateInfo.templateVariables());
+			
+			if (templateInfo.hasRequireSpecifier()) {
+				// TODO: reject duplicate require() specifier.
+				function->setRequireSpecifier(templateInfo.requireSpecifier());
+			}
+			
+			// TODO: reject move() or notag().
+			return function;
+		}
+		
+		AST::Node<AST::Function>
+		FunctionParser::parseNonTemplatedMethodDecl(const Debug::SourcePosition& start) {
+			const bool isStatic = reader_.consumeIfPresent(Token::STATIC);
+			const auto returnType = TypeParser(reader_).parseType();
+			const auto name = parseMethodName();
+			
+			reader_.expect(Token::LROUNDBRACKET);
+			const auto varList = VarParser(reader_).parseVarList();
+			reader_.expect(Token::RROUNDBRACKET);
+			
+			const auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
+			const auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
+			const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
+			
+			reader_.expect(Token::SEMICOLON);
+			
+			return builder_.makeFunctionDecl(/*isVarArg=*/false, isStatic,
+			                                 returnType, name, varList,
+			                                 constSpecifier, noexceptSpecifier,
+			                                 requireSpecifier, start);
+		}
+		
+		AST::Node<AST::Function> FunctionParser::parseMethodDef() {
+			const auto start = reader_.position();
+			
+			if (reader_.peek().kind() != Token::TEMPLATE) {
+				return parseNonTemplatedMethodDef(start);
+			}
+			
+			const auto templateInfo = TemplateParser(reader_).parseTemplate();
+			auto function = parseNonTemplatedMethodDef(start);
+			
+			function->setTemplateVariables(templateInfo.templateVariables());
+			
+			if (templateInfo.hasRequireSpecifier()) {
+				// TODO: reject duplicate require() specifier.
+				function->setRequireSpecifier(templateInfo.requireSpecifier());
+			}
+			
+			// TODO: reject move() or notag().
+			return function;
+		}
+		
+		AST::Node<AST::Function>
+		FunctionParser::parseNonTemplatedMethodDef(const Debug::SourcePosition& start) {
+			const bool isStatic = reader_.consumeIfPresent(Token::STATIC);
+			const auto returnType = TypeParser(reader_).parseType();
+			const auto name = parseMethodName();
+			
+			reader_.expect(Token::LROUNDBRACKET);
+			const auto varList = VarParser(reader_).parseVarList();
+			reader_.expect(Token::RROUNDBRACKET);
+			
+			const auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
+			const auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
+			const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
+			
+			const auto scope = ScopeParser(reader_).parseScope();
+			
+			return builder_.makeFunctionDef(/*isVarArg=*/false, isStatic,
+			                                returnType, name, varList,
+			                                constSpecifier, noexceptSpecifier,
+			                                requireSpecifier, scope, start);
 		}
 		
 		AST::Node<Name> FunctionParser::parseFunctionName() {
