@@ -159,6 +159,53 @@ namespace locic {
 			});
 		}
 		
+		TEST(TypeParseTest, ConstTrivialTruePredicateType) {
+			auto tokens = {
+				Token::CONST,
+				Token::LTRIBRACKET,
+				Token::TRUEVAL,
+				Token::RTRIBRACKET,
+				Token::NAME
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isConstPredicate());
+				EXPECT_EQ(type->getConstPredicate()->kind(), AST::Predicate::TRUE);
+				EXPECT_TRUE(type->getConstPredicateTarget()->isObjectType());
+			});
+		}
+		
+		TEST(TypeParseTest, ConstTrivialFalsePredicateType) {
+			auto tokens = {
+				Token::CONST,
+				Token::LTRIBRACKET,
+				Token::FALSEVAL,
+				Token::RTRIBRACKET,
+				Token::NAME
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isConstPredicate());
+				EXPECT_EQ(type->getConstPredicate()->kind(), AST::Predicate::FALSE);
+				EXPECT_TRUE(type->getConstPredicateTarget()->isObjectType());
+			});
+		}
+		
+		TEST(TypeParseTest, ConstAndPredicateType) {
+			auto tokens = {
+				Token::CONST,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::AND,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::NAME
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isConstPredicate());
+				EXPECT_EQ(type->getConstPredicate()->kind(), AST::Predicate::AND);
+				EXPECT_TRUE(type->getConstPredicateTarget()->isObjectType());
+			});
+		}
+		
 		TEST(TypeParseTest, PointerType) {
 			auto tokens = {
 				Token::NAME,
