@@ -34,6 +34,8 @@ namespace locic {
 			
 			void consume();
 			
+			bool consumeIfPresent(Token::Kind tokenKind);
+			
 			void expect(Token::Kind tokenKind);
 			
 			Token expectOneOf(const Array<Token::Kind, 4>& tokenKinds);
