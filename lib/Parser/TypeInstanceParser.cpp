@@ -190,7 +190,7 @@ namespace locic {
 			const auto variables = VarParser(reader_).parseCStyleVarList();
 			reader_.expect(Token::RCURLYBRACKET);
 			
-			return builder_.makeStruct(name, variables, start);
+			return builder_.makeUnion(name, variables, start);
 		}
 		
 		AST::Node<AST::FunctionList> TypeInstanceParser::parseMethodDeclList() {
