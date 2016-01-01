@@ -81,6 +81,40 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, TemplatedInternalConstructOneArgument) {
+			auto tokens = {
+				Token::AT,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::INTERNALCONSTRUCT);
+				EXPECT_EQ(value->internalConstruct.templateArgs->size(), 1);
+				EXPECT_EQ(value->internalConstruct.parameters->size(), 0);
+			});
+		}
+		
+		TEST(ValueParseTest, TemplatedInternalConstructTwoArguments) {
+			auto tokens = {
+				Token::AT,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::COMMA,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::INTERNALCONSTRUCT);
+				EXPECT_EQ(value->internalConstruct.templateArgs->size(), 2);
+				EXPECT_EQ(value->internalConstruct.parameters->size(), 0);
+			});
+		}
+		
 		TEST(ValueParseTest, PointerType) {
 			auto tokens = {
 				Token::NAME,
