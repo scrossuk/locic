@@ -82,6 +82,17 @@ namespace locic {
 				consume();
 				return token;
 			} else {
+				std::string expectStr = "{ ";
+				for (size_t i = 0; i < tokenKinds.size(); i++) {
+					expectStr += Token::kindToString(tokenKinds[i]);
+					if ((i + 1) < tokenKinds.size()) {
+						expectStr += ", ";
+					}
+				}
+				expectStr += " }";
+				
+				printf("Expected one of %s; got %s\n", expectStr.c_str(),
+				       token.toString().c_str());
 				throw std::logic_error("TODO: expected token not found");
 			}
 		}
