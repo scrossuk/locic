@@ -176,6 +176,14 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
+		ValueBuilder::makeInternalConstruct(AST::Node<AST::ValueList> templateArguments,
+		                                    AST::Node<AST::ValueList> arguments,
+		                                    const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::InternalConstruct(templateArguments,
+			                                                   arguments), start);
+		}
+		
+		AST::Node<AST::Value>
 		ValueBuilder::makeArrayLiteralValue(AST::Node<AST::ValueList> values,
 		                                    const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::ArrayLiteral(values), start);

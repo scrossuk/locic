@@ -119,6 +119,11 @@ namespace locic {
 			                     const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
+			makeInternalConstruct(AST::Node<AST::ValueList> templateArguments,
+			                      AST::Node<AST::ValueList> arguments,
+			                      const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Value>
 			makeArrayLiteralValue(AST::Node<AST::ValueList> values,
 			                      const Debug::SourcePosition& start);
 			
