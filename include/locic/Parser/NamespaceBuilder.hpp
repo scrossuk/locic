@@ -28,6 +28,10 @@ namespace locic {
 			makeNamespaceData(AST::NamespaceData data,
 			                  const Debug::SourcePosition& start);
 			
+			AST::Node<AST::AliasDecl>
+			makeAlias(String name, AST::Node<AST::Value> value,
+			          const Debug::SourcePosition& start);
+			
 			AST::Node<AST::ModuleScope>
 			makeUnnamedExport(AST::Node<AST::NamespaceData> data,
 			                  const Debug::SourcePosition& start);
