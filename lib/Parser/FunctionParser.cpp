@@ -95,6 +95,46 @@ namespace locic {
 			                                requireSpecifier, scope, start);
 		}
 		
+		AST::Node<Name> FunctionParser::parseFunctionName() {
+			const auto start = reader_.position();
+			
+			auto name = Name::Relative() + reader_.expectName();
+			
+			while (true) {
+				if (reader_.peek().kind() != Token::DOUBLE_COLON) {
+					break;
+				}
+				
+				reader_.consume();
+				
+				name = name + parseFunctionNameElement();
+			}
+			
+			return builder_.makeName(std::move(name), start);
+		}
+		
+		String FunctionParser::parseFunctionNameElement() {
+			auto validTokens = {
+				Token::NAME,
+				Token::MOVE,
+				Token::NULLVAL
+			};
+			
+			const auto token = reader_.expectOneOf(validTokens);                    
+			switch (token.kind()) {
+				case Token::NAME:
+					return token.name();
+				case Token::MOVE:
+// 					return stringHost_.getCString("move");
+					throw std::logic_error("TODO: method called 'move'");
+				case Token::NULLVAL:
+// 					return stringHost_.getCString("null");
+					throw std::logic_error("TODO: method called 'null'");
+				default:
+					throw std::logic_error("TODO: invalid method name");
+			}
+		}
+		
 	}
 	
 }

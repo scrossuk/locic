@@ -6,6 +6,8 @@
 
 namespace locic {
 	
+	class Name;
+	
 	namespace Debug {
 		
 		class SourcePosition;
@@ -34,6 +36,10 @@ namespace locic {
 			
 			AST::Node<AST::RequireSpecifier>
 			parseOptionalRequireSpecifier();
+			
+			AST::Node<Name> parseFunctionName();
+			
+			String parseFunctionNameElement();
 			
 		private:
 			TokenReader& reader_;
