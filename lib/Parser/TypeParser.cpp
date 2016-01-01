@@ -5,6 +5,7 @@
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeBuilder.hpp>
 #include <locic/Parser/TypeParser.hpp>
+#include <locic/Parser/ValueParser.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 
 namespace locic {
@@ -41,9 +42,13 @@ namespace locic {
 						reader_.consume();
 						type = builder_.makeReferenceType(type, start);
 						break;
-					case Token::LSQUAREBRACKET:
+					case Token::LSQUAREBRACKET: {
 						reader_.consume();
-						throw std::logic_error("TODO: type[]");
+						const auto sizeValue = ValueParser(reader_).parseValue();
+						reader_.expect(Token::RSQUAREBRACKET);
+						type = builder_.makeStaticArrayType(type, sizeValue, start);
+						break;
+					}
 					default:
 						return type;
 				}
