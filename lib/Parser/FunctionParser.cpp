@@ -1,4 +1,5 @@
 #include <locic/AST.hpp>
+#include <locic/Parser/AttributeParser.hpp>
 #include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/FunctionBuilder.hpp>
 #include <locic/Parser/FunctionParser.hpp>
@@ -78,9 +79,9 @@ namespace locic {
 			
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			const auto constSpecifier = parseOptionalConstSpecifier();
-			const auto noexceptSpecifier = parseOptionalNoexceptSpecifier();
-			const auto requireSpecifier = parseOptionalRequireSpecifier();
+			const auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
+			const auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
+			const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
 			
 			if (reader_.peek().kind() == Token::SEMICOLON) {
 				reader_.consume();
