@@ -652,20 +652,18 @@ namespace locic {
 		
 		AST::Node<AST::Value> ValueParser::parseAtExpression(const Debug::SourcePosition& start) {
 			const auto token = reader_.peek();
-			switch (token.kind()) {
-				case Token::LROUNDBRACKET: {
-					throw std::logic_error("TODO");
-				}
-				case Token::LTRIBRACKET: {
-					throw std::logic_error("TODO");
-				}
-				case Token::NAME: {
-					reader_.consume();
-					return builder_.makeSelfMemberAccess(token.name(), start);
-				}
-				default:
-					throw std::logic_error("TODO");
+			if (token.kind() == Token::NAME) {
+				reader_.consume();
+				return builder_.makeSelfMemberAccess(token.name(), start);
 			}
+			
+			const auto templateArguments = parseOptionalTemplateArguments();
+			
+			reader_.expect(Token::LROUNDBRACKET);
+			const auto arguments = parseValueList();
+			reader_.expect(Token::RROUNDBRACKET);
+			return builder_.makeInternalConstruct(templateArguments,
+			                                      arguments, start);
 		}
 		
 		AST::Node<AST::ValueList> ValueParser::parseOptionalTemplateArguments() {
