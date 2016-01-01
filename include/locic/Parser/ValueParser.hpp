@@ -93,7 +93,7 @@ namespace locic {
 			
 			AST::Node<AST::Value> parseArrayLiteral(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::ValueList> parseValueList();
+			AST::Node<AST::ValueList> parseValueList(Context context = GENERIC);
 			
 		private:
 			TokenReader& reader_;

@@ -716,7 +716,7 @@ namespace locic {
 			return builder_.makeArrayLiteralValue(valueList, start);
 		}
 		
-		AST::Node<AST::ValueList> ValueParser::parseValueList() {
+		AST::Node<AST::ValueList> ValueParser::parseValueList(const Context context) {
 			const auto start = reader_.position();
 			
 			AST::ValueList valueList;
@@ -732,7 +732,7 @@ namespace locic {
 						break;
 				}
 				
-				valueList.push_back(parseValue());
+				valueList.push_back(parseValue(context));
 				
 				if (reader_.peek().kind() != Token::COMMA) {
 					return builder_.makeValueList(valueList, start);
