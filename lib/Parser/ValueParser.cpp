@@ -646,7 +646,7 @@ namespace locic {
 					reader_.consume();
 					return parseArrayLiteral(start);
 				default:
-					throw std::logic_error("TODO");
+					throw std::logic_error("TODO: invalid atomic value");
 			}
 		}
 		
