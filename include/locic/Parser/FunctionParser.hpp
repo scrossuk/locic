@@ -28,15 +28,6 @@ namespace locic {
 			AST::Node<AST::Function>
 			parseBasicFunction(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::RequireSpecifier>
-			parseOptionalConstSpecifier();
-			
-			AST::Node<AST::RequireSpecifier>
-			parseOptionalNoexceptSpecifier();
-			
-			AST::Node<AST::RequireSpecifier>
-			parseOptionalRequireSpecifier();
-			
 			AST::Node<AST::Function> parseMethodDecl();
 			
 			AST::Node<AST::Function>
