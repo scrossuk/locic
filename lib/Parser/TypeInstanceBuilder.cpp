@@ -46,6 +46,13 @@ namespace locic {
 			return makeTypeInstanceNode(AST::TypeInstance::UnionDatatype(name, variants), start);
 		}
 		
+		AST::Node<AST::TypeInstanceList>
+		TypeInstanceBuilder::makeTypeInstanceList(AST::TypeInstanceList list,
+		                                          const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, new AST::TypeInstanceList(std::move(list)));
+		}
+		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeException(String name, AST::Node<AST::TypeVarList> variables,
 		                                   AST::Node<AST::ExceptionInitializer> initializer,

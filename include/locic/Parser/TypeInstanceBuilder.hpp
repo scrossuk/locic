@@ -41,6 +41,10 @@ namespace locic {
 			makeUnionDatatype(String name, AST::Node<AST::TypeInstanceList> variants,
 			                  const Debug::SourcePosition& start);
 			
+			AST::Node<AST::TypeInstanceList>
+			makeTypeInstanceList(AST::TypeInstanceList list,
+			                     const Debug::SourcePosition& start);
+			
 			AST::Node<AST::TypeInstance>
 			makeException(String name, AST::Node<AST::TypeVarList> variables,
 			              AST::Node<AST::ExceptionInitializer> initializer,
