@@ -525,25 +525,6 @@ namespace locic {
 			}
 		}
 		
-		String ValueParser::parseMethodName(const Debug::SourcePosition& /*start*/) {
-			const auto token = reader_.peek();
-			switch (token.kind()) {
-				case Token::NAME:
-					reader_.consume();
-					return token.name();
-				case Token::MOVE:
-					reader_.consume();
-// 					return stringHost_.getCString("move");
-					throw std::logic_error("TODO");
-				case Token::NULLVAL:
-					reader_.consume();
-// 					return stringHost_.getCString("null");
-					throw std::logic_error("TODO");
-				default:
-					throw std::logic_error("TODO");
-			}
-		}
-		
 		AST::Node<AST::Value> ValueParser::parseTypeValue(const Context context) {
 			const auto start = reader_.position();
 			

@@ -75,8 +75,6 @@ namespace locic {
 			                                                  bool isDeref,
 			                                                  const Debug::SourcePosition& start);
 			
-			String parseMethodName(const Debug::SourcePosition& start);
-			
 			AST::Node<AST::Value> parseTypeValue(Context context);
 			
 			AST::Node<AST::Type> interpretValueAsType(const AST::Node<AST::Value>& value);
