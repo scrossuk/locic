@@ -98,6 +98,13 @@ namespace locic {
 			return makeTypeInstanceNode(AST::TypeInstance::Union(name, variables), start);
 		}
 		
+		AST::Node<AST::FunctionList>
+		TypeInstanceBuilder::makeFunctionList(AST::FunctionList functionList,
+		                                      const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, new AST::FunctionList(std::move(functionList)));
+		}
+		
 	}
 	
 }

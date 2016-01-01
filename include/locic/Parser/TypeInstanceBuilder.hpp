@@ -73,6 +73,10 @@ namespace locic {
 			makeUnion(String name, AST::Node<AST::TypeVarList> variables,
 			          const Debug::SourcePosition& start);
 			
+			AST::Node<AST::FunctionList>
+			makeFunctionList(AST::FunctionList functionList,
+			                 const Debug::SourcePosition& start);
+			
 		private:
 			const TokenReader& reader_;
 			
