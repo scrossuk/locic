@@ -8,6 +8,7 @@
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeInstanceParser.hpp>
+#include <locic/Parser/ValueParser.hpp>
 
 namespace locic {
 	
