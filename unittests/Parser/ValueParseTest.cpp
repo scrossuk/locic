@@ -726,6 +726,19 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, CapabilityTest) {
+			auto tokens = {
+				Token::NAME,
+				Token::COLON,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::CAPABILITYTEST);
+				EXPECT_TRUE(value->capabilityTest.checkType->isObjectType());
+				EXPECT_TRUE(value->capabilityTest.capabilityType->isObjectType());
+			});
+		}
+		
 	}
 	
 }
