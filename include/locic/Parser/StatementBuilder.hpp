@@ -87,7 +87,7 @@ namespace locic {
 			                            const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeAssertStatement(AST::Node<AST::Value> value,
+			makeAssertStatement(AST::Node<AST::Value> value, String name,
 			                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>

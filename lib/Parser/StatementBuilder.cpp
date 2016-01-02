@@ -118,10 +118,9 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Statement>
-		StatementBuilder::makeAssertStatement(AST::Node<AST::Value> /*value*/,
-		                                      const Debug::SourcePosition& /*start*/) {
-			throw std::logic_error("TODO: make assert");
-// 			return makeStatementNode(AST::Statement::Assert(value), start);
+		StatementBuilder::makeAssertStatement(AST::Node<AST::Value> value, const String name,
+		                                      const Debug::SourcePosition& start) {
+ 			return makeStatementNode(AST::Statement::Assert(value, name), start);
 		}
 		
 		AST::Node<AST::Statement>
