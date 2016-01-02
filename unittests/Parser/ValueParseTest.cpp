@@ -584,6 +584,50 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, IntArrayType) {
+			auto tokens = {
+				Token::INT,
+				Token::LSQUAREBRACKET,
+				Token::NAME,
+				Token::RSQUAREBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				ASSERT_TRUE(value->typeRef.type->isStaticArray());
+				EXPECT_TRUE(value->typeRef.type->getStaticArrayTarget()->isPrimitive());
+			});
+		}
+		
+		TEST(ValueParseTest, PointerArrayType) {
+			auto tokens = {
+				Token::NAME,
+				Token::STAR,
+				Token::LSQUAREBRACKET,
+				Token::NAME,
+				Token::RSQUAREBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				ASSERT_TRUE(value->typeRef.type->isStaticArray());
+				EXPECT_TRUE(value->typeRef.type->getStaticArrayTarget()->isPointer());
+			});
+		}
+		
+		TEST(ValueParseTest,ReferenceArrayType) {
+			auto tokens = {
+				Token::NAME,
+				Token::AMPERSAND,
+				Token::LSQUAREBRACKET,
+				Token::NAME,
+				Token::RSQUAREBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				ASSERT_TRUE(value->typeRef.type->isStaticArray());
+				EXPECT_TRUE(value->typeRef.type->getStaticArrayTarget()->isReference());
+			});
+		}
+		
 	}
 	
 }
