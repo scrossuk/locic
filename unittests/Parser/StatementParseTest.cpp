@@ -465,6 +465,28 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, Rethrow) {
+			auto tokens = {
+				Token::THROW,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				EXPECT_TRUE(statement->isRethrow());
+			});
+		}
+		
+		TEST(StatementParseTest, Throw) {
+			auto tokens = {
+				Token::THROW,
+				Token::NAME,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isThrow());
+				EXPECT_TRUE(statement->throwValue()->isSymbol());
+			});
+		}
+		
 	}
 	
 }
