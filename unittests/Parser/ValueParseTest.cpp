@@ -141,6 +141,72 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, Plus) {
+			auto tokens = {
+				Token::PLUS,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+				EXPECT_EQ(value->unaryOp.kind, AST::OP_PLUS);
+			});
+		}
+		
+		TEST(ValueParseTest, Minus) {
+			auto tokens = {
+				Token::MINUS,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+				EXPECT_EQ(value->unaryOp.kind, AST::OP_MINUS);
+			});
+		}
+		
+		TEST(ValueParseTest, Not) {
+			auto tokens = {
+				Token::EXCLAIMMARK,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+				EXPECT_EQ(value->unaryOp.kind, AST::OP_NOT);
+			});
+		}
+		
+		TEST(ValueParseTest, Address) {
+			auto tokens = {
+				Token::AMPERSAND,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+				EXPECT_EQ(value->unaryOp.kind, AST::OP_ADDRESS);
+			});
+		}
+		
+		TEST(ValueParseTest, Deref) {
+			auto tokens = {
+				Token::STAR,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+				EXPECT_EQ(value->unaryOp.kind, AST::OP_DEREF);
+			});
+		}
+		
+		TEST(ValueParseTest, Move) {
+			auto tokens = {
+				Token::MOVE,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+				EXPECT_EQ(value->unaryOp.kind, AST::OP_MOVE);
+			});
+		}
+		
 		TEST(ValueParseTest, InternalConstructNoArguments) {
 			auto tokens = {
 				Token::AT,
