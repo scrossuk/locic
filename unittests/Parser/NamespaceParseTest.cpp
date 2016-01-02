@@ -89,6 +89,32 @@ namespace locic {
 			});
 		}
 		
+		TEST(NamespaceParseTest, TemplatedAliasInNamespace) {
+			auto tokens = {
+				Token::NAMESPACE,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				
+				Token::TEMPLATE,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				
+				Token::USING,
+				Token::NAME,
+				Token::SETEQUAL,
+				Token::NAME,
+				Token::SEMICOLON,
+				
+				Token::RCURLYBRACKET
+			};
+			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
+				ASSERT_EQ(nameSpace->data()->aliases.size(), 1);
+				EXPECT_TRUE(nameSpace->data()->aliases[0]->value()->isSymbol());
+			});
+		}
+		
 	}
 	
 }
