@@ -3,6 +3,8 @@
 
 namespace locic {
 	
+	class String;
+	
 	namespace Lex {
 		
 		class Character;
@@ -15,6 +17,8 @@ namespace locic {
 			virtual Character get() = 0;
 			
 			virtual size_t byteOffset() const = 0;
+			
+			virtual String fileName() const = 0;
 			
 		};
 		
