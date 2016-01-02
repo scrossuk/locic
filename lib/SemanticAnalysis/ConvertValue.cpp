@@ -69,6 +69,8 @@ namespace locic {
 					return "<<";
 				case AST::OP_RIGHTSHIFT:
 					return ">>";
+				case AST::OP_INDEX:
+					return "[]";
 			}
 			
 			std::terminate();
@@ -110,6 +112,8 @@ namespace locic {
 					return "left_shift";
 				case AST::OP_RIGHTSHIFT:
 					return "right_shift";
+				case AST::OP_INDEX:
+					return "index";
 			}
 			
 			std::terminate();
@@ -380,6 +384,10 @@ namespace locic {
 						}
 						case AST::OP_MODULO: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("modulo"), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
+						}
+						case AST::OP_INDEX: {
+							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("index"), location);
 							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_ISEQUAL: {
