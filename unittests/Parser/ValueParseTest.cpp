@@ -739,6 +739,19 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, NoTagValue) {
+			auto tokens = {
+				Token::NOTAG,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				EXPECT_TRUE(value->typeRef.type->isNoTag());
+			});
+		}
+		
 	}
 	
 }
