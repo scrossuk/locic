@@ -45,7 +45,8 @@ namespace locic {
 			OP_BITWISEAND,
 			OP_BITWISEOR,
 			OP_LEFTSHIFT,
-			OP_RIGHTSHIFT
+			OP_RIGHTSHIFT,
+			OP_INDEX
 		};
 		
 		struct Value {
