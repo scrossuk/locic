@@ -28,9 +28,9 @@ void testLexer(const std::string& input, const locic::Array<locic::Lex::Token, 2
 	locic::Array<locic::Lex::Token, 2> tokens;
 	
 	while (true) {
-		const auto token = lexer.lexToken(useStringHost);
-		if (token) {
-			tokens.push_back(*token);
+		const auto token = lexer.lexToken();
+		if (token.kind() != locic::Lex::Token::END) {
+			tokens.push_back(token);
 		} else {
 			break;
 		}
