@@ -29,6 +29,7 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isValue());
 				EXPECT_TRUE(statement->value()->isSymbol());
+				EXPECT_FALSE(statement->isUnusedResultValue());
 			});
 		}
 		
@@ -40,6 +41,33 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isValue());
 				EXPECT_TRUE(statement->value()->isLiteral());
+				EXPECT_FALSE(statement->isUnusedResultValue());
+			});
+		}
+		
+		TEST(StatementParseTest, UnusedResultValueName) {
+			auto tokens = {
+				Token::UNUSED_RESULT,
+				Token::NAME,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isValue());
+				EXPECT_TRUE(statement->value()->isSymbol());
+				EXPECT_TRUE(statement->isUnusedResultValue());
+			});
+		}
+		
+		TEST(StatementParseTest, UnusedResultValueConstant) {
+			auto tokens = {
+				Token::UNUSED_RESULT,
+				Token::CONSTANT,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isValue());
+				EXPECT_TRUE(statement->value()->isLiteral());
+				EXPECT_TRUE(statement->isUnusedResultValue());
 			});
 		}
 		
