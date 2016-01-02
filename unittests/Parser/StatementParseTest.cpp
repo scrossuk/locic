@@ -420,6 +420,21 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, AssertNoExcept) {
+			auto tokens = {
+				Token::ASSERT,
+				Token::NOEXCEPT,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isAssertNoExcept());
+				EXPECT_EQ(statement->assertNoExceptScope()->size(), 1);
+			});
+		}
+		
 	}
 	
 }
