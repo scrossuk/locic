@@ -71,7 +71,8 @@ namespace locic {
 			auto tokens = {
 				Token::NAME,
 				Token::SETEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isAssign());
@@ -85,7 +86,8 @@ namespace locic {
 			auto tokens = {
 				Token::NAME,
 				Token::ADDEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isAssign());
@@ -99,7 +101,8 @@ namespace locic {
 			auto tokens = {
 				Token::NAME,
 				Token::SUBEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isAssign());
@@ -113,7 +116,8 @@ namespace locic {
 			auto tokens = {
 				Token::NAME,
 				Token::MULEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isAssign());
@@ -127,7 +131,8 @@ namespace locic {
 			auto tokens = {
 				Token::NAME,
 				Token::DIVEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isAssign());
@@ -141,7 +146,8 @@ namespace locic {
 			auto tokens = {
 				Token::NAME,
 				Token::PERCENTEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isAssign());
@@ -156,7 +162,8 @@ namespace locic {
 				Token::NAME,
 				Token::NAME,
 				Token::SETEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -174,7 +181,8 @@ namespace locic {
 				Token::RTRIBRACKET,
 				Token::NAME,
 				Token::SETEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -193,7 +201,8 @@ namespace locic {
 				Token::STAR,
 				Token::NAME,
 				Token::SETEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -211,7 +220,8 @@ namespace locic {
 				Token::STAR,
 				Token::NAME,
 				Token::SETEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -228,7 +238,8 @@ namespace locic {
 				Token::STAR,
 				Token::NAME,
 				Token::SETEQUAL,
-				Token::CONSTANT
+				Token::CONSTANT,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -246,7 +257,8 @@ namespace locic {
 				Token::LROUNDBRACKET,
 				Token::RROUNDBRACKET,
 				Token::SETEQUAL,
-				Token::NAME
+				Token::NAME,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -264,7 +276,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET,
 				Token::SETEQUAL,
-				Token::NAME
+				Token::NAME,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -286,7 +299,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET,
 				Token::SETEQUAL,
-				Token::NAME
+				Token::NAME,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -305,7 +319,8 @@ namespace locic {
 				Token::UNDERSCORE,
 				Token::RROUNDBRACKET,
 				Token::SETEQUAL,
-				Token::NAME
+				Token::NAME,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -326,7 +341,8 @@ namespace locic {
 				Token::UNDERSCORE,
 				Token::RROUNDBRACKET,
 				Token::SETEQUAL,
-				Token::NAME
+				Token::NAME,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -345,7 +361,8 @@ namespace locic {
 				Token::UNDERSCORE,
 				Token::RROUNDBRACKET,
 				Token::SETEQUAL,
-				Token::NAME
+				Token::NAME,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
@@ -365,7 +382,8 @@ namespace locic {
 				Token::UNDERSCORE,
 				Token::RROUNDBRACKET,
 				Token::SETEQUAL,
-				Token::NAME
+				Token::NAME,
+				Token::SEMICOLON
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
