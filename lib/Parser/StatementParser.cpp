@@ -91,11 +91,7 @@ namespace locic {
 		
 		AST::Node<AST::Statement> StatementParser::parseScopeStatement() {
 			const auto start = reader_.position();
-			
-			reader_.expect(Token::LCURLYBRACKET);
 			const auto scope = ScopeParser(reader_).parseScope();
-			reader_.expect(Token::RCURLYBRACKET);
-			
 			return builder_.makeScopeStatement(scope, start);
 		}
 		
