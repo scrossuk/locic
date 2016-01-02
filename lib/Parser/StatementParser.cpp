@@ -45,7 +45,7 @@ namespace locic {
 					throw std::logic_error("TODO");
 				}
 				case Token::SCOPE: {
-					throw std::logic_error("TODO");
+					return parseScopeExitStatement();
 				}
 				case Token::ASSERT: {
 					return parseAssertStatement();
