@@ -43,6 +43,30 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, Increment) {
+			auto tokens = {
+				Token::NAME,
+				Token::DOUBLE_PLUS,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isIncrement());
+				EXPECT_TRUE(statement->incrementValue()->isSymbol());
+			});
+		}
+		
+		TEST(StatementParseTest, Decrement) {
+			auto tokens = {
+				Token::NAME,
+				Token::DOUBLE_MINUS,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isDecrement());
+				EXPECT_TRUE(statement->decrementValue()->isSymbol());
+			});
+		}
+		
 		TEST(StatementParseTest, AssignConstant) {
 			auto tokens = {
 				Token::NAME,
