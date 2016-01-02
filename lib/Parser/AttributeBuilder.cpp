@@ -50,6 +50,12 @@ namespace locic {
 			return AST::makeNode(location, AST::RequireSpecifier::Expr(predicate));
 		}
 		
+		AST::Node<AST::StringList>
+		AttributeBuilder::makeStringList(AST::StringList list, const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, new AST::StringList(std::move(list)));
+		}
+		
 	}
 	
 }
