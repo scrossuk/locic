@@ -584,6 +584,22 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, IndexingCallResult) {
+			auto tokens = {
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::LSQUAREBRACKET,
+				Token::NAME,
+				Token::RSQUAREBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->binaryOp.kind, AST::OP_INDEX);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::FUNCTIONCALL);
+			});
+		}
+		
 		TEST(ValueParseTest, IntArrayType) {
 			auto tokens = {
 				Token::INT,
