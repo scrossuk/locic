@@ -1,4 +1,5 @@
 #include <locic/AST.hpp>
+#include <locic/Parser/AttributeParser.hpp>
 #include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/TemplateInfo.hpp>
 #include <locic/Parser/TemplateBuilder.hpp>
@@ -28,20 +29,19 @@ namespace locic {
 			
 			reader_.expect(Token::RTRIBRACKET);
 			
+			AttributeParser attributeParser(reader_);
+			
 			while (true) {
 				const auto token = reader_.peek();
 				switch (token.kind()) {
 					case Token::REQUIRE:
-						//info.setRequireSpecifier(parseSpecifier());
-						throw std::logic_error("TODO: parse require()");
+						info.setRequireSpecifier(attributeParser.parseOptionalRequireSpecifier());
 						break;
 					case Token::MOVE:
-						//info.setMoveSpecifier(parseSpecifier());
-						throw std::logic_error("TODO: parse move()");
+						info.setMoveSpecifier(attributeParser.parseOptionalMoveSpecifier());
 						break;
 					case Token::NOTAG:
-						//info.setNoTagSet(parseNoTagSet());
-						throw std::logic_error("TODO: parse notag()");
+						info.setNoTagSet(attributeParser.parseOptionalNoTagSet());
 						break;
 					default:
 						return info;
