@@ -534,33 +534,33 @@ namespace locic {
 				const auto token = reader_.peek();
 				switch (token.kind()) {
 					case Token::STAR:
-					case Token::AMPERSAND:
+					case Token::AMPERSAND: {
+						const auto secondToken = reader_.peek(/*offset=*/1);
+						if (context != IN_TYPEDECL &&
+						    isValueStartToken(secondToken.kind())) {
+							// Next token is a value, so this is a
+							// multiply/bitwise-AND value.
+							return value;
+						}
+						
+						auto type = interpretValueAsType(value);
+						if (token.kind() == Token::STAR) {
+							type = TypeBuilder(reader_).makePointerType(type, start);
+						} else {
+							type = TypeBuilder(reader_).makeReferenceType(type, start);
+						}
+						
+						reader_.consume();
+						
+						value = builder_.makeTypeValue(type, start);
 						break;
+					}
 					case Token::LSQUAREBRACKET: {
 						// TODO
 					}
 					default:
 						return value;
 				}
-				
-				const auto secondToken = reader_.peek(/*offset=*/1);
-				if (context != IN_TYPEDECL &&
-				    isValueStartToken(secondToken.kind())) {
-					// Next token is a value, so this is a
-					// multiply/bitwise-AND value.
-					return value;
-				}
-				
-				auto type = interpretValueAsType(value);
-				if (token.kind() == Token::STAR) {
-					type = TypeBuilder(reader_).makePointerType(type, start);
-				} else {
-					type = TypeBuilder(reader_).makeReferenceType(type, start);
-				}
-				
-				reader_.consume();
-				
-				value = builder_.makeTypeValue(type, start);
 			}
 		}
 		
