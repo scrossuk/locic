@@ -487,6 +487,40 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, ReturnVoid) {
+			auto tokens = {
+				Token::RETURN,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				EXPECT_TRUE(statement->isReturnVoid());
+			});
+		}
+		
+		TEST(StatementParseTest, ReturnConstant) {
+			auto tokens = {
+				Token::RETURN,
+				Token::CONSTANT,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isReturn());
+				EXPECT_EQ(statement->returnValue()->kind(), AST::Value::LITERAL);
+			});
+		}
+		
+		TEST(StatementParseTest, ReturnType) {
+			auto tokens = {
+				Token::RETURN,
+				Token::INT,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isReturn());
+				EXPECT_EQ(statement->returnValue()->kind(), AST::Value::TYPEREF);
+			});
+		}
+		
 	}
 	
 }
