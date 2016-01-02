@@ -18,13 +18,17 @@ namespace locic {
 		
 	}
 	
-	namespace Parser {
+	namespace Lex {
 		
-		class TokenSource;
+		class LexerAPI;
+		
+	}
+	
+	namespace Parser {
 		
 		class TokenReader {
 		public:
-			TokenReader(TokenSource& source);
+			TokenReader(Lex::LexerAPI& source);
 			
 			bool isEnd() const;
 			
@@ -51,7 +55,7 @@ namespace locic {
 			Debug::SourceLocation locationWithRangeFrom(Debug::SourcePosition start) const;
 			
 		private:
-			TokenSource& source_;
+			Lex::LexerAPI& source_;
 			std::deque<Token> tokens_;
 			Debug::SourcePosition position_;
 			Debug::SourcePosition lastEndPosition_;

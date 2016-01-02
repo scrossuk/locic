@@ -12,14 +12,14 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class MockTokenSource: public TokenSource {
+		class MockTokenSource: public Lex::LexerAPI {
 		public:
 			MockTokenSource(const StringHost& stringHost,
 			                const Array<Token::Kind, 16>& tokenKinds)
 			: stringHost_(stringHost), tokenKinds_(tokenKinds),
 			position_(0), tokenGenerator_(stringHost) { }
 			
-			Token get() {
+			Token lexToken() {
 				if (position_ == tokenKinds_.size()) {
 					return Token::Basic(Token::END);
 				} else {
@@ -27,7 +27,7 @@ namespace locic {
 				}
 			}
 			
-			String fileName() {
+			String fileName() const {
 				return String(stringHost_, "<test file>");
 			}
 			

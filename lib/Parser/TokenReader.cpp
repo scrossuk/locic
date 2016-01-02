@@ -3,16 +3,16 @@
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
+#include <locic/Lex/LexerAPI.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
-#include <locic/Parser/TokenSource.hpp>
 
 namespace locic {
 	
 	namespace Parser {
 		
-		TokenReader::TokenReader(TokenSource& source)
-		: source_(source), tokens_(1, source.get()),
+		TokenReader::TokenReader(Lex::LexerAPI& source)
+		: source_(source), tokens_(1, source.lexToken()),
 		position_(tokens_.front().sourceRange().start()),
 		lastEndPosition_(position_) { }
 		
@@ -33,7 +33,7 @@ namespace locic {
 			
 			while (offset >= tokens_.size()) {
 				assert(!tokens_.back().isEnd());
-				tokens_.push_back(source_.get());
+				tokens_.push_back(source_.lexToken());
 			}
 			
 			return tokens_[offset];
@@ -45,7 +45,7 @@ namespace locic {
 			lastEndPosition_ = tokens_.front().sourceRange().end();
 			tokens_.pop_front();
 			if (tokens_.empty()) {
-				tokens_.push_back(source_.get());
+				tokens_.push_back(source_.lexToken());
 			}
 			position_ = tokens_.front().sourceRange().start();
 			assert(!tokens_.empty());

@@ -3,7 +3,6 @@
 
 #include <locic/Constant.hpp>
 #include <locic/Parser/Token.hpp>
-#include <locic/Parser/TokenSource.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/StringHost.hpp>
 
