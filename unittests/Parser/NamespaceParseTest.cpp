@@ -235,6 +235,33 @@ namespace locic {
 			});
 		}
 		
+		TEST(NamespaceParseTest, PrimitiveFunctionInGlobalNamespace) {
+			auto tokens = {
+				Token::PRIMITIVEFUNCTION,
+				Token::NAME,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::SEMICOLON
+			};
+			testParseGlobalNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
+				ASSERT_EQ(nameSpace->data()->functions.size(), 1);
+			});
+		}
+		
+		TEST(NamespaceParseTest, PrimitiveObjectInGlobalNamespace) {
+			auto tokens = {
+				Token::PRIMITIVE,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseGlobalNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
+				ASSERT_EQ(nameSpace->data()->functions.size(), 0);
+				ASSERT_EQ(nameSpace->data()->typeInstances.size(), 1);
+			});
+		}
+		
 	}
 	
 }
