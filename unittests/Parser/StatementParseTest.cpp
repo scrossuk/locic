@@ -521,6 +521,155 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, If) {
+			auto tokens = {
+				Token::IF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isIf());
+				ASSERT_EQ(statement->ifClauseList()->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->size(), 1);
+				EXPECT_EQ(statement->ifElseScope()->size(), 0);
+			});
+		}
+		
+		TEST(StatementParseTest, IfElseIf) {
+			auto tokens = {
+				Token::IF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET,
+				Token::ELSE,
+				Token::IF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isIf());
+				ASSERT_EQ(statement->ifClauseList()->size(), 2);
+				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(1)->scope->size(), 1);
+				EXPECT_EQ(statement->ifElseScope()->size(), 0);
+			});
+		}
+		
+		TEST(StatementParseTest, IfElseIfElseIf) {
+			auto tokens = {
+				Token::IF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET,
+				
+				Token::ELSE,
+				Token::IF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET,
+				
+				Token::ELSE,
+				Token::IF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isIf());
+				ASSERT_EQ(statement->ifClauseList()->size(), 3);
+				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(1)->scope->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(2)->scope->size(), 1);
+				EXPECT_EQ(statement->ifElseScope()->size(), 0);
+			});
+		}
+		
+		TEST(StatementParseTest, IfElse) {
+			auto tokens = {
+				Token::IF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET,
+				Token::ELSE,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isIf());
+				ASSERT_EQ(statement->ifClauseList()->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->size(), 1);
+				EXPECT_EQ(statement->ifElseScope()->size(), 1);
+			});
+		}
+		
+		TEST(StatementParseTest, IfElseIfElse) {
+			auto tokens = {
+				Token::IF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET,
+				
+				Token::ELSE,
+				Token::IF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET,
+				
+				Token::ELSE,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isIf());
+				ASSERT_EQ(statement->ifClauseList()->size(), 2);
+				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(1)->scope->size(), 1);
+				EXPECT_EQ(statement->ifElseScope()->size(), 1);
+			});
+		}
+		
 	}
 	
 }
