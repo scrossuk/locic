@@ -709,6 +709,24 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, ScopeExit) {
+			auto tokens = {
+				Token::SCOPE,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isScopeExit());
+				EXPECT_EQ(statement->scopeExitState().asStdString(), "test");
+				EXPECT_EQ(statement->scopeExitScope()->size(), 1);
+			});
+		}
+		
 	}
 	
 }
