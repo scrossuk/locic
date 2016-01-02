@@ -249,6 +249,8 @@ namespace locic {
 		AST::Node<AST::Statement> StatementParser::parseVarDeclStatement() {
 			const auto start = reader_.position();
 			
+			(void) reader_.consumeIfPresent(Token::LET);
+			
 			const auto var = VarParser(reader_).parseVar();
 			reader_.expect(Token::SETEQUAL);
 			const auto value = ValueParser(reader_).parseValue();
