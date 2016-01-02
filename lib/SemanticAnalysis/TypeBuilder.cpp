@@ -87,7 +87,7 @@ namespace locic {
 		
 		const SEM::Type*
 		TypeBuilder::getConstantStaticArrayType(const SEM::Type* elementType,
-		                                        size_t arraySize,
+		                                        const size_t arraySize,
 		                                        const Debug::SourceLocation& location) {
 			auto arraySizeValue = SEM::Value::Constant(Constant::Integer(arraySize),
 			                                           getSizeType());
