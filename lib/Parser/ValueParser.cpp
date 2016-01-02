@@ -556,7 +556,30 @@ namespace locic {
 						break;
 					}
 					case Token::LSQUAREBRACKET: {
-						// TODO
+						if (!canInterpretValueAsType(value)) {
+							return value;
+						}
+						
+						reader_.consume();
+						const auto indexValue = parseValue();
+						reader_.expect(Token::RSQUAREBRACKET);
+						
+						const auto type = interpretValueAsType(value);
+						const auto staticArrayType =
+						    TypeBuilder(reader_).makeStaticArrayType(type, indexValue,
+						                                             start);
+						const auto typeValue = builder_.makeTypeValue(staticArrayType, start);
+						
+						if (value->kind() == AST::Value::TYPEREF) {
+							// Definitely a type.
+							value = typeValue;
+							break;
+						}
+						
+						// Ambiguous: could be indexing or a static array type.
+						const auto indexResult = builder_.makeIndexValue(value, indexValue, start);
+						value = builder_.makeMergeValue(indexResult, typeValue, start);
+						break;
 					}
 					default:
 						return value;
