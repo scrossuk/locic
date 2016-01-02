@@ -388,6 +388,24 @@ namespace locic {
 				return assignStmt.value;
 			}
 			
+			bool isIncrement() const {
+				return kind() == INCREMENT;
+			}
+			
+			const Node<Value>& incrementValue() const {
+				assert(isIncrement());
+				return incrementStmt.value;
+			}
+			
+			bool isDecrement() const {
+				return kind() == DECREMENT;
+			}
+			
+			const Node<Value>& decrementValue() const {
+				assert(isDecrement());
+				return decrementStmt.value;
+			}
+			
 			bool isReturn() const {
 				return kind() == RETURN;
 			}
