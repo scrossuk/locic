@@ -32,9 +32,7 @@ namespace locic {
 				return cachedVoidType_;
 			}
 			
-			cachedVoidType_ = getBuiltInType(context_,
-			                                 context_.getCString("void_t"),
-			                                 {});
+			cachedVoidType_ = getPrimitiveType(PrimitiveVoid);
 			return cachedVoidType_;
 		}
 		
@@ -44,9 +42,7 @@ namespace locic {
 				return cachedBoolType_;
 			}
 			
-			cachedBoolType_ = getBuiltInType(context_,
-			                                 context_.getCString("bool_t"),
-			                                 {});
+			cachedBoolType_ = getPrimitiveType(PrimitiveBool);
 			return cachedBoolType_;
 		}
 		
@@ -56,9 +52,7 @@ namespace locic {
 				return cachedSizeType_;
 			}
 			
-			cachedSizeType_ = getBuiltInType(context_,
-			                                 context_.getCString("size_t"),
-			                                 {});
+			cachedSizeType_ = getPrimitiveType(PrimitiveSize);
 			return cachedSizeType_;
 		}
 		
@@ -68,9 +62,7 @@ namespace locic {
 				return cachedTypenameType_;
 			}
 			
-			cachedTypenameType_ = getBuiltInType(context_,
-			                                     context_.getCString("typename_t"),
-			                                     {});
+			cachedTypenameType_ = getPrimitiveType(PrimitiveTypename);
 			return cachedTypenameType_;
 		}
 		
@@ -88,9 +80,9 @@ namespace locic {
 		
 		const SEM::Type*
 		TypeBuilder::getPointerType(const SEM::Type* const elementType) {
-			return getBuiltInType(context_,
-			                      context_.getCString("ptr_t"),
-			                      { elementType });
+			SEM::ValueArray array;
+			array.push_back(elementType->asValue());
+			return getPrimitiveType(PrimitivePtr, std::move(array));
 		}
 		
 		const SEM::Type*
@@ -108,14 +100,10 @@ namespace locic {
 		TypeBuilder::getStaticArrayType(const SEM::Type* const elementType,
 		                                SEM::Value arraySize,
 		                                const Debug::SourceLocation& location) {
-			const auto& typeInstance = getBuiltInTypeInstance(context_,
-			                                                  context_.getCString("static_array_t"));
-			const auto& templateVariables = typeInstance.templateVariables();
-			
 			SEM::ValueArray templateArgValues;
 			templateArgValues.reserve(2);
 			
-			const auto arraySizeType = templateVariables[1]->type();
+			const auto arraySizeType = getSizeType();
 			
 			if (arraySize.isConstant() && arraySize.constant().isInteger()) {
 				arraySize = SEM::Value::Constant(arraySize.constant(),
@@ -131,10 +119,10 @@ namespace locic {
 			}
 			
 			templateArgValues.push_back(SEM::Value::TypeRef(elementType,
-			                                                templateVariables[0]->type()->createStaticRefType(elementType)));
+			                                                getTypenameType()->createStaticRefType(elementType)));
 			templateArgValues.push_back(std::move(arraySize));
 			
-			return SEM::Type::Object(&typeInstance, std::move(templateArgValues));
+			return getPrimitiveType(PrimitiveStaticArray, std::move(templateArgValues));
 		}
 		
 		static SEM::ValueArray getFunctionTemplateArgs(Context& context, const SEM::FunctionType functionType) {
