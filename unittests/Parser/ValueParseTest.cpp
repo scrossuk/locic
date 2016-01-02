@@ -537,6 +537,53 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, IndexingOrArrayType) {
+			auto tokens = {
+				Token::NAME,
+				Token::LSQUAREBRACKET,
+				Token::NAME,
+				Token::RSQUAREBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::MERGE);
+				
+				ASSERT_EQ(value->merge.first->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->merge.first->binaryOp.kind, AST::OP_INDEX);
+				
+				ASSERT_EQ(value->merge.second->kind(), AST::Value::TYPEREF);
+				ASSERT_TRUE(value->merge.second->typeRef.type->isStaticArray());
+				EXPECT_TRUE(value->merge.second->typeRef.type->getStaticArrayTarget()->isObjectType());
+			});
+		}
+		
+		TEST(ValueParseTest, ChainedIndexingOrArrayType) {
+			auto tokens = {
+				Token::NAME,
+				Token::LSQUAREBRACKET,
+				Token::NAME,
+				Token::RSQUAREBRACKET,
+				Token::LSQUAREBRACKET,
+				Token::NAME,
+				Token::RSQUAREBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::MERGE);
+				
+				const auto& first = value->merge.first;
+				ASSERT_EQ(first->kind(), AST::Value::BINARYOP);
+				ASSERT_EQ(first->binaryOp.leftOperand->kind(), AST::Value::MERGE);
+				ASSERT_EQ(first->binaryOp.leftOperand->merge.first->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(first->binaryOp.leftOperand->merge.first->binaryOp.kind, AST::OP_INDEX);
+				ASSERT_EQ(first->binaryOp.leftOperand->merge.second->kind(), AST::Value::TYPEREF);
+				EXPECT_TRUE(first->binaryOp.leftOperand->merge.second->typeRef.type->isStaticArray());
+				
+				const auto& second = value->merge.second;
+				ASSERT_EQ(second->kind(), AST::Value::TYPEREF);
+				ASSERT_TRUE(second->typeRef.type->isStaticArray());
+				EXPECT_TRUE(second->typeRef.type->getStaticArrayTarget()->isStaticArray());
+			});
+		}
+		
 	}
 	
 }
