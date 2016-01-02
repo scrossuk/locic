@@ -82,6 +82,27 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, Null) {
+			testParseValue({ Token::NULLVAL }, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::LITERAL);
+				EXPECT_EQ(*(value->literal.constant), Constant::Null());
+			});
+		}
+		
+		TEST(ValueParseTest, True) {
+			testParseValue({ Token::TRUEVAL }, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::LITERAL);
+				EXPECT_EQ(*(value->literal.constant), Constant::True());
+			});
+		}
+		
+		TEST(ValueParseTest, False) {
+			testParseValue({ Token::FALSEVAL }, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::LITERAL);
+				EXPECT_EQ(*(value->literal.constant), Constant::False());
+			});
+		}
+		
 		TEST(ValueParseTest, Self) {
 			testParseValue({ Token::SELF }, [](const AST::Node<AST::Value>& value) {
 				EXPECT_EQ(value->kind(), AST::Value::SELF);
