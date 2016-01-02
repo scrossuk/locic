@@ -6,6 +6,7 @@
 #include <locic/Lex/LexerAPI.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
+#include <locic/Support/String.hpp>
 
 namespace locic {
 	
@@ -15,6 +16,10 @@ namespace locic {
 		: source_(source), tokens_(1, source.lexToken()),
 		position_(tokens_.front().sourceRange().start()),
 		lastEndPosition_(position_) { }
+		
+		String TokenReader::makeCString(const char* const string) const {
+			return String(source_.fileName().host(), string);
+		}
 		
 		bool TokenReader::isEnd() const {
 			return tokens_.front().isEnd();

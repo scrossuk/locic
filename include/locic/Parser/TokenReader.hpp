@@ -30,6 +30,8 @@ namespace locic {
 		public:
 			TokenReader(Lex::LexerAPI& source);
 			
+			String makeCString(const char* string) const;
+			
 			bool isEnd() const;
 			
 			Token get();
