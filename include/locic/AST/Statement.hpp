@@ -378,6 +378,67 @@ namespace locic {
 				assert(isAssign());
 				return assignStmt.value;
 			}
+			
+			bool isReturn() const {
+				return kind() == RETURN;
+			}
+			
+			const Node<Value>& returnValue() const {
+				assert(isReturn());
+				return returnStmt.value;
+			}
+			
+			bool isReturnVoid() const {
+				return kind() == RETURNVOID;
+			}
+			
+			bool isThrow() const {
+				return kind() == THROW;
+			}
+			
+			const Node<Value>& throwValue() const {
+				assert(isThrow());
+				return throwStmt.value;
+			}
+			
+			bool isRethrow() const {
+				return kind() == RETHROW;
+			}
+			
+			bool isBreak() const {
+				return kind() == BREAK;
+			}
+			
+			bool isContinue() const {
+				return kind() == CONTINUE;
+			}
+			
+			bool isAssert() const {
+				return kind() == ASSERT;
+			}
+			
+			const Node<Value>& assertValue() const {
+				assert(isAssert());
+				return assertStmt.value;
+			}
+			
+			const String& assertName() const {
+				assert(isAssert());
+				return assertStmt.name;
+			}
+			
+			bool isAssertNoExcept() const {
+				return kind() == ASSERTNOEXCEPT;
+			}
+			
+			const Node<Scope>& assertNoExceptScope() const {
+				assert(isAssertNoExcept());
+				return assertNoExceptStmt.scope;
+			}
+			
+			bool isUnreachable() const {
+				return kind() == UNREACHABLE;
+			}
 		};
 		
 		typedef std::vector<Node<Statement>> StatementList;
