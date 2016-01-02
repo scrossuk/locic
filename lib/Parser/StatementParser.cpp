@@ -42,7 +42,7 @@ namespace locic {
 					return parseWhileStatement();
 				}
 				case Token::TRY: {
-					throw std::logic_error("TODO");
+					return parseTryStatement();
 				}
 				case Token::SCOPE: {
 					return parseScopeExitStatement();
