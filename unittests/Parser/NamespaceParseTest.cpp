@@ -175,6 +175,31 @@ namespace locic {
 			});
 		}
 		
+		TEST(NamespaceParseTest, TemplatedPrimitiveInNamespace) {
+			auto tokens = {
+				Token::NAMESPACE,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				
+				Token::TEMPLATE,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				
+				Token::PRIMITIVE,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET,
+				
+				Token::RCURLYBRACKET
+			};
+			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
+				ASSERT_EQ(nameSpace->data()->typeInstances.size(), 1);
+				EXPECT_EQ(nameSpace->data()->typeInstances[0]->kind, AST::TypeInstance::PRIMITIVE);
+			});
+		}
+		
 	}
 	
 }
