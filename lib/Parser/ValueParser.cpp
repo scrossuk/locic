@@ -53,9 +53,6 @@ namespace locic {
 				case Token::DYNAMIC_CAST:
 				case Token::REINTERPRET_CAST:
 				case Token::IS_A:
-					return true;
-				// Specify all the 'false' cases so that any new
-				// tokens will have to be carefully added here.
 				case Token::TYPENAME:
 				case Token::VOID:
 				case Token::BOOL:
@@ -71,11 +68,14 @@ namespace locic {
 				case Token::ULONGLONG:
 				case Token::FLOAT:
 				case Token::DOUBLE:
-				case Token::FINAL:
 				case Token::CONST:
-				case Token::MUTABLE:
 				case Token::SIGNED:
 				case Token::UNSIGNED:
+					return true;
+				// Specify all the 'false' cases so that any new
+				// tokens will have to be carefully added here.
+				case Token::FINAL:
+				case Token::MUTABLE:
 				case Token::DOUBLE_COLON:
 				case Token::DOUBLE_AMPERSAND:
 				case Token::DOUBLE_VERTICAL_BAR:
