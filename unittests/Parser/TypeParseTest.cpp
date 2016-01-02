@@ -18,6 +18,7 @@ namespace locic {
 			TokenReader tokenReader(tokenSource);
 			const auto type = TypeParser(tokenReader).parseType();
 			EXPECT_TRUE(tokenSource.allConsumed());
+			EXPECT_TRUE(tokenReader.peek().kind() == Token::END);
 			fn(type);
 		}
 		
