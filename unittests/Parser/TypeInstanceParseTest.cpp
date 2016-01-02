@@ -73,6 +73,28 @@ namespace locic {
 			});
 		}
 		
+		TEST(TypeInstanceParseTest, ClassDeclMethodTemplatedReturnType) {
+			auto tokens = {
+				Token::CLASS,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				Token::NAME,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
+				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDECL);
+				EXPECT_EQ(typeInstance->functions->size(), 1);
+				EXPECT_EQ(typeInstance->variables->size(), 0);
+			});
+		}
+		
 		TEST(TypeInstanceParseTest, TemplatedClassDeclMethod) {
 			auto tokens = {
 				Token::CLASS,
