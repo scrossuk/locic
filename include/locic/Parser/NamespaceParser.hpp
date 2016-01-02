@@ -22,6 +22,8 @@ namespace locic {
 			NamespaceParser(TokenReader& reader);
 			~NamespaceParser();
 			
+			AST::Node<AST::NamespaceDecl> parseGlobalNamespace();
+			
 			AST::Node<AST::NamespaceDecl> parseNamespace();
 			
 			AST::Node<AST::NamespaceData> parseNamespaceData();

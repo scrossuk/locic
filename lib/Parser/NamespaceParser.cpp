@@ -21,6 +21,12 @@ namespace locic {
 		
 		NamespaceParser::~NamespaceParser() { }
 		
+		AST::Node<AST::NamespaceDecl> NamespaceParser::parseGlobalNamespace() {
+			const auto start = reader_.position();
+			const auto namespaceData = parseNamespaceData();
+			return builder_.makeNamespace(reader_.makeCString(""), namespaceData, start);
+		}
+		
 		AST::Node<AST::NamespaceDecl> NamespaceParser::parseNamespace() {
 			const auto start = reader_.position();
 			
