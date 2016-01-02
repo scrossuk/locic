@@ -103,12 +103,10 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeIndexValue(AST::Node<AST::Value> /*value*/,
-		                             AST::Node<AST::Value> /*indexValue*/,
-		                             const Debug::SourcePosition& /*start*/) {
-// 			return makeValueNode(BinaryOp(reader_.getCString("index"),
-// 			                              value, indexValue), start);
-			throw std::logic_error("TODO");
+		ValueBuilder::makeIndexValue(AST::Node<AST::Value> value,
+		                             AST::Node<AST::Value> indexValue,
+		                             const Debug::SourcePosition& start) {
+			return makeBinaryOpValue(value, indexValue, AST::OP_INDEX, start);
 		}
 		
 		AST::Node<AST::Value>
