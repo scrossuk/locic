@@ -229,6 +229,12 @@ namespace locic {
 			});
 		}
 		
+		TEST(NamespaceParseTest, EmptyGlobalNamespace) {
+			testParseGlobalNamespace({}, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
+				ASSERT_EQ(nameSpace->data()->functions.size(), 0);
+			});
+		}
+		
 	}
 	
 }
