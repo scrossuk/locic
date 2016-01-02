@@ -670,6 +670,24 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, While) {
+			auto tokens = {
+				Token::WHILE,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isWhile());
+				EXPECT_TRUE(statement->whileCondition()->isSymbol());
+				EXPECT_EQ(statement->whileScope()->size(), 1);
+			});
+		}
+		
 	}
 	
 }
