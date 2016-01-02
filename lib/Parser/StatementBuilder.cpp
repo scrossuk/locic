@@ -167,6 +167,17 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Statement>
+		StatementBuilder::makeRethrowStatement(const Debug::SourcePosition& start) {
+			return makeStatementNode(AST::Statement::Rethrow(), start);
+		}
+		
+		AST::Node<AST::Statement>
+		StatementBuilder::makeThrowStatement(AST::Node<AST::Value> value,
+		                                     const Debug::SourcePosition& start) {
+			return makeStatementNode(AST::Statement::Throw(value), start);
+		}
+		
+		AST::Node<AST::Statement>
 		StatementBuilder::makeBreakStatement(const Debug::SourcePosition& start) {
 			return makeStatementNode(AST::Statement::Break(), start);
 		}
