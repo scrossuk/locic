@@ -53,7 +53,8 @@ namespace locic {
 					reader_.consume();
 				}
 				
-				if (reader_.peek().kind() == Token::RCURLYBRACKET) {
+				if (reader_.peek().kind() == Token::RCURLYBRACKET ||
+				    reader_.peek().kind() == Token::END) {
 					break;
 				}
 				
