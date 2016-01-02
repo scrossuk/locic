@@ -6,6 +6,7 @@
 #include <locic/Lex/Character.hpp>
 #include <locic/Lex/CharacterSource.hpp>
 #include <locic/Lex/DiagnosticReceiver.hpp>
+#include <locic/Lex/FileCharacterSource.hpp>
 #include <locic/Lex/Lexer.hpp>
 #include <locic/Lex/Token.hpp>
 #include <locic/Parser/Context.hpp>
@@ -310,11 +311,10 @@ namespace locic {
 			return locationInfo;
 		}
 		
-		class LexLexer: public LexerAPI, public Lex::DiagnosticReceiver, public Lex::CharacterSource {
+		class LexLexer: public LexerAPI, public Lex::DiagnosticReceiver {
 		public:
-			LexLexer(FILE * file, Context& context)
-			: file_(file), context_(context),
-			position_(0), lexer_(*this, *this) { }
+			LexLexer(FILE * file, const String fileName)
+			: source_(fileName, file), lexer_(source_, *this) { }
 			
 			~LexLexer() { }
 			
@@ -323,19 +323,6 @@ namespace locic {
 			
 			LexLexer(LexLexer&&) = delete;
 			LexLexer& operator=(LexLexer&&) = delete;
-			
-			Lex::Character get() {
-				const auto result = fgetc(file_);
-				if (feof(file_)) {
-					return Lex::Character(0);
-				}
-				position_++;
-				return Lex::Character(result);
-			}
-			
-			size_t byteOffset() const {
-				return position_;
-			}
 			
 			void issueWarning(Lex::Diag /*kind*/, Debug::SourceRange range) {
 				printf("Warning at %s\n", range.toString().c_str());
@@ -358,9 +345,7 @@ namespace locic {
 			}
 			
 		private:
-			FILE * file_;
-			Context& context_;
-			size_t position_;
+			Lex::FileCharacterSource source_;
 			Lex::Lexer lexer_;
 			
 		};

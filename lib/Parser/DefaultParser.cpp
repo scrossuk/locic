@@ -19,7 +19,7 @@ namespace locic {
 		public:
 			DefaultParserImpl(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList, FILE * file, const std::string& fileName)
 			: context_(stringHost, rootNamespaceList, fileName),
-			lexer_(file, context_) { }
+			lexer_(file, context_.fileName()) { }
 			
 			Context& context() {
 				return context_;
