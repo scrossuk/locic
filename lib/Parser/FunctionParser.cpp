@@ -222,13 +222,11 @@ namespace locic {
 				case Token::NAME:
 					return token.name();
 				case Token::MOVE:
-// 					return stringHost_.getCString("move");
-					throw std::logic_error("TODO: method called 'move'");
+					return reader_.makeCString("move");
 				case Token::NULLVAL:
-// 					return stringHost_.getCString("null");
-					throw std::logic_error("TODO: method called 'null'");
+					return reader_.makeCString("null");
 				default:
-					throw std::logic_error("TODO: invalid method name");
+					return reader_.makeCString("<invalid>");
 			}
 		}
 		
