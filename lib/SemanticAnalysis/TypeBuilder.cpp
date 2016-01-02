@@ -8,6 +8,8 @@
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>
 
+#include <locic/Support/PrimitiveID.hpp>
+
 namespace locic {
 	
 	namespace SemanticAnalysis {
@@ -16,6 +18,13 @@ namespace locic {
 		: context_(argContext), cachedVoidType_(nullptr), cachedBoolType_(nullptr),
 		cachedSizeType_(nullptr), cachedTypenameType_(nullptr),
 		cachedMovableType_(nullptr) { }
+		
+		const SEM::Type*
+		TypeBuilder::getPrimitiveType(const PrimitiveID primitiveID,
+		                              SEM::ValueArray templateArguments) {
+			const auto& typeInstance = context_.semContext().getPrimitive(primitiveID);
+			return SEM::Type::Object(&typeInstance, std::move(templateArguments));
+		}
 		
 		const SEM::Type*
 		TypeBuilder::getVoidType() {

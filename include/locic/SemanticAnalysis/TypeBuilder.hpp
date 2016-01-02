@@ -5,6 +5,8 @@
 
 namespace locic {
 	
+	class PrimitiveID;
+	
 	namespace SEM {
 		
 		class FunctionType;
@@ -19,6 +21,10 @@ namespace locic {
 		class TypeBuilder {
 		public:
 			TypeBuilder(Context& context);
+			
+			const SEM::Type*
+			getPrimitiveType(PrimitiveID primitiveID,
+			                 SEM::ValueArray templateArguments = {});
 			
 			const SEM::Type*
 			getVoidType();
