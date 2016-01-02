@@ -34,6 +34,10 @@ namespace locic {
 				return new DefaultCase(true, scope);
 			}
 			
+			bool isEmpty() const {
+				return !hasScope;
+			}
+			
 			inline DefaultCase(bool pHasScope, const Node<AST::Scope>& pScope)
 				: hasScope(pHasScope), scope(pScope) { }
 		};
