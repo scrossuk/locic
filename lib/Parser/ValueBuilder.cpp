@@ -110,6 +110,12 @@ namespace locic {
 // 			                              value, indexValue), start);
 			throw std::logic_error("TODO");
 		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeDerefValue(AST::Node<AST::Value> value,
+		                             const Debug::SourcePosition& start) {
+			return makeUnaryOpValue(value, AST::OP_DEREF, start);
+		}
 			
 		AST::Node<AST::Value>
 		ValueBuilder::makeMemberAccess(AST::Node<AST::Value> value, String name,

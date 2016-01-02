@@ -80,6 +80,10 @@ namespace locic {
 			               const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
+			makeDerefValue(AST::Node<AST::Value> value,
+			               const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Value>
 			makeMemberAccess(AST::Node<AST::Value> value, String name,
 			                 const Debug::SourcePosition& start);
 			
