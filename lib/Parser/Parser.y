@@ -24,7 +24,7 @@
 #include "Token.hpp"
 
 int Locic_Parser_GeneratedParser_error(locic::Parser::LocationInfo* locationInfo, void * scanner, locic::Parser::Context * parserContext, const char *s);
-int Locic_Parser_GeneratedParser_lex(locic::Parser::Token * token, locic::Parser::LocationInfo* locationInfo, void * lexer, locic::Parser::Context * parserContext);
+int Locic_Parser_GeneratedParser_lex(locic::Parser::GeneratedToken * token, locic::Parser::LocationInfo* locationInfo, void * lexer, locic::Parser::Context * parserContext);
 
 static locic::Debug::SourceLocation convertLocationInfo(const locic::String fileName, const locic::Parser::LocationInfo* locationInfo) {
 	return locic::Debug::SourceLocation(fileName,
@@ -2515,7 +2515,7 @@ templateValue:
 	
 %%
 
-int Locic_Parser_GeneratedParser_lex(locic::Parser::Token * token, locic::Parser::LocationInfo* locationInfo, void * lexer, locic::Parser::Context * parserContext){
+int Locic_Parser_GeneratedParser_lex(locic::Parser::GeneratedToken * token, locic::Parser::LocationInfo* locationInfo, void * lexer, locic::Parser::Context * parserContext){
 	(void) parserContext;
 	return ((locic::Parser::LexerAPI*) lexer)->getToken(token, locationInfo);
 }

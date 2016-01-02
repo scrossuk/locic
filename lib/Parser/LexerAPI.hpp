@@ -10,7 +10,7 @@ namespace locic {
 		
 		class LexerAPI {
 		public:
-			virtual int getToken(Token* token, LocationInfo* position) = 0;
+			virtual int getToken(GeneratedToken* token, LocationInfo* position) = 0;
 			
 		protected:
 			~LexerAPI() { }

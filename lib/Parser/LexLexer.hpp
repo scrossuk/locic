@@ -277,8 +277,8 @@ namespace locic {
 			}
 		}
 		
-		Token ConvertToken(const Lex::Token& token) {
-			Token newToken;
+		GeneratedToken ConvertToken(const Lex::Token& token) {
+			GeneratedToken newToken;
 			switch (token.kind()) {
 				case Lex::Token::CONSTANT: {
 					newToken.lexer_constant = token.constant();
@@ -345,7 +345,7 @@ namespace locic {
 				printf("Error at %s\n", range.toString().c_str());
 			}
 			
-			int getToken(Token* tokenPtr, LocationInfo* position) {
+			int getToken(GeneratedToken* tokenPtr, LocationInfo* position) {
 				const auto token = lexer_.lexToken(context_.stringHost());
 				if (token) {
 					const auto result = ConvertTokenKind(token->kind());
