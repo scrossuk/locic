@@ -105,6 +105,9 @@ namespace locic {
 				case AST::Type::BOOL: {
 					return context.typeBuilder().getBoolType();
 				}
+				case AST::Type::PRIMITIVE: {
+					return context.typeBuilder().getPrimitiveType(type->primitiveID());
+				}
 				case AST::Type::INTEGER: {
 					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);
 				}
