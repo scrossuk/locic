@@ -106,6 +106,12 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Statement>
+		StatementBuilder::makeScopeExitStatement(const String name, AST::Node<AST::Scope> scope,
+		                                         const Debug::SourcePosition& start) {
+			return makeStatementNode(AST::Statement::ScopeExit(name, scope), start);
+		}
+		
+		AST::Node<AST::Statement>
 		StatementBuilder::makeAssertNoexceptStatement(AST::Node<AST::Scope> scope,
 		                                              const Debug::SourcePosition& start) {
 			return makeStatementNode(AST::Statement::AssertNoExcept(scope), start);

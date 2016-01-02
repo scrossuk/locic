@@ -79,6 +79,10 @@ namespace locic {
 			                 const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
+			makeScopeExitStatement(String name, AST::Node<AST::Scope> scope,
+			                       const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Statement>
 			makeAssertNoexceptStatement(AST::Node<AST::Scope> scope,
 			                            const Debug::SourcePosition& start);
 			
