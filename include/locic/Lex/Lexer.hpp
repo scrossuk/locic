@@ -2,6 +2,7 @@
 #define LOCIC_LEX_LEXER_HPP
 
 #include <locic/Lex/CharacterReader.hpp>
+#include <locic/Lex/LexerAPI.hpp>
 #include <locic/Lex/Token.hpp>
 #include <locic/Support/Optional.hpp>
 
@@ -24,7 +25,7 @@ namespace locic {
 		class DiagnosticReceiver;
 		class NumericValue;
 		
-		class Lexer {
+		class Lexer: public LexerAPI {
 		public:
 			Lexer(CharacterSource& source, DiagnosticReceiver& diagnosticReceiver);
 			~Lexer();
@@ -40,7 +41,7 @@ namespace locic {
 			Token::Kind getDoubleSymbolTokenKind(Character first,
 			                                     Character second);
 			
-			Token lexToken(const StringHost& stringHost);
+			Token lexToken();
 			
 			Optional<Token> lexTokenWithoutLocation(const StringHost& stringHost);
 			
@@ -59,6 +60,8 @@ namespace locic {
 			void lexLongComment();
 			
 			void lexComment();
+			
+			String fileName() const;
 			
 		private:
 			CharacterReader reader_;

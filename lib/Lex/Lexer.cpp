@@ -93,14 +93,14 @@ namespace locic {
 			}
 		}
 		
-		Token Lexer::lexToken(const StringHost& stringHost) {
+		Token Lexer::lexToken() {
 			while (true) {
 				if (reader_.isEnd()) {
 					return Token::Basic(Token::END);
 				}
 				
 				const auto startPosition = reader_.position();
-				auto token = lexTokenWithoutLocation(stringHost);
+				auto token = lexTokenWithoutLocation(reader_.stringHost());
 				if (!token) {
 					continue;
 				}
@@ -324,6 +324,10 @@ namespace locic {
 			} else {
 				lexLongComment();
 			}
+		}
+		
+		String Lexer::fileName() const {
+			return reader_.source().fileName();
 		}
 		
 	}
