@@ -13,6 +13,14 @@ namespace locic {
 			currentCharacter_ = source.get();
 		}
 		
+		CharacterSource& CharacterReader::source() {
+			return source_;
+		}
+		
+		const CharacterSource& CharacterReader::source() const {
+			return source_;
+		}
+		
 		bool CharacterReader::isEnd() const {
 			return currentCharacter_ == 0;
 		}

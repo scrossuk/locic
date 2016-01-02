@@ -14,6 +14,9 @@ namespace locic {
 		public:
 			CharacterReader(CharacterSource& source);
 			
+			CharacterSource& source();
+			const CharacterSource& source() const;
+			
 			bool isEnd() const;
 			
 			Character get();
