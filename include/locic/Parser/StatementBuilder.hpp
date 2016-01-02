@@ -79,6 +79,20 @@ namespace locic {
 			                 const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
+			makeTryStatement(AST::Node<AST::Scope> scope,
+			                 AST::Node<AST::CatchClauseList> catchClauseList,
+			                 const Debug::SourcePosition& start);
+			
+			AST::Node<AST::CatchClauseList>
+			makeCatchClauseList(AST::CatchClauseList catchClauseList,
+			                    const Debug::SourcePosition& start);
+			
+			AST::Node<AST::CatchClause>
+			makeCatchClause(AST::Node<AST::TypeVar> var,
+			                AST::Node<AST::Scope> scope,
+			                const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Statement>
 			makeScopeExitStatement(String name, AST::Node<AST::Scope> scope,
 			                       const Debug::SourcePosition& start);
 			

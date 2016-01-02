@@ -106,6 +106,28 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Statement>
+		StatementBuilder::makeTryStatement(AST::Node<AST::Scope> scope,
+		                                   AST::Node<AST::CatchClauseList> catchClauseList,
+		                                   const Debug::SourcePosition& start) {
+			return makeStatementNode(AST::Statement::Try(scope, catchClauseList), start);
+		}
+		
+		AST::Node<AST::CatchClauseList>
+		StatementBuilder::makeCatchClauseList(AST::CatchClauseList list,
+		                                      const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, new AST::CatchClauseList(std::move(list)));
+		}
+		
+		AST::Node<AST::CatchClause>
+		StatementBuilder::makeCatchClause(AST::Node<AST::TypeVar> var,
+		                                  AST::Node<AST::Scope> scope,
+		                                  const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, new AST::CatchClause(var, scope));
+		}
+		
+		AST::Node<AST::Statement>
 		StatementBuilder::makeScopeExitStatement(const String name, AST::Node<AST::Scope> scope,
 		                                         const Debug::SourcePosition& start) {
 			return makeStatementNode(AST::Statement::ScopeExit(name, scope), start);
