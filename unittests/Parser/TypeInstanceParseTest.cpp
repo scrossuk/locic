@@ -284,6 +284,62 @@ namespace locic {
 			});
 		}
 		
+		TEST(TypeInstanceParseTest, EmptyPrimitive) {
+			auto tokens = {
+				Token::PRIMITIVE,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
+				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::PRIMITIVE);
+				EXPECT_EQ(typeInstance->functions->size(), 0);
+			});
+		}
+		
+		TEST(TypeInstanceParseTest, PrimitiveMethod) {
+			auto tokens = {
+				Token::PRIMITIVE,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
+				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::PRIMITIVE);
+				EXPECT_EQ(typeInstance->functions->size(), 1);
+			});
+		}
+		
+		TEST(TypeInstanceParseTest, TemplatedPrimitiveMethod) {
+			auto tokens = {
+				Token::PRIMITIVE,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				
+				Token::TEMPLATE,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				
+				Token::NAME,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
+				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::PRIMITIVE);
+				EXPECT_EQ(typeInstance->functions->size(), 1);
+			});
+		}
+		
 		TEST(TypeInstanceParseTest, EmptyStruct) {
 			auto tokens = {
 				Token::STRUCT,
