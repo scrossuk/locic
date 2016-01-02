@@ -77,6 +77,8 @@ namespace locic {
 			
 			AST::Node<AST::Value> parseTypeValue(Context context);
 			
+			bool canInterpretValueAsType(const AST::Node<AST::Value>& value);
+			
 			AST::Node<AST::Type> interpretValueAsType(const AST::Node<AST::Value>& value);
 			
 			AST::Node<AST::Value> parseAtomicValue();

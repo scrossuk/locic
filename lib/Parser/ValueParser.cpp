@@ -564,6 +564,40 @@ namespace locic {
 			}
 		}
 		
+		bool ValueParser::canInterpretValueAsType(const AST::Node<AST::Value>& value) {
+			switch (value->kind()) {
+				case AST::Value::BRACKET:
+					return canInterpretValueAsType(value->bracket.value);
+				case AST::Value::SYMBOLREF:
+				case AST::Value::TYPEREF:
+					return true;
+				case AST::Value::MERGE:
+					return canInterpretValueAsType(value->merge.first) ||
+					       canInterpretValueAsType(value->merge.second);
+				case AST::Value::SELF:
+				case AST::Value::THIS:
+				case AST::Value::LITERAL:
+				case AST::Value::MEMBERREF:
+				case AST::Value::ALIGNOF:
+				case AST::Value::SIZEOF:
+				case AST::Value::UNARYOP:
+				case AST::Value::BINARYOP:
+				case AST::Value::TERNARY:
+				case AST::Value::CAST:
+				case AST::Value::LVAL:
+				case AST::Value::NOLVAL:
+				case AST::Value::REF:
+				case AST::Value::NOREF:
+				case AST::Value::INTERNALCONSTRUCT:
+				case AST::Value::MEMBERACCESS:
+				case AST::Value::TEMPLATEDMEMBERACCESS:
+				case AST::Value::FUNCTIONCALL:
+				case AST::Value::CAPABILITYTEST:
+				case AST::Value::ARRAYLITERAL:
+					return false;
+			}
+		}
+		
 		AST::Node<AST::Type> ValueParser::interpretValueAsType(const AST::Node<AST::Value>& value) {
 			switch (value->kind()) {
 				case AST::Value::BRACKET:
