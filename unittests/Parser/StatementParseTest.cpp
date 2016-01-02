@@ -774,6 +774,58 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, Try) {
+			auto tokens = {
+				Token::TRY,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET,
+				Token::CATCH,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isTry());
+				EXPECT_EQ(statement->tryScope()->size(), 0);
+				ASSERT_EQ(statement->tryCatchList()->size(), 1);
+				EXPECT_EQ(statement->tryCatchList()->at(0)->scope->size(), 0);
+			});
+		}
+		
+		TEST(StatementParseTest, TryMultipleCatch) {
+			auto tokens = {
+				Token::TRY,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET,
+				
+				Token::CATCH,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET,
+				
+				Token::CATCH,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isTry());
+				EXPECT_EQ(statement->tryScope()->size(), 0);
+				ASSERT_EQ(statement->tryCatchList()->size(), 2);
+				EXPECT_EQ(statement->tryCatchList()->at(0)->scope->size(), 0);
+				EXPECT_EQ(statement->tryCatchList()->at(1)->scope->size(), 0);
+			});
+		}
+		
 	}
 	
 }
