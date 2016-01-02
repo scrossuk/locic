@@ -688,6 +688,27 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, For) {
+			auto tokens = {
+				Token::FOR,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::COLON,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RETURN,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isFor());
+				EXPECT_TRUE(statement->forInitValue()->isSymbol());
+				EXPECT_EQ(statement->forInitScope()->size(), 1);
+			});
+		}
+		
 	}
 	
 }
