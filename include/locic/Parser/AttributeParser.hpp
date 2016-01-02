@@ -27,6 +27,9 @@ namespace locic {
 			parseOptionalConstSpecifier();
 			
 			AST::Node<AST::RequireSpecifier>
+			parseOptionalMoveSpecifier();
+			
+			AST::Node<AST::RequireSpecifier>
 			parseOptionalNoexceptSpecifier();
 			
 			AST::Node<AST::RequireSpecifier>

@@ -39,6 +39,29 @@ namespace locic {
 		}
 		
 		AST::Node<AST::RequireSpecifier>
+		AttributeParser::parseOptionalMoveSpecifier() {
+			const auto start = reader_.position();
+			
+			if (reader_.peek().kind() != Token::MOVE) {
+				return builder_.makeNeverRequireSpecifier(start);
+			}
+			
+			reader_.consume();
+			
+			if (reader_.peek().kind() != Token::LROUNDBRACKET) {
+				return builder_.makeAlwaysRequireSpecifier(start);
+			}
+			
+			reader_.consume();
+			
+			const auto predicate = PredicateParser(reader_).parsePredicate();
+			
+			reader_.expect(Token::RROUNDBRACKET);
+			
+			return builder_.makePredicateRequireSpecifier(predicate, start);
+		}
+		
+		AST::Node<AST::RequireSpecifier>
 		AttributeParser::parseOptionalNoexceptSpecifier() {
 			const auto start = reader_.position();
 			
