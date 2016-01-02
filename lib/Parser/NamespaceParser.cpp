@@ -150,10 +150,20 @@ namespace locic {
 			data.typeInstances.push_back(typeInstance);
 		}
 		
-		void NamespaceParser::parseTemplatedAlias(AST::NamespaceData& /*data*/,
-		                                          TemplateInfo /*templateInfo*/,
-		                                          const Debug::SourcePosition& /*start*/) {
-			throw std::logic_error("TODO: parse templated alias");
+		void NamespaceParser::parseTemplatedAlias(AST::NamespaceData& data,
+		                                          TemplateInfo templateInfo,
+		                                          const Debug::SourcePosition& start) {
+			auto alias = parseAlias();
+			
+			alias->setTemplateVariables(templateInfo.templateVariables());
+			
+			if (templateInfo.hasRequireSpecifier()) {
+				alias->setRequireSpecifier(templateInfo.requireSpecifier());
+			}
+			
+			alias.setLocation(reader_.locationWithRangeFrom(start));
+			
+			data.aliases.push_back(alias);
 		}
 		
 		AST::Node<AST::AliasDecl> NamespaceParser::parseAlias() {
