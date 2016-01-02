@@ -710,6 +710,22 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, Ternary) {
+			auto tokens = {
+				Token::NAME,
+				Token::QUESTIONMARK,
+				Token::NAME,
+				Token::COLON,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TERNARY);
+				EXPECT_TRUE(value->ternary.condition->isSymbol());
+				EXPECT_TRUE(value->ternary.ifTrue->isSymbol());
+				EXPECT_TRUE(value->ternary.ifFalse->isSymbol());
+			});
+		}
+		
 	}
 	
 }
