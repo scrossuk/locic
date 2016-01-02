@@ -59,6 +59,11 @@ namespace locic {
 			                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
+			makeCapabilityTest(AST::Node<AST::Type> leftType,
+			                   AST::Node<AST::Type> rightType,
+			                   const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Value>
 			makeBinaryOpValue(AST::Node<AST::Value> leftValue,
 			                  AST::Node<AST::Value> rightValue,
 			                  AST::BinaryOpKind opKind,

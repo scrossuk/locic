@@ -80,6 +80,13 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
+		ValueBuilder::makeCapabilityTest(AST::Node<AST::Type> leftType,
+		                                 AST::Node<AST::Type> rightType,
+		                                 const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::CapabilityTest(leftType, rightType), start);
+		}
+		
+		AST::Node<AST::Value>
 		ValueBuilder::makeBinaryOpValue(AST::Node<AST::Value> leftValue,
 		                                AST::Node<AST::Value> rightValue,
 		                                const AST::BinaryOpKind opKind,
