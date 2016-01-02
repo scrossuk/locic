@@ -73,6 +73,7 @@ namespace locic {
 					case Token::DATATYPE:
 					case Token::EXCEPTION:
 					case Token::INTERFACE:
+					case Token::PRIMITIVE:
 					case Token::STRUCT:
 					case Token::UNION: {
 						auto typeInstance = TypeInstanceParser(reader_).parseTypeInstance();
@@ -112,6 +113,7 @@ namespace locic {
 				case Token::DATATYPE:
 				case Token::EXCEPTION:
 				case Token::INTERFACE:
+				case Token::PRIMITIVE:
 				case Token::STRUCT:
 				case Token::UNION: {
 					parseTemplatedTypeInstance(data, templateInfo, start);
