@@ -435,6 +435,26 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, Break) {
+			auto tokens = {
+				Token::BREAK,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				EXPECT_TRUE(statement->isBreak());
+			});
+		}
+		
+		TEST(StatementParseTest, Continue) {
+			auto tokens = {
+				Token::CONTINUE,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				EXPECT_TRUE(statement->isContinue());
+			});
+		}
+		
 	}
 	
 }
