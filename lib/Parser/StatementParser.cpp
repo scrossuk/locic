@@ -321,8 +321,10 @@ namespace locic {
 					                                     start);
 				}
 				case Token::DOUBLE_PLUS:
+					reader_.consume();
 					return builder_.makeIncrementStatement(value, start);
 				case Token::DOUBLE_MINUS:
+					reader_.consume();
 					return builder_.makeDecrementStatement(value, start);
 				default:
 					return builder_.makeValueStatement(value, start);
