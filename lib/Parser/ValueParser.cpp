@@ -513,7 +513,7 @@ namespace locic {
 			const auto templateArgs = SymbolParser(reader_).parseSymbolTemplateArgumentList();
 			
 			if (isDeref) {
-				throw std::logic_error("TODO: ->");
+				value = builder_.makeDerefValue(value, start);
 			}
 			
 			if (templateArgs->empty()) {
