@@ -6,6 +6,8 @@
 
 namespace locic {
 	
+	class StringHost;
+	
 	namespace Lex {
 		
 		class CharacterSource;
@@ -13,6 +15,8 @@ namespace locic {
 		class CharacterReader {
 		public:
 			CharacterReader(CharacterSource& source);
+			
+			const StringHost& stringHost() const;
 			
 			CharacterSource& source();
 			const CharacterSource& source() const;
@@ -30,6 +34,7 @@ namespace locic {
 			Debug::SourcePosition position() const;
 			
 		private:
+			const StringHost& stringHost_;
 			CharacterSource& source_;
 			Character currentCharacter_;
 			Debug::SourcePosition position_;

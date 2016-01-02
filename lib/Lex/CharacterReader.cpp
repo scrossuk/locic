@@ -2,15 +2,21 @@
 #include <locic/Lex/Character.hpp>
 #include <locic/Lex/CharacterReader.hpp>
 #include <locic/Lex/CharacterSource.hpp>
+#include <locic/Support/String.hpp>
+#include <locic/Support/StringHost.hpp>
 
 namespace locic {
 	
 	namespace Lex {
 		
 		CharacterReader::CharacterReader(CharacterSource& source)
-		: source_(source), currentCharacter_(0),
-		position_(1, 1, source.byteOffset()) {
+		: stringHost_(source.fileName().host()), source_(source),
+		currentCharacter_(0), position_(1, 1, source.byteOffset()) {
 			currentCharacter_ = source.get();
+		}
+		
+		const StringHost& CharacterReader::stringHost() const {
+			return stringHost_;
 		}
 		
 		CharacterSource& CharacterReader::source() {
