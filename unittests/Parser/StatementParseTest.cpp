@@ -394,6 +394,32 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, AssertName) {
+			auto tokens = {
+				Token::ASSERT,
+				Token::NAME,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isAssert());
+				EXPECT_TRUE(statement->assertValue()->isSymbol());
+			});
+		}
+		
+		TEST(StatementParseTest, AssertComparison) {
+			auto tokens = {
+				Token::ASSERT,
+				Token::NAME,
+				Token::ISEQUAL,
+				Token::NAME,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isAssert());
+				EXPECT_TRUE(statement->assertValue()->isBinaryOp());
+			});
+		}
+		
 	}
 	
 }
