@@ -185,6 +185,7 @@ namespace locic {
 					return builder_.makeSymbolType(symbol, start);
 				}
 				default:
+					printf("Unexpected: %s\n", token.toString().c_str());
 					issueError(Diag::InvalidType, start);
 					reader_.consume();
 					

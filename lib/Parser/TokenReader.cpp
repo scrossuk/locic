@@ -98,6 +98,8 @@ namespace locic {
 				
 				printf("Expected one of %s; got %s\n", expectStr.c_str(),
 				       token.toString().c_str());
+				printf("At position %s in file '%s'.\n",
+				       position().toString().c_str(), source_.fileName().c_str());
 				throw std::logic_error("TODO: expected token not found");
 			}
 		}

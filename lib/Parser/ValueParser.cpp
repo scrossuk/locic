@@ -739,6 +739,8 @@ namespace locic {
 				return builder_.makeTypeValue(type, start);
 			}
 			
+			printf("Unexpected: %s\n", token.toString().c_str());
+			
 			throw std::logic_error("TODO: invalid atomic value");
 		}
 		
