@@ -156,6 +156,143 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, VarDeclEmptyPatternMatch) {
+			auto tokens = {
+				Token::LET,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::SETEQUAL,
+				Token::NAME
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				ASSERT_TRUE(statement->varDeclVar()->isPattern());
+				EXPECT_EQ(statement->varDeclVar()->typeVarList()->size(), 0);
+			});
+		}
+		
+		TEST(StatementParseTest, VarDeclOneVarPatternMatch) {
+			auto tokens = {
+				Token::LET,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::SETEQUAL,
+				Token::NAME
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				ASSERT_TRUE(statement->varDeclVar()->isPattern());
+				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 1);
+				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isNamed());
+			});
+		}
+		
+		TEST(StatementParseTest, VarDeclTwoVarsPatternMatch) {
+			auto tokens = {
+				Token::LET,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::COMMA,
+				Token::NAME,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::SETEQUAL,
+				Token::NAME
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				ASSERT_TRUE(statement->varDeclVar()->isPattern());
+				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 2);
+				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isNamed());
+				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(1)->isNamed());
+			});
+		}
+		
+		TEST(StatementParseTest, VarDeclIgnorePatternMatch) {
+			auto tokens = {
+				Token::LET,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::UNDERSCORE,
+				Token::RROUNDBRACKET,
+				Token::SETEQUAL,
+				Token::NAME
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				ASSERT_TRUE(statement->varDeclVar()->isPattern());
+				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 1);
+				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isAny());
+			});
+		}
+		
+		TEST(StatementParseTest, VarDeclOneVarAndIgnorePatternMatch) {
+			auto tokens = {
+				Token::LET,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::NAME,
+				Token::COMMA,
+				Token::UNDERSCORE,
+				Token::RROUNDBRACKET,
+				Token::SETEQUAL,
+				Token::NAME
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				ASSERT_TRUE(statement->varDeclVar()->isPattern());
+				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 2);
+				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isNamed());
+				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(1)->isAny());
+			});
+		}
+		
+		TEST(StatementParseTest, VarDeclOneIgnorePatternMatch) {
+			auto tokens = {
+				Token::LET,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::UNDERSCORE,
+				Token::RROUNDBRACKET,
+				Token::SETEQUAL,
+				Token::NAME
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				ASSERT_TRUE(statement->varDeclVar()->isPattern());
+				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 1);
+				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isAny());
+			});
+		}
+		
+		TEST(StatementParseTest, VarDeclTwoIgnorePatternMatch) {
+			auto tokens = {
+				Token::LET,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::UNDERSCORE,
+				Token::COMMA,
+				Token::UNDERSCORE,
+				Token::RROUNDBRACKET,
+				Token::SETEQUAL,
+				Token::NAME
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				ASSERT_TRUE(statement->varDeclVar()->isPattern());
+				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 2);
+				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isAny());
+				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(1)->isAny());
+			});
+		}
+		
 	}
 	
 }
