@@ -544,14 +544,8 @@ namespace locic {
 				}
 				
 				const auto secondToken = reader_.peek(/*offset=*/1);
-				if (secondToken.kind() == Token::NAME) {
-					if (context != IN_TYPEDECL) {
-						// If we're not in a vardecl, then a NAME after
-						// STAR/AMPERSAND means this is a multiply or
-						// bitwise-AND value.
-						return value;
-					}
-				} else if (isValueStartToken(secondToken.kind())) {
+				if (context != IN_TYPEDECL &&
+				    isValueStartToken(secondToken.kind())) {
 					// Next token is a value, so this is a
 					// multiply/bitwise-AND value.
 					return value;
