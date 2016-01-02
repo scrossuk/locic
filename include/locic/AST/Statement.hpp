@@ -269,6 +269,83 @@ namespace locic {
 				return typeEnum;
 			}
 			
+			bool isIf() const {
+				return kind() == IF;
+			}
+			
+			const Node<IfClauseList>& ifClauseList() const {
+				assert(isIf());
+				return ifStmt.clauseList;
+			}
+			
+			const Node<Scope>& ifElseScope() const {
+				assert(isIf());
+				return ifStmt.elseScope;
+			}
+			
+			bool isSwitch() const {
+				return kind() == SWITCH;
+			}
+			
+			const Node<Value>& switchValue() const {
+				assert(isSwitch());
+				return switchStmt.value;
+			}
+			
+			const Node<SwitchCaseList>& switchCaseList() const {
+				assert(isSwitch());
+				return switchStmt.caseList;
+			}
+			
+			const Node<DefaultCase>& defaultCase() const {
+				assert(isSwitch());
+				return switchStmt.defaultCase;
+			}
+			
+			bool isWhile() const {
+				return kind() == WHILE;
+			}
+			
+			const Node<Value>& whileCondition() const {
+				assert(isWhile());
+				return whileStmt.condition;
+			}
+			
+			const Node<Scope>& whileScope() const {
+				assert(isWhile());
+				return whileStmt.whileTrue;
+			}
+			
+			bool isFor() const {
+				return kind() == FOR;
+			}
+			
+			const Node<TypeVar>& forTypeVar() const {
+				return forStmt.typeVar;
+			}
+			
+			const Node<Value>& forInitValue() const {
+				return forStmt.initValue;
+			}
+			
+			const Node<Scope>& forInitScope() const {
+				return forStmt.scope;
+			}
+			
+			bool isScopeExit() const {
+				return kind() == SCOPEEXIT;
+			}
+			
+			const String& scopeExitState() const {
+				assert(isScopeExit());
+				return scopeExitStmt.state;
+			}
+			
+			const Node<Scope>& scopeExitScope() const {
+				assert(isScopeExit());
+				return scopeExitStmt.scope;
+			}
+			
 			bool isVarDecl() const {
 				return kind() == VARDECL;
 			}
