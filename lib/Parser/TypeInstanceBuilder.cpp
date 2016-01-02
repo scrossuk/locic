@@ -82,6 +82,12 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeInstance>
+		TypeInstanceBuilder::makePrimitive(String name, AST::Node<AST::FunctionList> methods,
+		                                   const Debug::SourcePosition& start) {
+			return makeTypeInstanceNode(AST::TypeInstance::Primitive(name, methods), start);
+		}
+		
+		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeOpaqueStruct(String name, const Debug::SourcePosition& start) {
 			return makeTypeInstanceNode(AST::TypeInstance::OpaqueStruct(name), start);
 		}

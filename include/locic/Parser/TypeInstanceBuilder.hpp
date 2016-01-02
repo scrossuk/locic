@@ -63,6 +63,10 @@ namespace locic {
 			              const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstance>
+			makePrimitive(String name, AST::Node<AST::FunctionList> methods,
+			              const Debug::SourcePosition& start);
+			
+			AST::Node<AST::TypeInstance>
 			makeOpaqueStruct(String name, const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstance>
