@@ -455,6 +455,16 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, Unreachable) {
+			auto tokens = {
+				Token::UNREACHABLE,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				EXPECT_TRUE(statement->isUnreachable());
+			});
+		}
+		
 	}
 	
 }
