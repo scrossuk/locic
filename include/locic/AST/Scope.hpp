@@ -17,6 +17,10 @@ namespace locic {
 				
 			inline Scope(const Node<StatementList>& s)
 				: statements(s) { }
+			
+			size_t size() const {
+				return statements->size();
+			}
 		};
 		
 	}
