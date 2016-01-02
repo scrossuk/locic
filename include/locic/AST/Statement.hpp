@@ -341,6 +341,20 @@ namespace locic {
 				return forStmt.scope;
 			}
 			
+			bool isTry() const {
+				return kind() == TRY;
+			}
+			
+			const Node<Scope>& tryScope() const {
+				assert(isTry());
+				return tryStmt.scope;
+			}
+			
+			const Node<CatchClauseList>& tryCatchList() const {
+				assert(isTry());
+				return tryStmt.catchList;
+			}
+			
 			bool isScopeExit() const {
 				return kind() == SCOPEEXIT;
 			}
