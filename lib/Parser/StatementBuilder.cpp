@@ -156,6 +156,11 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Statement>
+		StatementBuilder::makeReturnVoidStatement(const Debug::SourcePosition& start) {
+			return makeStatementNode(AST::Statement::ReturnVoid(), start);
+		}
+		
+		AST::Node<AST::Statement>
 		StatementBuilder::makeReturnStatement(AST::Node<AST::Value> value,
 		                                      const Debug::SourcePosition& start) {
 			return makeStatementNode(AST::Statement::Return(value), start);

@@ -112,6 +112,9 @@ namespace locic {
 			                               const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
+			makeReturnVoidStatement(const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Statement>
 			makeReturnStatement(AST::Node<AST::Value> value,
 			                    const Debug::SourcePosition& start);
 			
