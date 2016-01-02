@@ -176,7 +176,7 @@ namespace locic {
 					return parseIntegerTypeWithSignedness(start,
 					                                      /*isSigned=*/true);
 				case Token::NAME: {
-					const auto symbol = SymbolParser(reader_).parseSymbol();
+					const auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
 					return builder_.makeSymbolType(symbol, start);
 				}
 				default:

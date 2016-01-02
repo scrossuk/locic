@@ -91,7 +91,7 @@ namespace locic {
 				return parseTypeVar();
 			}
 			
-			const auto symbol = SymbolParser(reader_).parseSymbol();
+			const auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
 			
 			if (reader_.peek().kind() == Token::LROUNDBRACKET) {
 				// This is a pattern variable.

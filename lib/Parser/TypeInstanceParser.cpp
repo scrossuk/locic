@@ -141,7 +141,7 @@ namespace locic {
 			
 			reader_.consume();
 			
-			const auto symbol = SymbolParser(reader_).parseSymbol();
+			const auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
 			
 			reader_.expect(Token::LROUNDBRACKET);
 			const auto valueList = ValueParser(reader_).parseValueList();

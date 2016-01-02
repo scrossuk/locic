@@ -66,7 +66,7 @@ namespace locic {
 					break;
 			}
 			
-			const auto symbol = SymbolParser(reader_).parseSymbol();
+			const auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
 			switch (reader_.peek().kind()) {
 				case Token::RROUNDBRACKET:
 				case Token::RTRIBRACKET:
