@@ -273,6 +273,11 @@ namespace locic {
 				return kind() == VALUE;
 			}
 			
+			bool isUnusedResultValue() const {
+				assert(isValue());
+				return valueStmt.hasVoidCast;
+			}
+			
 			const Node<Value>& value() const {
 				assert(isValue());
 				return valueStmt.value;
