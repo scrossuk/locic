@@ -48,6 +48,12 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Type>
+		TypeBuilder::makeNoTagType(AST::Node<AST::Type> targetType,
+		                           const Debug::SourcePosition& start) {
+			return makeTypeNode(AST::Type::NoTag(targetType), start);
+		}
+		
+		AST::Node<AST::Type>
 		TypeBuilder::makeLvalType(AST::Node<AST::Type> targetType,
 		                          AST::Node<AST::Type> type,
 		                          const Debug::SourcePosition& start) {
