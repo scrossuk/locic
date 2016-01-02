@@ -230,7 +230,7 @@ namespace locic {
 			}
 			
 			const auto value = ValueParser(reader_).parseValue();
-			return builder_.makeAssertStatement(value, start);
+			return builder_.makeAssertStatement(value, String(), start);
 		}
 		
 		bool StatementParser::isVarDeclStartToken(const Token::Kind kind) {
