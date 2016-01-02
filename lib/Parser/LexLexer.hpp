@@ -344,6 +344,10 @@ namespace locic {
 				}
 			}
 			
+			Lex::Lexer& getLexer() {
+				return lexer_;
+			}
+			
 		private:
 			Lex::FileCharacterSource source_;
 			Lex::Lexer lexer_;
