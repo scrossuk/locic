@@ -210,6 +210,19 @@ namespace locic {
 			return builder_.makeForStatement(var, value, scope, start);
 		}
 		
+		AST::Node<AST::Statement> StatementParser::parseScopeExitStatement() {
+			const auto start = reader_.position();
+			reader_.expect(Token::SCOPE);
+			
+			reader_.expect(Token::LROUNDBRACKET);
+			const auto name = reader_.expectName();
+			reader_.expect(Token::RROUNDBRACKET);
+			
+			const auto scope = ScopeParser(reader_).parseScope();
+			
+			return builder_.makeScopeExitStatement(name, scope, start);
+		}
+		
 		AST::Node<AST::Statement> StatementParser::parseAssertStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::ASSERT);

@@ -36,6 +36,8 @@ namespace locic {
 			
 			AST::Node<AST::Statement> parseForStatement();
 			
+			AST::Node<AST::Statement> parseScopeExitStatement();
+			
 			AST::Node<AST::Statement> parseAssertStatement();
 			
 			bool isVarDeclStartToken(Token::Kind kind);
