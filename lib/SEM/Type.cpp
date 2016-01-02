@@ -691,6 +691,11 @@ namespace locic {
 			return functionType;
 		}
 		
+		Value Type::asValue() const {
+			const auto typenameType = context_.getPrimitive(PrimitiveTypename).selfType();
+			return SEM::Value::TypeRef(this, typenameType->createStaticRefType(this));
+		}
+		
 		static const Type* basicSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
 			switch (type->kind()) {
 				case Type::AUTO: {

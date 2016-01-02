@@ -126,6 +126,7 @@ namespace locic {
 				bool isCallableVarArg() const;
 				
 				FunctionType asFunctionType() const;
+				Value asValue() const;
 				
 				const Type* substitute(const TemplateVarMap& templateVarMap) const;
 				const Type* resolveAliases() const;
