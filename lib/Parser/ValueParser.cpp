@@ -607,6 +607,12 @@ namespace locic {
 					                     AST::Type::Object(value->symbolRef.symbol));
 				case AST::Value::TYPEREF:
 					return value->typeRef.type;
+				case AST::Value::MERGE:
+					if (canInterpretValueAsType(value->merge.second)) {
+						return interpretValueAsType(value->merge.second);
+					} else {
+						return interpretValueAsType(value->merge.first);
+					}
 				case AST::Value::SELF:
 				case AST::Value::THIS:
 				case AST::Value::LITERAL:
@@ -626,8 +632,7 @@ namespace locic {
 				case AST::Value::TEMPLATEDMEMBERACCESS:
 				case AST::Value::FUNCTIONCALL:
 				case AST::Value::CAPABILITYTEST:
-				case AST::Value::ARRAYLITERAL:
-				case AST::Value::MERGE: {
+				case AST::Value::ARRAYLITERAL: {
 					throw std::logic_error("TODO: Invalid value to be interpreted as type");
 				}
 			}
