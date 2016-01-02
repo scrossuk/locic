@@ -58,6 +58,7 @@ namespace locic {
 					}
 					
 					const auto value = ValueParser(reader_).parseValue();
+					reader_.expect(Token::SEMICOLON);
 					return builder_.makeReturnStatement(value, start);
 				}
 				case Token::THROW: {
@@ -73,19 +74,23 @@ namespace locic {
 				}
 				case Token::BREAK: {
 					reader_.consume();
+					reader_.expect(Token::SEMICOLON);
 					return builder_.makeBreakStatement(start);
 				}
 				case Token::CONTINUE: {
 					reader_.consume();
+					reader_.expect(Token::SEMICOLON);
 					return builder_.makeContinueStatement(start);
 				}
 				case Token::UNREACHABLE: {
 					reader_.consume();
+					reader_.expect(Token::SEMICOLON);
 					return builder_.makeUnreachableStatement(start);
 				}
 				case Token::UNUSED_RESULT: {
 					reader_.consume();
 					const auto value = ValueParser(reader_).parseValue();
+					reader_.expect(Token::SEMICOLON);
 					return builder_.makeUnusedResultValueStatement(value,
 					                                               start);
 				}
@@ -241,6 +246,7 @@ namespace locic {
 			}
 			
 			const auto value = ValueParser(reader_).parseValue();
+			reader_.expect(Token::SEMICOLON);
 			return builder_.makeAssertStatement(value, String(), start);
 		}
 		
@@ -279,6 +285,7 @@ namespace locic {
 			const auto var = VarParser(reader_).parseVar();
 			reader_.expect(Token::SETEQUAL);
 			const auto value = ValueParser(reader_).parseValue();
+			reader_.expect(Token::SEMICOLON);
 			return builder_.makeVarDeclStatement(var, value, start);
 		}
 		
@@ -317,22 +324,27 @@ namespace locic {
 					                                                 start);
 					reader_.expect(Token::SETEQUAL);
 					const auto rvalue = ValueParser(reader_).parseValue();
+					reader_.expect(Token::SEMICOLON);
 					return builder_.makeVarDeclStatement(var, rvalue,
 					                                     start);
 				}
 				case Token::DOUBLE_PLUS:
 					reader_.consume();
+					reader_.expect(Token::SEMICOLON);
 					return builder_.makeIncrementStatement(value, start);
 				case Token::DOUBLE_MINUS:
 					reader_.consume();
+					reader_.expect(Token::SEMICOLON);
 					return builder_.makeDecrementStatement(value, start);
 				default:
+					reader_.expect(Token::SEMICOLON);
 					return builder_.makeValueStatement(value, start);
 			}
 			
 			reader_.consume();
 			
 			const auto rvalue = ValueParser(reader_).parseValue();
+			reader_.expect(Token::SEMICOLON);
 			return builder_.makeAssignStatement(value, rvalue,
 			                                    assignKind, start);
 		}

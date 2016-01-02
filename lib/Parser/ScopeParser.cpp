@@ -38,7 +38,6 @@ namespace locic {
 				}
 				
 				const auto statement = StatementParser(reader_).parseStatement();
-				reader_.expect(Token::SEMICOLON);
 				statementList.push_back(statement);
 			}
 			
