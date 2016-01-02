@@ -2,6 +2,8 @@
 #define MOCKTOKENSOURCE_HPP
 
 #include <locic/Constant.hpp>
+#include <locic/Debug/SourcePosition.hpp>
+#include <locic/Debug/SourceRange.hpp>
 #include <locic/Lex/LexerAPI.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/StringHost.hpp>
@@ -17,9 +19,31 @@ namespace locic {
 			MockTokenSource(const StringHost& stringHost,
 			                const Array<Token::Kind, 16>& tokenKinds)
 			: stringHost_(stringHost), tokenKinds_(tokenKinds),
-			position_(0), tokenGenerator_(stringHost) { }
+			position_(0), tokenGenerator_(stringHost),
+			sourcePosition_(0, 0, 0) { }
 			
 			Token lexToken() {
+				auto token = lexTokenWithoutLocationInfo();
+				
+				const Debug::SourcePosition endPosition(
+				    sourcePosition_.lineNumber(),
+				    sourcePosition_.column() + 1,
+				    sourcePosition_.byteOffset() + 1
+				);
+				
+				token.setSourceRange(Debug::SourceRange(sourcePosition_,
+				                                        endPosition));
+				
+				sourcePosition_ = Debug::SourcePosition(
+				    sourcePosition_.lineNumber(),
+				    sourcePosition_.column() + 2,
+				    sourcePosition_.byteOffset() + 2
+				);
+				
+				return token;
+			}
+			
+			Token lexTokenWithoutLocationInfo() {
 				if (position_ == tokenKinds_.size()) {
 					return Token::Basic(Token::END);
 				} else {
@@ -40,6 +64,7 @@ namespace locic {
 			const Array<Token::Kind, 16>& tokenKinds_;
 			size_t position_;
 			TokenGenerator tokenGenerator_;
+			Debug::SourcePosition sourcePosition_;
 			
 		};
 		
