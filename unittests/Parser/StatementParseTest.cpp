@@ -727,6 +727,53 @@ namespace locic {
 			});
 		}
 		
+		TEST(StatementParseTest, SwitchNoDefault) {
+			auto tokens = {
+				Token::SWITCH,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::CASE,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isSwitch());
+				EXPECT_EQ(statement->switchCaseList()->size(), 1);
+				EXPECT_TRUE(statement->defaultCase()->isEmpty());
+			});
+		}
+		
+		TEST(StatementParseTest, SwitchWithDefault) {
+			auto tokens = {
+				Token::SWITCH,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::CASE,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET,
+				Token::DEFAULT,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isSwitch());
+				EXPECT_EQ(statement->switchCaseList()->size(), 1);
+				EXPECT_FALSE(statement->defaultCase()->isEmpty());
+			});
+		}
+		
 	}
 	
 }
