@@ -21,6 +21,17 @@ namespace locic {
 			fn(nameSpace);
 		}
 		
+		template <typename FnType>
+		void testParseGlobalNamespace(const Array<Token::Kind, 16>& tokenKinds, FnType fn) {
+			StringHost stringHost;
+			MockTokenSource tokenSource(stringHost, tokenKinds);
+			TokenReader tokenReader(tokenSource);
+			const auto nameSpace = NamespaceParser(tokenReader).parseGlobalNamespace();
+			EXPECT_TRUE(tokenSource.allConsumed());
+			EXPECT_TRUE(tokenReader.peek().kind() == Token::END);
+			fn(nameSpace);
+		}
+		
 		TEST(NamespaceParseTest, EmptyNamespace) {
 			auto tokens = {
 				Token::NAMESPACE,
@@ -197,6 +208,24 @@ namespace locic {
 			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
 				ASSERT_EQ(nameSpace->data()->typeInstances.size(), 1);
 				EXPECT_EQ(nameSpace->data()->typeInstances[0]->kind, AST::TypeInstance::PRIMITIVE);
+			});
+		}
+		
+		TEST(NamespaceParseTest, ImportGlobalFunctionDecl) {
+			auto tokens = {
+				Token::NAMESPACE,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				Token::IMPORT,
+				Token::NAME,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
+				ASSERT_EQ(nameSpace->data()->functions.size(), 1);
 			});
 		}
 		
