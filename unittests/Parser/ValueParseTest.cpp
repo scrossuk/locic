@@ -103,6 +103,32 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, AlignOf) {
+			auto tokens = {
+				Token::ALIGNOF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::ALIGNOF);
+				EXPECT_TRUE(value->alignOf.type->isObjectType());
+			});
+		}
+		
+		TEST(ValueParseTest, SizeOf) {
+			auto tokens = {
+				Token::SIZEOF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::SIZEOF);
+				EXPECT_TRUE(value->sizeOf.type->isObjectType());
+			});
+		}
+		
 		TEST(ValueParseTest, Self) {
 			testParseValue({ Token::SELF }, [](const AST::Node<AST::Value>& value) {
 				EXPECT_EQ(value->kind(), AST::Value::SELF);
