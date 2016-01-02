@@ -31,6 +31,8 @@ namespace locic {
 					return parseException();
 				case Token::INTERFACE:
 					return parseInterface();
+				case Token::PRIMITIVE:
+					return parsePrimitive();
 				case Token::STRUCT:
 					return parseStruct();
 				case Token::UNION:
@@ -160,6 +162,19 @@ namespace locic {
 			reader_.expect(Token::RCURLYBRACKET);
 			
 			return builder_.makeInterface(name, methods, start);
+		}
+		
+		AST::Node<AST::TypeInstance> TypeInstanceParser::parsePrimitive() {
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::PRIMITIVE);
+			const auto name = reader_.expectName();
+			
+			reader_.expect(Token::LCURLYBRACKET);
+			const auto methods = parseMethodDeclList();
+			reader_.expect(Token::RCURLYBRACKET);
+			
+			return builder_.makePrimitive(name, methods, start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseStruct() {

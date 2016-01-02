@@ -37,6 +37,8 @@ namespace locic {
 			
 			AST::Node<AST::TypeInstance> parseInterface();
 			
+			AST::Node<AST::TypeInstance> parsePrimitive();
+			
 			AST::Node<AST::TypeInstance> parseStruct();
 			
 			AST::Node<AST::TypeInstance> parseUnion();
