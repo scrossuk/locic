@@ -695,7 +695,7 @@ namespace locic {
 			});
 		}
 		
-		TEST(ValueParseTest,ReferenceArrayType) {
+		TEST(ValueParseTest, ReferenceArrayType) {
 			auto tokens = {
 				Token::NAME,
 				Token::AMPERSAND,
