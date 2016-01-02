@@ -21,7 +21,7 @@ void testLexer(const std::string& input, const locic::Array<locic::Lex::Token, 2
 	
 	locic::StringHost stringHost;
 	locic::StringHost& useStringHost = stringHostPtr != nullptr ? *stringHostPtr : stringHost;
-	MockCharacterSource source(std::move(characters));
+	MockCharacterSource source(useStringHost, std::move(characters));
 	MockDiagnosticReceiver diagnosticReceiver;
 	locic::Lex::Lexer lexer(source, diagnosticReceiver);
 	
