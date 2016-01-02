@@ -16,10 +16,10 @@ namespace locic {
 		
 		SymbolParser::~SymbolParser() { }
 		
-		AST::Node<AST::Symbol> SymbolParser::parseSymbol() {
+		AST::Node<AST::Symbol> SymbolParser::parseSymbol(const Context context) {
 			const auto start = reader_.position();
 			
-			const auto firstSymbolElement = parseSymbolElement();
+			const auto firstSymbolElement = parseSymbolElement(context);
 			
 			auto symbol = AST::Symbol::Relative() + firstSymbolElement;
 			
@@ -30,14 +30,14 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto symbolElement = parseSymbolElement();
+				const auto symbolElement = parseSymbolElement(context);
 				symbol = symbol + symbolElement;
 			}
 			
 			return builder_.makeSymbolNode(symbol, start);
 		}
 		
-		AST::Node<AST::SymbolElement> SymbolParser::parseSymbolElement() {
+		AST::Node<AST::SymbolElement> SymbolParser::parseSymbolElement(const Context context) {
 			const auto start = reader_.position();
 			
 			const auto token = reader_.get();
@@ -49,14 +49,14 @@ namespace locic {
 			}
 			
 			const auto name = token.name();
-			const auto templateArguments = parseSymbolTemplateArgumentList();
+			const auto templateArguments = parseSymbolTemplateArgumentList(context);
 			return builder_.makeSymbolElement(name, templateArguments, start);
 		}
 		
-		AST::Node<AST::ValueList> SymbolParser::parseSymbolTemplateArgumentList() {
+		AST::Node<AST::ValueList> SymbolParser::parseSymbolTemplateArgumentList(const Context context) {
 			const auto start = reader_.position();
 			
-			if (!isNowAtTemplateArgumentList()) {
+			if (!isNowAtTemplateArgumentList(context)) {
 				return builder_.makeValueList({}, start);
 			}
 			
@@ -80,9 +80,13 @@ namespace locic {
 			return builder_.makeValueList(valueList, start);
 		}
 		
-		bool SymbolParser::isNowAtTemplateArgumentList() {
+		bool SymbolParser::isNowAtTemplateArgumentList(const Context context) {
 			if (reader_.peek().kind() != Token::LTRIBRACKET) {
 				return false;
+			}
+			
+			if (context == IN_TYPE) {
+				return true;
 			}
 			
 			// Some possible variants we want to ACCEPT:

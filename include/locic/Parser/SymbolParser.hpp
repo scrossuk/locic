@@ -12,16 +12,26 @@ namespace locic {
 		
 		class SymbolParser {
 		public:
+			enum Context {
+				GENERIC,
+				
+				// If we're in the middle of parsing a type
+				// then '<' always means the beginning of
+				// template arguments.
+				IN_TYPE
+			};
+			
 			SymbolParser(TokenReader& reader);
 			~SymbolParser();
 			
-			AST::Node<AST::Symbol> parseSymbol();
+			AST::Node<AST::Symbol> parseSymbol(Context context = GENERIC);
 			
-			AST::Node<AST::SymbolElement> parseSymbolElement();
+			AST::Node<AST::SymbolElement> parseSymbolElement(Context context);
 			
-			AST::Node<AST::ValueList> parseSymbolTemplateArgumentList();
+			AST::Node<AST::ValueList>
+			parseSymbolTemplateArgumentList(Context context = GENERIC);
 			
-			bool isNowAtTemplateArgumentList();
+			bool isNowAtTemplateArgumentList(Context context);
 			
 			bool isValidTokenAfterTemplateArguments(size_t offset);
 			
