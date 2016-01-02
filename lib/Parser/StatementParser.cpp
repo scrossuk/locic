@@ -52,6 +52,11 @@ namespace locic {
 				}
 				case Token::RETURN: {
 					reader_.consume();
+					if (!ValueParser(reader_).isValueStartToken(reader_.peek().kind())) {
+						reader_.expect(Token::SEMICOLON);
+						return builder_.makeReturnVoidStatement(start);
+					}
+					
 					const auto value = ValueParser(reader_).parseValue();
 					return builder_.makeReturnStatement(value, start);
 				}
