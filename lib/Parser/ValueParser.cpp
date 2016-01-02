@@ -178,7 +178,7 @@ namespace locic {
 			
 			reader_.consume();
 			
-			const auto ifTrueValue = parseValue(context);
+			const auto ifTrueValue = parseValue(IN_TERNARY);
 			reader_.expect(Token::COLON);
 			const auto ifFalseValue = parseTernaryValue(context);
 			return builder_.makeTernaryValue(value, ifTrueValue,
@@ -329,8 +329,26 @@ namespace locic {
 					case Token::GREATEROREQUAL:
 						opKind = AST::OP_GREATERTHANOREQUAL;
 						break;
+					case Token::COLON: {
+						if (context == IN_TERNARY) {
+							return value;
+						}
+						
+						const auto checkType = interpretValueAsType(value);
+						reader_.consume();
+						const auto capabilityType = TypeParser(reader_).parseType();
+						
+						value = builder_.makeCapabilityTest(checkType,
+						                                    capabilityType,
+						                                    start);
+						break;
+					}
 					default:
 						return value;
+				}
+				
+				if (token.kind() == Token::COLON) {
+					continue;
 				}
 				
 				reader_.consume();

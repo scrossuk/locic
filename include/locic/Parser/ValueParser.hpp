@@ -35,7 +35,13 @@ namespace locic {
 				// declaration, then 'VAL & NAME' should be
 				// treated as a variable definition rather than
 				// bitwise AND.
-				IN_TYPEDECL
+				IN_TYPEDECL,
+				
+				// If we're in the second value of a ternary
+				// expression (i.e. (A ? B : C); we're in B)
+				// then don't read the ':' as a type capability
+				// test expression.
+				IN_TERNARY
 			};
 			
 			ValueParser(TokenReader& reader);
