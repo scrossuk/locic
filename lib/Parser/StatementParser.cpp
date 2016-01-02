@@ -222,6 +222,42 @@ namespace locic {
 			return builder_.makeForStatement(var, value, scope, start);
 		}
 		
+		AST::Node<AST::Statement> StatementParser::parseTryStatement() {
+			const auto start = reader_.position();
+			reader_.expect(Token::TRY);
+			const auto scope = ScopeParser(reader_).parseScope();
+			
+			const auto catchClauseList = parseCatchClauseList();
+			
+			return builder_.makeTryStatement(scope, catchClauseList, start);
+		}
+		
+		AST::Node<AST::CatchClauseList> StatementParser::parseCatchClauseList() {
+			const auto start = reader_.position();
+			
+			AST::CatchClauseList list;
+			list.push_back(parseCatchClause());
+			
+			while (reader_.peek().kind() == Token::CATCH) {
+				list.push_back(parseCatchClause());
+			}
+			
+			return builder_.makeCatchClauseList(std::move(list), start);
+		}
+		
+		AST::Node<AST::CatchClause> StatementParser::parseCatchClause() {
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::CATCH);
+			reader_.expect(Token::LROUNDBRACKET);
+			const auto var = VarParser(reader_).parseVar();
+			reader_.expect(Token::RROUNDBRACKET);
+			
+			const auto scope = ScopeParser(reader_).parseScope();
+			
+			return builder_.makeCatchClause(var, scope, start);
+		}
+		
 		AST::Node<AST::Statement> StatementParser::parseScopeExitStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::SCOPE);

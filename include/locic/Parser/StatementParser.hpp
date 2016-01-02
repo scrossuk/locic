@@ -36,6 +36,12 @@ namespace locic {
 			
 			AST::Node<AST::Statement> parseForStatement();
 			
+			AST::Node<AST::Statement> parseTryStatement();
+			
+			AST::Node<AST::CatchClauseList> parseCatchClauseList();
+			
+			AST::Node<AST::CatchClause> parseCatchClause();
+			
 			AST::Node<AST::Statement> parseScopeExitStatement();
 			
 			AST::Node<AST::Statement> parseAssertStatement();
