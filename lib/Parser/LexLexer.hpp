@@ -334,10 +334,10 @@ namespace locic {
 			
 			int getToken(GeneratedToken* tokenPtr, LocationInfo* position) {
 				const auto token = lexer_.lexToken(context_.stringHost());
-				if (token) {
-					const auto result = ConvertTokenKind(token->kind());
-					*tokenPtr = ConvertToken(*token);
-					*position = ConvertRange(token->sourceRange());
+				if (token.kind() != Lex::Token::END) {
+					const auto result = ConvertTokenKind(token.kind());
+					*tokenPtr = ConvertToken(token);
+					*position = ConvertRange(token.sourceRange());
 					return result;
 				} else {
 					return 0;

@@ -93,10 +93,10 @@ namespace locic {
 			}
 		}
 		
-		Optional<Token> Lexer::lexToken(const StringHost& stringHost) {
+		Token Lexer::lexToken(const StringHost& stringHost) {
 			while (true) {
 				if (reader_.isEnd()) {
-					return Optional<Token>();
+					return Token::Basic(Token::END);
 				}
 				
 				const auto startPosition = reader_.position();
@@ -109,7 +109,7 @@ namespace locic {
 				const auto range = Debug::SourceRange(startPosition,
 				                                      endPosition);
 				token->setSourceRange(range);
-				return token;
+				return *token;
 			}
 		}
 		

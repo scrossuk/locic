@@ -40,7 +40,7 @@ namespace locic {
 			Token::Kind getDoubleSymbolTokenKind(Character first,
 			                                     Character second);
 			
-			Optional<Token> lexToken(const StringHost& stringHost);
+			Token lexToken(const StringHost& stringHost);
 			
 			Optional<Token> lexTokenWithoutLocation(const StringHost& stringHost);
 			
