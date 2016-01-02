@@ -60,6 +60,17 @@ namespace locic {
 					const auto value = ValueParser(reader_).parseValue();
 					return builder_.makeReturnStatement(value, start);
 				}
+				case Token::THROW: {
+					reader_.consume();
+					if (!ValueParser(reader_).isValueStartToken(reader_.peek().kind())) {
+						reader_.expect(Token::SEMICOLON);
+						return builder_.makeRethrowStatement(start);
+					}
+					
+					const auto value = ValueParser(reader_).parseValue();
+					reader_.expect(Token::SEMICOLON);
+					return builder_.makeThrowStatement(value, start);
+				}
 				case Token::BREAK: {
 					reader_.consume();
 					return builder_.makeBreakStatement(start);
