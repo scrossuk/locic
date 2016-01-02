@@ -269,6 +269,15 @@ namespace locic {
 				return typeEnum;
 			}
 			
+			bool isValue() const {
+				return kind() == VALUE;
+			}
+			
+			const Node<Value>& value() const {
+				assert(isValue());
+				return valueStmt.value;
+			}
+			
 			bool isIf() const {
 				return kind() == IF;
 			}
