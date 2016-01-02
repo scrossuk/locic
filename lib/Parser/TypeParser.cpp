@@ -63,6 +63,11 @@ namespace locic {
 			switch (token.kind()) {
 				case Token::CONST:
 					return parseConstType();
+				case Token::NOTAG: {
+					reader_.consume();
+					const auto targetType = parseQualifiedType();
+					return builder_.makeNoTagType(targetType, start);
+				}
 				case Token::LVAL:
 				case Token::REF:
 				case Token::STATICREF:
@@ -291,6 +296,7 @@ namespace locic {
 				case Token::REF:
 				case Token::STATICREF:
 				case Token::NAME:
+				case Token::NOTAG:
 				case Token::LROUNDBRACKET:
 					return true;
 				default:
