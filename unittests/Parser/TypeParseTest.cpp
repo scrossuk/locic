@@ -115,6 +115,20 @@ namespace locic {
 			});
 		}
 		
+		TEST(TypeParseTest, SymbolTemplated) {
+			auto tokens = {
+				Token::NAME,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				EXPECT_TRUE(type->isObjectType());
+				EXPECT_EQ(type->objectType.symbol->size(), 1);
+				EXPECT_EQ(type->objectType.symbol->at(0)->templateArguments()->size(), 1);
+			});
+		}
+		
 		TEST(TypeParseTest, SymbolTemplatedChild) {
 			auto tokens = {
 				Token::NAME,
