@@ -122,7 +122,11 @@ namespace locic {
 		}
 		
 		Debug::SourceRange TokenReader::rangeFrom(const Debug::SourcePosition start) const {
-			return Debug::SourceRange(start, lastTokenEndPosition());
+			if (start <= lastTokenEndPosition()) {
+				return Debug::SourceRange(start, lastTokenEndPosition());
+			} else {
+				return Debug::SourceRange(start, position());
+			}
 		}
 		
 		Debug::SourceLocation
