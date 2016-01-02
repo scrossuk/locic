@@ -151,7 +151,43 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isNamed());
-				EXPECT_TRUE(statement->varDeclVar()->namedType()->isPointer());
+				ASSERT_TRUE(statement->varDeclVar()->namedType()->isPointer());
+				EXPECT_TRUE(statement->varDeclVar()->namedType()->getPointerTarget()->isObjectType());
+				EXPECT_TRUE(statement->varDeclValue()->isLiteral());
+			});
+		}
+		
+		TEST(StatementParseTest, VarDeclPointerPointerTypeAssignConstant) {
+			auto tokens = {
+				Token::NAME,
+				Token::STAR,
+				Token::STAR,
+				Token::NAME,
+				Token::SETEQUAL,
+				Token::CONSTANT
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				ASSERT_TRUE(statement->varDeclVar()->isNamed());
+				ASSERT_TRUE(statement->varDeclVar()->namedType()->isPointer());
+				EXPECT_TRUE(statement->varDeclVar()->namedType()->getPointerTarget()->isPointer());
+				EXPECT_TRUE(statement->varDeclValue()->isLiteral());
+			});
+		}
+		
+		TEST(StatementParseTest, VarDeclIntPointerTypeAssignConstant) {
+			auto tokens = {
+				Token::INT,
+				Token::STAR,
+				Token::NAME,
+				Token::SETEQUAL,
+				Token::CONSTANT
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isVarDecl());
+				ASSERT_TRUE(statement->varDeclVar()->isNamed());
+				ASSERT_TRUE(statement->varDeclVar()->namedType()->isPointer());
+				EXPECT_TRUE(statement->varDeclVar()->namedType()->getPointerTarget()->isPrimitive());
 				EXPECT_TRUE(statement->varDeclValue()->isLiteral());
 			});
 		}
