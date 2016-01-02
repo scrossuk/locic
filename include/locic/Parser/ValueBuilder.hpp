@@ -93,6 +93,11 @@ namespace locic {
 			                          const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
+			makeMergeValue(AST::Node<AST::Value> firstValue,
+			               AST::Node<AST::Value> secondValue,
+			               const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Value>
 			makeTypeValue(AST::Node<AST::Type> type,
 			              const Debug::SourcePosition& start);
 			

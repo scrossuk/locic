@@ -132,6 +132,13 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
+		ValueBuilder::makeMergeValue(AST::Node<AST::Value> firstValue,
+		                             AST::Node<AST::Value> secondValue,
+		                             const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::Merge(firstValue, secondValue), start);
+		}
+		
+		AST::Node<AST::Value>
 		ValueBuilder::makeTypeValue(AST::Node<AST::Type> type,
 		                            const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::TypeRef(type), start);
