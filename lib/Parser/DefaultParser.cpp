@@ -5,6 +5,8 @@
 
 #include <locic/Parser/Context.hpp>
 #include <locic/Parser/DefaultParser.hpp>
+#include <locic/Parser/NamespaceParser.hpp>
+#include <locic/Parser/TokenReader.hpp>
 #include <locic/Support/StringHost.hpp>
 
 #include "LexerAPI.hpp"
@@ -35,13 +37,21 @@ namespace locic {
 			
 		};
 		
+		constexpr bool USE_NEW_PARSER = false;
+		
 		DefaultParser::DefaultParser(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList, FILE * file, const std::string& fileName)
 		: impl_(new DefaultParserImpl(stringHost, rootNamespaceList, file, fileName)) { }
 		
 		DefaultParser::~DefaultParser() { }
 		
 		bool DefaultParser::parseFile() {
-			(void) Locic_Parser_GeneratedParser_parse(&(impl_->lexer()), &(impl_->context()));
+			if (USE_NEW_PARSER) {
+				TokenReader reader(impl_->lexer().getLexer());
+				const auto namespaceDecl = NamespaceParser(reader).parseGlobalNamespace();
+				impl_->context().fileCompleted(namespaceDecl);
+			} else {
+				(void) Locic_Parser_GeneratedParser_parse(&(impl_->lexer()), &(impl_->context()));
+			}
 			return impl_->context().errors().empty();
 		}
 		

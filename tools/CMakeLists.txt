@@ -26,6 +26,7 @@ target_link_libraries(locic
 	locic-semanalysis
 	locic-codegen
 	locic-sem
+	locic-newparser
 	locic-ast
 	locic-lex
 	locic-support
@@ -47,6 +48,7 @@ target_link_libraries(loci-test
 	locic-semanalysis
 	locic-codegen
 	locic-sem
+	locic-newparser
 	locic-ast
 	locic-lex
 	locic-support
