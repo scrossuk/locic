@@ -101,6 +101,39 @@ namespace locic {
 			return builder_.makePredicateRequireSpecifier(predicate, start);
 		}
 		
+		AST::Node<AST::StringList>
+		AttributeParser::parseOptionalNoTagSet() {
+			const auto start = reader_.position();
+			
+			AST::StringList list;
+			
+			if (reader_.peek().kind() != Token::NOTAG) {
+				return builder_.makeStringList(std::move(list), start);
+			}
+			
+			reader_.consume();
+			reader_.expect(Token::LROUNDBRACKET);
+			
+			if (reader_.peek().kind() == Token::RROUNDBRACKET) {
+				reader_.consume();
+				return builder_.makeStringList(std::move(list), start);
+			}
+			
+			list.push_back(reader_.expectName());
+			
+			while (true) {
+				if (reader_.peek().kind() != Token::COMMA) {
+					break;
+				}
+				reader_.consume();
+				
+				list.push_back(reader_.expectName());
+			}
+			
+			reader_.expect(Token::RROUNDBRACKET);
+			return builder_.makeStringList(std::move(list), start);
+		}
+		
 	}
 	
 }
