@@ -623,8 +623,10 @@ namespace locic {
 					reader_.consume();
 					return parseTypeQualifyingValue(token.kind(), start);
 				case Token::SELF:
+					reader_.consume();
 					return builder_.makeSelfValue(start);
 				case Token::THIS:
+					reader_.consume();
 					return builder_.makeThisValue(start);
 				case Token::ALIGNOF: {
 					reader_.consume();
