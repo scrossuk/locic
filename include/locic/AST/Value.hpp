@@ -363,6 +363,10 @@ namespace locic {
 				return symbolRef.symbol;
 			}
 			
+			bool isBinaryOp() const {
+				return kind() == BINARYOP;
+			}
+			
 			std::string toString() const;
 		};
 		
