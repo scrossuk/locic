@@ -21,6 +21,28 @@ namespace locic {
 			fn(statement);
 		}
 		
+		TEST(StatementParseTest, ValueName) {
+			auto tokens = {
+				Token::NAME,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isValue());
+				EXPECT_TRUE(statement->value()->isSymbol());
+			});
+		}
+		
+		TEST(StatementParseTest, ValueConstant) {
+			auto tokens = {
+				Token::CONSTANT,
+				Token::SEMICOLON
+			};
+			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+				ASSERT_TRUE(statement->isValue());
+				EXPECT_TRUE(statement->value()->isLiteral());
+			});
+		}
+		
 		TEST(StatementParseTest, AssignConstant) {
 			auto tokens = {
 				Token::NAME,
