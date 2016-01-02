@@ -615,6 +615,15 @@ namespace locic {
 					return parseAtExpression(start);
 				case Token::NAME:
 					return parseSymbolOrLiteralValue();
+				case Token::NULLVAL:
+					reader_.consume();
+					return builder_.makeLiteralValue(Constant::Null(), String(), start);
+				case Token::TRUEVAL:
+					reader_.consume();
+					return builder_.makeLiteralValue(Constant::True(), String(), start);
+				case Token::FALSEVAL:
+					reader_.consume();
+					return builder_.makeLiteralValue(Constant::False(), String(), start);
 				case Token::CONSTANT:
 					reader_.consume();
 					return parseLiteral(token.constant(), start);
