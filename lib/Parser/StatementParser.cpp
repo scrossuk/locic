@@ -66,7 +66,7 @@ namespace locic {
 				}
 				case Token::CONTINUE: {
 					reader_.consume();
-					return builder_.makeBreakStatement(start);
+					return builder_.makeContinueStatement(start);
 				}
 				case Token::UNREACHABLE: {
 					reader_.consume();
