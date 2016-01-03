@@ -697,13 +697,19 @@ namespace locic {
 					return parseSymbolOrLiteralValue();
 				case Token::NULLVAL:
 					reader_.consume();
-					return builder_.makeLiteralValue(Constant::Null(), String(), start);
+					return builder_.makeLiteralValue(Constant::Null(),
+					                                 reader_.makeCString(""),
+					                                 start);
 				case Token::TRUEVAL:
 					reader_.consume();
-					return builder_.makeLiteralValue(Constant::True(), String(), start);
+					return builder_.makeLiteralValue(Constant::True(),
+					                                 reader_.makeCString(""),
+					                                 start);
 				case Token::FALSEVAL:
 					reader_.consume();
-					return builder_.makeLiteralValue(Constant::False(), String(), start);
+					return builder_.makeLiteralValue(Constant::False(),
+					                                 reader_.makeCString(""),
+					                                 start);
 				case Token::CONSTANT:
 					reader_.consume();
 					return parseLiteral(token.constant(), start);
@@ -806,6 +812,8 @@ namespace locic {
 			if (token.kind() == Token::NAME) {
 				reader_.consume();
 				specifier = token.name();
+			} else {
+				specifier = reader_.makeCString("");
 			}
 			
 			return builder_.makeLiteralValue(constant, specifier, start);
