@@ -66,6 +66,13 @@ namespace locic {
 			return AST::makeNode(location, AST::ModuleScope::NamedImport(name, version, data));
 		}
 		
+		AST::Node<AST::StringList>
+		NamespaceBuilder::makeStringList(AST::StringList list,
+		                                 const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, new AST::StringList(std::move(list)));
+		}
+		
 	}
 	
 }

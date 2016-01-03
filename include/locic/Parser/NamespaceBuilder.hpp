@@ -54,6 +54,10 @@ namespace locic {
 			                AST::Node<AST::NamespaceData> data,
 			                const Debug::SourcePosition& start);
 			
+			AST::Node<AST::StringList>
+			makeStringList(AST::StringList list,
+			               const Debug::SourcePosition& start);
+			
 		private:
 			const TokenReader& reader_;
 			
