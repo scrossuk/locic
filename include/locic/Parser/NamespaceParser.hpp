@@ -48,6 +48,8 @@ namespace locic {
 			
 			AST::Node<AST::ModuleScope> parseModuleScope();
 			
+			AST::Node<AST::StringList> parseModuleName();
+			
 		private:
 			TokenReader& reader_;
 			NamespaceBuilder builder_;
