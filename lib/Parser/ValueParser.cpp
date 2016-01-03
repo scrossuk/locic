@@ -194,6 +194,7 @@ namespace locic {
 				const auto token = reader_.peek();
 				switch (token.kind()) {
 					case Token::DOUBLE_VERTICAL_BAR:
+					case Token::OR:
 						break;
 					default:
 						return value;
@@ -215,6 +216,7 @@ namespace locic {
 				const auto token = reader_.peek();
 				switch (token.kind()) {
 					case Token::DOUBLE_AMPERSAND:
+					case Token::AND:
 						break;
 					default:
 						return value;
@@ -236,7 +238,6 @@ namespace locic {
 				const auto token = reader_.peek();
 				switch (token.kind()) {
 					case Token::VERTICAL_BAR:
-					case Token::OR:
 						break;
 					default:
 						return value;
@@ -280,7 +281,6 @@ namespace locic {
 				const auto token = reader_.peek();
 				switch (token.kind()) {
 					case Token::AMPERSAND:
-					case Token::AND:
 						break;
 					default:
 						return value;
