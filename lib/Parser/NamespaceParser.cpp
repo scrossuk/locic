@@ -263,6 +263,12 @@ namespace locic {
 			return builder_.makeStringList(std::move(list), start);
 		}
 		
+		AST::Node<Version> NamespaceParser::parseModuleVersion() {
+			const auto start = reader_.position();
+			const auto version = reader_.expectVersion();
+			return builder_.makeVersion(version, start);
+		}
+		
 	}
 	
 }

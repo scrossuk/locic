@@ -6,6 +6,8 @@
 
 namespace locic {
 	
+	class Version;
+	
 	namespace Debug {
 		
 		class SourcePosition;
@@ -49,6 +51,8 @@ namespace locic {
 			AST::Node<AST::ModuleScope> parseModuleScope();
 			
 			AST::Node<AST::StringList> parseModuleName();
+			
+			AST::Node<Version> parseModuleVersion();
 			
 		private:
 			TokenReader& reader_;
