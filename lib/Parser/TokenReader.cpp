@@ -115,6 +115,17 @@ namespace locic {
 			return name;
 		}
 		
+		Version TokenReader::expectVersion() {
+			Version version;
+			if (peek().kind() == Token::VERSION) {
+				version = peek().version();
+			} else {
+				throw std::logic_error("TODO: version expected");
+			}
+			expect(Token::VERSION);
+			return version;
+		}
+		
 		Debug::SourcePosition TokenReader::position() const {
 			return position_;
 		}

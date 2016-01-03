@@ -10,6 +10,7 @@
 namespace locic {
 	
 	class String;
+	class Version;
 	
 	namespace Debug {
 		
@@ -47,6 +48,8 @@ namespace locic {
 			Token expectOneOf(const Array<Token::Kind, 4>& tokenKinds);
 			
 			String expectName();
+			
+			Version expectVersion();
 			
 			Debug::SourcePosition position() const;
 			
