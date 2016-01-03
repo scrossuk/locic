@@ -58,6 +58,9 @@ namespace locic {
 			makeStringList(AST::StringList list,
 			               const Debug::SourcePosition& start);
 			
+			AST::Node<Version>
+			makeVersion(Version version, const Debug::SourcePosition& start);
+			
 		private:
 			const TokenReader& reader_;
 			
