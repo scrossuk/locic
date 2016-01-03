@@ -262,6 +262,17 @@ namespace locic {
 			});
 		}
 		
+		TEST(NamespaceParseTest, UnnamedModuleImportInGlobalNamespace) {
+			auto tokens = {
+				Token::IMPORT,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseGlobalNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
+				ASSERT_EQ(nameSpace->data()->moduleScopes.size(), 1);
+			});
+		}
+		
 	}
 	
 }
