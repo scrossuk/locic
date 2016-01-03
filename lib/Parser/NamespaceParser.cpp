@@ -246,7 +246,20 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("TODO: parse named module scope");
+			const auto moduleName = parseModuleName();
+			const auto version = parseModuleVersion();
+			
+			reader_.expect(Token::LCURLYBRACKET);
+			const auto data = parseNamespaceData();
+			reader_.expect(Token::RCURLYBRACKET);
+			
+			if (token.kind() == Token::EXPORT) {
+				return builder_.makeNamedExport(moduleName, version,
+				                                data, start);
+			} else {
+				return builder_.makeNamedImport(moduleName, version,
+				                                data, start);
+			}
 		}
 		
 		AST::Node<AST::StringList> NamespaceParser::parseModuleName() {
