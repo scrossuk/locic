@@ -20,8 +20,11 @@ namespace locic {
 		cachedMovableType_(nullptr) { }
 		
 		const SEM::Type*
-		TypeBuilder::getPrimitiveType(const PrimitiveID primitiveID,
+		TypeBuilder::getPrimitiveType(PrimitiveID primitiveID,
 		                              SEM::ValueArray templateArguments) {
+			if (primitiveID == PrimitiveUByte) {
+				primitiveID = PrimitiveUInt8;
+			}
 			const auto& typeInstance = context_.semContext().getPrimitive(primitiveID);
 			return SEM::Type::Object(&typeInstance, std::move(templateArguments));
 		}
