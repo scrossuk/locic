@@ -48,6 +48,24 @@ namespace locic {
 			return AST::makeNode(location, AST::ModuleScope::Import(data));
 		}
 		
+		AST::Node<AST::ModuleScope>
+		NamespaceBuilder::makeNamedExport(AST::Node<AST::StringList> name,
+		                                  AST::Node<Version> version,
+		                                  AST::Node<AST::NamespaceData> data,
+		                                  const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, AST::ModuleScope::NamedExport(name, version, data));
+		}
+		
+		AST::Node<AST::ModuleScope>
+		NamespaceBuilder::makeNamedImport(AST::Node<AST::StringList> name,
+		                                  AST::Node<Version> version,
+		                                  AST::Node<AST::NamespaceData> data,
+		                                  const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, AST::ModuleScope::NamedImport(name, version, data));
+		}
+		
 	}
 	
 }

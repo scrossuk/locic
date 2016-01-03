@@ -5,6 +5,8 @@
 
 namespace locic {
 	
+	class Version;
+	
 	namespace Debug {
 		
 		class SourcePosition;
@@ -39,6 +41,18 @@ namespace locic {
 			AST::Node<AST::ModuleScope>
 			makeUnnamedImport(AST::Node<AST::NamespaceData> data,
 			                  const Debug::SourcePosition& start);
+			
+			AST::Node<AST::ModuleScope>
+			makeNamedExport(AST::Node<AST::StringList> name,
+			                AST::Node<Version> version,
+			                AST::Node<AST::NamespaceData> data,
+			                const Debug::SourcePosition& start);
+			
+			AST::Node<AST::ModuleScope>
+			makeNamedImport(AST::Node<AST::StringList> name,
+			                AST::Node<Version> version,
+			                AST::Node<AST::NamespaceData> data,
+			                const Debug::SourcePosition& start);
 			
 		private:
 			const TokenReader& reader_;
