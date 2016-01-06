@@ -736,6 +736,11 @@ namespace locic {
 				case Token::LCURLYBRACKET:
 					reader_.consume();
 					return parseArrayLiteral(start);
+				case Token::CONST_CAST:
+				case Token::DYNAMIC_CAST:
+				case Token::REINTERPRET_CAST: {
+					return parseCastValue();
+				}
 				default:
 					break;
 			}
