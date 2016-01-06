@@ -167,7 +167,7 @@ namespace locic {
 		AST::Node<AST::Function>
 		FunctionParser::parseNonTemplatedMethodDef(const Debug::SourcePosition& start) {
 			const bool isStatic = reader_.consumeIfPresent(Token::STATIC);
-			const auto returnType = TypeParser(reader_).parseType();
+			const auto returnType = parseMethodDefReturnType();
 			const auto name = parseMethodName();
 			
 			reader_.expect(Token::LROUNDBRACKET);
