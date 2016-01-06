@@ -856,6 +856,45 @@ namespace locic {
 			}
 		}
 		
+		AST::Node<AST::Value> ValueParser::parseCastValue() {
+			const auto start = reader_.position();
+			
+			auto tokens = {
+				Token::CONST_CAST,
+				Token::DYNAMIC_CAST,
+				Token::REINTERPRET_CAST
+			};
+			
+			auto kind = AST::Value::CAST_CONST;
+			
+			const auto token = reader_.expectOneOf(tokens);
+			switch (token.kind()) {
+				case Token::CONST_CAST:
+					kind = AST::Value::CAST_CONST;
+					break;
+				case Token::DYNAMIC_CAST:
+					kind = AST::Value::CAST_DYNAMIC;
+					break;
+				case Token::REINTERPRET_CAST:
+					kind = AST::Value::CAST_REINTERPRET;
+					break;
+				default:
+					break;
+			}
+			
+			reader_.expect(Token::LTRIBRACKET);
+			const auto fromType = TypeParser(reader_).parseType();
+			reader_.expect(Token::COMMA);
+			const auto toType = TypeParser(reader_).parseType();
+			reader_.expect(Token::RTRIBRACKET);
+			
+			reader_.expect(Token::LROUNDBRACKET);
+			const auto value = parseValue();
+			reader_.expect(Token::RROUNDBRACKET);
+			
+			return builder_.makeCastValue(kind, fromType, toType, value, start);
+		}
+		
 	}
 	
 }

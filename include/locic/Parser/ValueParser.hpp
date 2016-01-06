@@ -105,6 +105,8 @@ namespace locic {
 			
 			AST::Node<AST::ValueList> parseValueList(Context context = GENERIC);
 			
+			AST::Node<AST::Value> parseCastValue();
+			
 		private:
 			TokenReader& reader_;
 			ValueBuilder builder_;
