@@ -752,6 +752,60 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, ConstCastValue) {
+			auto tokens = {
+				Token::CONST_CAST,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::COMMA,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::CAST);
+				EXPECT_EQ(value->cast.castKind, AST::Value::CAST_CONST);
+			});
+		}
+		
+		TEST(ValueParseTest, DynamicCastValue) {
+			auto tokens = {
+				Token::DYNAMIC_CAST,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::COMMA,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::CAST);
+				EXPECT_EQ(value->cast.castKind, AST::Value::CAST_DYNAMIC);
+			});
+		}
+		
+		TEST(ValueParseTest, ReinterpretCastValue) {
+			auto tokens = {
+				Token::REINTERPRET_CAST,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::COMMA,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::CAST);
+				EXPECT_EQ(value->cast.castKind, AST::Value::CAST_REINTERPRET);
+			});
+		}
+		
 	}
 	
 }
