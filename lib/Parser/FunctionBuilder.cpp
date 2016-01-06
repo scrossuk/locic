@@ -50,6 +50,22 @@ namespace locic {
 			
 		}
 		
+		AST::Node<AST::Function>
+		FunctionBuilder::makeDefaultMethod(bool isStatic, AST::Node<Name> name,
+		                                   AST::Node<AST::RequireSpecifier> requireSpecifier,
+		                                   const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			if (isStatic) {
+				const auto function =
+				    AST::Function::DefaultStaticMethodDef(name, requireSpecifier);
+				return AST::makeNode(location, function);
+			} else {
+				const auto function =
+				    AST::Function::DefaultMethodDef(name, requireSpecifier);
+				return AST::makeNode(location, function);
+			}
+		}
+		
 		AST::Node<Name>
 		FunctionBuilder::makeName(Name name, const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
