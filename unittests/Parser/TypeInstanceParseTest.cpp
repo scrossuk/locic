@@ -228,6 +228,49 @@ namespace locic {
 			});
 		}
 		
+		TEST(TypeInstanceParseTest, ClassDefDefaultStaticMethod) {
+			auto tokens = {
+				Token::CLASS,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::STATIC,
+				Token::NAME,
+				Token::SETEQUAL,
+				Token::DEFAULT,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
+				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
+				ASSERT_EQ(typeInstance->functions->size(), 1);
+				EXPECT_TRUE(typeInstance->functions->at(0)->isStatic());
+				EXPECT_TRUE(typeInstance->functions->at(0)->isDefaultDefinition());
+			});
+		}
+		
+		TEST(TypeInstanceParseTest, ClassDefDefaultMethod) {
+			auto tokens = {
+				Token::CLASS,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::NAME,
+				Token::SETEQUAL,
+				Token::DEFAULT,
+				Token::SEMICOLON,
+				Token::RCURLYBRACKET
+			};
+			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
+				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
+				ASSERT_EQ(typeInstance->functions->size(), 1);
+				EXPECT_FALSE(typeInstance->functions->at(0)->isStatic());
+				EXPECT_TRUE(typeInstance->functions->at(0)->isDefaultDefinition());
+			});
+		}
+		
 		TEST(TypeInstanceParseTest, EmptyInterface) {
 			auto tokens = {
 				Token::INTERFACE,
