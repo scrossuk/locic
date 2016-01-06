@@ -271,6 +271,30 @@ namespace locic {
 			});
 		}
 		
+		TEST(TypeInstanceParseTest, ClassDefStaticMethodDefaultReturnType) {
+			auto tokens = {
+				Token::CLASS,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::STATIC,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
+				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
+				ASSERT_EQ(typeInstance->functions->size(), 1);
+				EXPECT_TRUE(typeInstance->functions->at(0)->isStatic());
+				EXPECT_FALSE(typeInstance->functions->at(0)->isDefaultDefinition());
+				EXPECT_TRUE(typeInstance->functions->at(0)->returnType()->isAuto());
+			});
+		}
+		
 		TEST(TypeInstanceParseTest, EmptyInterface) {
 			auto tokens = {
 				Token::INTERFACE,
