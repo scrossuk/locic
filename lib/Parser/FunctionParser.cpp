@@ -170,6 +170,14 @@ namespace locic {
 			const auto returnType = parseMethodDefReturnType();
 			const auto name = parseMethodName();
 			
+			if (reader_.peek().kind() == Token::SETEQUAL) {
+				reader_.consume();
+				reader_.expect(Token::DEFAULT);
+				const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
+				reader_.expect(Token::SEMICOLON);
+				return builder_.makeDefaultMethod(isStatic, name, requireSpecifier, start);
+			}
+			
 			reader_.expect(Token::LROUNDBRACKET);
 			const auto varList = VarParser(reader_).parseVarList();
 			reader_.expect(Token::RROUNDBRACKET);
