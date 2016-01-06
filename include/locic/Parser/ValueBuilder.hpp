@@ -145,6 +145,11 @@ namespace locic {
 			makeValueList(AST::ValueList values,
 			              const Debug::SourcePosition& start);
 			
+			AST::Node<AST::Value>
+			makeCastValue(AST::Value::CastKind kind, AST::Node<AST::Type> fromType,
+			              AST::Node<AST::Type> toType, AST::Node<AST::Value> value,
+			              const Debug::SourcePosition& start);
+			
 		private:
 			const TokenReader& reader_;
 			

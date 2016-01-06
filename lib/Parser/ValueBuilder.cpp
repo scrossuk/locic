@@ -214,6 +214,13 @@ namespace locic {
 			return AST::makeNode(location, new AST::ValueList(std::move(values)));
 		}
 		
+		AST::Node<AST::Value>
+		ValueBuilder::makeCastValue(const AST::Value::CastKind kind, AST::Node<AST::Type> fromType,
+		                            AST::Node<AST::Type> toType, AST::Node<AST::Value> value,
+		                            const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::Cast(kind, fromType, toType, value), start);
+		}
+		
 	}
 	
 }
