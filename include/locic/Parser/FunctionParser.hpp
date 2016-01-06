@@ -38,6 +38,9 @@ namespace locic {
 			AST::Node<AST::Function>
 			parseNonTemplatedMethodDef(const Debug::SourcePosition& start);
 			
+			AST::Node<AST::Type>
+			parseMethodDefReturnType();
+			
 			AST::Node<Name> parseFunctionName();
 			
 			AST::Node<Name> parseMethodName();

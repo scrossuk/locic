@@ -186,6 +186,22 @@ namespace locic {
 			                                requireSpecifier, scope, start);
 		}
 		
+		AST::Node<AST::Type>
+		FunctionParser::parseMethodDefReturnType() {
+			if (reader_.peek().kind() == Token::NAME) {
+				const auto nextToken = reader_.peek(/*offset=*/1);
+				switch (nextToken.kind()) {
+					case Token::SETEQUAL:
+					case Token::LROUNDBRACKET:
+						return TypeBuilder(reader_).makeAutoType(reader_.position());
+					default:
+						break;
+				}
+			}
+			
+			return TypeParser(reader_).parseType();
+		}
+		
 		AST::Node<Name> FunctionParser::parseFunctionName() {
 			const auto start = reader_.position();
 			
