@@ -57,6 +57,11 @@ namespace locic {
 			                                       AST::Node<AST::Type> type,
 			                                       const Debug::SourcePosition& start);
 			
+			AST::Node<AST::Type>
+			makeFunctionPointerType(AST::Node<AST::Type> returnType,
+			                        AST::Node<AST::TypeList> paramTypes,bool isVarArg,
+			                        const Debug::SourcePosition& start);
+			
 			AST::Node<AST::Type> makeAutoType(const Debug::SourcePosition& start);
 			AST::Node<AST::Type> makeReferenceType(AST::Node<AST::Type> targetType,
 			                                       const Debug::SourcePosition& start);

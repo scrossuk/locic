@@ -82,6 +82,18 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Type>
+		TypeBuilder::makeFunctionPointerType(AST::Node<AST::Type> returnType,
+		                                     AST::Node<AST::TypeList> paramTypes,
+		                                     const bool isVarArg,
+		                                     const Debug::SourcePosition& start) {
+			if (isVarArg) {
+				return makeTypeNode(AST::Type::VarArgFunction(returnType, paramTypes), start);
+			} else {
+				return makeTypeNode(AST::Type::Function(returnType, paramTypes), start);
+			}
+		}
+		
+		AST::Node<AST::Type>
 		TypeBuilder::makeAutoType(const Debug::SourcePosition& start) {
 			return makeTypeNode(AST::Type::Auto(), start);
 		}
