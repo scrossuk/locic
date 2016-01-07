@@ -237,7 +237,8 @@ namespace locic {
 					return builder_.makeSymbolType(symbol, start);
 				}
 				default:
-					printf("Unexpected: %s\n", token.toString().c_str());
+					printf("Unexpected type token: %s\n", token.toString().c_str());
+					printf("At %s.\n", reader_.locationWithRangeFrom(start).toString().c_str());
 					issueError(Diag::InvalidType, start);
 					reader_.consume();
 					
