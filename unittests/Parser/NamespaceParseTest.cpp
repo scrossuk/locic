@@ -286,6 +286,24 @@ namespace locic {
 			});
 		}
 		
+		TEST(NamespaceParseTest, StaticExtensionMethodDeclInGlobalNamespace) {
+			auto tokens = {
+				Token::STATIC,
+				Token::NAME,
+				Token::NAME,
+				Token::DOUBLE_COLON,
+				Token::NAME,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseGlobalNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
+				ASSERT_EQ(nameSpace->data()->functions.size(), 1);
+				EXPECT_TRUE(nameSpace->data()->functions[0]->isStatic());
+			});
+		}
+		
 	}
 	
 }
