@@ -27,6 +27,8 @@ namespace locic {
 					return parseClass();
 				case Token::DATATYPE:
 					return parseDatatype();
+				case Token::ENUM:
+					return parseEnum();
 				case Token::EXCEPTION:
 					return parseException();
 				case Token::INTERFACE:
