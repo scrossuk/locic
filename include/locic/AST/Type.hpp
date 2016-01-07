@@ -345,6 +345,21 @@ namespace locic {
 				return typeEnum == FUNCTION;
 			}
 			
+			bool functionIsVarArg() const {
+				assert(isFunction());
+				return functionType.isVarArg;
+			}
+			
+			const Node<Type>& functionReturnType() const {
+				assert(isFunction());
+				return functionType.returnType;
+			}
+			
+			const Node<TypeList>& functionParameterTypes() const {
+				assert(isFunction());
+				return functionType.parameterTypes;
+			}
+			
 			inline bool isInteger() const {
 				return typeEnum == INTEGER;
 			}
