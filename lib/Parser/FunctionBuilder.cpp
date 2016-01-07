@@ -66,6 +66,14 @@ namespace locic {
 			}
 		}
 		
+		AST::Node<AST::Function>
+		FunctionBuilder::makeDestructor(AST::Node<Name> name, AST::Node<AST::Scope> scope,
+		                                const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			const auto function = AST::Function::Destructor(name, scope);
+			return AST::makeNode(location, function);
+		}
+		
 		AST::Node<Name>
 		FunctionBuilder::makeName(Name name, const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);

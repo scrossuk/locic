@@ -46,6 +46,10 @@ namespace locic {
 			                  AST::Node<AST::RequireSpecifier> requireSpecifier,
 			                  const Debug::SourcePosition& start);
 			
+			AST::Node<AST::Function>
+			makeDestructor(AST::Node<Name> name, AST::Node<AST::Scope> scope,
+			               const Debug::SourcePosition& start);
+			
 			AST::Node<Name>
 			makeName(Name name, const Debug::SourcePosition& start);
 			
