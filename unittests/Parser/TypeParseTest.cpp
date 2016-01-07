@@ -366,6 +366,59 @@ namespace locic {
 			});
 		}
 		
+		TEST(TypeParseTest, VarArgFunctionPointerTypeOneArgument) {
+			auto tokens = {
+				Token::LROUNDBRACKET,
+				Token::STAR,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::COMMA,
+				Token::DOT,
+				Token::DOT,
+				Token::DOT,
+				Token::RROUNDBRACKET
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isFunction());
+				EXPECT_TRUE(type->functionIsVarArg());
+				EXPECT_TRUE(type->functionReturnType()->isObjectType());
+				ASSERT_EQ(type->functionParameterTypes()->size(), 1);
+				EXPECT_TRUE(type->functionParameterTypes()->at(0)->isObjectType());
+			});
+		}
+		
+		TEST(TypeParseTest, VarArgFunctionPointerTypeTwoArguments) {
+			auto tokens = {
+				Token::LROUNDBRACKET,
+				Token::STAR,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::COMMA,
+				Token::NAME,
+				Token::COMMA,
+				Token::DOT,
+				Token::DOT,
+				Token::DOT,
+				Token::RROUNDBRACKET
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isFunction());
+				EXPECT_TRUE(type->functionIsVarArg());
+				EXPECT_TRUE(type->functionReturnType()->isObjectType());
+				ASSERT_EQ(type->functionParameterTypes()->size(), 2);
+				EXPECT_TRUE(type->functionParameterTypes()->at(0)->isObjectType());
+				EXPECT_TRUE(type->functionParameterTypes()->at(1)->isObjectType());
+			});
+		}
+		
 	}
 	
 }
