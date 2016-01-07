@@ -124,6 +124,55 @@ namespace locic {
 			}
 		}
 		
+		AST::Node<AST::Type> TypeParser::parseFunctionPointerType() {
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::LROUNDBRACKET);
+			reader_.expect(Token::STAR);
+			reader_.expect(Token::RROUNDBRACKET);
+			
+			reader_.expect(Token::LROUNDBRACKET);
+			const auto returnType = parseType();
+			reader_.expect(Token::RROUNDBRACKET);
+			
+			reader_.expect(Token::LROUNDBRACKET);
+			const auto paramTypes = parseTypeList();
+			const bool isVarArg = (reader_.peek().kind() == Token::COMMA);
+			if (isVarArg) {
+				reader_.expect(Token::COMMA);
+				reader_.expect(Token::DOT);
+				reader_.expect(Token::DOT);
+				reader_.expect(Token::DOT);
+			}
+			reader_.expect(Token::RROUNDBRACKET);
+			
+			return builder_.makeFunctionPointerType(returnType, paramTypes,
+			                                        isVarArg, start);
+		}
+		
+		AST::Node<AST::TypeList> TypeParser::parseTypeList() {
+			const auto start = reader_.position();
+			
+			AST::TypeList list;
+			
+			if (reader_.peek().kind() != Token::RROUNDBRACKET) {
+				list.push_back(parseType());
+				
+				while (reader_.peek().kind() != Token::RROUNDBRACKET) {
+					if (reader_.peek().kind() == Token::COMMA &&
+					    reader_.peek(/*offset=*/1).kind() == Token::DOT) {
+						// This is a var args list.
+						break;
+					}
+					
+					reader_.expect(Token::COMMA);
+					list.push_back(parseType());
+				}
+			}
+			
+			return builder_.makeTypeList(std::move(list), start);
+		}
+		
 		AST::Node<AST::Type> TypeParser::parseBasicType() {
 			const auto start = reader_.position();
 			

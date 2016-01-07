@@ -40,6 +40,10 @@ namespace locic {
 			AST::Node<AST::Type> parseTypeWithQualifier(const Debug::SourcePosition& start,
 			                                            Token::Kind qualifier);
 			
+			AST::Node<AST::Type> parseFunctionPointerType();
+			
+			AST::Node<AST::TypeList> parseTypeList();
+			
 			AST::Node<AST::Type> parseBasicType();
 			
 			AST::Node<AST::Type> parseLongIntOrFloatType(const Debug::SourcePosition& start);
