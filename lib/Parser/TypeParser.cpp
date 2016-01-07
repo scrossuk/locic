@@ -74,6 +74,9 @@ namespace locic {
 					reader_.consume();
 					return parseTypeWithQualifier(start, token.kind());
 				case Token::LROUNDBRACKET: {
+					if (reader_.peek(/*offset=*/1).kind() == Token::STAR) {
+						return parseFunctionPointerType();
+					}
 					reader_.consume();
 					const auto type = parseType();
 					reader_.expect(Token::RROUNDBRACKET);
