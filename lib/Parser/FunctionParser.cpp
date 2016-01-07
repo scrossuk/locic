@@ -205,7 +205,7 @@ namespace locic {
 		
 		AST::Node<AST::Type>
 		FunctionParser::parseMethodDefReturnType() {
-			if (reader_.peek().kind() == Token::NAME) {
+			if (isValidMethodNameToken(reader_.peek().kind())) {
 				const auto nextToken = reader_.peek(/*offset=*/1);
 				switch (nextToken.kind()) {
 					case Token::SETEQUAL:
