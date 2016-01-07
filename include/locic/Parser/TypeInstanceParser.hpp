@@ -31,6 +31,10 @@ namespace locic {
 			
 			AST::Node<AST::TypeInstance> parseDatatypeVariant();
 			
+			AST::Node<AST::TypeInstance> parseEnum();
+			
+			AST::Node<AST::StringList> parseEnumConstructorList();
+			
 			AST::Node<AST::TypeInstance> parseException();
 			
 			AST::Node<AST::ExceptionInitializer> parseExceptionInitializer();

@@ -86,6 +86,36 @@ namespace locic {
 			return builder_.makeUnionDatatype(name, variants, start);
 		}
 		
+		AST::Node<AST::TypeInstance> TypeInstanceParser::parseEnum() {
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::ENUM);
+			const auto name = reader_.expectName();
+			
+			reader_.expect(Token::LCURLYBRACKET);
+			const auto constructorList = parseEnumConstructorList();
+			reader_.expect(Token::RCURLYBRACKET);
+			
+			return builder_.makeEnum(name, constructorList, start);
+		}
+		
+		AST::Node<AST::StringList> TypeInstanceParser::parseEnumConstructorList() {
+			const auto start = reader_.position();
+			
+			AST::StringList list;
+			
+			if (reader_.peek().kind() != Token::RCURLYBRACKET) {
+				list.push_back(reader_.expectName());
+				
+				while (reader_.peek().kind() != Token::RCURLYBRACKET) {
+					reader_.expect(Token::COMMA);
+					list.push_back(reader_.expectName());
+				}
+			}
+			
+			return builder_.makeStringList(std::move(list), start);
+		}
+		
 		AST::Node<AST::TypeInstanceList>
 		TypeInstanceParser::parseDatatypeVariantList() {
 			const auto start = reader_.position();
