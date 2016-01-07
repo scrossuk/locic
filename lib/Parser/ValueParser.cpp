@@ -824,9 +824,34 @@ namespace locic {
 			return builder_.makeLiteralValue(constant, specifier, start);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseTypeQualifyingValue(const Token::Kind /*kind*/,
-		                                                            const Debug::SourcePosition& /*start*/) {
-			throw std::logic_error("TODO");
+		AST::Node<AST::Value> ValueParser::parseTypeQualifyingValue(const Token::Kind kind,
+		                                                            const Debug::SourcePosition& start) {
+			switch (kind) {
+				case Token::REF:
+				case Token::LVAL: {
+					reader_.expect(Token::LTRIBRACKET);
+					const auto targetType = TypeParser(reader_).parseType();
+					reader_.expect(Token::RTRIBRACKET);
+					reader_.expect(Token::LROUNDBRACKET);
+					const auto value = parseValue();
+					reader_.expect(Token::RROUNDBRACKET);
+					if (kind == Token::REF) {
+						return builder_.makeRefValue(targetType, value, start);
+					} else {
+						return builder_.makeLvalValue(targetType, value, start);
+					}
+				}
+				default: {
+					reader_.expect(Token::LROUNDBRACKET);
+					const auto value = parseValue();
+					reader_.expect(Token::RROUNDBRACKET);
+					if (kind == Token::NOREF) {
+						return builder_.makeNoRefValue(value, start);
+					} else {
+						return builder_.makeNoLvalValue(value, start);
+					}
+				}
+			}
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseArrayLiteral(const Debug::SourcePosition& start) {
