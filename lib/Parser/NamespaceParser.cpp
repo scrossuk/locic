@@ -69,6 +69,7 @@ namespace locic {
 						//data.staticAsserts.push_back(parseStaticAssert());
 						throw std::logic_error("TODO: parse static assert");
 						break;
+					case Token::ENUM:
 					case Token::CLASS:
 					case Token::DATATYPE:
 					case Token::EXCEPTION:
