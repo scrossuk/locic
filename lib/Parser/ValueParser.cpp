@@ -714,7 +714,9 @@ namespace locic {
 					reader_.consume();
 					return parseLiteral(token.constant(), start);
 				case Token::REF:
+				case Token::NOREF:
 				case Token::LVAL:
+				case Token::NOLVAL:
 					reader_.consume();
 					return parseTypeQualifyingValue(token.kind(), start);
 				case Token::SELF:
