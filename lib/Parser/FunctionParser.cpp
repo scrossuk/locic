@@ -219,6 +219,17 @@ namespace locic {
 			return TypeParser(reader_).parseType();
 		}
 		
+		bool FunctionParser::isValidMethodNameToken(const Token::Kind kind) const {
+			switch (kind) {
+				case Token::NAME:
+				case Token::MOVE:
+				case Token::NULLVAL:
+					return true;
+				default:
+					return false;
+			}
+		}
+		
 		AST::Node<Name> FunctionParser::parseFunctionName() {
 			const auto start = reader_.position();
 			

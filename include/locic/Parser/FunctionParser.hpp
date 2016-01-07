@@ -3,6 +3,7 @@
 
 #include <locic/AST.hpp>
 #include <locic/Parser/FunctionBuilder.hpp>
+#include <locic/Parser/Token.hpp>
 
 namespace locic {
 	
@@ -40,6 +41,8 @@ namespace locic {
 			
 			AST::Node<AST::Type>
 			parseMethodDefReturnType();
+			
+			bool isValidMethodNameToken(Token::Kind kind) const;
 			
 			AST::Node<Name> parseFunctionName();
 			
