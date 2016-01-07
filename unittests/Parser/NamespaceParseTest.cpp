@@ -304,6 +304,18 @@ namespace locic {
 			});
 		}
 		
+		TEST(NamespaceParseTest, EmptyEnumInGlobalNamespace) {
+			auto tokens = {
+				Token::ENUM,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseGlobalNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
+				EXPECT_EQ(nameSpace->data()->typeInstances.size(), 1);
+			});
+		}
+		
 	}
 	
 }
