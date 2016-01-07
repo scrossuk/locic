@@ -302,6 +302,70 @@ namespace locic {
 			});
 		}
 		
+		TEST(TypeParseTest, FunctionPointerTypeNoArguments) {
+			auto tokens = {
+				Token::LROUNDBRACKET,
+				Token::STAR,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isFunction());
+				EXPECT_FALSE(type->functionIsVarArg());
+				EXPECT_TRUE(type->functionReturnType()->isObjectType());
+				EXPECT_EQ(type->functionParameterTypes()->size(), 0);
+			});
+		}
+		
+		TEST(TypeParseTest, FunctionPointerTypeOneArgument) {
+			auto tokens = {
+				Token::LROUNDBRACKET,
+				Token::STAR,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isFunction());
+				EXPECT_FALSE(type->functionIsVarArg());
+				EXPECT_TRUE(type->functionReturnType()->isObjectType());
+				ASSERT_EQ(type->functionParameterTypes()->size(), 1);
+				EXPECT_TRUE(type->functionParameterTypes()->at(0)->isObjectType());
+			});
+		}
+		
+		TEST(TypeParseTest, FunctionPointerTypeTwoArguments) {
+			auto tokens = {
+				Token::LROUNDBRACKET,
+				Token::STAR,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::COMMA,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+				ASSERT_TRUE(type->isFunction());
+				EXPECT_FALSE(type->functionIsVarArg());
+				EXPECT_TRUE(type->functionReturnType()->isObjectType());
+				ASSERT_EQ(type->functionParameterTypes()->size(), 2);
+				EXPECT_TRUE(type->functionParameterTypes()->at(0)->isObjectType());
+				EXPECT_TRUE(type->functionParameterTypes()->at(1)->isObjectType());
+			});
+		}
+		
 	}
 	
 }
