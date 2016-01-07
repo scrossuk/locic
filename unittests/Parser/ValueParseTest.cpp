@@ -824,6 +824,60 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, RefValue) {
+			auto tokens = {
+				Token::REF,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::REF);
+			});
+		}
+		
+		TEST(ValueParseTest, NoRefValue) {
+			auto tokens = {
+				Token::NOREF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::NOREF);
+			});
+		}
+		
+		TEST(ValueParseTest, LvalValue) {
+			auto tokens = {
+				Token::LVAL,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::LVAL);
+			});
+		}
+		
+		TEST(ValueParseTest, NoLvalValue) {
+			auto tokens = {
+				Token::NOLVAL,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				EXPECT_EQ(value->kind(), AST::Value::NOLVAL);
+			});
+		}
+		
 	}
 	
 }
