@@ -727,12 +727,16 @@ namespace locic {
 					return builder_.makeThisValue(start);
 				case Token::ALIGNOF: {
 					reader_.consume();
+					reader_.expect(Token::LROUNDBRACKET);
 					const auto type = TypeParser(reader_).parseType();
+					reader_.expect(Token::RROUNDBRACKET);
 					return builder_.makeAlignOfValue(type, start);
 				}
 				case Token::SIZEOF: {
 					reader_.consume();
+					reader_.expect(Token::LROUNDBRACKET);
 					const auto type = TypeParser(reader_).parseType();
+					reader_.expect(Token::RROUNDBRACKET);
 					return builder_.makeSizeOfValue(type, start);
 				}
 				case Token::LCURLYBRACKET:
