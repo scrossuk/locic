@@ -451,6 +451,49 @@ namespace locic {
 			});
 		}
 		
+		TEST(TypeInstanceParseTest, EmptyEnum) {
+			auto tokens = {
+				Token::ENUM,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				Token::RCURLYBRACKET
+			};
+			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
+				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::ENUM);
+				EXPECT_EQ(typeInstance->constructors->size(), 0);
+			});
+		}
+		
+		TEST(TypeInstanceParseTest, EnumOneValue) {
+			auto tokens = {
+				Token::ENUM,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				Token::NAME,
+				Token::RCURLYBRACKET
+			};
+			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
+				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::ENUM);
+				EXPECT_EQ(typeInstance->constructors->size(), 1);
+			});
+		}
+		
+		TEST(TypeInstanceParseTest, EnumTwoValues) {
+			auto tokens = {
+				Token::ENUM,
+				Token::NAME,
+				Token::LCURLYBRACKET,
+				Token::NAME,
+				Token::COMMA,
+				Token::NAME,
+				Token::RCURLYBRACKET
+			};
+			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
+				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::ENUM);
+				EXPECT_EQ(typeInstance->constructors->size(), 2);
+			});
+		}
+		
 		TEST(TypeInstanceParseTest, EmptyStruct) {
 			auto tokens = {
 				Token::STRUCT,
