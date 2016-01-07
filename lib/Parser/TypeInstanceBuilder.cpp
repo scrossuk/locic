@@ -54,6 +54,12 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeInstance>
+		TypeInstanceBuilder::makeEnum(String name, AST::Node<AST::StringList> constructorList,
+		                              const Debug::SourcePosition& start) {
+			return makeTypeInstanceNode(AST::TypeInstance::Enum(name, constructorList), start);
+		}
+		
+		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeException(String name, AST::Node<AST::TypeVarList> variables,
 		                                   AST::Node<AST::ExceptionInitializer> initializer,
 		                                   const Debug::SourcePosition& start) {
