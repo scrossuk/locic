@@ -27,6 +27,9 @@ namespace locic {
 			AST::Node<AST::Type> makeTypeNode(AST::Type* type,
 			                                  const Debug::SourcePosition& start);
 			
+			AST::Node<AST::TypeList> makeTypeList(AST::TypeList list,
+			                                      const Debug::SourcePosition& start);
+			
 			AST::Node<AST::Type> makePrimitiveType(PrimitiveID primitiveID,
 			                                       const Debug::SourcePosition& start);
 			

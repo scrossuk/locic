@@ -21,6 +21,13 @@ namespace locic {
 			return AST::makeNode(location, type);
 		}
 		
+		AST::Node<AST::TypeList>
+		TypeBuilder::makeTypeList(AST::TypeList list,
+		                          const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, new AST::TypeList(std::move(list)));
+		}
+		
 		AST::Node<AST::Type>
 		TypeBuilder::makePrimitiveType(const PrimitiveID primitiveID,
 		                               const Debug::SourcePosition& start) {
