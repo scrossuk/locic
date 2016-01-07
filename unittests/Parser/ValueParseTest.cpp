@@ -129,6 +129,24 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, SizeOfMultiply) {
+			auto tokens = {
+				Token::SIZEOF,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::STAR,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->binaryOp.kind, AST::OP_MULTIPLY);
+				const auto& leftOperand = value->binaryOp.leftOperand;
+				ASSERT_EQ(leftOperand->kind(), AST::Value::SIZEOF);
+				EXPECT_TRUE(leftOperand->sizeOf.type->isObjectType());
+			});
+		}
+		
 		TEST(ValueParseTest, Self) {
 			testParseValue({ Token::SELF }, [](const AST::Node<AST::Value>& value) {
 				EXPECT_EQ(value->kind(), AST::Value::SELF);
