@@ -160,6 +160,32 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
+		ValueBuilder::makeRefValue(AST::Node<AST::Type> targetType,
+		                           AST::Node<AST::Value> value,
+		                           const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::Ref(targetType, value), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeLvalValue(AST::Node<AST::Type> targetType,
+		                            AST::Node<AST::Value> value,
+		                            const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::Lval(targetType, value), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeNoRefValue(AST::Node<AST::Value> value,
+		                             const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::NoRef(value), start);
+		}
+		
+		AST::Node<AST::Value>
+		ValueBuilder::makeNoLvalValue(AST::Node<AST::Value> value,
+		                              const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::NoLval(value), start);
+		}
+		
+		AST::Node<AST::Value>
 		ValueBuilder::makeSymbolValue(AST::Node<AST::Symbol> symbol,
 		                              const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::SymbolRef(symbol), start);
