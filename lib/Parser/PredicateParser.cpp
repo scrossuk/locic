@@ -23,25 +23,29 @@ namespace locic {
 		AST::Node<AST::Predicate> PredicateParser::parseBinaryPredicate() {
 			const auto start = reader_.position();
 			
-			const auto leftPredicate = parseAtomPredicate();
+			auto predicate = parseAtomPredicate();
 			
-			switch (reader_.peek().kind()) {
-				case Token::AND: {
-					reader_.consume();
-					const auto rightPredicate = parseAtomPredicate();
-					return builder_.makeAndPredicate(leftPredicate,
-					                                 rightPredicate,
-					                                 start);
+			while (true) {
+				switch (reader_.peek().kind()) {
+					case Token::AND: {
+						reader_.consume();
+						const auto rightPredicate = parseAtomPredicate();
+						predicate = builder_.makeAndPredicate(predicate,
+						                                      rightPredicate,
+						                                      start);
+						break;
+					}
+					case Token::OR: {
+						reader_.consume();
+						const auto rightPredicate = parseAtomPredicate();
+						predicate = builder_.makeOrPredicate(predicate,
+						                                     rightPredicate,
+						                                     start);
+						break;
+					}
+					default:
+						return predicate;
 				}
-				case Token::OR: {
-					reader_.consume();
-					const auto rightPredicate = parseAtomPredicate();
-					return builder_.makeOrPredicate(leftPredicate,
-					                                rightPredicate,
-					                                start);
-				}
-				default:
-					return leftPredicate;
 			}
 		}
 		
