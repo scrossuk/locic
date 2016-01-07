@@ -66,8 +66,13 @@ namespace locic {
 						data.aliases.push_back(parseAlias());
 						break;
 					case Token::STATIC:
-						//data.staticAsserts.push_back(parseStaticAssert());
-						throw std::logic_error("TODO: parse static assert");
+						if (reader_.peek(/*offset=*/1).kind() == Token::ASSERT) {
+							//data.staticAsserts.push_back(parseStaticAssert());
+							throw std::logic_error("TODO: parse static assert");
+						} else {
+							auto function = FunctionParser(reader_).parseGlobalFunction();
+							data.functions.push_back(function);
+						}
 						break;
 					case Token::ENUM:
 					case Token::CLASS:
