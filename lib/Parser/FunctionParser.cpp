@@ -166,6 +166,14 @@ namespace locic {
 		
 		AST::Node<AST::Function>
 		FunctionParser::parseNonTemplatedMethodDef(const Debug::SourcePosition& start) {
+			if (reader_.peek().kind() == Token::TILDA) {
+				reader_.consume();
+				const auto nameString = reader_.makeCString("__destroy");
+				const auto name = builder_.makeName(Name::Relative() + nameString, start);
+				const auto scope = ScopeParser(reader_).parseScope();
+				return builder_.makeDestructor(name, scope, start);
+			}
+			
 			const bool isStatic = reader_.consumeIfPresent(Token::STATIC);
 			const auto returnType = parseMethodDefReturnType();
 			const auto name = parseMethodName();
