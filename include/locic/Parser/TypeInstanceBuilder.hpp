@@ -49,6 +49,10 @@ namespace locic {
 			makeEnum(String name, AST::Node<AST::StringList> constructorList,
 			         const Debug::SourcePosition& start);
 			
+			AST::Node<AST::StringList>
+			makeStringList(AST::StringList stringList,
+			               const Debug::SourcePosition& start);
+			
 			AST::Node<AST::TypeInstance>
 			makeException(String name, AST::Node<AST::TypeVarList> variables,
 			              AST::Node<AST::ExceptionInitializer> initializer,
