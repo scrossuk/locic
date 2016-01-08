@@ -19,7 +19,10 @@ set(STD_ALL_BINARY_FILES
 
 macro(test_stdlib_check_output name)
 	add_test(NAME TestStdLibCheckOutput${name}
-		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name TestStdLibCheckOutput${name} --expected-output=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci ${STD_ALL_API_FILES} --dependency-modules ${STD_ALL_BINARY_FILES}
+		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name TestStdLibCheckOutput${name}  --use-new-parser
+			--expected-output=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log
+			${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci ${STD_ALL_API_FILES}
+			--dependency-modules ${STD_ALL_BINARY_FILES}
 	)
 endmacro(test_stdlib_check_output)
 
