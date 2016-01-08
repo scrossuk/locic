@@ -326,6 +326,24 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, FunctionPointerType) {
+			auto tokens = {
+				Token::LROUNDBRACKET,
+				Token::STAR,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::LROUNDBRACKET,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				ASSERT_TRUE(value->typeRef.type->isFunction());
+				EXPECT_TRUE(value->typeRef.type->functionReturnType()->isObjectType());
+			});
+		}
+		
 		TEST(ValueParseTest, LessThan) {
 			auto tokens = {
 				Token::NAME,
