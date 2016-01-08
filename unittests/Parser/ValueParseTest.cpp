@@ -344,6 +344,48 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, LvalType) {
+			auto tokens = {
+				Token::LVAL,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				EXPECT_TRUE(value->typeRef.type->isLval());
+			});
+		}
+		
+		TEST(ValueParseTest, RefType) {
+			auto tokens = {
+				Token::REF,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				EXPECT_TRUE(value->typeRef.type->isRef());
+			});
+		}
+		
+		TEST(ValueParseTest, StaticRefType) {
+			auto tokens = {
+				Token::STATICREF,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+				EXPECT_TRUE(value->typeRef.type->isStaticRef());
+			});
+		}
+		
 		TEST(ValueParseTest, LessThan) {
 			auto tokens = {
 				Token::NAME,
