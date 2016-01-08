@@ -34,6 +34,13 @@ namespace locic {
 			return AST::makeNode(location, new AST::AliasDecl(name, value));
 		}
 		
+		AST::Node<AST::StaticAssert>
+		NamespaceBuilder::makeStaticAssert(AST::Node<AST::Predicate> predicate,
+		                                   const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, new AST::StaticAssert(predicate));
+		}
+		
 		AST::Node<AST::ModuleScope>
 		NamespaceBuilder::makeUnnamedExport(AST::Node<AST::NamespaceData> data,
 		                                    const Debug::SourcePosition& start) {
