@@ -1,1 +1,1 @@
-Cannot re-throw exception in try scope \(within the relevant catch clause\) at position SourceLocation\(filename = (.*)/RethrowInsideTry\.loci, range = \(line 14, column 4\) to \(line 14, column 9\)\)\.
+Cannot re-throw exception in try scope \(within the relevant catch clause\) at position SourceLocation\(filename = (.*)/RethrowInsideTry\.loci, range = \(line 14, column 4\) to \(line 14, column 10\)\)\.
