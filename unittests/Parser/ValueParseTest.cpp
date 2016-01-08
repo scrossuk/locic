@@ -938,6 +938,48 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, AndTwoComparisonsNotTemplate) {
+			auto tokens = {
+				Token::NAME,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::DOUBLE_AMPERSAND,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->binaryOp.kind, AST::OP_LOGICALAND);
+				const auto& leftOperand = value->binaryOp.leftOperand;
+				ASSERT_EQ(leftOperand->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(leftOperand->binaryOp.kind, AST::OP_LESSTHAN);
+			});
+		}
+		
+		TEST(ValueParseTest, OrTwoComparisonsNotTemplate) {
+			auto tokens = {
+				Token::NAME,
+				Token::LTRIBRACKET,
+				Token::NAME,
+				Token::DOUBLE_VERTICAL_BAR,
+				Token::NAME,
+				Token::RTRIBRACKET,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET
+			};
+			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
+				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->binaryOp.kind, AST::OP_LOGICALOR);
+				const auto& leftOperand = value->binaryOp.leftOperand;
+				ASSERT_EQ(leftOperand->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(leftOperand->binaryOp.kind, AST::OP_LESSTHAN);
+			});
+		}
+		
 	}
 	
 }
