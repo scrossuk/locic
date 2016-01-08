@@ -4,6 +4,7 @@
 #include <locic/Parser/SymbolParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
+#include <locic/Parser/TypeBuilder.hpp>
 #include <locic/Parser/TypeParser.hpp>
 #include <locic/Parser/ValueBuilder.hpp>
 #include <locic/Parser/ValueParser.hpp>
@@ -844,6 +845,24 @@ namespace locic {
 					reader_.expect(Token::LTRIBRACKET);
 					const auto targetType = TypeParser(reader_).parseType();
 					reader_.expect(Token::RTRIBRACKET);
+					
+					if (reader_.peek().kind() != Token::LROUNDBRACKET) {
+						const auto type = TypeParser(reader_).parseQualifiedType();
+						
+						switch (kind) {
+							case Token::LVAL: {
+								const auto lvalType = TypeBuilder(reader_).makeLvalType(targetType, type, start);
+								return builder_.makeTypeValue(lvalType, start);
+							}
+							case Token::REF: {
+								const auto refType = TypeBuilder(reader_).makeRefType(targetType, type, start);
+								return builder_.makeTypeValue(refType, start);
+							}
+							default:
+								break;
+						}
+					}
+					
 					reader_.expect(Token::LROUNDBRACKET);
 					const auto value = parseValue();
 					reader_.expect(Token::RROUNDBRACKET);
