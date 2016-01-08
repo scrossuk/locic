@@ -230,12 +230,14 @@ struct TestOptions {
 	int expectedResult;
 	std::vector<std::string> dependencyModules;
 	std::vector<std::string> programArgs;
+	bool useNewParser;
 	
 	TestOptions()
 	: dumpOutput(false),
 	isHelpRequested(false),
 	parseOnly(false),
-	expectedResult(0) { }
+	expectedResult(0),
+	useNewParser(true) { }
 };
 
 bool runTest(TestOptions& options) {
@@ -254,7 +256,8 @@ bool runTest(TestOptions& options) {
 				throw TestFailedToOpenFileException(filename);
 			}
 			
-			Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList, file, filename);
+			Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList,
+			                             file, filename, options.useNewParser);
 			
 			if (!parser.parseFile()) {
 				const auto errors = parser.getErrors();
@@ -421,6 +424,7 @@ public:
 		("expected-result", po::value<int>()->default_value(0), "Set expected result")
 		("dependency-modules", po::value<std::vector<std::string>>()->multitoken(), "Set dependency module bitcode files")
 		("args", po::value<std::vector<std::string>>()->multitoken(), "Set program arguments")
+		("use-new-parser", "Use new (handwritten) parser")
 		;
 		
 		hiddenOptions_.add_options()
@@ -459,6 +463,7 @@ public:
 		options.dumpOutput = !variableMap["dump-output"].empty();
 		options.expectedErrorFileName = variableMap["expected-error"].as<std::string>();
 		options.expectedOutputFileName = variableMap["expected-output"].as<std::string>();
+		options.useNewParser = !variableMap["use-new-parser"].empty();
 		
 		if (variableMap.count("dependency-modules") > 0) {
 			options.dependencyModules = variableMap["dependency-modules"].as<std::vector<std::string>>();
