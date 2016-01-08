@@ -1,1 +1,1 @@
-Template arguments do not satisfy require predicate 'satisfies\(type: const\(int_t\), requirement: movable_t\)' of method 'assign' at position SourceLocation\(filename = (.*)/ConstPointerTransitivity\.loci, range = \(line 6, column 2\) to \(line 6, column 17\)\)\.
+Template arguments do not satisfy require predicate 'satisfies\(type: const\(int_t\), requirement: movable_t\)' of method 'assign' at position SourceLocation\(filename = (.*)/ConstPointerTransitivity\.loci, range = \(line 6, column 2\) to \(line 6, column 18\)\)\.

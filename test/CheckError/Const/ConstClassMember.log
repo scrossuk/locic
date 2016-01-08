@@ -1,1 +1,1 @@
-Return type 'TestClass' of function '::getValue' is not movable, at position SourceLocation\(filename = (.*)/ConstClassMember\.loci, range = \(line 7, column 8\) to \(line 7, column 29\)\)\.
+Return type 'TestClass' of function '::getValue' is not movable, at position SourceLocation\(filename = (.*)/ConstClassMember\.loci, range = \(line 7, column 1\) to \(line 7, column 29\)\)\.
