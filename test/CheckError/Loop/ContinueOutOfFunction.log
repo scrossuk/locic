@@ -1,1 +1,1 @@
-Cannot 'continue' outside any control flow statements at position SourceLocation\(filename = (.*)/ContinueOutOfFunction\.loci, range = \(line 2, column 2\) to \(line 2, column 10\)\)\.
+Cannot 'continue' outside any control flow statements at position SourceLocation\(filename = (.*)/ContinueOutOfFunction\.loci, range = \(line 2, column 2\) to \(line 2, column 11\)\)\.
