@@ -685,6 +685,11 @@ namespace locic {
 			const auto token = reader_.peek();
 			switch (token.kind()) {
 				case Token::LROUNDBRACKET: {
+					if (reader_.peek(/*offset=*/1).kind() == Token::STAR &&
+					    reader_.peek(/*offset=*/2).kind() == Token::RROUNDBRACKET) {
+						// Function pointer type.
+						break;
+					}
 					reader_.consume();
 					const auto value = parseValue();
 					reader_.expect(Token::RROUNDBRACKET);
