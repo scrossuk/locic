@@ -166,6 +166,14 @@ namespace locic {
 					case Token::END:
 					case Token::SEMICOLON:
 						return false;
+					case Token::DOUBLE_AMPERSAND:
+					case Token::DOUBLE_VERTICAL_BAR:
+						if (roundBracketNesting == 0 &&
+						    curlyBracketNesting == 0 &&
+						    squareBracketNesting == 0) {
+							return false;
+						}
+						break;
 					default:
 						break;
 				}
