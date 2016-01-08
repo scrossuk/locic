@@ -5,7 +5,9 @@ macro(test_check_output name)
 	cmake_parse_arguments(TEST_CHECK_OUTPUT "EXPECT_FAIL" "" "" ${ARGN})
 	set(test_name "TestCheckOutput${name}")
 	add_test(NAME "${test_name}"
-		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name "${test_name}" --expected-output=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci)
+		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name "${test_name}" --use-new-parser
+			--expected-output=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log
+			${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci)
 	if(TEST_CHECK_OUTPUT_EXPECT_FAIL)
 		set_tests_properties("${test_name}" PROPERTIES LABELS "EXPECT_FAIL")
 	endif()
