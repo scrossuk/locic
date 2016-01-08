@@ -1,4 +1,4 @@
 # Cast tests.
 
-test_check_error(ConstRefLocalVarImplicitDissolve)
-test_check_error(ConstRefMemberVarImplicitDissolve)
+test_check_error(ConstRefLocalVarImplicitDissolve USE_NEW_PARSER)
+test_check_error(ConstRefMemberVarImplicitDissolve USE_NEW_PARSER)
