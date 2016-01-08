@@ -2,10 +2,15 @@
 # NOT compile and produce a specific error.
 
 macro(test_check_error name)
-	cmake_parse_arguments(TEST_CHECK_ERROR "EXPECT_FAIL" "" "" ${ARGN})
+	cmake_parse_arguments(TEST_CHECK_ERROR "EXPECT_FAIL;USE_NEW_PARSER" "" "" ${ARGN})
+	if(TEST_CHECK_ERROR_USE_NEW_PARSER)
+		set(USE_NEW_PARSER_OPT "--use-new-parser")
+	else()
+		set(USE_NEW_PARSER_OPT "")
+	endif()
 	set(test_name "TestCheckError${name}")
 	add_test(NAME "${test_name}"
-		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name "${test_name}" --expected-error=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci)
+		COMMAND ${CMAKE_BINARY_DIR}/tools/loci-test --test-name "${test_name}" --expected-error=${CMAKE_CURRENT_SOURCE_DIR}/${name}.log ${CMAKE_CURRENT_SOURCE_DIR}/${name}.loci ${USE_NEW_PARSER_OPT})
 	if(TEST_CHECK_ERROR_EXPECT_FAIL)
 		set_tests_properties("${test_name}" PROPERTIES LABELS "EXPECT_FAIL")
 	endif()
