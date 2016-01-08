@@ -1,4 +1,4 @@
-// RUN: %locic %s --verify > %t
+// RUN: %locic %s --verify --use-new-parser > %t
 // RUN: FileCheck < %t %s
 
 void function() {
@@ -8,7 +8,7 @@ void function() {
 		// CHECK: line 12
 		// CHECK-NEXT: column 3
 		// CHECK: line 12
-		// CHECK-NEXT: column 20
+		// CHECK-NEXT: column 21
 		unused int i = 10;
 	}
 }

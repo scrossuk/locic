@@ -1,4 +1,4 @@
-// RUN: %locic %s --verify > %t
+// RUN: %locic %s --verify --use-new-parser > %t
 // RUN: FileCheck < %t %s
 
 export void varFunction() {
@@ -8,6 +8,6 @@ export void varFunction() {
 	// CHECK:      line 12
 	// CHECK-NEXT: column 2
 	// CHECK:      line 12
-	// CHECK-NEXT: column 24
+	// CHECK-NEXT: column 25
 	unused int value = 42u;
 }

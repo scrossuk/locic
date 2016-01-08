@@ -1,4 +1,4 @@
-// RUN: %locic %s --verify > %t
+// RUN: %locic %s --verify --use-new-parser > %t
 // RUN: FileCheck < %t %s
 
 exception TestError();
@@ -9,7 +9,7 @@ int function() {
 	// CHECK: line 13
 	// CHECK-NEXT: column 2
 	// CHECK: line 13
-	// CHECK-NEXT: column 11
+	// CHECK-NEXT: column 12
 	return 10;
 }
 
