@@ -1,1 +1,1 @@
-User cast failed from type 'null_t' to type 'notag\(TestClass\)' at position SourceLocation\(filename = (.*)/NoNullConstructor\.loci, range = \(line 7, column 2\) to \(line 7, column 25\)\)\.
+User cast failed from type 'null_t' to type 'notag\(TestClass\)' at position SourceLocation\(filename = (.*)/NoNullConstructor\.loci, range = \(line 7, column 2\) to \(line 7, column 26\)\)\.
