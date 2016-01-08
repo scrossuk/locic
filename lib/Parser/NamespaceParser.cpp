@@ -68,8 +68,7 @@ namespace locic {
 						break;
 					case Token::STATIC:
 						if (reader_.peek(/*offset=*/1).kind() == Token::ASSERT) {
-							//data.staticAsserts.push_back(parseStaticAssert());
-							throw std::logic_error("TODO: parse static assert");
+							data.staticAsserts.push_back(parseStaticAssert());
 						} else {
 							auto function = FunctionParser(reader_).parseGlobalFunction();
 							data.functions.push_back(function);
