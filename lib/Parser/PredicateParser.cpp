@@ -76,6 +76,7 @@ namespace locic {
 				case Token::RTRIBRACKET:
 				case Token::AND:
 				case Token::OR:
+				case Token::SEMICOLON:
 					return builder_.makeSymbolPredicate(symbol, start);
 				default:
 					break;
