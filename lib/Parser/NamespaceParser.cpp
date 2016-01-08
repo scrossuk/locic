@@ -3,6 +3,7 @@
 #include <locic/Parser/FunctionParser.hpp>
 #include <locic/Parser/NamespaceBuilder.hpp>
 #include <locic/Parser/NamespaceParser.hpp>
+#include <locic/Parser/PredicateParser.hpp>
 #include <locic/Parser/TemplateInfo.hpp>
 #include <locic/Parser/TemplateParser.hpp>
 #include <locic/Parser/Token.hpp>
@@ -184,6 +185,17 @@ namespace locic {
 			reader_.expect(Token::SEMICOLON);
 			
 			return builder_.makeAlias(name, value, start);
+		}
+		
+		AST::Node<AST::StaticAssert> NamespaceParser::parseStaticAssert() {
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::STATIC);
+			reader_.expect(Token::ASSERT);
+			const auto predicate = PredicateParser(reader_).parsePredicate();
+			reader_.expect(Token::SEMICOLON);
+			
+			return builder_.makeStaticAssert(predicate, start);
 		}
 		
 		void NamespaceParser::parseTemplatedFunction(AST::NamespaceData& data,
