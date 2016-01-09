@@ -300,6 +300,31 @@ namespace locic {
 			return builder_.makeScopeExitStatement(name, scope, start);
 		}
 		
+		static std::string readString(const Debug::SourceLocation& location) {
+			// TODO: this needs a lot of improvement, and should probably
+			//       be moved out of here entirely.
+			const auto handle = fopen(location.fileName().c_str(), "rb");
+			if (handle == NULL) {
+				return "<none>";
+			}
+			
+			const auto length = location.range().end().byteOffset() - location.range().start().byteOffset();
+			
+			std::vector<char> data;
+			data.resize(length + 1);
+			fseek(handle, location.range().start().byteOffset(), SEEK_SET);
+			const size_t readSize = fread(data.data(), 1, length, handle);
+			if (readSize != length) {
+				throw std::runtime_error(makeString("Failed to read string in file '%s'.",
+				                                    location.fileName().c_str()));
+			}
+			
+			data.at(length) = '\0';
+			fclose(handle);
+			
+			return std::string(data.data());
+		}
+		
 		AST::Node<AST::Statement> StatementParser::parseAssertStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::ASSERT);
@@ -312,7 +337,10 @@ namespace locic {
 			
 			const auto value = ValueParser(reader_).parseValue();
 			reader_.expect(Token::SEMICOLON);
-			return builder_.makeAssertStatement(value, String(), start);
+			
+			const auto assertString = readString(value.location());
+			return builder_.makeAssertStatement(value, reader_.makeString(assertString),
+			                                    start);
 		}
 		
 		bool StatementParser::isVarDeclStartToken(const Token::Kind kind) {
