@@ -156,16 +156,7 @@ namespace locic {
 		
 		AST::Node<AST::TypeVar> VarParser::parseTypeVarWithType(AST::Node<AST::Type> type,
 		                                                        const Debug::SourcePosition& start) {
-			const auto nameToken = reader_.peek();
-			
-			String name;
-			if (nameToken.kind() != Token::NAME) {
-				throw std::logic_error("TODO: didn't find NAME.");
-			} else {
-				name = nameToken.name();
-				reader_.consume();
-			}
-			
+			const auto name = reader_.expectName();
 			return builder_.makeTypeVar(type, name, start);
 		}
 		
