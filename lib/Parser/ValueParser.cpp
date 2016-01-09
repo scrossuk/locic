@@ -197,6 +197,11 @@ namespace locic {
 			const auto ifTrueValue = parseValue(IN_TERNARY);
 			reader_.expect(Token::COLON);
 			const auto ifFalseValue = parseTernaryValue(context);
+			
+			if (!isComparisonValueOrNext(value)) {
+				reader_.issueDiagWithLoc(InvalidOperandDiag("ternary"), value.location());
+			}
+			
 			return builder_.makeTernaryValue(value, ifTrueValue,
 			                                 ifFalseValue, start);
 		}
@@ -219,8 +224,20 @@ namespace locic {
 				reader_.consume();
 				
 				const auto operand = parseLogicalAndValue(context);
+				checkLogicalOrOperand(value);
+				checkLogicalOrOperand(operand);
 				value = builder_.makeLogicalOrValue(value, operand, start);
 			}
+		}
+		
+		void ValueParser::checkLogicalOrOperand(const AST::Node<AST::Value>& operand) {
+			if (!isLogicalOrValueOrNext(operand)) {
+				reader_.issueDiagWithLoc(InvalidOperandDiag("logical or"), operand.location());
+			}
+		}
+		
+		bool ValueParser::isLogicalOrValueOrNext(const AST::Node<AST::Value>& operand) const {
+			return operand->isLogicalOr() || isComparisonValueOrNext(operand);
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseLogicalAndValue(const Context context) {
@@ -241,8 +258,20 @@ namespace locic {
 				reader_.consume();
 				
 				const auto operand = parseBitwiseOrValue(context);
+				checkLogicalAndOperand(value);
+				checkLogicalAndOperand(operand);
 				value = builder_.makeLogicalAndValue(value, operand, start);
 			}
+		}
+		
+		void ValueParser::checkLogicalAndOperand(const AST::Node<AST::Value>& operand) {
+			if (!isLogicalAndValueOrNext(operand)) {
+				reader_.issueDiagWithLoc(InvalidOperandDiag("logical and"), operand.location());
+			}
+		}
+		
+		bool ValueParser::isLogicalAndValueOrNext(const AST::Node<AST::Value>& operand) const {
+			return operand->isLogicalAnd() || isComparisonValueOrNext(operand);
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseBitwiseOrValue(const Context context) {
@@ -262,8 +291,20 @@ namespace locic {
 				reader_.consume();
 				
 				const auto operand = parseBitwiseXorValue(context);
+				checkBitwiseOrOperand(value);
+				checkBitwiseOrOperand(operand);
 				value = builder_.makeBitwiseOrValue(value, operand, start);
 			}
+		}
+		
+		void ValueParser::checkBitwiseOrOperand(const AST::Node<AST::Value>& operand) {
+			if (!isBitwiseOrValueOrNext(operand)) {
+				reader_.issueDiagWithLoc(InvalidOperandDiag("bitwise or"), operand.location());
+			}
+		}
+		
+		bool ValueParser::isBitwiseOrValueOrNext(const AST::Node<AST::Value>& operand) const {
+			return operand->isBitwiseOr() || isUnaryValueOrNext(operand);
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseBitwiseXorValue(const Context context) {
@@ -284,8 +325,20 @@ namespace locic {
 				reader_.consume();
 				
 				const auto operand = parseBitwiseAndValue(context);
+				checkBitwiseXorOperand(value);
+				checkBitwiseXorOperand(operand);
 				value = builder_.makeBitwiseXorValue(value, operand, start);
 			}
+		}
+		
+		void ValueParser::checkBitwiseXorOperand(const AST::Node<AST::Value>& operand) {
+			if (!isBitwiseXorValueOrNext(operand)) {
+				reader_.issueDiagWithLoc(InvalidOperandDiag("bitwise xor"), operand.location());
+			}
+		}
+		
+		bool ValueParser::isBitwiseXorValueOrNext(const AST::Node<AST::Value>& operand) const {
+			return operand->isBitwiseXor() || isUnaryValueOrNext(operand);
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseBitwiseAndValue(const Context context) {
@@ -305,8 +358,20 @@ namespace locic {
 				reader_.consume();
 				
 				const auto operand = parseComparisonValue(context);
+				checkBitwiseAndOperand(value);
+				checkBitwiseAndOperand(operand);
 				value = builder_.makeBitwiseAndValue(value, operand, start);
 			}
+		}
+		
+		void ValueParser::checkBitwiseAndOperand(const AST::Node<AST::Value>& operand) {
+			if (!isBitwiseAndValueOrNext(operand)) {
+				reader_.issueDiagWithLoc(InvalidOperandDiag("bitwise and"), operand.location());
+			}
+		}
+		
+		bool ValueParser::isBitwiseAndValueOrNext(const AST::Node<AST::Value>& operand) const {
+			return operand->isBitwiseAnd() || isUnaryValueOrNext(operand);
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseComparisonValue(const Context context) {
@@ -370,9 +435,24 @@ namespace locic {
 				reader_.consume();
 				
 				const auto operand = parseShiftValue(context);
+				checkComparisonOperand(value);
+				checkComparisonOperand(operand);
 				value = builder_.makeBinaryOpValue(value, operand,
 				                                   opKind, start);
 			}
+		}
+		
+		void ValueParser::checkComparisonOperand(const AST::Node<AST::Value>& operand) {
+			if (!isAddValueOrNext(operand)) {
+				reader_.issueDiagWithLoc(InvalidOperandDiag("comparison"), operand.location());
+			}
+		}
+		
+		bool ValueParser::isComparisonValueOrNext(const AST::Node<AST::Value>& operand) const {
+			// Use a unary value as the next level down to avoid conditions like
+			// 'a + b' or 'a * b'.
+			return operand->isComparison() || operand->isCapabilityTest() ||
+			       isUnaryValueOrNext(operand);
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseShiftValue(const Context context) {
@@ -406,8 +486,16 @@ namespace locic {
 				}
 				
 				const auto operand = parseAddOperatorValue(context);
+				checkShiftOperand(value);
+				checkShiftOperand(operand);
 				value = builder_.makeBinaryOpValue(value, operand,
 				                                   opKind, start);
+			}
+		}
+		
+		void ValueParser::checkShiftOperand(const AST::Node<AST::Value>& operand) {
+			if (!isUnaryValueOrNext(operand)) {
+				reader_.issueDiagWithLoc(InvalidOperandDiag("shift"), operand.location());
 			}
 		}
 		
@@ -433,9 +521,21 @@ namespace locic {
 				
 				reader_.consume();
 				const auto operand = parseMultiplyOperatorValue(context);
+				checkAddOperand(value);
+				checkAddOperand(operand);
 				value = builder_.makeBinaryOpValue(value, operand,
 				                                   opKind, start);
 			}
+		}
+		
+		void ValueParser::checkAddOperand(const AST::Node<AST::Value>& operand) {
+			if (!isAddValueOrNext(operand)) {
+				reader_.issueDiagWithLoc(InvalidOperandDiag("add/subtract"), operand.location());
+			}
+		}
+		
+		bool ValueParser::isAddValueOrNext(const AST::Node<AST::Value>& operand) const {
+			return operand->isAdd() || operand->isSubtract() || isMultiplyValueOrNext(operand);
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseMultiplyOperatorValue(const Context context) {
@@ -463,9 +563,22 @@ namespace locic {
 				
 				reader_.consume();
 				const auto operand = parseUnaryValue(context);
+				checkMultiplyOperand(value);
+				checkMultiplyOperand(operand);
 				value = builder_.makeBinaryOpValue(value, operand,
 				                                   opKind, start);
 			}
+		}
+		
+		void ValueParser::checkMultiplyOperand(const AST::Node<AST::Value>& operand) {
+			if (!isMultiplyValueOrNext(operand)) {
+				reader_.issueDiagWithLoc(InvalidOperandDiag("multiply/subtract/divide"), operand.location());
+			}
+		}
+		
+		bool ValueParser::isMultiplyValueOrNext(const AST::Node<AST::Value>& operand) const {
+			return operand->isMultiply() || operand->isDivide() || operand->isModulo() ||
+			       isUnaryValueOrNext(operand);
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseUnaryValue(const Context context) {
@@ -504,6 +617,10 @@ namespace locic {
 			return builder_.makeUnaryOpValue(value, opKind, start);
 		}
 		
+		bool ValueParser::isUnaryValueOrNext(const AST::Node<AST::Value>& operand) const {
+			return operand->isUnaryOp() || isCallValueOrNext(operand);
+		}
+		
 		AST::Node<AST::Value> ValueParser::parseCallValue(const Context context) {
 			const auto start = reader_.position();
 			
@@ -537,6 +654,41 @@ namespace locic {
 					default:
 						return value;
 				}
+			}
+		}
+		
+		bool ValueParser::isCallValueOrNext(const AST::Node<AST::Value>& operand) const {
+			switch (operand->kind()) {
+				case AST::Value::SELF:
+				case AST::Value::THIS:
+				case AST::Value::BRACKET:
+				case AST::Value::LITERAL:
+				case AST::Value::SYMBOLREF:
+				case AST::Value::TYPEREF:
+				case AST::Value::MEMBERREF:
+				case AST::Value::ALIGNOF:
+				case AST::Value::SIZEOF:
+				case AST::Value::CAST:
+				case AST::Value::LVAL:
+				case AST::Value::NOLVAL:
+				case AST::Value::REF:
+				case AST::Value::NOREF:
+				case AST::Value::INTERNALCONSTRUCT:
+				case AST::Value::ARRAYLITERAL:
+					assert(isAtomicValue(operand));
+					return true;
+				case AST::Value::FUNCTIONCALL:
+				case AST::Value::MEMBERACCESS:
+				case AST::Value::TEMPLATEDMEMBERACCESS:
+				case AST::Value::MERGE:
+					assert(!isAtomicValue(operand));
+					return true;
+				case AST::Value::UNARYOP:
+				case AST::Value::BINARYOP:
+				case AST::Value::TERNARY:
+				case AST::Value::CAPABILITYTEST:
+					assert(!isAtomicValue(operand));
+					return operand->isIndex();
 			}
 		}
 		
@@ -781,6 +933,37 @@ namespace locic {
 			printf("At %s.\n", reader_.locationWithRangeFrom(start).toString().c_str());
 			
 			throw std::logic_error("TODO: invalid atomic value");
+		}
+		
+		bool ValueParser::isAtomicValue(const AST::Node<AST::Value>& operand) const {
+			switch (operand->kind()) {
+				case AST::Value::SELF:
+				case AST::Value::THIS:
+				case AST::Value::BRACKET:
+				case AST::Value::LITERAL:
+				case AST::Value::SYMBOLREF:
+				case AST::Value::TYPEREF:
+				case AST::Value::MEMBERREF:
+				case AST::Value::ALIGNOF:
+				case AST::Value::SIZEOF:
+				case AST::Value::CAST:
+				case AST::Value::LVAL:
+				case AST::Value::NOLVAL:
+				case AST::Value::REF:
+				case AST::Value::NOREF:
+				case AST::Value::INTERNALCONSTRUCT:
+				case AST::Value::ARRAYLITERAL:
+					return true;
+				case AST::Value::UNARYOP:
+				case AST::Value::BINARYOP:
+				case AST::Value::TERNARY:
+				case AST::Value::MEMBERACCESS:
+				case AST::Value::TEMPLATEDMEMBERACCESS:
+				case AST::Value::FUNCTIONCALL:
+				case AST::Value::CAPABILITYTEST:
+				case AST::Value::MERGE:
+					return false;
+			}
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseAtExpression(const Debug::SourcePosition& start) {

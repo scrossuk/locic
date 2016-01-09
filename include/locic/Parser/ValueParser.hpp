@@ -55,25 +55,63 @@ namespace locic {
 			
 			AST::Node<AST::Value> parseLogicalOrValue(Context context);
 			
+			void checkLogicalOrOperand(const AST::Node<AST::Value>& operand);
+			
+			bool isLogicalOrValueOrNext(const AST::Node<AST::Value>& operand) const;
+			
 			AST::Node<AST::Value> parseLogicalAndValue(Context context);
+			
+			void checkLogicalAndOperand(const AST::Node<AST::Value>& operand);
+			
+			bool isLogicalAndValueOrNext(const AST::Node<AST::Value>& operand) const;
 			
 			AST::Node<AST::Value> parseBitwiseOrValue(Context context);
 			
+			void checkBitwiseOrOperand(const AST::Node<AST::Value>& operand);
+			
+			bool isBitwiseOrValueOrNext(const AST::Node<AST::Value>& operand) const;
+			
 			AST::Node<AST::Value> parseBitwiseXorValue(Context context);
+			
+			void checkBitwiseXorOperand(const AST::Node<AST::Value>& operand);
+			
+			bool isBitwiseXorValueOrNext(const AST::Node<AST::Value>& operand) const;
 			
 			AST::Node<AST::Value> parseBitwiseAndValue(Context context);
 			
+			void checkBitwiseAndOperand(const AST::Node<AST::Value>& operand);
+			
+			bool isBitwiseAndValueOrNext(const AST::Node<AST::Value>& operand) const;
+			
 			AST::Node<AST::Value> parseComparisonValue(Context context);
+			
+			void checkComparisonOperand(const AST::Node<AST::Value>& operand);
+			
+			bool isComparisonValueOrNext(const AST::Node<AST::Value>& operand) const;
 			
 			AST::Node<AST::Value> parseShiftValue(Context context);
 			
+			void checkShiftOperand(const AST::Node<AST::Value>& operand);
+			
 			AST::Node<AST::Value> parseAddOperatorValue(Context context);
+			
+			void checkAddOperand(const AST::Node<AST::Value>& operand);
+			
+			bool isAddValueOrNext(const AST::Node<AST::Value>& operand) const;
 			
 			AST::Node<AST::Value> parseMultiplyOperatorValue(Context context);
 			
+			void checkMultiplyOperand(const AST::Node<AST::Value>& operand);
+			
+			bool isMultiplyValueOrNext(const AST::Node<AST::Value>& operand) const;
+			
 			AST::Node<AST::Value> parseUnaryValue(Context context);
 			
+			bool isUnaryValueOrNext(const AST::Node<AST::Value>& operand) const;
+			
 			AST::Node<AST::Value> parseCallValue(Context context);
+			
+			bool isCallValueOrNext(const AST::Node<AST::Value>& operand) const;
 			
 			AST::Node<AST::Value> parseMemberAccessExpression(AST::Node<AST::Value> value,
 			                                                  bool isDeref,
@@ -86,6 +124,8 @@ namespace locic {
 			AST::Node<AST::Type> interpretValueAsType(const AST::Node<AST::Value>& value);
 			
 			AST::Node<AST::Value> parseAtomicValue();
+			
+			bool isAtomicValue(const AST::Node<AST::Value>& operand) const;
 			
 			AST::Node<AST::Value> parseAtExpression(const Debug::SourcePosition& start);
 			
