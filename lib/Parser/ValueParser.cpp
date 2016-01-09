@@ -694,7 +694,7 @@ namespace locic {
 					reader_.consume();
 					const auto value = parseValue();
 					reader_.expect(Token::RROUNDBRACKET);
-					return value;
+					return builder_.makeBracketedValue(value, start);
 				}
 				case Token::AT:
 					reader_.consume();
