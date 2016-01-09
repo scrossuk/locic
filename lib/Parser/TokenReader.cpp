@@ -4,6 +4,7 @@
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
 #include <locic/Lex/LexerAPI.hpp>
+#include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Support/String.hpp>
@@ -11,6 +12,43 @@
 namespace locic {
 	
 	namespace Parser {
+		
+		class UnexpectedTokenDiag: public Diag {
+		public:
+			UnexpectedTokenDiag(Array<Token::Kind, 4> expected,
+			                    const Token::Kind actual)
+			: expected_(std::move(expected)), actual_(actual) {
+				assert(!expected_.empty());
+			}
+			
+			std::string toString() const {
+				if (expected_.size() == 1) {
+					return makeString("Expected '%s'; got '%s'.",
+					                  Token::kindToString(expected_[0]).c_str(),
+					                  Token::kindToString(actual_).c_str());
+				} else if (expected_.size() > 3) {
+					return makeString("Unexpected token '%s'.",
+					                  Token::kindToString(actual_).c_str());
+				}
+				
+				std::string expectStr = "{ ";
+				for (size_t i = 0; i < expected_.size(); i++) {
+					expectStr += Token::kindToString(expected_[i]);
+					if ((i + 1) < expected_.size()) {
+						expectStr += ", ";
+					}
+				}
+				expectStr += " }";
+				
+				return makeString("Expected one of %s; got '%s'.",
+				                  expectStr.c_str(), Token::kindToString(actual_).c_str());
+			}
+			
+		private:
+			Array<Token::Kind, 4> expected_;
+			Token::Kind actual_;
+			
+		};
 		
 		TokenReader::TokenReader(Lex::LexerAPI& source, DiagnosticReceiver& diagReceiver)
 		: source_(source), tokens_(1, source.lexToken()),
