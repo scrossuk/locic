@@ -11,9 +11,7 @@
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Support/StringHost.hpp>
 
-#include "LexerAPI.hpp"
 #include "LexLexer.hpp"
-#include "Token.hpp"
 
 namespace locic {
 	
@@ -47,7 +45,7 @@ namespace locic {
 				return context_;
 			}
 			
-			LexerAPI& lexer() {
+			LexLexer& lexer() {
 				return lexer_;
 			}
 			
