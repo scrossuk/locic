@@ -2,9 +2,12 @@
 #define LOCIC_PARSER_TOKENREADER_HPP
 
 #include <deque>
+#include <memory>
 
+#include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Parser/DiagnosticReceiver.hpp>
+#include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Support/Array.hpp>
 
@@ -31,6 +34,12 @@ namespace locic {
 		class TokenReader {
 		public:
 			TokenReader(Lex::LexerAPI& source, DiagnosticReceiver& diagReceiver);
+			
+			template <typename DiagType>
+			void issueDiag(DiagType diag, const Debug::SourcePosition& start) {
+				diagReceiver_.issueDiag(std::unique_ptr<Diag>(new DiagType(std::move(diag))),
+				                        locationWithRangeFrom(start));
+			}
 			
 			String makeCString(const char* string) const;
 			
