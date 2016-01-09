@@ -1,1 +1,1 @@
-(.*)/ConstStaticMethod.loci:3:24: Static method cannot have const predicate.
+(.*)/ConstStaticMethod.loci:3:24: static method cannot have const predicate

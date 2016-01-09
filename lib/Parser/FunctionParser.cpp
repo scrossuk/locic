@@ -22,7 +22,7 @@ namespace locic {
 			StaticMethodCannotBeConstDiag() { }
 			
 			std::string toString() const {
-				return "Static method cannot have const predicate.";
+				return "static method cannot have const predicate";
 			}
 			
 		};
