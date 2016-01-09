@@ -51,9 +51,9 @@ namespace locic {
 		};
 		
 		TokenReader::TokenReader(Lex::LexerAPI& source, DiagnosticReceiver& diagReceiver)
-		: source_(source), tokens_(1, source.lexToken()),
+		: source_(source), diagReceiver_(diagReceiver), tokens_(1, source.lexToken()),
 		position_(tokens_.front().sourceRange().start()),
-		lastEndPosition_(position_), diagReceiver_(diagReceiver) { }
+		lastEndPosition_(position_) { }
 		
 		String TokenReader::makeCString(const char* const string) const {
 			return String(source_.fileName().host(), string);
