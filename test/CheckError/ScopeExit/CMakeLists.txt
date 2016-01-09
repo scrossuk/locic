@@ -1,6 +1,6 @@
 # Scope exit tests.
 
-test_check_error(ScopeSuccessAlwaysThrowDeadCode USE_NEW_PARSER)
+test_check_error(ScopeSuccessAlwaysThrowDeadCode)
 test_check_error(ScopeSuccessBlockEarlierScopeSuccess)
 test_check_error(UnreachableScopeExit)
 test_check_error(UnreachableScopeFailure)
