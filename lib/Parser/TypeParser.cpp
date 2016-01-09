@@ -40,6 +40,16 @@ namespace locic {
 			
 		};
 		
+		class ConflictingSignedQualifierDiag: public Diag {
+		public:
+			ConflictingSignedQualifierDiag() { }
+			
+			std::string toString() const {
+				return "Conflicting 'signed' and 'unsigned' qualifiers.";
+			}
+			
+		};
+		
 		TypeParser::TypeParser(TokenReader& reader)
 		: reader_(reader), builder_(reader) { }
 		
@@ -294,7 +304,7 @@ namespace locic {
 						if (currentIsSigned == isSigned) {
 							reader_.issueDiag(DuplicateSignedQualifierDiag(), start);
 						} else {
-							//issueError(Diag::ConflictingSignedQualifier, start);
+							reader_.issueDiag(ConflictingSignedQualifierDiag(), start);
 						}
 						break;
 					}
