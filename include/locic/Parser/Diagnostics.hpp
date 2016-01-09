@@ -1,14 +1,18 @@
 #ifndef LOCIC_PARSER_DIAGNOSTICS_HPP
 #define LOCIC_PARSER_DIAGNOSTICS_HPP
 
+#include <string>
+
 namespace locic {
 	
 	namespace Parser {
 		
-		enum class Diag {
-			DuplicateSignedQualifier,
-			ConflictingSignedQualifier,
-			InvalidType
+		class Diag {
+		public:
+			virtual ~Diag() { }
+			
+			virtual std::string toString() const = 0;
+			
 		};
 		
 	}

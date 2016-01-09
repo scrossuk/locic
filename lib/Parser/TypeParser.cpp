@@ -239,7 +239,7 @@ namespace locic {
 				default:
 					printf("Unexpected type token: %s\n", token.toString().c_str());
 					printf("At %s.\n", reader_.locationWithRangeFrom(start).toString().c_str());
-					issueError(Diag::InvalidType, start);
+					//issueError(Diag::InvalidType, start);
 					reader_.consume();
 					
 					// Pretend we got an int type.
@@ -269,9 +269,9 @@ namespace locic {
 						reader_.consume();
 						const bool currentIsSigned = (token.kind() == Token::SIGNED);
 						if (currentIsSigned == isSigned) {
-							issueError(Diag::DuplicateSignedQualifier, start);
+							//issueError(Diag::DuplicateSignedQualifier, start);
 						} else {
-							issueError(Diag::ConflictingSignedQualifier, start);
+							//issueError(Diag::ConflictingSignedQualifier, start);
 						}
 						break;
 					}
