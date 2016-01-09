@@ -12,14 +12,15 @@ add_custom_command(OUTPUT GeneratedParser.cpp GeneratedParser.hpp ParserReport.t
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-add_library(locic-parser
+add_library(locic-oldparser
 	DefaultParser.cpp
 	${CMAKE_CURRENT_BINARY_DIR}/GeneratedParser.cpp
 )
 
-add_library(locic-newparser
+add_library(locic-parser
 	AttributeBuilder.cpp
 	AttributeParser.cpp
+	DefaultParser.cpp
 	FunctionBuilder.cpp
 	FunctionParser.cpp
 	NamespaceBuilder.cpp

@@ -22,11 +22,10 @@ add_executable(locic
 )
 
 target_link_libraries(locic
-	locic-parser
 	locic-semanalysis
 	locic-codegen
 	locic-sem
-	locic-newparser
+	locic-parser
 	locic-ast
 	locic-lex
 	locic-support
@@ -44,11 +43,10 @@ add_executable(loci-test
 )
 
 target_link_libraries(loci-test
-	locic-parser
 	locic-semanalysis
 	locic-codegen
 	locic-sem
-	locic-newparser
+	locic-parser
 	locic-ast
 	locic-lex
 	locic-support
@@ -63,10 +61,10 @@ add_executable(loci-vtable
 )
 
 target_link_libraries(loci-vtable
-	locic-parser
 	locic-semanalysis
 	locic-codegen
 	locic-sem
+	locic-parser
 	locic-lex
 	locic-support
 	${REQ_LIBS}

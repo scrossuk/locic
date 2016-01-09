@@ -21,7 +21,7 @@ function(add_unit_test name)
 	target_link_libraries(locic-unittest-${name}
 		locic-unittestmain
 		locic-util-gtest
-		locic-newparser
+		locic-parser
 		locic-ast
 		locic-lex
 		locic-support
