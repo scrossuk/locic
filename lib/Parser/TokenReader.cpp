@@ -69,21 +69,23 @@ namespace locic {
 			(void) expectOneOf({ tokenKind });
 		}
 		
+		static bool isIn(const Token::Kind findKind, const Array<Token::Kind, 4>& tokenKinds) {
+			bool found = false;
+			for (const auto kind: tokenKinds) {
+				if (findKind == kind) {
+					found = true;
+					break;
+				}
+			}
+			return found;
+		}
+		
 		Token TokenReader::expectOneOf(const Array<Token::Kind, 4>& tokenKinds) {
 			assert(!tokens_.empty());
 			assert(!tokenKinds.empty());
 			
 			const auto token = peek();
-			
-			bool found = false;
-			for (const auto kind: tokenKinds) {
-				if (token.kind() == kind) {
-					found = true;
-					break;
-				}
-			}
-			
-			if (found) {
+			if (isIn(token.kind(), tokenKinds)) {
 				consume();
 				return token;
 			} else {
