@@ -16,6 +16,21 @@ namespace locic {
 	
 	namespace Parser {
 		
+		class InvalidValidDiag: public Error {
+		public:
+			InvalidValidDiag(const Token::Kind actual)
+			: actual_(actual) { }
+			
+			std::string toString() const {
+				return makeString("Unexpected value token: %s",
+				                  Token::kindToString(actual_).c_str());
+			}
+			
+		private:
+			Token::Kind actual_;
+			
+		};
+		
 		class InvalidOperandDiag: public Warning {
 		public:
 			InvalidOperandDiag(const std::string& opName)
@@ -929,10 +944,13 @@ namespace locic {
 				return builder_.makeTypeValue(type, start);
 			}
 			
-			printf("Unexpected value token: %s\n", token.toString().c_str());
-			printf("At %s.\n", reader_.locationWithRangeFrom(start).toString().c_str());
+			reader_.issueDiag(InvalidValidDiag(token.kind()), start);
+			reader_.consume();
 			
-			throw std::logic_error("TODO: invalid atomic value");
+			// Pretend we got a 'null' value.
+			return builder_.makeLiteralValue(Constant::Null(),
+			                                 reader_.makeCString(""),
+			                                 start);
 		}
 		
 		bool ValueParser::isAtomicValue(const AST::Node<AST::Value>& operand) const {
