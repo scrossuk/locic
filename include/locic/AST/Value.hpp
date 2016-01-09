@@ -373,6 +373,84 @@ namespace locic {
 				return kind() == BINARYOP;
 			}
 			
+			bool isBinaryOpKind(const BinaryOpKind binaryOpKind) const {
+				return isBinaryOp() && binaryOp.kind == binaryOpKind;
+			}
+			
+			bool isAdd() const {
+				return isBinaryOpKind(OP_ADD);
+			}
+			
+			bool isSubtract() const {
+				return isBinaryOpKind(OP_SUBTRACT);
+			}
+			
+			bool isMultiply() const {
+				return isBinaryOpKind(OP_MULTIPLY);
+			}
+			
+			bool isDivide() const {
+				return isBinaryOpKind(OP_DIVIDE);
+			}
+			
+			bool isModulo() const {
+				return isBinaryOpKind(OP_MODULO);
+			}
+			
+			bool isBitwiseAnd() const {
+				return isBinaryOpKind(OP_BITWISEAND);
+			}
+			
+			bool isBitwiseOr() const {
+				return isBinaryOpKind(OP_BITWISEOR);
+			}
+			
+			bool isBitwiseXor() const {
+				return isBinaryOpKind(OP_BITWISEXOR);
+			}
+			
+			bool isLogicalAnd() const {
+				return isBinaryOpKind(OP_LOGICALAND);
+			}
+			
+			bool isLogicalOr() const {
+				return isBinaryOpKind(OP_LOGICALOR);
+			}
+			
+			bool isIndex() const {
+				return isBinaryOpKind(OP_INDEX);
+			}
+			
+			bool isComparison() const {
+				if (!isBinaryOp()) {
+					return false;
+				}
+				
+				switch (binaryOp.kind) {
+					case OP_ISEQUAL:
+					case OP_NOTEQUAL:
+					case OP_LESSTHAN:
+					case OP_LESSTHANOREQUAL:
+					case OP_GREATERTHAN:
+					case OP_GREATERTHANOREQUAL:
+						return true;
+					case OP_ADD:
+					case OP_SUBTRACT:
+					case OP_MULTIPLY:
+					case OP_DIVIDE:
+					case OP_MODULO:
+					case OP_LOGICALAND:
+					case OP_LOGICALOR:
+					case OP_BITWISEAND:
+					case OP_BITWISEOR:
+					case OP_BITWISEXOR:
+					case OP_LEFTSHIFT:
+					case OP_RIGHTSHIFT:
+					case OP_INDEX:
+						return false;
+				}
+			}
+			
 			std::string toString() const;
 		};
 		
