@@ -1,10 +1,14 @@
 #ifndef MOCKTOKENSOURCE_HPP
 #define MOCKTOKENSOURCE_HPP
 
+#include <stdexcept>
+
 #include <locic/Constant.hpp>
+#include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
 #include <locic/Lex/LexerAPI.hpp>
+#include <locic/Parser/DiagnosticReceiver.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/StringHost.hpp>
 
@@ -14,7 +18,7 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class MockTokenSource: public Lex::LexerAPI {
+		class MockTokenSource: public Lex::LexerAPI, public Parser::DiagnosticReceiver {
 		public:
 			MockTokenSource(const StringHost& stringHost,
 			                const Array<Token::Kind, 16>& tokenKinds)
@@ -57,6 +61,11 @@ namespace locic {
 			
 			bool allConsumed() const {
 				return position_ == tokenKinds_.size();
+			}
+			
+			void issueDiag(std::unique_ptr<Parser::Diag> /*diag*/,
+			               const Debug::SourceLocation& /*location*/) {
+				throw std::logic_error("Unexpected parser error.");
 			}
 			
 		private:

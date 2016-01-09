@@ -67,7 +67,7 @@ namespace locic {
 		
 		bool DefaultParser::parseFile() {
 			if (impl_->useNewParser()) {
-				TokenReader reader(impl_->lexer().getLexer());
+				TokenReader reader(impl_->lexer().getLexer(), *impl_);
 				const auto namespaceDecl = NamespaceParser(reader).parseGlobalNamespace();
 				impl_->context().fileCompleted(namespaceDecl);
 			} else {

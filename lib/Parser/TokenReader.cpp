@@ -12,10 +12,10 @@ namespace locic {
 	
 	namespace Parser {
 		
-		TokenReader::TokenReader(Lex::LexerAPI& source)
+		TokenReader::TokenReader(Lex::LexerAPI& source, DiagnosticReceiver& diagReceiver)
 		: source_(source), tokens_(1, source.lexToken()),
 		position_(tokens_.front().sourceRange().start()),
-		lastEndPosition_(position_) { }
+		lastEndPosition_(position_), diagReceiver_(diagReceiver) { }
 		
 		String TokenReader::makeCString(const char* const string) const {
 			return String(source_.fileName().host(), string);

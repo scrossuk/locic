@@ -14,7 +14,7 @@ namespace locic {
 		void testParseNamespace(const Array<Token::Kind, 16>& tokenKinds, FnType fn) {
 			StringHost stringHost;
 			MockTokenSource tokenSource(stringHost, tokenKinds);
-			TokenReader tokenReader(tokenSource);
+			TokenReader tokenReader(tokenSource, tokenSource);
 			const auto nameSpace = NamespaceParser(tokenReader).parseNamespace();
 			EXPECT_TRUE(tokenSource.allConsumed());
 			EXPECT_TRUE(tokenReader.peek().kind() == Token::END);
@@ -25,7 +25,7 @@ namespace locic {
 		void testParseGlobalNamespace(const Array<Token::Kind, 16>& tokenKinds, FnType fn) {
 			StringHost stringHost;
 			MockTokenSource tokenSource(stringHost, tokenKinds);
-			TokenReader tokenReader(tokenSource);
+			TokenReader tokenReader(tokenSource, tokenSource);
 			const auto nameSpace = NamespaceParser(tokenReader).parseGlobalNamespace();
 			EXPECT_TRUE(tokenSource.allConsumed());
 			EXPECT_TRUE(tokenReader.peek().kind() == Token::END);

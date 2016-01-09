@@ -14,7 +14,7 @@ namespace locic {
 		void testParseVar(const Array<Token::Kind, 16>& tokenKinds, FnType fn) {
 			StringHost stringHost;
 			MockTokenSource tokenSource(stringHost, tokenKinds);
-			TokenReader tokenReader(tokenSource);
+			TokenReader tokenReader(tokenSource, tokenSource);
 			const auto var = VarParser(tokenReader).parseVar();
 			EXPECT_TRUE(tokenSource.allConsumed());
 			EXPECT_TRUE(tokenReader.peek().kind() == Token::END);
