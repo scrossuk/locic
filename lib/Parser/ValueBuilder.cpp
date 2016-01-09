@@ -144,6 +144,12 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
+		ValueBuilder::makeBracketedValue(AST::Node<AST::Value> value,
+		                                 const Debug::SourcePosition& start) {
+			return makeValueNode(AST::Value::Bracket(value), start);
+		}
+		
+		AST::Node<AST::Value>
 		ValueBuilder::makeTypeValue(AST::Node<AST::Type> type,
 		                            const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::TypeRef(type), start);

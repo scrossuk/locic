@@ -103,6 +103,10 @@ namespace locic {
 			               const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
+			makeBracketedValue(AST::Node<AST::Value> value,
+			                   const Debug::SourcePosition& start);
+			
+			AST::Node<AST::Value>
 			makeTypeValue(AST::Node<AST::Type> type,
 			              const Debug::SourcePosition& start);
 			
