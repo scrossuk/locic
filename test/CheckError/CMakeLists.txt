@@ -4,9 +4,9 @@
 macro(test_check_error name)
 	cmake_parse_arguments(TEST_CHECK_ERROR "EXPECT_FAIL;USE_OLD_PARSER" "" "" ${ARGN})
 	if(TEST_CHECK_ERROR_USE_OLD_PARSER)
-		set(USE_NEW_PARSER_OPT "")
+		set(USE_NEW_PARSER_OPT "--use-old-parser")
 	else()
-		set(USE_NEW_PARSER_OPT "--use-new-parser")
+		set(USE_NEW_PARSER_OPT "")
 	endif()
 	set(test_name "TestCheckError${name}")
 	add_test(NAME "${test_name}"
