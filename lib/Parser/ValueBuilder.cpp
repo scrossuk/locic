@@ -65,10 +65,11 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeBitwiseXorValue(AST::Node<AST::Value> /*leftValue*/,
-		                                  AST::Node<AST::Value> /*rightValue*/,
-		                                  const Debug::SourcePosition& /*start*/) {
-			throw std::logic_error("TODO");
+		ValueBuilder::makeBitwiseXorValue(AST::Node<AST::Value> leftValue,
+		                                  AST::Node<AST::Value> rightValue,
+		                                  const Debug::SourcePosition& start) {
+			return makeBinaryOpValue(leftValue, rightValue,
+			                         AST::OP_BITWISEXOR, start);
 		}
 		
 		AST::Node<AST::Value>
