@@ -1,35 +1,35 @@
-(.*)/InvalidArithmeticOperatorCombinations.loci:6:10: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:7:10: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:8:10: Operand of bitwise and depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:9:10: Operand of bitwise or depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:10:10: Operand of logical and depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:11:10: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:12:10: Operand of ternary depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:14:10: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:15:10: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:16:10: Operand of bitwise and depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:17:10: Operand of bitwise or depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:18:10: Operand of logical and depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:19:10: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:20:10: Operand of ternary depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:22:10: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:23:10: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:24:10: Operand of bitwise and depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:25:10: Operand of bitwise or depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:26:10: Operand of logical and depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:27:10: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:28:10: Operand of ternary depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:30:10: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:31:10: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:32:10: Operand of bitwise and depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:33:10: Operand of bitwise or depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:34:10: Operand of logical and depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:35:10: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:36:10: Operand of ternary depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:38:10: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:39:10: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:40:10: Operand of bitwise and depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:41:10: Operand of bitwise or depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:42:10: Operand of logical and depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:43:10: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidArithmeticOperatorCombinations.loci:44:10: Operand of ternary depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:6:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:7:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:8:10: warning: Operand of bitwise and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:9:10: warning: Operand of bitwise or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:10:10: warning: Operand of logical and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:11:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:12:10: warning: Operand of ternary depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:14:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:15:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:16:10: warning: Operand of bitwise and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:17:10: warning: Operand of bitwise or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:18:10: warning: Operand of logical and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:19:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:20:10: warning: Operand of ternary depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:22:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:23:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:24:10: warning: Operand of bitwise and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:25:10: warning: Operand of bitwise or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:26:10: warning: Operand of logical and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:27:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:28:10: warning: Operand of ternary depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:30:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:31:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:32:10: warning: Operand of bitwise and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:33:10: warning: Operand of bitwise or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:34:10: warning: Operand of logical and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:35:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:36:10: warning: Operand of ternary depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:38:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:39:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:40:10: warning: Operand of bitwise and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:41:10: warning: Operand of bitwise or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:42:10: warning: Operand of logical and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:43:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:44:10: warning: Operand of ternary depends on subtle precedence; add parentheses.

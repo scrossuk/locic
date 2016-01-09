@@ -1,8 +1,8 @@
-(.*)/InvalidLogicOperatorSequence.loci:4:10: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidLogicOperatorSequence.loci:6:10: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidLogicOperatorSequence.loci:8:19: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidLogicOperatorSequence.loci:9:19: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidLogicOperatorSequence.loci:13:10: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidLogicOperatorSequence.loci:14:10: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidLogicOperatorSequence.loci:16:19: Operand of logical or depends on subtle precedence; add parentheses.
-(.*)/InvalidLogicOperatorSequence.loci:18:19: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidLogicOperatorSequence.loci:4:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidLogicOperatorSequence.loci:6:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidLogicOperatorSequence.loci:8:19: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidLogicOperatorSequence.loci:9:19: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidLogicOperatorSequence.loci:13:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidLogicOperatorSequence.loci:14:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidLogicOperatorSequence.loci:16:19: warning: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidLogicOperatorSequence.loci:18:19: warning: Operand of logical or depends on subtle precedence; add parentheses.

@@ -1,16 +1,16 @@
-(.*)/InvalidLvalues.loci:2:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:3:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:4:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:5:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:6:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:7:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:8:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:9:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:10:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:11:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:12:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:13:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:14:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:15:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:16:2: Invalid lvalue; add parentheses.
-(.*)/InvalidLvalues.loci:17:2: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:2:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:3:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:4:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:5:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:6:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:7:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:8:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:9:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:10:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:11:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:12:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:13:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:14:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:15:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:16:2: warning: Invalid lvalue; add parentheses.
+(.*)/InvalidLvalues.loci:17:2: warning: Invalid lvalue; add parentheses.

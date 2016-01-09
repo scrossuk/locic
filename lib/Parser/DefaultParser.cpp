@@ -25,6 +25,17 @@ namespace locic {
 			                  (unsigned) location.range().start().column());
 		}
 		
+		static std::string formatLevel(const DiagLevel level) {
+			switch (level) {
+				case DiagLevel::Error:
+					return "error";
+				case DiagLevel::Warning:
+					return "warning";
+				case DiagLevel::Notice:
+					return "notice";
+			}
+		}
+		
 		class DefaultParserImpl: public DiagnosticReceiver {
 		public:
 			DefaultParserImpl(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList,
@@ -46,8 +57,9 @@ namespace locic {
 			
 			void issueDiag(std::unique_ptr<Diag> diag,
 			               const Debug::SourceLocation& location) {
-				const auto error = makeString("%s: %s",
+				const auto error = makeString("%s: %s: %s",
 				                              formatLocation(location).c_str(),
+				                              formatLevel(diag->level()).c_str(),
 				                              diag->toString().c_str());
 				context().error(error, location);
 			}
