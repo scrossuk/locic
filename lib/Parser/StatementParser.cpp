@@ -16,6 +16,16 @@ namespace locic {
 	
 	namespace Parser {
 		
+		class InvalidLvalueDiag: public Diag {
+		public:
+			 InvalidLvalueDiag() { }
+			
+			std::string toString() const {
+				return "Invalid lvalue; add parentheses.";
+			}
+			
+		};
+		
 		StatementParser::StatementParser(TokenReader& reader)
 		: reader_(reader), builder_(reader) { }
 		
@@ -381,6 +391,11 @@ namespace locic {
 			
 			const auto rvalue = ValueParser(reader_).parseValue();
 			reader_.expect(Token::SEMICOLON);
+			
+			if (!ValueParser(reader_).isUnaryValueOrNext(value)) {
+				reader_.issueDiagWithLoc(InvalidLvalueDiag(),
+				                         value.location());
+			}
 			return builder_.makeAssignStatement(value, rvalue,
 			                                    assignKind, start);
 		}
