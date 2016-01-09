@@ -105,14 +105,12 @@ namespace locic {
 		}
 		
 		String TokenReader::expectName() {
-			String name;
-			if (peek().kind() == Token::NAME) {
-				name = peek().name();
+			const auto token = expectOneOf({ Token::NAME });
+			if (token.kind() == Token::NAME) {
+				return token.name();
 			} else {
-				throw std::logic_error("TODO: name expected");
+				return makeCString("<none>");
 			}
-			expect(Token::NAME);
-			return name;
 		}
 		
 		Version TokenReader::expectVersion() {
