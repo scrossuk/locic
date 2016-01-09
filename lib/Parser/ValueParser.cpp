@@ -753,6 +753,12 @@ namespace locic {
 							return value;
 						}
 						
+						if (!canInterpretValueAsType(value)) {
+							// Value cannot be interpreted as type,
+							// so this must be multiply/bitwise-AND.
+							return value;
+						}
+						
 						auto type = interpretValueAsType(value);
 						if (token.kind() == Token::STAR) {
 							type = TypeBuilder(reader_).makePointerType(type, start);
