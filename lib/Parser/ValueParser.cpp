@@ -46,6 +46,15 @@ namespace locic {
 			
 		};
 		
+		class CannotInterpretValueAsType: public Error {
+		public:
+			CannotInterpretValueAsType()  { }
+			
+			std::string toString() const {
+				return "cannot interpret value as type";
+			}
+		};
+		
 		ValueParser::ValueParser(TokenReader& reader)
 		: reader_(reader), builder_(reader) { }
 		
@@ -857,7 +866,10 @@ namespace locic {
 				case AST::Value::FUNCTIONCALL:
 				case AST::Value::CAPABILITYTEST:
 				case AST::Value::ARRAYLITERAL: {
-					throw std::logic_error("TODO: Invalid value to be interpreted as type");
+					reader_.issueDiagWithLoc(CannotInterpretValueAsType(),
+					                         value.location());
+					return AST::makeNode(value.location(),
+					                     AST::Type::Primitive(PrimitiveInt));
 				}
 			}
 		}
