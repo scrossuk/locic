@@ -1,4 +1,4 @@
-// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: %locic %s --target x86_64 --emit-llvm --use-old-parser -o %t
 // RUN: FileCheck < %t %s
 
 // CHECK: @[[CNAME:[a-zA-z0-9_]+]] = internal constant [7 x i8] c"i > 10\00", align 1

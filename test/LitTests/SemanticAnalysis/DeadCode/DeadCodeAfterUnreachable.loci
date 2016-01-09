@@ -1,4 +1,4 @@
-// RUN: %locic %s --verify --use-new-parser > %t
+// RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
 int function() {

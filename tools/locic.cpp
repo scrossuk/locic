@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
 	("sem-debug-file", po::value<std::string>(&semDebugFileName), "Set Semantic Analysis SEM tree debug output file")
 	("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
 	("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
-	("use-new-parser", "Use new (handwritten) parser")
+	("use-old-parser", "Use old (Bison GLR) parser")
 	;
 	
 	po::options_description hiddenOptions;
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
 	const bool timingsEnabled = !variableMap["timings"].empty();
 	const bool emitIRText = !variableMap["emit-llvm"].empty();
 	const bool verifying = !variableMap["verify"].empty();
-	const bool useNewParser = !variableMap["use-new-parser"].empty();
+	const bool useOldParser = !variableMap["use-old-parser"].empty();
 	
 	BuildOptions buildOptions;
 	buildOptions.unsafe = !variableMap["unsafe"].empty();
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
 					return 1;
 				}
 				
-				Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList, file, filename, useNewParser);
+				Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList, file, filename, !useOldParser);
 				
 				if (!parser.parseFile()) {
 					const auto errors = parser.getErrors();
