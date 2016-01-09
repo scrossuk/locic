@@ -2,7 +2,7 @@
 # NOT compile and produce a specific error.
 
 macro(test_check_error name)
-	cmake_parse_arguments(TEST_CHECK_ERROR "EXPECT_FAIL;USE_NEW_PARSER;USE_OLD_PARSER" "" "" ${ARGN})
+	cmake_parse_arguments(TEST_CHECK_ERROR "EXPECT_FAIL;USE_OLD_PARSER" "" "" ${ARGN})
 	if(TEST_CHECK_ERROR_USE_OLD_PARSER)
 		set(USE_NEW_PARSER_OPT "")
 	else()
