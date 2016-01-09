@@ -365,6 +365,10 @@ namespace locic {
 				return symbolRef.symbol;
 			}
 			
+			bool isUnaryOp() const {
+				return kind() == UNARYOP;
+			}
+			
 			bool isBinaryOp() const {
 				return kind() == BINARYOP;
 			}
