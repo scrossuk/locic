@@ -5,6 +5,8 @@
 
 #include <locic/Parser/Context.hpp>
 #include <locic/Parser/DefaultParser.hpp>
+#include <locic/Parser/DiagnosticReceiver.hpp>
+#include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/NamespaceParser.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Support/StringHost.hpp>
@@ -17,7 +19,13 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class DefaultParserImpl {
+		static std::string formatLocation(const Debug::SourceLocation& location) {
+			return makeString("%s:%u:%u", location.fileName().c_str(),
+			                  (unsigned) location.range().start().lineNumber(),
+			                  (unsigned) location.range().start().column());
+		}
+		
+		class DefaultParserImpl: public DiagnosticReceiver {
 		public:
 			DefaultParserImpl(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList,
 			                  FILE * file, const std::string& fileName, bool useNewParser)
@@ -34,6 +42,14 @@ namespace locic {
 			
 			bool useNewParser() const {
 				return useNewParser_;
+			}
+			
+			void issueDiag(std::unique_ptr<Diag> diag,
+			               const Debug::SourceLocation& location) {
+				const auto error = makeString("%s: %s",
+				                              formatLocation(location).c_str(),
+				                              diag->toString().c_str());
+				context().error(error, location);
 			}
 			
 		private:
