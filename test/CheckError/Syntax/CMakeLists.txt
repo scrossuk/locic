@@ -1,10 +1,10 @@
 # Syntax tests.
 
-test_check_error(InvalidArithmeticOperatorCombinations)
-test_check_error(InvalidBitShiftInTemplateArgument)
-test_check_error(InvalidComparisonInTemplateArgument)
-test_check_error(InvalidComparisonOperatorSequence)
-test_check_error(InvalidLogicOperatorSequence)
-test_check_error(InvalidLvalues)
-test_check_error(InvalidShiftOperatorSequence)
+test_check_error(InvalidArithmeticOperatorCombinations USE_OLD_PARSER)
+test_check_error(InvalidBitShiftInTemplateArgument USE_OLD_PARSER)
+test_check_error(InvalidComparisonInTemplateArgument USE_OLD_PARSER)
+test_check_error(InvalidComparisonOperatorSequence USE_OLD_PARSER)
+test_check_error(InvalidLogicOperatorSequence USE_OLD_PARSER)
+test_check_error(InvalidLvalues USE_OLD_PARSER)
+test_check_error(InvalidShiftOperatorSequence USE_OLD_PARSER)
 
