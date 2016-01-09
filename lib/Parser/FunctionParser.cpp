@@ -17,6 +17,16 @@ namespace locic {
 	
 	namespace Parser {
 		
+		class StaticMethodCannotBeConstDiag: public Diag {
+		public:
+			StaticMethodCannotBeConstDiag() { }
+			
+			std::string toString() const {
+				return "Static method cannot have const predicate.";
+			}
+			
+		};
+		
 		FunctionParser::FunctionParser(TokenReader& reader)
 		: reader_(reader), builder_(reader) { }
 		
@@ -86,6 +96,11 @@ namespace locic {
 			const auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
 			const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
 			
+			if (isStatic && !constSpecifier->isNone()) {
+				reader_.issueDiagWithLoc(StaticMethodCannotBeConstDiag(),
+				                         constSpecifier.location());
+			}
+			
 			if (reader_.peek().kind() == Token::SEMICOLON) {
 				reader_.consume();
 				return builder_.makeFunctionDecl(isVarArg, isStatic,
@@ -135,6 +150,11 @@ namespace locic {
 			const auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
 			const auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
 			const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
+			
+			if (isStatic && !constSpecifier->isNone()) {
+				reader_.issueDiagWithLoc(StaticMethodCannotBeConstDiag(),
+				                         constSpecifier.location());
+			}
 			
 			reader_.expect(Token::SEMICOLON);
 			
@@ -194,6 +214,11 @@ namespace locic {
 			const auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
 			const auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
 			const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
+			
+			if (isStatic && !constSpecifier->isNone()) {
+				reader_.issueDiagWithLoc(StaticMethodCannotBeConstDiag(),
+				                         constSpecifier.location());
+			}
 			
 			const auto scope = ScopeParser(reader_).parseScope();
 			
