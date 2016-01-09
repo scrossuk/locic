@@ -14,11 +14,11 @@ namespace locic{
 
 	namespace Parser{
 	
-		struct Error{
+		struct ParseError {
 			std::string message;
 			Debug::SourceLocation location;
 			
-			Error(const std::string& m, const Debug::SourceLocation& l)
+			ParseError(const std::string& m, const Debug::SourceLocation& l)
 				: message(m), location(l) { }
 		};
 		
@@ -38,7 +38,7 @@ namespace locic{
 				}
 				
 				void error(const std::string& message, const Debug::SourceLocation& location) {
-					errors_.push_back(Error(message, location));
+					errors_.push_back(ParseError(message, location));
 				}
 				
 				void fileCompleted(const AST::Node<AST::NamespaceDecl>& namespaceNode) {
@@ -49,7 +49,7 @@ namespace locic{
 					return makeString("__anon_var_%llu", (unsigned long long) nextAnonymousVariable_++);
 				}
 				
-				const std::vector<Error>& errors() const {
+				const std::vector<ParseError>& errors() const {
 					return errors_;
 				}
 				
@@ -100,7 +100,7 @@ namespace locic{
 				const StringHost& stringHost_;
 				AST::NamespaceList& rootNamespaceList_;
 				String fileName_;
-				std::vector<Error> errors_;
+				std::vector<ParseError> errors_;
 				std::string stringConstant_;
 				size_t nextAnonymousVariable_;
 				size_t column_;

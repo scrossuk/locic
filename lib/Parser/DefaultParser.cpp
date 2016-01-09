@@ -76,7 +76,7 @@ namespace locic {
 			return impl_->context().errors().empty();
 		}
 		
-		std::vector<Error> DefaultParser::getErrors() {
+		std::vector<ParseError> DefaultParser::getErrors() {
 			return impl_->context().errors();
 		}
 		
