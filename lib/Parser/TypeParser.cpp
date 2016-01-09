@@ -30,6 +30,16 @@ namespace locic {
 			
 		};
 		
+		class DuplicateSignedQualifierDiag: public Diag {
+		public:
+			DuplicateSignedQualifierDiag() { }
+			
+			std::string toString() const {
+				return "Duplicate 'signed' qualifier.";
+			}
+			
+		};
+		
 		TypeParser::TypeParser(TokenReader& reader)
 		: reader_(reader), builder_(reader) { }
 		
@@ -282,7 +292,7 @@ namespace locic {
 						reader_.consume();
 						const bool currentIsSigned = (token.kind() == Token::SIGNED);
 						if (currentIsSigned == isSigned) {
-							//issueError(Diag::DuplicateSignedQualifier, start);
+							reader_.issueDiag(DuplicateSignedQualifierDiag(), start);
 						} else {
 							//issueError(Diag::ConflictingSignedQualifier, start);
 						}
