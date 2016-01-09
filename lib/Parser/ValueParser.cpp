@@ -16,6 +16,21 @@ namespace locic {
 	
 	namespace Parser {
 		
+		class InvalidOperandDiag: public Diag {
+		public:
+			InvalidOperandDiag(const std::string& opName)
+			: opName_(opName) { }
+			
+			std::string toString() const {
+				return makeString("Operand of %s depends on subtle precedence; add parentheses.",
+				                  opName_.c_str());
+			}
+			
+		private:
+			std::string opName_;
+			
+		};
+		
 		ValueParser::ValueParser(TokenReader& reader)
 		: reader_(reader), builder_(reader) { }
 		
