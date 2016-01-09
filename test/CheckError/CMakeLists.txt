@@ -4,6 +4,7 @@
 macro(test_check_error name)
 	cmake_parse_arguments(TEST_CHECK_ERROR "EXPECT_FAIL;USE_OLD_PARSER" "" "" ${ARGN})
 	if(TEST_CHECK_ERROR_USE_OLD_PARSER)
+		message(WARNING "Test '${name}' is using old parser.")
 		set(USE_NEW_PARSER_OPT "--use-old-parser")
 	else()
 		set(USE_NEW_PARSER_OPT "")
