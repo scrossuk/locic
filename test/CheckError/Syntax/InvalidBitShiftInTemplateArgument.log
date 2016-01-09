@@ -1,19 +1,4 @@
-Parser Error: Failed to parse file '(.*)/InvalidBitShiftInTemplateArgument\.loci' with 18 errors:
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 5, column 12\) to \(line 5, column 14\)\)\): syntax error, unexpected DOUBLE_LTRIBRACKET, expecting PLUS or MINUS
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 4, column 1\) to \(line 5, column 14\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 5, column 14\) to \(line 5, column 17\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 5, column 18\) to \(line 5, column 50\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 5, column 49\) to \(line 5, column 51\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 8, column 13\) to \(line 8, column 14\)\)\): syntax error, unexpected RTRIBRACKET, expecting NAME or MOVE or NULLVAL
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 7, column 1\) to \(line 8, column 14\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 8, column 14\) to \(line 8, column 17\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 8, column 18\) to \(line 8, column 51\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 8, column 50\) to \(line 8, column 52\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 10, column 56\) to \(line 10, column 58\)\)\): syntax error, unexpected DOUBLE_LTRIBRACKET, expecting PLUS or MINUS
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 10, column 1\) to \(line 10, column 58\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 10, column 58\) to \(line 10, column 61\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 10, column 62\) to \(line 10, column 68\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 12, column 58\) to \(line 12, column 59\)\)\): syntax error, unexpected RTRIBRACKET, expecting NAME
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 12, column 1\) to \(line 12, column 59\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 12, column 59\) to \(line 12, column 62\)\)\): Invalid struct, class, function or other\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidBitShiftInTemplateArgument\.loci, range = \(line 12, column 63\) to \(line 12, column 69\)\)\): Invalid struct, class, function or other\.
+(.*)/InvalidBitShiftInTemplateArgument.loci:8:13: Expected 'NAME'; got 'RTRIBRACKET'.
+(.*)/InvalidBitShiftInTemplateArgument.loci:8:16: Expected 'LROUNDBRACKET'; got 'RTRIBRACKET'.
+(.*)/InvalidBitShiftInTemplateArgument.loci:12:58: Expected 'NAME'; got 'RTRIBRACKET'.
+(.*)/InvalidBitShiftInTemplateArgument.loci:12:61: Expected 'RROUNDBRACKET'; got 'RTRIBRACKET'.
