@@ -15,7 +15,7 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class InvalidTypeDiag: public Diag {
+		class InvalidTypeDiag: public Error {
 		public:
 			InvalidTypeDiag(const Token::Kind actual)
 			: actual_(actual) { }
@@ -30,7 +30,7 @@ namespace locic {
 			
 		};
 		
-		class DuplicateSignedQualifierDiag: public Diag {
+		class DuplicateSignedQualifierDiag: public Warning {
 		public:
 			DuplicateSignedQualifierDiag() { }
 			
@@ -40,7 +40,7 @@ namespace locic {
 			
 		};
 		
-		class ConflictingSignedQualifierDiag: public Diag {
+		class ConflictingSignedQualifierDiag: public Warning {
 		public:
 			ConflictingSignedQualifierDiag() { }
 			

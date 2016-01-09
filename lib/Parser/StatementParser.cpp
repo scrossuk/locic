@@ -16,9 +16,9 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class InvalidLvalueDiag: public Diag {
+		class InvalidLvalueDiag: public Warning {
 		public:
-			 InvalidLvalueDiag() { }
+			InvalidLvalueDiag() { }
 			
 			std::string toString() const {
 				return "Invalid lvalue; add parentheses.";

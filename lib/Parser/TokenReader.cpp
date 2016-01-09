@@ -13,7 +13,7 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class UnexpectedTokenDiag: public Diag {
+		class UnexpectedTokenDiag: public Error {
 		public:
 			UnexpectedTokenDiag(Array<Token::Kind, 4> expected,
 			                    const Token::Kind actual)

@@ -16,7 +16,7 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class InvalidOperandDiag: public Diag {
+		class InvalidOperandDiag: public Warning {
 		public:
 			InvalidOperandDiag(const std::string& opName)
 			: opName_(opName) { }
