@@ -451,6 +451,10 @@ namespace locic {
 				}
 			}
 			
+			bool isCapabilityTest() const {
+				return kind() == CAPABILITYTEST;
+			}
+			
 			std::string toString() const;
 		};
 		
