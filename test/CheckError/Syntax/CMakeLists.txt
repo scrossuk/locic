@@ -6,5 +6,5 @@ test_check_error(InvalidComparisonInTemplateArgument)
 test_check_error(InvalidComparisonOperatorSequence)
 test_check_error(InvalidLogicOperatorSequence)
 test_check_error(InvalidLvalues USE_OLD_PARSER)
-test_check_error(InvalidShiftOperatorSequence USE_OLD_PARSER)
+test_check_error(InvalidShiftOperatorSequence)
 
