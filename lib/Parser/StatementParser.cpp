@@ -16,6 +16,16 @@ namespace locic {
 	
 	namespace Parser {
 		
+		class ElseWithoutPreviousIfDiag: public Error {
+		public:
+			ElseWithoutPreviousIfDiag() { }
+			
+			std::string toString() const {
+				return "'else' without a previous 'if'";
+			}
+			
+		};
+		
 		class InvalidLvalueDiag: public Warning {
 		public:
 			InvalidLvalueDiag() { }
@@ -41,6 +51,15 @@ namespace locic {
 				}
 				case Token::IF: {
 					return parseIfStatement();
+				}
+				case Token::ELSE: {
+					reader_.issueDiag(ElseWithoutPreviousIfDiag(), start);
+					reader_.consume();
+					if (reader_.peek().kind() == Token::IF) {
+						return parseIfStatement();
+					}
+					(void) ScopeParser(reader_).parseScope();
+					return parseStatement();
 				}
 				case Token::SWITCH: {
 					return parseSwitchStatement();
