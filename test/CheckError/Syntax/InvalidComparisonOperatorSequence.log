@@ -1,73 +1,36 @@
-Parser Error: Failed to parse file '(.*)/InvalidComparisonOperatorSequence\.loci' with 72 errors:
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 4, column 31\) to \(line 4, column 32\)\)\): syntax error, unexpected SEMICOLON, expecting PLUS or MINUS
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 4, column 2\) to \(line 4, column 32\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 5, column 24\) to \(line 5, column 26\)\)\): syntax error, unexpected LESSOREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 5, column 24\) to \(line 5, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 6, column 26\) to \(line 6, column 31\)\)\): syntax error, unexpected NAME, expecting COLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 6, column 2\) to \(line 6, column 31\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 7, column 24\) to \(line 7, column 26\)\)\): syntax error, unexpected GREATEROREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 7, column 24\) to \(line 7, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 8, column 24\) to \(line 8, column 26\)\)\): syntax error, unexpected ISEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 8, column 24\) to \(line 8, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 9, column 24\) to \(line 9, column 26\)\)\): syntax error, unexpected NOTEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 9, column 24\) to \(line 9, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 11, column 32\) to \(line 11, column 33\)\)\): syntax error, unexpected SEMICOLON, expecting PLUS or MINUS
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 11, column 2\) to \(line 11, column 33\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 12, column 25\) to \(line 12, column 27\)\)\): syntax error, unexpected LESSOREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 12, column 25\) to \(line 12, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 13, column 25\) to \(line 13, column 26\)\)\): syntax error, unexpected RTRIBRACKET, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 13, column 25\) to \(line 13, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 14, column 25\) to \(line 14, column 27\)\)\): syntax error, unexpected GREATEROREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 14, column 25\) to \(line 14, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 15, column 25\) to \(line 15, column 27\)\)\): syntax error, unexpected ISEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 15, column 25\) to \(line 15, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 16, column 25\) to \(line 16, column 27\)\)\): syntax error, unexpected NOTEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 16, column 25\) to \(line 16, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 18, column 31\) to \(line 18, column 32\)\)\): syntax error, unexpected SEMICOLON, expecting PLUS or MINUS
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 18, column 2\) to \(line 18, column 32\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 19, column 24\) to \(line 19, column 26\)\)\): syntax error, unexpected LESSOREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 19, column 24\) to \(line 19, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 20, column 24\) to \(line 20, column 25\)\)\): syntax error, unexpected RTRIBRACKET, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 20, column 24\) to \(line 20, column 25\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 21, column 24\) to \(line 21, column 26\)\)\): syntax error, unexpected GREATEROREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 21, column 24\) to \(line 21, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 22, column 24\) to \(line 22, column 26\)\)\): syntax error, unexpected ISEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 22, column 24\) to \(line 22, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 23, column 24\) to \(line 23, column 26\)\)\): syntax error, unexpected NOTEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 23, column 24\) to \(line 23, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 25, column 32\) to \(line 25, column 33\)\)\): syntax error, unexpected SEMICOLON, expecting PLUS or MINUS
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 25, column 2\) to \(line 25, column 33\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 26, column 25\) to \(line 26, column 27\)\)\): syntax error, unexpected LESSOREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 26, column 25\) to \(line 26, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 27, column 25\) to \(line 27, column 26\)\)\): syntax error, unexpected RTRIBRACKET, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 27, column 25\) to \(line 27, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 28, column 25\) to \(line 28, column 27\)\)\): syntax error, unexpected GREATEROREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 28, column 25\) to \(line 28, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 29, column 25\) to \(line 29, column 27\)\)\): syntax error, unexpected ISEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 29, column 25\) to \(line 29, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 30, column 25\) to \(line 30, column 27\)\)\): syntax error, unexpected NOTEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 30, column 25\) to \(line 30, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 32, column 32\) to \(line 32, column 33\)\)\): syntax error, unexpected SEMICOLON, expecting PLUS or MINUS
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 32, column 2\) to \(line 32, column 33\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 33, column 25\) to \(line 33, column 27\)\)\): syntax error, unexpected LESSOREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 33, column 25\) to \(line 33, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 34, column 25\) to \(line 34, column 26\)\)\): syntax error, unexpected RTRIBRACKET, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 34, column 25\) to \(line 34, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 35, column 25\) to \(line 35, column 27\)\)\): syntax error, unexpected GREATEROREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 35, column 25\) to \(line 35, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 36, column 25\) to \(line 36, column 27\)\)\): syntax error, unexpected ISEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 36, column 25\) to \(line 36, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 37, column 25\) to \(line 37, column 27\)\)\): syntax error, unexpected NOTEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 37, column 25\) to \(line 37, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 39, column 32\) to \(line 39, column 33\)\)\): syntax error, unexpected SEMICOLON, expecting PLUS or MINUS
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 39, column 2\) to \(line 39, column 33\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 40, column 25\) to \(line 40, column 27\)\)\): syntax error, unexpected LESSOREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 40, column 25\) to \(line 40, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 41, column 25\) to \(line 41, column 26\)\)\): syntax error, unexpected RTRIBRACKET, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 41, column 25\) to \(line 41, column 26\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 42, column 25\) to \(line 42, column 27\)\)\): syntax error, unexpected GREATEROREQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 42, column 25\) to \(line 42, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 43, column 25\) to \(line 43, column 27\)\)\): syntax error, unexpected ISEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 43, column 25\) to \(line 43, column 27\)\)\): Statement must be terminated with semicolon\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 44, column 25\) to \(line 44, column 27\)\)\): syntax error, unexpected NOTEQUAL, expecting SEMICOLON
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidComparisonOperatorSequence\.loci, range = \(line 44, column 25\) to \(line 44, column 27\)\)\): Statement must be terminated with semicolon\.
+(.*)/InvalidComparisonOperatorSequence.loci:4:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:5:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:6:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:7:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:8:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:9:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:11:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:12:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:13:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:14:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:15:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:16:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:18:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:19:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:20:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:21:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:22:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:23:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:25:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:26:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:27:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:28:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:29:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:30:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:32:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:33:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:34:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:35:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:36:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:37:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:39:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:40:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:41:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:42:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:43:10: Operand of comparison depends on subtle precedence; add parentheses.
+(.*)/InvalidComparisonOperatorSequence.loci:44:10: Operand of comparison depends on subtle precedence; add parentheses.

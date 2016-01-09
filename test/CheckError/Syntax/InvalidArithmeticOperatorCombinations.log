@@ -1,76 +1,35 @@
-Parser Error: Failed to parse file '(.*)/InvalidArithmeticOperatorCombinations\.loci' with 75 errors:
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 6, column 24\) to \(line 6, column 26\)\)\): syntax error, unexpected DOUBLE_LTRIBRACKET
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 6, column 2\) to \(line 6, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 7, column 25\) to \(line 7, column 26\)\)\): syntax error, unexpected RTRIBRACKET
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 7, column 2\) to \(line 7, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 8, column 24\) to \(line 8, column 25\)\)\): syntax error, unexpected AMPERSAND
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 8, column 2\) to \(line 8, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 9, column 24\) to \(line 9, column 25\)\)\): syntax error, unexpected VERTICAL_BAR
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 9, column 2\) to \(line 9, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 10, column 24\) to \(line 10, column 26\)\)\): syntax error, unexpected DOUBLE_AMPERSAND
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 10, column 2\) to \(line 10, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 11, column 24\) to \(line 11, column 26\)\)\): syntax error, unexpected DOUBLE_VERTICAL_BAR
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 11, column 2\) to \(line 11, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 12, column 24\) to \(line 12, column 25\)\)\): syntax error, unexpected QUESTIONMARK
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 12, column 2\) to \(line 12, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 12, column 26\) to \(line 12, column 33\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 14, column 24\) to \(line 14, column 26\)\)\): syntax error, unexpected DOUBLE_LTRIBRACKET
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 14, column 2\) to \(line 14, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 15, column 25\) to \(line 15, column 26\)\)\): syntax error, unexpected RTRIBRACKET
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 15, column 2\) to \(line 15, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 16, column 24\) to \(line 16, column 25\)\)\): syntax error, unexpected AMPERSAND
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 16, column 2\) to \(line 16, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 17, column 24\) to \(line 17, column 25\)\)\): syntax error, unexpected VERTICAL_BAR
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 17, column 2\) to \(line 17, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 18, column 24\) to \(line 18, column 26\)\)\): syntax error, unexpected DOUBLE_AMPERSAND
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 18, column 2\) to \(line 18, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 19, column 24\) to \(line 19, column 26\)\)\): syntax error, unexpected DOUBLE_VERTICAL_BAR
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 19, column 2\) to \(line 19, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 20, column 24\) to \(line 20, column 25\)\)\): syntax error, unexpected QUESTIONMARK
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 20, column 2\) to \(line 20, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 20, column 26\) to \(line 20, column 33\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 22, column 24\) to \(line 22, column 26\)\)\): syntax error, unexpected DOUBLE_LTRIBRACKET
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 22, column 2\) to \(line 22, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 23, column 25\) to \(line 23, column 26\)\)\): syntax error, unexpected RTRIBRACKET
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 23, column 2\) to \(line 23, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 24, column 24\) to \(line 24, column 25\)\)\): syntax error, unexpected AMPERSAND
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 24, column 2\) to \(line 24, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 25, column 24\) to \(line 25, column 25\)\)\): syntax error, unexpected VERTICAL_BAR
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 25, column 2\) to \(line 25, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 26, column 24\) to \(line 26, column 26\)\)\): syntax error, unexpected DOUBLE_AMPERSAND
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 26, column 2\) to \(line 26, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 27, column 24\) to \(line 27, column 26\)\)\): syntax error, unexpected DOUBLE_VERTICAL_BAR
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 27, column 2\) to \(line 27, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 28, column 24\) to \(line 28, column 25\)\)\): syntax error, unexpected QUESTIONMARK
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 28, column 2\) to \(line 28, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 28, column 26\) to \(line 28, column 33\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 30, column 24\) to \(line 30, column 26\)\)\): syntax error, unexpected DOUBLE_LTRIBRACKET
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 30, column 2\) to \(line 30, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 31, column 25\) to \(line 31, column 26\)\)\): syntax error, unexpected RTRIBRACKET
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 31, column 2\) to \(line 31, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 32, column 24\) to \(line 32, column 25\)\)\): syntax error, unexpected AMPERSAND
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 32, column 2\) to \(line 32, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 33, column 24\) to \(line 33, column 25\)\)\): syntax error, unexpected VERTICAL_BAR
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 33, column 2\) to \(line 33, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 34, column 24\) to \(line 34, column 26\)\)\): syntax error, unexpected DOUBLE_AMPERSAND
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 34, column 2\) to \(line 34, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 35, column 24\) to \(line 35, column 26\)\)\): syntax error, unexpected DOUBLE_VERTICAL_BAR
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 35, column 2\) to \(line 35, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 36, column 24\) to \(line 36, column 25\)\)\): syntax error, unexpected QUESTIONMARK
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 36, column 2\) to \(line 36, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 36, column 26\) to \(line 36, column 33\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 38, column 24\) to \(line 38, column 26\)\)\): syntax error, unexpected DOUBLE_LTRIBRACKET
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 38, column 2\) to \(line 38, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 39, column 25\) to \(line 39, column 26\)\)\): syntax error, unexpected RTRIBRACKET
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 39, column 2\) to \(line 39, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 40, column 24\) to \(line 40, column 25\)\)\): syntax error, unexpected AMPERSAND
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 40, column 2\) to \(line 40, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 41, column 24\) to \(line 41, column 25\)\)\): syntax error, unexpected VERTICAL_BAR
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 41, column 2\) to \(line 41, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 42, column 24\) to \(line 42, column 26\)\)\): syntax error, unexpected DOUBLE_AMPERSAND
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 42, column 2\) to \(line 42, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 43, column 24\) to \(line 43, column 26\)\)\): syntax error, unexpected DOUBLE_VERTICAL_BAR
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 43, column 2\) to \(line 43, column 26\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 44, column 24\) to \(line 44, column 25\)\)\): syntax error, unexpected QUESTIONMARK
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 44, column 2\) to \(line 44, column 25\)\)\): Invalid statement\.
-Parser Error \(at SourceLocation\(filename = (.*)/InvalidArithmeticOperatorCombinations\.loci, range = \(line 44, column 26\) to \(line 44, column 33\)\)\): Invalid statement\.
+(.*)/InvalidArithmeticOperatorCombinations.loci:6:10: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:7:10: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:8:10: Operand of bitwise and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:9:10: Operand of bitwise or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:10:10: Operand of logical and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:11:10: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:12:10: Operand of ternary depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:14:10: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:15:10: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:16:10: Operand of bitwise and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:17:10: Operand of bitwise or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:18:10: Operand of logical and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:19:10: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:20:10: Operand of ternary depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:22:10: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:23:10: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:24:10: Operand of bitwise and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:25:10: Operand of bitwise or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:26:10: Operand of logical and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:27:10: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:28:10: Operand of ternary depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:30:10: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:31:10: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:32:10: Operand of bitwise and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:33:10: Operand of bitwise or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:34:10: Operand of logical and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:35:10: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:36:10: Operand of ternary depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:38:10: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:39:10: Operand of shift depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:40:10: Operand of bitwise and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:41:10: Operand of bitwise or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:42:10: Operand of logical and depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:43:10: Operand of logical or depends on subtle precedence; add parentheses.
+(.*)/InvalidArithmeticOperatorCombinations.loci:44:10: Operand of ternary depends on subtle precedence; add parentheses.
