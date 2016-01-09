@@ -39,9 +39,9 @@ namespace locic {
 		class DefaultParserImpl: public DiagnosticReceiver {
 		public:
 			DefaultParserImpl(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList,
-			                  FILE * file, const std::string& fileName, bool useNewParser)
+			                  FILE * file, const std::string& fileName)
 			: context_(stringHost, rootNamespaceList, fileName),
-			lexer_(file, context_.fileName()), useNewParser_(useNewParser) { }
+			lexer_(file, context_.fileName()) { }
 			
 			Context& context() {
 				return context_;
@@ -49,10 +49,6 @@ namespace locic {
 			
 			LexerAPI& lexer() {
 				return lexer_;
-			}
-			
-			bool useNewParser() const {
-				return useNewParser_;
 			}
 			
 			void issueDiag(std::unique_ptr<Diag> diag,
@@ -67,24 +63,19 @@ namespace locic {
 		private:
 			Context context_;
 			LexLexer lexer_;
-			bool useNewParser_;
 			
 		};
 		
 		DefaultParser::DefaultParser(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList,
-		                             FILE * file, const std::string& fileName, bool useNewParser)
-		: impl_(new DefaultParserImpl(stringHost, rootNamespaceList, file, fileName, useNewParser)) { }
+		                             FILE * file, const std::string& fileName, bool /*useNewParser*/)
+		: impl_(new DefaultParserImpl(stringHost, rootNamespaceList, file, fileName)) { }
 		
 		DefaultParser::~DefaultParser() { }
 		
 		bool DefaultParser::parseFile() {
-			if (impl_->useNewParser()) {
-				TokenReader reader(impl_->lexer().getLexer(), *impl_);
-				const auto namespaceDecl = NamespaceParser(reader).parseGlobalNamespace();
-				impl_->context().fileCompleted(namespaceDecl);
-			} else {
-				(void) Locic_Parser_GeneratedParser_parse(&(impl_->lexer()), &(impl_->context()));
-			}
+			TokenReader reader(impl_->lexer().getLexer(), *impl_);
+			const auto namespaceDecl = NamespaceParser(reader).parseGlobalNamespace();
+			impl_->context().fileCompleted(namespaceDecl);
 			return impl_->context().errors().empty();
 		}
 		
