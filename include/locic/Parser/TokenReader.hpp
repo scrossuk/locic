@@ -49,6 +49,8 @@ namespace locic {
 			
 			String makeCString(const char* string) const;
 			
+			String makeString(std::string string) const;
+			
 			bool isEnd() const;
 			
 			Token get();

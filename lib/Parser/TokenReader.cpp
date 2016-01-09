@@ -59,6 +59,10 @@ namespace locic {
 			return String(source_.fileName().host(), string);
 		}
 		
+		String TokenReader::makeString(std::string string) const {
+			return String(source_.fileName().host(), std::move(string));
+		}
+		
 		bool TokenReader::isEnd() const {
 			return tokens_.front().isEnd();
 		}
