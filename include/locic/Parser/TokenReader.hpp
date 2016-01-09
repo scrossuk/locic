@@ -41,6 +41,12 @@ namespace locic {
 				                        locationWithRangeFrom(start));
 			}
 			
+			template <typename DiagType>
+			void issueDiagWithLoc(DiagType diag, const Debug::SourceLocation& location) {
+				diagReceiver_.issueDiag(std::unique_ptr<Diag>(new DiagType(std::move(diag))),
+				                        location);
+			}
+			
 			String makeCString(const char* string) const;
 			
 			bool isEnd() const;
