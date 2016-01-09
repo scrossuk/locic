@@ -26,8 +26,6 @@ namespace locic {
 			TypeParser(TokenReader& reader);
 			~TypeParser();
 			
-			void issueError(Diag diag, const Debug::SourcePosition& start);
-			
 			AST::Node<AST::Type> parseType();
 			
 			AST::Node<AST::Type> parseIndirectTypeBasedOnType(AST::Node<AST::Type> type,

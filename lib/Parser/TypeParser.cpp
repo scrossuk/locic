@@ -55,10 +55,6 @@ namespace locic {
 		
 		TypeParser::~TypeParser() { }
 		
-		void TypeParser::issueError(Diag /*diag*/, const Debug::SourcePosition& /*start*/) {
-			throw std::logic_error("TODO: issue an error");
-		}
-		
 		AST::Node<AST::Type> TypeParser::parseType() {
 			const auto start = reader_.position();
 			auto type = parseQualifiedType();
