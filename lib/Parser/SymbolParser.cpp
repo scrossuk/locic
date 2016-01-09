@@ -45,7 +45,7 @@ namespace locic {
 				return builder_.makeTypenameSymbolElement(start);
 			}
 			
-			const auto name = token.name();
+			const auto name = token.kind() == Token::NAME ? token.name() : reader_.makeCString("<none>");
 			const auto templateArguments = parseSymbolTemplateArgumentList(context);
 			return builder_.makeSymbolElement(name, templateArguments, start);
 		}
