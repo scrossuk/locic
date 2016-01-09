@@ -125,23 +125,25 @@ namespace locic {
 			const auto token = peek();
 			if (isIn(token.kind(), tokenKinds)) {
 				consume();
-				return token;
 			} else {
-				std::string expectStr = "{ ";
-				for (size_t i = 0; i < tokenKinds.size(); i++) {
-					expectStr += Token::kindToString(tokenKinds[i]);
-					if ((i + 1) < tokenKinds.size()) {
-						expectStr += ", ";
+				issueDiag(UnexpectedTokenDiag(tokenKinds.copy(), token.kind()), position());
+				
+				for (size_t offset = 0; offset < 5; offset++) {
+					const auto lookaheadToken = peek(offset);
+					
+					if (lookaheadToken.kind() == Token::END) {
+						break;
+					}
+					
+					if (isIn(lookaheadToken.kind(), tokenKinds)) {
+						for (size_t i = 0; i < (offset + 1); i++) {
+							consume();
+						}
+						break;
 					}
 				}
-				expectStr += " }";
-				
-				printf("Expected one of %s; got %s\n", expectStr.c_str(),
-				       token.toString().c_str());
-				printf("At position %s in file '%s'.\n",
-				       position().toString().c_str(), source_.fileName().c_str());
-				throw std::logic_error("TODO: expected token not found");
 			}
+			return token;
 		}
 		
 		String TokenReader::expectName() {
