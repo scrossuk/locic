@@ -15,6 +15,21 @@ namespace locic {
 	
 	namespace Parser {
 		
+		class InvalidTypeDiag: public Diag {
+		public:
+			InvalidTypeDiag(const Token::Kind actual)
+			: actual_(actual) { }
+			
+			std::string toString() const {
+				return makeString("Unexpected type token: %s",
+				                  Token::kindToString(actual_).c_str());
+			}
+			
+		private:
+			Token::Kind actual_;
+			
+		};
+		
 		TypeParser::TypeParser(TokenReader& reader)
 		: reader_(reader), builder_(reader) { }
 		
@@ -237,9 +252,7 @@ namespace locic {
 					return builder_.makeSymbolType(symbol, start);
 				}
 				default:
-					printf("Unexpected type token: %s\n", token.toString().c_str());
-					printf("At %s.\n", reader_.locationWithRangeFrom(start).toString().c_str());
-					//issueError(Diag::InvalidType, start);
+					reader_.issueDiag(InvalidTypeDiag(token.kind()), start);
 					reader_.consume();
 					
 					// Pretend we got an int type.
