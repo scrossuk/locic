@@ -47,8 +47,6 @@ namespace locic {
 			ValueParser(TokenReader& reader);
 			~ValueParser();
 			
-			void issueError(Diag diag, const Debug::SourcePosition& start);
-			
 			bool isValueStartToken(Token::Kind kind) const;
 			
 			AST::Node<AST::Value> parseValue(Context context = GENERIC);
