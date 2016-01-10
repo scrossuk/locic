@@ -16,7 +16,6 @@ Before building and using the Loci Compiler Tools, it's first necessary to build
 * LLVM 3.3 to 3.7 (development build) - *debian package: llvm-dev, arch package: extra/llvm*
 * Clang 3.3 to 3.7- *debian package: clang, arch package: extra/clang*
 * Sphinx (documentation) - *debian package: python-sphinx, arch package: community/python-sphinx*
-* Bison (parser generator) - *debian package: bison, arch package: core/bison*
 * tinfo (ncurses library routines) - *debian package: libtinfo-dev, arch package: aur/libtinfo*
 
 Also, the following dependencies are optional:
