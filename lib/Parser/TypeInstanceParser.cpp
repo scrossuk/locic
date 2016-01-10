@@ -15,6 +15,26 @@ namespace locic {
 	
 	namespace Parser {
 		
+		class UnexpectedMethodDeclDiag: public Error {
+		public:
+			UnexpectedMethodDeclDiag() { }
+			
+			std::string toString() const {
+				return "unexpected method declaration; was expecting method definition";
+			}
+			
+		};
+		
+		class UnexpectedMethodDefDiag: public Error {
+		public:
+			UnexpectedMethodDefDiag() { }
+			
+			std::string toString() const {
+				return "unexpected method definition; was expecting method declaration";
+			}
+			
+		};
+		
 		TypeInstanceParser::TypeInstanceParser(TokenReader& reader)
 		: reader_(reader), builder_(reader) { }
 		
@@ -259,6 +279,12 @@ namespace locic {
 				}
 				
 				const auto function = FunctionParser(reader_).parseMethod();
+				
+				if (function->isDefinition()) {
+					reader_.issueDiagWithLoc(UnexpectedMethodDefDiag(),
+					                         function.location());
+				}
+				
 				list.push_back(function);
 			}
 			
@@ -281,6 +307,12 @@ namespace locic {
 				}
 				
 				const auto function = FunctionParser(reader_).parseMethod();
+				
+				if (function->isDeclaration()) {
+					reader_.issueDiagWithLoc(UnexpectedMethodDeclDiag(),
+					                         function.location());
+				}
+				
 				list.push_back(function);
 			}
 			
