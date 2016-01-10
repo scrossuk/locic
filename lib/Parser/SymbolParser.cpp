@@ -60,6 +60,7 @@ namespace locic {
 			reader_.consume();
 			
 			AST::ValueList valueList;
+			valueList.reserve(8);
 			
 			while (true) {
 				const auto value = ValueParser(reader_).parseValue(ValueParser::IN_TEMPLATE);

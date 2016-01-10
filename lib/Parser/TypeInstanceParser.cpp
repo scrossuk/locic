@@ -105,6 +105,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::StringList list;
+			list.reserve(8);
 			
 			if (reader_.peek().kind() != Token::RCURLYBRACKET) {
 				list.push_back(reader_.expectName());
@@ -123,6 +124,8 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::TypeInstanceList list;
+			list.reserve(8);
+			
 			list.push_back(parseDatatypeVariant());
 			
 			while (true) {
@@ -244,6 +247,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::FunctionList list;
+			list.reserve(8);
 			
 			while (!reader_.isEnd()) {
 				while (reader_.peek().kind() == Token::SEMICOLON) {
@@ -265,6 +269,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::FunctionList list;
+			list.reserve(8);
 			
 			while (!reader_.isEnd()) {
 				while (reader_.peek().kind() == Token::SEMICOLON) {

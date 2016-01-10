@@ -54,6 +54,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::TemplateTypeVarList varList;
+			varList.reserve(8);
 			
 			if (reader_.peek().kind() != Token::RTRIBRACKET) {
 				varList.push_back(parseTemplateVar());

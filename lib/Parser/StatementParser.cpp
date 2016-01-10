@@ -144,6 +144,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::IfClauseList ifClauseList;
+			ifClauseList.reserve(4);
 			ifClauseList.push_back(parseIfClause());
 			
 			while (true) {
@@ -195,6 +196,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::SwitchCaseList switchCaseList;
+			switchCaseList.reserve(8);
 			
 			while (true) {
 				const auto token = reader_.peek();
@@ -265,6 +267,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::CatchClauseList list;
+			list.reserve(4);
 			list.push_back(parseCatchClause());
 			
 			while (reader_.peek().kind() == Token::CATCH) {

@@ -1132,6 +1132,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::ValueList valueList;
+			valueList.reserve(8);
 			
 			while (true) {
 				const auto token = reader_.peek();

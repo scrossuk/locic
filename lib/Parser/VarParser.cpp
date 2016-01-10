@@ -18,6 +18,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::TypeVarList typeVarList;
+			typeVarList.reserve(8);
 			
 			if (reader_.peek().kind() != Token::RROUNDBRACKET) {
 				typeVarList.push_back(parseVar());
@@ -46,6 +47,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::TypeVarList typeVarList;
+			typeVarList.reserve(8);
 			
 			while (true) {
 				while (reader_.peek().kind() == Token::SEMICOLON) {
@@ -126,6 +128,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::TypeVarList typeVarList;
+			typeVarList.reserve(8);
 			
 			if (reader_.peek().kind() != Token::RROUNDBRACKET) {
 				typeVarList.push_back(parseVarOrAny());

@@ -188,6 +188,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::TypeList list;
+			list.reserve(8);
 			
 			if (reader_.peek().kind() != Token::RROUNDBRACKET) {
 				list.push_back(parseType());

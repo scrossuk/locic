@@ -283,6 +283,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::StringList list;
+			list.reserve(4);
 			list.push_back(reader_.expectName());
 			
 			while (reader_.peek().kind() == Token::DOT) {

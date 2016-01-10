@@ -106,6 +106,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::StringList list;
+			list.reserve(4);
 			
 			if (reader_.peek().kind() != Token::NOTAG) {
 				return builder_.makeStringList(std::move(list), start);

@@ -27,6 +27,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			AST::StatementList statementList;
+			statementList.reserve(16);
 			
 			while (!reader_.isEnd()) {
 				while (reader_.peek().kind() == Token::SEMICOLON) {
