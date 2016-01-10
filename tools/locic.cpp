@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
 						printf("Parser Error (at %s): %s\n", error.location.toString().c_str(), error.message.c_str());
 					}
 					
-					return 1;
+					return verifying ? 0 : 1;
 				}
 			}
 			
