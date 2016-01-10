@@ -28,7 +28,7 @@ namespace locic {
 			
 			AST::StatementList statementList;
 			
-			while (true) {
+			while (!reader_.isEnd()) {
 				while (reader_.peek().kind() == Token::SEMICOLON) {
 					reader_.consume();
 				}

@@ -245,7 +245,7 @@ namespace locic {
 			
 			AST::FunctionList list;
 			
-			while (true) {
+			while (!reader_.isEnd()) {
 				while (reader_.peek().kind() == Token::SEMICOLON) {
 					reader_.consume();
 				}
@@ -266,7 +266,7 @@ namespace locic {
 			
 			AST::FunctionList list;
 			
-			while (true) {
+			while (!reader_.isEnd()) {
 				while (reader_.peek().kind() == Token::SEMICOLON) {
 					reader_.consume();
 				}
