@@ -963,7 +963,10 @@ namespace locic {
 			}
 			
 			reader_.issueDiag(InvalidValidDiag(token.kind()), start);
-			reader_.consume();
+			
+			if (token.kind() != Token::END) {
+				reader_.consume();
+			}
 			
 			// Pretend we got a 'null' value.
 			return builder_.makeLiteralValue(Constant::Null(),

@@ -269,7 +269,9 @@ namespace locic {
 				}
 				default:
 					reader_.issueDiag(InvalidTypeDiag(token.kind()), start);
-					reader_.consume();
+					if (token.kind() != Token::END) {
+						reader_.consume();
+					}
 					
 					// Pretend we got an int type.
 					return builder_.makePrimitiveType(PrimitiveInt, start);
