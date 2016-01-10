@@ -40,13 +40,7 @@ namespace locic {
 		
 		AST::Node<AST::SymbolElement> SymbolParser::parseSymbolElement(const Context context) {
 			const auto start = reader_.position();
-			
-			const auto token = reader_.expectOneOf({ Token::TYPENAME, Token::NAME });
-			if (token.kind() == Token::TYPENAME) {
-				return builder_.makeTypenameSymbolElement(start);
-			}
-			
-			const auto name = token.kind() == Token::NAME ? token.name() : reader_.makeCString("<none>");
+			const auto name = reader_.expectName();
 			const auto templateArguments = parseSymbolTemplateArgumentList(context);
 			return builder_.makeSymbolElement(name, templateArguments, start);
 		}

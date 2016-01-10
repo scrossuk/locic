@@ -29,9 +29,6 @@ namespace locic {
 			makeSymbolElement(String name, AST::Node<AST::ValueList> templateArguments,
 			                  const Debug::SourcePosition& start);
 			
-			AST::Node<AST::SymbolElement>
-			makeTypenameSymbolElement(const Debug::SourcePosition& start);
-			
 			AST::Node<AST::ValueList>
 			makeValueList(AST::ValueList values, const Debug::SourcePosition& start);
 			

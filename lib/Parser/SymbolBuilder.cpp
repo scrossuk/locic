@@ -28,11 +28,6 @@ namespace locic {
 			return AST::makeNode(location, new AST::SymbolElement(name, templateArguments));
 		}
 		
-		AST::Node<AST::SymbolElement>
-		SymbolBuilder::makeTypenameSymbolElement(const Debug::SourcePosition& /*start*/) {
-			throw std::logic_error("TODO");
-		}
-		
 		AST::Node<AST::ValueList>
 		SymbolBuilder::makeValueList(AST::ValueList values,
 		                             const Debug::SourcePosition& start) {
