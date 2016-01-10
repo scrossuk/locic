@@ -2,6 +2,6 @@
 // RUN: FileCheck < %t %s
 
 class TestClass() {
-	// CHECK: .loci:6:15: error: Expected 'LCURLYBRACKET'; got 'SEMICOLON'.
+	// CHECK: .loci:6:2: error: unexpected method declaration; was expecting method definition
 	void method();
 }
