@@ -95,10 +95,6 @@ namespace locic {
 		
 		Token Lexer::lexToken() {
 			while (true) {
-				if (reader_.isEnd()) {
-					return Token::Basic(Token::END);
-				}
-				
 				const auto startPosition = reader_.position();
 				auto token = lexTokenWithoutLocation(reader_.stringHost());
 				if (!token) {
@@ -114,7 +110,9 @@ namespace locic {
 		}
 		
 		Optional<Token> Lexer::lexTokenWithoutLocation(const StringHost& stringHost) {
-			assert(!reader_.isEnd());
+			if (reader_.isEnd()) {
+				return make_optional(Token::Basic(Token::END));
+			}
 			
 			const auto nextValue = reader_.peek();
 			if (nextValue.isSpace()) {
