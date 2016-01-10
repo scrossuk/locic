@@ -258,7 +258,7 @@ namespace locic {
 					break;
 				}
 				
-				const auto function = FunctionParser(reader_).parseMethodDecl();
+				const auto function = FunctionParser(reader_).parseMethod();
 				list.push_back(function);
 			}
 			
@@ -280,7 +280,7 @@ namespace locic {
 					break;
 				}
 				
-				const auto function = FunctionParser(reader_).parseMethodDef();
+				const auto function = FunctionParser(reader_).parseMethod();
 				list.push_back(function);
 			}
 			

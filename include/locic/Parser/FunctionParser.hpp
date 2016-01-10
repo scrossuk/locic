@@ -29,18 +29,13 @@ namespace locic {
 			AST::Node<AST::Function>
 			parseBasicFunction(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Function> parseMethodDecl();
+			AST::Node<AST::Function> parseMethod();
 			
 			AST::Node<AST::Function>
-			parseNonTemplatedMethodDecl(const Debug::SourcePosition& start);
-			
-			AST::Node<AST::Function> parseMethodDef();
-			
-			AST::Node<AST::Function>
-			parseNonTemplatedMethodDef(const Debug::SourcePosition& start);
+			parseNonTemplatedMethod(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Type>
-			parseMethodDefReturnType();
+			parseMethodReturnType();
 			
 			bool isValidMethodNameToken(Token::Kind kind) const;
 			

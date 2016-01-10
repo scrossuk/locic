@@ -116,15 +116,15 @@ namespace locic {
 			                                scope, start);
 		}
 		
-		AST::Node<AST::Function> FunctionParser::parseMethodDecl() {
+		AST::Node<AST::Function> FunctionParser::parseMethod() {
 			const auto start = reader_.position();
 			
 			if (reader_.peek().kind() != Token::TEMPLATE) {
-				return parseNonTemplatedMethodDecl(start);
+				return parseNonTemplatedMethod(start);
 			}
 			
 			const auto templateInfo = TemplateParser(reader_).parseTemplate();
-			auto function = parseNonTemplatedMethodDecl(start);
+			auto function = parseNonTemplatedMethod(start);
 			
 			function->setTemplateVariables(templateInfo.templateVariables());
 			
@@ -138,55 +138,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Function>
-		FunctionParser::parseNonTemplatedMethodDecl(const Debug::SourcePosition& start) {
-			const bool isStatic = reader_.consumeIfPresent(Token::STATIC);
-			const auto returnType = TypeParser(reader_).parseType();
-			const auto name = parseMethodName();
-			
-			reader_.expect(Token::LROUNDBRACKET);
-			const auto varList = VarParser(reader_).parseVarList();
-			reader_.expect(Token::RROUNDBRACKET);
-			
-			const auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
-			const auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
-			const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
-			
-			if (isStatic && !constSpecifier->isNone()) {
-				reader_.issueDiagWithLoc(StaticMethodCannotBeConstDiag(),
-				                         constSpecifier.location());
-			}
-			
-			reader_.expect(Token::SEMICOLON);
-			
-			return builder_.makeFunctionDecl(/*isVarArg=*/false, isStatic,
-			                                 returnType, name, varList,
-			                                 constSpecifier, noexceptSpecifier,
-			                                 requireSpecifier, start);
-		}
-		
-		AST::Node<AST::Function> FunctionParser::parseMethodDef() {
-			const auto start = reader_.position();
-			
-			if (reader_.peek().kind() != Token::TEMPLATE) {
-				return parseNonTemplatedMethodDef(start);
-			}
-			
-			const auto templateInfo = TemplateParser(reader_).parseTemplate();
-			auto function = parseNonTemplatedMethodDef(start);
-			
-			function->setTemplateVariables(templateInfo.templateVariables());
-			
-			if (templateInfo.hasRequireSpecifier()) {
-				// TODO: reject duplicate require() specifier.
-				function->setRequireSpecifier(templateInfo.requireSpecifier());
-			}
-			
-			// TODO: reject move() or notag().
-			return function;
-		}
-		
-		AST::Node<AST::Function>
-		FunctionParser::parseNonTemplatedMethodDef(const Debug::SourcePosition& start) {
+		FunctionParser::parseNonTemplatedMethod(const Debug::SourcePosition& start) {
 			if (reader_.peek().kind() == Token::TILDA) {
 				reader_.consume();
 				const auto nameString = reader_.makeCString("__destroy");
@@ -196,7 +148,7 @@ namespace locic {
 			}
 			
 			const bool isStatic = reader_.consumeIfPresent(Token::STATIC);
-			const auto returnType = parseMethodDefReturnType();
+			const auto returnType = parseMethodReturnType();
 			const auto name = parseMethodName();
 			
 			if (reader_.peek().kind() == Token::SETEQUAL) {
@@ -220,6 +172,14 @@ namespace locic {
 				                         constSpecifier.location());
 			}
 			
+			if (reader_.peek().kind() == Token::SEMICOLON) {
+				reader_.consume();
+				return builder_.makeFunctionDecl(/*isVarArg=*/false, isStatic,
+				                                 returnType, name, varList,
+				                                 constSpecifier, noexceptSpecifier,
+				                                 requireSpecifier, start);
+			}
+			
 			const auto scope = ScopeParser(reader_).parseScope();
 			
 			return builder_.makeFunctionDef(/*isVarArg=*/false, isStatic,
@@ -229,7 +189,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Type>
-		FunctionParser::parseMethodDefReturnType() {
+		FunctionParser::parseMethodReturnType() {
 			if (isValidMethodNameToken(reader_.peek().kind())) {
 				const auto nextToken = reader_.peek(/*offset=*/1);
 				switch (nextToken.kind()) {
