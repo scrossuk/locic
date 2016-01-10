@@ -16,7 +16,7 @@ namespace locic {
 		
 		Character FileCharacterSource::get() {
 			const auto result = fgetc(file_);
-			if (feof(file_)) {
+			if (result == EOF) {
 				return Lex::Character(0);
 			}
 			position_++;
