@@ -41,8 +41,8 @@ namespace locic {
 			return noTagSet_;
 		}
 		
-		void TemplateInfo::setTemplateVariables(AST::Node<AST::TemplateTypeVarList> templateVariables) {
-			templateVariables_ = make_optional(templateVariables);
+		void TemplateInfo::setTemplateVariables(AST::Node<AST::TemplateTypeVarList> newTemplateVariables) {
+			templateVariables_ = make_optional(newTemplateVariables);
 		}
 		
 		void TemplateInfo::setRequireSpecifier(AST::Node<AST::RequireSpecifier> specifier) {
@@ -53,8 +53,8 @@ namespace locic {
 			moveSpecifier_ = make_optional(specifier);
 		}
 		
-		void TemplateInfo::setNoTagSet(AST::Node<AST::StringList> noTagSet) {
-			noTagSet_ = make_optional(noTagSet);
+		void TemplateInfo::setNoTagSet(AST::Node<AST::StringList> newNoTagSet) {
+			noTagSet_ = make_optional(newNoTagSet);
 		}
 		
 		
