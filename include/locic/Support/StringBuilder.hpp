@@ -30,6 +30,10 @@ namespace locic {
 			return string_.capacity();
 		}
 		
+		void reserve(const size_t newCapacity) {
+			string_.reserve(newCapacity);
+		}
+		
 		void append(const char c) {
 			string_ += c;
 		}

@@ -75,6 +75,7 @@ namespace locic {
 			}
 			
 			StringBuilder stringLiteral(stringHost_);
+			stringLiteral.reserve(16);
 			
 			for (const auto c: savedValues_) {
 				stringLiteral.append(c.asciiValue());
