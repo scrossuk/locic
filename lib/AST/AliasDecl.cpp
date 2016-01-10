@@ -40,9 +40,9 @@ namespace locic {
 			templateVariables_ = pTemplateVariables;
 		}
 		
-		void AliasDecl::setAlias(SEM::Alias& alias) {
+		void AliasDecl::setAlias(SEM::Alias& semAlias) {
 			assert(alias_ == nullptr);
-			alias_ = &alias;
+			alias_ = &semAlias;
 		}
 		
 		SEM::Alias& AliasDecl::alias() {
