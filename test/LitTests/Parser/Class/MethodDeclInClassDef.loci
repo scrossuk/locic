@@ -1,0 +1,7 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:15: error: Expected 'LCURLYBRACKET'; got 'SEMICOLON'.
+	void method();
+}
