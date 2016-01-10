@@ -10,6 +10,7 @@
 #include <locic/Lex/NumericValue.hpp>
 #include <locic/Lex/StringLiteralLexer.hpp>
 #include <locic/Support/Array.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/StringBuilder.hpp>
 #include <locic/Support/StringHost.hpp>
@@ -222,6 +223,8 @@ namespace locic {
 				case NumericValue::VERSION:
 					return Token::Version(numericValue.versionValue());
 			}
+			
+			locic_unreachable("Invalid numeric value kind.");
 		}
 		
 		NumericValue Lexer::lexNumericConstant() {

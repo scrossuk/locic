@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <locic/Constant.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 
@@ -449,6 +450,8 @@ namespace locic {
 					case OP_INDEX:
 						return false;
 				}
+				
+				locic_unreachable("Invalid binary op kind.");
 			}
 			
 			bool isCapabilityTest() const {

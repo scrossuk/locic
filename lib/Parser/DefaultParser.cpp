@@ -9,6 +9,7 @@
 #include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/NamespaceParser.hpp>
 #include <locic/Parser/TokenReader.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/StringHost.hpp>
 
 #include "LexLexer.hpp"
@@ -32,6 +33,8 @@ namespace locic {
 				case DiagLevel::Notice:
 					return "notice";
 			}
+			
+			locic_unreachable("Invalid diag level.");
 		}
 		
 		class DefaultParserImpl: public DiagnosticReceiver {

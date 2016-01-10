@@ -8,6 +8,7 @@
 #include <locic/Parser/TypeParser.hpp>
 #include <locic/Parser/ValueBuilder.hpp>
 #include <locic/Parser/ValueParser.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 
 namespace locic {
@@ -197,6 +198,8 @@ namespace locic {
 				case Token::END:
 					return false;
 			}
+			
+			locic_unreachable("Invalid token kind.");
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseValue(const Context context) {
@@ -714,6 +717,8 @@ namespace locic {
 					assert(!isAtomicValue(operand));
 					return operand->isIndex();
 			}
+			
+			locic_unreachable("Invalid value kind");
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseMemberAccessExpression(AST::Node<AST::Value> value,
@@ -835,6 +840,8 @@ namespace locic {
 				case AST::Value::ARRAYLITERAL:
 					return false;
 			}
+			
+			locic_unreachable("Invalid value kind");
 		}
 		
 		AST::Node<AST::Type> ValueParser::interpretValueAsType(const AST::Node<AST::Value>& value) {
@@ -878,6 +885,8 @@ namespace locic {
 					                     AST::Type::Primitive(PrimitiveInt));
 				}
 			}
+			
+			locic_unreachable("Invalid value kind");
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseAtomicValue() {
@@ -1003,6 +1012,8 @@ namespace locic {
 				case AST::Value::MERGE:
 					return false;
 			}
+			
+			locic_unreachable("Invalid value kind");
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseAtExpression(const Debug::SourcePosition& start) {

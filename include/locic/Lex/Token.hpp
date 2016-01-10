@@ -5,6 +5,7 @@
 
 #include <locic/Constant.hpp>
 #include <locic/Debug/SourceRange.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/Version.hpp>
 
@@ -392,6 +393,8 @@ namespace locic {
 					case SELF: return "SELF";
 					case THIS: return "THIS";
 				}
+				
+				locic_unreachable("Invalid token kind.");
 			}
 			
 			std::string toString() const {

@@ -4,6 +4,7 @@
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/ValueParser.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 
 namespace locic {
 	
@@ -325,6 +326,8 @@ namespace locic {
 				case Token::OVERRIDE_CONST:
 					return false;
 			}
+			
+			locic_unreachable("Invalid token kind.");
 		}
 		
 	}
