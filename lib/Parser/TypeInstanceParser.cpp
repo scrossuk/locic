@@ -110,7 +110,7 @@ namespace locic {
 			if (reader_.peek().kind() != Token::RCURLYBRACKET) {
 				list.push_back(reader_.expectName());
 				
-				while (reader_.peek().kind() != Token::RCURLYBRACKET) {
+				while (!reader_.isEnd() && reader_.peek().kind() != Token::RCURLYBRACKET) {
 					reader_.expect(Token::COMMA);
 					list.push_back(reader_.expectName());
 				}
