@@ -1,0 +1,6 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:7:1: error: Expected 'NAME'; got 'END'.
+// CHECK: .loci:7:1: error: Expected 'RCURLYBRACKET'; got 'END'.
+enum TestEnum {
