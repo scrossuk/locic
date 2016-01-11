@@ -68,7 +68,7 @@ namespace locic {
 		};
 		
 		DefaultParser::DefaultParser(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList,
-		                             FILE * file, const std::string& fileName, bool /*useNewParser*/)
+		                             FILE * file, const std::string& fileName)
 		: impl_(new DefaultParserImpl(stringHost, rootNamespaceList, file, fileName)) { }
 		
 		DefaultParser::~DefaultParser() { }

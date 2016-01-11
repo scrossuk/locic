@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
 					return 1;
 				}
 				
-				Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList, file, filename, /*useNewParser=*/true);
+				Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList, file, filename);
 				
 				if (!parser.parseFile()) {
 					const auto errors = parser.getErrors();

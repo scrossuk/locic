@@ -16,7 +16,7 @@ namespace locic {
 		class DefaultParser {
 			public:
 				DefaultParser(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList,
-				              FILE * file, const std::string& fileName, bool useNewParser=false);
+				              FILE * file, const std::string& fileName);
 				~DefaultParser();
 				
 				bool parseFile();

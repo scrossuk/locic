@@ -255,7 +255,7 @@ bool runTest(TestOptions& options) {
 			}
 			
 			Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList,
-			                             file, filename, /*useNewParser=*/true);
+			                             file, filename);
 			
 			if (!parser.parseFile()) {
 				const auto errors = parser.getErrors();
