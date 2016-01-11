@@ -22,12 +22,10 @@ namespace locic{
 				: message(m), location(l) { }
 		};
 		
-		class Context{
+		class Context {
 			public:
 				Context(const StringHost& h, AST::NamespaceList& l, const std::string& n)
-					: stringHost_(h), rootNamespaceList_(l), fileName_(h, n),
-					nextAnonymousVariable_(0), column_(1),
-					byteOffset_(0), columnByteOffset_(0) { }
+					: stringHost_(h), rootNamespaceList_(l), fileName_(h, n) { }
 				
 				const StringHost& stringHost() const {
 					return stringHost_;
@@ -45,55 +43,8 @@ namespace locic{
 					rootNamespaceList_.push_back(namespaceNode);
 				}
 				
-				std::string getAnonymousVariableName() {
-					return makeString("__anon_var_%llu", (unsigned long long) nextAnonymousVariable_++);
-				}
-				
 				const std::vector<ParseError>& errors() const {
 					return errors_;
-				}
-				
-				size_t columnPosition() const {
-					return column_;
-				}
-				
-				void advanceColumn(size_t columnIncrease) {
-					column_ += columnIncrease;
-				}
-				
-				void resetColumn() {
-					column_ = 1;
-					columnByteOffset_ = byteOffset_;
-				}
-				
-				void addByteOffset(size_t pByteOffset) {
-					byteOffset_ += pByteOffset;
-				}
-				
-				size_t byteOffset() const {
-					return byteOffset_;
-				}
-				
-				size_t columnByteOffset() const {
-					return columnByteOffset_;
-				}
-				
-				String releaseStringConstant() {
-					String result(stringHost_, std::move(stringConstant_));
-					stringConstant_ = "";
-					return result;
-				}
-				
-				void appendStringConstant(const std::string& appendString) {
-					stringConstant_ += appendString;
-				}
-				
-				String getCString(const char* const cStringValue) const {
-					return String(stringHost_, cStringValue);
-				}
-				
-				String getString(std::string stringValue) const {
-					return String(stringHost_, std::move(stringValue));
 				}
 				
 			private:
@@ -101,11 +52,6 @@ namespace locic{
 				AST::NamespaceList& rootNamespaceList_;
 				String fileName_;
 				std::vector<ParseError> errors_;
-				std::string stringConstant_;
-				size_t nextAnonymousVariable_;
-				size_t column_;
-				size_t byteOffset_;
-				size_t columnByteOffset_;
 				
 		};
 		
