@@ -28,6 +28,7 @@ target_link_libraries(locic
 	locic-parser
 	locic-ast
 	locic-lex
+	locic-frontend
 	locic-support
 	loci-builtintypes
 	${REQ_LIBS}
@@ -49,6 +50,7 @@ target_link_libraries(loci-test
 	locic-parser
 	locic-ast
 	locic-lex
+	locic-frontend
 	locic-support
 	loci-builtintypes
 	loci-runtime
