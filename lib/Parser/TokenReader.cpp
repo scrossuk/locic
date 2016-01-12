@@ -3,8 +3,8 @@
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Lex/LexerAPI.hpp>
-#include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Support/String.hpp>

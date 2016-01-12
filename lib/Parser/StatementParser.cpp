@@ -1,5 +1,5 @@
 #include <locic/AST.hpp>
-#include <locic/Parser/Diagnostics.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Parser/ScopeParser.hpp>
 #include <locic/Parser/StatementBuilder.hpp>
 #include <locic/Parser/StatementParser.hpp>

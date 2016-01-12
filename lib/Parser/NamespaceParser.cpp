@@ -1,5 +1,5 @@
 #include <locic/AST.hpp>
-#include <locic/Parser/Diagnostics.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Parser/FunctionParser.hpp>
 #include <locic/Parser/NamespaceBuilder.hpp>
 #include <locic/Parser/NamespaceParser.hpp>

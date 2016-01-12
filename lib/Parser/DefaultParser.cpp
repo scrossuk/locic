@@ -3,10 +3,10 @@
 #include <cstdlib>
 #include <string>
 
+#include <locic/Frontend/DiagnosticReceiver.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Parser/Context.hpp>
 #include <locic/Parser/DefaultParser.hpp>
-#include <locic/Parser/DiagnosticReceiver.hpp>
-#include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/NamespaceParser.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Support/ErrorHandling.hpp>

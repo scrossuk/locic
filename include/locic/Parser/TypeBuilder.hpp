@@ -2,7 +2,6 @@
 #define LOCIC_PARSER_TYPEBUILDER_HPP
 
 #include <locic/AST.hpp>
-#include <locic/Parser/Diagnostics.hpp>
 
 namespace locic {
 	

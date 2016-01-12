@@ -1,7 +1,7 @@
 #include <locic/AST.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Parser/AttributeBuilder.hpp>
 #include <locic/Parser/AttributeParser.hpp>
-#include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/PredicateParser.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/TokenReader.hpp>

@@ -6,8 +6,8 @@
 
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/SourcePosition.hpp>
-#include <locic/Parser/DiagnosticReceiver.hpp>
-#include <locic/Parser/Diagnostics.hpp>
+#include <locic/Frontend/DiagnosticReceiver.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Support/Array.hpp>
 

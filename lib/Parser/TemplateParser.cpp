@@ -1,6 +1,6 @@
 #include <locic/AST.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Parser/AttributeParser.hpp>
-#include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/TemplateInfo.hpp>
 #include <locic/Parser/TemplateBuilder.hpp>
 #include <locic/Parser/TemplateParser.hpp>

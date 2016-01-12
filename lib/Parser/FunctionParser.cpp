@@ -1,6 +1,6 @@
 #include <locic/AST.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Parser/AttributeParser.hpp>
-#include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/FunctionBuilder.hpp>
 #include <locic/Parser/FunctionParser.hpp>
 #include <locic/Parser/ScopeParser.hpp>

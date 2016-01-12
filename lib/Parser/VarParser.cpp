@@ -1,4 +1,5 @@
 #include <locic/AST.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Parser/SymbolParser.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeBuilder.hpp>

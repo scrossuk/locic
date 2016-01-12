@@ -1,6 +1,5 @@
 #include <locic/AST.hpp>
 #include <locic/Debug/SourcePosition.hpp>
-#include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeBuilder.hpp>
 #include <locic/Support/PrimitiveID.hpp>

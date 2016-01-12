@@ -2,7 +2,6 @@
 #define LOCIC_PARSER_VALUEPARSER_HPP
 
 #include <locic/AST.hpp>
-#include <locic/Parser/Diagnostics.hpp>
 #include <locic/Parser/Token.hpp>
 #include <locic/Parser/ValueBuilder.hpp>
 
