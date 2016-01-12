@@ -18,25 +18,6 @@ namespace locic {
 	
 	namespace Parser {
 		
-		static std::string formatLocation(const Debug::SourceLocation& location) {
-			return makeString("%s:%u:%u", location.fileName().c_str(),
-			                  (unsigned) location.range().start().lineNumber(),
-			                  (unsigned) location.range().start().column());
-		}
-		
-		static std::string formatLevel(const DiagLevel level) {
-			switch (level) {
-				case DiagLevel::Error:
-					return "error";
-				case DiagLevel::Warning:
-					return "warning";
-				case DiagLevel::Notice:
-					return "notice";
-			}
-			
-			locic_unreachable("Invalid diag level.");
-		}
-		
 		class DefaultParserImpl: public DiagnosticReceiver {
 		public:
 			DefaultParserImpl(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList,
@@ -54,11 +35,7 @@ namespace locic {
 			
 			void issueDiag(std::unique_ptr<Diag> diag,
 			               const Debug::SourceLocation& location) {
-				const auto error = makeString("%s: %s: %s",
-				                              formatLocation(location).c_str(),
-				                              formatLevel(diag->level()).c_str(),
-				                              diag->toString().c_str());
-				context().error(error, location);
+				context().error(std::move(diag), location);
 			}
 			
 		private:
@@ -80,7 +57,7 @@ namespace locic {
 			return impl_->context().errors().empty();
 		}
 		
-		std::vector<ParseError> DefaultParser::getErrors() {
+		const std::vector<ParseError>& DefaultParser::getErrors() {
 			return impl_->context().errors();
 		}
 		

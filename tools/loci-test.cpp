@@ -15,6 +15,7 @@
 #include <locic/BuildOptions.hpp>
 #include <locic/Debug.hpp>
 
+#include <locic/Frontend/DiagnosticRenderer.hpp>
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/CodeGen/Context.hpp>
 #include <locic/CodeGen/CodeGenerator.hpp>
@@ -258,13 +259,13 @@ bool runTest(TestOptions& options) {
 			                             file, filename);
 			
 			if (!parser.parseFile()) {
-				const auto errors = parser.getErrors();
+				const auto& errors = parser.getErrors();
 				assert(!errors.empty());
 				
-				parseErrors << "Parser Error: Failed to parse file '" << filename << "' with " << errors.size() << " errors:\n";
-				
+				DiagnosticRenderer renderer(/*useColors=*/false);
 				for (const auto& error : errors) {
-					parseErrors << "Parser Error (at " << error.location.toString() << "): " << error.message << "\n";
+					renderer.emitDiagnosticMessage(parseErrors, *(error.diag),
+					                               error.location);
 				}
 			}
 		}

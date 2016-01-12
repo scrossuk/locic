@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <unistd.h>
+
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -13,6 +15,7 @@
 #include <locic/BuildOptions.hpp>
 #include <locic/Debug.hpp>
 
+#include <locic/Frontend/DiagnosticRenderer.hpp>
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/CodeGen/CodeGenerator.hpp>
 #include <locic/CodeGen/Context.hpp>
@@ -79,6 +82,10 @@ class Timer {
 		std::chrono::steady_clock::time_point start_;
 	
 };
+
+bool isStdOutATTY() {
+	return isatty(fileno(stdout));
+}
 
 int main(int argc, char* argv[]) {
 	Timer totalTimer;
@@ -197,15 +204,17 @@ int main(int argc, char* argv[]) {
 				Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList, file, filename);
 				
 				if (!parser.parseFile()) {
-					const auto errors = parser.getErrors();
+					const auto& errors = parser.getErrors();
 					assert(!errors.empty());
 					
-					printf("Parser Error: Failed to parse file '%s' with %lu errors:\n", filename.c_str(), errors.size());
+					DiagnosticRenderer renderer(/*useColors=*/isStdOutATTY());
 					
-					for (const auto & error : errors) {
-						printf("Parser Error (at %s): %s\n", error.location.toString().c_str(), error.message.c_str());
+					for (const auto& error : errors) {
+						renderer.emitDiagnostic(std::cout, *(error.diag),
+						                        error.location);
 					}
 					
+					renderer.emitDiagnosticSummary(std::cout);
 					return verifying ? 0 : 1;
 				}
 			}

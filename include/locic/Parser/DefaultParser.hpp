@@ -21,7 +21,7 @@ namespace locic {
 				
 				bool parseFile();
 				
-				std::vector<ParseError> getErrors();
+				const std::vector<ParseError>& getErrors();
 				
 			private:
 				std::unique_ptr<class DefaultParserImpl> impl_;

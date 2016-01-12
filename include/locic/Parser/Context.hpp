@@ -8,6 +8,7 @@
 #include <locic/AST.hpp>
 #include <locic/Constant.hpp>
 #include <locic/Debug/SourceLocation.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic{
@@ -15,11 +16,11 @@ namespace locic{
 	namespace Parser{
 	
 		struct ParseError {
-			std::string message;
+			std::unique_ptr<Diag> diag;
 			Debug::SourceLocation location;
 			
-			ParseError(const std::string& m, const Debug::SourceLocation& l)
-				: message(m), location(l) { }
+			ParseError(std::unique_ptr<Diag> d, const Debug::SourceLocation& l)
+			: diag(std::move(d)), location(l) { }
 		};
 		
 		class Context {
@@ -35,8 +36,8 @@ namespace locic{
 					return fileName_;
 				}
 				
-				void error(const std::string& message, const Debug::SourceLocation& location) {
-					errors_.push_back(ParseError(message, location));
+				void error(std::unique_ptr<Diag> diag, const Debug::SourceLocation& location) {
+					errors_.push_back(ParseError(std::move(diag), location));
 				}
 				
 				void fileCompleted(const AST::Node<AST::NamespaceDecl>& namespaceNode) {
