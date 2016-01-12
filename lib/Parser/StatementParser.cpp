@@ -53,8 +53,8 @@ namespace locic {
 					return parseIfStatement();
 				}
 				case Token::ELSE: {
-					reader_.issueDiag(ElseWithoutPreviousIfDiag(), start);
 					reader_.consume();
+					reader_.issueDiag(ElseWithoutPreviousIfDiag(), start);
 					if (reader_.peek().kind() == Token::IF) {
 						return parseIfStatement();
 					}
