@@ -1,4 +1,6 @@
+#include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/SourcePosition.hpp>
+#include <locic/Debug/SourceRange.hpp>
 #include <locic/Lex/Character.hpp>
 #include <locic/Lex/CharacterReader.hpp>
 #include <locic/Lex/CharacterSource.hpp>
@@ -63,6 +65,16 @@ namespace locic {
 		
 		Debug::SourcePosition CharacterReader::position() const {
 			return position_;
+		}
+		
+		Debug::SourceRange CharacterReader::rangeFrom(const Debug::SourcePosition start) const {
+			return Debug::SourceRange(start, position());
+		}
+		
+		Debug::SourceLocation
+		CharacterReader::locationWithRangeFrom(const Debug::SourcePosition start) const {
+			const auto range = rangeFrom(start);
+			return Debug::SourceLocation(source_.fileName(), range);
 		}
 		
 	}

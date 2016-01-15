@@ -1,12 +1,19 @@
 #ifndef LOCIC_LEX_CHARACTERREADER_HPP
 #define LOCIC_LEX_CHARACTERREADER_HPP
 
+#include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Lex/Character.hpp>
 
 namespace locic {
 	
 	class StringHost;
+	
+	namespace Debug {
+		
+		class SourceRange;
+		
+	}
 	
 	namespace Lex {
 		
@@ -32,6 +39,10 @@ namespace locic {
 			void expect(Character character);
 			
 			Debug::SourcePosition position() const;
+			
+			Debug::SourceRange rangeFrom(Debug::SourcePosition start) const;
+			
+			Debug::SourceLocation locationWithRangeFrom(Debug::SourcePosition start) const;
 			
 		private:
 			const StringHost& stringHost_;
