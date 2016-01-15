@@ -2,37 +2,35 @@
 #define MOCKDIAGNOSTICRECEIVER_HPP
 
 #include <locic/Debug/SourceRange.hpp>
-#include <locic/Lex/Diagnostics.hpp>
-#include <locic/Lex/DiagnosticReceiver.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
+#include <locic/Frontend/DiagnosticReceiver.hpp>
 #include <locic/Support/Array.hpp>
 
-class MockDiagnosticReceiver: public locic::Lex::DiagnosticReceiver {
+class MockDiagnosticReceiver: public locic::DiagnosticReceiver {
 public:
+	using DiagPair = std::pair<std::unique_ptr<locic::Diag>, locic::Debug::SourceLocation>;
+	
 	MockDiagnosticReceiver() { }
 	
-	void issueWarning(locic::Lex::Diag kind, locic::Debug::SourceRange /*range*/) {
-		warnings_.push_back(kind);
+	void issueDiag(std::unique_ptr<locic::Diag> diag,
+	               const locic::Debug::SourceLocation& location) {
+		diags_.push_back(DiagPair(std::move(diag), location));
 	}
 	
-	void issueError(locic::Lex::Diag kind, locic::Debug::SourceRange /*range*/) {
-		errors_.push_back(kind);
+	size_t numDiags() const {
+		return diags_.size();
 	}
 	
-	size_t numErrors() const {
-		return errors_.size();
+	const DiagPair& getDiag(const size_t index) const {
+		return diags_[index];
 	}
 	
-	locic::Lex::Diag getError(size_t index) const {
-		return errors_[index];
-	}
-	
-	bool hasNoErrorsOrWarnings() const {
-		return warnings_.empty() && errors_.empty();
+	bool hasNoDiags() const {
+		return diags_.empty();
 	}
 	
 private:
-	locic::Array<locic::Lex::Diag, 16> warnings_;
-	locic::Array<locic::Lex::Diag, 16> errors_;
+	locic::Array<DiagPair, 16> diags_;
 	
 };
 

@@ -70,7 +70,7 @@ TEST(CharacterLiteralLexTest, OctalEscapeCharacter) {
 	}
 }
 
-void testCharacterLiteralError(const std::string& literal, const uint32_t result, const std::initializer_list<locic::Lex::Diag> diags) {
+void testCharacterLiteralError(const std::string& literal, const uint32_t result, const std::initializer_list<locic::Lex::DiagID> diags) {
 	assert(diags.size() != 0);
 	const auto start = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/1,
 	                                                /*byteOffset=*/0);
@@ -81,28 +81,28 @@ void testCharacterLiteralError(const std::string& literal, const uint32_t result
 }
 
 TEST(CharacterLiteralLexTest, EmptyCharacterLiteral) {
-	testCharacterLiteralError("''", '\0', { locic::Lex::Diag::EmptyCharacterLiteral });
+	testCharacterLiteralError("''", '\0', { locic::Lex::DiagID::EmptyCharacterLiteral });
 }
 
 TEST(CharacterLiteralLexTest, MultiCharCharacterLiteral) {
-	testCharacterLiteralError("'ab'", 'a', { locic::Lex::Diag::MultiCharCharacterLiteral });
-	testCharacterLiteralError("'abc'", 'a', { locic::Lex::Diag::MultiCharCharacterLiteral });
+	testCharacterLiteralError("'ab'", 'a', { locic::Lex::DiagID::MultiCharCharacterLiteral });
+	testCharacterLiteralError("'abc'", 'a', { locic::Lex::DiagID::MultiCharCharacterLiteral });
 }
 
 TEST(CharacterLiteralLexTest, UnterminatedCharacterLiteral) {
-	testCharacterLiteralError("'", '\0', { locic::Lex::Diag::UnterminatedCharacterLiteral });
-	testCharacterLiteralError("'\\", '\\', { locic::Lex::Diag::InvalidStringLiteralEscape,
-	                          locic::Lex::Diag::UnterminatedCharacterLiteral });
-	testCharacterLiteralError("'\\\\", '\\', { locic::Lex::Diag::UnterminatedCharacterLiteral });
-	testCharacterLiteralError("'\\'", '\'', { locic::Lex::Diag::UnterminatedCharacterLiteral });
+	testCharacterLiteralError("'", '\0', { locic::Lex::DiagID::UnterminatedCharacterLiteral });
+	testCharacterLiteralError("'\\", '\\', { locic::Lex::DiagID::InvalidStringLiteralEscape,
+	                          locic::Lex::DiagID::UnterminatedCharacterLiteral });
+	testCharacterLiteralError("'\\\\", '\\', { locic::Lex::DiagID::UnterminatedCharacterLiteral });
+	testCharacterLiteralError("'\\'", '\'', { locic::Lex::DiagID::UnterminatedCharacterLiteral });
 }
 
 namespace {
 	
 	void testInvalidEscape(const char c) {
 		testCharacterLiteralError(std::string("'\\") + c + "'", '\\',
-		                          { locic::Lex::Diag::InvalidStringLiteralEscape,
-		                          locic::Lex::Diag::MultiCharCharacterLiteral });
+		                          { locic::Lex::DiagID::InvalidStringLiteralEscape,
+		                          locic::Lex::DiagID::MultiCharCharacterLiteral });
 	}
 	
 }

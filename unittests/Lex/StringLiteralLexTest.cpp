@@ -65,7 +65,7 @@ TEST(StringLiteralLexTest, OctalEscapeCharacter) {
 	}
 }
 
-void testStringLiteralError(const std::string& literal, const std::string& result, const std::initializer_list<locic::Lex::Diag> diags) {
+void testStringLiteralError(const std::string& literal, const std::string& result, const std::initializer_list<locic::Lex::DiagID> diags) {
 	const auto start = locic::Debug::SourcePosition(/*lineNumber=*/1, /*column=*/1,
 	                                                /*byteOffset=*/0);
 	const auto end = locic::Debug::SourcePosition(/*lineNumber=*/1,
@@ -80,16 +80,16 @@ void testStringLiteralError(const std::string& literal, const std::string& resul
 }
 
 TEST(StringLiteralLexTest, UnterminatedStringLiteral) {
-	testStringLiteralError("\"", "", { locic::Lex::Diag::UnterminatedStringLiteral });
-	testStringLiteralError("\"\\", "\\", { locic::Lex::Diag::InvalidStringLiteralEscape,
-	                       locic::Lex::Diag::UnterminatedStringLiteral });
-	testStringLiteralError("\"\\\\", "\\", { locic::Lex::Diag::UnterminatedStringLiteral });
-	testStringLiteralError("\"\\\"", "\"", { locic::Lex::Diag::UnterminatedStringLiteral });
+	testStringLiteralError("\"", "", { locic::Lex::DiagID::UnterminatedStringLiteral });
+	testStringLiteralError("\"\\", "\\", { locic::Lex::DiagID::InvalidStringLiteralEscape,
+	                       locic::Lex::DiagID::UnterminatedStringLiteral });
+	testStringLiteralError("\"\\\\", "\\", { locic::Lex::DiagID::UnterminatedStringLiteral });
+	testStringLiteralError("\"\\\"", "\"", { locic::Lex::DiagID::UnterminatedStringLiteral });
 }
 
 void testInvalidEscape(const char c) {
 	testStringLiteralError(std::string("\"\\") + c + "\"", std::string("\\") + c,
-			       { locic::Lex::Diag::InvalidStringLiteralEscape });
+			       { locic::Lex::DiagID::InvalidStringLiteralEscape });
 }
 
 TEST(StringLiteralLexTest, IllegalEscapeCharacter) {

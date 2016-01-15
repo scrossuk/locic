@@ -4,6 +4,7 @@
 #include <locic/Constant.hpp>
 #include <locic/Lex/Character.hpp>
 #include <locic/Lex/CharacterSource.hpp>
+#include <locic/Lex/Diagnostics.hpp>
 #include <locic/Lex/Lexer.hpp>
 #include <locic/Support/Array.hpp>
 
@@ -13,7 +14,7 @@
 namespace {
 
 void testLexer(const std::string& input, const locic::Array<locic::Lex::Token, 2>& expectedTokens,
-               const locic::Array<locic::Lex::Diag, 2>& expectedErrors, locic::StringHost* const stringHostPtr = nullptr) {
+               const locic::Array<locic::Lex::DiagID, 2>& expectedDiags, locic::StringHost* const stringHostPtr = nullptr) {
 	locic::Array<locic::Lex::Character, 16> characters;
 	for (const auto c: input) {
 		characters.push_back(c);
@@ -37,10 +38,10 @@ void testLexer(const std::string& input, const locic::Array<locic::Lex::Token, 2
 	}
 	
 	EXPECT_TRUE(source.empty());
-	EXPECT_EQ(diagnosticReceiver.numErrors(), expectedErrors.size());
+	EXPECT_EQ(diagnosticReceiver.numDiags(), expectedDiags.size());
 	
-	for (size_t i = 0; i < std::min(diagnosticReceiver.numErrors(), expectedErrors.size()); i++) {
-		EXPECT_EQ(diagnosticReceiver.getError(i), expectedErrors[i]);
+	for (size_t i = 0; i < std::min(diagnosticReceiver.numDiags(), expectedDiags.size()); i++) {
+		EXPECT_EQ(diagnosticReceiver.getDiag(i).first->lexId(), expectedDiags[i]);
 	}
 	
 	EXPECT_EQ(tokens.size(), expectedTokens.size());
