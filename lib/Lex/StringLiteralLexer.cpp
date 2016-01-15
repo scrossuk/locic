@@ -1,8 +1,9 @@
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
+#include <locic/Frontend/DiagnosticReceiver.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Lex/Character.hpp>
 #include <locic/Lex/CharacterReader.hpp>
-#include <locic/Lex/DiagnosticReceiver.hpp>
 #include <locic/Lex/Diagnostics.hpp>
 #include <locic/Lex/StringLiteralLexer.hpp>
 #include <locic/Lex/Token.hpp>
@@ -15,38 +16,20 @@ namespace locic {
 	
 	namespace Lex {
 		
-		StringLiteralLexer::StringLiteralLexer(CharacterReader& reader,
-		                                       DiagnosticReceiver& diagnosticReceiver)
-		: reader_(reader), diagnosticReceiver_(diagnosticReceiver) { }
+		StringLiteralLexer::StringLiteralLexer(CharacterReader& reader)
+		: reader_(reader) { }
 		
 		StringLiteralLexer::~StringLiteralLexer() { }
 		
-		void StringLiteralLexer::issueWarning(const Diag kind,
-		                                      const Debug::SourcePosition startPosition,
-		                                      const Debug::SourcePosition endPosition) {
-			const Debug::SourceRange sourceRange(startPosition,
-			                                     endPosition);
-			diagnosticReceiver_.issueWarning(kind, sourceRange);
-		}
-		
-		void StringLiteralLexer::issueError(const Diag kind,
-		                                    const Debug::SourcePosition startPosition,
-		                                    const Debug::SourcePosition endPosition) {
-			const Debug::SourceRange sourceRange(startPosition,
-			                                     endPosition);
-			diagnosticReceiver_.issueError(kind, sourceRange);
-		}
-		
 		Token StringLiteralLexer::lexCharacterLiteral() {
-			const auto charPosition = reader_.position();
+			const auto start = reader_.position();
 			
 			Array<Character, 4> characters;
 			
 			reader_.expect('\'');
 			while (true) {
 				if (reader_.isEnd()) {
-					issueError(Diag::UnterminatedCharacterLiteral,
-					           charPosition, reader_.position());
+					reader_.issueDiag(UnterminatedCharacterLiteralDiag(), start);
 					const auto value = characters.empty() ? 0 : characters.front().value();
 					return Token::Constant(Constant::Character(value));
 				}
@@ -61,14 +44,12 @@ namespace locic {
 			}
 			
 			if (characters.empty()) {
-				issueError(Diag::EmptyCharacterLiteral,
-				           charPosition, reader_.position());
+				reader_.issueDiag(EmptyCharacterLiteralDiag(), start);
 				return Token::Constant(Constant::Character(0));
 			}
 			
 			if (characters.size() > 1) {
-				issueError(Diag::MultiCharCharacterLiteral,
-				           charPosition, reader_.position());
+				reader_.issueDiag(MultiCharCharacterLiteralDiag(), start);
 			}
 			
 			return Token::Constant(Constant::Character(characters[0].value()));
@@ -81,8 +62,7 @@ namespace locic {
 			reader_.expect('"');
 			while (true) {
 				if (reader_.isEnd()) {
-					issueError(Diag::UnterminatedStringLiteral, start,
-					           reader_.position());
+					reader_.issueDiag(UnterminatedStringLiteralDiag(), start);
 					return Token::Constant(Constant::StringVal(stringLiteral.getString()));
 				}
 				
@@ -109,22 +89,21 @@ namespace locic {
 		}
 		
 		Character StringLiteralLexer::lexEscapeSequence() {
-			const auto charPosition = reader_.position();
+			const auto start = reader_.position();
 			
 			reader_.expect('\\');
 			
 			if (reader_.isEnd()) {
-				issueError(Diag::InvalidStringLiteralEscape,
-				           charPosition, reader_.position());
+				reader_.issueDiag(InvalidStringLiteralEscapeDiag(), start);
 				return Character('\\');
 			}
 			
 			const auto firstEscapeChar = reader_.peek();
 			
 			if (firstEscapeChar.isOctalDigit()) {
-				return lexOctalEscapeSequenceSuffix(charPosition);
+				return lexOctalEscapeSequenceSuffix(start);
 			} else {
-				return lexSymbolEscapeSequenceSuffix(charPosition);
+				return lexSymbolEscapeSequenceSuffix(start);
 			}
 		}
 		
@@ -144,9 +123,7 @@ namespace locic {
 			
 			auto value = strtoll(octalDigits.c_str(), NULL, 8);
 			if (value > 255) {
-				issueError(Diag::OctalEscapeSequenceOutOfRange,
-				           sequencePosition,
-				           reader_.position());
+				reader_.issueDiag(OctalEscapeSequenceOutOfRangeDiag(), sequencePosition);
 				value = 0;
 			}
 			
@@ -186,9 +163,8 @@ namespace locic {
 					reader_.consume();
 					return Character('\v');
 				default:
-					issueError(Diag::InvalidStringLiteralEscape,
-					           sequencePosition,
-					           reader_.position());
+					reader_.issueDiag(InvalidStringLiteralEscapeDiag(),
+					                  sequencePosition);
 					return Character('\\');
 			}
 		}

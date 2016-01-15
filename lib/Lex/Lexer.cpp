@@ -1,10 +1,11 @@
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
+#include <locic/Frontend/DiagnosticReceiver.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Lex/Character.hpp>
 #include <locic/Lex/CharacterReader.hpp>
 #include <locic/Lex/CharacterSource.hpp>
 #include <locic/Lex/Diagnostics.hpp>
-#include <locic/Lex/DiagnosticReceiver.hpp>
 #include <locic/Lex/IdentifierLexer.hpp>
 #include <locic/Lex/Lexer.hpp>
 #include <locic/Lex/NumericValue.hpp>
@@ -20,23 +21,9 @@ namespace locic {
 	namespace Lex {
 		
 		Lexer::Lexer(CharacterSource& source, DiagnosticReceiver& diagnosticReceiver)
-		: reader_(source), diagnosticReceiver_(diagnosticReceiver) { }
+		: reader_(source, diagnosticReceiver) { }
 		
 		Lexer::~Lexer() { }
-		
-		void Lexer::issueWarning(const Diag kind, const Debug::SourcePosition startPosition,
-		                         const Debug::SourcePosition endPosition) {
-			const Debug::SourceRange sourceRange(startPosition,
-			                                     endPosition);
-			diagnosticReceiver_.issueWarning(kind, sourceRange);
-		}
-		
-		void Lexer::issueError(const Diag kind, const Debug::SourcePosition startPosition,
-		                       const Debug::SourcePosition endPosition) {
-			const Debug::SourceRange sourceRange(startPosition,
-			                                     endPosition);
-			diagnosticReceiver_.issueError(kind, sourceRange);
-		}
 		
 		Token::Kind Lexer::getSymbolTokenKind(const Character value) {
 			switch (value.value()) {
@@ -154,12 +141,12 @@ namespace locic {
 		}
 		
 		Token Lexer::lexCharacterLiteral() {
-			StringLiteralLexer stringLiteralLexer(reader_, diagnosticReceiver_);
+			StringLiteralLexer stringLiteralLexer(reader_);
 			return stringLiteralLexer.lexCharacterLiteral();
 		}
 		
 		Token Lexer::lexStringLiteral(const StringHost& stringHost) {
-			StringLiteralLexer stringLiteralLexer(reader_, diagnosticReceiver_);
+			StringLiteralLexer stringLiteralLexer(reader_);
 			return stringLiteralLexer.lexStringLiteral(stringHost);
 		}
 		
@@ -251,8 +238,7 @@ namespace locic {
 						}
 						reader_.consume();
 						if (!next.isOctalDigit()) {
-							issueError(Diag::InvalidOctalCharacter, start,
-							           reader_.position());
+							reader_.issueDiag(InvalidOctalCharacterDiag(), start);
 						}
 						digits.push_back(next);
 					}

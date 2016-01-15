@@ -9,6 +9,7 @@
 namespace locic {
 	
 	class Constant;
+	class DiagnosticReceiver;
 	class String;
 	class StringHost;
 	
@@ -21,20 +22,12 @@ namespace locic {
 	namespace Lex {
 		
 		class CharacterSource;
-		enum class Diag;
-		class DiagnosticReceiver;
 		class NumericValue;
 		
 		class Lexer: public LexerAPI {
 		public:
 			Lexer(CharacterSource& source, DiagnosticReceiver& diagnosticReceiver);
 			~Lexer();
-			
-			void issueWarning(Diag kind, Debug::SourcePosition startPosition,
-			                  Debug::SourcePosition endPosition);
-			
-			void issueError(Diag kind, Debug::SourcePosition startPosition,
-			                Debug::SourcePosition endPosition);
 			
 			Token::Kind getSymbolTokenKind(Character value);
 			
@@ -65,7 +58,6 @@ namespace locic {
 			
 		private:
 			CharacterReader reader_;
-			DiagnosticReceiver& diagnosticReceiver_;
 			
 		};
 		

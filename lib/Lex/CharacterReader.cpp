@@ -1,6 +1,8 @@
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
+#include <locic/Frontend/DiagnosticReceiver.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Lex/Character.hpp>
 #include <locic/Lex/CharacterReader.hpp>
 #include <locic/Lex/CharacterSource.hpp>
@@ -11,10 +13,12 @@ namespace locic {
 	
 	namespace Lex {
 		
-		CharacterReader::CharacterReader(CharacterSource& source)
-		: stringHost_(source.fileName().host()), source_(source),
-		currentCharacter_(0), position_(1, 1, source.byteOffset()) {
-			currentCharacter_ = source.get();
+		CharacterReader::CharacterReader(CharacterSource& argSource,
+		                                 DiagnosticReceiver& diagReceiver)
+		: stringHost_(argSource.fileName().host()), source_(argSource),
+		diagReceiver_(diagReceiver), currentCharacter_(0),
+		position_(1, 1, argSource.byteOffset()) {
+			currentCharacter_ = argSource.get();
 		}
 		
 		const StringHost& CharacterReader::stringHost() const {

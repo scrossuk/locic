@@ -3,6 +3,7 @@
 
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Debug/SourcePosition.hpp>
+#include <locic/Frontend/DiagnosticReceiver.hpp>
 #include <locic/Lex/Character.hpp>
 
 namespace locic {
@@ -21,7 +22,19 @@ namespace locic {
 		
 		class CharacterReader {
 		public:
-			CharacterReader(CharacterSource& source);
+			CharacterReader(CharacterSource& source, DiagnosticReceiver& diagReceiver);
+			
+			template <typename DiagType>
+			void issueDiag(DiagType diag, const Debug::SourcePosition& start) {
+				diagReceiver_.issueDiag(std::unique_ptr<Diag>(new DiagType(std::move(diag))),
+				                        locationWithRangeFrom(start));
+			}
+			
+			template <typename DiagType>
+			void issueDiagWithLoc(DiagType diag, const Debug::SourceLocation& location) {
+				diagReceiver_.issueDiag(std::unique_ptr<Diag>(new DiagType(std::move(diag))),
+				                        location);
+			}
 			
 			const StringHost& stringHost() const;
 			
@@ -47,6 +60,7 @@ namespace locic {
 		private:
 			const StringHost& stringHost_;
 			CharacterSource& source_;
+			DiagnosticReceiver& diagReceiver_;
 			Character currentCharacter_;
 			Debug::SourcePosition position_;
 			

@@ -15,21 +15,13 @@ namespace locic {
 		
 		class Character;
 		class CharacterReader;
-		class DiagnosticReceiver;
 		class Token;
 		
 		class StringLiteralLexer {
 		public:
-			StringLiteralLexer(CharacterReader& reader,
-			                   DiagnosticReceiver& diagnosticReceiver);
+			StringLiteralLexer(CharacterReader& reader);
 			
 			~StringLiteralLexer();
-			
-			void issueWarning(Diag kind, Debug::SourcePosition startPosition,
-			                  Debug::SourcePosition endPosition);
-			
-			void issueError(Diag kind, Debug::SourcePosition startPosition,
-			                Debug::SourcePosition endPosition);
 			
 			Token lexCharacterLiteral();
 			
@@ -45,7 +37,6 @@ namespace locic {
 			
 		private:
 			CharacterReader& reader_;
-			DiagnosticReceiver& diagnosticReceiver_;
 			
 		};
 		

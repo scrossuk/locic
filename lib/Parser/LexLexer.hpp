@@ -3,9 +3,9 @@
 
 #include <cstdio>
 
+#include <locic/Frontend/DiagnosticReceiver.hpp>
 #include <locic/Lex/Character.hpp>
 #include <locic/Lex/CharacterSource.hpp>
-#include <locic/Lex/DiagnosticReceiver.hpp>
 #include <locic/Lex/FileCharacterSource.hpp>
 #include <locic/Lex/Lexer.hpp>
 #include <locic/Lex/Token.hpp>
@@ -15,10 +15,11 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class LexLexer: public Lex::DiagnosticReceiver {
+		class LexLexer {
 		public:
-			LexLexer(FILE * file, const String fileName)
-			: source_(fileName, file), lexer_(source_, *this) { }
+			LexLexer(FILE * file, const String fileName,
+			         DiagnosticReceiver& diagReceiver)
+			: source_(fileName, file), lexer_(source_, diagReceiver) { }
 			
 			~LexLexer() { }
 			
@@ -27,14 +28,6 @@ namespace locic {
 			
 			LexLexer(LexLexer&&) = delete;
 			LexLexer& operator=(LexLexer&&) = delete;
-			
-			void issueWarning(Lex::Diag /*kind*/, Debug::SourceRange range) {
-				printf("Warning at %s\n", range.toString().c_str());
-			}
-			
-			void issueError(Lex::Diag /*kind*/, Debug::SourceRange range) {
-				printf("Error at %s\n", range.toString().c_str());
-			}
 			
 			Lex::Lexer& getLexer() {
 				return lexer_;
