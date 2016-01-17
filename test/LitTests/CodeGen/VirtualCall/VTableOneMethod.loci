@@ -1,0 +1,18 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+// TODO
+// XFAIL: *
+
+interface Interface {
+	void method();
+}
+
+class Class() {
+	void method() { }
+}
+
+// CHECK-LABEL: TODO
+export Interface& f(Class& c) {
+	return c;
+}

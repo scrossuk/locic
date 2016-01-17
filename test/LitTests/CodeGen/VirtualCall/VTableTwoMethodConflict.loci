@@ -1,0 +1,21 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+// TODO
+// XFAIL: *
+
+interface Interface {
+	// It turns out that 'method0' and 'method4' clash in slot index 4.
+	void method0();
+	void method4();
+}
+
+class Class() {
+	void method0() { }
+	void method4() { }
+}
+
+// CHECK-LABEL: TODO
+export Interface& f(Class& c) {
+	return c;
+}
