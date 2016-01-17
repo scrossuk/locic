@@ -4,8 +4,6 @@
 #include <string>
 
 #include <locic/Frontend/DiagnosticReceiver.hpp>
-#include <locic/Frontend/Diagnostics.hpp>
-#include <locic/Parser/Context.hpp>
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/Parser/NamespaceParser.hpp>
 #include <locic/Parser/TokenReader.hpp>
@@ -18,47 +16,45 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class DefaultParserImpl: public DiagnosticReceiver {
+		class DefaultParserImpl {
 		public:
-			DefaultParserImpl(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList,
-			                  FILE * file, const std::string& fileName)
-			: context_(stringHost, rootNamespaceList, fileName),
-			lexer_(file, context_.fileName(), *this) { }
+			DefaultParserImpl(const StringHost& stringHost,
+			                  AST::NamespaceList& argRootNamespaceList,
+			                  FILE * file, const std::string& fileName,
+			                  DiagnosticReceiver& argDiagReceiver)
+			: rootNamespaceList_(argRootNamespaceList),
+			lexer_(file, String(stringHost, fileName), argDiagReceiver),
+			diagReceiver_(argDiagReceiver) { }
 			
-			Context& context() {
-				return context_;
+			AST::NamespaceList& rootNamespaceList() {
+				return rootNamespaceList_;
 			}
 			
 			LexLexer& lexer() {
 				return lexer_;
 			}
 			
-			void issueDiag(std::unique_ptr<Diag> diag,
-			               const Debug::SourceLocation& location) {
-				context().error(std::move(diag), location);
+			DiagnosticReceiver& diagReceiver() {
+				return diagReceiver_;
 			}
 			
 		private:
-			Context context_;
+			AST::NamespaceList& rootNamespaceList_;
 			LexLexer lexer_;
+			DiagnosticReceiver& diagReceiver_;
 			
 		};
 		
 		DefaultParser::DefaultParser(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList,
-		                             FILE * file, const std::string& fileName)
-		: impl_(new DefaultParserImpl(stringHost, rootNamespaceList, file, fileName)) { }
+		                             FILE * file, const std::string& fileName, DiagnosticReceiver& diagReceiver)
+		: impl_(new DefaultParserImpl(stringHost, rootNamespaceList, file, fileName, diagReceiver)) { }
 		
 		DefaultParser::~DefaultParser() { }
 		
-		bool DefaultParser::parseFile() {
-			TokenReader reader(impl_->lexer().getLexer(), *impl_);
+		void DefaultParser::parseFile() {
+			TokenReader reader(impl_->lexer().getLexer(), impl_->diagReceiver());
 			const auto namespaceDecl = NamespaceParser(reader).parseGlobalNamespace();
-			impl_->context().fileCompleted(namespaceDecl);
-			return impl_->context().errors().empty();
-		}
-		
-		const std::vector<ParseError>& DefaultParser::getErrors() {
-			return impl_->context().errors();
+			impl_->rootNamespaceList().push_back(namespaceDecl);
 		}
 		
 	}

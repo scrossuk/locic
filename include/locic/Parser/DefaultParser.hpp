@@ -5,10 +5,10 @@
 #include <string>
 
 #include <locic/AST.hpp>
-#include <locic/Parser/Context.hpp>
 
 namespace locic {
 	
+	class DiagnosticReceiver;
 	class StringHost;
 	
 	namespace Parser {
@@ -16,12 +16,10 @@ namespace locic {
 		class DefaultParser {
 			public:
 				DefaultParser(const StringHost& stringHost, AST::NamespaceList& rootNamespaceList,
-				              FILE * file, const std::string& fileName);
+				              FILE * file, const std::string& fileName, DiagnosticReceiver& diagReceiver);
 				~DefaultParser();
 				
-				bool parseFile();
-				
-				const std::vector<ParseError>& getErrors();
+				void parseFile();
 				
 			private:
 				std::unique_ptr<class DefaultParserImpl> impl_;

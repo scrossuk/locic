@@ -9,7 +9,6 @@
 #include <locic/Lex/FileCharacterSource.hpp>
 #include <locic/Lex/Lexer.hpp>
 #include <locic/Lex/Token.hpp>
-#include <locic/Parser/Context.hpp>
 
 namespace locic {
 	
