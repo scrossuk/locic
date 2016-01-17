@@ -1,0 +1,21 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+interface TestInterfaceA {
+	void method();
+}
+
+interface TestInterfaceB {
+	void method();
+}
+
+// CHECK-LABEL: define void @function
+export TestInterfaceA& function(TestInterfaceB& object) {
+	// CHECK: %[[IREF_ARG:[0-9]+]] = load {{.*}}%0
+	// CHECK-NEXT: %[[IREF_ALLOCA:[0-9]+]] = alloca %__interface_ref
+	// CHECK: store {{.*}}%[[IREF_ARG]], {{.*}}%[[IREF_ALLOCA]]
+	// CHECK-NEXT: %[[IREF_VAL:[0-9]+]] = load {{.*}}%[[IREF_ALLOCA]]
+	// CHECK-NEXT: store {{.*}}%[[IREF_VAL]], {{.*}}%agg.result
+	// CHECK-NEXT: ret void
+	return object;
+}

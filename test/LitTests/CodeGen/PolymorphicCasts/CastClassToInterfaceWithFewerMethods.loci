@@ -1,0 +1,23 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	void a() { }
+	void b() { }
+}
+
+interface TestInterface {
+	void a();
+}
+
+// CHECK-LABEL: define void @function({{.*}} noalias sret %agg.result, i8*)
+export TestInterface& function(TestClass& object) {
+	// CHECK:      %[[VARALLOCA:[0-9]+]] = alloca i8*
+	// CHECK:      store {{.*}}%0, {{.*}}%[[VARALLOCA]]
+	// CHECK-NEXT: %[[VAR:[0-9]+]] = load {{.*}}%[[VARALLOCA]]
+	// CHECK-NEXT: %[[INTERFACE_PART:[0-9]+]] = insertvalue {{.*}}undef, {{.*}}%[[VAR]], 0
+	// CHECK-NEXT: %[[INTERFACE:[0-9]+]] = insertvalue {{.*}}%[[INTERFACE_PART]], {{.*}}@__type_vtable_T1N9TestClass{{.*}}, {{.*}}zeroinitializer{{.*}}, 1
+	// CHECK-NEXT: store {{.*}}[[INTERFACE]], {{.*}}%agg.result
+	// CHECK-NEXT: ret void
+	return object;
+}

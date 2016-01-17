@@ -1,0 +1,42 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+class TestClassUnderscores() {
+	void some_method() { }
+}
+
+interface TestInterfaceUnderscores {
+	void some_method();
+}
+
+class TestClassCamelCase() {
+	void someMethod() { }
+}
+
+interface TestInterfaceCamelCase {
+	void someMethod();
+}
+
+// CHECK-LABEL: define void @underscoresToCamelCase
+export TestInterfaceCamelCase& underscoresToCamelCase(TestClassUnderscores& object) {
+	// CHECK:      %[[VARALLOCA0:[0-9]+]] = alloca i8*
+	// CHECK:      store {{.*}}%0, {{.*}}%[[VARALLOCA0]]
+	// CHECK-NEXT: %[[VAR0:[0-9]+]] = load {{.*}}%[[VARALLOCA0]]
+	// CHECK-NEXT: %[[INTERFACE_PART0:[0-9]+]] = insertvalue {{.*}}undef, {{.*}}%[[VAR0]], 0
+	// CHECK-NEXT: %[[INTERFACE0:[0-9]+]] = insertvalue {{.*}}%[[INTERFACE_PART0]], {{.*}}@__type_vtable_T1N20TestClassUnderscores{{.*}}, {{.*}}zeroinitializer{{.*}}, 1
+	// CHECK-NEXT: store {{.*}}[[INTERFACE0]], {{.*}}%agg.result
+	// CHECK-NEXT: ret void
+	return object;
+}
+
+// CHECK-LABEL: define void @camelCaseToUnderscores
+export TestInterfaceUnderscores& camelCaseToUnderscores(TestClassCamelCase& object) {
+	// CHECK:      %[[VARALLOCA1:[0-9]+]] = alloca i8*
+	// CHECK:      store {{.*}}%0, {{.*}}%[[VARALLOCA1]]
+	// CHECK-NEXT: %[[VAR1:[0-9]+]] = load {{.*}}%[[VARALLOCA1]]
+	// CHECK-NEXT: %[[INTERFACE_PART1:[0-9]+]] = insertvalue {{.*}}undef, {{.*}}%[[VAR1]], 0
+	// CHECK-NEXT: %[[INTERFACE1:[0-9]+]] = insertvalue {{.*}}%[[INTERFACE_PART1]], {{.*}}@__type_vtable_T1N18TestClassCamelCase{{.*}}, {{.*}}zeroinitializer{{.*}}, 1
+	// CHECK-NEXT: store {{.*}}[[INTERFACE1]], {{.*}}%agg.result
+	// CHECK-NEXT: ret void
+	return object;
+}
