@@ -1,0 +1,17 @@
+
+import void printf(const ubyte* format, ...) noexcept;
+
+export int main(int argc, ubyte ** argv) {
+	auto app = QApplication(argc, argv);
+	
+	auto messageBox = QMessageBox();
+	messageBox.setText(Q"Example message box");
+	messageBox.show();
+	
+	auto textEdit = QTextEdit();
+	textEdit.setText(Q"Example text box");
+	textEdit.show();
+	
+	return app.exec();
+}
+
