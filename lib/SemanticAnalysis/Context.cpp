@@ -108,6 +108,11 @@ namespace locic {
 		
 		Context::~Context() { }
 		
+		void Context::issueDiagPtr(std::unique_ptr<Diag> diag,
+		                           const Debug::SourceLocation& location) {
+			impl_->diagReceiver.issueDiag(std::move(diag), location);
+		}
+		
 		AliasTypeResolver& Context::aliasTypeResolver() {
 			return impl_->aliasTypeResolver;
 		}

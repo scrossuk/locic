@@ -50,6 +50,15 @@ namespace locic {
 				        SEM::Context& semContext, DiagnosticReceiver& diagReceiver);
 				~Context();
 				
+				template <typename DiagType>
+				void issueDiag(DiagType diag, const Debug::SourceLocation& location) {
+					issueDiagPtr(std::unique_ptr<Diag>(new DiagType(std::move(diag))),
+					             location);
+				}
+				
+				void issueDiagPtr(std::unique_ptr<Diag> diag,
+				                  const Debug::SourceLocation& location);
+				
 				AliasTypeResolver& aliasTypeResolver();
 				const SharedMaps& sharedMaps() const;
 				
