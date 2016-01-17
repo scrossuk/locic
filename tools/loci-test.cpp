@@ -15,6 +15,7 @@
 #include <locic/BuildOptions.hpp>
 #include <locic/Debug.hpp>
 
+#include <locic/Frontend/DiagnosticArray.hpp>
 #include <locic/Frontend/DiagnosticRenderer.hpp>
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/CodeGen/Context.hpp>
@@ -242,7 +243,7 @@ struct TestOptions {
 bool runTest(TestOptions& options) {
 	try {
 		AST::NamespaceList astRootNamespaceList;
-		
+		DiagnosticArray diagArray;
 		SharedMaps sharedMaps;
 		
 		std::stringstream parseErrors;
@@ -256,17 +257,15 @@ bool runTest(TestOptions& options) {
 			}
 			
 			Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList,
-			                             file, filename);
-			
-			if (!parser.parseFile()) {
-				const auto& errors = parser.getErrors();
-				assert(!errors.empty());
-				
-				DiagnosticRenderer renderer(/*useColors=*/false);
-				for (const auto& error : errors) {
-					renderer.emitDiagnosticMessage(parseErrors, *(error.diag),
-					                               error.location);
-				}
+			                             file, filename, diagArray);
+			parser.parseFile();
+		}
+		
+		if (!diagArray.diags().empty()) {
+			DiagnosticRenderer renderer(/*useColors=*/false);
+			for (const auto& diagPair : diagArray.diags()) {
+				renderer.emitDiagnosticMessage(parseErrors, *(diagPair.diag),
+				                               diagPair.location);
 			}
 		}
 		
