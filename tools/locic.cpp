@@ -15,6 +15,7 @@
 #include <locic/BuildOptions.hpp>
 #include <locic/Debug.hpp>
 
+#include <locic/Frontend/DiagnosticArray.hpp>
 #include <locic/Frontend/DiagnosticRenderer.hpp>
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/CodeGen/CodeGenerator.hpp>
@@ -87,14 +88,9 @@ bool isStdOutATTY() {
 	return isatty(fileno(stdout));
 }
 
-int main(int argc, char* argv[]) {
-	Timer totalTimer;
-	
-	if (argc < 1) return -1;
-	const auto programName = boost::filesystem::path(argv[0]).stem().string();
-	
+struct CompilerOptions {
 	std::vector<std::string> inputFileNames;
-	int optimisationLevel = 0;
+	int optimisationLevel;
 	std::string outputFileName;
 	
 	// Target
@@ -110,29 +106,49 @@ int main(int argc, char* argv[]) {
 	std::string codeGenDebugFileName;
 	std::string optDebugFileName;
 	
+	bool timingsEnabled;
+	bool emitIRText;
+	bool verifying;
+	bool unsafe;
+	
+	CompilerOptions()
+	: optimisationLevel(0), timingsEnabled(false), emitIRText(false),
+	verifying(false), unsafe(false) { }
+};
+
+Optional<CompilerOptions> parseOptions(const int argc, char* argv[]) {
+	if (argc < 1) {
+		printf("Error: Argument count less than 1.\n");
+		return None;
+	}
+	
+	const auto programName = boost::filesystem::path(argv[0]).stem().string();
+	
+	CompilerOptions options;
+	
 	po::options_description visibleOptions("Options");
 	visibleOptions.add_options()
 	("help,h", "Display help information")
-	("output-file,o", po::value<std::string>(&outputFileName)->default_value("out.bc"), "Set output file name")
-	("optimisation,O", po::value<int>(&optimisationLevel)->default_value(0), "Set optimization level")
-	("target", po::value<std::string>(&targetTripleString), "Target Triple")
-	("march", po::value<std::string>(&targetArchString), "Target Architecture")
-	("mcpu", po::value<std::string>(&targetCPUString), "Target CPU")
-	("mfloat-abi", po::value<std::string>(&targetFloatABIString), "Target Float ABI")
-	("mfpu", po::value<std::string>(&targetFPUString), "Target FPU")
+	("output-file,o", po::value<std::string>(&(options.outputFileName))->default_value("out.bc"), "Set output file name")
+	("optimisation,O", po::value<int>(&(options.optimisationLevel))->default_value(0), "Set optimization level")
+	("target", po::value<std::string>(&(options.targetTripleString)), "Target Triple")
+	("march", po::value<std::string>(&(options.targetArchString)), "Target Architecture")
+	("mcpu", po::value<std::string>(&(options.targetCPUString)), "Target CPU")
+	("mfloat-abi", po::value<std::string>(&(options.targetFloatABIString)), "Target Float ABI")
+	("mfpu", po::value<std::string>(&(options.targetFPUString)), "Target FPU")
 	("unsafe", "Build in 'unsafe mode' (i.e. assert traps disabled, overflow traps disabled etc.)")
 	("timings", "Print out timings of the compiler stages")
 	("emit-llvm", "Emit LLVM IR text")
 	("verify", "Verify code and accept failures")
-	("ast-debug-file", po::value<std::string>(&astDebugFileName), "Set Parser AST tree debug output file")
-	("sem-debug-file", po::value<std::string>(&semDebugFileName), "Set Semantic Analysis SEM tree debug output file")
-	("codegen-debug-file", po::value<std::string>(&codeGenDebugFileName), "Set CodeGen LLVM IR debug output file")
-	("opt-debug-file", po::value<std::string>(&optDebugFileName), "Set Optimiser LLVM IR debug output file")
+	("ast-debug-file", po::value<std::string>(&(options.astDebugFileName)), "Set Parser AST tree debug output file")
+	("sem-debug-file", po::value<std::string>(&(options.semDebugFileName)), "Set Semantic Analysis SEM tree debug output file")
+	("codegen-debug-file", po::value<std::string>(&(options.codeGenDebugFileName)), "Set CodeGen LLVM IR debug output file")
+	("opt-debug-file", po::value<std::string>(&(options.optDebugFileName)), "Set Optimiser LLVM IR debug output file")
 	;
 	
 	po::options_description hiddenOptions;
 	hiddenOptions.add_options()
-	("input-file", po::value<std::vector<std::string>>(&inputFileNames), "Set input file names")
+	("input-file", po::value<std::vector<std::string>>(&(options.inputFileNames)), "Set input file names")
 	;
 	
 	po::options_description allOptions;
@@ -152,97 +168,235 @@ int main(int argc, char* argv[]) {
 	} catch (const po::error& e) {
 		printf("%s: Command line parsing error: %s\n", programName.c_str(), e.what());
 		printf("Usage: %s [options] file...\n", programName.c_str());
-		return 1;
+		return None;
 	}
 	
 	if (!variableMap["help"].empty()) {
 		printf("Usage: %s [options] file...\n", programName.c_str());
 		std::cout << visibleOptions << std::endl;
-		return 1;
+		return None;
 	}
 	
-	if (inputFileNames.empty()) {
+	if (options.inputFileNames.empty()) {
 		printf("%s: No files provided.\n", programName.c_str());
 		printf("Usage: %s [options] file...\n", programName.c_str());
 		std::cout << visibleOptions << std::endl;
-		return 1;
+		return None;
 	}
 	
-	if (optimisationLevel < 0 || optimisationLevel > 3) {
-		printf("%s: Invalid optimisation level '%d'.\n", programName.c_str(), optimisationLevel);
+	if (options.optimisationLevel < 0 || options.optimisationLevel > 3) {
+		printf("%s: Invalid optimisation level '%d'.\n", programName.c_str(),
+		       options.optimisationLevel);
 		printf("Usage: %s [options] file...\n", programName.c_str());
 		std::cout << visibleOptions << std::endl;
-		return 1;
+		return None;
 	}
 	
-	const bool timingsEnabled = !variableMap["timings"].empty();
-	const bool emitIRText = !variableMap["emit-llvm"].empty();
-	const bool verifying = !variableMap["verify"].empty();
+	options.timingsEnabled = !variableMap["timings"].empty();
+	options.emitIRText = !variableMap["emit-llvm"].empty();
+	options.verifying = !variableMap["verify"].empty();
+	options.unsafe = !variableMap["unsafe"].empty();
 	
-	BuildOptions buildOptions;
-	buildOptions.unsafe = !variableMap["unsafe"].empty();
+	options.inputFileNames.push_back("BuiltInTypes.loci");
 	
-	inputFileNames.push_back("BuiltInTypes.loci");
+	return make_optional(std::move(options));
+}
+
+class Driver {
+public:
+	Driver(const CompilerOptions& options)
+	: options_(options) { }
 	
-	try {
-		SharedMaps sharedMaps;
+	void printDiagnostics() {
+		if (diagArray_.diags().empty()) {
+			return;
+		}
 		
-		AST::NamespaceList astRootNamespaceList;
+		DiagnosticRenderer renderer(/*useColors=*/isStdOutATTY());
+		
+		for (const auto& diagPair: diagArray_.diags()) {
+			renderer.emitDiagnostic(std::cout, *(diagPair.diag),
+			                        diagPair.location);
+		}
+		
+		renderer.emitDiagnosticSummary(std::cout);
+	}
+	
+	bool runParser(AST::NamespaceList& astRootNamespaceList) {
+		Timer timer;
+		bool success = true;
+		
+		for (const auto& filename: options_.inputFileNames) {
+			const auto file = (filename == "BuiltInTypes.loci") ? builtInTypesFile() : fopen(filename.c_str(), "rb");
+			
+			if (file == nullptr) {
+				printf("Parser Error: Failed to open file '%s'.\n", filename.c_str());
+				success = false;
+				continue;
+			}
+			
+			Parser::DefaultParser parser(sharedMaps_.stringHost(), astRootNamespaceList,
+			                             file, filename, diagArray_);
+			parser.parseFile();
+		}
+		
+		if (options_.timingsEnabled) {
+			printf("Parser: %f seconds.\n", timer.getTime());
+		}
+		
+		if (!options_.astDebugFileName.empty()) {
+			// If requested, dump AST information.
+			dumpAST(astRootNamespaceList);
+		}
+		
+		return success && !diagArray_.anyErrors();
+	}
+	
+	void dumpAST(const AST::NamespaceList& astRootNamespaceList) {
+		Timer timer;
+		
+		// If requested, dump AST tree information.
+		std::ofstream ofs(options_.astDebugFileName.c_str(), std::ios_base::binary);
+		
+		for (size_t i = 0; i < astRootNamespaceList.size(); i++) {
+			const std::string spacedFileName = generateSpacedText(options_.inputFileNames.at(i), 20);
+			ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
+			ofs << spacedFileName << std::endl;
+			ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
+			ofs << std::endl;
+			ofs << formatMessage(astRootNamespaceList.at(i).toString());
+			ofs << std::endl << std::endl;
+		}
+		
+		if (options_.timingsEnabled) {
+			printf("Dump AST: %f seconds.\n", timer.getTime());
+		}
+	}
+	
+	bool runSemanticAnalysis(const AST::NamespaceList& astRootNamespaceList,
+	                         SEM::Module& semModule, Debug::Module& debugModule) {
+		Timer timer;
+		SemanticAnalysis::Run(sharedMaps_, astRootNamespaceList,
+		                      semModule, debugModule);
+		
+		if (options_.timingsEnabled) {
+			printf("Semantic Analysis: %f seconds.\n", timer.getTime());
+		}
+		
+		if (!options_.semDebugFileName.empty()) {
+			// If requested, dump SEM information.
+			dumpSEM(semModule);
+		}
+		
+		return !diagArray_.anyErrors();
+	}
+	
+	void dumpSEM(const SEM::Module& semModule) {
+		Timer timer;
+		
+		// If requested, dump SEM tree information.
+		std::ofstream ofs(options_.semDebugFileName.c_str(), std::ios_base::binary);
+		ofs << formatMessage(semModule.rootNamespace().toString());
+		
+		if (options_.timingsEnabled) {
+			printf("Dump SEM: %f seconds.\n", timer.getTime());
+		}
+	}
+	
+	void runCodeGen(SEM::Context& semContext, SEM::Module& semModule,
+	                Debug::Module& debugModule) {
+		BuildOptions buildOptions;
+		buildOptions.unsafe = options_.unsafe;
+		
+		CodeGen::TargetOptions targetOptions;
+		targetOptions.triple = options_.targetTripleString;
+		targetOptions.arch = options_.targetArchString;
+		targetOptions.cpu = options_.targetCPUString;
+		targetOptions.floatABI = options_.targetFloatABIString;
+		targetOptions.fpu = options_.targetFPUString;
+		
+		CodeGen::Context codeGenContext(semContext, sharedMaps_, targetOptions);
+		CodeGen::CodeGenerator codeGenerator(codeGenContext, options_.outputFileName,
+		                                     debugModule, buildOptions);
 		
 		{
 			Timer timer;
+			codeGenerator.genNamespace(&(semModule.rootNamespace()));
 			
-			// Parse all source files.
-			for (const auto& filename: inputFileNames) {
-				const auto file = (filename == "BuiltInTypes.loci") ? builtInTypesFile() : fopen(filename.c_str(), "rb");
-				
-				if (file == nullptr) {
-					printf("Parser Error: Failed to open file '%s'.\n", filename.c_str());
-					return 1;
-				}
-				
-				Parser::DefaultParser parser(sharedMaps.stringHost(), astRootNamespaceList, file, filename);
-				
-				if (!parser.parseFile()) {
-					const auto& errors = parser.getErrors();
-					assert(!errors.empty());
-					
-					DiagnosticRenderer renderer(/*useColors=*/isStdOutATTY());
-					
-					for (const auto& error : errors) {
-						renderer.emitDiagnostic(std::cout, *(error.diag),
-						                        error.location);
-					}
-					
-					renderer.emitDiagnosticSummary(std::cout);
-					return verifying ? 0 : 1;
-				}
-			}
-			
-			if (timingsEnabled) {
-				printf("Parser: %f seconds.\n", timer.getTime());
+			if (options_.timingsEnabled) {
+				printf("Code Generation: %f seconds.\n", timer.getTime());
 			}
 		}
 		
-		if (!astDebugFileName.empty()) {
+		if (!options_.codeGenDebugFileName.empty()) {
 			Timer timer;
 			
-			// If requested, dump AST tree information.
-			std::ofstream ofs(astDebugFileName.c_str(), std::ios_base::binary);
+			// If requested, dump LLVM IR prior to optimisation.
+			codeGenerator.dumpToFile(options_.codeGenDebugFileName);
 			
-			for (size_t i = 0; i < astRootNamespaceList.size(); i++) {
-				const std::string spacedFileName = generateSpacedText(inputFileNames.at(i), 20);
-				ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
-				ofs << spacedFileName << std::endl;
-				ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
-				ofs << std::endl;
-				ofs << formatMessage(astRootNamespaceList.at(i).toString());
-				ofs << std::endl << std::endl;
+			if (options_.timingsEnabled) {
+				printf("Dump LLVM IR (pre optimisation): %f seconds.\n", timer.getTime());
 			}
+		}
+		
+		{
+			Timer timer;
+			codeGenerator.applyOptimisations(options_.optimisationLevel);
+			if (options_.timingsEnabled) {
+				printf("Optimisation: %f seconds.\n", timer.getTime());
+			}
+		}
+		
+		if (!options_.optDebugFileName.empty()) {
+			Timer timer;
 			
-			if (timingsEnabled) {
-				printf("Dump AST: %f seconds.\n", timer.getTime());
+			// If requested, dump LLVM IR after optimisation.
+			codeGenerator.dumpToFile(options_.optDebugFileName);
+			
+			if (options_.timingsEnabled) {
+				printf("Dump LLVM IR (post optimisation): %f seconds.\n", timer.getTime());
 			}
+		}
+		
+		if (options_.emitIRText) {
+			Timer timer;
+			codeGenerator.dumpToFile(options_.outputFileName);
+			if (options_.timingsEnabled) {
+				printf("Write IR Assembly: %f seconds.\n", timer.getTime());
+			}
+		} else {
+			Timer timer;
+			codeGenerator.writeToFile(options_.outputFileName);
+			if (options_.timingsEnabled) {
+				printf("Write Bitcode: %f seconds.\n", timer.getTime());
+			}
+		}
+	}
+	
+private:
+	const CompilerOptions& options_;
+	DiagnosticArray diagArray_;
+	SharedMaps sharedMaps_;
+	
+};
+
+int main(int argc, char* argv[]) {
+	Timer totalTimer;
+	
+	const auto options = parseOptions(argc, argv);
+	if (!options) {
+		return EXIT_FAILURE;
+	}
+	
+	try {
+		Driver driver(*options);
+		
+		AST::NamespaceList astRootNamespaceList;
+		
+		const bool parseResult = driver.runParser(astRootNamespaceList);
+		if (!parseResult) {
+			driver.printDiagnostics();
+			return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;
 		}
 		
 		// Debug information.
@@ -251,102 +405,25 @@ int main(int argc, char* argv[]) {
 		SEM::Context semContext;
 		SEM::Module semModule(semContext);
 		
-		// Perform semantic analysis.
-		{
-			Timer timer;
-			SemanticAnalysis::Run(sharedMaps, astRootNamespaceList,
-			                      semModule, debugModule);
-			
-			if (timingsEnabled) {
-				printf("Semantic Analysis: %f seconds.\n", timer.getTime());
-			}
+		const auto semaResult = driver.runSemanticAnalysis(astRootNamespaceList,
+		                                                   semModule, debugModule);
+		driver.printDiagnostics();
+		if (!semaResult) {
+			return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;
 		}
 		
-		if (!semDebugFileName.empty()) {
-			Timer timer;
-			
-			// If requested, dump SEM tree information.
-			std::ofstream ofs(semDebugFileName.c_str(), std::ios_base::binary);
-			ofs << formatMessage(semModule.rootNamespace().toString());
-			
-			if (timingsEnabled) {
-				printf("Dump SEM: %f seconds.\n", timer.getTime());
-			}
+		if (options->verifying) {
+			return EXIT_SUCCESS;
 		}
 		
-		if (verifying) {
-			return 0;
-		}
+		driver.runCodeGen(semContext, semModule, debugModule);
 		
-		CodeGen::TargetOptions targetOptions;
-		targetOptions.triple = targetTripleString;
-		targetOptions.arch = targetArchString;
-		targetOptions.cpu = targetCPUString;
-		targetOptions.floatABI = targetFloatABIString;
-		targetOptions.fpu = targetFPUString;
-		
-		CodeGen::Context codeGenContext(semContext, sharedMaps, targetOptions);
-		CodeGen::CodeGenerator codeGenerator(codeGenContext, outputFileName, debugModule, buildOptions);
-		
-		{
-			Timer timer;
-			codeGenerator.genNamespace(&(semModule.rootNamespace()));
-			
-			if (timingsEnabled) {
-				printf("Code Generation: %f seconds.\n", timer.getTime());
-			}
-		}
-		
-		if (!codeGenDebugFileName.empty()) {
-			Timer timer;
-			
-			// If requested, dump LLVM IR prior to optimisation.
-			codeGenerator.dumpToFile(codeGenDebugFileName);
-			
-			if (timingsEnabled) {
-				printf("Dump LLVM IR (pre optimisation): %f seconds.\n", timer.getTime());
-			}
-		}
-		
-		{
-			Timer timer;
-			codeGenerator.applyOptimisations(optimisationLevel);
-			if (timingsEnabled) {
-				printf("Optimisation: %f seconds.\n", timer.getTime());
-			}
-		}
-		
-		if (!optDebugFileName.empty()) {
-			Timer timer;
-			
-			// If requested, dump LLVM IR after optimisation.
-			codeGenerator.dumpToFile(optDebugFileName);
-			
-			if (timingsEnabled) {
-				printf("Dump LLVM IR (post optimisation): %f seconds.\n", timer.getTime());
-			}
-		}
-		
-		if (emitIRText) {
-			Timer timer;
-			codeGenerator.dumpToFile(outputFileName);
-			if (timingsEnabled) {
-				printf("Write IR Assembly: %f seconds.\n", timer.getTime());
-			}
-		} else {
-			Timer timer;
-			codeGenerator.writeToFile(outputFileName);
-			if (timingsEnabled) {
-				printf("Write Bitcode: %f seconds.\n", timer.getTime());
-			}
-		}
-		
-		if (timingsEnabled) {
+		if (options->timingsEnabled) {
 			printf("--- Total time: %f seconds.\n", totalTimer.getTime());
 		}
 	} catch (const Exception& e) {
 		printf("Compilation failed (errors should be shown above).\n");
-		return verifying ? 0 : 1;
+		return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;
 	}
 	
 	return 0;
