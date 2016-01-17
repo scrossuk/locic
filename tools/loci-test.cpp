@@ -313,7 +313,7 @@ bool runTest(TestOptions& options) {
 		// TODO: Clean up this try-catch!
 		try {
 			SemanticAnalysis::Run(sharedMaps, astRootNamespaceList,
-			                      semModule, debugModule);
+			                      semModule, debugModule, diagArray);
 		} catch (const Exception& e) {
 			if (!options.expectedErrorFileName.empty()) {
 				const auto testError = e.toString();

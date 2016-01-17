@@ -277,7 +277,7 @@ public:
 	                         SEM::Module& semModule, Debug::Module& debugModule) {
 		Timer timer;
 		SemanticAnalysis::Run(sharedMaps_, astRootNamespaceList,
-		                      semModule, debugModule);
+		                      semModule, debugModule, diagArray_);
 		
 		if (options_.timingsEnabled) {
 			printf("Semantic Analysis: %f seconds.\n", timer.getTime());

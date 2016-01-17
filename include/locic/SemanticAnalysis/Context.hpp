@@ -6,10 +6,12 @@
 #include <string>
 #include <vector>
 
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
 
 namespace locic {
 	
+	class DiagnosticReceiver;
 	template <typename T>
 	class Optional;
 	class SharedMaps;
@@ -44,7 +46,8 @@ namespace locic {
 		
 		class Context {
 			public:
-				Context(const SharedMaps& sharedMaps, Debug::Module& debugModule, SEM::Context& semContext);
+				Context(const SharedMaps& sharedMaps, Debug::Module& debugModule,
+				        SEM::Context& semContext, DiagnosticReceiver& diagReceiver);
 				~Context();
 				
 				AliasTypeResolver& aliasTypeResolver();

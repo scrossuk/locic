@@ -5,6 +5,7 @@
 
 namespace locic {
 	
+	class DiagnosticReceiver;
 	class SharedMaps;
 	
 	namespace Debug {
@@ -31,7 +32,7 @@ namespace locic {
 		 * TODO: error handling needs to be improved!
 		 */
 		void Run(const SharedMaps& sharedMaps, const AST::NamespaceList& rootASTNamespaces,
-		         SEM::Module& semModule, Debug::Module& debugModule);
+		         SEM::Module& semModule, Debug::Module& debugModule, DiagnosticReceiver& diagReceiver);
 		
 	}
 	

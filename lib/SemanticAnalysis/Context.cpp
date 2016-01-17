@@ -5,6 +5,8 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/Frontend/DiagnosticReceiver.hpp>
+#include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Debug.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/Support/Array.hpp>
@@ -28,15 +30,15 @@ namespace locic {
 	
 		class ContextImpl {
 		public:
-			ContextImpl(Context& context,
-			            const SharedMaps& argSharedMaps,
-			            Debug::Module& pDebugModule,
-			            SEM::Context& pSemContext)
+			ContextImpl(Context& context, const SharedMaps& argSharedMaps,
+			            Debug::Module& pDebugModule, SEM::Context& pSemContext,
+			            DiagnosticReceiver& argDiagReceiver)
 			: aliasTypeResolver(context),
 			sharedMaps(argSharedMaps),
 			stringHost(sharedMaps.stringHost()),
 			debugModule(pDebugModule),
 			semContext(pSemContext),
+			diagReceiver(argDiagReceiver),
 			typeBuilder(context),
 			methodSetsComplete(false),
 			templateRequirementsComplete(false) {
@@ -82,6 +84,7 @@ namespace locic {
 			Debug::Module& debugModule;
 			ScopeStack scopeStack;
 			SEM::Context& semContext;
+			DiagnosticReceiver& diagReceiver;
 			TypeBuilder typeBuilder;
 			bool methodSetsComplete;
 			bool templateRequirementsComplete;
@@ -98,8 +101,10 @@ namespace locic {
 			std::vector<std::pair<const SEM::TemplateVar*, const SEM::Predicate*>> computingMethodSetTemplateVars;
 		};
 		
-		Context::Context(const SharedMaps& argSharedMaps, Debug::Module& argDebugModule, SEM::Context& argSemContext)
-		: impl_(new ContextImpl(*this, argSharedMaps, argDebugModule, argSemContext)) { }
+		Context::Context(const SharedMaps& argSharedMaps, Debug::Module& argDebugModule,
+		                 SEM::Context& argSemContext, DiagnosticReceiver& diagReceiver)
+		: impl_(new ContextImpl(*this, argSharedMaps, argDebugModule, argSemContext,
+		                        diagReceiver)) { }
 		
 		Context::~Context() { }
 		
