@@ -11,6 +11,7 @@
 #include <locic/SEM/Value.hpp>
 #include <locic/SEM/ValueArray.hpp>
 #include <locic/SEM/Var.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Hasher.hpp>
 #include <locic/Support/HeapArray.hpp>
@@ -1250,7 +1251,105 @@ namespace locic {
 						type()->toString().c_str());
 			}
 			
-			throw std::logic_error("Unknown value kind.");
+			locic_unreachable("Unknown value kind.");
+		}
+		
+		std::string Value::toDiagString() const {
+			switch (kind()) {
+				case SELF:
+					return "self";
+				case THIS:
+					return "this";
+				case CONSTANT:
+					return constant().toString();
+				case ALIAS:
+					return alias().toString();
+				case PREDICATE:
+					return predicate().toString();
+				case LOCALVAR:
+					return localVar().toString();
+				case UNIONDATAOFFSET:
+					return unionDataOffsetTypeInstance()->name().toString();
+				case MEMBEROFFSET:
+					// TODO: this should have a SEM::Var&, not an index.
+					return makeString("@%s",
+					                  memberOffsetTypeInstance()->variables()[memberOffsetMemberIndex()]->toString().c_str());
+				case REINTERPRET:
+					return reinterpretOperand().toDiagString();
+				case DEREF_REFERENCE:
+					return makeString("<deref> %s", derefOperand().toDiagString().c_str());
+				case TERNARY:
+					return makeString("%s ? %s : %s",
+						ternaryCondition().toDiagString().c_str(),
+						ternaryIfTrue().toDiagString().c_str(),
+						ternaryIfFalse().toDiagString().c_str());
+				case CAST:
+					return castOperand().toDiagString();
+				case POLYCAST:
+					return polyCastOperand().toDiagString();
+				case LVAL:
+					return makeString("lval<%s>(%s)",
+						makeLvalTargetType()->toString().c_str(),
+						makeLvalOperand().toDiagString().c_str());
+				case NOLVAL:
+					return makeString("nolval(%s)", makeNoLvalOperand().toDiagString().c_str());
+				case REF:
+					return makeString("ref<%s>(%s)",
+						makeRefTargetType()->toString().c_str(),
+						makeRefOperand().toDiagString().c_str());
+				case NOREF:
+					return makeString("noref(%s)", makeNoRefOperand().toDiagString().c_str());
+				case STATICREF:
+					return makeString("staticref<%s>(%s)",
+						makeStaticRefTargetType()->toString().c_str(),
+						makeStaticRefOperand().toDiagString().c_str());
+				case NOSTATICREF:
+					return makeString("nostaticref(%s)", makeNoStaticRefOperand().toDiagString().c_str());
+				case INTERNALCONSTRUCT:
+					return makeString("@(%s)",
+						makeArrayString(internalConstructParameters()).c_str());
+				case MEMBERACCESS:
+					return makeString("%s.%s",
+						memberAccessObject().toDiagString().c_str(),
+						memberAccessVar().toString().c_str());
+				case BIND_REFERENCE:
+					return makeString("<bind> %s", bindReferenceOperand().toDiagString().c_str());
+				case TYPEREF:
+					return typeRefType()->toString();
+				case TEMPLATEVARREF:
+					return templateVar()->toString();
+				case CALL:
+					return makeString("%s(%s)", callValue().toDiagString().c_str(),
+						makeArrayString(callParameters()).c_str());
+				case FUNCTIONREF:
+					return functionRefFunction()->name().toString();
+				case TEMPLATEFUNCTIONREF:
+					return makeString("%s::%s",
+					                  templateFunctionRefParentType()->toString().c_str(),
+					                  templateFunctionRefName().c_str());
+				case METHODOBJECT:
+					return makeString("%s.%s",
+					                  methodOwner().toDiagString().c_str(),
+					                  methodObject().toDiagString().c_str());
+				case INTERFACEMETHODOBJECT:
+					return makeString("%s.%s",
+					                  interfaceMethodOwner().toDiagString().c_str(),
+					                  interfaceMethodObject().toDiagString().c_str());
+				case STATICINTERFACEMETHODOBJECT:
+					return makeString("%s.%s",
+					                  staticInterfaceMethodOwner().toDiagString().c_str(),
+					                  staticInterfaceMethodObject().toDiagString().c_str());
+				case CAPABILITYTEST:
+					return makeString("%s : %s",
+					                  capabilityTestCheckType()->toString().c_str(),
+					                  capabilityTestCapabilityType()->toString().c_str());
+				case Value::ARRAYLITERAL:
+					return makeString("{ %s }", makeArrayString(arrayLiteralValues()).c_str());
+				case CASTDUMMYOBJECT:
+					locic_unreachable("Shouldn't reach CASTDUMMYOBJECT.");
+			}
+			
+			locic_unreachable("Unknown value kind.");
 		}
 	}
 	

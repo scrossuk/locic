@@ -484,6 +484,7 @@ namespace locic {
 				Predicate makePredicate() const;
 				
 				std::string toString() const;
+				std::string toDiagString() const;
 				
 			private:
 				Value(Kind kind,
