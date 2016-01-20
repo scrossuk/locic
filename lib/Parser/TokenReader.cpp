@@ -88,7 +88,9 @@ namespace locic {
 		
 		void TokenReader::consume() {
 			assert(!tokens_.empty());
-			assert(!isEnd());
+			if (isEnd()) {
+				return;
+			}
 			lastEndPosition_ = tokens_.front().sourceRange().end();
 			tokens_.pop_front();
 			if (tokens_.empty()) {
