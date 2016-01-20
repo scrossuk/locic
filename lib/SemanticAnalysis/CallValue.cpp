@@ -45,6 +45,50 @@ namespace locic {
 			return castValues;
 		}
 		
+		class CallIncorrectArgCountDiag: public Error {
+		public:
+			CallIncorrectArgCountDiag(std::string valueString,
+			                          size_t argsGiven, size_t argsRequired)
+			: valueString_(std::move(valueString)), argsGiven_(argsGiven),
+			argsRequired_(argsRequired) { }
+			
+			std::string toString() const {
+				return makeString("function '%s' called with %llu "
+				                  "parameter(s); expected %llu",
+				                  valueString_.c_str(),
+				                  (unsigned long long) argsGiven_,
+				                  (unsigned long long) argsRequired_);
+			}
+			
+		private:
+			std::string valueString_;
+			size_t argsGiven_;
+			size_t argsRequired_;
+			
+		};
+		
+		class VarArgTooFewArgsDiag: public Error {
+		public:
+			VarArgTooFewArgsDiag(std::string valueString,
+			                     size_t argsGiven, size_t argsRequired)
+			: valueString_(std::move(valueString)), argsGiven_(argsGiven),
+			argsRequired_(argsRequired) { }
+			
+			std::string toString() const {
+				return makeString("vararg function '%s' called with %llu "
+				                  "parameter(s); expected at least %llu",
+				                  valueString_.c_str(),
+				                  (unsigned long long) argsGiven_,
+				                  (unsigned long long) argsRequired_);
+			}
+			
+		private:
+			std::string valueString_;
+			size_t argsGiven_;
+			size_t argsRequired_;
+			
+		};
+		
 		SEM::Value CallValue(Context& context, SEM::Value rawValue, HeapArray<SEM::Value> args, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			
@@ -62,21 +106,15 @@ namespace locic {
 			
 			if (functionType.attributes().isVarArg()) {
 				if (args.size() < typeList.size()) {
-					throw ErrorException(makeString("Var Arg Function [%s] called with %llu "
-						"parameters; expected at least %llu at position %s.",
-						value.toString().c_str(),
-						(unsigned long long) args.size(),
-						(unsigned long long) typeList.size(),
-						location.toString().c_str()));
+					context.issueDiag(VarArgTooFewArgsDiag(value.toDiagString(),
+					                                       args.size(), typeList.size()),
+					                  location);
 				}
 			} else {
 				if (args.size() != typeList.size()) {
-					throw ErrorException(makeString("Function [%s] called with %llu "
-						"parameters; expected %llu at position %s.",
-						value.toString().c_str(),
-						(unsigned long long) args.size(),
-						(unsigned long long) typeList.size(),
-						location.toString().c_str()));
+					context.issueDiag(CallIncorrectArgCountDiag(value.toDiagString(),
+					                                            args.size(), typeList.size()),
+					                  location);
 				}
 			}
 			
