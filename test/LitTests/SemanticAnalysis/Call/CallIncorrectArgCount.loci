@@ -1,0 +1,26 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import void f(int a, int b);
+
+export void g() {
+	// CHECK: .loci:8:2: error: function '::f' called with 0 parameter(s); expected 2
+	f();
+}
+
+export void h(int a) {
+	// CHECK: .loci:13:2: error: function '::f' called with 1 parameter(s); expected 2
+	f(a);
+}
+
+export void i(int a, int b) {
+	// CHECK-NOT: error: function '::f'
+	f(a, b);
+}
+
+export void j(int a, int b, int c) {
+	// CHECK: .loci:23:2: error: function '::f' called with 3 parameter(s); expected 2
+	f(a, b, c);
+}
+
+// CHECK: 3 errors generated.
