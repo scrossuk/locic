@@ -1,0 +1,21 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import void f(int a, int b, ...);
+
+export void g() {
+	// CHECK: .loci:8:2: error: vararg function '::f' called with 0 parameter(s); expected at least 2
+	f();
+}
+
+export void h(int a) {
+	// CHECK: .loci:13:2: error: vararg function '::f' called with 1 parameter(s); expected at least 2
+	f(a);
+}
+
+export void i(int a, int b) {
+	// CHECK-NOT: error: vararg function '::f'
+	f(a, b);
+}
+
+// CHECK: 2 errors generated.
