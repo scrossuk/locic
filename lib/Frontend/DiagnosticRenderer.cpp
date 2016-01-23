@@ -77,7 +77,7 @@ namespace locic {
 		}
 		
 		const auto begin = findLineStart(handle, location.range().start().byteOffset());
-		const auto end = findLineEnd(handle, location.range().end().byteOffset());
+		const auto end = findLineEnd(handle, location.range().start().byteOffset());
 		
 		const auto length = end - begin;
 		
@@ -109,8 +109,7 @@ namespace locic {
 		setColor(stream, CARET_COLOR);
 		stream << "^";
 		
-		for (size_t i = (location.range().start().byteOffset() + 1);
-		     i < location.range().end().byteOffset(); i++) {
+		for (size_t i = (location.range().start().byteOffset() + 1); i < end; i++) {
 			stream << "~";
 		}
 		
