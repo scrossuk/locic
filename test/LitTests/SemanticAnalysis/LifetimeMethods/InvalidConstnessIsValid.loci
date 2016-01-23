@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:2: error: lifetime method '::TestClass::__isvalid' has incorrect const predicate
+	bool __isvalid() noexcept {
+		return true;
+	}
+}
+
+// CHECK: 1 error generated.

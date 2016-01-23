@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:2: error: lifetime method '::TestClass::__moveto' has incorrect const predicate
+	void __moveto(unused void* dest, unused size_t offset) const noexcept { }
+}
+
+// CHECK: 1 error generated.

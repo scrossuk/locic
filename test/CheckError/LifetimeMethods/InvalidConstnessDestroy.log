@@ -1,1 +1,0 @@
-Lifetime method '::TestClass::__destroy' has incorrect const predicate, at location SourceLocation\(filename = (.*)/InvalidConstnessDestroy\.loci, range = \(line 2, column 2\) to \(line 2, column 37\)\)\.

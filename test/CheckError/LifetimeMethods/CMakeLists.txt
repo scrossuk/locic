@@ -1,11 +1,5 @@
 # Lifetime method tests.
 
-test_check_error(InvalidConstnessDestroy)
-test_check_error(InvalidConstnessIsLive)
-test_check_error(InvalidConstnessIsValid)
-test_check_error(InvalidConstnessMove)
-test_check_error(InvalidConstnessSetDead)
-test_check_error(InvalidConstnessSetInvalid)
 test_check_error(InvalidLifetimeMethodName)
 test_check_error(InvalidReturnTypeAlignMask)
 test_check_error(InvalidReturnTypeDestroy)

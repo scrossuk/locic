@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:2: error: lifetime method '::TestClass::__destroy' has incorrect const predicate
+	void __destroy() const noexcept { }
+}
+
+// CHECK: 1 error generated.

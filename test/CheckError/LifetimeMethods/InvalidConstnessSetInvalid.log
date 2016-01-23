@@ -1,1 +1,0 @@
-Lifetime method '::TestClass::__setinvalid' has incorrect const predicate, at location SourceLocation\(filename = (.*)/InvalidConstnessSetInvalid\.loci, range = \(line 2, column 2\) to \(line 2, column 40\)\)\.

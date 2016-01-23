@@ -1,5 +1,0 @@
-class TestClass() {
-	bool __islive() noexcept {
-		return true;
-	}
-}

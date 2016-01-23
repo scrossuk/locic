@@ -1,1 +1,0 @@
-Lifetime method '::TestClass::__setdead' has incorrect const predicate, at location SourceLocation\(filename = (.*)/InvalidConstnessSetDead\.loci, range = \(line 2, column 2\) to \(line 2, column 37\)\)\.
