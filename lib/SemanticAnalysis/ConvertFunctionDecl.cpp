@@ -277,6 +277,21 @@ namespace locic {
 			}
 		}
 		
+		class LifetimeMethodNotNoExceptDiag: public Error {
+		public:
+			LifetimeMethodNotNoExceptDiag(std::string functionName)
+			: functionName_(std::move(functionName)) { }
+			
+			std::string toString() const {
+				return makeString("lifetime method '%s' isn't marked 'noexcept'",
+				                  functionName_.c_str());
+			}
+			
+		private:
+			std::string functionName_;
+			
+		};
+		
 		void ConvertFunctionDeclType(Context& context, SEM::Function& function) {
 			if (function.isDefault()) {
 				// Type is already converted.
@@ -338,9 +353,9 @@ namespace locic {
 			}
 			
 			if (!noExceptPredicate.isTrue() && function.name().last().starts_with("__")) {
-				throw ErrorException(makeString("Lifetime method '%s' isn't marked as noexcept, at location %s.",
-					function.name().toString().c_str(),
-					astFunctionNode.location().toString().c_str()));
+				context.issueDiag(LifetimeMethodNotNoExceptDiag(function.name().toString()),
+				                  astFunctionNode.location());
+				noExceptPredicate = SEM::Predicate::True();
 			}
 			
 			const bool isDynamicMethod = function.isMethod() && !astFunctionNode->isStatic();
