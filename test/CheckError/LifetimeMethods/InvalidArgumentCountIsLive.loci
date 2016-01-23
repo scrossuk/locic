@@ -1,5 +1,0 @@
-class TestClass() {
-	bool __islive(unused int i) const noexcept {
-		return true;
-	}
-}

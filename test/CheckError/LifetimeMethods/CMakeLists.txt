@@ -1,13 +1,5 @@
 # Lifetime method tests.
 
-test_check_error(InvalidArgumentCountAlignMask)
-test_check_error(InvalidArgumentCountDestroy)
-test_check_error(InvalidArgumentCountIsLive)
-test_check_error(InvalidArgumentCountIsValid)
-test_check_error(InvalidArgumentCountMove)
-test_check_error(InvalidArgumentCountSetDead)
-test_check_error(InvalidArgumentCountSetInvalid)
-test_check_error(InvalidArgumentCountSizeOf)
 test_check_error(InvalidConstnessDestroy)
 test_check_error(InvalidConstnessIsLive)
 test_check_error(InvalidConstnessIsValid)

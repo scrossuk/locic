@@ -1,5 +1,0 @@
-class TestClass() {
-	static size_t __alignmask(unused int i) noexcept {
-		return 1;
-	}
-}

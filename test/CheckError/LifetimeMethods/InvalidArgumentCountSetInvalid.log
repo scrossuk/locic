@@ -1,1 +1,0 @@
-Lifetime method '::TestClass::__setinvalid' has incorrect argument count, at location SourceLocation\(filename = (.*)/InvalidArgumentCountSetInvalid\.loci, range = \(line 2, column 2\) to \(line 2, column 46\)\)\.
