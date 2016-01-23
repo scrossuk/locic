@@ -1,5 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
 exception ExampleError(int value);
 
+// CHECK: .loci:7:1: error: function '::function' is declared as 'noexcept' but can throw
 void function() noexcept {
 	throw ExampleError(1);
 }
@@ -9,3 +13,4 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	return 0;
 }
 
+// CHECK: 1 error generated.

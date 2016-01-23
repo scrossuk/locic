@@ -1,13 +1,17 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
 exception ExampleError(int value);
 
 class TestClass (int value) {
 	static create = default;
 	
-	int add(int value) {
+	int add(unused int value) {
 		throw ExampleError(1);
 	}
 }
 
+// CHECK: .loci:15:1: error: function '::function' is declared as 'noexcept' but can throw
 void function() noexcept {
 	unused_result(TestClass(1) + 1);
 }
@@ -16,4 +20,6 @@ void function() noexcept {
 export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	return 0;
 }
+
+// CHECK: 1 error generated.
 

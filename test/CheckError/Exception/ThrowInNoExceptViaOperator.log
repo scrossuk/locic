@@ -1,1 +1,0 @@
-Function '::function' is declared as 'noexcept' but can throw, at location SourceLocation\(filename = (.*)/ThrowInNoExceptViaOperator\.loci, range = \(line 11, column 1\) to \(line 13, column 2\)\)\.

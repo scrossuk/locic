@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+exception TestError();
+
+class TestClass() {
+	// CHECK: .loci:8:2: error: function '::TestClass::__destroy' is declared as 'noexcept' but can throw
+	~ {
+		throw TestError();
+	}
+}
+
+// CHECK: 1 error generated.
