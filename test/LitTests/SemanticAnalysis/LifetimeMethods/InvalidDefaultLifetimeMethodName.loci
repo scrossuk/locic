@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:2: error: unknown default method '__someinvalidlifetimemethod'
+	__someinvalidlifetimemethod = default;
+}
+
+// CHECK: 1 error generated.
