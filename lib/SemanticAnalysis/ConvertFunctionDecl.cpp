@@ -13,6 +13,9 @@
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
+#include <locic/Support/MethodID.hpp>
+#include <locic/Support/MethodIDMap.hpp>
+#include <locic/Support/SharedMaps.hpp>
 
 namespace locic {
 
@@ -104,139 +107,252 @@ namespace locic {
 			return semFunction;
 		}
 		
-		bool isValidReturnType(const String& name,
-		                       const SEM::Type* const type) {
-			if (name == "__moveto") {
-				return type->isBuiltInVoid();
-			} else if (name == "__destroy") {
-				return type->isBuiltInVoid();
-			} else if (name == "__alignmask") {
-				return type->isPrimitive() &&
-				       type->primitiveID() == PrimitiveSize;
-			} else if (name == "__sizeof") {
-				return type->isPrimitive() &&
-				       type->primitiveID() == PrimitiveSize;
-			} else if (name == "__islive") {
-				return type->isBuiltInBool();
-			} else if (name == "__setdead") {
-				return type->isBuiltInVoid();
-			} else if (name == "__dead") {
-				// TODO
-				return true;
-			} else if (name == "__isvalid") {
-				return type->isBuiltInBool();
-			} else if (name == "__setinvalid") {
-				return type->isBuiltInVoid();
-			} else {
-				throw std::logic_error("Unknown lifetime method.");
+		bool isValidLifetimeMethod(const MethodID methodID) {
+			switch (methodID) {
+				case METHOD_MOVETO:
+				case METHOD_DESTROY:
+				case METHOD_ALIGNMASK:
+				case METHOD_SIZEOF:
+				case METHOD_ISLIVE:
+				case METHOD_SETDEAD:
+				case METHOD_DEAD:
+				case METHOD_ISVALID:
+				case METHOD_SETINVALID:
+					return true;
+				default:
+					return false;
 			}
 		}
 		
-		bool isValidArgumentCount(const String& name,
-		                          const size_t argCount) {
-			if (name == "__moveto") {
-				return argCount == 2;
-			} else if (name == "__destroy") {
-				return argCount == 0;
-			} else if (name == "__alignmask") {
-				return argCount == 0;
-			} else if (name == "__sizeof") {
-				return argCount == 0;
-			} else if (name == "__islive") {
-				return argCount == 0;
-			} else if (name == "__setdead") {
-				return argCount == 0;
-			} else if (name == "__dead") {
-				return argCount == 0;
-			} else if (name == "__isvalid") {
-				return argCount == 0;
-			} else if (name == "__setinvalid") {
-				return argCount == 0;
-			} else {
-				throw std::logic_error("Unknown lifetime method.");
+		bool isValidReturnType(const MethodID methodID, const SEM::Type* const type) {
+			switch (methodID) {
+				case METHOD_MOVETO:
+					return type->isBuiltInVoid();
+				case METHOD_DESTROY:
+					return type->isBuiltInVoid();
+				case METHOD_ALIGNMASK:
+				case METHOD_SIZEOF:
+					return type->isPrimitive() &&
+					       type->primitiveID() == PrimitiveSize;
+				case METHOD_ISLIVE:
+					return type->isBuiltInBool();
+				case METHOD_SETDEAD:
+					return type->isBuiltInVoid();
+				case METHOD_DEAD:
+					// TODO
+					return true;
+				case METHOD_ISVALID:
+					return type->isBuiltInBool();
+				case METHOD_SETINVALID:
+					return type->isBuiltInVoid();
+				default:
+					locic_unreachable("Unknown lifetime method.");
 			}
 		}
 		
-		bool isValidArgumentTypes(const String& name,
-		                          const SEM::TypeArray& types) {
-			if (name == "__moveto") {
-				return types[0]->isPrimitive() &&
-				       types[0]->primitiveID() == PrimitivePtr &&
-				       types[0]->templateArguments()[0].typeRefType()->isBuiltInVoid() &&
-				       types[1]->isPrimitive() &&
-				       types[1]->primitiveID() == PrimitiveSize;
-			} else if (name == "__destroy") {
-				return true;
-			} else if (name == "__alignmask") {
-				return true;
-			} else if (name == "__sizeof") {
-				return true;
-			} else if (name == "__islive") {
-				return true;
-			} else if (name == "__setdead") {
-				return true;
-			} else if (name == "__dead") {
-				return true;
-			} else if (name == "__isvalid") {
-				return true;
-			} else if (name == "__setinvalid") {
-				return true;
-			} else {
-				throw std::logic_error("Unknown lifetime method.");
+		bool isValidArgumentCount(const MethodID methodID, const size_t argCount) {
+			switch (methodID) {
+				case METHOD_MOVETO:
+					return argCount == 2;
+				case METHOD_DESTROY:
+					return argCount == 0;
+				case METHOD_ALIGNMASK:
+					return argCount == 0;
+				case METHOD_SIZEOF:
+					return argCount == 0;
+				case METHOD_ISLIVE:
+					return argCount == 0;
+				case METHOD_SETDEAD:
+					return argCount == 0;
+				case METHOD_DEAD:
+					return argCount == 0;
+				case METHOD_ISVALID:
+					return argCount == 0;
+				case METHOD_SETINVALID:
+					return argCount == 0;
+				default:
+					locic_unreachable("Unknown lifetime method.");
 			}
 		}
 		
-		bool isValidConstness(const String& name,
-		                      const SEM::Predicate& constPredicate) {
-			if (name == "__moveto") {
-				return constPredicate.isFalse();
-			} else if (name == "__destroy") {
-				return constPredicate.isFalse();
-			} else if (name == "__alignmask") {
-				return true;
-			} else if (name == "__sizeof") {
-				return true;
-			} else if (name == "__islive") {
-				return constPredicate.isTrue();
-			} else if (name == "__setdead") {
-				return constPredicate.isFalse();
-			} else if (name == "__dead") {
-				return true;
-			} else if (name == "__isvalid") {
-				return constPredicate.isTrue();
-			} else if (name == "__setinvalid") {
-				return constPredicate.isFalse();
-			} else {
-				throw std::logic_error("Unknown lifetime method.");
+		bool isValidArgumentTypes(const MethodID methodID, const SEM::TypeArray& types) {
+			switch (methodID) {
+				case METHOD_MOVETO:
+					return types[0]->isPrimitive() &&
+					       types[0]->primitiveID() == PrimitivePtr &&
+					       types[0]->templateArguments()[0].typeRefType()->isBuiltInVoid() &&
+					       types[1]->isPrimitive() &&
+					       types[1]->primitiveID() == PrimitiveSize;
+				case METHOD_DESTROY:
+				case METHOD_ALIGNMASK:
+				case METHOD_SIZEOF:
+				case METHOD_ISLIVE:
+				case METHOD_SETDEAD:
+				case METHOD_DEAD:
+				case METHOD_ISVALID:
+				case METHOD_SETINVALID:
+					return true;
+				default:
+					locic_unreachable("Unknown lifetime method.");
 			}
 		}
 		
-		bool isValidStaticness(const String& name,
-		                       const bool isStatic) {
-			if (name == "__moveto") {
-				return !isStatic;
-			} else if (name == "__destroy") {
-				return !isStatic;
-			} else if (name == "__alignmask") {
-				return isStatic;
-			} else if (name == "__sizeof") {
-				return isStatic;
-			} else if (name == "__islive") {
-				return !isStatic;
-			} else if (name == "__setdead") {
-				return !isStatic;
-			} else if (name == "__dead") {
-				return isStatic;
-			} else if (name == "__isvalid") {
-				return !isStatic;
-			} else if (name == "__setinvalid") {
-				return !isStatic;
-			} else {
-				throw std::logic_error("Unknown lifetime method.");
+		bool isValidConstness(const MethodID methodID, const SEM::Predicate& constPredicate) {
+			switch (methodID) {
+				case METHOD_MOVETO:
+					return constPredicate.isFalse();
+				case METHOD_DESTROY:
+					return constPredicate.isFalse();
+				case METHOD_ALIGNMASK:
+					return true;
+				case METHOD_SIZEOF:
+					return true;
+				case METHOD_ISLIVE:
+					return constPredicate.isTrue();
+				case METHOD_SETDEAD:
+					return constPredicate.isFalse();
+				case METHOD_DEAD:
+					return true;
+				case METHOD_ISVALID:
+					return constPredicate.isTrue();
+				case METHOD_SETINVALID:
+					return constPredicate.isFalse();
+				default:
+					locic_unreachable("Unknown lifetime method.");
 			}
 		}
 		
-		void validateFunctionType(const Name& functionFullName,
+		bool isValidStaticness(const MethodID methodID, const bool isStatic) {
+			switch (methodID) {
+				case METHOD_MOVETO:
+					return !isStatic;
+				case METHOD_DESTROY:
+					return !isStatic;
+				case METHOD_ALIGNMASK:
+					return isStatic;
+				case METHOD_SIZEOF:
+					return isStatic;
+				case METHOD_ISLIVE:
+					return !isStatic;
+				case METHOD_SETDEAD:
+					return !isStatic;
+				case METHOD_DEAD:
+					return isStatic;
+				case METHOD_ISVALID:
+					return !isStatic;
+				case METHOD_SETINVALID:
+					return !isStatic;
+				default:
+					locic_unreachable("Unknown lifetime method.");
+			}
+		}
+		
+		class UnknownLifetimeMethodDiag: public Error {
+		public:
+			UnknownLifetimeMethodDiag(String functionName)
+			: functionName_(std::move(functionName)) { }
+			
+			std::string toString() const {
+				return makeString("unknown lifetime method '%s'",
+				                  functionName_.c_str());
+			}
+			
+		private:
+			String functionName_;
+			
+		};
+		
+		class LifetimeMethodInvalidReturnTypeDiag: public Error {
+		public:
+			LifetimeMethodInvalidReturnTypeDiag(std::string functionName)
+			: functionName_(std::move(functionName)) { }
+			
+			std::string toString() const {
+				return makeString("lifetime method '%s' has incorrect return type",
+				                  functionName_.c_str());
+			}
+			
+		private:
+			std::string functionName_;
+			
+		};
+		
+		class LifetimeMethodInvalidArgumentCountDiag: public Error {
+		public:
+			LifetimeMethodInvalidArgumentCountDiag(std::string functionName)
+			: functionName_(std::move(functionName)) { }
+			
+			std::string toString() const {
+				return makeString("lifetime method '%s' has incorrect argument count",
+				                  functionName_.c_str());
+			}
+			
+		private:
+			std::string functionName_;
+			
+		};
+		
+		class LifetimeMethodInvalidArgumentTypesDiag: public Error {
+		public:
+			LifetimeMethodInvalidArgumentTypesDiag(std::string functionName)
+			: functionName_(std::move(functionName)) { }
+			
+			std::string toString() const {
+				return makeString("lifetime method '%s' has incorrect argument types",
+				                  functionName_.c_str());
+			}
+			
+		private:
+			std::string functionName_;
+			
+		};
+		
+		class LifetimeMethodShouldBeStaticDiag: public Error {
+		public:
+			LifetimeMethodShouldBeStaticDiag(std::string functionName)
+			: functionName_(std::move(functionName)) { }
+			
+			std::string toString() const {
+				return makeString("lifetime method '%s' should be static",
+				                  functionName_.c_str());
+			}
+			
+		private:
+			std::string functionName_;
+			
+		};
+		
+		class LifetimeMethodShouldNotBeStaticDiag: public Error {
+		public:
+			LifetimeMethodShouldNotBeStaticDiag(std::string functionName)
+			: functionName_(std::move(functionName)) { }
+			
+			std::string toString() const {
+				return makeString("lifetime method '%s' should not be static",
+				                  functionName_.c_str());
+			}
+			
+		private:
+			std::string functionName_;
+			
+		};
+		
+		class LifetimeMethodInvalidConstPredicateDiag: public Error {
+		public:
+			LifetimeMethodInvalidConstPredicateDiag(std::string functionName)
+			: functionName_(std::move(functionName)) { }
+			
+			std::string toString() const {
+				return makeString("lifetime method '%s' has incorrect const predicate",
+				                  functionName_.c_str());
+			}
+			
+		private:
+			std::string functionName_;
+			
+		};
+		
+		void validateFunctionType(Context& context, const Name& functionFullName,
 		                          const SEM::FunctionType& functionType,
 		                          const SEM::Predicate& constPredicate,
 		                          const Debug::SourceLocation& location) {
@@ -246,34 +362,37 @@ namespace locic {
 				return;
 			}
 			
-			if (!isValidReturnType(name, functionType.returnType())) {
-				throw ErrorException(makeString("Lifetime method '%s' has incorrect return type, at location %s.",
-					functionFullName.toString().c_str(),
-					location.toString().c_str()));
+			const auto methodID = context.sharedMaps().methodIDMap().tryGetMethodID(name);
+			if (!methodID || !isValidLifetimeMethod(*methodID)) {
+				context.issueDiag(UnknownLifetimeMethodDiag(name), location);
+				return;
 			}
 			
-			if (!isValidArgumentCount(name, functionType.parameterTypes().size())) {
-				throw ErrorException(makeString("Lifetime method '%s' has incorrect argument count, at location %s.",
-					functionFullName.toString().c_str(),
-					location.toString().c_str()));
+			if (!isValidReturnType(*methodID, functionType.returnType())) {
+				context.issueDiag(LifetimeMethodInvalidReturnTypeDiag(functionFullName.toString()),
+				                  location);
 			}
 			
-			if (!isValidArgumentTypes(name, functionType.parameterTypes())) {
-				throw ErrorException(makeString("Lifetime method '%s' has incorrect argument types, at location %s.",
-					functionFullName.toString().c_str(),
-					location.toString().c_str()));
+			if (!isValidArgumentCount(*methodID, functionType.parameterTypes().size())) {
+				context.issueDiag(LifetimeMethodInvalidArgumentCountDiag(functionFullName.toString()),
+				                  location);
+			} else if (!isValidArgumentTypes(*methodID, functionType.parameterTypes())) {
+				context.issueDiag(LifetimeMethodInvalidArgumentTypesDiag(functionFullName.toString()),
+				                  location);
 			}
 			
-			if (!isValidStaticness(name, !functionType.attributes().isMethod())) {
-				throw ErrorException(makeString("Lifetime method '%s' has incorrect static-ness, at location %s.",
-					functionFullName.toString().c_str(),
-					location.toString().c_str()));
-			}
-			
-			if (!isValidConstness(name, constPredicate)) {
-				throw ErrorException(makeString("Lifetime method '%s' has incorrect const predicate, at location %s.",
-					functionFullName.toString().c_str(),
-					location.toString().c_str()));
+			const bool isStatic = !functionType.attributes().isMethod();
+			if (!isValidStaticness(*methodID, isStatic)) {
+				if (isStatic) {
+					context.issueDiag(LifetimeMethodShouldNotBeStaticDiag(functionFullName.toString()),
+					                  location);
+				} else {
+					context.issueDiag(LifetimeMethodShouldBeStaticDiag(functionFullName.toString()),
+					                  location);
+				}
+			} else if (!isValidConstness(*methodID, constPredicate)) {
+				context.issueDiag(LifetimeMethodInvalidConstPredicateDiag(functionFullName.toString()),
+				                  location);
 			}
 		}
 		
@@ -364,7 +483,7 @@ namespace locic {
 			
 			SEM::FunctionAttributes attributes(astFunctionNode->isVarArg(), isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
 			SEM::FunctionType functionType(std::move(attributes), semReturnType, std::move(parameterTypes));
-			validateFunctionType(function.name(),
+			validateFunctionType(context, function.name(),
 			                     functionType,
 			                     function.constPredicate(),
 			                     astFunctionNode.location());
