@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:2: error: unknown lifetime method '__someinvalidlifetimemethod'
+	void __someinvalidlifetimemethod() noexcept { }
+}
+
+// CHECK: 1 error generated.

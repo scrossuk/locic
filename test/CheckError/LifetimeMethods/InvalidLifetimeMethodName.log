@@ -1,1 +1,0 @@
-Function name '__someinvalidlifetimemethod' is not a valid object lifetime method, at location SourceLocation\(filename = (.*)/InvalidLifetimeMethodName\.loci, range = \(line 2, column 2\) to \(line 2, column 49\)\)\.
