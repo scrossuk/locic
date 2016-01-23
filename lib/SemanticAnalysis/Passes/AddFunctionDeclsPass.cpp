@@ -7,9 +7,6 @@
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/SearchResult.hpp>
-#include <locic/Support/MethodID.hpp>
-#include <locic/Support/MethodIDMap.hpp>
-#include <locic/Support/SharedMaps.hpp>
 
 namespace locic {
 	
@@ -44,36 +41,6 @@ namespace locic {
 			}
 		}
 		
-		void validateFunctionName(const MethodIDMap& methodIDMap, const String name,
-		                          const Debug::SourceLocation& location) {
-			if (!name.starts_with("__")) {
-				// Not a lifetime method, so it's OK.
-				return;
-			}
-			
-			const auto methodID = methodIDMap.tryGetMethodID(name);
-			if (methodID) {
-				switch (*methodID) {
-					case METHOD_MOVETO:
-					case METHOD_DESTROY:
-					case METHOD_ALIGNMASK:
-					case METHOD_SIZEOF:
-					case METHOD_ISLIVE:
-					case METHOD_SETDEAD:
-					case METHOD_DEAD:
-					case METHOD_ISVALID:
-					case METHOD_SETINVALID:
-						// These are known lifetime methods.
-						return;
-					default:
-						break;
-				}
-			}
-			
-			throw ErrorException(makeString("Function name '%s' is not a valid object lifetime method, at location %s.",
-			                                name.c_str(), location.toString().c_str()));
-		}
-		
 		std::unique_ptr<SEM::Function> AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const Name& fullName, const SEM::ModuleScope& parentModuleScope) {
 			const auto& topElement = context.scopeStack().back();
 			
@@ -106,10 +73,6 @@ namespace locic {
 					break;
 				}
 			}
-			
-			validateFunctionName(context.sharedMaps().methodIDMap(),
-			                     fullName.last(),
-			                     astFunctionNode.location());
 			
 			if (astFunctionNode->isDefaultDefinition()) {
 				assert(topElement.isTypeInstance());
