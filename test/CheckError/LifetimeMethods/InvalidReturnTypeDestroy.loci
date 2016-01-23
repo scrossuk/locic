@@ -1,5 +1,0 @@
-class TestClass() {
-	int __destroy() noexcept {
-		return 0;
-	}
-}

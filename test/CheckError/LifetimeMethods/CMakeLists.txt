@@ -1,14 +1,6 @@
 # Lifetime method tests.
 
 test_check_error(InvalidLifetimeMethodName)
-test_check_error(InvalidReturnTypeAlignMask)
-test_check_error(InvalidReturnTypeDestroy)
-test_check_error(InvalidReturnTypeIsLive)
-test_check_error(InvalidReturnTypeIsValid)
-test_check_error(InvalidReturnTypeMove)
-test_check_error(InvalidReturnTypeSetDead)
-test_check_error(InvalidReturnTypeSetInvalid)
-test_check_error(InvalidReturnTypeSizeOf)
 test_check_error(InvalidStaticnessAlignMask)
 test_check_error(InvalidStaticnessDestroy)
 test_check_error(InvalidStaticnessIsLive)

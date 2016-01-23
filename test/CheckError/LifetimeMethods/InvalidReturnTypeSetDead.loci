@@ -1,5 +1,0 @@
-class TestClass() {
-	int __setdead() noexcept {
-		return 0;
-	}
-}

@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:2: error: lifetime method '::TestClass::__islive' has incorrect return type
+	void __islive() const noexcept { }
+}
+
+// CHECK: 1 error generated.

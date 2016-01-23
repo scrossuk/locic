@@ -1,1 +1,0 @@
-Lifetime method '::TestClass::__islive' has incorrect return type, at location SourceLocation\(filename = (.*)/InvalidReturnTypeIsLive\.loci, range = \(line 2, column 2\) to \(line 2, column 36\)\)\.

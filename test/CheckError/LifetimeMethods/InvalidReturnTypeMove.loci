@@ -1,5 +1,0 @@
-class TestClass() {
-	int __moveto(unused void* dest, unused size_t offset) noexcept {
-		return 0;
-	}
-}

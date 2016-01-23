@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:2: error: lifetime method '::TestClass::__setdead' has incorrect return type
+	int __setdead() noexcept {
+		return 0;
+	}
+}
+
+// CHECK: 1 error generated.

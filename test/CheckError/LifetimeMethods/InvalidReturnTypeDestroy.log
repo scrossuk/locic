@@ -1,1 +1,0 @@
-Lifetime method '::TestClass::__destroy' has incorrect return type, at location SourceLocation\(filename = (.*)/InvalidReturnTypeDestroy\.loci, range = \(line 2, column 2\) to \(line 4, column 3\)\)\.

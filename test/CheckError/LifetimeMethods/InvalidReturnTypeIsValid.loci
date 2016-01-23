@@ -1,3 +1,0 @@
-class TestClass() {
-	void __isvalid() const noexcept { }
-}
