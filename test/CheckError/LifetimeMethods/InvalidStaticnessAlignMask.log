@@ -1,1 +1,0 @@
-Lifetime method '::TestClass::__alignmask' has incorrect static-ness, at location SourceLocation\(filename = (.*)/InvalidStaticnessAlignMask\.loci, range = \(line 2, column 2\) to \(line 4, column 3\)\)\.

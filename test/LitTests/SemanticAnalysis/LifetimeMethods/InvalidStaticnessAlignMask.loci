@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:2: error: lifetime method '::TestClass::__alignmask' should be static
+	size_t __alignmask() noexcept {
+		return 1;
+	}
+}
+
+// CHECK: 1 error generated.

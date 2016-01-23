@@ -1,5 +1,0 @@
-class TestClass() {
-	size_t __sizeof() noexcept {
-		return 1;
-	}
-}

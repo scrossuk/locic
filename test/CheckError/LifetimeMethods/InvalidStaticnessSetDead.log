@@ -1,1 +1,0 @@
-Lifetime method '::TestClass::__setdead' has incorrect static-ness, at location SourceLocation\(filename = (.*)/InvalidStaticnessSetDead\.loci, range = \(line 2, column 2\) to \(line 2, column 38\)\)\.

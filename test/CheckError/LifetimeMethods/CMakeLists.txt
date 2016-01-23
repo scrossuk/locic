@@ -1,11 +1,3 @@
 # Lifetime method tests.
 
 test_check_error(InvalidLifetimeMethodName)
-test_check_error(InvalidStaticnessAlignMask)
-test_check_error(InvalidStaticnessDestroy)
-test_check_error(InvalidStaticnessIsLive)
-test_check_error(InvalidStaticnessIsValid)
-test_check_error(InvalidStaticnessMove)
-test_check_error(InvalidStaticnessSetDead)
-test_check_error(InvalidStaticnessSetInvalid)
-test_check_error(InvalidStaticnessSizeOf)
