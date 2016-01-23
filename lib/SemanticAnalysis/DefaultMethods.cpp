@@ -453,7 +453,24 @@ namespace locic {
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location) {
+		class UnknownDefaultMethodDiag: public Error {
+		public:
+			UnknownDefaultMethodDiag(String functionName)
+			: functionName_(std::move(functionName)) { }
+			
+			std::string toString() const {
+				return makeString("unknown default method '%s'",
+				                  functionName_.c_str());
+			}
+			
+		private:
+			String functionName_;
+			
+		};
+		
+		std::unique_ptr<SEM::Function>
+		CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance,
+		                        bool isStatic, const Name& name, const Debug::SourceLocation& location) {
 			assert(!typeInstance->isClassDecl());
 			assert(!typeInstance->isInterface());
 			
@@ -516,8 +533,8 @@ namespace locic {
 				return CreateDefaultIsLiveDecl(context, typeInstance, name);
 			}
 			
-			throw ErrorException(makeString("Unknown default method '%s' at position %s.",
-				name.toString().c_str(), location.toString().c_str()));
+			context.issueDiag(UnknownDefaultMethodDiag(name.last()), location);
+			return CreateDefaultConstructorDecl(context, typeInstance, name);
 		}
 		
 		bool HasDefaultConstructor(Context& /*context*/, SEM::TypeInstance* const typeInstance) {
@@ -616,7 +633,8 @@ namespace locic {
 			return typeInstance->functions().find(context.getCString("__islive")) == typeInstance->functions().end();
 		}
 		
-		void CreateDefaultConstructor(Context& /*context*/, SEM::TypeInstance* const typeInstance, SEM::Function* const /*function*/, const Debug::SourceLocation& /*location*/) {
+		void CreateDefaultConstructor(Context& /*context*/, SEM::TypeInstance* const /*typeInstance*/,
+		                              SEM::Function* const /*function*/, const Debug::SourceLocation& /*location*/) {
 			assert(!typeInstance->isUnionDatatype());
 			
 			// TODO: Need to check if default constructor can be created.
@@ -702,7 +720,8 @@ namespace locic {
 				
 				return CreateDefaultCompare(context, typeInstance, function, location);
 			} else {
-				throw std::runtime_error(makeString("Unknown default method '%s'.", name.toString().c_str()));
+				// Unknown default methods should be handled by now.
+				return true;
 			}
 		}
 		
