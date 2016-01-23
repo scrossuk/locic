@@ -174,6 +174,21 @@ namespace locic {
 			}
 		}
 		
+		class NoExceptFunctionThrowsDiag: public Error {
+		public:
+			NoExceptFunctionThrowsDiag(std::string functionName)
+			: functionName_(std::move(functionName)) { }
+			
+			std::string toString() const {
+				return makeString("function '%s' is declared as 'noexcept' but can throw",
+				                  functionName_.c_str());
+			}
+			
+		private:
+			std::string functionName_;
+			
+		};
+		
 		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
 			auto& semFunction = context.scopeStack().back().function();
 			
@@ -230,17 +245,17 @@ namespace locic {
 			const auto declaredNoexceptPredicate = reducePredicate(context, functionType.attributes().noExceptPredicate().copy());
 			
 			if (!declaredNoexceptPredicate.implies(actualNoexceptPredicate)) {
+				// TODO: These diagnostics should appear where we actually throw.
 				if (declaredNoexceptPredicate.isTrue() && actualNoexceptPredicate.isFalse()) {
-					throw ErrorException(makeString("Function '%s' is declared as 'noexcept' but can throw, at location %s.",
-					                                semFunction.name().toString().c_str(),
-					                                astFunctionNode.location().toString().c_str()));
+					context.issueDiag(NoExceptFunctionThrowsDiag(semFunction.name().toString()),
+					                  astFunctionNode.location());
+				} else {
+					throw ErrorException(makeString("Function '%s' has noexcept predicate '%s' which isn't implied by explicitly declared noexcept predicate '%s', at location %s.",
+						semFunction.name().toString().c_str(),
+						exitStates.noexceptPredicate().toString().c_str(),
+						functionType.attributes().noExceptPredicate().toString().c_str(),
+						astFunctionNode.location().toString().c_str()));
 				}
-				
-				throw ErrorException(makeString("Function '%s' has noexcept predicate '%s' which isn't implied by explicitly declared noexcept predicate '%s', at location %s.",
-					semFunction.name().toString().c_str(),
-					exitStates.noexceptPredicate().toString().c_str(),
-					functionType.attributes().noExceptPredicate().toString().c_str(),
-					astFunctionNode.location().toString().c_str()));
 			}
 			
 			semFunction.setScope(std::move(semScope));
