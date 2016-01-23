@@ -109,7 +109,9 @@ namespace locic {
 		setColor(stream, CARET_COLOR);
 		stream << "^";
 		
-		for (size_t i = (location.range().start().byteOffset() + 1); i < end; i++) {
+		const auto underlineEnd = std::min<size_t>(location.range().end().byteOffset(), end);
+		
+		for (size_t i = (location.range().start().byteOffset() + 1); i < underlineEnd; i++) {
 			stream << "~";
 		}
 		
