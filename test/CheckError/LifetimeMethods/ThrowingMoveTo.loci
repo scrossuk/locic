@@ -1,7 +1,0 @@
-exception TestError();
-
-class TestClass() {
-	void __moveto(unused void* dest, unused size_t offset) {
-		throw TestError();
-	}
-}

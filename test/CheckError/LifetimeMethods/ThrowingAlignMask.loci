@@ -1,7 +1,0 @@
-exception TestError();
-
-class TestClass() {
-	static size_t __alignmask() {
-		throw TestError();
-	}
-}

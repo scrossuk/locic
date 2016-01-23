@@ -1,1 +1,0 @@
-Lifetime method '::TestClass::__isvalid' isn't marked as noexcept, at location SourceLocation\(filename = (.*)/ThrowingIsValid\.loci, range = \(line 4, column 2\) to \(line 6, column 3\)\).

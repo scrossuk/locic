@@ -1,7 +1,0 @@
-exception TestError();
-
-class TestClass() {
-	bool __islive() const {
-		throw TestError();
-	}
-}

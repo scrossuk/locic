@@ -1,7 +1,0 @@
-exception TestError();
-
-class TestClass() {
-	bool __isvalid() const {
-		throw TestError();
-	}
-}

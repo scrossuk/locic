@@ -1,7 +1,0 @@
-exception TestError();
-
-class TestClass() {
-	void __setinvalid() {
-		throw TestError();
-	}
-}
