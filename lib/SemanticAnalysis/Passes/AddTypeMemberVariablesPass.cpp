@@ -9,6 +9,54 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
+		class ExceptionCircularInheritanceDiag: public Error {
+		public:
+			ExceptionCircularInheritanceDiag(std::string typeName)
+			: typeName_(std::move(typeName)) { }
+			
+			std::string toString() const {
+				return makeString("exception type '%s' inherits itself via a circular dependency",
+				                  typeName_.c_str());
+			}
+			
+		private:
+			std::string typeName_;
+			
+		};
+		
+		bool hasInheritanceCycle(const SEM::TypeInstance& typeInstance) {
+			auto parentType = typeInstance.parentType();
+			while (parentType != nullptr && parentType->isException()) {
+				if (parentType->getObjectType() == &typeInstance) {
+					return true;
+				}
+				
+				parentType = parentType->getObjectType()->parentType();
+			}
+			
+			return false;
+		}
+		
+		void checkForInheritanceCycle(Context& context, const SEM::TypeInstance& rootTypeInstance) {
+			auto typeInstance = &rootTypeInstance;
+			while (true) {
+				if (hasInheritanceCycle(*typeInstance)) {
+					context.issueDiag(ExceptionCircularInheritanceDiag(typeInstance->name().toString()),
+					                  typeInstance->debugInfo()->location);
+				}
+					
+				const auto parentType = typeInstance->parentType();
+				if (parentType == nullptr || !parentType->isException()) {
+					break;
+				}
+				
+				typeInstance = parentType->getObjectType();
+				if (typeInstance == &rootTypeInstance) {
+					break;
+				}
+			}
+		}
+		
 		// Fill in type instance structures with member variable information.
 		void AddTypeInstanceMemberVariables(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
 				std::vector<SEM::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
@@ -34,34 +82,9 @@ namespace locic {
 							semType->toString().c_str(), astInitializerNode.location().toString().c_str()));
 					}
 					
-					using VisitFnType = std::function<void (const void*, const SEM::Type*)>;
-					
-					// Check for loops.
-					const VisitFnType visitor = [&] (const void* visitFnVoid, const SEM::Type* childType) {
-						const auto& visitFn = *(static_cast<const VisitFnType*>(visitFnVoid));
-						
-						if (childType->isObject()) {
-							const auto childTypeInstance = childType->getObjectType();
-							if (childTypeInstance == &semTypeInstance) {
-								throw ErrorException(makeString("Circular reference for exception type '%s' at location %s.",
-									semType->toString().c_str(), astInitializerNode.location().toString().c_str()));
-							}
-							
-							if (childTypeInstance->isException()) {
-								if (childTypeInstance->parentType() != nullptr) {
-									visitFn(visitFnVoid, childTypeInstance->parentType());
-								}
-							}
-							
-							for (const auto memberVar: childTypeInstance->variables()) {
-								visitFn(visitFnVoid, memberVar->constructType());
-							}
-						}
-					};
-					
-					visitor(&visitor, semType);
-					
 					semTypeInstance.setParentType(semType);
+					
+					checkForInheritanceCycle(context, semTypeInstance);
 					
 					// Also add parent as first member variable.
 					semTypeInstance.attachVariable(SEM::Var::Basic(semType, semType));
