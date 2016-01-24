@@ -68,6 +68,21 @@ namespace locic {
 			
 		};
 		
+		class ThrowNonExceptionValueDiag: public Error {
+		public:
+			ThrowNonExceptionValueDiag(std::string typeString)
+			: typeString_(std::move(typeString)) { }
+			
+			std::string toString() const {
+				return makeString("cannot throw non-exception value of type '%s'",
+				                  typeString_.c_str());
+			}
+			
+		private:
+			std::string typeString_;
+			
+		};
+		
 		class ThrowInAssertNoExceptDiag: public Warning {
 		public:
 			ThrowInAssertNoExceptDiag() { }
@@ -455,8 +470,8 @@ namespace locic {
 					
 					auto semValue = ConvertValue(context, statement->throwStmt.value);
 					if (!semValue.type()->isObject() || !semValue.type()->getObjectType()->isException()) {
-						throw ErrorException(makeString("Cannot throw non-exception value '%s' at position %s.",
-								semValue.toString().c_str(), location.toString().c_str()));
+						context.issueDiag(ThrowNonExceptionValueDiag(semValue.type()->toString()),
+						                  location);
 					}
 					return SEM::Statement::Throw(std::move(semValue));
 				}
