@@ -36,8 +36,20 @@ namespace locic {
 			// we have a no-throw exit.
 			ExitStates scopeSuccessPendingStates = ExitStates::None();
 			
+			bool isNormalBlocked = false;
+			
+			auto lastStatement = &(statementList.back());
+			
 			for (const auto& statement: statementList) {
+				if (isNormalBlocked) {
+					break;
+				}
+				
 				auto statementExitStates = statement.exitStates();
+				if (!statementExitStates.hasNormalExit()) {
+					isNormalBlocked = true;
+					lastStatement = &statement;
+				}
 				
 				// Block 'normal' exit state until we
 				// reach the end of the scope.
@@ -100,7 +112,7 @@ namespace locic {
 				}
 			}
 			
-			auto lastStatementExitStates = statementList.back().exitStates();
+			auto lastStatementExitStates = lastStatement->exitStates();
 			
 			if (lastStatementExitStates.hasAnyNonThrowingStates()) {
 				scopeExitStates.add(scopeSuccessPendingStates);
