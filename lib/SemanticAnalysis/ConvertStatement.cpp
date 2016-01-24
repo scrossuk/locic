@@ -108,6 +108,21 @@ namespace locic {
 			
 		};
 		
+		class RethrowInScopeActionDiag: public Error {
+		public:
+			RethrowInScopeActionDiag(String scopeActionState)
+			: scopeActionState_(std::move(scopeActionState)) { }
+			
+			std::string toString() const {
+				return makeString("cannot re-throw caught exception inside scope(%s)",
+				                  scopeActionState_.c_str());
+			}
+			
+		private:
+			String scopeActionState_;
+			
+		};
+		
 		class RethrowOutsideCatchDiag: public Error {
 		public:
 			RethrowOutsideCatchDiag() { }
@@ -500,8 +515,8 @@ namespace locic {
 							throw ErrorException(makeString("Cannot re-throw exception in try scope (within the relevant catch clause) at position %s.",
 								location.toString().c_str()));
 						} else if (element.isScopeAction() && element.scopeActionState() != "success") {
-							throw ErrorException(makeString("Cannot re-throw exception in scope action with state '%s' at position %s.",
-								element.scopeActionState().c_str(), location.toString().c_str()));
+							context.issueDiag(RethrowInScopeActionDiag(element.scopeActionState()),
+							                  location);
 						}
 					}
 					
