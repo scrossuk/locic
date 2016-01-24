@@ -1,0 +1,18 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+exception TestError();
+
+import void g();
+
+void f() {
+	{
+		scope(success) {
+			throw TestError();
+		}
+	}
+	// CHECK: .loci:15:2: warning: code will never be executed
+	g();
+}
+
+// CHECK: 1 warning generated.
