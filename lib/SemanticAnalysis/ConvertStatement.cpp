@@ -68,6 +68,21 @@ namespace locic {
 			
 		};
 		
+		class ThrowInScopeActionDiag: public Error {
+		public:
+			ThrowInScopeActionDiag(String scopeActionState)
+			: scopeActionState_(std::move(scopeActionState)) { }
+			
+			std::string toString() const {
+				return makeString("cannot throw exception inside scope(%s)",
+				                  scopeActionState_.c_str());
+			}
+			
+		private:
+			String scopeActionState_;
+			
+		};
+		
 		class AssertNoExceptAroundNoexceptScopeDiag: public Warning {
 		public:
 			AssertNoExceptAroundNoexceptScopeDiag() { }
@@ -418,8 +433,9 @@ namespace locic {
 						const auto pos = context.scopeStack().size() - i - 1;
 						const auto& element = context.scopeStack()[pos];
 						if (element.isScopeAction() && element.scopeActionState() != "success") {
-							throw ErrorException(makeString("Cannot 'throw' in scope action with state '%s' at position %s.",
-								element.scopeActionState().c_str(), location.toString().c_str()));
+							context.issueDiag(ThrowInScopeActionDiag(element.scopeActionState()),
+							                  location);
+							break;
 						}
 					}
 					
