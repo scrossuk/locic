@@ -1,6 +1,7 @@
 #ifndef LOCIC_FRONTEND_DIAGNOSTICARRAY_HPP
 #define LOCIC_FRONTEND_DIAGNOSTICARRAY_HPP
 
+#include <algorithm>
 #include <memory>
 
 #include <locic/Debug/SourceLocation.hpp>
@@ -34,6 +35,9 @@ namespace locic {
 		
 		void issueDiag(std::unique_ptr<Diag> diag, const Debug::SourceLocation& location) {
 			diags_.push_back(DiagPair(std::move(diag), location));
+			std::sort(diags_.begin(), diags_.end(), [](const DiagPair& a, const DiagPair& b) {
+				return a.location.range().start() < b.location.range().start();
+			});
 		}
 		
 		const Array<DiagPair, 8>& diags() const {
