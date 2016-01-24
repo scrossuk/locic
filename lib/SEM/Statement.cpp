@@ -193,8 +193,6 @@ namespace locic {
 		
 		Statement Statement::AssertNoExcept(std::unique_ptr<Scope> scope) {
 			ExitStates exitStates = scope->exitStates();
-			assert(exitStates.hasAnyThrowingStates());
-			
 			exitStates.remove(ExitStates::AllThrowing());
 			
 			Statement statement(ASSERTNOEXCEPT, exitStates);
