@@ -1,0 +1,17 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+exception ExampleError();
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	scope (exit) {
+		assert noexcept {
+			// CHECK: .loci:11:4: warning: throw statement means assert noexcept is guaranteed to throw
+			throw ExampleError();
+		}
+	}
+	return 0;
+}
+
+// CHECK: 1 warning generated.
