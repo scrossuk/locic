@@ -331,6 +331,16 @@ bool runTest(TestOptions& options) {
 			}
 		}
 		
+		if (!diagArray.diags().empty()) {
+			std::stringstream errors;
+			DiagnosticRenderer renderer(/*useColors=*/false);
+			for (const auto& diagPair : diagArray.diags()) {
+				renderer.emitDiagnosticMessage(errors, *(diagPair.diag),
+				                               diagPair.location);
+			}
+			throw TestUnexpectedFailureException(errors.str());
+		}
+		
 		if (options.dumpOutput) {
 			// Dump SEM tree information.
 			const auto semDebugFileName = options.testName + "_semdebug.txt";
