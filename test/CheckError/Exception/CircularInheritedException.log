@@ -1,1 +1,0 @@
-Circular reference for exception type 'Exception1' at location SourceLocation\(filename = (.*)/CircularInheritedException.loci, range = \(line 2, column 33\) to \(line 2, column 52\)\)\.
