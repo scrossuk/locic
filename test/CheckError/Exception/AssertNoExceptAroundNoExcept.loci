@@ -1,8 +1,0 @@
-import void functionThatNeverThrows() noexcept;
-
-export void function() {
-	assert noexcept {
-		functionThatNeverThrows();
-	}
-}
-

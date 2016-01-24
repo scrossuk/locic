@@ -1,0 +1,14 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import void functionThatNeverThrows() noexcept;
+
+export void function() {
+	// CHECK: .loci:8:2: warning: assert noexcept is around scope that is guaranteed to never throw anyway
+	assert noexcept {
+		functionThatNeverThrows();
+	}
+}
+
+// CHECK: 1 warning generated.
+
