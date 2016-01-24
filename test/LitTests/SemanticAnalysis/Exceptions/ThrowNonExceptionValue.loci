@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+datatype TestDatatype();
+
+export void f() {
+	// CHECK: .loci:8:2: error: cannot throw non-exception value of type 'TestDatatype'
+	throw TestDatatype();
+}
+
+// CHECK: 1 error generated.
