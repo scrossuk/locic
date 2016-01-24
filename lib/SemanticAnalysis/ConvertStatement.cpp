@@ -68,6 +68,16 @@ namespace locic {
 			
 		};
 		
+		class ThrowInAssertNoExceptDiag: public Warning {
+		public:
+			ThrowInAssertNoExceptDiag() { }
+			
+			std::string toString() const {
+				return "throw statement means assert noexcept is guaranteed to throw";
+			}
+			
+		};
+		
 		class ThrowInScopeActionDiag: public Error {
 		public:
 			ThrowInScopeActionDiag(String scopeActionState)
@@ -434,6 +444,10 @@ namespace locic {
 						const auto& element = context.scopeStack()[pos];
 						if (element.isScopeAction() && element.scopeActionState() != "success") {
 							context.issueDiag(ThrowInScopeActionDiag(element.scopeActionState()),
+							                  location);
+							break;
+						} else if (element.isAssertNoExcept()) {
+							context.issueDiag(ThrowInAssertNoExceptDiag(),
 							                  location);
 							break;
 						}
