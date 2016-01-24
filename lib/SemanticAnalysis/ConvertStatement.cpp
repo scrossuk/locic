@@ -53,6 +53,21 @@ namespace locic {
 			std::terminate();
 		}
 		
+		class ScopeActionCanThrowDiag: public Error {
+		public:
+			ScopeActionCanThrowDiag(String scopeActionState)
+			: scopeActionState_(std::move(scopeActionState)) { }
+			
+			std::string toString() const {
+				return makeString("scope(%s) can throw",
+				                  scopeActionState_.c_str());
+			}
+			
+		private:
+			String scopeActionState_;
+			
+		};
+		
 		class AssertNoExceptAroundNoexceptScopeDiag: public Warning {
 		public:
 			AssertNoExceptAroundNoexceptScopeDiag() { }
@@ -275,9 +290,10 @@ namespace locic {
 					assert(!exitStates.hasContinueExit());
 					
 					// scope(success) is allowed to throw.
-					if (scopeExitState != "success" && (exitStates.hasThrowExit() || exitStates.hasRethrowExit())) {
-						throw ErrorException(makeString("Scope exit action (for state '%s') can throw, at position %s.",
-								scopeExitState.c_str(), location.toString().c_str()));
+					if (scopeExitState != "success" && exitStates.hasThrowExit()) {
+						// TODO: remove this; each potentially throwing site should check for this.
+						context.issueDiag(ScopeActionCanThrowDiag(scopeExitState),
+						                  location);
 					}
 					
 					return SEM::Statement::ScopeExit(scopeExitState, std::move(scopeExitScope));
