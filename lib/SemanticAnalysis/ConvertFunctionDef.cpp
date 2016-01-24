@@ -77,6 +77,16 @@ namespace locic {
 			std::terminate();
 		}
 		
+		class CodeNeverExecutedDiag: public Warning {
+		public:
+			CodeNeverExecutedDiag() { }
+			
+			std::string toString() const {
+				return "code will never be executed";
+			}
+			
+		};
+		
 		void DeadCodeSearchScope(Context& context, const SEM::Scope& scope) {
 			const SEM::Statement* lastScopeExit = nullptr;
 			const SEM::Statement* lastScopeFailure = nullptr;
@@ -89,8 +99,9 @@ namespace locic {
 				if (isNormalBlocked) {
 					const auto debugInfo = statement.debugInfo();
 					assert(debugInfo);
-					throw ErrorException(makeString("Function contains dead code beginning with statement at position %s.",
-						debugInfo->location.toString().c_str()));
+					context.issueDiag(CodeNeverExecutedDiag(),
+					                  debugInfo->location);
+					continue;
 				}
 				
 				if (statement.isScopeExitStatement()) {
