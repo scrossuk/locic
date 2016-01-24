@@ -103,6 +103,16 @@ namespace locic {
 			
 		};
 		
+		class RethrowInAssertNoExceptDiag: public Warning {
+		public:
+			RethrowInAssertNoExceptDiag() { }
+			
+			std::string toString() const {
+				return "re-throw statement means assert noexcept is guaranteed to throw";
+			}
+			
+		};
+		
 		class ThrowInScopeActionDiag: public Error {
 		public:
 			ThrowInScopeActionDiag(String scopeActionState)
@@ -526,6 +536,9 @@ namespace locic {
 							                  location);
 						} else if (element.isScopeAction() && element.scopeActionState() != "success") {
 							context.issueDiag(RethrowInScopeActionDiag(element.scopeActionState()),
+							                  location);
+						} else if (element.isAssertNoExcept()) {
+							context.issueDiag(RethrowInAssertNoExceptDiag(),
 							                  location);
 						}
 					}
