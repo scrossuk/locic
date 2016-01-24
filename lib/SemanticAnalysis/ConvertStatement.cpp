@@ -108,6 +108,16 @@ namespace locic {
 			
 		};
 		
+		class RethrowOutsideCatchDiag: public Error {
+		public:
+			RethrowOutsideCatchDiag() { }
+			
+			std::string toString() const {
+				return "cannot re-throw exception outside of catch clause";
+			}
+			
+		};
+		
 		class AssertNoExceptAroundNoexceptScopeDiag: public Warning {
 		public:
 			AssertNoExceptAroundNoexceptScopeDiag() { }
@@ -496,8 +506,8 @@ namespace locic {
 					}
 					
 					if (!foundCatchClause) {
-						throw ErrorException(makeString("Cannot re-throw exception outside of catch clause at position %s.",
-							location.toString().c_str()));
+						context.issueDiag(RethrowOutsideCatchDiag(),
+						                  location);
 					}
 					
 					return SEM::Statement::Rethrow();
