@@ -83,6 +83,16 @@ namespace locic {
 			
 		};
 		
+		class RethrowInTryScopeDiag: public Error {
+		public:
+			RethrowInTryScopeDiag() { }
+			
+			std::string toString() const {
+				return "cannot re-throw caught exception inside try scope";
+			}
+			
+		};
+		
 		class ThrowInAssertNoExceptDiag: public Warning {
 		public:
 			ThrowInAssertNoExceptDiag() { }
@@ -512,8 +522,8 @@ namespace locic {
 						if (element.isCatchClause()) {
 							foundCatchClause = true;
 						} else if (element.isTryScope() && !foundCatchClause) {
-							throw ErrorException(makeString("Cannot re-throw exception in try scope (within the relevant catch clause) at position %s.",
-								location.toString().c_str()));
+							context.issueDiag(RethrowInTryScopeDiag(),
+							                  location);
 						} else if (element.isScopeAction() && element.scopeActionState() != "success") {
 							context.issueDiag(RethrowInScopeActionDiag(element.scopeActionState()),
 							                  location);
