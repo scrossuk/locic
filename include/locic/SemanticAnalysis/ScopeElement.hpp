@@ -31,7 +31,8 @@ namespace locic {
 					CATCHCLAUSE,
 					LOOP,
 					SCOPEACTION,
-					TRYSCOPE
+					TRYSCOPE,
+					ASSERTNOEXCEPT
 				};
 				
 				static ScopeElement Namespace(SEM::Namespace& nameSpace);
@@ -54,6 +55,8 @@ namespace locic {
 				
 				static ScopeElement TryScope();
 				
+				static ScopeElement AssertNoExcept();
+				
 				Kind kind() const;
 				
 				bool isNamespace() const;
@@ -66,6 +69,7 @@ namespace locic {
 				bool isLoop() const;
 				bool isScopeAction() const;
 				bool isTryScope() const;
+				bool isAssertNoExcept() const;
 				
 				SEM::Namespace& nameSpace() const;
 				SEM::Alias& alias() const;

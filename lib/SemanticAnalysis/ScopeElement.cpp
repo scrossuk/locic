@@ -62,6 +62,10 @@ namespace locic {
 			return ScopeElement(TRYSCOPE);
 		}
 		
+		ScopeElement ScopeElement::AssertNoExcept() {
+			return ScopeElement(ASSERTNOEXCEPT);
+		}
+		
 		ScopeElement::Kind ScopeElement::kind() const {
 			return kind_;
 		}
@@ -104,6 +108,10 @@ namespace locic {
 		
 		bool ScopeElement::isTryScope() const {
 			return kind() == TRYSCOPE;
+		}
+		
+		bool ScopeElement::isAssertNoExcept() const {
+			return kind() == ASSERTNOEXCEPT;
 		}
 		
 		SEM::Namespace& ScopeElement::nameSpace() const {
