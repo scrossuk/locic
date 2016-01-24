@@ -1,3 +1,6 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
 // Ensure that exceptions are not rethrow within
 // an inner try-catch; this is required to avoid
 // having to use reference counting in the
@@ -11,6 +14,7 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 		throw ExampleError(1024);
 	} catch (ExampleError error1) {
 		try {
+			// CHECK: .loci:18:4: error: cannot re-throw caught exception inside try scope
 			throw;
 		} catch (ExampleError error2) {
 			// If this code worked, there'd be two references
@@ -20,3 +24,4 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	return 0;
 }
 
+// CHECK: 1 error generated.
