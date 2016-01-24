@@ -3,11 +3,11 @@
 
 int function() {
 	return 10;
-	// CHECK: Function contains dead code beginning with statement
-	// CHECK: line 11
-	// CHECK-NEXT: column 2
-	// CHECK: line 11
-	// CHECK-NEXT: column 12
-	return 10;
+	// CHECK: .loci:7:2: warning: code will never be executed
+	unused int i = 10;
+	// CHECK: .loci:9:2: warning: code will never be executed
+	unused int j = 10;
 }
+
+// CHECK: 2 warnings generated.
 

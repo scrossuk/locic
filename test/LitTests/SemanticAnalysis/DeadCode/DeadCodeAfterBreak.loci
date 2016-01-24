@@ -4,12 +4,11 @@
 void function() {
 	while (true) {
 		break;
-		// CHECK: Function contains dead code beginning with statement
-		// CHECK: line 12
-		// CHECK-NEXT: column 3
-		// CHECK: line 12
-		// CHECK-NEXT: column 21
+		// CHECK: .loci:8:3: warning: code will never be executed
 		unused int i = 10;
+		// CHECK: .loci:10:3: warning: code will never be executed
+		unused int j = 10;
 	}
 }
 
+// CHECK: 2 warnings generated.

@@ -5,6 +5,10 @@
 int function() {
 	while (true) { }
 	
-	// CHECK: Function contains dead code
-	return 10;
+	// CHECK: .loci:9:2: warning: code will never be executed
+	unused int i = 10;
+	// CHECK: .loci:11:2: warning: code will never be executed
+	unused int j = 10;
 }
+
+// CHECK: 2 warnings generated.
