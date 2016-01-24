@@ -524,6 +524,7 @@ namespace locic {
 					// Check this is being used inside a catch clause, and
 					// is not inside a try clause or a scope action.
 					bool foundCatchClause = false;
+					bool foundAssertNoExcept = false;
 					
 					for (size_t i = 0; i < context.scopeStack().size(); i++) {
 						const auto pos = context.scopeStack().size() - i - 1;
@@ -531,13 +532,20 @@ namespace locic {
 						
 						if (element.isCatchClause()) {
 							foundCatchClause = true;
-						} else if (element.isTryScope() && !foundCatchClause) {
+						}
+						
+						if (foundAssertNoExcept) {
+							continue;
+						}
+						
+						if (element.isTryScope() && !foundCatchClause) {
 							context.issueDiag(RethrowInTryScopeDiag(),
 							                  location);
 						} else if (element.isScopeAction() && element.scopeActionState() != "success") {
 							context.issueDiag(RethrowInScopeActionDiag(element.scopeActionState()),
 							                  location);
 						} else if (element.isAssertNoExcept()) {
+							foundAssertNoExcept = true;
 							context.issueDiag(RethrowInAssertNoExceptDiag(),
 							                  location);
 						}
