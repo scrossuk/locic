@@ -136,12 +136,6 @@ namespace locic {
 		}
 		
 		Statement Statement::ScopeExit(const String& state, std::unique_ptr<Scope> scope) {
-			if (state == "exit" || state == "failure") {
-				assert(scope->exitStates().onlyHasNormalState());
-			} else {
-				assert(scope->exitStates().onlyHasNormalOrThrowingStates());
-			}
-			
 			// The exit actions here is for when we first visit this statement,
 			// which itself actually has no effect; the effect occurs on unwinding
 			// and so this is handled by the owning scope.

@@ -225,7 +225,6 @@ namespace locic {
 			
 			assert(!exitStates.hasBreakExit());
 			assert(!exitStates.hasContinueExit());
-			assert(!exitStates.hasRethrowExit());
 			
 			if (exitStates.hasNormalExit()) {
 				if (!returnType->isBuiltInVoid()) {
