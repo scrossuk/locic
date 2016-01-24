@@ -633,8 +633,9 @@ namespace locic {
 			return typeInstance->functions().find(context.getCString("__islive")) == typeInstance->functions().end();
 		}
 		
-		void CreateDefaultConstructor(Context& /*context*/, SEM::TypeInstance* const /*typeInstance*/,
+		void CreateDefaultConstructor(Context& /*context*/, SEM::TypeInstance* const typeInstance,
 		                              SEM::Function* const /*function*/, const Debug::SourceLocation& /*location*/) {
+			(void) typeInstance;
 			assert(!typeInstance->isUnionDatatype());
 			
 			// TODO: Need to check if default constructor can be created.
