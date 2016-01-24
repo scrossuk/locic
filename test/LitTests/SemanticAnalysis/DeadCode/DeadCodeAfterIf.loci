@@ -1,0 +1,21 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	if (true) {
+		return 1;
+	} else if (false) {
+		return 2;
+	} else {
+		return 3;
+	}
+	
+	// CHECK: .loci:15:2: warning: code will never be executed
+	unused int i = 10;
+	// CHECK: .loci:17:2: warning: code will never be executed
+	unused int j = 10;
+}
+
+// CHECK: 2 warnings generated.
+
