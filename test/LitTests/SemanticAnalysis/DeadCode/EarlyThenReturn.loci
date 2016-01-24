@@ -1,7 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
 // Entry point.
 export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	if (true) {
 		return 0;
+		// CHECK: .loci:9:3: warning: code will never be executed
 		if (true) {
 			// ...
 		}
@@ -9,3 +13,4 @@ export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	return 0;
 }
 
+// CHECK: 1 warning generated.
