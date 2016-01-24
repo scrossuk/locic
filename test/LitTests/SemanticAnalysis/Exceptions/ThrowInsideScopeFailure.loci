@@ -1,0 +1,16 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+exception ExampleError();
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	// CHECK: .loci:9:2: error: scope(failure) can throw
+	scope (failure) {
+		// CHECK: .loci:11:3: error: cannot throw exception inside scope(failure)
+		throw ExampleError();
+	}
+	throw ExampleError();
+}
+
+// CHECK: 2 errors generated.

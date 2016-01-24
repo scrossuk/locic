@@ -1,0 +1,10 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+exception ExampleError();
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	scope (success) {
+		throw ExampleError();
+	}
+}
