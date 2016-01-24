@@ -498,6 +498,8 @@ namespace locic {
 					return SEM::Statement::Assert(std::move(boolValue), statement->assertStmt.name);
 				}
 				case AST::Statement::ASSERTNOEXCEPT: {
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::AssertNoExcept());
+					
 					auto scope = ConvertScope(context, statement->assertNoExceptStmt.scope);
 					const auto scopeExitStates = scope->exitStates();
 					if (!scopeExitStates.hasThrowExit() && !scopeExitStates.hasRethrowExit()) {
