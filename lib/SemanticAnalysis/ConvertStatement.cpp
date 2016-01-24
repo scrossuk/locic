@@ -53,6 +53,16 @@ namespace locic {
 			std::terminate();
 		}
 		
+		class AssertNoExceptAroundNoexceptScopeDiag: public Warning {
+		public:
+			AssertNoExceptAroundNoexceptScopeDiag() { }
+			
+			std::string toString() const {
+				return "assert noexcept is around scope that is guaranteed to never throw anyway";
+			}
+			
+		};
+		
 		SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -491,8 +501,8 @@ namespace locic {
 					auto scope = ConvertScope(context, statement->assertNoExceptStmt.scope);
 					const auto scopeExitStates = scope->exitStates();
 					if (!scopeExitStates.hasThrowExit() && !scopeExitStates.hasRethrowExit()) {
-						throw ErrorException(makeString("Cannot place 'assert noexcept' around scope that is statically verified to not throw, at position %s.",
-							location.toString().c_str()));
+						context.issueDiag(AssertNoExceptAroundNoexceptScopeDiag(),
+						                  location);
 					}
 					
 					return SEM::Statement::AssertNoExcept(std::move(scope));
