@@ -1,0 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:1: error: exception type '::Exception' inherits itself via a circular dependency
+exception Exception(int value) : Exception(value);
+
+// Entry point.
+export int testEntryPoint(unused int argc, unused ubyte ** argv) {
+	return 0;
+}
+
+// CHECK: 1 error generated.

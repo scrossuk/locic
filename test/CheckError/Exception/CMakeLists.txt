@@ -3,4 +3,3 @@
 test_check_error(CallMethodOnlySpecifiedInNoExceptPredicate)
 test_check_error(NoExceptPredicateReverseImplication)
 test_check_error(RethrowInsideTry)
-test_check_error(SelfInheritedException)
