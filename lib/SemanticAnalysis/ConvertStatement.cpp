@@ -217,9 +217,7 @@ namespace locic {
 						tryScope = ConvertScope(context, statement->tryStmt.scope);
 						
 						const auto exitStates = tryScope->exitStates();
-						assert(!exitStates.hasRethrowExit());
-						
-						if (!exitStates.hasThrowExit()) {
+						if (!exitStates.hasAnyThrowingStates()) {
 							throw ErrorException(makeString("Try statement wraps a scope that cannot throw, at position %s.",
 								location.toString().c_str()));
 						}
