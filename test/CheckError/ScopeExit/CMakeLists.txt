@@ -1,7 +1,0 @@
-# Scope exit tests.
-
-test_check_error(ScopeSuccessBlockEarlierScopeSuccess)
-test_check_error(UnreachableScopeExit)
-test_check_error(UnreachableScopeFailure)
-test_check_error(UnreachableScopeSuccess)
-

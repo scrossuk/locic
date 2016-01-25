@@ -1,0 +1,10 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+void f() {
+	// CHECK: .loci:6:2: warning: scope(failure) will never be executed
+	scope(failure) { }
+	unreachable;
+}
+
+// CHECK: 1 warning generated.

@@ -1,0 +1,16 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+exception TestError();
+
+void f() {
+	// CHECK: .loci:8:2: warning: scope(success) will never be executed
+	scope(success) {
+		throw TestError();
+	}
+	scope(success) {
+		throw TestError();
+	}
+}
+
+// CHECK: 1 warning generated.
