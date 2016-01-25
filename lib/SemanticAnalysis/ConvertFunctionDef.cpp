@@ -87,6 +87,36 @@ namespace locic {
 			
 		};
 		
+		class ScopeExitNeverExecutedDiag: public Warning {
+		public:
+			ScopeExitNeverExecutedDiag() { }
+			
+			std::string toString() const {
+				return "scope(exit) will never be executed";
+			}
+			
+		};
+		
+		class ScopeFailureNeverExecutedDiag: public Warning {
+		public:
+			ScopeFailureNeverExecutedDiag() { }
+			
+			std::string toString() const {
+				return "scope(failure) will never be executed";
+			}
+			
+		};
+		
+		class ScopeSuccessNeverExecutedDiag: public Warning {
+		public:
+			ScopeSuccessNeverExecutedDiag() { }
+			
+			std::string toString() const {
+				return "scope(success) will never be executed";
+			}
+			
+		};
+		
 		void DeadCodeSearchScope(Context& context, const SEM::Scope& scope) {
 			const SEM::Statement* lastScopeExit = nullptr;
 			const SEM::Statement* lastScopeFailure = nullptr;
@@ -128,9 +158,8 @@ namespace locic {
 						
 						if (lastScopeSuccess != nullptr &&
 						    !scopeExitStates.hasNormalExit()) {
-							throw ErrorException(makeString("scope(success) is unreachable, at position %s, due to later always throwing scope(success), at position %s.",
-								lastScopeSuccess->debugInfo()->location.toString().c_str(),
-								statement.debugInfo()->location.toString().c_str()));
+							context.issueDiag(ScopeSuccessNeverExecutedDiag(),
+							                  lastScopeSuccess->debugInfo()->location);
 						}
 						
 						lastScopeSuccess = &statement;
@@ -170,18 +199,18 @@ namespace locic {
 			}
 			
 			if (isNormalBlocked && lastScopeExit != nullptr) {
-				throw ErrorException(makeString("scope(exit) is unreachable, at position %s.",
-					lastScopeExit->debugInfo()->location.toString().c_str()));
+				context.issueDiag(ScopeExitNeverExecutedDiag(),
+				                  lastScopeExit->debugInfo()->location);
 			}
 			
 			if (lastScopeFailure != nullptr) {
-				throw ErrorException(makeString("scope(failure) is unreachable, at position %s.",
-					lastScopeFailure->debugInfo()->location.toString().c_str()));
+				context.issueDiag(ScopeFailureNeverExecutedDiag(),
+				                  lastScopeFailure->debugInfo()->location);
 			}
 			
 			if (isNormalBlocked && lastScopeSuccess != nullptr) {
-				throw ErrorException(makeString("scope(success) is unreachable, at position %s.",
-					lastScopeSuccess->debugInfo()->location.toString().c_str()));
+				context.issueDiag(ScopeSuccessNeverExecutedDiag(),
+				                  lastScopeSuccess->debugInfo()->location);
 			}
 		}
 		
