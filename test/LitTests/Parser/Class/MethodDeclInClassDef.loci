@@ -5,3 +5,5 @@ class TestClass() {
 	// CHECK: .loci:6:2: error: unexpected method declaration; was expecting method definition
 	void method();
 }
+
+// CHECK: 1 error generated.

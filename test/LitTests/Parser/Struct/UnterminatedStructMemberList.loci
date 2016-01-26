@@ -1,5 +1,7 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: .loci:6:1: error: Expected 'RCURLYBRACKET'; got 'END'.
+// CHECK: .loci:8:1: error: Expected 'RCURLYBRACKET'; got 'END'.
 struct TestStruct {
+
+// CHECK: 1 error generated.
