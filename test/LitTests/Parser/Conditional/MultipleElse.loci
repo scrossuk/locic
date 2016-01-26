@@ -1,12 +1,17 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
 // Entry point.
 export int testEntryPoint(unused int argc, unused ubyte ** argv) {
 	if (true) {
 		// ...
 	} else {
 		// ...
+	// CHECK: .loci:11:4: error: 'else' without a previous 'if'
 	} else {
 		// ...
 	}
 	return 0;
 }
 
+// CHECK: 1 error generated.
