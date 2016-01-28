@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:28: warning: parameter 'parameterVariable' is marked 'unused' but is used
+export int function(unused int parameterVariable) {
+	return parameterVariable;
+}
+
+// CHECK: 1 warning generated.
