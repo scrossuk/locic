@@ -76,7 +76,8 @@ namespace locic {
 		 * \param functionType The type of the function (as it's being used).
 		 * \return The function pointer.
 		 */
-		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType, SEM::Function* semFunction, SEM::FunctionType functionType);
+		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType,
+		                            const SEM::Function* semFunction, SEM::FunctionType functionType);
 		
 		/**
 		 * \brief Query whether value is a trivial function.

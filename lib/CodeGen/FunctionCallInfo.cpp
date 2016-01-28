@@ -34,7 +34,8 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Function* genFunctionDeclRef(Module& module, const SEM::Type* const parentType, SEM::Function* function) {
+		llvm::Function* genFunctionDeclRef(Module& module, const SEM::Type* const parentType,
+		                                   const SEM::Function* function) {
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			if (parentType == nullptr) {
 				return semFunctionGenerator.getDecl(nullptr,
@@ -47,7 +48,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType, SEM::Function* const semFunction, const SEM::FunctionType functionType) {
+		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType,
+		                            const SEM::Function* const semFunction, const SEM::FunctionType functionType) {
 			auto& module = function.module();
 			const auto functionRefPtr = genFunctionDeclRef(module, parentType, semFunction);
 			
