@@ -99,9 +99,9 @@ namespace locic {
 			return index_;
 		}
 		
-		void Var::setIndex(const size_t index) {
+		void Var::setIndex(const size_t argIndex) {
 			assert(index_ == (size_t) -1);
-			index_ = index;
+			index_ = argIndex;
 		}
 		
 		void Var::setDebugInfo(const Debug::VarInfo newDebugInfo) {
