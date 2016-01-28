@@ -188,6 +188,31 @@ namespace locic {
 			
 		};
 		
+		class ContinueInScopeExitActionDiag: public Error {
+		public:
+			ContinueInScopeExitActionDiag(String scopeActionState)
+			: scopeActionState_(std::move(scopeActionState)) { }
+			
+			std::string toString() const {
+				return makeString("'continue' statement cannot be used in scope(%s)",
+				                  scopeActionState_.c_str());
+			}
+			
+		private:
+			String scopeActionState_;
+			
+		};
+		
+		class ContinueNotInCorrectScopeDiag: public Error {
+		public:
+			ContinueNotInCorrectScopeDiag() { }
+			
+			std::string toString() const {
+				return "'continue' statement not in loop statement";
+			}
+			
+		};
+		
 		SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -617,14 +642,14 @@ namespace locic {
 							foundLoop = true;
 							break;
 						} else if (element.isScopeAction()) {
-							throw ErrorException(makeString("Cannot 'continue' in scope exit action at position %s.",
-								location.toString().c_str()));
+							context.issueDiag(ContinueInScopeExitActionDiag(element.scopeActionState()),
+							                  location);
 						}
 					}
 					
 					if (!foundLoop) {
-						throw ErrorException(makeString("Cannot 'continue' outside any control flow statements at position %s.",
-							location.toString().c_str()));
+						context.issueDiag(ContinueNotInCorrectScopeDiag(),
+						                  location);
 					}
 					
 					return SEM::Statement::Continue();
