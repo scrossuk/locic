@@ -12,7 +12,37 @@
 namespace locic {
 
 	namespace SemanticAnalysis {
-	
+		
+		class UnusedLocalVarDiag: public Warning {
+		public:
+			UnusedLocalVarDiag(String varName)
+			: varName_(varName) { }
+			
+			std::string toString() const {
+				return makeString("unused variable '%s' (which is not marked as 'unused')",
+				                  varName_.c_str());
+			}
+			
+		private:
+			String varName_;
+			
+		};
+		
+		class UsedLocalVarMarkedUnusedDiag: public Warning {
+		public:
+			UsedLocalVarMarkedUnusedDiag(String varName)
+			: varName_(varName) { }
+			
+			std::string toString() const {
+				return makeString("variable '%s' is marked 'unused' but is used",
+				                  varName_.c_str());
+			}
+			
+		private:
+			String varName_;
+			
+		};
+		
 		std::unique_ptr<SEM::Scope> ConvertScope(Context& context, const AST::Node<AST::Scope>& astScope) {
 			assert(astScope.get() != nullptr);
 			
@@ -35,14 +65,14 @@ namespace locic {
 					const auto& debugInfo = var->debugInfo();
 					assert(debugInfo);
 					const auto& location = debugInfo->declLocation;
-					throw ErrorException(makeString("Local variable '%s' is marked as unused but is used in scope, at position %s.",
-						varName.c_str(), location.toString().c_str()));
+					context.issueDiag(UsedLocalVarMarkedUnusedDiag(varName),
+					                  location);
 				} else if (!var->isUsed() && !var->isMarkedUnused()) {
 					const auto& debugInfo = var->debugInfo();
 					assert(debugInfo);
 					const auto& location = debugInfo->declLocation;
-					throw ErrorException(makeString("Local variable '%s' is unused, at position %s.",
-						varName.c_str(), location.toString().c_str()));
+					context.issueDiag(UnusedLocalVarDiag(varName),
+					                  location);
 				}
 			}
 			
