@@ -140,6 +140,47 @@ namespace locic {
 			}
 		}
 		
+		class DestructorMethodClashDiag: public Error {
+		public:
+			DestructorMethodClashDiag() { }
+			
+			std::string toString() const {
+				return "destructor method clashes with previous destructor method";
+			}
+			
+		};
+		
+		class MethodNameClashDiag: public Error {
+		public:
+			MethodNameClashDiag(String methodName)
+			: methodName_(methodName) { }
+			
+			std::string toString() const {
+				return makeString("method '%s' clashes with previous method of the same name",
+				                  methodName_.c_str());
+			}
+			
+		private:
+			String methodName_;
+			
+		};
+		
+		class MethodNameCanonicalizationClashDiag: public Error {
+		public:
+			MethodNameCanonicalizationClashDiag(String methodName, String previousMethodName)
+			: methodName_(methodName), previousMethodName_(previousMethodName) { }
+			
+			std::string toString() const {
+				return makeString("method '%s' clashes with previous method '%s' due to method canonicalization",
+				                  methodName_.c_str(), previousMethodName_.c_str());
+			}
+			
+		private:
+			String methodName_;
+			String previousMethodName_;
+			
+		};
+		
 		void AddTypeInstanceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
 			auto& parentTypeInstance = context.scopeStack().back().typeInstance();
 			
@@ -149,8 +190,17 @@ namespace locic {
 			
 			const auto existingFunction = parentTypeInstance.findFunction(canonicalMethodName);
 			if (existingFunction != nullptr) {
-				throw ErrorException(makeString("Function name '%s' clashes with existing name, at position %s.",
-					fullName.toString().c_str(), astFunctionNode->name().location().toString().c_str()));
+				const auto previousName = existingFunction->name().last();
+				if (name == "__destroy") {
+					context.issueDiag(DestructorMethodClashDiag(),
+					                  astFunctionNode->name().location());
+				} else if (previousName == name) {
+					context.issueDiag(MethodNameClashDiag(name),
+					                  astFunctionNode->name().location());
+				} else {
+					context.issueDiag(MethodNameCanonicalizationClashDiag(name, previousName),
+					                  astFunctionNode->name().location());
+				}
 			}
 			
 			auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
@@ -186,7 +236,6 @@ namespace locic {
 				
 				SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
 				semFunction->setType(SEM::FunctionType(std::move(attributes), returnType, {}));
-				
 				semTypeInstance.attachFunction(std::move(semFunction));
 			}
 		}
