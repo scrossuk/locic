@@ -229,6 +229,36 @@ namespace locic {
 			
 		};
 		
+		class UnusedParameterVarDiag: public Warning {
+		public:
+			UnusedParameterVarDiag(String varName)
+			: varName_(varName) { }
+			
+			std::string toString() const {
+				return makeString("unused parameter '%s' (which is not marked as 'unused')",
+				                  varName_.c_str());
+			}
+			
+		private:
+			String varName_;
+			
+		};
+		
+		class UsedParameterVarMarkedUnusedDiag: public Warning {
+		public:
+			UsedParameterVarMarkedUnusedDiag(String varName)
+			: varName_(varName) { }
+			
+			std::string toString() const {
+				return makeString("parameter '%s' is marked 'unused' but is used",
+				                  varName_.c_str());
+			}
+			
+		private:
+			String varName_;
+			
+		};
+		
 		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
 			auto& semFunction = context.scopeStack().back().function();
 			
@@ -308,14 +338,14 @@ namespace locic {
 					const auto& debugInfo = var->debugInfo();
 					assert(debugInfo);
 					const auto& location = debugInfo->declLocation;
-					throw ErrorException(makeString("Parameter variable '%s' is marked unused but is used in function '%s', at position %s.",
-						varName.c_str(), semFunction.name().toString().c_str(), location.toString().c_str()));
+					context.issueDiag(UsedParameterVarMarkedUnusedDiag(varName),
+					                  location);
 				} else if (!var->isUsed() && !var->isMarkedUnused()) {
 					const auto& debugInfo = var->debugInfo();
 					assert(debugInfo);
 					const auto& location = debugInfo->declLocation;
-					throw ErrorException(makeString("Parameter variable '%s' is unused in function '%s', at position %s.",
-						varName.c_str(), semFunction.name().toString().c_str(), location.toString().c_str()));
+					context.issueDiag(UnusedParameterVarDiag(varName),
+					                  location);
 				}
 			}
 			
