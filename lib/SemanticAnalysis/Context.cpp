@@ -303,21 +303,39 @@ namespace locic {
 			return createSelfRef(context, selfConstType);
 		}
 		
+		class ThisInNonMethodDiag: public Error {
+		public:
+			ThisInNonMethodDiag() { }
+			
+			std::string toString() const {
+				return "cannot access 'this' in non-method function";
+			}
+			
+		};
+		
+		class ThisInStaticMethodDiag: public Error {
+		public:
+			ThisInStaticMethodDiag() { }
+			
+			std::string toString() const {
+				return "cannot access 'this' in static method";
+			}
+			
+		};
+		
 		SEM::Value getThisValue(Context& context, const Debug::SourceLocation& location) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			const auto thisFunction = lookupParentFunction(context.scopeStack());
 			
 			if (thisTypeInstance == nullptr) {
-				throw ErrorException(makeString("Cannot access 'this' in non-method at %s.",
-					location.toString().c_str()));
+				context.issueDiag(ThisInNonMethodDiag(), location);
 			}
 			
 			if (thisFunction->isStaticMethod()) {
-				throw ErrorException(makeString("Cannot access 'this' in static method at %s.",
-					location.toString().c_str()));
+				context.issueDiag(ThisInStaticMethodDiag(), location);
 			}
 			
-			const auto selfType = thisTypeInstance->selfType();
+			const auto selfType = thisTypeInstance != nullptr ? thisTypeInstance->selfType() : context.typeBuilder().getVoidType();
 			const auto selfConstType = selfType->createTransitiveConstType(thisFunction->constPredicate().copy());
 			return SEM::Value::This(getBuiltInType(context, context.getCString("ptr_t"), { selfConstType }));
 		}
