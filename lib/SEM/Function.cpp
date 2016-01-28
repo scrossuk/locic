@@ -81,6 +81,10 @@ namespace locic {
 			return name_;
 		}
 		
+		String Function::canonicalName() const {
+			return CanonicalizeMethodName(name().last());
+		}
+		
 		void Function::setType(const FunctionType pType) {
 			type_ = pType;
 		}

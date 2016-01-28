@@ -67,6 +67,7 @@ namespace locic {
 				const AST::Node<AST::Function>& astFunction() const;
 				
 				const Name& name() const;
+				String canonicalName() const;
 				
 				void setType(FunctionType type);
 				const FunctionType& type() const;
