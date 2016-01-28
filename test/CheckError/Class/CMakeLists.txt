@@ -3,7 +3,6 @@
 test_check_error(DuplicateClass)
 test_check_error(DuplicateMemberVar)
 test_check_error(MemberVarInStaticMethod)
-test_check_error(MultipleDestructors)
 test_check_error(NoNullConstructor)
 test_check_error(OverloadedMethod)
 test_check_error(SelfInStaticMethod)

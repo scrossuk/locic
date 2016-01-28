@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass(int value) {
+	static Create = default;
+	
+	~ { }
+	
+	// CHECK: .loci:10:2: error: destructor method clashes with previous destructor method
+	~ { }
+}
+
+// CHECK: 1 error generated.
