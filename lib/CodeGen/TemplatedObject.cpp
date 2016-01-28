@@ -17,7 +17,8 @@ namespace locic {
 			return object;
 		}
 		
-		TemplatedObject TemplatedObject::Function(const SEM::TypeInstance* const parentTypeInstance, SEM::Function* const function) {
+		TemplatedObject TemplatedObject::Function(const SEM::TypeInstance* const parentTypeInstance,
+		                                          const SEM::Function* const function) {
 			TemplatedObject object(FUNCTION);
 			object.data_.functionPair.parentTypeInstance = parentTypeInstance;
 			object.data_.functionPair.function = function;
@@ -46,7 +47,7 @@ namespace locic {
 			return data_.functionPair.parentTypeInstance;
 		}
 		
-		SEM::Function* TemplatedObject::function() const {
+		const SEM::Function* TemplatedObject::function() const {
 			assert(isFunction());
 			return data_.functionPair.function;
 		}
@@ -134,7 +135,9 @@ namespace locic {
 			return TemplateInst(TemplatedObject::TypeInstance(type->getObjectType()), arrayRef(type->templateArguments()));
 		}
 		
-		TemplateInst TemplateInst::Function(const SEM::Type* parentType, SEM::Function* function, llvm::ArrayRef<SEM::Value> functionArgs) {
+		TemplateInst TemplateInst::Function(const SEM::Type* parentType,
+		                                    const SEM::Function* function,
+		                                    llvm::ArrayRef<SEM::Value> functionArgs) {
 			if (parentType != nullptr) {
 				assert(parentType->isObject());
 				llvm::SmallVector<SEM::Value, 10> args;
