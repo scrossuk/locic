@@ -52,7 +52,7 @@ namespace locic {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (auto astFunctionNode: astNamespaceDataNode->functions) {
-				auto& semChildFunction = findNamespaceFunction(context, *(astFunctionNode->name()));
+				auto& semChildFunction = astFunctionNode->semFunction();
 				
 				const auto& name = astFunctionNode->name();
 				assert(!name->empty());
@@ -89,10 +89,8 @@ namespace locic {
 				
 				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 				for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
-					const auto methodName = CanonicalizeMethodName(astFunctionNode->name()->last());
-					auto& semChildFunction = semChildTypeInstance.functions().at(methodName);
-					
-					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*semChildFunction));
+					auto& semChildFunction = astFunctionNode->semFunction();
+					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
 					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, semChildTypeInstance.requiresPredicate());
 				}
 			}

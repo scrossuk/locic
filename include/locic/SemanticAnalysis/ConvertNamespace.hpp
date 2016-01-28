@@ -6,10 +6,8 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 
 namespace locic {
-
-	namespace SemanticAnalysis {
 	
-		SEM::Function& findNamespaceFunction(Context& context, const Name& name);
+	namespace SemanticAnalysis {
 		
 		void ConvertNamespace(Context& context, const AST::NamespaceList& rootASTNamespaces);
 		

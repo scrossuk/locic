@@ -13,29 +13,15 @@
 #include <locic/SemanticAnalysis/SearchResult.hpp>
 
 namespace locic {
-
-	namespace SemanticAnalysis {
 	
-		SEM::Function& findNamespaceFunction(Context& context, const Name& name) {
-			assert(!name.empty());
-			auto& semNamespace = context.scopeStack().back().nameSpace();
-			if (name.size() == 1) {
-				// Normal namespace function.
-				return semNamespace.items().at(name.last()).function();
-			} else {
-				// Extension method.
-				const auto searchResult = performSearch(context, name.getPrefix());
-				return *(searchResult.typeInstance().functions().at(CanonicalizeMethodName(name.last())));
-			}
-		}
+	namespace SemanticAnalysis {
 		
 		void ConvertNamespaceFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
 			const auto& name = astFunctionNode->name();
-			auto& semNamespace = context.scopeStack().back().nameSpace();
+			auto& semChildFunction = astFunctionNode->semFunction();
 			
 			if (name->size() == 1) {
 				// Normal namespace function.
-				auto& semChildFunction = semNamespace.items().at(name->last()).function();
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
 				ConvertFunctionDef(context, astFunctionNode);
 			} else {
@@ -44,11 +30,7 @@ namespace locic {
 				auto& semTypeInstance = searchResult.typeInstance();
 				
 				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semTypeInstance));
-				
-				auto& semChildFunction = semTypeInstance.functions().at(CanonicalizeMethodName(name->last()));
-				
-				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*semChildFunction));
-				
+				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
 				ConvertFunctionDef(context, astFunctionNode);
 			}
 		}

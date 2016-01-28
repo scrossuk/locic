@@ -109,6 +109,7 @@ namespace locic {
 				
 				auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 				
+				astFunctionNode->setSEMFunction(*semFunction);
 				parentNamespace.items().insert(std::make_pair(name->last(), SEM::NamespaceItem::Function(std::move(semFunction))));
 			} else {
 				// An extension method; search for the parent type.
@@ -152,7 +153,7 @@ namespace locic {
 			}
 			
 			auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
-			
+			astFunctionNode->setSEMFunction(*semFunction);
 			parentTypeInstance.functions().insert(std::make_pair(std::move(canonicalMethodName), std::move(semFunction)));
 		}
 		
