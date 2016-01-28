@@ -135,6 +135,7 @@ namespace locic {
 				
 				auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 				
+				astFunctionNode->setSEMFunction(*semFunction);
 				parentTypeInstance.functions().insert(std::make_pair(CanonicalizeMethodName(name->last()), std::move(semFunction)));
 			}
 		}
