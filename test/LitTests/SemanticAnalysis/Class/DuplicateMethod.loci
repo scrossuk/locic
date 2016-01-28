@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	void doSomething() { }
+	
+	// CHECK: .loci:8:7: error: method 'doSomething' clashes with previous method of the same name
+	void doSomething() { }
+}
+
+// CHECK: 1 error generated.

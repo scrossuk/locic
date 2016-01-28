@@ -1,1 +1,0 @@
-Function name '::TestClass::doSomething' clashes with existing name, at position SourceLocation\(filename = (.*)/DuplicateMethod\.loci, range = \(line 6, column 7\) to \(line 6, column 18\)\)\.
