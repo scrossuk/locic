@@ -421,8 +421,6 @@ namespace locic {
 					const auto exitStates = scopeExitScope->exitStates();
 					
 					assert(!exitStates.hasReturnExit());
-					assert(!exitStates.hasBreakExit());
-					assert(!exitStates.hasContinueExit());
 					
 					// scope(success) is allowed to throw.
 					if (scopeExitState != "success" && exitStates.hasThrowExit()) {

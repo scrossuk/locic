@@ -88,10 +88,6 @@ namespace locic {
 				    statement.getScopeExitState() == "success") {
 					const auto scopeSuccessStates = statement.getScopeExitScope().exitStates();
 					
-					// scope(success) can only be exited by
-					// normal return or by throwing.
-					assert(scopeSuccessStates.onlyHasNormalOrThrowingStates());
-					
 					if (!scopeSuccessStates.hasNormalExit()) {
 						// No way to return normally from this scope(success),
 						// so all subsequent statements will have no-throw
