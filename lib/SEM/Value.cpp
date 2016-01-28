@@ -88,7 +88,7 @@ namespace locic {
 				
 				struct {
 					const Type* parentType;
-					Function* function;
+					const Function* function;
 				} functionRef;
 				
 				struct {
@@ -304,7 +304,8 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::FunctionRef(const Type* const parentType, Function* function, ValueArray templateArguments, const Type* const type) {
+		Value Value::FunctionRef(const Type* const parentType, const Function* function,
+		                         ValueArray templateArguments, const Type* const type) {
 			assert(parentType == NULL || parentType->isObject());
 			assert(type != NULL && type->isCallable());
 			Value value(FUNCTIONREF, type, ExitStates::Normal());
@@ -689,7 +690,7 @@ namespace locic {
 			return impl_->union_.functionRef.parentType;
 		}
 		
-		Function* Value::functionRefFunction() const {
+		const Function* Value::functionRefFunction() const {
 			assert(isFunctionRef());
 			return impl_->union_.functionRef.function;
 		}

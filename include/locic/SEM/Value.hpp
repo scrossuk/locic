@@ -280,7 +280,8 @@ namespace locic {
 				 * The function could be a method hence the parent type should be
 				 * set, otherwise it should be NULL.
 				 */
-				static Value FunctionRef(const Type* parentType, Function* function, ValueArray templateArguments, const Type* const type);
+				static Value FunctionRef(const Type* parentType, const Function* function,
+				                         ValueArray templateArguments, const Type* const type);
 				
 				/**
 				 * \brief Template Function Reference
@@ -439,7 +440,7 @@ namespace locic {
 				
 				bool isFunctionRef() const;
 				const Type* functionRefParentType() const;
-				Function* functionRefFunction() const;
+				const Function* functionRefFunction() const;
 				const ValueArray& functionRefTemplateArguments() const;
 				
 				bool isTemplateFunctionRef() const;
