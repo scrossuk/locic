@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+void function() {
+	// CHECK: .loci:6:2: error: 'break' statement not in loop statement
+	break;
+}
+
+// CHECK: 1 error generated.

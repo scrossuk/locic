@@ -1,9 +1,0 @@
-void function() {
-	break;
-}
-
-// Entry point.
-export int testEntryPoint(unused int argc, unused ubyte ** argv) {
-	return 0;
-}
-
