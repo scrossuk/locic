@@ -269,8 +269,39 @@ namespace locic {
 				 * 
 				 * \return Method map.
 				 */
-				FastMap<String, std::unique_ptr<Function>>& functions();
-				const FastMap<String, std::unique_ptr<Function>>& functions() const;
+				Array<std::unique_ptr<Function>, 8>& functions();
+				const Array<std::unique_ptr<Function>, 8>& functions() const;
+				
+				/**
+				 * \brief Attach method.
+				 * 
+				 * Note that multiple methods can be attached with the
+				 * same name; this allows SemanticAnalysis to continue
+				 * to process code that has duplicate methods.
+				 */
+				void attachFunction(std::unique_ptr<Function> function);
+				
+				/**
+				 * \brief Check if type already has method.
+				 */
+				bool hasFunction(String canonicalName) const;
+				
+				/**
+				 * \brief Find method (if it exists).
+				 * 
+				 * \return Function if found, NULL otherwise.
+				 */
+				Function* findFunction(String canonicalName);
+				const Function* findFunction(String canonicalName) const;
+				
+				/**
+				 * \brief Get method.
+				 * 
+				 * This relies on the type already being known to
+				 * have the given method (it will assert this).
+				 */
+				Function& getFunction(String canonicalName);
+				const Function& getFunction(String canonicalName) const;
 				
 				/**
 				 * \brief Compute construct types.
@@ -355,7 +386,7 @@ namespace locic {
 				std::vector<Var*> variables_;
 				FastMap<String, Var*> namedVariables_;
 				
-				FastMap<String, std::unique_ptr<Function>> functions_;
+				Array<std::unique_ptr<Function>, 8> functions_;
 				
 				TemplateVarArray noTagSet_;
 				mutable const Type* cachedSelfType_;

@@ -23,43 +23,37 @@ namespace locic {
 			// Add default __alignmask method.
 			const bool hasDefaultAlignMask = HasDefaultAlignMask(context, &typeInstance);
 			if (hasDefaultAlignMask) {
-				auto methodDecl = CreateDefaultAlignMaskDecl(context, &typeInstance, typeInstance.name() + context.getCString("__alignmask"));
-				typeInstance.functions().insert(std::make_pair(context.getCString("__alignmask"), std::move(methodDecl)));
+				typeInstance.attachFunction(CreateDefaultAlignMaskDecl(context, &typeInstance, typeInstance.name() + context.getCString("__alignmask")));
 			}
 			
 			// Add default __sizeof method.
 			const bool hasDefaultSizeOf = HasDefaultSizeOf(context, &typeInstance);
 			if (hasDefaultSizeOf) {
-				auto methodDecl = CreateDefaultSizeOfDecl(context, &typeInstance, typeInstance.name() + context.getCString("__sizeof"));
-				typeInstance.functions().insert(std::make_pair(context.getCString("__sizeof"), std::move(methodDecl)));
+				typeInstance.attachFunction(CreateDefaultSizeOfDecl(context, &typeInstance, typeInstance.name() + context.getCString("__sizeof")));
 			}
 			
 			// Add default __destroy method.
 			const bool hasDefaultDestroy = HasDefaultDestroy(context, &typeInstance);
 			if (hasDefaultDestroy) {
-				auto methodDecl = CreateDefaultDestroyDecl(context, &typeInstance, typeInstance.name() + context.getCString("__destroy"));
-				typeInstance.functions().insert(std::make_pair(context.getCString("__destroy"), std::move(methodDecl)));
+				typeInstance.attachFunction(CreateDefaultDestroyDecl(context, &typeInstance, typeInstance.name() + context.getCString("__destroy")));
 			}
 			
 			// Add default __moveto method.
 			const bool hasDefaultMove = HasDefaultMove(context, &typeInstance);
 			if (hasDefaultMove) {
-				auto methodDecl = CreateDefaultMoveDecl(context, &typeInstance, typeInstance.name() + context.getCString("__moveto"));
-				typeInstance.functions().insert(std::make_pair(context.getCString("__moveto"), std::move(methodDecl)));
+				typeInstance.attachFunction(CreateDefaultMoveDecl(context, &typeInstance, typeInstance.name() + context.getCString("__moveto")));
 			}
 			
 			// Add default __setdead method.
 			const bool hasDefaultSetDead = HasDefaultSetDead(context, &typeInstance);
 			if (hasDefaultSetDead) {
-				auto methodDecl = CreateDefaultSetDeadDecl(context, &typeInstance, typeInstance.name() + context.getCString("__setdead"));
-				typeInstance.functions().insert(std::make_pair(context.getCString("__setdead"), std::move(methodDecl)));
+				typeInstance.attachFunction(CreateDefaultSetDeadDecl(context, &typeInstance, typeInstance.name() + context.getCString("__setdead")));
 			}
 			
 			// Add default __islive method.
 			const bool hasDefaultIsLive = HasDefaultIsLive(context, &typeInstance);
 			if (hasDefaultIsLive) {
-				auto methodDecl = CreateDefaultIsLiveDecl(context, &typeInstance, typeInstance.name() + context.getCString("__islive"));
-				typeInstance.functions().insert(std::make_pair(context.getCString("__islive"), std::move(methodDecl)));
+				typeInstance.attachFunction(CreateDefaultIsLiveDecl(context, &typeInstance, typeInstance.name() + context.getCString("__islive")));
 			}
 			
 			// All non-class types can also get various other default methods implicitly
@@ -73,20 +67,18 @@ namespace locic {
 						typeInstance.isException() ?
 							CreateExceptionConstructorDecl(context, &typeInstance) :
 							CreateDefaultConstructorDecl(context, &typeInstance, typeInstance.name() + context.getCString("create"));
-					typeInstance.functions().insert(std::make_pair(context.getCString("create"), std::move(methodDecl)));
+					typeInstance.attachFunction(std::move(methodDecl));
 				}
 				
 				if (!typeInstance.isException()) {
 					// Add default implicit copy if available.
 					if (HasDefaultImplicitCopy(context, &typeInstance)) {
-						auto methodDecl = CreateDefaultImplicitCopyDecl(context, &typeInstance, typeInstance.name() + context.getCString("implicitcopy"));
-						typeInstance.functions().insert(std::make_pair(context.getCString("implicitcopy"), std::move(methodDecl)));
+						typeInstance.attachFunction(CreateDefaultImplicitCopyDecl(context, &typeInstance, typeInstance.name() + context.getCString("implicitcopy")));
 					}
 					
 					// Add default compare for datatypes if available.
 					if (HasDefaultCompare(context, &typeInstance)) {
-						auto methodDecl = CreateDefaultCompareDecl(context, &typeInstance, typeInstance.name() + context.getCString("compare"));
-						typeInstance.functions().insert(std::make_pair(context.getCString("compare"), std::move(methodDecl)));
+						typeInstance.attachFunction(CreateDefaultCompareDecl(context, &typeInstance, typeInstance.name() + context.getCString("compare")));
 					}
 				}
 			}

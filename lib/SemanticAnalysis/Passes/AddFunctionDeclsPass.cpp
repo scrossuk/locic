@@ -136,7 +136,7 @@ namespace locic {
 				auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 				
 				astFunctionNode->setSEMFunction(*semFunction);
-				parentTypeInstance.functions().insert(std::make_pair(CanonicalizeMethodName(name->last()), std::move(semFunction)));
+				parentTypeInstance.attachFunction(std::move(semFunction));
 			}
 		}
 		
@@ -147,15 +147,15 @@ namespace locic {
 			auto canonicalMethodName = CanonicalizeMethodName(name);
 			const auto fullName = parentTypeInstance.name() + name;
 			
-			const auto iterator = parentTypeInstance.functions().find(canonicalMethodName);
-			if (iterator != parentTypeInstance.functions().end()) {
+			const auto existingFunction = parentTypeInstance.findFunction(canonicalMethodName);
+			if (existingFunction != nullptr) {
 				throw ErrorException(makeString("Function name '%s' clashes with existing name, at position %s.",
 					fullName.toString().c_str(), astFunctionNode->name().location().toString().c_str()));
 			}
 			
 			auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
 			astFunctionNode->setSEMFunction(*semFunction);
-			parentTypeInstance.functions().insert(std::make_pair(std::move(canonicalMethodName), std::move(semFunction)));
+			parentTypeInstance.attachFunction(std::move(semFunction));
 		}
 		
 		void AddEnumConstructorDecls(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
@@ -165,10 +165,10 @@ namespace locic {
 				const auto canonicalMethodName = CanonicalizeMethodName(constructorName);
 				auto fullName = semTypeInstance.name() + constructorName;
 				
-				const auto iterator = semTypeInstance.functions().find(canonicalMethodName);
-				if (iterator != semTypeInstance.functions().end()) {
-				throw ErrorException(makeString("Enum constructor name '%s' clashes with existing name, at position %s.",
-					fullName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+				const auto existingFunction = semTypeInstance.findFunction(canonicalMethodName);
+				if (existingFunction != nullptr) {
+					throw ErrorException(makeString("Enum constructor name '%s' clashes with existing name, at position %s.",
+						fullName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
 				}
 				
 				std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(semTypeInstance),
@@ -187,7 +187,7 @@ namespace locic {
 				SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
 				semFunction->setType(SEM::FunctionType(std::move(attributes), returnType, {}));
 				
-				semTypeInstance.functions().insert(std::make_pair(canonicalMethodName, std::move(semFunction)));
+				semTypeInstance.attachFunction(std::move(semFunction));
 			}
 		}
 		

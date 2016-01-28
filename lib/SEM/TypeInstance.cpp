@@ -206,12 +206,50 @@ namespace locic {
 			variables_.push_back(var.release());
 		}
 		
-		FastMap<String, std::unique_ptr<Function>>& TypeInstance::functions() {
+		Array<std::unique_ptr<Function>, 8>& TypeInstance::functions() {
 			return functions_;
 		}
 		
-		const FastMap<String, std::unique_ptr<Function>>& TypeInstance::functions() const {
+		const Array<std::unique_ptr<Function>, 8>& TypeInstance::functions() const {
 			return functions_;
+		}
+		
+		void TypeInstance::attachFunction(std::unique_ptr<Function> function) {
+			functions_.push_back(std::move(function));
+		}
+		
+		bool TypeInstance::hasFunction(String canonicalName) const {
+			return findFunction(canonicalName) != nullptr;
+		}
+		
+		Function* TypeInstance::findFunction(String canonicalName) {
+			for (const auto& function: functions()) {
+				if (function->canonicalName() == canonicalName) {
+					return function.get();
+				}
+			}
+			return nullptr;
+		}
+		
+		const Function* TypeInstance::findFunction(String canonicalName) const {
+			for (const auto& function: functions()) {
+				if (function->canonicalName() == canonicalName) {
+					return function.get();
+				}
+			}
+			return nullptr;
+		}
+		
+		Function& TypeInstance::getFunction(String canonicalName) {
+			const auto function = findFunction(canonicalName);
+			assert(function != nullptr);
+			return *function;
+		}
+		
+		const Function& TypeInstance::getFunction(String canonicalName) const {
+			const auto function = findFunction(canonicalName);
+			assert(function != nullptr);
+			return *function;
 		}
 		
 		TypeArray TypeInstance::constructTypes() const {
@@ -317,7 +355,7 @@ namespace locic {
 							  refToString().c_str(),
 							  makeArrayPtrString(templateVariables_).c_str(),
 							  makeArrayPtrString(variables_).c_str(),
-							  makeMapString(functions_).c_str());
+							  makeArrayPtrString(functions_).c_str());
 		}
 		
 	}

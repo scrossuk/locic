@@ -337,10 +337,7 @@ namespace locic {
 			const auto typeInstance = objectType->getObjectType();
 			const auto templateVarMap = objectType->generateTemplateVarMap();
 			
-			for (const auto& functionPair: typeInstance->functions()) {
-				const auto& functionName = functionPair.first;
-				const auto& function = functionPair.second;
-				
+			for (const auto& function: typeInstance->functions()) {
 				auto constPredicate = function->constPredicate().substitute(templateVarMap);
 				auto noexceptPredicate = function->type().attributes().noExceptPredicate().substitute(templateVarMap);
 				auto requirePredicate = function->requiresPredicate().substitute(templateVarMap);
@@ -356,7 +353,7 @@ namespace locic {
 					functionType.returnType(),
 					functionType.parameterTypes().copy());
 				
-				elements.push_back(std::make_pair(functionName, std::move(functionElement)));
+				elements.push_back(std::make_pair(function->canonicalName(), std::move(functionElement)));
 			}
 			
 			// Sort the elements.

@@ -53,10 +53,8 @@ namespace locic {
 					
 				case SEM::Type::OBJECT: {
 					const auto typeInstance = type->getObjectType();
-					const auto methodIterator = typeInstance->functions().find(context.getCString("implicitcast"));
-					if (methodIterator == typeInstance->functions().end()) return false;
-					
-					const auto& function = methodIterator->second;
+					const auto function = typeInstance->findFunction(context.getCString("implicitcast"));
+					if (function == nullptr) return false;
 					if (function->type().attributes().isVarArg()) return false;
 					if (!function->isMethod()) return false;
 					if (function->isStaticMethod()) return false;

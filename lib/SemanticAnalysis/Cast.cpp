@@ -264,12 +264,12 @@ location, bool isTopLevel) {
 					return Optional<SEM::Value>();
 				}
 				
-				const auto& castFunction = sourceDerefType->getObjectType()->functions().at(context.getCString("implicitcast"));
+				const auto& castFunction = sourceDerefType->getObjectType()->getFunction(context.getCString("implicitcast"));
 				
-				const auto& requiresPredicate = castFunction->requiresPredicate();
+				const auto& requiresPredicate = castFunction.requiresPredicate();
 				
 				auto combinedTemplateVarMap = sourceDerefType->generateTemplateVarMap();
-				const auto& castTemplateVar = castFunction->templateVariables().front();
+				const auto& castTemplateVar = castFunction.templateVariables().front();
 				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, SEM::Value::TypeRef(destDerefType, castTemplateVar->type()->createStaticRefType(destDerefType))));
 				
 				// Conservatively assume require predicate is not satisified if result is undetermined.

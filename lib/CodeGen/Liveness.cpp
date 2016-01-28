@@ -27,9 +27,9 @@ namespace locic {
 		
 		Optional<LivenessIndicator> getCustomLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
 			// Check if we have custom __islive and __setdead methods.
-			const auto& isLiveMethod = typeInstance.functions().at(module.getCString("__islive"));
-			const auto& setDeadMethod = typeInstance.functions().at(module.getCString("__setdead"));
-			if (!isLiveMethod->isDefault() && !setDeadMethod->isDefault()) {
+			const auto& isLiveMethod = typeInstance.getFunction(module.getCString("__islive"));
+			const auto& setDeadMethod = typeInstance.getFunction(module.getCString("__setdead"));
+			if (!isLiveMethod.isDefault() && !setDeadMethod.isDefault()) {
 				// We can just call the __islive and __setdead methods.
 				return make_optional(LivenessIndicator::CustomMethods());
 			}
@@ -47,10 +47,9 @@ namespace locic {
 				}
 				
 				const auto objectType = type->getObjectType();
-				const auto& functions = objectType->functions();
 				
-				if (functions.find(module.getCString("__setinvalid")) != functions.end()
-					&& functions.find(module.getCString("__isvalid")) != functions.end()) {
+				if (objectType->findFunction(module.getCString("__setinvalid")) != nullptr
+					&& objectType->findFunction(module.getCString("__isvalid")) != nullptr) {
 					// Member variable has invalid state, so just use
 					// that to determine whether the object is live.
 					return make_optional(LivenessIndicator::MemberInvalidState(*var));
@@ -119,10 +118,9 @@ namespace locic {
 		}
 		
 		llvm::Function* genSetDeadFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto& function = typeInstance->functions().at(module.getCString("__setdead"));
+			const auto& function = typeInstance->getFunction(module.getCString("__setdead"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
-			return semFunctionGenerator.getDecl(typeInstance,
-			                                    *function);
+			return semFunctionGenerator.getDecl(typeInstance, function);
 		}
 		
 		llvm::Value* getLivenessByteOffset(Function& function, const SEM::TypeInstance& typeInstance, const LivenessIndicator livenessIndicator) {
@@ -182,7 +180,7 @@ namespace locic {
 			// Call __setdead method.
 			if (type->isObject()) {
 				const auto methodName = module.getCString("__setdead");
-				const auto functionType = type->getObjectType()->functions().at(methodName)->type();
+				const auto functionType = type->getObjectType()->getFunction(methodName).type();
 				
 				MethodInfo methodInfo(type, methodName, functionType, {});
 				const auto contextArg = RefPendingResult(value, type);
@@ -202,7 +200,7 @@ namespace locic {
 			// Call __setinvalid method.
 			if (type->isObject()) {
 				const auto methodName = module.getCString("__setinvalid");
-				const auto functionType = type->getObjectType()->functions().at(methodName)->type();
+				const auto functionType = type->getObjectType()->getFunction(methodName).type();
 				
 				MethodInfo methodInfo(type, methodName, functionType, {});
 				const auto contextArg = RefPendingResult(value, type);
@@ -217,10 +215,9 @@ namespace locic {
 		}
 		
 		llvm::Function* genIsLiveFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto& function = typeInstance->functions().at(module.getCString("__islive"));
+			const auto& function = typeInstance->getFunction(module.getCString("__islive"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
-			return semFunctionGenerator.getDecl(typeInstance,
-			                                    *function);
+			return semFunctionGenerator.getDecl(typeInstance, function);
 		}
 		
 		llvm::Value* genIsLive(Function& function, const SEM::Type* const type, llvm::Value* const value) {
@@ -236,7 +233,7 @@ namespace locic {
 				
 				// Call __islive method.
 				const auto methodName = module.getCString("__islive");
-				const auto functionType = type->getObjectType()->functions().at(methodName)->type();
+				const auto functionType = type->getObjectType()->getFunction(methodName).type();
 				
 				MethodInfo methodInfo(type, methodName, functionType, {});
 				const auto contextArg = RefPendingResult(value, type);

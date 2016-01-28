@@ -55,49 +55,47 @@ namespace locic {
 				for (const auto& constructorName: *(astTypeInstanceNode->constructors)) {
 					const auto canonicalMethodName = CanonicalizeMethodName(constructorName);
 					CreateEnumConstructorMethod(context, &semTypeInstance,
-						*(semTypeInstance.functions().at(canonicalMethodName)), enumValue++);
+						semTypeInstance.getFunction(canonicalMethodName), enumValue++);
 				}
 			}
 			
 			// Generate default constructor for applicable types.
 			if (semTypeInstance.isException()) {
 				CreateExceptionConstructor(context, astTypeInstanceNode, &semTypeInstance,
-				                           semTypeInstance.functions().at(context.getCString("create")).get());
+				                           &(semTypeInstance.getFunction(context.getCString("create"))));
 			} else if (semTypeInstance.isDatatype() || semTypeInstance.isStruct() || semTypeInstance.isUnion()) {
 				(void) CreateDefaultMethod(context, &semTypeInstance,
-				                           semTypeInstance.functions().at(context.getCString("create")).get(),
+				                           &(semTypeInstance.getFunction(context.getCString("create"))),
 				                           astTypeInstanceNode.location());
 			}
 			
 			// Generate default implicitCopy if relevant.
 			if (semTypeInstance.isEnum() || semTypeInstance.isStruct() || semTypeInstance.isDatatype() ||
 					semTypeInstance.isUnionDatatype() || semTypeInstance.isUnion()) {
-				const auto iterator = semTypeInstance.functions().find(context.getCString("implicitcopy"));
-				if (iterator != semTypeInstance.functions().end()) {
-					CreateDefaultMethodOrRemove(context, &semTypeInstance, iterator->second.get(),
+				const auto existingFunction = semTypeInstance.findFunction(context.getCString("implicitcopy"));
+				if (existingFunction != nullptr) {
+					CreateDefaultMethodOrRemove(context, &semTypeInstance, existingFunction,
 					                            astTypeInstanceNode.location());
 				}
 			}
 			
 			// Generate default compare if relevant.
 			if (semTypeInstance.isEnum() || semTypeInstance.isStruct() || semTypeInstance.isDatatype() || semTypeInstance.isUnionDatatype()) {
-				const auto iterator = semTypeInstance.functions().find(context.getCString("compare"));
-				if (iterator != semTypeInstance.functions().end()) {
-					CreateDefaultMethodOrRemove(context, &semTypeInstance,
-					                            iterator->second.get(),
+				const auto existingFunction = semTypeInstance.findFunction(context.getCString("compare"));
+				if (existingFunction != nullptr) {
+					CreateDefaultMethodOrRemove(context, &semTypeInstance, existingFunction,
 					                            astTypeInstanceNode.location());
 				}
 			}
 			
 			// Simplify all predicates to avoid confusing CodeGen.
-			for (auto& functionPair: semTypeInstance.functions()) {
-				auto& function = *(functionPair.second);
-				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(function));
-				function.setConstPredicate(reducePredicate(context, function.constPredicate().copy()));
-				function.setRequiresPredicate(reducePredicate(context, function.requiresPredicate().copy()));
+			for (auto& function: semTypeInstance.functions()) {
+				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*function));
+				function->setConstPredicate(reducePredicate(context, function->constPredicate().copy()));
+				function->setRequiresPredicate(reducePredicate(context, function->requiresPredicate().copy()));
 				
 				// Simplify function type noexcept predicate.
-				const auto oldFunctionType = function.type();
+				const auto oldFunctionType = function->type();
 				
 				const bool isVarArg = oldFunctionType.attributes().isVarArg();
 				const bool isMethod = oldFunctionType.attributes().isMethod();
@@ -107,7 +105,7 @@ namespace locic {
 				const auto& argTypes = oldFunctionType.parameterTypes();
 				
 				SEM::FunctionAttributes attributes(isVarArg, isMethod, isTemplated, std::move(noExceptPredicate));
-				function.setType(SEM::FunctionType(std::move(attributes), returnType, argTypes.copy()));
+				function->setType(SEM::FunctionType(std::move(attributes), returnType, argTypes.copy()));
 			}
 		}
 		

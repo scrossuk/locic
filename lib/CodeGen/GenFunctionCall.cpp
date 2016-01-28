@@ -311,8 +311,8 @@ namespace locic {
 				} else {
 					FunctionCallInfo callInfo;
 					
-					const auto targetFunction = type->getObjectType()->functions().at(CanonicalizeMethodName(methodInfo.name)).get();
-					callInfo.functionPtr = genFunctionRef(function, type, targetFunction, methodInfo.functionType);
+					const auto& targetFunction = type->getObjectType()->getFunction(CanonicalizeMethodName(methodInfo.name));
+					callInfo.functionPtr = genFunctionRef(function, type, &targetFunction, methodInfo.functionType);
 					
 					if (!type->getObjectType()->templateVariables().empty()) {
 						callInfo.templateGenerator = getTemplateGenerator(function, TemplateInst::Type(type));

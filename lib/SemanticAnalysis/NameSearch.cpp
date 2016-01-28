@@ -34,12 +34,9 @@ namespace locic {
 			if (size == 0) return SearchResult::TypeInstance(typeInstance);
 			
 			const auto canonicalName = CanonicalizeMethodName(name.at(pos));
-			const auto iterator = typeInstance.functions().find(canonicalName);
-			if (iterator != typeInstance.functions().end()) {
-				auto& function = iterator->second;
-				if (function->isStaticMethod()) {
-					return performFunctionSearch(*function, name, pos + 1);
-				}
+			const auto function = typeInstance.findFunction(canonicalName);
+			if (function != nullptr && function->isStaticMethod()) {
+				return performFunctionSearch(*function, name, pos + 1);
 			}
 			
 			return SearchResult::None();

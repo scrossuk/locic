@@ -40,9 +40,9 @@ namespace locic {
 		}
 		
 		Debug::SourcePosition getDebugDestructorPosition(Module& module, const SEM::TypeInstance& typeInstance) {
-			const auto iterator = typeInstance.functions().find(module.getCString("__destroy"));
-			if (iterator != typeInstance.functions().end()) {
-				return iterator->second->debugInfo()->scopeLocation.range().end();
+			const auto function = typeInstance.findFunction(module.getCString("__destroy"));
+			if (function != nullptr) {
+				return function->debugInfo()->scopeLocation.range().end();
 			} else {
 				return typeInstance.debugInfo()->location.range().start();
 			}
@@ -128,11 +128,11 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto& function = typeInstance.functions().at(module.getCString("__destroy"));
+			const auto& function = typeInstance.getFunction(module.getCString("__destroy"));
 			
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			const auto llvmFunction = semFunctionGenerator.getDecl(&typeInstance,
-			                                                       *function);
+			                                                       function);
 			
 			const auto argInfo = destructorArgInfo(module, typeInstance);
 			if (argInfo.hasTemplateGeneratorArgument()) {

@@ -164,8 +164,8 @@ namespace locic {
 		
 		bool TypeInfo::objectHasCustomDestructorMethod(const SEM::TypeInstance& typeInstance) const {
 			assert(typeInstance.isClassDef());
-			const auto destroyFunction = typeInstance.functions().at(module_.getCString("__destroy")).get();
-			return !destroyFunction->isDefault();
+			const auto& destroyFunction = typeInstance.getFunction(module_.getCString("__destroy"));
+			return !destroyFunction.isDefault();
 		}
 		
 		bool TypeInfo::hasCustomMove(const SEM::Type* const type) const {
@@ -223,8 +223,8 @@ namespace locic {
 		
 		bool TypeInfo::objectHasCustomMoveMethod(const SEM::TypeInstance& typeInstance) const {
 			assert(typeInstance.isClassDef());
-			const auto moveFunction = typeInstance.functions().at(module_.getCString("__moveto")).get();
-			return !moveFunction->isDefault();
+			const auto& moveFunction = typeInstance.getFunction(module_.getCString("__moveto"));
+			return !moveFunction.isDefault();
 		}
 		
 		bool TypeInfo::hasLivenessIndicator(const SEM::Type* const type) const {

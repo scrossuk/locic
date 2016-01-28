@@ -22,12 +22,13 @@ namespace locic {
 			
 			const auto& functions = typeInstance->functions();
 			
-			for (const auto& functionPair: functions) {
-				if (functionPair.first.starts_with("__") && functionPair.first != "__alignmask" && functionPair.first != "__sizeof") {
+			for (const auto& function: functions) {
+				const auto name = function->canonicalName();
+				if (name.starts_with("__") && name != "__alignmask" && name != "__sizeof") {
 					// Don't add 'special' methods to vtable.
 					continue;
 				}
-				hashMap.insert(CreateMethodNameHash(functionPair.first), functionPair.second.get());
+				hashMap.insert(CreateMethodNameHash(name), function.get());
 			}
 			
 			return hashMap;

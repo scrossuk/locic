@@ -149,21 +149,21 @@ namespace locic {
 			
 			IREmitter irEmitter(functionGenerator);
 			
-			const auto moveSEMFunction = typeInstance->functions().at(module.getCString("__moveto")).get();
+			const auto& moveSEMFunction = typeInstance->getFunction(module.getCString("__moveto"));
 			
-			auto functionInfo = *(moveSEMFunction->debugInfo());
+			auto functionInfo = *(moveSEMFunction.debugInfo());
 			functionInfo.isDefinition = true;
 			functionInfo.name = functionInfo.name + module.getCString("vtableentry");
 			
 			const bool isDefinition = true;
 			const bool isInternal = true;
 			
-			const auto debugSubprogramType = genDebugFunctionType(module, moveSEMFunction->type());
+			const auto debugSubprogramType = genDebugFunctionType(module, moveSEMFunction.type());
 			const auto debugSubprogram = genDebugFunction(module, functionInfo, debugSubprogramType,
 				llvmFunction, isInternal, isDefinition);
 			functionGenerator.attachDebugInfo(debugSubprogram);
 			
-			functionGenerator.setDebugPosition(moveSEMFunction->debugInfo()->scopeLocation.range().start());
+			functionGenerator.setDebugPosition(moveSEMFunction.debugInfo()->scopeLocation.range().start());
 			
 			genRawFunctionCall(functionGenerator, moveArgInfo(module, typeInstance), moveFunction,
 				std::vector<llvm::Value*> { functionGenerator.getContextValue(), functionGenerator.getArg(0), functionGenerator.getArg(1) });
@@ -181,11 +181,11 @@ namespace locic {
 			}
 			
 			// Use custom 'moveto' method if available.
-			const auto& function = typeInstance->functions().at(module.getCString("__moveto"));
+			const auto& function = typeInstance->getFunction(module.getCString("__moveto"));
 			
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			const auto llvmFunction = semFunctionGenerator.getDecl(typeInstance,
-			                                                       *function);
+			                                                       function);
 			
 			const auto argInfo = moveArgInfo(module, typeInstance);
 			if (argInfo.hasTemplateGeneratorArgument()) {
@@ -202,7 +202,7 @@ namespace locic {
 				llvm::Value* const sourceValue, llvm::Value* const destValue, llvm::Value* const positionValue) {
 			auto& module = functionGenerator.module();
 			
-			const auto& function = *(typeInstance.functions().at(module.getCString("__moveto")));
+			const auto& function = typeInstance.getFunction(module.getCString("__moveto"));
 			
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			

@@ -55,10 +55,9 @@ namespace locic {
 		}
 		
 		llvm::Function* genAlignMaskFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto& function = typeInstance->functions().at(module.getCString("__alignmask"));
+			const auto& function = typeInstance->getFunction(module.getCString("__alignmask"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
-			return semFunctionGenerator.getDecl(typeInstance,
-			                                    *function);
+			return semFunctionGenerator.getDecl(typeInstance, function);
 		}
 		
 		llvm::Value* genAlignOf(Function& function, const SEM::Type* type) {
@@ -122,10 +121,9 @@ namespace locic {
 		}
 		
 		llvm::Function* genSizeOfFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
-			const auto& function = typeInstance->functions().at(module.getCString("__sizeof"));
+			const auto& function = typeInstance->getFunction(module.getCString("__sizeof"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
-			return semFunctionGenerator.getDecl(typeInstance,
-			                                    *function);
+			return semFunctionGenerator.getDecl(typeInstance, function);
 		}
 		
 		llvm::Value* genSizeOfValue(Function& function, const SEM::Type* const rawType) {

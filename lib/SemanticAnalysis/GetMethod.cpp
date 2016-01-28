@@ -75,13 +75,13 @@ namespace locic {
 			
 			if (targetType->isObject()) {
 				// Get the actual function so we can refer to it.
-				const auto& function = targetType->getObjectType()->functions().at(canonicalMethodName);
+				const auto& function = targetType->getObjectType()->getFunction(canonicalMethodName);
 				const auto functionTypeTemplateMap = targetType->generateTemplateVarMap();
 				
-				const auto functionType = simplifyFunctionType(context, function->type().substitute(functionTypeTemplateMap));
+				const auto functionType = simplifyFunctionType(context, function.type().substitute(functionTypeTemplateMap));
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				
-				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function.get(), {}, functionRefType), location);
+				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, &function, {}, functionRefType), location);
 				
 				if (targetType->isInterface()) {
 					const auto interfaceMethodType = typeBuilder.getStaticInterfaceMethodType(functionType);
@@ -147,7 +147,7 @@ namespace locic {
 			
 			auto templateVariableAssignments = type->generateTemplateVarMap();
 			
-			const auto function = type->isObject() ? type->getObjectType()->functions().at(canonicalMethodName).get() : nullptr;
+			const auto function = type->isObject() ? &(type->getObjectType()->getFunction(canonicalMethodName)) : nullptr;
 			
 			if (function != nullptr) {
 				const auto& templateVariables = function->templateVariables();

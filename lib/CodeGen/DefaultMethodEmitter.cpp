@@ -185,7 +185,7 @@ namespace locic {
 				functionGenerator_.selectBasicBlock(isLiveBB);
 				
 				// Call the custom destructor function, if one exists.
-				const auto& function = *(typeInstance.functions().at(module.getCString("__destroy")));
+				const auto& function = typeInstance.getFunction(module.getCString("__destroy"));
 				
 				auto& semFunctionGenerator = module.semFunctionGenerator();
 				

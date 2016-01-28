@@ -551,7 +551,7 @@ namespace locic {
 			
 			// There's only a default method if the user
 			// hasn't specified a custom method.
-			return typeInstance->functions().find(context.getCString("__alignmask")) == typeInstance->functions().end();
+			return !typeInstance->hasFunction(context.getCString("__alignmask"));
 		}
 		
 		bool HasDefaultSizeOf(Context& context, SEM::TypeInstance* const typeInstance) {
@@ -561,7 +561,7 @@ namespace locic {
 			
 			// There's only a default method if the user
 			// hasn't specified a custom method.
-			return typeInstance->functions().find(context.getCString("__sizeof")) == typeInstance->functions().end();
+			return !typeInstance->hasFunction(context.getCString("__sizeof"));
 		}
 		
 		bool HasDefaultDestroy(Context& context, SEM::TypeInstance* const typeInstance) {
@@ -571,7 +571,7 @@ namespace locic {
 			
 			// There's only a default destructor if the user
 			// hasn't specified a custom destructor.
-			return typeInstance->functions().find(context.getCString("__destroy")) == typeInstance->functions().end();
+			return !typeInstance->hasFunction(context.getCString("__destroy"));
 		}
 		
 		bool HasDefaultMove(Context& context, SEM::TypeInstance* const typeInstance) {
@@ -581,7 +581,7 @@ namespace locic {
 			
 			// There's only a default move method if the user
 			// hasn't specified a custom move method.
-			return typeInstance->functions().find(context.getCString("__moveto")) == typeInstance->functions().end();
+			return !typeInstance->hasFunction(context.getCString("__moveto"));
 		}
 		
 		bool HasDefaultImplicitCopy(Context& /*context*/, SEM::TypeInstance* const typeInstance) {
@@ -620,7 +620,7 @@ namespace locic {
 			
 			// There's only a default __setdead method if the user
 			// hasn't specified a custom __setdead method.
-			return typeInstance->functions().find(context.getCString("__setdead")) == typeInstance->functions().end();
+			return !typeInstance->hasFunction(context.getCString("__setdead"));
 		}
 		
 		bool HasDefaultIsLive(Context& context, SEM::TypeInstance* const typeInstance) {
@@ -630,7 +630,7 @@ namespace locic {
 			
 			// There's only a default islive method if the user
 			// hasn't specified a custom islive method.
-			return typeInstance->functions().find(context.getCString("__islive")) == typeInstance->functions().end();
+			return !typeInstance->hasFunction(context.getCString("__islive"));
 		}
 		
 		void CreateDefaultConstructor(Context& /*context*/, SEM::TypeInstance* const typeInstance,
