@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void function() {
+	// CHECK: .loci:6:2: warning: unused variable 'localVariable' (which is not marked as 'unused')
+	int localVariable = 0;
+}
+
+// CHECK: 1 warning generated.

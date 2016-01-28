@@ -1,3 +1,0 @@
-export void function() {
-	int localVariable = 0;
-}

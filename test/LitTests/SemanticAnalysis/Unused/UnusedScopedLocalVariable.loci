@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void function() {
+	{
+		// CHECK: .loci:7:3: warning: unused variable 'scopedLocalVariable' (which is not marked as 'unused')
+		int scopedLocalVariable = 0;
+	}
+}
+
+// CHECK: 1 warning generated.

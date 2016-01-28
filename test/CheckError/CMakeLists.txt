@@ -27,5 +27,4 @@ add_subdirectory(StaticRef)
 add_subdirectory(Struct)
 add_subdirectory(Syntax)
 add_subdirectory(Templates)
-add_subdirectory(Unused)
 
