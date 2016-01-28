@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+void function() {
+	// CHECK: .loci:6:16: error: cannot access 'self' in non-method function
+	unused_result self;
+}
+
+// CHECK: 1 error generated.
