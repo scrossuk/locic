@@ -266,20 +266,39 @@ namespace locic {
 			impl_->assumedSatisfyPairs.pop_back();
 		}
 		
+		class SelfInNonMethodDiag: public Error {
+		public:
+			SelfInNonMethodDiag() { }
+			
+			std::string toString() const {
+				return "cannot access 'self' in non-method function";
+			}
+			
+		};
+		
+		class SelfInStaticMethodDiag: public Error {
+		public:
+			SelfInStaticMethodDiag() { }
+			
+			std::string toString() const {
+				return "cannot access 'self' in static method";
+			}
+			
+		};
+		
 		SEM::Value getSelfValue(Context& context, const Debug::SourceLocation& location) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			const auto thisFunction = lookupParentFunction(context.scopeStack());
 			
 			if (thisTypeInstance == nullptr) {
-				throw ErrorException(makeString("Cannot access 'self' in non-method at %s.", location.toString().c_str()));
+				context.issueDiag(SelfInNonMethodDiag(), location);
 			}
 			
 			if (thisFunction->isStaticMethod()) {
-				throw ErrorException(makeString("Cannot access 'self' in static method at %s.",
-					location.toString().c_str()));
+				context.issueDiag(SelfInStaticMethodDiag(), location);
 			}
 			
-			const auto selfType = thisTypeInstance->selfType();
+			const auto selfType = thisTypeInstance != nullptr ? thisTypeInstance->selfType() : context.typeBuilder().getVoidType();
 			const auto selfConstType = selfType->createTransitiveConstType(thisFunction->constPredicate().copy());
 			return createSelfRef(context, selfConstType);
 		}
