@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	void doSomething() { }
+	
+	// CHECK: .loci:8:7: error:  method 'do_SOME_thing' clashes with previous method 'doSomething' due to method canonicalization
+	void do_SOME_thing() { }
+}
+
+// CHECK: 1 error generated.
