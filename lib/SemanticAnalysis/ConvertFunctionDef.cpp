@@ -293,9 +293,6 @@ namespace locic {
 			const auto returnType = functionType.returnType();
 			const auto exitStates = semScope->exitStates();
 			
-			assert(!exitStates.hasBreakExit());
-			assert(!exitStates.hasContinueExit());
-			
 			if (exitStates.hasNormalExit()) {
 				if (!returnType->isBuiltInVoid()) {
 					// Functions with non-void return types must return a value.
