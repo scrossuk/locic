@@ -136,7 +136,8 @@ namespace locic {
 			isVarArg_(false), isStatic_(false),
 			isImported_(false), isExported_(false),
 			isPrimitive_(false),
-			name_(pName), templateVariables_(makeDefaultNode<TemplateTypeVarList>()) { }
+			name_(pName), templateVariables_(makeDefaultNode<TemplateTypeVarList>()),
+			semFunction_(nullptr) { }
 		
 		bool Function::isDeclaration() const {
 			return !isDefinition_;
@@ -226,6 +227,17 @@ namespace locic {
 		
 		void Function::setPrimitive() {
 			isPrimitive_ = true;
+		}
+		
+		void Function::setSEMFunction(SEM::Function& function) {
+			assert(semFunction_ == nullptr);
+			assert(&function != nullptr);
+			semFunction_ = &function;
+		}
+		
+		SEM::Function& Function::semFunction() {
+			assert(semFunction_ != nullptr);
+			return *semFunction_;
 		}
 		
 		std::string Function::toString() const {

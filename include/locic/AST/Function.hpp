@@ -16,9 +16,15 @@
 #include <locic/AST/TypeVar.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
+	namespace SEM {
+		
+		class Function;
+		
+	}
+	
+	namespace AST {
+		
 		struct Function {
 			public:
 				static Function* Decl(bool isVarArg, bool isStatic,
@@ -80,6 +86,9 @@ namespace locic {
 				void setExport();
 				void setPrimitive();
 				
+				void setSEMFunction(SEM::Function& function);
+				SEM::Function& semFunction();
+				
 				std::string toString() const;
 				
 			private:
@@ -98,6 +107,7 @@ namespace locic {
 				Node<ConstSpecifier> constSpecifier_;
 				Node<RequireSpecifier> noexceptSpecifier_;
 				Node<RequireSpecifier> requireSpecifier_;
+				SEM::Function* semFunction_;
 				
 		};
 		
