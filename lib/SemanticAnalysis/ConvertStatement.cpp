@@ -163,6 +163,31 @@ namespace locic {
 			
 		};
 		
+		class BreakInScopeExitActionDiag: public Error {
+		public:
+			BreakInScopeExitActionDiag(String scopeActionState)
+			: scopeActionState_(std::move(scopeActionState)) { }
+			
+			std::string toString() const {
+				return makeString("'break' statement cannot be used in scope(%s)",
+				                  scopeActionState_.c_str());
+			}
+			
+		private:
+			String scopeActionState_;
+			
+		};
+		
+		class BreakNotInCorrectScopeDiag: public Error {
+		public:
+			BreakNotInCorrectScopeDiag() { }
+			
+			std::string toString() const {
+				return "'break' statement not in loop statement";
+			}
+			
+		};
+		
 		SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -569,14 +594,14 @@ namespace locic {
 							foundLoop = true;
 							break;
 						} else if (element.isScopeAction()) {
-							throw ErrorException(makeString("Cannot 'break' from scope exit action at position %s.",
-								location.toString().c_str()));
+							context.issueDiag(BreakInScopeExitActionDiag(element.scopeActionState()),
+							                  location);
 						}
 					}
 					
 					if (!foundLoop) {
-						throw ErrorException(makeString("Cannot 'break' outside any control flow statements at position %s.",
-							location.toString().c_str()));
+						context.issueDiag(BreakNotInCorrectScopeDiag(),
+						                  location);
 					}
 					
 					return SEM::Statement::Break();
