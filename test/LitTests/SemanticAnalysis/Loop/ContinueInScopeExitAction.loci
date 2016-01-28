@@ -1,0 +1,22 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+void function() {
+	while (true) {
+		scope(exit) {
+			// CHECK: .loci:8:4: error: 'continue' statement cannot be used in scope(exit)
+			continue;
+		}
+		scope(success) {
+			// CHECK: .loci:12:4: error: 'continue' statement cannot be used in scope(success)
+			continue;
+		}
+		// CHECK: .loci:15:3: warning: scope(failure) will never be executed
+		scope(failure) {
+			// CHECK: .loci:17:4: error: 'continue' statement cannot be used in scope(failure)
+			continue;
+		}
+	}
+}
+
+// CHECK: 1 warning and 3 errors generated.
