@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass(int value) {
+	static void method() {
+		// CHECK: .loci:7:3: error: cannot access 'self' in static method
+		self.doSomething();
+	}
+	
+	void doSomething() { }
+}
+
+// CHECK: 1 error generated.
