@@ -1,11 +1,9 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Couldn't find symbol or value 'value'
-// CHECK: line 10
-// CHECK-NEXT: column 9
-// CHECK: line 10
-// CHECK-NEXT: column 14
 int function() {
+	// CHECK: .loci:6:9: error: use of undeclared identifier 'value'
 	return value;
 }
+
+// CHECK: 1 error generated.
