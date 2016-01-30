@@ -40,6 +40,10 @@ namespace locic {
 			});
 		}
 		
+		Array<DiagPair, 8>& diags() {
+			return diags_;
+		}
+		
 		const Array<DiagPair, 8>& diags() const {
 			return diags_;
 		}

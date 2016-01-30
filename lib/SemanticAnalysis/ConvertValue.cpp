@@ -12,6 +12,8 @@
 #include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/Frontend/DiagnosticArray.hpp>
+
 #include <locic/SemanticAnalysis/AliasTypeResolver.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -193,6 +195,35 @@ namespace locic {
 			
 			return functionSearchResult;
 		}
+		
+		class SetFakeDiagnosticReceiver {
+		public:
+			SetFakeDiagnosticReceiver(Context& context)
+			: context_(context), previousDiagnosticReceiver_(context_.diagnosticReceiver()) {
+				context_.setDiagnosticReceiver(diagnosticArray_);
+			}
+			
+			~SetFakeDiagnosticReceiver() {
+				context_.setDiagnosticReceiver(previousDiagnosticReceiver_);
+			}
+			
+			bool anyErrors() const {
+				return diagnosticArray_.anyErrors();
+			}
+			
+			void forwardDiags() {
+				for (auto& diagPair: diagnosticArray_.diags()) {
+					previousDiagnosticReceiver_.issueDiag(std::move(diagPair.diag),
+					                                      diagPair.location);
+				}
+			}
+			
+		private:
+			Context& context_;
+			DiagnosticReceiver& previousDiagnosticReceiver_;
+			DiagnosticArray diagnosticArray_;
+			
+		};
 		
 		SEM::Value ConvertValueData(Context& context, const AST::Node<AST::Value>& astValueNode) {
 			assert(astValueNode.get() != nullptr);
@@ -744,11 +775,17 @@ namespace locic {
 					
 					try {
 						// Try to convert the type.
-						return ConvertValue(context, typeValue);
+						SetFakeDiagnosticReceiver setFakeDiagnosticReceiver(context);
+						auto convertedValue = ConvertValue(context, typeValue);
+						if (!setFakeDiagnosticReceiver.anyErrors()) {
+							setFakeDiagnosticReceiver.forwardDiags();
+							return convertedValue;
+						}
 					} catch (const Exception&) {
 						// It failed, so try to convert the value.
-						return ConvertValue(context, nonTypeValue);
 					}
+					
+					return ConvertValue(context, nonTypeValue);
 				}
 			}
 			
