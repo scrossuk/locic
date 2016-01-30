@@ -16,7 +16,7 @@ namespace locic {
 		
 		TypeBuilder::TypeBuilder(Context& argContext)
 		: context_(argContext), cachedVoidType_(nullptr), cachedBoolType_(nullptr),
-		cachedSizeType_(nullptr), cachedTypenameType_(nullptr),
+		cachedIntType_(nullptr), cachedSizeType_(nullptr), cachedTypenameType_(nullptr),
 		cachedMovableType_(nullptr) { }
 		
 		const SEM::Type*
@@ -47,6 +47,16 @@ namespace locic {
 			
 			cachedBoolType_ = getPrimitiveType(PrimitiveBool);
 			return cachedBoolType_;
+		}
+		
+		const SEM::Type*
+		TypeBuilder::getIntType() {
+			if (cachedIntType_ != nullptr) {
+				return cachedIntType_;
+			}
+			
+			cachedIntType_ = getPrimitiveType(PrimitiveInt);
+			return cachedIntType_;
 		}
 		
 		const SEM::Type*

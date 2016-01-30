@@ -33,6 +33,9 @@ namespace locic {
 			getBoolType();
 			
 			const SEM::Type*
+			getIntType();
+			
+			const SEM::Type*
 			getSizeType();
 			
 			const SEM::Type*
@@ -95,6 +98,7 @@ namespace locic {
 			Context& context_;
 			const SEM::Type* cachedVoidType_;
 			const SEM::Type* cachedBoolType_;
+			const SEM::Type* cachedIntType_;
 			const SEM::Type* cachedSizeType_;
 			const SEM::Type* cachedTypenameType_;
 			const SEM::Type* cachedMovableType_;
