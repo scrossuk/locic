@@ -36,6 +36,21 @@ namespace locic {
 			return getBuiltInType(context, fullNameString, {});
 		}
 		
+		class UnknownTypeNameDiag: public Error {
+		public:
+			UnknownTypeNameDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("unknown type name '%s'",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
 		const SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol) {
 			assert(!symbol->empty());
 			
@@ -65,8 +80,9 @@ namespace locic {
 				
 				return SEM::Type::Alias(alias, std::move(templateValues));
 			} else {
-				throw ErrorException(makeString("Unknown type with name '%s' at position %s.",
-					name.toString().c_str(), symbol.location().toString().c_str()));
+				context.issueDiag(UnknownTypeNameDiag(name.copy()),
+				                  symbol.location());
+				return context.typeBuilder().getIntType();
 			}
 		}
 		
