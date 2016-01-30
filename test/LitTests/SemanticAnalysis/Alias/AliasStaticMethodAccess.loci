@@ -1,0 +1,17 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	static Create = default;
+}
+
+using TestClassAlias = TestClass;
+
+export void f() {
+	// CHECK-NOT: .loci:12:16: error: use of undeclared identifier 'TestClass::Create'
+	unused_result TestClass::Create;
+	// CHECK: .loci:14:16: error: use of undeclared identifier 'TestClassAlias::Create'
+	unused_result TestClassAlias::Create;
+}
+
+// CHECK: 1 error generated.
