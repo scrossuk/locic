@@ -50,6 +50,9 @@ namespace locic {
 				        SEM::Context& semContext, DiagnosticReceiver& diagReceiver);
 				~Context();
 				
+				DiagnosticReceiver& diagnosticReceiver();
+				void setDiagnosticReceiver(DiagnosticReceiver& receiver);
+				
 				template <typename DiagType>
 				void issueDiag(DiagType diag, const Debug::SourceLocation& location) {
 					issueDiagPtr(std::unique_ptr<Diag>(new DiagType(std::move(diag))),

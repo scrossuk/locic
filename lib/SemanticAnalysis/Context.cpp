@@ -38,7 +38,7 @@ namespace locic {
 			stringHost(sharedMaps.stringHost()),
 			debugModule(pDebugModule),
 			semContext(pSemContext),
-			diagReceiver(argDiagReceiver),
+			diagReceiver(&argDiagReceiver),
 			typeBuilder(context),
 			methodSetsComplete(false),
 			templateRequirementsComplete(false) {
@@ -84,7 +84,7 @@ namespace locic {
 			Debug::Module& debugModule;
 			ScopeStack scopeStack;
 			SEM::Context& semContext;
-			DiagnosticReceiver& diagReceiver;
+			DiagnosticReceiver* diagReceiver;
 			TypeBuilder typeBuilder;
 			bool methodSetsComplete;
 			bool templateRequirementsComplete;
@@ -108,9 +108,17 @@ namespace locic {
 		
 		Context::~Context() { }
 		
+		DiagnosticReceiver& Context::diagnosticReceiver() {
+			return *(impl_->diagReceiver);
+		}
+		
+		void Context::setDiagnosticReceiver(DiagnosticReceiver& receiver) {
+			impl_->diagReceiver = &receiver;
+		}
+		
 		void Context::issueDiagPtr(std::unique_ptr<Diag> diag,
 		                           const Debug::SourceLocation& location) {
-			impl_->diagReceiver.issueDiag(std::move(diag), location);
+			diagnosticReceiver().issueDiag(std::move(diag), location);
 		}
 		
 		AliasTypeResolver& Context::aliasTypeResolver() {
