@@ -1,9 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Unknown type with name 'Type'
-// CHECK: line 9
-// CHECK-NEXT: column 1
-// CHECK: line 9
-// CHECK-NEXT: column 5
-Type function() { }
+// CHECK: .loci:5:8: error: unknown type name 'Type'
+import Type f();
+
+// CHECK: .loci:8:8: error: unknown type name 'Namespace::Type'
+import Namespace::Type g();
+
+// CHECK: 2 errors generated.
