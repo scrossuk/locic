@@ -196,6 +196,21 @@ namespace locic {
 			return functionSearchResult;
 		}
 		
+		class UseOfUndeclaredIdentifierDiag: public Error {
+		public:
+			UseOfUndeclaredIdentifierDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("use of undeclared identifier '%s'",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
 		class SetFakeDiagnosticReceiver {
 		public:
 			SetFakeDiagnosticReceiver(Context& context)
@@ -254,8 +269,9 @@ namespace locic {
 					const auto templateVarMap = GenerateSymbolTemplateVarMap(context, astSymbolNode);
 					
 					if (searchResult.isNone()) {
-						throw ErrorException(makeString("Couldn't find symbol or value '%s' at %s.",
-							name.toString().c_str(), location.toString().c_str()));
+						context.issueDiag(UseOfUndeclaredIdentifierDiag(name.copy()),
+						                  location);
+						return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 					} else if (searchResult.isFunction()) {
 						auto& function = searchResult.function();
 						
