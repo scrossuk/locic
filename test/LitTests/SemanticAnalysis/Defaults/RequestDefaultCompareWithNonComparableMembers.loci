@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// Not comparable.
+}
+
+class ComparableClass(TestClass member) {
+	// CHECK: .loci:10:2: error: cannot generate compare since members don't support it
+	compare = default;
+}
+
+// CHECK: 1 error generated.

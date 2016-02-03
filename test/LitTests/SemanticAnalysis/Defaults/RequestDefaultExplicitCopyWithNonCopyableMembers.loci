@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// Not copyable.
+}
+
+class CopyableClass(TestClass member) {
+	// CHECK: .loci:10:2: error: cannot generate copy since members don't support it
+	copy = default;
+}
+
+// CHECK: 1 error generated.

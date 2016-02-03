@@ -1,7 +1,0 @@
-class TestClass() {
-	// Not copyable.
-}
-
-class CopyableClass(TestClass member) {
-	copy = default;
-}

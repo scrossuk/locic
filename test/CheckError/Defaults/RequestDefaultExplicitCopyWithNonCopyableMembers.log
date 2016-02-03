@@ -1,1 +1,0 @@
-Failed to generate explicit copy since members don't support it, at location SourceLocation\(filename = (.*)/RequestDefaultExplicitCopyWithNonCopyableMembers\.loci, range = \(line 6, column 2\) to \(line 6, column 17\)\)\.
