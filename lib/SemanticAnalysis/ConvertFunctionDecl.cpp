@@ -49,6 +49,21 @@ namespace locic {
 			
 		}
 		
+		class InterfaceMethodCannotBeTemplatedDiag: public Error {
+		public:
+			InterfaceMethodCannotBeTemplatedDiag(String name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("interface method '%s' cannot be templated",
+				                  name_.c_str());
+			}
+			
+		private:
+			String name_;
+			
+		};
+		
 		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
@@ -80,9 +95,8 @@ namespace locic {
 			semFunction->setStaticMethod(astFunctionNode->isStatic());
 			
 			if (!astFunctionNode->templateVariables()->empty() && (thisTypeInstance != nullptr && thisTypeInstance->isInterface())) {
-				throw ErrorException(makeString("Interface '%s' has templated method '%s' (interfaces may only contain non-templated methods), at location %s.",
-						thisTypeInstance->name().toString().c_str(), name.c_str(),
-						astFunctionNode.location().toString().c_str()));
+				context.issueDiag(InterfaceMethodCannotBeTemplatedDiag(name),
+				                  astFunctionNode.location());
 			}
 			
 			// Add template variables.
