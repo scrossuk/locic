@@ -1,1 +1,0 @@
-More than one template variable shares name 'T' in function '::TestClass::function', at location SourceLocation\(filename = (.*)/MethodDuplicateTemplate\.loci, range = \(line 2, column 24\) to \(line 2, column 34\)\)\.

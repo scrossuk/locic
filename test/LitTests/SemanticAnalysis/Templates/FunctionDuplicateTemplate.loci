@@ -1,0 +1,8 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+template <typename T, typename T>
+// CHECK: .loci:4:23: error: declaration of 'T' shadows template parameter
+void function() { }
+
+// CHECK: 1 error generated.

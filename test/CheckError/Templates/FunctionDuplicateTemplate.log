@@ -1,1 +1,0 @@
-More than one template variable shares name 'T' in function '::function', at location SourceLocation\(filename = (.*)/FunctionDuplicateTemplate\.loci, range = \(line 1, column 23\) to \(line 1, column 33\)\)\.
