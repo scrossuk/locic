@@ -1,13 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
 // Loci doesn't allow interface methods to be templated
 // since that would be a second instantiation (and would
 // therefore not work with CodeGen's template generators).
 interface SomeInterface {
+	// CHECK: .loci:9:2: error: interface method 'doSomething' cannot be templated
 	template <typename T>
 	void doSomething();
 }
 
-// Entry point.
-export int testEntryPoint(unused int argc, unused ubyte ** argv) {
-	return 0;
-}
-
+// CHECK: 1 error generated.
