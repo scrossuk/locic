@@ -1,4 +1,0 @@
-
-class TestClass() {
-	static void doThing() const { }
-}

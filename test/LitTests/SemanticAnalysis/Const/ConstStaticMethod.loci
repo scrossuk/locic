@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:24: warning: static method cannot have const predicate
+	static void doThing() const { }
+}
+
+// CHECK: 1 warning generated.
