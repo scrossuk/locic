@@ -30,6 +30,25 @@ namespace locic {
 			}
 		}
 		
+		namespace {
+			
+			class ShadowsTemplateParameterDiag: public Error {
+			public:
+				ShadowsTemplateParameterDiag(String name)
+				: name_(std::move(name)) { }
+				
+				std::string toString() const {
+					return makeString("declaration of '%s' shadows template parameter",
+					                  name_.c_str());
+				}
+				
+			private:
+				String name_;
+				
+			};
+			
+		}
+		
 		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
@@ -79,10 +98,11 @@ namespace locic {
 						templateVarIndex++, isVirtual);
 				
 				const auto templateVarIterator = semFunction->namedTemplateVariables().find(templateVarName);
-				if (templateVarIterator != semFunction->namedTemplateVariables().end()) {
-					throw ErrorException(makeString("More than one template variable shares name '%s' in function '%s', at location %s.",
-						templateVarName.c_str(), semFunction->name().toString().c_str(),
-						astTemplateVarNode.location().toString().c_str()));
+				if (templateVarIterator == semFunction->namedTemplateVariables().end()) {
+					semFunction->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
+				} else {
+					context.issueDiag(ShadowsTemplateParameterDiag(templateVarName),
+					                  astTemplateVarNode.location());
 				}
 				
 				// Also adding the function template variable type here.
@@ -97,9 +117,7 @@ namespace locic {
 				}
 				
 				semTemplateVar->setType(semVarType);
-				
 				semFunction->templateVariables().push_back(semTemplateVar);
-				semFunction->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
 			}
 			
 			assert(semFunction->isDeclaration());
