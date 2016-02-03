@@ -641,18 +641,37 @@ namespace locic {
 			// TODO: Need to check if default constructor can be created.
 		}
 		
+		class CannotGenerateImplicitCopyDiag: public Error {
+		public:
+			CannotGenerateImplicitCopyDiag() { }
+			
+			std::string toString() const {
+				return "cannot generate implicit copy since members don't support it";
+			}
+			
+		};
+		
 		bool CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
 			if (!supportsImplicitCopy(context, typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
 					// Auto-generated, so ignore the problem.
 					return false;
 				}
-				throw ErrorException(makeString("Failed to generate implicit copy since members don't support it, at location %s.",
-				                                location.toString().c_str()));
+				context.issueDiag(CannotGenerateImplicitCopyDiag(), location);
 			}
 			
 			return true;
 		}
+		
+		class CannotGenerateExplicitCopyDiag: public Error {
+		public:
+			CannotGenerateExplicitCopyDiag() { }
+			
+			std::string toString() const {
+				return "cannot generate copy since members don't support it";
+			}
+			
+		};
 		
 		bool CreateDefaultExplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
 			if (!supportsExplicitCopy(context, typeInstance->selfType())) {
@@ -660,12 +679,21 @@ namespace locic {
 					// Auto-generated, so ignore the problem.
 					return false;
 				}
-				throw ErrorException(makeString("Failed to generate explicit copy since members don't support it, at location %s.",
-				                                location.toString().c_str()));
+				context.issueDiag(CannotGenerateExplicitCopyDiag(), location);
 			}
 			
 			return true;
 		}
+		
+		class CannotGenerateCompareDiag: public Error {
+		public:
+			CannotGenerateCompareDiag() { }
+			
+			std::string toString() const {
+				return "cannot generate compare since members don't support it";
+			}
+			
+		};
 		
 		bool CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
 			assert(!typeInstance->isUnion());
@@ -674,8 +702,7 @@ namespace locic {
 					// Auto-generated, so ignore the problem.
 					return false;
 				}
-				throw ErrorException(makeString("Failed to generate compare since members don't support it, at location %s.",
-				                                location.toString().c_str()));
+				context.issueDiag(CannotGenerateCompareDiag(), location);
 			}
 			
 			return true;
