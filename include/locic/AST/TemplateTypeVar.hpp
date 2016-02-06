@@ -18,7 +18,7 @@ namespace locic {
 			
 			static TemplateTypeVar* NoSpec(Node<Type> varType, const String& name) {
 				TemplateTypeVar* typeVar = new TemplateTypeVar();
-				typeVar->varType = varType;
+				typeVar->varType = std::move(varType);
 				typeVar->name = name;
 				typeVar->specType = makeNode(Debug::SourceLocation::Null(), Type::Void());
 				return typeVar;
@@ -27,14 +27,14 @@ namespace locic {
 			static TemplateTypeVar* WithSpec(Node<Type> varType, const String& name, Node<Type> specType) {
 				assert(!specType.isNull());
 				TemplateTypeVar* typeVar = new TemplateTypeVar();
-				typeVar->varType = varType;
+				typeVar->varType = std::move(varType);
 				typeVar->name = name;
-				typeVar->specType = specType;
+				typeVar->specType = std::move(specType);
 				return typeVar;
 			}
 			
 			TemplateTypeVar() { }
-				
+			
 			std::string toString() const {
 				return makeString("TemplateTypeVar(varType = %s, name = %s, specType = %s)",
 					varType.toString().c_str(), name.c_str(), specType.toString().c_str());
