@@ -8,8 +8,8 @@ namespace locic {
 	
 	namespace AST {
 		
-		StaticAssert::StaticAssert(const Node<Predicate>& expr)
-		: expression_(expr) { }
+		StaticAssert::StaticAssert(Node<Predicate> expr)
+		: expression_(std::move(expr)) { }
 		
 		const Node<Predicate>& StaticAssert::expression() const {
 			return expression_;

@@ -13,7 +13,7 @@ namespace locic {
 		
 		class StaticAssert {
 		public:
-			StaticAssert(const Node<Predicate>& expr);
+			StaticAssert(Node<Predicate> expr);
 			
 			const Node<Predicate>& expression() const;
 			
