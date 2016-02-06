@@ -8,4 +8,9 @@ export a.b.c 1.2.3 {
 	void def() { }
 }
 
-// CHECK: 1 error generated.
+// CHECK: .loci:12:1: error: definition required for exported function 'exportedDecl'
+export void exportedDecl();
+
+export void exportedDef() { }
+
+// CHECK: 2 errors generated.

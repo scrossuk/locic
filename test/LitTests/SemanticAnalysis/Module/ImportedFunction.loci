@@ -8,4 +8,9 @@ import a.b.c 1.2.3 {
 	void def() { }
 }
 
-// CHECK: 1 error generated.
+import void importedDecl();
+
+// CHECK: .loci:14:1: error: cannot define imported function 'importedDef'
+import void importedDef() { }
+
+// CHECK: 2 errors generated.
