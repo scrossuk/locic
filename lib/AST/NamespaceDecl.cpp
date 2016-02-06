@@ -8,12 +8,15 @@
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/NamespaceDecl.hpp>
 #include <locic/AST/Node.hpp>
+#include <locic/AST/StaticAssert.hpp>
 #include <locic/AST/TypeInstance.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
+	namespace AST {
+		
+		NamespaceData::NamespaceData() { }
+		
 		NamespaceData::~NamespaceData() { }
 		
 		std::string NamespaceData::toString() const {
@@ -21,35 +24,35 @@ namespace locic {
 			
 			bool isFirst = true;
 			
-			for(auto node : aliases) {
+			for(const auto& node : aliases) {
 				if(!isFirst) s += ", ";
 				
 				isFirst = false;
 				s += node.toString();
 			}
 			
-			for(auto node : functions) {
+			for(const auto& node : functions) {
 				if(!isFirst) s += ", ";
 				
 				isFirst = false;
 				s += node.toString();
 			}
 			
-			for(auto node : moduleScopes) {
+			for(const auto& node : moduleScopes) {
 				if(!isFirst) s += ", ";
 				
 				isFirst = false;
 				s += node.toString();
 			}
 			
-			for(auto node : namespaces) {
+			for(const auto& node : namespaces) {
 				if(!isFirst) s += ", ";
 				
 				isFirst = false;
 				s += node.toString();
 			}
 			
-			for(auto node : typeInstances) {
+			for(const auto& node : typeInstances) {
 				if(!isFirst) s += ", ";
 				
 				isFirst = false;
@@ -60,7 +63,8 @@ namespace locic {
 		}
 		
 		NamespaceDecl::NamespaceDecl(const String& n, AST::Node<NamespaceData> d)
-		: name_(n), data_(d), namespace_(nullptr) { }
+		: name_(n), data_(std::move(d)), namespace_(nullptr) { }
+		
 		NamespaceDecl::~NamespaceDecl() { }
 		
 		String NamespaceDecl::name() const {

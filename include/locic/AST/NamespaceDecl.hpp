@@ -32,7 +32,14 @@ namespace locic {
 			std::vector< AST::Node<StaticAssert> > staticAsserts;
 			std::vector< AST::Node<TypeInstance> > typeInstances;
 			
+			NamespaceData();
 			~NamespaceData();
+			
+			NamespaceData(const NamespaceData&) = delete;
+			NamespaceData& operator=(const NamespaceData&) = delete;
+			
+			NamespaceData(NamespaceData&&) = default;
+			NamespaceData& operator=(NamespaceData&&) = delete;
 			
 			bool empty() const {
 				return aliases.empty() && functions.empty() &&
