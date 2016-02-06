@@ -32,36 +32,37 @@ namespace locic {
 		AST::Node<AST::Predicate>
 		PredicateBuilder::makeBracketPredicate(AST::Node<AST::Predicate> predicate,
 		                                       const Debug::SourcePosition& start) {
-			return makePredicateNode(AST::Predicate::Bracket(predicate), start);
+			return makePredicateNode(AST::Predicate::Bracket(std::move(predicate)), start);
 		}
 		
 		AST::Node<AST::Predicate>
 		PredicateBuilder::makeTypeSpecPredicate(AST::Node<AST::Type> type,
 		                                        AST::Node<AST::Type> capabilityType,
 		                                        const Debug::SourcePosition& start) {
-			return makePredicateNode(AST::Predicate::TypeSpec(type, capabilityType), start);
+			return makePredicateNode(AST::Predicate::TypeSpec(std::move(type),
+			                                                  std::move(capabilityType)), start);
 		}
 		
 		AST::Node<AST::Predicate>
 		PredicateBuilder::makeSymbolPredicate(AST::Node<AST::Symbol> symbol,
 		                                      const Debug::SourcePosition& start) {
-			return makePredicateNode(AST::Predicate::Symbol(symbol), start);
+			return makePredicateNode(AST::Predicate::Symbol(std::move(symbol)), start);
 		}
 		
 		AST::Node<AST::Predicate>
 		PredicateBuilder::makeAndPredicate(AST::Node<AST::Predicate> leftPredicate,
 		                                   AST::Node<AST::Predicate> rightPredicate,
 		                                   const Debug::SourcePosition& start) {
-			return makePredicateNode(AST::Predicate::And(leftPredicate,
-			                                             rightPredicate), start);
+			return makePredicateNode(AST::Predicate::And(std::move(leftPredicate),
+			                                             std::move(rightPredicate)), start);
 		}
 		
 		AST::Node<AST::Predicate>
 		PredicateBuilder::makeOrPredicate(AST::Node<AST::Predicate> leftPredicate,
 		                                  AST::Node<AST::Predicate> rightPredicate,
 		                                  const Debug::SourcePosition& start) {
-			return makePredicateNode(AST::Predicate::Or(leftPredicate,
-			                                            rightPredicate), start);
+			return makePredicateNode(AST::Predicate::Or(std::move(leftPredicate),
+			                                            std::move(rightPredicate)), start);
 		}
 		
 	}

@@ -29,17 +29,17 @@ namespace locic {
 				switch (reader_.peek().kind()) {
 					case Token::AND: {
 						reader_.consume();
-						const auto rightPredicate = parseAtomPredicate();
-						predicate = builder_.makeAndPredicate(predicate,
-						                                      rightPredicate,
+						auto rightPredicate = parseAtomPredicate();
+						predicate = builder_.makeAndPredicate(std::move(predicate),
+						                                      std::move(rightPredicate),
 						                                      start);
 						break;
 					}
 					case Token::OR: {
 						reader_.consume();
-						const auto rightPredicate = parseAtomPredicate();
-						predicate = builder_.makeOrPredicate(predicate,
-						                                     rightPredicate,
+						auto rightPredicate = parseAtomPredicate();
+						predicate = builder_.makeOrPredicate(std::move(predicate),
+						                                     std::move(rightPredicate),
 						                                     start);
 						break;
 					}
@@ -61,35 +61,35 @@ namespace locic {
 					return builder_.makeFalsePredicate(start);
 				case Token::LROUNDBRACKET: {
 					reader_.consume();
-					const auto predicate = parsePredicate();
+					auto predicate = parsePredicate();
 					reader_.expect(Token::RROUNDBRACKET);
-					return builder_.makeBracketPredicate(predicate,
+					return builder_.makeBracketPredicate(std::move(predicate),
 					                                     start);
 				}
 				default:
 					break;
 			}
 			
-			const auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
+			auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
 			switch (reader_.peek().kind()) {
 				case Token::RROUNDBRACKET:
 				case Token::RTRIBRACKET:
 				case Token::AND:
 				case Token::OR:
 				case Token::SEMICOLON:
-					return builder_.makeSymbolPredicate(symbol, start);
+					return builder_.makeSymbolPredicate(std::move(symbol), start);
 				default:
 					break;
 			}
 			
-			auto type = TypeBuilder(reader_).makeSymbolType(symbol, start);
-			type = TypeParser(reader_).parseIndirectTypeBasedOnType(type, start);
+			auto type = TypeBuilder(reader_).makeSymbolType(std::move(symbol), start);
+			type = TypeParser(reader_).parseIndirectTypeBasedOnType(std::move(type), start);
 			
 			reader_.expect(Token::COLON);
 			
-			const auto capabilityType = TypeParser(reader_).parseType();
+			auto capabilityType = TypeParser(reader_).parseType();
 			
-			return builder_.makeTypeSpecPredicate(type, capabilityType, start);
+			return builder_.makeTypeSpecPredicate(std::move(type), std::move(capabilityType), start);
 		}
 		
 	}
