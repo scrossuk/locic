@@ -23,17 +23,47 @@ namespace locic {
 			return functionInfo;
 		}
 		
-		SEM::ModuleScope getFunctionScope(const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
+		class CannotNestImportedFunctionInModuleScopeDiag: public Error {
+		public:
+			CannotNestImportedFunctionInModuleScopeDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("cannot nest imported function '%s' in module scope",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
+		class CannotNestExportedFunctionInModuleScopeDiag: public Error {
+		public:
+			CannotNestExportedFunctionInModuleScopeDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("cannot nest exported function '%s' in module scope",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
+		SEM::ModuleScope getFunctionScope(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
 			if (astFunctionNode->isImported()) {
 				if (!moduleScope.isInternal()) {
-					throw ErrorException(makeString("Cannot nest module scopes, at position %s.",
-						astFunctionNode.location().toString().c_str()));
+					context.issueDiag(CannotNestImportedFunctionInModuleScopeDiag(astFunctionNode->name()->copy()),
+					                  astFunctionNode.location());
 				}
 				return SEM::ModuleScope::Import(Name::Absolute(), Version(0,0,0));
 			} else if (astFunctionNode->isExported()) {
 				if (!moduleScope.isInternal()) {
-					throw ErrorException(makeString("Cannot nest module scopes, at position %s.",
-						astFunctionNode.location().toString().c_str()));
+					context.issueDiag(CannotNestExportedFunctionInModuleScopeDiag(astFunctionNode->name()->copy()),
+					                  astFunctionNode.location());
 				}
 				return SEM::ModuleScope::Export(Name::Absolute(), Version(0,0,0));
 			} else {
@@ -44,7 +74,7 @@ namespace locic {
 		std::unique_ptr<SEM::Function> AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const Name& fullName, const SEM::ModuleScope& parentModuleScope) {
 			const auto& topElement = context.scopeStack().back();
 			
-			const auto moduleScope = getFunctionScope(astFunctionNode, parentModuleScope);
+			const auto moduleScope = getFunctionScope(context, astFunctionNode, parentModuleScope);
 			
 			const bool isParentInterface = topElement.isTypeInstance() && topElement.typeInstance().isInterface();
 			const bool isParentPrimitive = topElement.isTypeInstance() && topElement.typeInstance().isPrimitive();
