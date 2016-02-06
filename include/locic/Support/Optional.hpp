@@ -13,7 +13,7 @@ namespace locic{
 	
 	static const NoneType None;
 	
-	template <typename Value>
+	template <typename Value, bool = std::is_copy_constructible<Value>::value>
 	class Optional {
 		public:
 			Optional()
@@ -22,14 +22,14 @@ namespace locic{
 			Optional(NoneType)
 			: hasValue_(false) { }
 			
-			Optional(const Optional<Value>& other)
+			Optional(const Optional& other)
 			: hasValue_(other) {
 				if (hasValue_) {
 					new (ptr()) Value(*other);
 				}
 			}
 			
-			Optional(Optional<Value>&& other)
+			Optional(Optional&& other)
 			: hasValue_(false) {
 				memset(&data_, 0, sizeof(data_));
 				swap(other);
@@ -47,19 +47,19 @@ namespace locic{
 				}
 			}
 			
-			Optional<Value>& operator=(const Optional<Value>& other) {
-				Optional<Value> tmp(other);
+			Optional& operator=(const Optional& other) {
+				Optional tmp(other);
 				swap(tmp);
 				return *this;
 			}
 			
-			Optional<Value>& operator=(Optional<Value>&& other) {
-				Optional<Value> tmp(std::move(other));
+			Optional& operator=(Optional&& other) {
+				Optional tmp(std::move(other));
 				swap(tmp);
 				return *this;
 			}
 			
-			void swap(Optional<Value>& other) {
+			void swap(Optional& other) {
 				if (*this) {
 					if (other) {
 						// Both optionals set; swap values.
@@ -135,6 +135,20 @@ namespace locic{
 			typedef typename std::aligned_storage<sizeof(Value), alignof(Value)>::type Data;
 			Data data_;
 		
+	};
+	
+	template <typename Value>
+	class Optional<Value, false>: public Optional<Value, true> {
+		public:
+			template <class... Args>
+			Optional(Args... t) : Optional<Value, true>(std::forward<Args>(t)...) {}
+			
+			Optional(const Optional&) = delete;
+			Optional& operator=(const Optional&) = delete;
+			
+ 			Optional(Optional&&) = default;
+ 			Optional& operator=(Optional&&) = default;
+			
 	};
 	
 	template <typename Value>

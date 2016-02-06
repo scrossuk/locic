@@ -8,12 +8,11 @@
 
 #include <locic/Frontend/Diagnostics.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
+#include <locic/Support/Optional.hpp>
 
 namespace locic {
 	
 	class DiagnosticReceiver;
-	template <typename T>
-	class Optional;
 	class SharedMaps;
 	class String;
 	class StringHost;
