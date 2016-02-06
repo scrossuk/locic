@@ -353,6 +353,13 @@ namespace locic {
 			
 			~Value();
 			
+			Value(Value&&) = default;
+			Value& operator=(Value&&) = default;
+			
+			Value copy() const {
+				return Value(*this);
+			}
+			
 			TypeEnum kind() const;
 			
 			bool isLiteral() const {
@@ -460,6 +467,10 @@ namespace locic {
 			}
 			
 			std::string toString() const;
+			
+		private:
+			explicit Value(const Value&) = default;
+			
 		};
 		
 	}

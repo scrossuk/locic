@@ -153,6 +153,13 @@ namespace locic {
 			
 			~Type();
 			
+			Type(Type&&) = default;
+			Type& operator=(Type&&) = default;
+			
+			Type copy() const {
+				return Type(*this);
+			}
+			
 			bool isAuto() const {
 				return typeEnum == AUTO;
 			}
@@ -327,6 +334,9 @@ namespace locic {
 			}
 			
 			std::string toString() const;
+			
+		private:
+			explicit Type(const Type&) = default;
 			
 		};
 		
