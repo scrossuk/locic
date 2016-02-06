@@ -58,7 +58,7 @@ namespace locic {
 		AST::Node<AST::Type> TypeParser::parseType() {
 			const auto start = reader_.position();
 			auto type = parseQualifiedType();
-			return parseIndirectTypeBasedOnType(type, start);
+			return parseIndirectTypeBasedOnType(std::move(type), start);
 		}
 		
 		AST::Node<AST::Type> TypeParser::parseIndirectTypeBasedOnType(AST::Node<AST::Type> type,
@@ -68,17 +68,17 @@ namespace locic {
 				switch (token.kind()) {
 					case Token::STAR:
 						reader_.consume();
-						type = builder_.makePointerType(type, start);
+						type = builder_.makePointerType(std::move(type), start);
 						break;
 					case Token::AMPERSAND:
 						reader_.consume();
-						type = builder_.makeReferenceType(type, start);
+						type = builder_.makeReferenceType(std::move(type), start);
 						break;
 					case Token::LSQUAREBRACKET: {
 						reader_.consume();
-						const auto sizeValue = ValueParser(reader_).parseValue();
+						auto sizeValue = ValueParser(reader_).parseValue();
 						reader_.expect(Token::RSQUAREBRACKET);
-						type = builder_.makeStaticArrayType(type, sizeValue, start);
+						type = builder_.makeStaticArrayType(std::move(type), std::move(sizeValue), start);
 						break;
 					}
 					default:
@@ -96,8 +96,8 @@ namespace locic {
 					return parseConstType();
 				case Token::NOTAG: {
 					reader_.consume();
-					const auto targetType = parseQualifiedType();
-					return builder_.makeNoTagType(targetType, start);
+					auto targetType = parseQualifiedType();
+					return builder_.makeNoTagType(std::move(targetType), start);
 				}
 				case Token::LVAL:
 				case Token::REF:
@@ -109,7 +109,7 @@ namespace locic {
 						return parseFunctionPointerType();
 					}
 					reader_.consume();
-					const auto type = parseType();
+					auto type = parseType();
 					reader_.expect(Token::RROUNDBRACKET);
 					return type;
 				}
@@ -125,34 +125,34 @@ namespace locic {
 			
 			if (reader_.peek().kind() == Token::LTRIBRACKET) {
 				reader_.consume();
-				const auto predicate = PredicateParser(reader_).parsePredicate();
+				auto predicate = PredicateParser(reader_).parsePredicate();
 				reader_.expect(Token::RTRIBRACKET);
-				const auto targetType = parseQualifiedType();
-				return builder_.makeConstPredicateType(predicate, targetType,
+				auto targetType = parseQualifiedType();
+				return builder_.makeConstPredicateType(std::move(predicate), std::move(targetType),
 				                                       start);
 			}
 			
-			const auto targetType = parseQualifiedType();
-			return builder_.makeConstType(targetType, start);
+			auto targetType = parseQualifiedType();
+			return builder_.makeConstType(std::move(targetType), start);
 		}
 		
 		AST::Node<AST::Type> TypeParser::parseTypeWithQualifier(const Debug::SourcePosition& start,
 		                                                        const Token::Kind qualifier) {
 			reader_.expect(Token::LTRIBRACKET);
 			
-			const auto targetType = parseType();
+			auto targetType = parseType();
 			
 			reader_.expect(Token::RTRIBRACKET);
 			
-			const auto type = parseQualifiedType();
+			auto type = parseQualifiedType();
 			
 			switch (qualifier) {
 				case Token::LVAL:
-					return builder_.makeLvalType(targetType, type, start);
+					return builder_.makeLvalType(std::move(targetType), std::move(type), start);
 				case Token::REF:
-					return builder_.makeRefType(targetType, type, start);
+					return builder_.makeRefType(std::move(targetType), std::move(type), start);
 				case Token::STATICREF:
-					return builder_.makeStaticRefType(targetType, type, start);
+					return builder_.makeStaticRefType(std::move(targetType), std::move(type), start);
 				default:
 					throw std::logic_error("Unknown type qualifier kind.");
 			}
@@ -166,11 +166,11 @@ namespace locic {
 			reader_.expect(Token::RROUNDBRACKET);
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto returnType = parseType();
+			auto returnType = parseType();
 			reader_.expect(Token::RROUNDBRACKET);
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto paramTypes = parseTypeList();
+			auto paramTypes = parseTypeList();
 			const bool isVarArg = (reader_.peek().kind() == Token::COMMA);
 			if (isVarArg) {
 				reader_.expect(Token::COMMA);
@@ -180,7 +180,7 @@ namespace locic {
 			}
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			return builder_.makeFunctionPointerType(returnType, paramTypes,
+			return builder_.makeFunctionPointerType(std::move(returnType), std::move(paramTypes),
 			                                        isVarArg, start);
 		}
 		
@@ -265,8 +265,8 @@ namespace locic {
 					return parseIntegerTypeWithSignedness(start,
 					                                      /*isSigned=*/true);
 				case Token::NAME: {
-					const auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
-					return builder_.makeSymbolType(symbol, start);
+					auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
+					return builder_.makeSymbolType(std::move(symbol), start);
 				}
 				default:
 					reader_.issueDiag(InvalidTypeDiag(token.kind()), start);
