@@ -10,6 +10,7 @@
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/ValueList.hpp>
 
 namespace locic {
 
@@ -17,8 +18,6 @@ namespace locic {
 		
 		class Symbol;
 		struct Value;
-		
-		typedef std::vector<Node<Value>> ValueList;
 		
 		enum UnaryOpKind {
 			OP_PLUS,
