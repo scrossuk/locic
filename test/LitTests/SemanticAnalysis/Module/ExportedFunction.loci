@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:6:2: error: definition required for exported function 'decl'
+	void decl();
+	
+	void def() { }
+}
+
+// CHECK: 1 error generated.

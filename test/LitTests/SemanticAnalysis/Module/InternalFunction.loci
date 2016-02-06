@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:1: error: definition required for internal function 'decl'
+void decl();
+
+void def() { }
+
+// CHECK: 1 error generated.

@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import a.b.c 1.2.3 {
+	void decl();
+	
+	// CHECK: .loci:8:2: error: cannot define imported function 'def'
+	void def() { }
+}
+
+// CHECK: 1 error generated.
