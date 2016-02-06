@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:6:2: error: definition required for exported class 'Decl'
+	class Decl { }
+	
+	class Def () { }
+}
+
+// CHECK: 1 error generated.
