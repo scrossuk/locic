@@ -8,6 +8,10 @@ namespace locic {
 
 	namespace AST {
 	
+		Type::Type() : typeEnum(static_cast<TypeEnum>(-1)) { }
+		
+		Type::Type(TypeEnum e) : typeEnum(e) { }
+		
 		Type* Type::Auto() {
 			return new Type(AUTO);
 		}

@@ -111,9 +111,9 @@ namespace locic {
 				Node<TypeList> parameterTypes;
 			} functionType;
 			
-			inline Type() : typeEnum(static_cast<TypeEnum>(-1)) { }
+			Type();
 			
-			inline Type(TypeEnum e) : typeEnum(e) { }
+			Type(TypeEnum e);
 			
 			static Type* Auto();
 			
@@ -153,15 +153,15 @@ namespace locic {
 			
 			~Type();
 			
-			inline bool isAuto() const {
+			bool isAuto() const {
 				return typeEnum == AUTO;
 			}
 			
-			inline bool isVoid() const {
+			bool isVoid() const {
 				return typeEnum == VOID;
 			}
 			
-			inline bool isConst() const {
+			bool isConst() const {
 				return typeEnum == CONST;
 			}
 			
@@ -170,7 +170,7 @@ namespace locic {
 				return constType.targetType;
 			}
 			
-			inline bool isConstPredicate() const {
+			bool isConstPredicate() const {
 				return typeEnum == CONSTPREDICATE;
 			}
 			
@@ -184,7 +184,7 @@ namespace locic {
 				return constPredicateType.targetType;
 			}
 			
-			inline bool isNoTag() const {
+			bool isNoTag() const {
 				return typeEnum == NOTAG;
 			}
 			
@@ -193,7 +193,7 @@ namespace locic {
 				return noTagType.targetType;
 			}
 			
-			inline bool isLval() const {
+			bool isLval() const {
 				return typeEnum == LVAL;
 			}
 			
@@ -207,7 +207,7 @@ namespace locic {
 				return lvalType.lvalType;
 			}
 			
-			inline bool isRef() const {
+			bool isRef() const {
 				return typeEnum == REF;
 			}
 			
@@ -221,7 +221,7 @@ namespace locic {
 				return refType.refType;
 			}
 			
-			inline bool isStaticRef() const {
+			bool isStaticRef() const {
 				return typeEnum == STATICREF;
 			}
 			
@@ -235,7 +235,7 @@ namespace locic {
 				return staticRefType.refType;
 			}
 			
-			inline bool isReference() const {
+			bool isReference() const {
 				return typeEnum == REFERENCE;
 			}
 			
@@ -244,7 +244,7 @@ namespace locic {
 				return referenceType.targetType;
 			}
 			
-			inline bool isPointer() const {
+			bool isPointer() const {
 				return typeEnum == POINTER;
 			}
 			
@@ -253,7 +253,7 @@ namespace locic {
 				return pointerType.targetType;
 			}
 			
-			inline bool isStaticArray() const {
+			bool isStaticArray() const {
 				return typeEnum == STATICARRAY;
 			}
 			
@@ -267,7 +267,7 @@ namespace locic {
 				return staticArrayType.arraySize;
 			}
 			
-			inline bool isFunction() const {
+			bool isFunction() const {
 				return typeEnum == FUNCTION;
 			}
 			
@@ -286,25 +286,25 @@ namespace locic {
 				return functionType.parameterTypes;
 			}
 			
-			inline bool isInteger() const {
+			bool isInteger() const {
 				return typeEnum == INTEGER;
 			}
 			
-			inline SignedModifier integerSignedModifier() const {
+			SignedModifier integerSignedModifier() const {
 				assert(isInteger());
 				return integerType.signedModifier;
 			}
 			
-			inline const String& integerName() const {
+			const String& integerName() const {
 				assert(isInteger());
 				return integerType.name;
 			}
 			
-			inline bool isFloat() const {
+			bool isFloat() const {
 				return typeEnum == FLOAT;
 			}
 			
-			inline const String& floatName() const {
+			const String& floatName() const {
 				assert(isFloat());
 				return floatType.name;
 			}
@@ -318,7 +318,7 @@ namespace locic {
 				return primitiveType.primitiveID;
 			}
 			
-			inline bool isObjectType() const {
+			bool isObjectType() const {
 				return typeEnum == OBJECT;
 			}
 			
