@@ -17,9 +17,9 @@ namespace locic {
 			return new RequireSpecifier(NOPREDICATE);
 		}
 		
-		RequireSpecifier* RequireSpecifier::Expr(const Node<Predicate>& predicate) {
+		RequireSpecifier* RequireSpecifier::Expr(Node<Predicate> predicate) {
 			RequireSpecifier* requireSpecifier = new RequireSpecifier(EXPR);
-			requireSpecifier->predicate_ = predicate;
+			requireSpecifier->predicate_ = std::move(predicate);
 			return requireSpecifier;
 		}
 		

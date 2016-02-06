@@ -25,7 +25,7 @@ namespace locic {
 				static RequireSpecifier* NoPredicate();
 				
 				// Specified with a predicate.
-				static RequireSpecifier* Expr(const Node<Predicate>& expr);
+				static RequireSpecifier* Expr(Node<Predicate> expr);
 				
 				Kind kind() const;
 				
