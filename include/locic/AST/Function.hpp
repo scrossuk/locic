@@ -28,36 +28,36 @@ namespace locic {
 		struct Function {
 			public:
 				static Function* Decl(bool isVarArg, bool isStatic,
-						const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters,
-						const Node<ConstSpecifier>& constSpecifier,
-						const Node<RequireSpecifier>& noexceptSpecifier,
-						const Node<RequireSpecifier>& requireSpecifier);
+						Node<Type> returnType, Node<Name> name, Node<TypeVarList> parameters,
+						Node<ConstSpecifier> constSpecifier,
+						Node<RequireSpecifier> noexceptSpecifier,
+						Node<RequireSpecifier> requireSpecifier);
 				
 				static Function* Def(bool isVarArg, bool isStatic,
-						const Node<Type>& returnType, const Node<Name>& name, const Node<TypeVarList>& parameters,
-						const Node<Scope>& scope,
-						const Node<ConstSpecifier>& constSpecifier,
-						const Node<RequireSpecifier>& noexceptSpecifier,
-						const Node<RequireSpecifier>& requireSpecifier);
+						Node<Type> returnType, Node<Name> name, Node<TypeVarList> parameters,
+						Node<Scope> scope,
+						Node<ConstSpecifier> constSpecifier,
+						Node<RequireSpecifier> noexceptSpecifier,
+						Node<RequireSpecifier> requireSpecifier);
 				
-				static Function* StaticDecl(const Node<Type>& returnType,
-				                            const Node<Name>& name,
-				                            const Node<TypeVarList>& parameters,
-				                            const Node<RequireSpecifier>& noexceptSpecifier,
-				                            const Node<RequireSpecifier>& requireSpecifier);
+				static Function* StaticDecl(Node<Type> returnType,
+				                            Node<Name> name,
+				                            Node<TypeVarList> parameters,
+				                            Node<RequireSpecifier> noexceptSpecifier,
+				                            Node<RequireSpecifier> requireSpecifier);
 				
-				static Function* StaticDef(const Node<Type>& returnType,
-				                           const Node<Name>& name,
-				                           const Node<TypeVarList>& parameters,
-				                           const Node<Scope>& scope,
-				                           const Node<RequireSpecifier>& noexceptSpecifier,
-				                           const Node<RequireSpecifier>& requireSpecifier);
+				static Function* StaticDef(Node<Type> returnType,
+				                           Node<Name> name,
+				                           Node<TypeVarList> parameters,
+				                           Node<Scope> scope,
+				                           Node<RequireSpecifier> noexceptSpecifier,
+				                           Node<RequireSpecifier> requireSpecifier);
 				
-				static Function* DefaultStaticMethodDef(const Node<Name>& name, const Node<RequireSpecifier>& requireSpecifier);
+				static Function* DefaultStaticMethodDef(Node<Name> name, Node<RequireSpecifier> requireSpecifier);
 				
-				static Function* DefaultMethodDef(const Node<Name>& name, const Node<RequireSpecifier>& requireSpecifier);
+				static Function* DefaultMethodDef(Node<Name> name, Node<RequireSpecifier> requireSpecifier);
 				
-				static Function* Destructor(const Node<Name>& name, const Node<Scope>& scope);
+				static Function* Destructor(Node<Name> name, Node<Scope> scope);
 				
 				bool isDeclaration() const;
 				bool isDefinition() const;
@@ -80,8 +80,8 @@ namespace locic {
 				const Node<RequireSpecifier>& noexceptSpecifier() const;
 				const Node<RequireSpecifier>& requireSpecifier() const;
 				
-				void setTemplateVariables(const Node<TemplateTypeVarList>& templateVariables);
-				void setRequireSpecifier(const Node<RequireSpecifier>& requireSpecifier);
+				void setTemplateVariables(Node<TemplateTypeVarList> templateVariables);
+				void setRequireSpecifier(Node<RequireSpecifier> requireSpecifier);
 				void setImport();
 				void setExport();
 				void setPrimitive();
@@ -92,7 +92,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				explicit Function(const Node<Name>& pName);
+				explicit Function(Node<Name> pName);
 				
 				bool isDefinition_, isDefaultDefinition_;
 				bool isVarArg_, isStatic_;
