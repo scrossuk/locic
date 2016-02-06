@@ -33,14 +33,14 @@ namespace locic {
 				symbol.push_back(parseSymbolElement(context));
 			}
 			
-			return builder_.makeSymbolNode(symbol, start);
+			return builder_.makeSymbolNode(std::move(symbol), start);
 		}
 		
 		AST::Node<AST::SymbolElement> SymbolParser::parseSymbolElement(const Context context) {
 			const auto start = reader_.position();
 			const auto name = reader_.expectName();
-			const auto templateArguments = parseSymbolTemplateArgumentList(context);
-			return builder_.makeSymbolElement(name, templateArguments, start);
+			auto templateArguments = parseSymbolTemplateArgumentList(context);
+			return builder_.makeSymbolElement(name, std::move(templateArguments), start);
 		}
 		
 		AST::Node<AST::ValueList> SymbolParser::parseSymbolTemplateArgumentList(const Context context) {
@@ -56,8 +56,8 @@ namespace locic {
 			valueList.reserve(8);
 			
 			while (true) {
-				const auto value = ValueParser(reader_).parseValue(ValueParser::IN_TEMPLATE);
-				valueList.push_back(value);
+				auto value = ValueParser(reader_).parseValue(ValueParser::IN_TEMPLATE);
+				valueList.push_back(std::move(value));
 				
 				if (reader_.peek().kind() != Token::COMMA) {
 					break;
@@ -68,7 +68,7 @@ namespace locic {
 			
 			reader_.expect(Token::RTRIBRACKET);
 			
-			return builder_.makeValueList(valueList, start);
+			return builder_.makeValueList(std::move(valueList), start);
 		}
 		
 		bool SymbolParser::isNowAtTemplateArgumentList(const Context context) {

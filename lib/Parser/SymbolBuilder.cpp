@@ -17,7 +17,7 @@ namespace locic {
 		SymbolBuilder::makeSymbolNode(AST::Symbol symbol,
 		                              const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::Symbol(symbol));
+			return AST::makeNode(location, new AST::Symbol(std::move(symbol)));
 		}
 		
 		AST::Node<AST::SymbolElement>
@@ -25,7 +25,7 @@ namespace locic {
 		                                 AST::Node<AST::ValueList> templateArguments,
 		                                 const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::SymbolElement(name, templateArguments));
+			return AST::makeNode(location, new AST::SymbolElement(name, std::move(templateArguments)));
 		}
 		
 		AST::Node<AST::ValueList>
