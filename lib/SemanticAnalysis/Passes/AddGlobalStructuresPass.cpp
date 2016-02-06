@@ -181,6 +181,16 @@ namespace locic {
 			return typeInstancePtr;
 		}
 		
+		class CannotNestModuleScopesDiag: public Error {
+		public:
+			CannotNestModuleScopesDiag() { }
+			
+			std::string toString() const {
+				return "cannot nest module scopes";
+			}
+			
+		};
+		
 		void AddNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
@@ -207,8 +217,8 @@ namespace locic {
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
 				if (!moduleScope.isInternal()) {
-					throw ErrorException(makeString("Cannot nest module scopes, at position %s.",
-						astModuleScopeNode.location().toString().c_str()));
+					context.issueDiag(CannotNestModuleScopesDiag(),
+					                  astModuleScopeNode.location());
 				}
 				AddNamespaceData(context, astModuleScopeNode->data, ConvertModuleScope(astModuleScopeNode));
 			}
