@@ -1,0 +1,8 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+using A = B;
+// CHECK: .loci:6:1: error: alias 'B' depends on itself via a cycle
+using B = A;
+
+// CHECK: 1 error generated.
