@@ -16,8 +16,8 @@ namespace locic {
 			Node<TypeVar> var;
 			Node<Scope> scope;
 			
-			inline SwitchCase(const Node<TypeVar>& pVar, const Node<Scope>& pScope)
-				: var(pVar), scope(pScope) { }
+			SwitchCase(Node<TypeVar> pVar, Node<Scope> pScope)
+			: var(std::move(pVar)), scope(std::move(pScope)) { }
 		};
 		
 		typedef std::vector<Node<SwitchCase>> SwitchCaseList;
@@ -26,20 +26,20 @@ namespace locic {
 			bool hasScope;
 			Node<AST::Scope> scope;
 			
-			inline static DefaultCase* Empty() {
+			static DefaultCase* Empty() {
 				return new DefaultCase(false, makeDefaultNode<AST::Scope>());
 			}
 			
-			inline static DefaultCase* Scope(const Node<AST::Scope>& scope) {
-				return new DefaultCase(true, scope);
+			static DefaultCase* Scope(Node<AST::Scope> scope) {
+				return new DefaultCase(true, std::move(scope));
 			}
 			
 			bool isEmpty() const {
 				return !hasScope;
 			}
 			
-			inline DefaultCase(bool pHasScope, const Node<AST::Scope>& pScope)
-				: hasScope(pHasScope), scope(pScope) { }
+			DefaultCase(bool pHasScope, Node<AST::Scope> pScope)
+			: hasScope(pHasScope), scope(std::move(pScope)) { }
 		};
 		
 	}
