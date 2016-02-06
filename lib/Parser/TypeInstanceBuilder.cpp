@@ -23,27 +23,27 @@ namespace locic {
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeClassDecl(String name, AST::Node<AST::FunctionList> methods,
 		                                   const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::ClassDecl(name, methods), start);
+			return makeTypeInstanceNode(AST::TypeInstance::ClassDecl(name, std::move(methods)), start);
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeClassDef(String name, AST::Node<AST::TypeVarList> variables,
 		                                  AST::Node<AST::FunctionList> methods,
 		                                  const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::ClassDef(name, variables,
-			                                                        methods), start);
+			return makeTypeInstanceNode(AST::TypeInstance::ClassDef(name, std::move(variables),
+			                                                        std::move(methods)), start);
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeDatatype(String name, AST::Node<AST::TypeVarList> variables,
 		                                  const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Datatype(name, variables), start);
+			return makeTypeInstanceNode(AST::TypeInstance::Datatype(name, std::move(variables)), start);
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeUnionDatatype(String name, AST::Node<AST::TypeInstanceList> variants,
 		                                       const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::UnionDatatype(name, variants), start);
+			return makeTypeInstanceNode(AST::TypeInstance::UnionDatatype(name, std::move(variants)), start);
 		}
 		
 		AST::Node<AST::TypeInstanceList>
@@ -56,7 +56,7 @@ namespace locic {
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeEnum(String name, AST::Node<AST::StringList> constructorList,
 		                              const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Enum(name, constructorList), start);
+			return makeTypeInstanceNode(AST::TypeInstance::Enum(name, std::move(constructorList)), start);
 		}
 		
 		AST::Node<AST::StringList>
@@ -70,8 +70,8 @@ namespace locic {
 		TypeInstanceBuilder::makeException(String name, AST::Node<AST::TypeVarList> variables,
 		                                   AST::Node<AST::ExceptionInitializer> initializer,
 		                                   const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Exception(name, variables,
-			                                                         initializer), start);
+			return makeTypeInstanceNode(AST::TypeInstance::Exception(name, std::move(variables),
+			                                                         std::move(initializer)), start);
 		}
 		
 		AST::Node<AST::ExceptionInitializer>
@@ -85,19 +85,19 @@ namespace locic {
 		                                              AST::Node<AST::ValueList> valueList,
 		                                              const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::ExceptionInitializer::Initialize(symbol, valueList));
+			return AST::makeNode(location, AST::ExceptionInitializer::Initialize(std::move(symbol), std::move(valueList)));
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeInterface(String name, AST::Node<AST::FunctionList> methods,
 		                                   const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Interface(name, methods), start);
+			return makeTypeInstanceNode(AST::TypeInstance::Interface(name, std::move(methods)), start);
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makePrimitive(String name, AST::Node<AST::FunctionList> methods,
 		                                   const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Primitive(name, methods), start);
+			return makeTypeInstanceNode(AST::TypeInstance::Primitive(name, std::move(methods)), start);
 		}
 		
 		AST::Node<AST::TypeInstance>
@@ -108,13 +108,13 @@ namespace locic {
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeStruct(String name, AST::Node<AST::TypeVarList> variables,
 		                                const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Struct(name, variables), start);
+			return makeTypeInstanceNode(AST::TypeInstance::Struct(name, std::move(variables)), start);
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeUnion(String name, AST::Node<AST::TypeVarList> variables,
 		                               const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Union(name, variables), start);
+			return makeTypeInstanceNode(AST::TypeInstance::Union(name, std::move(variables)), start);
 		}
 		
 		AST::Node<AST::FunctionList>

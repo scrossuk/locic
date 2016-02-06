@@ -72,20 +72,20 @@ namespace locic {
 			
 			if (reader_.peek().kind() == Token::LCURLYBRACKET) {
 				reader_.consume();
-				const auto methods = parseMethodDeclList();
+				auto methods = parseMethodDeclList();
 				reader_.expect(Token::RCURLYBRACKET);
-				return builder_.makeClassDecl(name, methods, start);
+				return builder_.makeClassDecl(name, std::move(methods), start);
 			}
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto varList = VarParser(reader_).parseVarList();
+			auto varList = VarParser(reader_).parseVarList();
 			reader_.expect(Token::RROUNDBRACKET);
 			
 			reader_.expect(Token::LCURLYBRACKET);
-			const auto methods = parseMethodDefList();
+			auto methods = parseMethodDefList();
 			reader_.expect(Token::RCURLYBRACKET);
 			
-			return builder_.makeClassDef(name, varList, methods, start);
+			return builder_.makeClassDef(name, std::move(varList), std::move(methods), start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseDatatype() {
@@ -96,16 +96,16 @@ namespace locic {
 			
 			if (reader_.peek().kind() == Token::LROUNDBRACKET) {
 				reader_.consume();
-				const auto varList = VarParser(reader_).parseVarList();
+				auto varList = VarParser(reader_).parseVarList();
 				reader_.expect(Token::RROUNDBRACKET);
-				return builder_.makeDatatype(name, varList, start);
+				return builder_.makeDatatype(name, std::move(varList), start);
 			}
 			
 			reader_.expect(Token::SETEQUAL);
 			
-			const auto variants = parseDatatypeVariantList();
+			auto variants = parseDatatypeVariantList();
 			
-			return builder_.makeUnionDatatype(name, variants, start);
+			return builder_.makeUnionDatatype(name, std::move(variants), start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseEnum() {
@@ -115,10 +115,10 @@ namespace locic {
 			const auto name = reader_.expectName();
 			
 			reader_.expect(Token::LCURLYBRACKET);
-			const auto constructorList = parseEnumConstructorList();
+			auto constructorList = parseEnumConstructorList();
 			reader_.expect(Token::RCURLYBRACKET);
 			
-			return builder_.makeEnum(name, constructorList, start);
+			return builder_.makeEnum(name, std::move(constructorList), start);
 		}
 		
 		AST::Node<AST::StringList> TypeInstanceParser::parseEnumConstructorList() {
@@ -157,7 +157,7 @@ namespace locic {
 				list.push_back(parseDatatypeVariant());
 			}
 			
-			return builder_.makeTypeInstanceList(list, start);
+			return builder_.makeTypeInstanceList(std::move(list), start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseDatatypeVariant() {
@@ -166,9 +166,9 @@ namespace locic {
 			const auto name = reader_.expectName();
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto varList = VarParser(reader_).parseVarList();
+			auto varList = VarParser(reader_).parseVarList();
 			reader_.expect(Token::RROUNDBRACKET);
-			return builder_.makeDatatype(name, varList, start);
+			return builder_.makeDatatype(name, std::move(varList), start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseException() {
@@ -178,12 +178,12 @@ namespace locic {
 			const auto name = reader_.expectName();
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto varList = VarParser(reader_).parseVarList();
+			auto varList = VarParser(reader_).parseVarList();
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			const auto initializer = parseExceptionInitializer();
+			auto initializer = parseExceptionInitializer();
 			
-			return builder_.makeException(name, varList, initializer, start);
+			return builder_.makeException(name, std::move(varList), std::move(initializer), start);
 		}
 		
 		AST::Node<AST::ExceptionInitializer>
@@ -196,13 +196,13 @@ namespace locic {
 			
 			reader_.consume();
 			
-			const auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
+			auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto valueList = ValueParser(reader_).parseValueList();
+			auto valueList = ValueParser(reader_).parseValueList();
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			return builder_.makeExceptionInitializer(symbol, valueList,
+			return builder_.makeExceptionInitializer(std::move(symbol), std::move(valueList),
 			                                         start);
 		}
 		
@@ -213,10 +213,10 @@ namespace locic {
 			const auto name = reader_.expectName();
 			
 			reader_.expect(Token::LCURLYBRACKET);
-			const auto methods = parseMethodDeclList();
+			auto methods = parseMethodDeclList();
 			reader_.expect(Token::RCURLYBRACKET);
 			
-			return builder_.makeInterface(name, methods, start);
+			return builder_.makeInterface(name, std::move(methods), start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parsePrimitive() {
@@ -226,10 +226,10 @@ namespace locic {
 			const auto name = reader_.expectName();
 			
 			reader_.expect(Token::LCURLYBRACKET);
-			const auto methods = parseMethodDeclList();
+			auto methods = parseMethodDeclList();
 			reader_.expect(Token::RCURLYBRACKET);
 			
-			return builder_.makePrimitive(name, methods, start);
+			return builder_.makePrimitive(name, std::move(methods), start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseStruct() {
@@ -244,10 +244,10 @@ namespace locic {
 			}
 			
 			reader_.expect(Token::LCURLYBRACKET);
-			const auto variables = VarParser(reader_).parseCStyleVarList();
+			auto variables = VarParser(reader_).parseCStyleVarList();
 			reader_.expect(Token::RCURLYBRACKET);
 			
-			return builder_.makeStruct(name, variables, start);
+			return builder_.makeStruct(name, std::move(variables), start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseUnion() {
@@ -257,10 +257,10 @@ namespace locic {
 			const auto name = reader_.expectName();
 			
 			reader_.expect(Token::LCURLYBRACKET);
-			const auto variables = VarParser(reader_).parseCStyleVarList();
+			auto variables = VarParser(reader_).parseCStyleVarList();
 			reader_.expect(Token::RCURLYBRACKET);
 			
-			return builder_.makeUnion(name, variables, start);
+			return builder_.makeUnion(name, std::move(variables), start);
 		}
 		
 		AST::Node<AST::FunctionList> TypeInstanceParser::parseMethodDeclList() {
@@ -278,14 +278,14 @@ namespace locic {
 					break;
 				}
 				
-				const auto function = FunctionParser(reader_).parseMethod();
+				auto function = FunctionParser(reader_).parseMethod();
 				
 				if (function->isDefinition()) {
 					reader_.issueDiagWithLoc(UnexpectedMethodDefDiag(),
 					                         function.location());
 				}
 				
-				list.push_back(function);
+				list.push_back(std::move(function));
 			}
 			
 			return builder_.makeFunctionList(std::move(list), start);
@@ -306,14 +306,14 @@ namespace locic {
 					break;
 				}
 				
-				const auto function = FunctionParser(reader_).parseMethod();
+				auto function = FunctionParser(reader_).parseMethod();
 				
 				if (function->isDeclaration()) {
 					reader_.issueDiagWithLoc(UnexpectedMethodDeclDiag(),
 					                         function.location());
 				}
 				
-				list.push_back(function);
+				list.push_back(std::move(function));
 			}
 			
 			return builder_.makeFunctionList(std::move(list), start);
