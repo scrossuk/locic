@@ -5,13 +5,14 @@
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Symbol.hpp>
-#include <locic/AST/Type.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
+	namespace AST {
+		
+		struct Type;
+		
 		class Predicate {
 			public:
 				enum Kind {
@@ -28,16 +29,17 @@ namespace locic {
 				
 				static Predicate* False();
 				
-				static Predicate* Bracket(const Node<Predicate>& expr);
+				static Predicate* Bracket(Node<Predicate> expr);
 				
-				static Predicate* TypeSpec(const Node<Type>& type, const Node<Type>& requireType);
+				static Predicate* TypeSpec(Node<Type> type, Node<Type> requireType);
 				
-				static Predicate* Symbol(const Node<AST::Symbol>& symbol);
+				static Predicate* Symbol(Node<AST::Symbol> symbol);
 				
-				static Predicate* And(const Node<Predicate>& left, const Node<Predicate>& right);
+				static Predicate* And(Node<Predicate> left, Node<Predicate> right);
+				
+				static Predicate* Or(Node<Predicate> left, Node<Predicate> right);
 				
 				~Predicate();
-				static Predicate* Or(const Node<Predicate>& left, const Node<Predicate>& right);
 				
 				Kind kind() const;
 				
@@ -80,7 +82,7 @@ namespace locic {
 					Node<Predicate> right;
 				} or_;
 			
-				Predicate(Kind pKind) : kind_(pKind) { }
+				Predicate(Kind pKind);
 		};
 		
 	}

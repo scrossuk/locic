@@ -19,38 +19,40 @@ namespace locic {
 			return new Predicate(FALSE);
 		}
 		
-		Predicate* Predicate::Bracket(const Node<Predicate>& expr) {
+		Predicate* Predicate::Bracket(Node<Predicate>expr) {
 			Predicate* predicate = new Predicate(BRACKET);
-			predicate->bracket_.expr = expr;
+			predicate->bracket_.expr = std::move(expr);
 			return predicate;
 		}
 		
-		Predicate* Predicate::TypeSpec(const Node<Type>& type, const Node<Type>& requireType) {
+		Predicate* Predicate::TypeSpec(Node<Type>type, Node<Type>requireType) {
 			Predicate* predicate = new Predicate(TYPESPEC);
-			predicate->typeSpec_.type = type;
-			predicate->typeSpec_.requireType = requireType;
+			predicate->typeSpec_.type = std::move(type);
+			predicate->typeSpec_.requireType = std::move(requireType);
 			return predicate;
 		}
 		
-		Predicate* Predicate::Symbol(const Node<AST::Symbol>& symbol) {
+		Predicate* Predicate::Symbol(Node<AST::Symbol>symbol) {
 			Predicate* predicate = new Predicate(SYMBOL);
-			predicate->symbol_ = symbol;
+			predicate->symbol_ = std::move(symbol);
 			return predicate;
 		}
 		
-		Predicate* Predicate::And(const Node<Predicate>& left, const Node<Predicate>& right) {
+		Predicate* Predicate::And(Node<Predicate>left, Node<Predicate>right) {
 			Predicate* predicate = new Predicate(AND);
-			predicate->and_.left = left;
-			predicate->and_.right = right;
+			predicate->and_.left = std::move(left);
+			predicate->and_.right = std::move(right);
 			return predicate;
 		}
 		
-		Predicate* Predicate::Or(const Node<Predicate>& left, const Node<Predicate>& right) {
+		Predicate* Predicate::Or(Node<Predicate>left, Node<Predicate>right) {
 			Predicate* predicate = new Predicate(OR);
-			predicate->or_.left = left;
-			predicate->or_.right = right;
+			predicate->or_.left = std::move(left);
+			predicate->or_.right = std::move(right);
 			return predicate;
 		}
+		
+		Predicate::Predicate(const Kind pKind) : kind_(pKind) { }
 		
 		Predicate::~Predicate() { }
 		
