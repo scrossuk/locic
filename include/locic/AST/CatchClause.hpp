@@ -16,8 +16,8 @@ namespace locic {
 			Node<TypeVar> var;
 			Node<Scope> scope;
 			
-			inline CatchClause(const Node<TypeVar>& pVar, const Node<Scope>& pScope)
-				: var(pVar), scope(pScope) { }
+			inline CatchClause(Node<TypeVar> pVar, Node<Scope> pScope)
+			: var(std::move(pVar)), scope(std::move(pScope)) { }
 		};
 		
 		typedef std::vector<Node<CatchClause>> CatchClauseList;
