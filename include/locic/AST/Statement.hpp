@@ -129,100 +129,100 @@ namespace locic {
 			inline Statement(TypeEnum e)
 				: typeEnum(e) { }
 				
-			inline static Statement* ValueStmt(const Node<Value>& value) {
+			inline static Statement* ValueStmt(Node<Value> value) {
 				Statement* statement = new Statement(VALUE);
-				statement->valueStmt.value = value;
+				statement->valueStmt.value = std::move(value);
 				statement->valueStmt.hasVoidCast = false;
 				return statement;
 			}
 			
-			inline static Statement* ValueStmtVoidCast(const Node<Value>& value) {
+			inline static Statement* ValueStmtVoidCast(Node<Value> value) {
 				Statement* statement = new Statement(VALUE);
-				statement->valueStmt.value = value;
+				statement->valueStmt.value = std::move(value);
 				statement->valueStmt.hasVoidCast = true;
 				return statement;
 			}
 			
-			inline static Statement* ScopeStmt(const Node<Scope>& scope) {
+			inline static Statement* ScopeStmt(Node<Scope> scope) {
 				Statement* statement = new Statement(SCOPE);
-				statement->scopeStmt.scope = scope;
+				statement->scopeStmt.scope = std::move(scope);
 				return statement;
 			}
 			
-			inline static Statement* If(const Node<IfClauseList>& clauseList, const Node<Scope>& elseScope) {
+			inline static Statement* If(Node<IfClauseList> clauseList, Node<Scope> elseScope) {
 				Statement* statement = new Statement(IF);
-				statement->ifStmt.clauseList = clauseList;
-				statement->ifStmt.elseScope = elseScope;
+				statement->ifStmt.clauseList = std::move(clauseList);
+				statement->ifStmt.elseScope = std::move(elseScope);
 				return statement;
 			}
 			
-			inline static Statement* Switch(const Node<Value>& value, const Node<SwitchCaseList>& caseList, const Node<DefaultCase>& defaultCase) {
+			inline static Statement* Switch(Node<Value> value, Node<SwitchCaseList> caseList, Node<DefaultCase> defaultCase) {
 				Statement* statement = new Statement(SWITCH);
-				statement->switchStmt.value = value;
-				statement->switchStmt.caseList = caseList;
-				statement->switchStmt.defaultCase = defaultCase;
+				statement->switchStmt.value = std::move(value);
+				statement->switchStmt.caseList = std::move(caseList);
+				statement->switchStmt.defaultCase = std::move(defaultCase);
 				return statement;
 			}
 			
-			inline static Statement* While(const Node<Value>& condition, const Node<Scope>& whileTrue) {
+			inline static Statement* While(Node<Value> condition, Node<Scope> whileTrue) {
 				Statement* statement = new Statement(WHILE);
-				statement->whileStmt.condition = condition;
-				statement->whileStmt.whileTrue = whileTrue;
+				statement->whileStmt.condition = std::move(condition);
+				statement->whileStmt.whileTrue = std::move(whileTrue);
 				return statement;
 			}
 			
-			inline static Statement* For(const Node<TypeVar>& typeVar, const Node<Value>& initValue, const Node<Scope>& scope) {
+			inline static Statement* For(Node<TypeVar> typeVar, Node<Value> initValue, Node<Scope> scope) {
 				Statement* statement = new Statement(FOR);
-				statement->forStmt.typeVar = typeVar;
-				statement->forStmt.initValue = initValue;
-				statement->forStmt.scope = scope;
+				statement->forStmt.typeVar = std::move(typeVar);
+				statement->forStmt.initValue = std::move(initValue);
+				statement->forStmt.scope = std::move(scope);
 				return statement;
 			}
 			
-			inline static Statement* Try(const Node<Scope>& scope, const Node<CatchClauseList>& catchList) {
+			inline static Statement* Try(Node<Scope> scope, Node<CatchClauseList> catchList) {
 				Statement* statement = new Statement(TRY);
-				statement->tryStmt.scope = scope;
-				statement->tryStmt.catchList = catchList;
+				statement->tryStmt.scope = std::move(scope);
+				statement->tryStmt.catchList = std::move(catchList);
 				return statement;
 			}
 			
-			inline static Statement* ScopeExit(const String& state, const Node<Scope>& scope) {
+			inline static Statement* ScopeExit(const String& state, Node<Scope> scope) {
 				Statement* statement = new Statement(SCOPEEXIT);
 				statement->scopeExitStmt.state = state;
-				statement->scopeExitStmt.scope = scope;
+				statement->scopeExitStmt.scope = std::move(scope);
 				return statement;
 			}
 			
-			inline static Statement* VarDecl(const Node<TypeVar>& typeVar, const Node<Value>& value) {
+			inline static Statement* VarDecl(Node<TypeVar> typeVar, Node<Value> value) {
 				Statement* statement = new Statement(VARDECL);
-				statement->varDecl.typeVar = typeVar;
-				statement->varDecl.value = value;
+				statement->varDecl.typeVar = std::move(typeVar);
+				statement->varDecl.value = std::move(value);
 				return statement;
 			}
 			
-			inline static Statement* Assign(AssignKind assignKind, const Node<Value>& var, const Node<Value>& value) {
+			inline static Statement* Assign(AssignKind assignKind, Node<Value> var, Node<Value> value) {
 				Statement* statement = new Statement(ASSIGN);
 				statement->assignStmt.assignKind = assignKind;
-				statement->assignStmt.var = var;
-				statement->assignStmt.value = value;
+				statement->assignStmt.var = std::move(var);
+				statement->assignStmt.value = std::move(value);
 				return statement;
 			}
 			
-			inline static Statement* Increment(const Node<Value>& value) {
+			inline static Statement* Increment(Node<Value> value) {
 				Statement* statement = new Statement(INCREMENT);
-				statement->incrementStmt.value = value;
+				statement->incrementStmt.value = std::move(value);
 				return statement;
 			}
 			
-			inline static Statement* Decrement(const Node<Value>& value) {
+			inline static Statement* Decrement(Node<Value> value) {
 				Statement* statement = new Statement(DECREMENT);
-				statement->decrementStmt.value = value;
+				statement->decrementStmt.value = std::move(value);
 				return statement;
 			}
 			
-			inline static Statement* Return(const Node<Value>& value) {
+			inline static Statement* Return(Node<Value> value) {
 				Statement* statement = new Statement(RETURN);
-				statement->returnStmt.value = value;
+				statement->returnStmt.value = std::move(value);
 				return statement;
 			}
 			
@@ -230,9 +230,9 @@ namespace locic {
 				return new Statement(RETURNVOID);
 			}
 			
-			inline static Statement* Throw(const Node<Value>& value) {
+			inline static Statement* Throw(Node<Value> value) {
 				Statement* statement = new Statement(THROW);
-				statement->throwStmt.value = value;
+				statement->throwStmt.value = std::move(value);
 				return statement;
 			}
 			
@@ -248,16 +248,16 @@ namespace locic {
 				return new Statement(CONTINUE);
 			}
 			
-			inline static Statement* Assert(const Node<Value>& value, const String& name) {
+			inline static Statement* Assert(Node<Value> value, const String& name) {
 				Statement* statement = new Statement(ASSERT);
-				statement->assertStmt.value = value;
+				statement->assertStmt.value = std::move(value);
 				statement->assertStmt.name = name;
 				return statement;
 			}
 			
-			inline static Statement* AssertNoExcept(const Node<Scope>& scope) {
+			inline static Statement* AssertNoExcept(Node<Scope> scope) {
 				Statement* statement = new Statement(ASSERTNOEXCEPT);
-				statement->assertNoExceptStmt.scope = scope;
+				statement->assertNoExceptStmt.scope = std::move(scope);
 				return statement;
 			}
 			
