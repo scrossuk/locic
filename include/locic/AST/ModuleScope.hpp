@@ -27,29 +27,29 @@ namespace locic {
 			AST::Node<NamespaceData> data;
 			
 			inline static ModuleScope* Import(AST::Node<NamespaceData> pData) {
-				return new ModuleScope(IMPORT, false, pData);
+				return new ModuleScope(IMPORT, false, std::move(pData));
 			}
 			
 			inline static ModuleScope* Export(AST::Node<NamespaceData> pData) {
-				return new ModuleScope(EXPORT, false, pData);
+				return new ModuleScope(EXPORT, false, std::move(pData));
 			}
 			
 			inline static ModuleScope* NamedImport(AST::Node<StringList> moduleName, AST::Node<Version> version, AST::Node<NamespaceData> pData) {
-				const auto moduleScope = new ModuleScope(IMPORT, true, pData);
-				moduleScope->moduleName = moduleName;
-				moduleScope->version = version;
+				const auto moduleScope = new ModuleScope(IMPORT, true, std::move(pData));
+				moduleScope->moduleName = std::move(moduleName);
+				moduleScope->version = std::move(version);
 				return moduleScope;
 			}
 			
 			inline static ModuleScope* NamedExport(AST::Node<StringList> moduleName, AST::Node<Version> version, AST::Node<NamespaceData> pData) {
-				const auto moduleScope = new ModuleScope(EXPORT, true, pData);
-				moduleScope->moduleName = moduleName;
-				moduleScope->version = version;
+				const auto moduleScope = new ModuleScope(EXPORT, true, std::move(pData));
+				moduleScope->moduleName =std::move( moduleName);
+				moduleScope->version = std::move(version);
 				return moduleScope;
 			}
 			
 			inline ModuleScope(Kind pKind, bool pIsNamed, AST::Node<NamespaceData> pData)
-				: kind(pKind), isNamed(pIsNamed), data(pData) { }
+			: kind(pKind), isNamed(pIsNamed), data(std::move(pData)) { }
 			
 			inline std::string toString() const {
 				if (isNamed) {
