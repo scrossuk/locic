@@ -5,18 +5,18 @@
 #include <vector>
 
 #include <locic/AST/Node.hpp>
+#include <locic/AST/Predicate.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
+	namespace AST {
+		
 		struct Type;
 		
 		typedef std::vector<Node<Type>> TypeList;
 		
-		class Predicate;
 		class Symbol;
 		struct Value;
 		

@@ -3,11 +3,12 @@
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Symbol.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/Value.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
+	namespace AST {
+		
 		Type::Type() : typeEnum(static_cast<TypeEnum>(-1)) { }
 		
 		Type::Type(TypeEnum e) : typeEnum(e) { }
