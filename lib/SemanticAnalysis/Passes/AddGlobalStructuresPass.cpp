@@ -113,6 +113,23 @@ namespace locic {
 			
 		};
 		
+		class UnknownTemplateVariableInNoTagSetDiag: public Error {
+		public:
+			UnknownTemplateVariableInNoTagSetDiag(String templateVarName, Name typeName)
+			: templateVarName_(templateVarName), typeName_(std::move(typeName)) { }
+			
+			std::string toString() const {
+				return makeString("unknown template variable '%s' in notag() set of '%s'",
+				                  templateVarName_.c_str(),
+				                  typeName_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			String templateVarName_;
+			Name typeName_;
+			
+		};
+		
 		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, const SEM::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
@@ -208,9 +225,9 @@ namespace locic {
 				for (const auto& astNoTagName: *(astTypeInstanceNode->noTagSet)) {
 					const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(astNoTagName);
 					if (templateVarIterator == semTypeInstance->namedTemplateVariables().end()) {
-						throw ErrorException(makeString("Can't find template variable '%s' in notag() set in type '%s', at location %s.",
-										astNoTagName.c_str(), fullTypeName.toString().c_str(),
-										astTypeInstanceNode->noTagSet.location().toString().c_str()));
+						context.issueDiag(UnknownTemplateVariableInNoTagSetDiag(astNoTagName, fullTypeName.copy()),
+						                  astTypeInstanceNode->noTagSet.location());
+						continue;
 					}
 					
 					noTagSet.push_back(templateVarIterator->second);
