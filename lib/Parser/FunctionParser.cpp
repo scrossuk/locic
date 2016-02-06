@@ -73,14 +73,14 @@ namespace locic {
 		
 		AST::Node<AST::Function> FunctionParser::parseBasicFunction(const Debug::SourcePosition& start) {
 			const bool isStatic = reader_.consumeIfPresent(Token::STATIC);
-			const auto returnType = TypeParser(reader_).parseType();
-			const auto name = parseFunctionName();
+			auto returnType = TypeParser(reader_).parseType();
+			auto name = parseFunctionName();
 			
 			reader_.expect(Token::LROUNDBRACKET);
 			
 			bool isVarArg = false;
 			
-			const auto varList = VarParser(reader_).parseVarList();
+			auto varList = VarParser(reader_).parseVarList();
 			
 			if (reader_.peek().kind() == Token::COMMA) {
 				reader_.consume();
@@ -92,9 +92,9 @@ namespace locic {
 			
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			const auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
-			const auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
-			const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
+			auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
+			auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
+			auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
 			
 			if (isStatic && !constSpecifier->isNone()) {
 				reader_.issueDiagWithLoc(StaticMethodCannotBeConstDiag(),
@@ -104,16 +104,16 @@ namespace locic {
 			if (reader_.peek().kind() == Token::SEMICOLON) {
 				reader_.consume();
 				return builder_.makeFunctionDecl(isVarArg, isStatic,
-				                                 returnType, name, varList,
-				                                 constSpecifier, noexceptSpecifier,
-				                                 requireSpecifier, start);
+				                                 std::move(returnType), std::move(name), std::move(varList),
+				                                 std::move(constSpecifier), std::move(noexceptSpecifier),
+				                                 std::move(requireSpecifier), start);
 			}
 			
-			const auto scope = ScopeParser(reader_).parseScope();
-			return builder_.makeFunctionDef(isVarArg, isStatic, returnType,
-			                                name, varList, constSpecifier,
-			                                noexceptSpecifier, requireSpecifier,
-			                                scope, start);
+			auto scope = ScopeParser(reader_).parseScope();
+			return builder_.makeFunctionDef(isVarArg, isStatic, std::move(returnType),
+			                                std::move(name), std::move(varList), std::move(constSpecifier),
+			                                std::move(noexceptSpecifier), std::move(requireSpecifier),
+			                                std::move(scope), start);
 		}
 		
 		AST::Node<AST::Function> FunctionParser::parseMethod() {
@@ -142,30 +142,30 @@ namespace locic {
 			if (reader_.peek().kind() == Token::TILDA) {
 				reader_.consume();
 				const auto nameString = reader_.makeCString("__destroy");
-				const auto name = builder_.makeName(Name::Relative() + nameString, start);
-				const auto scope = ScopeParser(reader_).parseScope();
-				return builder_.makeDestructor(name, scope, start);
+				auto name = builder_.makeName(Name::Relative() + nameString, start);
+				auto scope = ScopeParser(reader_).parseScope();
+				return builder_.makeDestructor(std::move(name), std::move(scope), start);
 			}
 			
 			const bool isStatic = reader_.consumeIfPresent(Token::STATIC);
-			const auto returnType = parseMethodReturnType();
-			const auto name = parseMethodName();
+			auto returnType = parseMethodReturnType();
+			auto name = parseMethodName();
 			
 			if (reader_.peek().kind() == Token::SETEQUAL) {
 				reader_.consume();
 				reader_.expect(Token::DEFAULT);
-				const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
+				auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
 				reader_.expect(Token::SEMICOLON);
-				return builder_.makeDefaultMethod(isStatic, name, requireSpecifier, start);
+				return builder_.makeDefaultMethod(isStatic, std::move(name), std::move(requireSpecifier), start);
 			}
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto varList = VarParser(reader_).parseVarList();
+			auto varList = VarParser(reader_).parseVarList();
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			const auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
-			const auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
-			const auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
+			auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
+			auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
+			auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
 			
 			if (isStatic && !constSpecifier->isNone()) {
 				reader_.issueDiagWithLoc(StaticMethodCannotBeConstDiag(),
@@ -175,17 +175,17 @@ namespace locic {
 			if (reader_.peek().kind() == Token::SEMICOLON) {
 				reader_.consume();
 				return builder_.makeFunctionDecl(/*isVarArg=*/false, isStatic,
-				                                 returnType, name, varList,
-				                                 constSpecifier, noexceptSpecifier,
-				                                 requireSpecifier, start);
+				                                 std::move(returnType), std::move(name), std::move(varList),
+				                                 std::move(constSpecifier), std::move(noexceptSpecifier),
+				                                 std::move(requireSpecifier), start);
 			}
 			
-			const auto scope = ScopeParser(reader_).parseScope();
+			auto scope = ScopeParser(reader_).parseScope();
 			
 			return builder_.makeFunctionDef(/*isVarArg=*/false, isStatic,
-			                                returnType, name, varList,
-			                                constSpecifier, noexceptSpecifier,
-			                                requireSpecifier, scope, start);
+			                                std::move(returnType), std::move(name), std::move(varList),
+			                                std::move(constSpecifier), std::move(noexceptSpecifier),
+			                                std::move(requireSpecifier), std::move(scope), start);
 		}
 		
 		AST::Node<AST::Type>

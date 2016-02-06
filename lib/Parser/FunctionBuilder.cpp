@@ -22,11 +22,11 @@ namespace locic {
 		                                  const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			const auto function = AST::Function::Decl(isVarArg, isStatic,
-			                                          returnType, name,
-			                                          parameters,
-			                                          constSpecifier,
-			                                          noexceptSpecifier,
-			                                          requireSpecifier);
+			                                          std::move(returnType), std::move(name),
+			                                          std::move(parameters),
+			                                          std::move(constSpecifier),
+			                                          std::move(noexceptSpecifier),
+			                                          std::move(requireSpecifier));
 			return AST::makeNode(location, function);
 		}
 		
@@ -41,11 +41,11 @@ namespace locic {
 		                                 const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			const auto function = AST::Function::Def(isVarArg, isStatic,
-			                                         returnType, name,
-			                                         parameters, scope,
-			                                         constSpecifier,
-			                                         noexceptSpecifier,
-			                                         requireSpecifier);
+			                                         std::move(returnType), std::move(name),
+			                                         std::move(parameters), std::move(scope),
+			                                         std::move(constSpecifier),
+			                                         std::move(noexceptSpecifier),
+			                                         std::move(requireSpecifier));
 			return AST::makeNode(location, function);
 			
 		}
@@ -57,11 +57,11 @@ namespace locic {
 			const auto location = reader_.locationWithRangeFrom(start);
 			if (isStatic) {
 				const auto function =
-				    AST::Function::DefaultStaticMethodDef(name, requireSpecifier);
+				    AST::Function::DefaultStaticMethodDef(std::move(name), std::move(requireSpecifier));
 				return AST::makeNode(location, function);
 			} else {
 				const auto function =
-				    AST::Function::DefaultMethodDef(name, requireSpecifier);
+				    AST::Function::DefaultMethodDef(std::move(name), std::move(requireSpecifier));
 				return AST::makeNode(location, function);
 			}
 		}
@@ -70,7 +70,7 @@ namespace locic {
 		FunctionBuilder::makeDestructor(AST::Node<Name> name, AST::Node<AST::Scope> scope,
 		                                const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			const auto function = AST::Function::Destructor(name, scope);
+			const auto function = AST::Function::Destructor(std::move(name), std::move(scope));
 			return AST::makeNode(location, function);
 		}
 		
