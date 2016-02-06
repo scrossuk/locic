@@ -25,7 +25,7 @@ namespace locic {
 				
 				static ConstSpecifier* Mutable();
 				
-				static ConstSpecifier* Expr(const Node<Predicate>& predicate);
+				static ConstSpecifier* Expr(Node<Predicate> predicate);
 				
 				~ConstSpecifier();
 				

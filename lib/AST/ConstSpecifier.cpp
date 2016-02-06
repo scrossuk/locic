@@ -18,9 +18,9 @@ namespace locic {
 			return new ConstSpecifier(MUTABLE);
 		}
 		
-		ConstSpecifier* ConstSpecifier::Expr(const Node<Predicate>& predicate) {
+		ConstSpecifier* ConstSpecifier::Expr(Node<Predicate> predicate) {
 			const auto constSpecifier = new ConstSpecifier(EXPR);
-			constSpecifier->predicate_ = predicate;
+			constSpecifier->predicate_ = std::move(predicate);
 			return constSpecifier;
 		}
 		
