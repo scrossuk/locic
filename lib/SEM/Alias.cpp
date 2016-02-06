@@ -21,7 +21,8 @@ namespace locic {
 			astAlias_(argASTAlias),
 			name_(std::move(argName)),
 			requiresPredicate_(Predicate::True()),
-			noexceptPredicate_(Predicate::False()) { }
+			noexceptPredicate_(Predicate::False()),
+			type_(nullptr) { }
 		
 		Context& Alias::context() const {
 			return context_;
@@ -44,7 +45,11 @@ namespace locic {
 		}
 		
 		const Type* Alias::type() const {
-			return value_ ? value().type() : nullptr;
+			return value_ ? value().type() : type_;
+		}
+		
+		void Alias::setType(const Type* const argType) {
+			type_ = argType;
 		}
 		
 		Value Alias::selfRefValue(ValueArray templateArguments) const {

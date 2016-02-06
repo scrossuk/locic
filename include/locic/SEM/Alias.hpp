@@ -38,6 +38,7 @@ namespace locic {
 				const Name& name() const;
 				
 				const Type* type() const;
+				void setType(const Type* type);
 				
 				Value selfRefValue(ValueArray templateArguments) const;
 				
@@ -85,6 +86,7 @@ namespace locic {
 				FastMap<String, TemplateVar*> namedTemplateVariables_;
 				Predicate requiresPredicate_;
 				Predicate noexceptPredicate_;
+				const SEM::Type* type_;
 				Optional<Value> value_;
 				
 		};
