@@ -4,6 +4,7 @@
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeVar.hpp>
+#include <locic/AST/Value.hpp>
 
 namespace locic {
 

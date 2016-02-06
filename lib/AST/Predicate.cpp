@@ -5,6 +5,7 @@
 #include <locic/AST/Predicate.hpp>
 #include <locic/AST/Symbol.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/Value.hpp>
 #include <locic/Support/MakeString.hpp>
 
 namespace locic {
