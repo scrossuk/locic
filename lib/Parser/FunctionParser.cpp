@@ -123,14 +123,14 @@ namespace locic {
 				return parseNonTemplatedMethod(start);
 			}
 			
-			const auto templateInfo = TemplateParser(reader_).parseTemplate();
+			auto templateInfo = TemplateParser(reader_).parseTemplate();
 			auto function = parseNonTemplatedMethod(start);
 			
-			function->setTemplateVariables(templateInfo.templateVariables());
+			function->setTemplateVariables(templateInfo.extractTemplateVariables());
 			
 			if (templateInfo.hasRequireSpecifier()) {
 				// TODO: reject duplicate require() specifier.
-				function->setRequireSpecifier(templateInfo.requireSpecifier());
+				function->setRequireSpecifier(templateInfo.extractRequireSpecifier());
 			}
 			
 			// TODO: reject move() or notag().

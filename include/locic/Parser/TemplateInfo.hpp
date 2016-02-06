@@ -16,10 +16,15 @@ namespace locic {
 			TemplateInfo(TemplateInfo&&) = default;
 			TemplateInfo& operator=(TemplateInfo&&) = default;
 			
-			AST::Node<AST::TemplateTypeVarList> templateVariables() const;
-			AST::Node<AST::RequireSpecifier> requireSpecifier() const;
-			AST::Node<AST::RequireSpecifier> moveSpecifier() const;
-			AST::Node<AST::StringList> noTagSet() const;
+			const AST::Node<AST::TemplateTypeVarList>& templateVariables() const;
+			const AST::Node<AST::RequireSpecifier>& requireSpecifier() const;
+			const AST::Node<AST::RequireSpecifier>& moveSpecifier() const;
+			const AST::Node<AST::StringList>& noTagSet() const;
+			
+			AST::Node<AST::TemplateTypeVarList> extractTemplateVariables();
+			AST::Node<AST::RequireSpecifier> extractRequireSpecifier();
+			AST::Node<AST::RequireSpecifier> extractMoveSpecifier();
+			AST::Node<AST::StringList> extractNoTagSet();
 			
 			bool hasRequireSpecifier() const;
 			bool hasMoveSpecifier() const;

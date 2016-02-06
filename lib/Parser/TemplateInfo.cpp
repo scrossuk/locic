@@ -9,24 +9,44 @@ namespace locic {
 		TemplateInfo::TemplateInfo() { }
 		TemplateInfo::~TemplateInfo() { }
 		
-		AST::Node<AST::TemplateTypeVarList>
+		const AST::Node<AST::TemplateTypeVarList>&
 		TemplateInfo::templateVariables() const {
 			return *templateVariables_;
 		}
 		
-		AST::Node<AST::RequireSpecifier>
+		const AST::Node<AST::RequireSpecifier>&
 		TemplateInfo::requireSpecifier() const {
 			return *requireSpecifier_;
 		}
 		
-		AST::Node<AST::RequireSpecifier>
+		const AST::Node<AST::RequireSpecifier>&
 		TemplateInfo::moveSpecifier() const {
 			return *moveSpecifier_;
 		}
 		
-		AST::Node<AST::StringList>
+		const AST::Node<AST::StringList>&
 		TemplateInfo::noTagSet() const {
 			return *noTagSet_;
+		}
+		
+		AST::Node<AST::TemplateTypeVarList>
+		TemplateInfo::extractTemplateVariables() {
+			return std::move(*templateVariables_);
+		}
+		
+		AST::Node<AST::RequireSpecifier>
+		TemplateInfo::extractRequireSpecifier() {
+			return std::move(*requireSpecifier_);
+		}
+		
+		AST::Node<AST::RequireSpecifier>
+		TemplateInfo::extractMoveSpecifier() {
+			return std::move(*moveSpecifier_);
+		}
+		
+		AST::Node<AST::StringList>
+		TemplateInfo::extractNoTagSet() {
+			return std::move(*noTagSet_);
 		}
 		
 		bool TemplateInfo::hasRequireSpecifier() const {
@@ -42,19 +62,19 @@ namespace locic {
 		}
 		
 		void TemplateInfo::setTemplateVariables(AST::Node<AST::TemplateTypeVarList> newTemplateVariables) {
-			templateVariables_ = make_optional(newTemplateVariables);
+			templateVariables_ = std::move(newTemplateVariables);
 		}
 		
 		void TemplateInfo::setRequireSpecifier(AST::Node<AST::RequireSpecifier> specifier) {
-			requireSpecifier_ = make_optional(specifier);
+			requireSpecifier_ = std::move(specifier);
 		}
 		
 		void TemplateInfo::setMoveSpecifier(AST::Node<AST::RequireSpecifier> specifier) {
-			moveSpecifier_ = make_optional(specifier);
+			moveSpecifier_ = std::move(specifier);
 		}
 		
 		void TemplateInfo::setNoTagSet(AST::Node<AST::StringList> newNoTagSet) {
-			noTagSet_ = make_optional(newNoTagSet);
+			noTagSet_ = std::move(newNoTagSet);
 		}
 		
 		

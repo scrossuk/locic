@@ -142,16 +142,16 @@ namespace locic {
 		                                                 const Debug::SourcePosition& start) {
 			auto typeInstance = TypeInstanceParser(reader_).parseTypeInstance();
 			
-			typeInstance->setTemplateVariables(templateInfo.templateVariables());
+			typeInstance->setTemplateVariables(templateInfo.extractTemplateVariables());
 			
 			if (templateInfo.hasRequireSpecifier()) {
-				typeInstance->setRequireSpecifier(templateInfo.requireSpecifier());
+				typeInstance->setRequireSpecifier(templateInfo.extractRequireSpecifier());
 			}
 			if (templateInfo.hasMoveSpecifier()) {
-				typeInstance->setMoveSpecifier(templateInfo.moveSpecifier());
+				typeInstance->setMoveSpecifier(templateInfo.extractMoveSpecifier());
 			}
 			if (templateInfo.hasNoTagSet()) {
-				typeInstance->setNoTagSet(templateInfo.noTagSet());
+				typeInstance->setNoTagSet(templateInfo.extractNoTagSet());
 			}
 			
 			typeInstance.setLocation(reader_.locationWithRangeFrom(start));
@@ -164,10 +164,10 @@ namespace locic {
 		                                          const Debug::SourcePosition& start) {
 			auto alias = parseAlias();
 			
-			alias->setTemplateVariables(templateInfo.templateVariables());
+			alias->setTemplateVariables(templateInfo.extractTemplateVariables());
 			
 			if (templateInfo.hasRequireSpecifier()) {
-				alias->setRequireSpecifier(templateInfo.requireSpecifier());
+				alias->setRequireSpecifier(templateInfo.extractRequireSpecifier());
 			}
 			
 			alias.setLocation(reader_.locationWithRangeFrom(start));
@@ -203,11 +203,11 @@ namespace locic {
 		                                             const Debug::SourcePosition& start) {
 			auto function = FunctionParser(reader_).parseGlobalFunction();
 			
-			function->setTemplateVariables(templateInfo.templateVariables());
+			function->setTemplateVariables(templateInfo.extractTemplateVariables());
 			
 			if (templateInfo.hasRequireSpecifier()) {
 				// TODO: reject duplicate require() specifier.
-				function->setRequireSpecifier(templateInfo.requireSpecifier());
+				function->setRequireSpecifier(templateInfo.extractRequireSpecifier());
 			}
 			
 			// TODO: reject move() or notag().
