@@ -38,22 +38,22 @@ namespace locic {
 		void ConvertNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
-			for (auto astFunctionNode: astNamespaceDataNode->functions) {
+			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
 				ConvertNamespaceFunctionDef(context, astFunctionNode);
 			}
 			
-			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
 				ConvertNamespaceData(context, astModuleScopeNode->data);
 			}
 			
-			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
+			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
 				auto& semChildNamespace = astNamespaceNode->nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				ConvertNamespaceData(context, astNamespaceNode->data());
 			}
 			
-			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				{
 					auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 					
