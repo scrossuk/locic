@@ -16,79 +16,79 @@ namespace locic {
 
 	namespace AST {
 	
-		TypeInstance::TypeInstance(Kind k, const String& n, const Node<TypeVarList>& v, const Node<FunctionList>& f)
-			: kind(k), name(n), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
-			  variants(makeDefaultNode<TypeInstanceList>()),
-			  variables(v), functions(f),
-			  moveSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
-			  requireSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())) { }
+		TypeInstance::TypeInstance(Kind k, const String& n, Node<TypeVarList> v, Node<FunctionList> f)
+		: kind(k), name(n), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
+		  variants(makeDefaultNode<TypeInstanceList>()),
+		  variables(std::move(v)), functions(std::move(f)),
+		  moveSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
+		  requireSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())) { }
 		
-		TypeInstance* TypeInstance::Primitive(const String& name, const Node<FunctionList>& functions) {
-			return new TypeInstance(PRIMITIVE, name, makeDefaultNode<TypeVarList>(), functions);
+		TypeInstance* TypeInstance::Primitive(const String& name, Node<FunctionList> functions) {
+			return new TypeInstance(PRIMITIVE, name, makeDefaultNode<TypeVarList>(), std::move(functions));
 		}
 		
-		TypeInstance* TypeInstance::Enum(const String& name, const Node<StringList>& constructors) {
+		TypeInstance* TypeInstance::Enum(const String& name, Node<StringList> constructors) {
 			const auto typeInstance = new TypeInstance(ENUM, name, makeDefaultNode<TypeVarList>(), makeDefaultNode<FunctionList>());
-			typeInstance->constructors = constructors;
+			typeInstance->constructors = std::move(constructors);
 			return typeInstance;
 		}
 		
-		TypeInstance* TypeInstance::Struct(const String& name, const Node<TypeVarList>& variables) {
-			return new TypeInstance(STRUCT, name, variables, makeDefaultNode<FunctionList>());
+		TypeInstance* TypeInstance::Struct(const String& name, Node<TypeVarList> variables) {
+			return new TypeInstance(STRUCT, name, std::move(variables), makeDefaultNode<FunctionList>());
 		}
 		
 		TypeInstance* TypeInstance::OpaqueStruct(const String& name) {
 			return new TypeInstance(OPAQUE_STRUCT, name, makeDefaultNode<TypeVarList>(), makeDefaultNode<FunctionList>());
 		}
 		
-		TypeInstance* TypeInstance::Union(const String& name, const Node<TypeVarList>& variables) {
-			return new TypeInstance(UNION, name, variables, makeDefaultNode<FunctionList>());
+		TypeInstance* TypeInstance::Union(const String& name, Node<TypeVarList> variables) {
+			return new TypeInstance(UNION, name, std::move(variables), makeDefaultNode<FunctionList>());
 		}
 		
-		TypeInstance* TypeInstance::ClassDecl(const String& name, const Node<FunctionList>& functions) {
-			return new TypeInstance(CLASSDECL, name, makeDefaultNode<TypeVarList>(), functions);
+		TypeInstance* TypeInstance::ClassDecl(const String& name, Node<FunctionList> functions) {
+			return new TypeInstance(CLASSDECL, name, makeDefaultNode<TypeVarList>(), std::move(functions));
 		}
 		
-		TypeInstance* TypeInstance::ClassDef(const String& name, const Node<TypeVarList>& variables, const Node<FunctionList>& functions) {
-			return new TypeInstance(CLASSDEF, name, variables, functions);
+		TypeInstance* TypeInstance::ClassDef(const String& name, Node<TypeVarList> variables, Node<FunctionList> functions) {
+			return new TypeInstance(CLASSDEF, name, std::move(variables), std::move(functions));
 		}
 		
-		TypeInstance* TypeInstance::Datatype(const String& name, const Node<TypeVarList>& variables) {
-			return new TypeInstance(DATATYPE, name, variables, makeDefaultNode<FunctionList>());
+		TypeInstance* TypeInstance::Datatype(const String& name, Node<TypeVarList> variables) {
+			return new TypeInstance(DATATYPE, name, std::move(variables), makeDefaultNode<FunctionList>());
 		}
 		
-		TypeInstance* TypeInstance::UnionDatatype(const String& name, const Node<TypeInstanceList>& variants) {
+		TypeInstance* TypeInstance::UnionDatatype(const String& name, Node<TypeInstanceList> variants) {
 			TypeInstance* typeInstance = new TypeInstance(UNION_DATATYPE, name,  makeDefaultNode<TypeVarList>(), makeDefaultNode<FunctionList>());
-			typeInstance->variants = variants;
+			typeInstance->variants = std::move(variants);
 			return typeInstance;
 		}
 		
-		TypeInstance* TypeInstance::Interface(const String& name, const Node<FunctionList>& functions) {
-			return new TypeInstance(INTERFACE, name, makeDefaultNode<TypeVarList>(), functions);
+		TypeInstance* TypeInstance::Interface(const String& name, Node<FunctionList> functions) {
+			return new TypeInstance(INTERFACE, name, makeDefaultNode<TypeVarList>(), std::move(functions));
 		}
 		
-		TypeInstance* TypeInstance::Exception(const String& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer) {
-			const auto typeInstance = new TypeInstance(EXCEPTION, name, variables, makeDefaultNode<FunctionList>());
-			typeInstance->initializer = initializer;
+		TypeInstance* TypeInstance::Exception(const String& name, Node<TypeVarList> variables, Node<ExceptionInitializer> initializer) {
+			const auto typeInstance = new TypeInstance(EXCEPTION, name, std::move(variables), makeDefaultNode<FunctionList>());
+			typeInstance->initializer = std::move(initializer);
 			return typeInstance;
 		}
 		
 		TypeInstance::~TypeInstance() { }
 		
-		void TypeInstance::setMoveSpecifier(const Node<RequireSpecifier>& pMoveSpecifier) {
-			moveSpecifier = pMoveSpecifier;
+		void TypeInstance::setMoveSpecifier(Node<RequireSpecifier> pMoveSpecifier) {
+			moveSpecifier = std::move(pMoveSpecifier);
 		}
 		
-		void TypeInstance::setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier) {
-			requireSpecifier = pRequireSpecifier;
+		void TypeInstance::setRequireSpecifier(Node<RequireSpecifier> pRequireSpecifier) {
+			requireSpecifier = std::move(pRequireSpecifier);
 		}
 		
-		void TypeInstance::setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables) {
-			templateVariables = pTemplateVariables;
+		void TypeInstance::setTemplateVariables(Node<TemplateTypeVarList> pTemplateVariables) {
+			templateVariables = std::move(pTemplateVariables);
 		}
 		
-		void TypeInstance::setNoTagSet(const Node<StringList>& pNoTagSet) {
-			noTagSet = pNoTagSet;
+		void TypeInstance::setNoTagSet(Node<StringList> pNoTagSet) {
+			noTagSet = std::move(pNoTagSet);
 		}
 		
 		std::string TypeInstance::toString() const {
@@ -99,7 +99,7 @@ namespace locic {
 				
 				bool isFirst = true;
 				
-				for (auto node : *templateVariables) {
+				for (const auto& node : *templateVariables) {
 					if (!isFirst) {
 						s += ", ";
 					}
@@ -118,7 +118,7 @@ namespace locic {
 				
 				bool isFirst = true;
 				
-				for (auto node : *variants) {
+				for (const auto& node : *variants) {
 					if (!isFirst) {
 						s += ", ";
 					}
@@ -137,7 +137,7 @@ namespace locic {
 				
 				bool isFirst = true;
 				
-				for (auto node : *variables) {
+				for (const auto& node : *variables) {
 					if (!isFirst) {
 						s += ", ";
 					}
@@ -156,7 +156,7 @@ namespace locic {
 				
 				bool isFirst = true;
 				
-				for (auto node : *functions) {
+				for (const auto& node : *functions) {
 					if (!isFirst) {
 						s += ", ";
 					}

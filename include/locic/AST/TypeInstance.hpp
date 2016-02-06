@@ -54,40 +54,40 @@ namespace locic {
 			Node<StringList> noTagSet;
 			
 			public:
-				static TypeInstance* Primitive(const String& name, const Node<FunctionList>& functions);
+				static TypeInstance* Primitive(const String& name, Node<FunctionList> functions);
 				
-				static TypeInstance* Enum(const String& name, const Node<StringList>& constructors);
+				static TypeInstance* Enum(const String& name, Node<StringList> constructors);
 				
-				static TypeInstance* Struct(const String& name, const Node<TypeVarList>& variables);
+				static TypeInstance* Struct(const String& name, Node<TypeVarList> variables);
 				
 				static TypeInstance* OpaqueStruct(const String& name);
 				
-				static TypeInstance* Union(const String& name, const Node<TypeVarList>& variables);
+				static TypeInstance* Union(const String& name, Node<TypeVarList> variables);
 				
-				static TypeInstance* ClassDecl(const String& name, const Node<FunctionList>& functions);
+				static TypeInstance* ClassDecl(const String& name, Node<FunctionList> functions);
 				
-				static TypeInstance* ClassDef(const String& name, const Node<TypeVarList>& variables, const Node<FunctionList>& functions);
+				static TypeInstance* ClassDef(const String& name, Node<TypeVarList> variables, Node<FunctionList> functions);
 				
-				static TypeInstance* Datatype(const String& name, const Node<TypeVarList>& variables);
+				static TypeInstance* Datatype(const String& name, Node<TypeVarList> variables);
 				
-				static TypeInstance* UnionDatatype(const String& name, const Node<TypeInstanceList>& variants);
+				static TypeInstance* UnionDatatype(const String& name, Node<TypeInstanceList> variants);
 				
-				static TypeInstance* Interface(const String& name, const Node<FunctionList>& functions);
+				static TypeInstance* Interface(const String& name, Node<FunctionList> functions);
 				
-				static TypeInstance* Exception(const String& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer);
+				static TypeInstance* Exception(const String& name, Node<TypeVarList> variables, Node<ExceptionInitializer> initializer);
 				
 				~TypeInstance();
 				
-				void setMoveSpecifier(const Node<RequireSpecifier>& pMoveSpecifier);
-				void setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier);
-				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
-				void setNoTagSet(const Node<StringList>& pNoTagSet);
+				void setMoveSpecifier(Node<RequireSpecifier> pMoveSpecifier);
+				void setRequireSpecifier(Node<RequireSpecifier> pRequireSpecifier);
+				void setTemplateVariables(Node<TemplateTypeVarList> pTemplateVariables);
+				void setNoTagSet(Node<StringList> pNoTagSet);
 				
 				std::string toString() const;
 				
 			private:
 				TypeInstance(Kind k, const String& n,
-					const Node<TypeVarList>& v, const Node<FunctionList>& f);
+					Node<TypeVarList> v, Node<FunctionList> f);
 				
 		};
 		
