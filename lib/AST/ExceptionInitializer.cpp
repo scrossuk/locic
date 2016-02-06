@@ -16,10 +16,10 @@ namespace locic {
 			return new ExceptionInitializer(NONE);
 		}
 		
-		ExceptionInitializer* ExceptionInitializer::Initialize(const Node<Symbol>& symbol, const Node<ValueList>& valueList) {
+		ExceptionInitializer* ExceptionInitializer::Initialize(Node<Symbol> symbol, Node<ValueList> valueList) {
 			auto initializer = new ExceptionInitializer(INITIALIZE);
-			initializer->symbol = symbol;
-			initializer->valueList = valueList;
+			initializer->symbol = std::move(symbol);
+			initializer->valueList = std::move(valueList);
 			return initializer;
 		}
 		

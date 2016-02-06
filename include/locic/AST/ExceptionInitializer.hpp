@@ -25,12 +25,12 @@ namespace locic {
 			
 			static ExceptionInitializer* None();
 			
-			static ExceptionInitializer* Initialize(const Node<Symbol>& symbol, const Node<ValueList>& valueList);
+			static ExceptionInitializer*
+			Initialize(Node<Symbol> symbol, Node<ValueList> valueList);
 			
 			std::string toString() const;
 			
-			inline ExceptionInitializer(Kind pKind)
-				: kind(pKind) { }
+			ExceptionInitializer(Kind pKind) : kind(pKind) { }
 			~ExceptionInitializer();
 		};
 		
