@@ -4,6 +4,7 @@
 #include <memory>
 
 #include <locic/Debug/SourceLocation.hpp>
+#include <locic/Support/Copy.hpp>
 
 namespace locic {
 
@@ -19,6 +20,17 @@ namespace locic {
 				Node(const Debug::SourceLocation& pLocation, NodeType* pContents)
 				: location_(pLocation), contents_(pContents) { }
 				
+				explicit Node(const Node& other)
+				: location_(other.location_),
+				contents_(other.isNull() ? nullptr : new NodeType(copyObject(*other.contents_))) { }
+				
+				Node copy() const {
+					return Node(*this);
+				}
+				
+				Node(Node&&) = default;
+				Node& operator=(Node&&) = default;
+				
 				Debug::SourceLocation location() const {
 					return location_;
 				}
@@ -32,7 +44,7 @@ namespace locic {
 				}
 				
 				NodeType* get() const {
-					return contents_;
+					return contents_.get();
 				}
 				
 				NodeType* operator->() const {
@@ -53,8 +65,8 @@ namespace locic {
 				
 			private:
 				Debug::SourceLocation location_;
-				//std::unique_ptr<NodeType> contents_;
-				NodeType* contents_;
+				std::unique_ptr<NodeType> contents_;
+				//NodeType* contents_;
 				
 		};
 		
