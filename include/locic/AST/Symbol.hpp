@@ -7,25 +7,20 @@
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueList.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
+	namespace AST {
+		
 		class SymbolElement {
 			public:
-				SymbolElement(String n, const Node<ValueList>& t)
-				: name_(std::move(n)), templateArguments_(t) { }
+				SymbolElement(String n, Node<ValueList> t);
 				~SymbolElement();
 				
-				const String& name() const {
-					return name_;
-				}
+				const String& name() const;
 				
-				const Node<ValueList>& templateArguments() const {
-					return templateArguments_;
-				}
+				const Node<ValueList>& templateArguments() const;
 				
 			private:
 				String name_;
@@ -45,9 +40,9 @@ namespace locic {
 				
 				Symbol()
 					: isAbsolute_(false) { }
-					
-				Symbol operator+(const Node<SymbolElement>& symbolElement) const {
-					return Symbol(*this, symbolElement);
+				
+				void push_back(Node<SymbolElement> symbolElement) {
+					list_.push_back(std::move(symbolElement));
 				}
 				
 				bool empty() const {
@@ -93,9 +88,7 @@ namespace locic {
 				
 			private:
 				explicit Symbol(bool isAbs)
-					: isAbsolute_(isAbs) { }
-					
-				Symbol(const Symbol& symbol, const Node<SymbolElement>& symbolElement);
+				: isAbsolute_(isAbs) { }
 				
 				bool isAbsolute_;
 				std::vector<Node<SymbolElement>> list_;

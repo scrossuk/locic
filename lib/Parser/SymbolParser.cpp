@@ -20,9 +20,8 @@ namespace locic {
 		AST::Node<AST::Symbol> SymbolParser::parseSymbol(const Context context) {
 			const auto start = reader_.position();
 			
-			const auto firstSymbolElement = parseSymbolElement(context);
-			
-			auto symbol = AST::Symbol::Relative() + firstSymbolElement;
+			auto symbol = AST::Symbol::Relative();
+			symbol.push_back(parseSymbolElement(context));
 			
 			while (true) {
 				if (reader_.peek().kind() != Token::DOUBLE_COLON) {
@@ -31,8 +30,7 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto symbolElement = parseSymbolElement(context);
-				symbol = symbol + symbolElement;
+				symbol.push_back(parseSymbolElement(context));
 			}
 			
 			return builder_.makeSymbolNode(symbol, start);

@@ -5,12 +5,24 @@
 
 #include <locic/AST/Symbol.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/Value.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
+	namespace AST {
+		
+		SymbolElement::SymbolElement(String n, Node<ValueList> t)
+		: name_(std::move(n)), templateArguments_(std::move(t)) { }
+		
 		SymbolElement::~SymbolElement() { }
+		
+		const String& SymbolElement::name() const {
+			return name_;
+		}
+		
+		const Node<ValueList>& SymbolElement::templateArguments() const {
+			return templateArguments_;
+		}
 		
 		std::string Symbol::toString() const {
 			std::string str;
@@ -19,8 +31,8 @@ namespace locic {
 				str += "::";
 			}
 			
-			for(size_t i = 0; i < size(); i++) {
-				if(i > 0) {
+			for (size_t i = 0; i < size(); i++) {
+				if (i > 0) {
 					str += "::";
 				}
 				
@@ -28,7 +40,7 @@ namespace locic {
 				
 				const auto& templateArgs = at(i)->templateArguments();
 				
-				if(!templateArgs->empty()) {
+				if (!templateArgs->empty()) {
 					str += "<";
 					
 					for(size_t j = 0; j < templateArgs->size(); j++) {
@@ -43,24 +55,13 @@ namespace locic {
 		}
 		
 		Name Symbol::createName() const {
-			Name name = isAbsolute()
-							   ? Name::Absolute()
-							   : Name::Relative();
-							   
+			Name name = isAbsolute() ? Name::Absolute() : Name::Relative();
+			
 			for(size_t i = 0; i < list_.size(); i++) {
 				name = name + list_.at(i)->name();
 			}
 			
 			return name;
-		}
-		
-		Symbol::Symbol(const Symbol& symbol, const Node<SymbolElement>& symbolElement)
-			: isAbsolute_(symbol.isAbsolute()) {
-			for(size_t i = 0; i < symbol.size(); i++) {
-				list_.push_back(symbol.at(i));
-			}
-			
-			list_.push_back(symbolElement);
 		}
 		
 	}
