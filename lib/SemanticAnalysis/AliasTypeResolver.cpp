@@ -22,9 +22,9 @@ namespace locic {
 		
 		class AliasResolveInfo {
 		public:
-			AliasResolveInfo(AST::Node<AST::Value> argASTValue,
+			AliasResolveInfo(const AST::Node<AST::Value>& argASTValue,
 			                 ScopeStack argScopeStack)
-			: astValue_(std::move(argASTValue)),
+			: astValue_(argASTValue),
 			scopeStack_(std::move(argScopeStack)),
 			isResolving_(false) { }
 			
@@ -48,7 +48,7 @@ namespace locic {
 			}
 			
 		private:
-			AST::Node<AST::Value> astValue_;
+			const AST::Node<AST::Value>& astValue_;
 			ScopeStack scopeStack_;
 			bool isResolving_;
 			
@@ -97,10 +97,9 @@ namespace locic {
 			: context_(context) { }
 			
 			void addAlias(const SEM::Alias& alias,
-			              AST::Node<AST::Value> astValue,
+			              const AST::Node<AST::Value>& astValue,
 			              ScopeStack scopeStack) {
-				AliasResolveInfo resolveInfo(std::move(astValue),
-				                             std::move(scopeStack));
+				AliasResolveInfo resolveInfo(astValue, std::move(scopeStack));
 				resolveMap_.insert(std::make_pair(&alias,
 				                                  std::move(resolveInfo)));
 			}
@@ -143,10 +142,9 @@ namespace locic {
 		AliasTypeResolver::~AliasTypeResolver() { }
 		
 		void AliasTypeResolver::addAlias(const SEM::Alias& alias,
-		                                 AST::Node<AST::Value> astValue,
+		                                 const AST::Node<AST::Value>& astValue,
 		                                 ScopeStack scopeStack) {
-			impl_->addAlias(alias,
-			                std::move(astValue),
+			impl_->addAlias(alias, astValue,
 			                std::move(scopeStack));
 		}
 		

@@ -49,7 +49,7 @@ namespace locic {
 			~AliasTypeResolver();
 			
 			void addAlias(const SEM::Alias& alias,
-			              AST::Node<AST::Value> astValue,
+			              const AST::Node<AST::Value>& astValue,
 			              ScopeStack scopeStack);
 			
 			const SEM::Type* resolveAliasType(SEM::Alias& alias);
