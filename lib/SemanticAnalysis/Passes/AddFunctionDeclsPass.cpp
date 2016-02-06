@@ -243,27 +243,27 @@ namespace locic {
 		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
-			for (auto astFunctionNode: astNamespaceDataNode->functions) {
+			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
 				AddNamespaceFunctionDecl(context, astFunctionNode, moduleScope);
 			}
 			
-			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
 				assert(moduleScope.isInternal());
 				AddNamespaceDataFunctionDecls(context, astModuleScopeNode->data, ConvertModuleScope(astModuleScopeNode));
 			}
 			
-			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
+			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
 				auto& semChildNamespace = astNamespaceNode->nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data(), moduleScope);
 			}
 			
-			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
+				for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
 					AddTypeInstanceFunctionDecl(context, astFunctionNode, moduleScope);
 				}
 				
@@ -274,7 +274,7 @@ namespace locic {
 		}
 		
 		void AddFunctionDeclsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
-			for (auto astNamespaceNode: rootASTNamespaces) {
+			for (const auto& astNamespaceNode: rootASTNamespaces) {
 				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data(), SEM::ModuleScope::Internal());
 			}
 		}

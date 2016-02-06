@@ -28,7 +28,7 @@ namespace locic {
 		
 		// Add alias values.
 		void AddAliasValuesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
-			for (auto astNamespaceNode: rootASTNamespaces) {
+			for (const auto& astNamespaceNode: rootASTNamespaces) {
 				AddNamespaceDataAliasValues(context, astNamespaceNode->data());
 			}
 		}

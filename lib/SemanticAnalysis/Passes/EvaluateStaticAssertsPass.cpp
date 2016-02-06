@@ -32,7 +32,7 @@ namespace locic {
 		}
 		
 		void EvaluateStaticAssertsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
-			for (auto astNamespaceNode: rootASTNamespaces) {
+			for (const auto& astNamespaceNode: rootASTNamespaces) {
 				EvaluateNamespaceStaticAsserts(context, astNamespaceNode->data());
 			}
 		}

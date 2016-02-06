@@ -12,7 +12,7 @@ namespace locic {
 			auto& alias = context.scopeStack().back().alias();
 			
 			// Add types of template variables.
-			for (auto astTemplateVarNode: *(astAliasNode->templateVariables())) {
+			for (const auto& astTemplateVarNode: *(astAliasNode->templateVariables())) {
 				const auto& templateVarName = astTemplateVarNode->name;
 				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
 				
@@ -34,7 +34,7 @@ namespace locic {
 			auto& typeInstance = context.scopeStack().back().typeInstance();
 			
 			// Add types of template variables.
-			for (auto astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
+			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
 				const auto semTemplateVar = typeInstance.namedTemplateVariables().at(templateVarName);
 				
@@ -55,25 +55,25 @@ namespace locic {
 		void AddNamespaceDataTypeTemplateVariableTypes(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
-			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
 				AddNamespaceDataTypeTemplateVariableTypes(context, astModuleScopeNode->data);
 			}
 			
-			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
+			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
 				auto& semChildNamespace = astNamespaceNode->nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				AddNamespaceDataTypeTemplateVariableTypes(context, astNamespaceNode->data());
 			}
 			
-			for (auto astAliasNode: astNamespaceDataNode->aliases) {
+			for (const auto& astAliasNode: astNamespaceDataNode->aliases) {
 				auto& semChildAlias = astAliasNode->alias();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(semChildAlias));
 				AddAliasTemplateVariableTypes(context, astAliasNode);
 			}
 			
-			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
@@ -82,7 +82,7 @@ namespace locic {
 		}
 		
 		void AddTemplateVariableTypesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
-			for (auto astNamespaceNode: rootASTNamespaces) {
+			for (const auto& astNamespaceNode: rootASTNamespaces) {
 				AddNamespaceDataTypeTemplateVariableTypes(context, astNamespaceNode->data());
 			}
 		}

@@ -229,7 +229,7 @@ namespace locic {
 				
 				// Add template variables.
 				size_t templateVarIndex = 0;
-				for (auto astTemplateVarNode: *(astAliasNode->templateVariables())) {
+				for (const auto& astTemplateVarNode: *(astAliasNode->templateVariables())) {
 					const auto& templateVarName = astTemplateVarNode->name;
 					
 					// TODO!
@@ -263,7 +263,7 @@ namespace locic {
 		
 		// Get all namespaces and type names, and build initial type instance structures.
 		void AddGlobalStructuresPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
-			for (auto astNamespaceNode: rootASTNamespaces) {
+			for (const auto& astNamespaceNode: rootASTNamespaces) {
 				AddNamespaceData(context, astNamespaceNode->data(), SEM::ModuleScope::Internal());
 			}
 		}

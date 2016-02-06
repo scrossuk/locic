@@ -91,7 +91,7 @@ namespace locic {
 				}
 			}
 			
-			for (auto astTypeVarNode: *(astTypeInstanceNode->variables)) {
+			for (const auto& astTypeVarNode: *(astTypeInstanceNode->variables)) {
 				if (!astTypeVarNode->isNamed()) {
 					throw ErrorException(makeString("Pattern variables not supported (yet!) for member variables, at location %s.",
 						astTypeVarNode.location().toString().c_str()));
@@ -134,7 +134,7 @@ namespace locic {
 				}
 				
 				if (semChildTypeInstance.isUnionDatatype()) {
-					for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
+					for (const auto& astVariantNode: *(astTypeInstanceNode->variants)) {
 						auto& semVariantTypeInstance = semNamespace.items().at(astVariantNode->name).typeInstance();
 						
 						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semVariantTypeInstance));
@@ -174,7 +174,7 @@ namespace locic {
 		
 		void AddTypeMemberVariablesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			std::vector<SEM::TypeInstance*> typeInstancesToGenerateNoTagSets;
-			for (auto astNamespaceNode: rootASTNamespaces) {
+			for (const auto& astNamespaceNode: rootASTNamespaces) {
 				AddNamespaceDataTypeMemberVariables(context, astNamespaceNode->data(), typeInstancesToGenerateNoTagSets);
 			}
 			

@@ -15,7 +15,7 @@ namespace locic {
 		void AddNamespaceDataFunctionTypes(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
-			for (auto astFunctionNode: astNamespaceDataNode->functions) {
+			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
 				auto& semChildFunction = astFunctionNode->semFunction();
 				const auto& name = astFunctionNode->name();
 				assert(!name->empty());
@@ -33,29 +33,29 @@ namespace locic {
 				}
 			}
 			
-			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
 				AddNamespaceDataFunctionTypes(context, astModuleScopeNode->data);
 			}
 			
-			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
+			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
 				auto& semChildNamespace = astNamespaceNode->nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				AddNamespaceDataFunctionTypes(context, astNamespaceNode->data());
 			}
 			
-			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				for (auto astFunctionNode: *(astTypeInstanceNode->functions)) {
+				for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
 					ConvertFunctionDeclType(context, astFunctionNode->semFunction());
 				}
 			}
 		}
 		
 		void AddFunctionTypesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
-			for (auto astNamespaceNode: rootASTNamespaces) {
+			for (const auto& astNamespaceNode: rootASTNamespaces) {
 				AddNamespaceDataFunctionTypes(context, astNamespaceNode->data());
 			}
 		}

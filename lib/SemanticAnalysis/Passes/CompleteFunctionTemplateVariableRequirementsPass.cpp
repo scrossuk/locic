@@ -27,7 +27,7 @@ namespace locic {
 			}
 			
 			// Add requirements specified inline for template variables.
-			for (auto astTemplateVarNode: *(astFunctionNode->templateVariables())) {
+			for (const auto& astTemplateVarNode: *(astFunctionNode->templateVariables())) {
 				const auto& templateVarName = astTemplateVarNode->name;
 				const auto semTemplateVar = function.namedTemplateVariables().at(templateVarName);
 				
@@ -51,7 +51,7 @@ namespace locic {
 		void CompleteNamespaceDataFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
-			for (auto astFunctionNode: astNamespaceDataNode->functions) {
+			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
 				auto& semChildFunction = astFunctionNode->semFunction();
 				
 				const auto& name = astFunctionNode->name();
@@ -73,18 +73,18 @@ namespace locic {
 				}
 			}
 			
-			for (auto astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
 				CompleteNamespaceDataFunctionTemplateVariableRequirements(context, astModuleScopeNode->data);
 			}
 			
-			for (auto astNamespaceNode: astNamespaceDataNode->namespaces) {
+			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
 				auto& semChildNamespace = astNamespaceNode->nameSpace();
 				
 				PushScopeElement pushNamespace(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
 				CompleteNamespaceDataFunctionTemplateVariableRequirements(context, astNamespaceNode->data());
 			}
 			
-			for (auto astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
 				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
@@ -97,7 +97,7 @@ namespace locic {
 		}
 		
 		void CompleteFunctionTemplateVariableRequirementsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
-			for (auto astNamespaceNode: rootASTNamespaces) {
+			for (const auto& astNamespaceNode: rootASTNamespaces) {
 				CompleteNamespaceDataFunctionTemplateVariableRequirements(context, astNamespaceNode->data());
 			}
 		}
