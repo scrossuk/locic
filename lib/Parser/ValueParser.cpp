@@ -209,7 +209,7 @@ namespace locic {
 		AST::Node<AST::Value> ValueParser::parseTernaryValue(const Context context) {
 			const auto start = reader_.position();
 			
-			const auto value = parseLogicalOrValue(context);
+			auto value = parseLogicalOrValue(context);
 			
 			const auto token = reader_.peek();
 			switch (token.kind()) {
@@ -221,16 +221,16 @@ namespace locic {
 			
 			reader_.consume();
 			
-			const auto ifTrueValue = parseValue(IN_TERNARY);
+			auto ifTrueValue = parseValue(IN_TERNARY);
 			reader_.expect(Token::COLON);
-			const auto ifFalseValue = parseTernaryValue(context);
+			auto ifFalseValue = parseTernaryValue(context);
 			
 			if (!isComparisonValueOrNext(value)) {
 				reader_.issueDiagWithLoc(InvalidOperandDiag("ternary"), value.location());
 			}
 			
-			return builder_.makeTernaryValue(value, ifTrueValue,
-			                                 ifFalseValue, start);
+			return builder_.makeTernaryValue(std::move(value), std::move(ifTrueValue),
+			                                 std::move(ifFalseValue), start);
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseLogicalOrValue(const Context context) {
@@ -250,10 +250,10 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseLogicalAndValue(context);
+				auto operand = parseLogicalAndValue(context);
 				checkLogicalOrOperand(value);
 				checkLogicalOrOperand(operand);
-				value = builder_.makeLogicalOrValue(value, operand, start);
+				value = builder_.makeLogicalOrValue(std::move(value), std::move(operand), start);
 			}
 		}
 		
@@ -284,10 +284,10 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseBitwiseOrValue(context);
+				auto operand = parseBitwiseOrValue(context);
 				checkLogicalAndOperand(value);
 				checkLogicalAndOperand(operand);
-				value = builder_.makeLogicalAndValue(value, operand, start);
+				value = builder_.makeLogicalAndValue(std::move(value), std::move(operand), start);
 			}
 		}
 		
@@ -317,10 +317,10 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseBitwiseXorValue(context);
+				auto operand = parseBitwiseXorValue(context);
 				checkBitwiseOrOperand(value);
 				checkBitwiseOrOperand(operand);
-				value = builder_.makeBitwiseOrValue(value, operand, start);
+				value = builder_.makeBitwiseOrValue(std::move(value), std::move(operand), start);
 			}
 		}
 		
@@ -351,10 +351,10 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseBitwiseAndValue(context);
+				auto operand = parseBitwiseAndValue(context);
 				checkBitwiseXorOperand(value);
 				checkBitwiseXorOperand(operand);
-				value = builder_.makeBitwiseXorValue(value, operand, start);
+				value = builder_.makeBitwiseXorValue(std::move(value), std::move(operand), start);
 			}
 		}
 		
@@ -384,10 +384,10 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseComparisonValue(context);
+				auto operand = parseComparisonValue(context);
 				checkBitwiseAndOperand(value);
 				checkBitwiseAndOperand(operand);
-				value = builder_.makeBitwiseAndValue(value, operand, start);
+				value = builder_.makeBitwiseAndValue(std::move(value), std::move(operand), start);
 			}
 		}
 		
@@ -442,12 +442,12 @@ namespace locic {
 							return value;
 						}
 						
-						const auto checkType = interpretValueAsType(value);
+						auto checkType = interpretValueAsType(std::move(value));
 						reader_.consume();
-						const auto capabilityType = TypeParser(reader_).parseType();
+						auto capabilityType = TypeParser(reader_).parseType();
 						
-						value = builder_.makeCapabilityTest(checkType,
-						                                    capabilityType,
+						value = builder_.makeCapabilityTest(std::move(checkType),
+						                                    std::move(capabilityType),
 						                                    start);
 						break;
 					}
@@ -461,10 +461,10 @@ namespace locic {
 				
 				reader_.consume();
 				
-				const auto operand = parseShiftValue(context);
+				auto operand = parseShiftValue(context);
 				checkComparisonOperand(value);
 				checkComparisonOperand(operand);
-				value = builder_.makeBinaryOpValue(value, operand,
+				value = builder_.makeBinaryOpValue(std::move(value), std::move(operand),
 				                                   opKind, start);
 			}
 		}
@@ -512,10 +512,10 @@ namespace locic {
 						return value;
 				}
 				
-				const auto operand = parseAddOperatorValue(context);
+				auto operand = parseAddOperatorValue(context);
 				checkShiftOperand(value);
 				checkShiftOperand(operand);
-				value = builder_.makeBinaryOpValue(value, operand,
+				value = builder_.makeBinaryOpValue(std::move(value), std::move(operand),
 				                                   opKind, start);
 			}
 		}
@@ -547,10 +547,10 @@ namespace locic {
 				}
 				
 				reader_.consume();
-				const auto operand = parseMultiplyOperatorValue(context);
+				auto operand = parseMultiplyOperatorValue(context);
 				checkAddOperand(value);
 				checkAddOperand(operand);
-				value = builder_.makeBinaryOpValue(value, operand,
+				value = builder_.makeBinaryOpValue(std::move(value), std::move(operand),
 				                                   opKind, start);
 			}
 		}
@@ -589,10 +589,10 @@ namespace locic {
 				}
 				
 				reader_.consume();
-				const auto operand = parseUnaryValue(context);
+				auto operand = parseUnaryValue(context);
 				checkMultiplyOperand(value);
 				checkMultiplyOperand(operand);
-				value = builder_.makeBinaryOpValue(value, operand,
+				value = builder_.makeBinaryOpValue(std::move(value), std::move(operand),
 				                                   opKind, start);
 			}
 		}
@@ -640,8 +640,8 @@ namespace locic {
 			
 			reader_.consume();
 			
-			const auto value = parseUnaryValue(context);
-			return builder_.makeUnaryOpValue(value, opKind, start);
+			auto value = parseUnaryValue(context);
+			return builder_.makeUnaryOpValue(std::move(value), opKind, start);
 		}
 		
 		bool ValueParser::isUnaryValueOrNext(const AST::Node<AST::Value>& operand) const {
@@ -660,22 +660,22 @@ namespace locic {
 					case Token::PTRACCESS: {
 						reader_.consume();
 						const bool isDeref = (token.kind() == Token::PTRACCESS);
-						value = parseMemberAccessExpression(value, isDeref,
+						value = parseMemberAccessExpression(std::move(value), isDeref,
 						                                    start);
 						break;
 					}
 					case Token::LROUNDBRACKET: {
 						reader_.consume();
-						const auto valueList = parseValueList();
+						auto valueList = parseValueList();
 						reader_.expect(Token::RROUNDBRACKET);
-						value = builder_.makeCallValue(value, valueList, start);
+						value = builder_.makeCallValue(std::move(value), std::move(valueList), start);
 						break;
 					}
 					case Token::LSQUAREBRACKET: {
 						reader_.consume();
-						const auto indexValue = parseValue();
+						auto indexValue = parseValue();
 						reader_.expect(Token::RSQUAREBRACKET);
-						value = builder_.makeIndexValue(value, indexValue, start);
+						value = builder_.makeIndexValue(std::move(value), std::move(indexValue), start);
 						break;
 					}
 					default:
@@ -725,17 +725,17 @@ namespace locic {
 		                                                               const bool isDeref,
 		                                                               const Debug::SourcePosition& start) {
 			const auto memberName = FunctionParser(reader_).parseFunctionNameElement();
-			const auto templateArgs = SymbolParser(reader_).parseSymbolTemplateArgumentList();
+			auto templateArgs = SymbolParser(reader_).parseSymbolTemplateArgumentList();
 			
 			if (isDeref) {
-				value = builder_.makeDerefValue(value, start);
+				value = builder_.makeDerefValue(std::move(value), start);
 			}
 			
 			if (templateArgs->empty()) {
-				return builder_.makeMemberAccess(value, memberName, start);
+				return builder_.makeMemberAccess(std::move(value), memberName, start);
 			} else {
-				return builder_.makeTemplatedMemberAccess(value, memberName,
-				                                          templateArgs,
+				return builder_.makeTemplatedMemberAccess(std::move(value), memberName,
+				                                          std::move(templateArgs),
 				                                          start);
 			}
 		}
@@ -764,16 +764,16 @@ namespace locic {
 							return value;
 						}
 						
-						auto type = interpretValueAsType(value);
+						auto type = interpretValueAsType(std::move(value));
 						if (token.kind() == Token::STAR) {
-							type = TypeBuilder(reader_).makePointerType(type, start);
+							type = TypeBuilder(reader_).makePointerType(std::move(type), start);
 						} else {
-							type = TypeBuilder(reader_).makeReferenceType(type, start);
+							type = TypeBuilder(reader_).makeReferenceType(std::move(type), start);
 						}
 						
 						reader_.consume();
 						
-						value = builder_.makeTypeValue(type, start);
+						value = builder_.makeTypeValue(std::move(type), start);
 						break;
 					}
 					case Token::LSQUAREBRACKET: {
@@ -782,24 +782,30 @@ namespace locic {
 						}
 						
 						reader_.consume();
-						const auto indexValue = parseValue();
+						auto indexValue = parseValue();
 						reader_.expect(Token::RSQUAREBRACKET);
 						
-						const auto type = interpretValueAsType(value);
-						const auto staticArrayType =
-						    TypeBuilder(reader_).makeStaticArrayType(type, indexValue,
-						                                             start);
-						const auto typeValue = builder_.makeTypeValue(staticArrayType, start);
+						// typename_t doesn't support indexing, so this must be a type value.
+						const bool isDefinitelyType = (value->kind() == AST::Value::TYPEREF);
 						
-						if (value->kind() == AST::Value::TYPEREF) {
-							// Definitely a type.
-							value = typeValue;
+						auto type = interpretValueAsType(isDefinitelyType ? std::move(value) : value.copy());
+						auto staticArrayType =
+						    TypeBuilder(reader_).makeStaticArrayType(std::move(type),
+						                                             isDefinitelyType ? std::move(indexValue) : indexValue.copy(),
+						                                             start);
+						auto typeValue = builder_.makeTypeValue(std::move(staticArrayType), start);
+						
+						if (isDefinitelyType) {
+							value = std::move(typeValue);
 							break;
 						}
 						
+						assert(value.get() != nullptr);
+						assert(indexValue.get() != nullptr);
+						
 						// Ambiguous: could be indexing or a static array type.
-						const auto indexResult = builder_.makeIndexValue(value, indexValue, start);
-						value = builder_.makeMergeValue(indexResult, typeValue, start);
+						auto indexResult = builder_.makeIndexValue(std::move(value), std::move(indexValue), start);
+						value = builder_.makeMergeValue(std::move(indexResult), std::move(typeValue), start);
 						break;
 					}
 					default:
@@ -844,20 +850,20 @@ namespace locic {
 			locic_unreachable("Invalid value kind");
 		}
 		
-		AST::Node<AST::Type> ValueParser::interpretValueAsType(const AST::Node<AST::Value>& value) {
+		AST::Node<AST::Type> ValueParser::interpretValueAsType(AST::Node<AST::Value> value) {
 			switch (value->kind()) {
 				case AST::Value::BRACKET:
-					return interpretValueAsType(value->bracket.value);
+					return interpretValueAsType(std::move(value->bracket.value));
 				case AST::Value::SYMBOLREF:
 					return AST::makeNode(value.location(),
-					                     AST::Type::Object(value->symbolRef.symbol));
+					                     AST::Type::Object(std::move(value->symbolRef.symbol)));
 				case AST::Value::TYPEREF:
-					return value->typeRef.type;
+					return std::move(value->typeRef.type);
 				case AST::Value::MERGE:
 					if (canInterpretValueAsType(value->merge.second)) {
-						return interpretValueAsType(value->merge.second);
+						return interpretValueAsType(std::move(value->merge.second));
 					} else {
-						return interpretValueAsType(value->merge.first);
+						return interpretValueAsType(std::move(value->merge.first));
 					}
 				case AST::Value::SELF:
 				case AST::Value::THIS:
@@ -901,9 +907,9 @@ namespace locic {
 						break;
 					}
 					reader_.consume();
-					const auto value = parseValue();
+					auto value = parseValue();
 					reader_.expect(Token::RROUNDBRACKET);
-					return builder_.makeBracketedValue(value, start);
+					return builder_.makeBracketedValue(std::move(value), start);
 				}
 				case Token::AT:
 					reader_.consume();
@@ -943,16 +949,16 @@ namespace locic {
 				case Token::ALIGNOF: {
 					reader_.consume();
 					reader_.expect(Token::LROUNDBRACKET);
-					const auto type = TypeParser(reader_).parseType();
+					auto type = TypeParser(reader_).parseType();
 					reader_.expect(Token::RROUNDBRACKET);
-					return builder_.makeAlignOfValue(type, start);
+					return builder_.makeAlignOfValue(std::move(type), start);
 				}
 				case Token::SIZEOF: {
 					reader_.consume();
 					reader_.expect(Token::LROUNDBRACKET);
-					const auto type = TypeParser(reader_).parseType();
+					auto type = TypeParser(reader_).parseType();
 					reader_.expect(Token::RROUNDBRACKET);
-					return builder_.makeSizeOfValue(type, start);
+					return builder_.makeSizeOfValue(std::move(type), start);
 				}
 				case Token::LCURLYBRACKET:
 					reader_.consume();
@@ -967,8 +973,8 @@ namespace locic {
 			}
 			
 			if (TypeParser(reader_).isTypeStartToken(token.kind())) {
-				const auto type = TypeParser(reader_).parseType();
-				return builder_.makeTypeValue(type, start);
+				auto type = TypeParser(reader_).parseType();
+				return builder_.makeTypeValue(std::move(type), start);
 			}
 			
 			reader_.issueDiag(InvalidValidDiag(token.kind()), start);
@@ -1023,13 +1029,13 @@ namespace locic {
 				return builder_.makeSelfMemberAccess(token.name(), start);
 			}
 			
-			const auto templateArguments = parseOptionalTemplateArguments();
+			auto templateArguments = parseOptionalTemplateArguments();
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto arguments = parseValueList();
+			auto arguments = parseValueList();
 			reader_.expect(Token::RROUNDBRACKET);
-			return builder_.makeInternalConstruct(templateArguments,
-			                                      arguments, start);
+			return builder_.makeInternalConstruct(std::move(templateArguments),
+			                                      std::move(arguments), start);
 		}
 		
 		AST::Node<AST::ValueList> ValueParser::parseOptionalTemplateArguments() {
@@ -1040,7 +1046,7 @@ namespace locic {
 			}
 			
 			reader_.consume();
-			const auto valueList = parseValueList(IN_TEMPLATE);
+			auto valueList = parseValueList(IN_TEMPLATE);
 			reader_.expect(Token::RTRIBRACKET);
 			
 			return valueList;
@@ -1064,8 +1070,8 @@ namespace locic {
 					                                 firstToken.name(), start);
 				}
 				default: {
-					const auto symbol = SymbolParser(reader_).parseSymbol();
-					return builder_.makeSymbolValue(symbol, start);
+					auto symbol = SymbolParser(reader_).parseSymbol();
+					return builder_.makeSymbolValue(std::move(symbol), start);
 				}
 			}
 		}
@@ -1091,20 +1097,22 @@ namespace locic {
 				case Token::REF:
 				case Token::LVAL: {
 					reader_.expect(Token::LTRIBRACKET);
-					const auto targetType = TypeParser(reader_).parseType();
+					auto targetType = TypeParser(reader_).parseType();
 					reader_.expect(Token::RTRIBRACKET);
 					
 					if (reader_.peek().kind() != Token::LROUNDBRACKET) {
-						const auto type = TypeParser(reader_).parseQualifiedType();
+						auto type = TypeParser(reader_).parseQualifiedType();
 						
 						switch (kind) {
 							case Token::LVAL: {
-								const auto lvalType = TypeBuilder(reader_).makeLvalType(targetType, type, start);
-								return builder_.makeTypeValue(lvalType, start);
+								auto lvalType = TypeBuilder(reader_).makeLvalType(std::move(targetType),
+								                                                  std::move(type), start);
+								return builder_.makeTypeValue(std::move(lvalType), start);
 							}
 							case Token::REF: {
-								const auto refType = TypeBuilder(reader_).makeRefType(targetType, type, start);
-								return builder_.makeTypeValue(refType, start);
+								auto refType = TypeBuilder(reader_).makeRefType(std::move(targetType),
+								                                                std::move(type), start);
+								return builder_.makeTypeValue(std::move(refType), start);
 							}
 							default:
 								break;
@@ -1112,31 +1120,31 @@ namespace locic {
 					}
 					
 					reader_.expect(Token::LROUNDBRACKET);
-					const auto value = parseValue();
+					auto value = parseValue();
 					reader_.expect(Token::RROUNDBRACKET);
 					if (kind == Token::REF) {
-						return builder_.makeRefValue(targetType, value, start);
+						return builder_.makeRefValue(std::move(targetType), std::move(value), start);
 					} else {
-						return builder_.makeLvalValue(targetType, value, start);
+						return builder_.makeLvalValue(std::move(targetType), std::move(value), start);
 					}
 				}
 				default: {
 					reader_.expect(Token::LROUNDBRACKET);
-					const auto value = parseValue();
+					auto value = parseValue();
 					reader_.expect(Token::RROUNDBRACKET);
 					if (kind == Token::NOREF) {
-						return builder_.makeNoRefValue(value, start);
+						return builder_.makeNoRefValue(std::move(value), start);
 					} else {
-						return builder_.makeNoLvalValue(value, start);
+						return builder_.makeNoLvalValue(std::move(value), start);
 					}
 				}
 			}
 		}
 		
 		AST::Node<AST::Value> ValueParser::parseArrayLiteral(const Debug::SourcePosition& start) {
-			const auto valueList = parseValueList();
+			auto valueList = parseValueList();
 			reader_.expect(Token::RCURLYBRACKET);
-			return builder_.makeArrayLiteralValue(valueList, start);
+			return builder_.makeArrayLiteralValue(std::move(valueList), start);
 		}
 		
 		AST::Node<AST::ValueList> ValueParser::parseValueList(const Context context) {
@@ -1151,7 +1159,7 @@ namespace locic {
 					case Token::RCURLYBRACKET:
 					case Token::RTRIBRACKET:
 					case Token::RROUNDBRACKET:
-						return builder_.makeValueList(valueList, start);
+						return builder_.makeValueList(std::move(valueList), start);
 					default:
 						break;
 				}
@@ -1159,7 +1167,7 @@ namespace locic {
 				valueList.push_back(parseValue(context));
 				
 				if (reader_.peek().kind() != Token::COMMA) {
-					return builder_.makeValueList(valueList, start);
+					return builder_.makeValueList(std::move(valueList), start);
 				}
 				
 				reader_.consume();
@@ -1193,16 +1201,17 @@ namespace locic {
 			}
 			
 			reader_.expect(Token::LTRIBRACKET);
-			const auto fromType = TypeParser(reader_).parseType();
+			auto fromType = TypeParser(reader_).parseType();
 			reader_.expect(Token::COMMA);
-			const auto toType = TypeParser(reader_).parseType();
+			auto toType = TypeParser(reader_).parseType();
 			reader_.expect(Token::RTRIBRACKET);
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto value = parseValue();
+			auto value = parseValue();
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			return builder_.makeCastValue(kind, fromType, toType, value, start);
+			return builder_.makeCastValue(kind, std::move(fromType),
+			                              std::move(toType), std::move(value), start);
 		}
 		
 	}
