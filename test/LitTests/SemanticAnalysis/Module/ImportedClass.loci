@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import a.b.c 1.2.3 {
+	class Decl { }
+	
+	// CHECK: .loci:8:2: error: cannot define imported class 'Def'
+	class Def() { }
+}
+
+// CHECK: 1 error generated.
