@@ -36,15 +36,15 @@ namespace locic {
 		                               AST::Node<AST::Value> ifTrueValue,
 		                               AST::Node<AST::Value> ifFalseValue,
 		                               const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Ternary(conditionValue, ifTrueValue,
-			                                         ifFalseValue), start);
+			return makeValueNode(AST::Value::Ternary(std::move(conditionValue), std::move(ifTrueValue),
+			                                         std::move(ifFalseValue)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeLogicalOrValue(AST::Node<AST::Value> leftValue,
 		                                 AST::Node<AST::Value> rightValue,
 		                                 const Debug::SourcePosition& start) {
-			return makeBinaryOpValue(leftValue, rightValue,
+			return makeBinaryOpValue(std::move(leftValue), std::move(rightValue),
 			                         AST::OP_LOGICALOR, start);
 		}
 		
@@ -52,7 +52,7 @@ namespace locic {
 		ValueBuilder::makeLogicalAndValue(AST::Node<AST::Value> leftValue,
 		                                  AST::Node<AST::Value> rightValue,
 		                                  const Debug::SourcePosition& start) {
-			return makeBinaryOpValue(leftValue, rightValue,
+			return makeBinaryOpValue(std::move(leftValue), std::move(rightValue),
 			                         AST::OP_LOGICALAND, start);
 		}
 		
@@ -60,7 +60,7 @@ namespace locic {
 		ValueBuilder::makeBitwiseOrValue(AST::Node<AST::Value> leftValue,
 		                                 AST::Node<AST::Value> rightValue,
 		                                 const Debug::SourcePosition& start) {
-			return makeBinaryOpValue(leftValue, rightValue,
+			return makeBinaryOpValue(std::move(leftValue), std::move(rightValue),
 			                         AST::OP_BITWISEOR, start);
 		}
 		
@@ -68,7 +68,7 @@ namespace locic {
 		ValueBuilder::makeBitwiseXorValue(AST::Node<AST::Value> leftValue,
 		                                  AST::Node<AST::Value> rightValue,
 		                                  const Debug::SourcePosition& start) {
-			return makeBinaryOpValue(leftValue, rightValue,
+			return makeBinaryOpValue(std::move(leftValue), std::move(rightValue),
 			                         AST::OP_BITWISEXOR, start);
 		}
 		
@@ -76,7 +76,7 @@ namespace locic {
 		ValueBuilder::makeBitwiseAndValue(AST::Node<AST::Value> leftValue,
 		                                  AST::Node<AST::Value> rightValue,
 		                                  const Debug::SourcePosition& start) {
-			return makeBinaryOpValue(leftValue, rightValue,
+			return makeBinaryOpValue(std::move(leftValue), std::move(rightValue),
 			                         AST::OP_BITWISEAND, start);
 		}
 		
@@ -84,7 +84,8 @@ namespace locic {
 		ValueBuilder::makeCapabilityTest(AST::Node<AST::Type> leftType,
 		                                 AST::Node<AST::Type> rightType,
 		                                 const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::CapabilityTest(leftType, rightType), start);
+			return makeValueNode(AST::Value::CapabilityTest(std::move(leftType), std::move(rightType)),
+			                     start);
 		}
 		
 		AST::Node<AST::Value>
@@ -92,68 +93,68 @@ namespace locic {
 		                                AST::Node<AST::Value> rightValue,
 		                                const AST::BinaryOpKind opKind,
 		                                const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::BinaryOp(opKind, leftValue,
-			                                          rightValue), start);
+			return makeValueNode(AST::Value::BinaryOp(opKind, std::move(leftValue),
+			                                          std::move(rightValue)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeUnaryOpValue(AST::Node<AST::Value> operand,
 		                               const AST::UnaryOpKind opKind,
 		                               const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::UnaryOp(opKind, operand), start);
+			return makeValueNode(AST::Value::UnaryOp(opKind, std::move(operand)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeCallValue(AST::Node<AST::Value> callableValue,
-		                            const AST::Node<AST::ValueList>& parameters,
+		                            AST::Node<AST::ValueList> parameters,
 		                            const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::FunctionCall(callableValue, parameters), start);
+			return makeValueNode(AST::Value::FunctionCall(std::move(callableValue), std::move(parameters)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeIndexValue(AST::Node<AST::Value> value,
 		                             AST::Node<AST::Value> indexValue,
 		                             const Debug::SourcePosition& start) {
-			return makeBinaryOpValue(value, indexValue, AST::OP_INDEX, start);
+			return makeBinaryOpValue(std::move(value), std::move(indexValue), AST::OP_INDEX, start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeDerefValue(AST::Node<AST::Value> value,
 		                             const Debug::SourcePosition& start) {
-			return makeUnaryOpValue(value, AST::OP_DEREF, start);
+			return makeUnaryOpValue(std::move(value), AST::OP_DEREF, start);
 		}
 			
 		AST::Node<AST::Value>
 		ValueBuilder::makeMemberAccess(AST::Node<AST::Value> value, String name,
 		                               const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::MemberAccess(value, name), start);
+			return makeValueNode(AST::Value::MemberAccess(std::move(value), name), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeTemplatedMemberAccess(AST::Node<AST::Value> value, String name,
 		                                        AST::Node<AST::ValueList> templateArguments,
 		                                        const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::TemplatedMemberAccess(value, name,
-			                                                       templateArguments), start);
+			return makeValueNode(AST::Value::TemplatedMemberAccess(std::move(value), name,
+			                                                       std::move(templateArguments)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeMergeValue(AST::Node<AST::Value> firstValue,
 		                             AST::Node<AST::Value> secondValue,
 		                             const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Merge(firstValue, secondValue), start);
+			return makeValueNode(AST::Value::Merge(std::move(firstValue), std::move(secondValue)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeBracketedValue(AST::Node<AST::Value> value,
 		                                 const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Bracket(value), start);
+			return makeValueNode(AST::Value::Bracket(std::move(value)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeTypeValue(AST::Node<AST::Type> type,
 		                            const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::TypeRef(type), start);
+			return makeValueNode(AST::Value::TypeRef(std::move(type)), start);
 		}
 		
 		AST::Node<AST::Value>
@@ -161,41 +162,41 @@ namespace locic {
 		                               const String literalSpecifier,
 		                               const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			const auto constantNode = AST::makeNode(location, new Constant(constant));
+			auto constantNode = AST::makeNode(location, new Constant(constant));
 			return makeValueNode(AST::Value::Literal(literalSpecifier,
-			                                         constantNode), start);
+			                                         std::move(constantNode)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeRefValue(AST::Node<AST::Type> targetType,
 		                           AST::Node<AST::Value> value,
 		                           const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Ref(targetType, value), start);
+			return makeValueNode(AST::Value::Ref(std::move(targetType), std::move(value)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeLvalValue(AST::Node<AST::Type> targetType,
 		                            AST::Node<AST::Value> value,
 		                            const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Lval(targetType, value), start);
+			return makeValueNode(AST::Value::Lval(std::move(targetType), std::move(value)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeNoRefValue(AST::Node<AST::Value> value,
 		                             const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::NoRef(value), start);
+			return makeValueNode(AST::Value::NoRef(std::move(value)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeNoLvalValue(AST::Node<AST::Value> value,
 		                              const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::NoLval(value), start);
+			return makeValueNode(AST::Value::NoLval(std::move(value)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeSymbolValue(AST::Node<AST::Symbol> symbol,
 		                              const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::SymbolRef(symbol), start);
+			return makeValueNode(AST::Value::SymbolRef(std::move(symbol)), start);
 		}
 		
 		AST::Node<AST::Value>
@@ -209,15 +210,15 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeAlignOfValue(const AST::Node<AST::Type> operand,
+		ValueBuilder::makeAlignOfValue(AST::Node<AST::Type> operand,
 		                               const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::AlignOf(operand), start);
+			return makeValueNode(AST::Value::AlignOf(std::move(operand)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeSizeOfValue(AST::Node<AST::Type> operand,
 		                              const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::SizeOf(operand), start);
+			return makeValueNode(AST::Value::SizeOf(std::move(operand)), start);
 		}
 		
 		AST::Node<AST::Value>
@@ -230,14 +231,14 @@ namespace locic {
 		ValueBuilder::makeInternalConstruct(AST::Node<AST::ValueList> templateArguments,
 		                                    AST::Node<AST::ValueList> arguments,
 		                                    const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::InternalConstruct(templateArguments,
-			                                                   arguments), start);
+			return makeValueNode(AST::Value::InternalConstruct(std::move(templateArguments),
+			                                                   std::move(arguments)), start);
 		}
 		
 		AST::Node<AST::Value>
 		ValueBuilder::makeArrayLiteralValue(AST::Node<AST::ValueList> values,
 		                                    const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::ArrayLiteral(values), start);
+			return makeValueNode(AST::Value::ArrayLiteral(std::move(values)), start);
 		}
 		
 		AST::Node<AST::ValueList>
@@ -251,7 +252,8 @@ namespace locic {
 		ValueBuilder::makeCastValue(const AST::Value::CastKind kind, AST::Node<AST::Type> fromType,
 		                            AST::Node<AST::Type> toType, AST::Node<AST::Value> value,
 		                            const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Cast(kind, fromType, toType, value), start);
+			return makeValueNode(AST::Value::Cast(kind, std::move(fromType), std::move(toType),
+			                                      std::move(value)), start);
 		}
 		
 	}

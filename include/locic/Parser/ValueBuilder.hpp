@@ -76,7 +76,7 @@ namespace locic {
 			
 			AST::Node<AST::Value>
 			makeCallValue(AST::Node<AST::Value> callableValue,
-			              const AST::Node<AST::ValueList>& parameters,
+			              AST::Node<AST::ValueList> parameters,
 			              const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
