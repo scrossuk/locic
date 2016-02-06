@@ -33,26 +33,27 @@ namespace locic {
 		                   Name pName,
 		                   ModuleScope pModuleScope)
 			: parent_(std::move(pParent)),
-			  function_(createNamedASTFunction(std::move(pName))),
+			  fakeASTFunction_(createNamedASTFunction(std::move(pName))),
+			  function_(&fakeASTFunction_),
 			  isDefault_(false),
 			  isPrimitive_(false),
 			  isMethod_(false),
 			  isStaticMethod_(false),
-			  name_(parent_.name().concat(*(function_->name()))),
+			  name_(parent_.name().concat(*(astFunction()->name()))),
 			  constPredicate_(Predicate::False()),
 			  requiresPredicate_(Predicate::True()),
 			  moduleScope_(std::move(pModuleScope)) { }
 		
 		Function::Function(GlobalStructure pParent,
-		                   AST::Node<AST::Function> argFunction,
+		                   const AST::Node<AST::Function>& argFunction,
 		                   ModuleScope pModuleScope)
 			: parent_(std::move(pParent)),
-			  function_(std::move(argFunction)),
+			  function_(&argFunction),
 			  isDefault_(false),
 			  isPrimitive_(false),
 			  isMethod_(false),
 			  isStaticMethod_(false),
-			  name_(parent_.name().concat(*(function_->name()))),
+			  name_(parent_.name().concat(*(astFunction()->name()))),
 			  constPredicate_(Predicate::False()),
 			  requiresPredicate_(Predicate::True()),
 			  moduleScope_(std::move(pModuleScope)) { }
@@ -74,7 +75,7 @@ namespace locic {
 		}
 		
 		const AST::Node<AST::Function>& Function::astFunction() const {
-			return function_;
+			return *function_;
 		}
 		
 		const Name& Function::name() const {
