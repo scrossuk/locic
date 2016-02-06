@@ -115,117 +115,41 @@ namespace locic {
 			
 			inline Type(TypeEnum e) : typeEnum(e) { }
 			
-			inline static Type* Auto() {
-				return new Type(AUTO);
-			}
+			static Type* Auto();
 			
-			inline static Type* Void() {
-				return new Type(VOID);
-			}
+			static Type* Void();
 			
-			inline static Type* Bool() {
-				return new Type(BOOL);
-			}
+			static Type* Bool();
 			
-			inline static Type* Const(Node<Type> targetType) {
-				Type* type = new Type(CONST);
-				type->constType.targetType = targetType;
-				return type;
-			}
+			static Type* Const(Node<Type> targetType);
 			
-			inline static Type* ConstPredicate(Node<Predicate> predicate, Node<Type> targetType) {
-				Type* type = new Type(CONSTPREDICATE);
-				type->constPredicateType.predicate = predicate;
-				type->constPredicateType.targetType = targetType;
-				return type;
-			}
+			static Type* ConstPredicate(Node<Predicate> predicate, Node<Type> targetType);
 			
-			inline static Type* NoTag(Node<Type> targetType) {
-				Type* type = new Type(NOTAG);
-				type->noTagType.targetType = targetType;
-				return type;
-			}
+			static Type* NoTag(Node<Type> targetType);
 			
-			inline static Type* Lval(const Node<Type>& targetType, const Node<Type>& lvalType) {
-				Type* type = new Type(LVAL);
-				type->lvalType.targetType = targetType;
-				type->lvalType.lvalType = lvalType;
-				return type;
-			}
+			static Type* Lval(Node<Type> targetType, Node<Type> lvalType);
 			
-			inline static Type* Ref(const Node<Type>& targetType, const Node<Type>& refType) {
-				Type* type = new Type(REF);
-				type->refType.targetType = targetType;
-				type->refType.refType = refType;
-				return type;
-			}
+			static Type* Ref(Node<Type> targetType, Node<Type> refType);
 			
-			inline static Type* StaticRef(const Node<Type>& targetType, const Node<Type>& refType) {
-				Type* type = new Type(STATICREF);
-				type->staticRefType.targetType = targetType;
-				type->staticRefType.refType = refType;
-				return type;
-			}
+			static Type* StaticRef(Node<Type> targetType, Node<Type> refType);
 			
-			inline static Type* Integer(SignedModifier signedModifier, const String& name) {
-				Type* type = new Type(INTEGER);
-				type->integerType.signedModifier = signedModifier;
-				type->integerType.name = name;
-				return type;
-			}
+			static Type* Integer(SignedModifier signedModifier, const String& name);
 			
-			inline static Type* Float(const String& name) {
-				Type* type = new Type(FLOAT);
-				type->floatType.name = name;
-				return type;
-			}
+			static Type* Float(const String& name);
 			
-			inline static Type* Primitive(const PrimitiveID primitiveID) {
-				Type* type = new Type(PRIMITIVE);
-				type->primitiveType.primitiveID = primitiveID;
-				return type;
-			}
+			static Type* Primitive(PrimitiveID primitiveID);
 			
-			inline static Type* Object(const Node<Symbol>& symbol) {
-				Type* type = new Type(OBJECT);
-				type->objectType.symbol = symbol;
-				return type;
-			}
+			static Type* Object(Node<Symbol> symbol);
 			
-			inline static Type* Reference(Node<Type> targetType) {
-				Type* type = new Type(REFERENCE);
-				type->referenceType.targetType = targetType;
-				return type;
-			}
+			static Type* Reference(Node<Type> targetType);
 			
-			inline static Type* Pointer(Node<Type> targetType) {
-				Type* type = new Type(POINTER);
-				type->pointerType.targetType = targetType;
-				return type;
-			}
+			static Type* Pointer(Node<Type> targetType);
 			
-			inline static Type* StaticArray(Node<Type> targetType, Node<Value> arraySize) {
-				Type* type = new Type(STATICARRAY);
-				type->staticArrayType.targetType = targetType;
-				type->staticArrayType.arraySize = arraySize;
-				return type;
-			}
+			static Type* StaticArray(Node<Type> targetType, Node<Value> arraySize);
 			
-			inline static Type* Function(Node<Type> returnType, const Node<TypeList>& parameterTypes) {
-				Type* type = new Type(FUNCTION);
-				type->functionType.isVarArg = false;
-				type->functionType.returnType = returnType;
-				type->functionType.parameterTypes = parameterTypes;
-				return type;
-			}
+			static Type* Function(Node<Type> returnType, Node<TypeList> parameterTypes);
 			
-			inline static Type* VarArgFunction(Node<Type> returnType, const Node<TypeList>& parameterTypes) {
-				Type* type = new Type(FUNCTION);
-				type->functionType.isVarArg = true;
-				type->functionType.returnType = returnType;
-				type->functionType.parameterTypes = parameterTypes;
-				return type;
-			}
+			static Type* VarArgFunction(Node<Type> returnType, Node<TypeList> parameterTypes);
 			
 			~Type();
 			
@@ -241,7 +165,7 @@ namespace locic {
 				return typeEnum == CONST;
 			}
 			
-			inline Node<Type> getConstTarget() const {
+			const Node<Type>& getConstTarget() const {
 				assert(isConst());
 				return constType.targetType;
 			}
@@ -250,12 +174,12 @@ namespace locic {
 				return typeEnum == CONSTPREDICATE;
 			}
 			
-			inline Node<Predicate> getConstPredicate() const {
+			const Node<Predicate>& getConstPredicate() const {
 				assert(isConstPredicate());
 				return constPredicateType.predicate;
 			}
 			
-			inline Node<Type> getConstPredicateTarget() const {
+			const Node<Type>& getConstPredicateTarget() const {
 				assert(isConstPredicate());
 				return constPredicateType.targetType;
 			}
@@ -264,7 +188,7 @@ namespace locic {
 				return typeEnum == NOTAG;
 			}
 			
-			inline Node<Type> getNoTagTarget() const {
+			const Node<Type>& getNoTagTarget() const {
 				assert(isNoTag());
 				return noTagType.targetType;
 			}
@@ -273,12 +197,12 @@ namespace locic {
 				return typeEnum == LVAL;
 			}
 			
-			inline Node<Type> getLvalTarget() const {
+			const Node<Type>& getLvalTarget() const {
 				assert(isLval());
 				return lvalType.targetType;
 			}
 			
-			inline Node<Type> getLvalType() const {
+			const Node<Type>& getLvalType() const {
 				assert(isLval());
 				return lvalType.lvalType;
 			}
@@ -287,12 +211,12 @@ namespace locic {
 				return typeEnum == REF;
 			}
 			
-			inline Node<Type> getRefTarget() const {
+			const Node<Type>& getRefTarget() const {
 				assert(isRef());
 				return refType.targetType;
 			}
 			
-			inline Node<Type> getRefType() const {
+			const Node<Type>& getRefType() const {
 				assert(isRef());
 				return refType.refType;
 			}
@@ -301,12 +225,12 @@ namespace locic {
 				return typeEnum == STATICREF;
 			}
 			
-			inline Node<Type> getStaticRefTarget() const {
+			const Node<Type>& getStaticRefTarget() const {
 				assert(isStaticRef());
 				return staticRefType.targetType;
 			}
 			
-			inline Node<Type> getStaticRefType() const {
+			const Node<Type>& getStaticRefType() const {
 				assert(isStaticRef());
 				return staticRefType.refType;
 			}
@@ -315,7 +239,7 @@ namespace locic {
 				return typeEnum == REFERENCE;
 			}
 			
-			inline Node<Type> getReferenceTarget() const {
+			const Node<Type>& getReferenceTarget() const {
 				assert(isReference());
 				return referenceType.targetType;
 			}
@@ -324,7 +248,7 @@ namespace locic {
 				return typeEnum == POINTER;
 			}
 			
-			inline Node<Type> getPointerTarget() const {
+			const Node<Type>& getPointerTarget() const {
 				assert(isPointer());
 				return pointerType.targetType;
 			}
@@ -333,12 +257,12 @@ namespace locic {
 				return typeEnum == STATICARRAY;
 			}
 			
-			inline Node<Type> getStaticArrayTarget() const {
+			const Node<Type>& getStaticArrayTarget() const {
 				assert(isStaticArray());
 				return staticArrayType.targetType;
 			}
 			
-			inline Node<Value> getArraySize() const {
+			const Node<Value>& getArraySize() const {
 				assert(isStaticArray());
 				return staticArrayType.arraySize;
 			}
