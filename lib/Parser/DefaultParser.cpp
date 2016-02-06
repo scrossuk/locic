@@ -53,8 +53,8 @@ namespace locic {
 		
 		void DefaultParser::parseFile() {
 			TokenReader reader(impl_->lexer().getLexer(), impl_->diagReceiver());
-			const auto namespaceDecl = NamespaceParser(reader).parseGlobalNamespace();
-			impl_->rootNamespaceList().push_back(namespaceDecl);
+			auto namespaceDecl = NamespaceParser(reader).parseGlobalNamespace();
+			impl_->rootNamespaceList().push_back(std::move(namespaceDecl));
 		}
 		
 	}
