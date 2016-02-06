@@ -1,0 +1,90 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// ================ Same name.
+// -------- No function.
+import a.b.c 1.2.3 {
+	// CHECK: .loci:8:2: error: cannot nest module scopes
+	import a.b.c 1.2.3 { }
+}
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:13:2: error: cannot nest module scopes
+	export a.b.c 1.2.3 { }
+}
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:18:2: error: cannot nest module scopes
+	import a.b.c 1.2.3 { }
+}
+
+import a.b.c 1.2.3 {
+	// CHECK: .loci:23:2: error: cannot nest module scopes
+	export a.b.c 1.2.3 { }
+}
+
+// -------- With function.
+import a.b.c 1.2.3 {
+	// CHECK: .loci:29:2: error: cannot nest module scopes
+	import a.b.c 1.2.3 { void a(); }
+}
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:34:2: error: cannot nest module scopes
+	export a.b.c 1.2.3 { void b() { } }
+}
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:39:2: error: cannot nest module scopes
+	import a.b.c 1.2.3 { void c(); }
+}
+
+import a.b.c 1.2.3 {
+	// CHECK: .loci:44:2: error: cannot nest module scopes
+	export a.b.c 1.2.3 { void d() { } }
+}
+
+// ================ Different name.
+// -------- No function.
+import a.b.c 1.2.3 {
+	// CHECK: .loci:51:2: error: cannot nest module scopes
+	import d.e.f 1.2.3 { }
+}
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:56:2: error: cannot nest module scopes
+	export d.e.f 1.2.3 { }
+}
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:61:2: error: cannot nest module scopes
+	import d.e.f 1.2.3 { }
+}
+
+import a.b.c 1.2.3 {
+	// CHECK: .loci:66:2: error: cannot nest module scopes
+	export d.e.f 1.2.3 { }
+}
+
+// -------- With function.
+import a.b.c 1.2.3 {
+	// CHECK: .loci:72:2: error: cannot nest module scopes
+	import d.e.f 1.2.3 { void l(); }
+}
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:77:2: error: cannot nest module scopes
+	export d.e.f 1.2.3 { void m() { } }
+}
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:82:2: error: cannot nest module scopes
+	import d.e.f 1.2.3 { void n(); }
+}
+
+import a.b.c 1.2.3 {
+	// CHECK: .loci:87:2: error: cannot nest module scopes
+	export d.e.f 1.2.3 { void o() { } }
+}
+
+// CHECK: 16 errors generated.
