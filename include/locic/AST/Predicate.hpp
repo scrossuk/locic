@@ -36,6 +36,7 @@ namespace locic {
 				
 				static Predicate* And(const Node<Predicate>& left, const Node<Predicate>& right);
 				
+				~Predicate();
 				static Predicate* Or(const Node<Predicate>& left, const Node<Predicate>& right);
 				
 				Kind kind() const;

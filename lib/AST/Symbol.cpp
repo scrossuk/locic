@@ -10,6 +10,8 @@ namespace locic {
 
 	namespace AST {
 	
+		SymbolElement::~SymbolElement() { }
+		
 		std::string Symbol::toString() const {
 			std::string str;
 			

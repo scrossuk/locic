@@ -7,6 +7,8 @@ namespace locic {
 	
 	namespace AST {
 		
+		Value::~Value() { }
+		
 		Value::TypeEnum Value::kind() const {
 			return typeEnum;
 		}

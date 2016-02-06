@@ -52,6 +52,8 @@ namespace locic {
 			return predicate;
 		}
 		
+		Predicate::~Predicate() { }
+		
 		Predicate::Kind Predicate::kind() const {
 			return kind_;
 		}

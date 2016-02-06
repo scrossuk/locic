@@ -24,6 +24,8 @@ namespace locic {
 			return constSpecifier;
 		}
 		
+		ConstSpecifier::~ConstSpecifier() { }
+		
 		ConstSpecifier::Kind ConstSpecifier::kind() const {
 			return kind_;
 		}

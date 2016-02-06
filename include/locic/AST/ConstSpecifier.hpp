@@ -27,6 +27,8 @@ namespace locic {
 				
 				static ConstSpecifier* Expr(const Node<Predicate>& predicate);
 				
+				~ConstSpecifier();
+				
 				Kind kind() const;
 				
 				bool isNone() const;

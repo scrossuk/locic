@@ -227,6 +227,8 @@ namespace locic {
 				return type;
 			}
 			
+			~Type();
+			
 			inline bool isAuto() const {
 				return typeEnum == AUTO;
 			}

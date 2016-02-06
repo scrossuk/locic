@@ -351,6 +351,8 @@ namespace locic {
 				return value;
 			}
 			
+			~Value();
+			
 			TypeEnum kind() const;
 			
 			bool isLiteral() const {

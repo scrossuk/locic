@@ -73,6 +73,8 @@ namespace locic {
 			return typeInstance;
 		}
 		
+		TypeInstance::~TypeInstance() { }
+		
 		void TypeInstance::setMoveSpecifier(const Node<RequireSpecifier>& pMoveSpecifier) {
 			moveSpecifier = pMoveSpecifier;
 		}

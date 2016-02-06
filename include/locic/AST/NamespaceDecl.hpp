@@ -32,6 +32,8 @@ namespace locic {
 			std::vector< AST::Node<StaticAssert> > staticAsserts;
 			std::vector< AST::Node<TypeInstance> > typeInstances;
 			
+			~NamespaceData();
+			
 			bool empty() const {
 				return aliases.empty() && functions.empty() &&
 				       moduleScopes.empty() && namespaces.empty() &&
@@ -44,7 +46,8 @@ namespace locic {
 		class NamespaceDecl {
 		public:
 			NamespaceDecl(const String& n, AST::Node<NamespaceData> d);
-				
+			~NamespaceDecl();
+			
 			String name() const;
 			
 			const AST::Node<NamespaceData>& data() const;

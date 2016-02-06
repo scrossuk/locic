@@ -23,6 +23,8 @@ namespace locic {
 			return initializer;
 		}
 		
+		ExceptionInitializer::~ExceptionInitializer() { }
+		
 		std::string ExceptionInitializer::toString() const {
 			switch (kind) {
 				case NONE:

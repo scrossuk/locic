@@ -8,6 +8,8 @@ namespace locic {
 
 	namespace AST {
 	
+		Type::~Type() { }
+		
 		std::string Type::toString() const {
 			switch(typeEnum) {
 				case AUTO:

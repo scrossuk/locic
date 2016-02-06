@@ -17,6 +17,7 @@ namespace locic {
 			public:
 				SymbolElement(String n, const Node<ValueList>& t)
 				: name_(std::move(n)), templateArguments_(t) { }
+				~SymbolElement();
 				
 				const String& name() const {
 					return name_;

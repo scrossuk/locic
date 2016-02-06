@@ -76,6 +76,8 @@ namespace locic {
 				
 				static TypeInstance* Exception(const String& name, const Node<TypeVarList>& variables, const Node<ExceptionInitializer>& initializer);
 				
+				~TypeInstance();
+				
 				void setMoveSpecifier(const Node<RequireSpecifier>& pMoveSpecifier);
 				void setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier);
 				void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);

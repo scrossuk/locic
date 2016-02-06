@@ -22,6 +22,7 @@ namespace locic {
 		class AliasDecl {
 		public:
 			AliasDecl(const String& pName, AST::Node<Value> pValue);
+			~AliasDecl();
 			
 			String name() const;
 			const Node<TemplateTypeVarList>& templateVariables() const;

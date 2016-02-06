@@ -31,6 +31,7 @@ namespace locic {
 			
 			inline ExceptionInitializer(Kind pKind)
 				: kind(pKind) { }
+			~ExceptionInitializer();
 		};
 		
 	}

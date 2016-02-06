@@ -16,6 +16,8 @@ namespace locic {
 		requireSpecifier_(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
 		value_(pValue), alias_(nullptr) { }
 		
+		AliasDecl::~AliasDecl() { }
+		
 		String AliasDecl::name() const {
 			return name_;
 		}
