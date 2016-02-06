@@ -1,0 +1,28 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import void a();
+
+export void b() { }
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:10:2: error: cannot nest imported function 'c' in module scope
+	import void c();
+}
+
+export a.b.c 1.2.3 {
+	// CHECK: .loci:15:2: error: cannot nest exported function 'd' in module scope
+	export void d() { }
+}
+
+import a.b.c 1.2.3 {
+	// CHECK: .loci:20:2: error: cannot nest imported function 'e' in module scope
+	import void e();
+}
+
+import a.b.c 1.2.3 {
+	// CHECK: .loci:25:2: error: cannot nest exported function 'f' in module scope
+	export void f() { }
+}
+
+// CHECK: 4 errors generated.
