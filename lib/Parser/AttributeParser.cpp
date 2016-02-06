@@ -31,11 +31,11 @@ namespace locic {
 			
 			reader_.consume();
 			
-			const auto predicate = PredicateParser(reader_).parsePredicate();
+			auto predicate = PredicateParser(reader_).parsePredicate();
 			
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			return builder_.makePredicateConstSpecifier(predicate, start);
+			return builder_.makePredicateConstSpecifier(std::move(predicate), start);
 		}
 		
 		AST::Node<AST::RequireSpecifier>
@@ -54,11 +54,11 @@ namespace locic {
 			
 			reader_.consume();
 			
-			const auto predicate = PredicateParser(reader_).parsePredicate();
+			auto predicate = PredicateParser(reader_).parsePredicate();
 			
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			return builder_.makePredicateRequireSpecifier(predicate, start);
+			return builder_.makePredicateRequireSpecifier(std::move(predicate), start);
 		}
 		
 		AST::Node<AST::RequireSpecifier>
@@ -77,11 +77,11 @@ namespace locic {
 			
 			reader_.consume();
 			
-			const auto predicate = PredicateParser(reader_).parsePredicate();
+			auto predicate = PredicateParser(reader_).parsePredicate();
 			
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			return builder_.makePredicateRequireSpecifier(predicate, start);
+			return builder_.makePredicateRequireSpecifier(std::move(predicate), start);
 		}
 		
 		AST::Node<AST::RequireSpecifier>
@@ -95,10 +95,10 @@ namespace locic {
 			reader_.consume();
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto predicate = PredicateParser(reader_).parsePredicate();
+			auto predicate = PredicateParser(reader_).parsePredicate();
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			return builder_.makePredicateRequireSpecifier(predicate, start);
+			return builder_.makePredicateRequireSpecifier(std::move(predicate), start);
 		}
 		
 		AST::Node<AST::StringList>
