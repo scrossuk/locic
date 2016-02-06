@@ -59,9 +59,9 @@ namespace locic {
 					break;
 				}
 				
-				const auto var = VarParser(reader_).parseTypeVar();
+				auto var = VarParser(reader_).parseTypeVar();
 				reader_.expect(Token::SEMICOLON);
-				typeVarList.push_back(var);
+				typeVarList.push_back(std::move(var));
 			}
 			
 			return builder_.makeTypeVarList(std::move(typeVarList), start);
@@ -94,19 +94,19 @@ namespace locic {
 				return parseTypeVar();
 			}
 			
-			const auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
+			auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
 			
 			if (reader_.peek().kind() == Token::LROUNDBRACKET) {
 				// This is a pattern variable.
 				reader_.consume();
-				const auto varList = parseVarOrAnyList();
+				auto varList = parseVarOrAnyList();
 				reader_.expect(Token::RROUNDBRACKET);
-				return builder_.makePatternVar(symbol, varList, start);
+				return builder_.makePatternVar(std::move(symbol), std::move(varList), start);
 			} else {
 				// This is a normal type variable.
-				const auto symbolType = TypeBuilder(reader_).makeSymbolType(symbol, start);
-				const auto type = TypeParser(reader_).parseIndirectTypeBasedOnType(symbolType, start);
-				return parseTypeVarWithType(type, start);
+				auto symbolType = TypeBuilder(reader_).makeSymbolType(std::move(symbol), start);
+				auto type = TypeParser(reader_).parseIndirectTypeBasedOnType(std::move(symbolType), start);
+				return parseTypeVarWithType(std::move(type), start);
 			}
 		}
 		
@@ -121,8 +121,8 @@ namespace locic {
 		
 		AST::Node<AST::TypeVar> VarParser::parseTypeVar() {
 			const auto start = reader_.position();
-			const auto type = TypeParser(reader_).parseType();
-			return parseTypeVarWithType(type, start);
+			auto type = TypeParser(reader_).parseType();
+			return parseTypeVarWithType(std::move(type), start);
 		}
 		
 		AST::Node<AST::TypeVarList> VarParser::parseVarOrAnyList() {
@@ -161,7 +161,7 @@ namespace locic {
 		AST::Node<AST::TypeVar> VarParser::parseTypeVarWithType(AST::Node<AST::Type> type,
 		                                                        const Debug::SourcePosition& start) {
 			const auto name = reader_.expectName();
-			return builder_.makeTypeVar(type, name, start);
+			return builder_.makeTypeVar(std::move(type), name, start);
 		}
 		
 	}
