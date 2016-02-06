@@ -1,0 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+template <typename T>
+// CHECK-NOT: .loci:6:1: error: unknown template variable 'T' in notag() set of 'TestClass0'
+notag(T) class TestClass0() { }
+
+template <typename T>
+// CHECK: .loci:10:1: error: unknown template variable 'W' in notag() set of 'TestClass1'
+notag(W) class TestClass1() { }
+
+// CHECK: 1 error generated.
