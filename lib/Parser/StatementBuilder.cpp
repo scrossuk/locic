@@ -22,17 +22,17 @@ namespace locic {
 		AST::Node<AST::Statement>
 		StatementBuilder::makeScopeStatement(AST::Node<AST::Scope> scope,
 		                                     const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::ScopeStmt(scope), start);
+			return makeStatementNode(AST::Statement::ScopeStmt(std::move(scope)), start);
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeIfStatement(AST::IfClauseList ifClauseList,
 		                                  const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			const auto ifClauseListNode = AST::makeNode(location, new AST::IfClauseList(std::move(ifClauseList)));
-			const auto elseClauseNode = AST::makeNode(location, new AST::Scope());
-			return makeStatementNode(AST::Statement::If(ifClauseListNode,
-			                                            elseClauseNode), start);
+			auto ifClauseListNode = AST::makeNode(location, new AST::IfClauseList(std::move(ifClauseList)));
+			auto elseClauseNode = AST::makeNode(location, new AST::Scope());
+			return makeStatementNode(AST::Statement::If(std::move(ifClauseListNode),
+			                                            std::move(elseClauseNode)), start);
 		}
 		
 		AST::Node<AST::Statement>
@@ -40,9 +40,9 @@ namespace locic {
 		                                      AST::Node<AST::Scope> elseClause,
 		                                      const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			const auto ifClauseListNode = AST::makeNode(location, new AST::IfClauseList(std::move(ifClauseList)));
-			return makeStatementNode(AST::Statement::If(ifClauseListNode,
-			                                            elseClause), start);
+			auto ifClauseListNode = AST::makeNode(location, new AST::IfClauseList(std::move(ifClauseList)));
+			return makeStatementNode(AST::Statement::If(std::move(ifClauseListNode),
+			                                            std::move(elseClause)), start);
 		}
 		
 		AST::Node<AST::IfClause>
@@ -50,7 +50,7 @@ namespace locic {
 		                               AST::Node<AST::Scope> scope,
 		                               const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::IfClause(value, scope));
+			return AST::makeNode(location, new AST::IfClause(std::move(value), std::move(scope)));
 		}
 		
 		AST::Node<AST::Statement>
@@ -58,8 +58,8 @@ namespace locic {
 		                                      AST::Node<AST::SwitchCaseList> caseList,
 		                                      AST::Node<AST::DefaultCase> defaultCase,
 		                                      const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::Switch(value, caseList,
-			                                                defaultCase), start);
+			return makeStatementNode(AST::Statement::Switch(std::move(value), std::move(caseList),
+			                                                std::move(defaultCase)), start);
 		}
 		
 		AST::Node<AST::SwitchCaseList>
@@ -74,7 +74,8 @@ namespace locic {
 		                                 AST::Node<AST::Scope> scope,
 		                                 const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::SwitchCase(var, scope));
+			return AST::makeNode(location, new AST::SwitchCase(std::move(var),
+			                                                   std::move(scope)));
 		}
 		
 		AST::Node<AST::DefaultCase>
@@ -87,14 +88,14 @@ namespace locic {
 		StatementBuilder::makeDefaultSwitchCase(AST::Node<AST::Scope> scope,
 		                                        const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::DefaultCase::Scope(scope));
+			return AST::makeNode(location, AST::DefaultCase::Scope(std::move(scope)));
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeWhileStatement(AST::Node<AST::Value> condition,
 		                                     AST::Node<AST::Scope> scope,
 		                                     const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::While(condition, scope), start);
+			return makeStatementNode(AST::Statement::While(std::move(condition), std::move(scope)), start);
 		}
 		
 		AST::Node<AST::Statement>
@@ -102,14 +103,14 @@ namespace locic {
 		                                   AST::Node<AST::Value> value,
 		                                   AST::Node<AST::Scope> scope,
 		                                   const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::For(var, value, scope), start);
+			return makeStatementNode(AST::Statement::For(std::move(var), std::move(value), std::move(scope)), start);
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeTryStatement(AST::Node<AST::Scope> scope,
 		                                   AST::Node<AST::CatchClauseList> catchClauseList,
 		                                   const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::Try(scope, catchClauseList), start);
+			return makeStatementNode(AST::Statement::Try(std::move(scope), std::move(catchClauseList)), start);
 		}
 		
 		AST::Node<AST::CatchClauseList>
@@ -124,56 +125,56 @@ namespace locic {
 		                                  AST::Node<AST::Scope> scope,
 		                                  const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::CatchClause(var, scope));
+			return AST::makeNode(location, new AST::CatchClause(std::move(var), std::move(scope)));
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeScopeExitStatement(const String name, AST::Node<AST::Scope> scope,
 		                                         const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::ScopeExit(name, scope), start);
+			return makeStatementNode(AST::Statement::ScopeExit(name, std::move(scope)), start);
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeAssertNoexceptStatement(AST::Node<AST::Scope> scope,
 		                                              const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::AssertNoExcept(scope), start);
+			return makeStatementNode(AST::Statement::AssertNoExcept(std::move(scope)), start);
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeAssertStatement(AST::Node<AST::Value> value, const String name,
 		                                      const Debug::SourcePosition& start) {
- 			return makeStatementNode(AST::Statement::Assert(value, name), start);
+ 			return makeStatementNode(AST::Statement::Assert(std::move(value), name), start);
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeVarDeclStatement(AST::Node<AST::TypeVar> var,
 		                                       AST::Node<AST::Value> value,
 		                                       const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::VarDecl(var, value), start);
+			return makeStatementNode(AST::Statement::VarDecl(std::move(var), std::move(value)), start);
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeIncrementStatement(AST::Node<AST::Value> value,
 		                                         const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::Increment(value), start);
+			return makeStatementNode(AST::Statement::Increment(std::move(value)), start);
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeDecrementStatement(AST::Node<AST::Value> value,
 		                                         const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::Decrement(value), start);
+			return makeStatementNode(AST::Statement::Decrement(std::move(value)), start);
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeValueStatement(AST::Node<AST::Value> value,
 		                                     const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::ValueStmt(value), start);
+			return makeStatementNode(AST::Statement::ValueStmt(std::move(value)), start);
 		}
 		
 		AST::Node<AST::Statement>
 		StatementBuilder::makeUnusedResultValueStatement(AST::Node<AST::Value> value,
 		                                                 const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::ValueStmtVoidCast(value), start);
+			return makeStatementNode(AST::Statement::ValueStmtVoidCast(std::move(value)), start);
 		}
 		
 		AST::Node<AST::Statement>
@@ -184,7 +185,7 @@ namespace locic {
 		AST::Node<AST::Statement>
 		StatementBuilder::makeReturnStatement(AST::Node<AST::Value> value,
 		                                      const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::Return(value), start);
+			return makeStatementNode(AST::Statement::Return(std::move(value)), start);
 		}
 		
 		AST::Node<AST::Statement>
@@ -195,7 +196,7 @@ namespace locic {
 		AST::Node<AST::Statement>
 		StatementBuilder::makeThrowStatement(AST::Node<AST::Value> value,
 		                                     const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::Throw(value), start);
+			return makeStatementNode(AST::Statement::Throw(std::move(value)), start);
 		}
 		
 		AST::Node<AST::Statement>
@@ -218,7 +219,7 @@ namespace locic {
 		                                      AST::Node<AST::Value> rvalue,
 		                                      const AST::AssignKind kind,
 		                                      const Debug::SourcePosition& start) {
-			return makeStatementNode(AST::Statement::Assign(kind, lvalue, rvalue),
+			return makeStatementNode(AST::Statement::Assign(kind, std::move(lvalue), std::move(rvalue)),
 			                         start);
 		}
 		
