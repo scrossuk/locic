@@ -68,6 +68,51 @@ namespace locic {
 			
 		}
 		
+		class DefinitionRequiredForInternalClassDiag: public Error {
+		public:
+			DefinitionRequiredForInternalClassDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("definition required for internal class '%s'",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
+		class CannotDefineImportedClassDiag: public Error {
+		public:
+			CannotDefineImportedClassDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("cannot define imported class '%s'",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
+		class DefinitionRequiredForExportedClassDiag: public Error {
+		public:
+			DefinitionRequiredForExportedClassDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("definition required for exported class '%s'",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
 		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, const SEM::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
@@ -101,22 +146,22 @@ namespace locic {
 			switch (moduleScope.kind()) {
 				case SEM::ModuleScope::INTERNAL: {
 					if (semTypeInstance->isClassDecl()) {
-						throw ErrorException(makeString("Definition required for internal class '%s', at location %s.",
-							fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+						context.issueDiag(DefinitionRequiredForInternalClassDiag(fullTypeName.copy()),
+						                  astTypeInstanceNode.location());
 					}
 					break;
 				}
 				case SEM::ModuleScope::IMPORT: {
 					if (semTypeInstance->isClassDef()) {
-						throw ErrorException(makeString("Implementation not allowed of imported class '%s', at location %s.",
-							fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+						context.issueDiag(CannotDefineImportedClassDiag(fullTypeName.copy()),
+						                  astTypeInstanceNode.location());
 					}
 					break;
 				}
 				case SEM::ModuleScope::EXPORT: {
 					if (semTypeInstance->isClassDecl()) {
-						throw ErrorException(makeString("Definition required for exported class '%s', at location %s.",
-							fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+						context.issueDiag(DefinitionRequiredForExportedClassDiag(fullTypeName.copy()),
+						                  astTypeInstanceNode.location());
 					}
 					break;
 				}
