@@ -16,11 +16,11 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			reader_.expect(Token::LCURLYBRACKET);
-			const auto statementList = parseStatementList();
+			auto statementList = parseStatementList();
 			reader_.expect(Token::RCURLYBRACKET);
 			
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::Scope(statementList));
+			return AST::makeNode(location, new AST::Scope(std::move(statementList)));
 		}
 		
 		AST::Node<AST::StatementList> ScopeParser::parseStatementList() {
@@ -38,8 +38,8 @@ namespace locic {
 					break;
 				}
 				
-				const auto statement = StatementParser(reader_).parseStatement();
-				statementList.push_back(statement);
+				auto statement = StatementParser(reader_).parseStatement();
+				statementList.push_back(std::move(statement));
 			}
 			
 			const auto location = reader_.locationWithRangeFrom(start);
