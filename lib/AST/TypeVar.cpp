@@ -11,20 +11,20 @@ namespace locic {
 	
 		typedef std::vector<Node<TypeVar>> TypeVarList;
 		
-		TypeVar* TypeVar::NamedVar(const Node<Type>& type, const String name) {
+		TypeVar* TypeVar::NamedVar(Node<Type> type, const String name) {
 			TypeVar* typeVar = new TypeVar(NAMEDVAR);
 			typeVar->namedVar_.isFinal = false;
 			typeVar->namedVar_.isOverrideConst = false;
 			typeVar->namedVar_.isUnused = false;
-			typeVar->namedVar_.type = type;
+			typeVar->namedVar_.type = std::move(type);
 			typeVar->namedVar_.name = name;
 			return typeVar;
 		}
 			
-		TypeVar* TypeVar::PatternVar(const Node<Type>& type, const Node<TypeVarList>& typeVarList) {
+		TypeVar* TypeVar::PatternVar(Node<Type> type, Node<TypeVarList> typeVarList) {
 			TypeVar* typeVar = new TypeVar(PATTERNVAR);
-			typeVar->patternVar_.type = type;
-			typeVar->patternVar_.typeVarList = typeVarList;
+			typeVar->patternVar_.type = std::move(type);
+			typeVar->patternVar_.typeVarList = std::move(typeVarList);
 			return typeVar;
 		}
 			

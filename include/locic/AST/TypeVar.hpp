@@ -24,9 +24,9 @@ namespace locic {
 				ANYVAR
 			};
 			
-			static TypeVar* NamedVar(const Node<Type>& type, String name);
+			static TypeVar* NamedVar(Node<Type> type, String name);
 			
-			static TypeVar* PatternVar(const Node<Type>& type, const Node<TypeVarList>& typeVarList);
+			static TypeVar* PatternVar(Node<Type> type, Node<TypeVarList> typeVarList);
 			
 			static TypeVar* Any();
 			
