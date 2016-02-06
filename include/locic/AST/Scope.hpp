@@ -12,11 +12,11 @@ namespace locic {
 		struct Scope {
 			Node<StatementList> statements;
 			
-			inline Scope()
-				: statements(makeDefaultNode<StatementList>()) { }
+			Scope()
+			: statements(makeDefaultNode<StatementList>()) { }
 				
-			inline Scope(const Node<StatementList>& s)
-				: statements(s) { }
+			Scope(Node<StatementList> s)
+			: statements(std::move(s)) { }
 			
 			size_t size() const {
 				return statements->size();
