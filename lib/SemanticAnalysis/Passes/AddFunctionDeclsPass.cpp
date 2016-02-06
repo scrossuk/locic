@@ -71,6 +71,51 @@ namespace locic {
 			}
 		}
 		
+		class DefinitionRequiredForInternalFunctionDiag: public Error {
+		public:
+			DefinitionRequiredForInternalFunctionDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("definition required for internal function '%s'",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
+		class CannotDefineImportedFunctionDiag: public Error {
+		public:
+			CannotDefineImportedFunctionDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("cannot define imported function '%s'",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
+		class DefinitionRequiredForExportedFunctionDiag: public Error {
+		public:
+			DefinitionRequiredForExportedFunctionDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("definition required for exported function '%s'",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
 		std::unique_ptr<SEM::Function> AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const Name& fullName, const SEM::ModuleScope& parentModuleScope) {
 			const auto& topElement = context.scopeStack().back();
 			
@@ -83,22 +128,22 @@ namespace locic {
 				case SEM::ModuleScope::INTERNAL: {
 					const bool isPrimitive = isParentPrimitive || astFunctionNode->isPrimitive();
 					if (!isParentInterface && !isPrimitive && astFunctionNode->isDeclaration()) {
-						throw ErrorException(makeString("Definition required for internal function '%s', at location %s.",
-							fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+						context.issueDiag(DefinitionRequiredForInternalFunctionDiag(fullName.copy()),
+						                  astFunctionNode.location());
 					}
 					break;
 				}
 				case SEM::ModuleScope::IMPORT: {
 					if (!isParentInterface && !astFunctionNode->isDeclaration()) {
-						throw ErrorException(makeString("Implementation not allowed of imported function '%s', at location %s.",
-							fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+						context.issueDiag(CannotDefineImportedFunctionDiag(fullName.copy()),
+						                  astFunctionNode.location());
 					}
 					break;
 				}
 				case SEM::ModuleScope::EXPORT: {
 					if (!isParentInterface && astFunctionNode->isDeclaration()) {
-						throw ErrorException(makeString("Definition required for exported function '%s', at location %s.",
-							fullName.toString().c_str(), astFunctionNode.location().toString().c_str()));
+						context.issueDiag(DefinitionRequiredForExportedFunctionDiag(fullName.copy()),
+						                  astFunctionNode.location());
 					}
 					break;
 				}
