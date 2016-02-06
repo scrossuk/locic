@@ -6,6 +6,7 @@
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
+#include <locic/AST/AliasDecl.hpp>
 #include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
@@ -25,12 +26,14 @@ namespace locic {
 		class Alias final: public TemplatedObject {
 			public:
 				Alias(Context& context, GlobalStructure parent,
-				      Name name);
+				      Name name, const AST::Node<AST::AliasDecl>& astAlias);
 				
 				GlobalStructure& parent();
 				const GlobalStructure& parent() const;
 				
 				Context& context() const;
+				
+				const AST::Node<AST::AliasDecl>& astAlias() const;
 				
 				const Name& name() const;
 				
@@ -76,6 +79,7 @@ namespace locic {
 			private:
 				Context& context_;
 				GlobalStructure parent_;
+				const AST::Node<AST::AliasDecl>& astAlias_;
 				Name name_;
 				TemplateVarArray templateVars_;
 				FastMap<String, TemplateVar*> namedTemplateVariables_;

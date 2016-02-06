@@ -15,9 +15,10 @@ namespace locic {
 	
 		Alias::Alias(Context& argContext,
 		             GlobalStructure argParent,
-		             Name argName)
+		             Name argName, const AST::Node<AST::AliasDecl>& argASTAlias)
 			: context_(argContext),
 			parent_(std::move(argParent)),
+			astAlias_(argASTAlias),
 			name_(std::move(argName)),
 			requiresPredicate_(Predicate::True()),
 			noexceptPredicate_(Predicate::False()) { }
@@ -32,6 +33,10 @@ namespace locic {
 		
 		const GlobalStructure& Alias::parent() const {
 			return parent_;
+		}
+		
+		const AST::Node<AST::AliasDecl>& Alias::astAlias() const {
+			return astAlias_;
 		}
 		
 		const Name& Alias::name() const {
