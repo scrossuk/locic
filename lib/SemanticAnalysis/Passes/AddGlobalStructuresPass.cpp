@@ -224,7 +224,8 @@ namespace locic {
 				
 				std::unique_ptr<SEM::Alias> semAlias(new SEM::Alias(context.semContext(),
 				                                                    SEM::GlobalStructure::Namespace(semNamespace),
-				                                                    fullTypeName.copy()));
+				                                                    fullTypeName.copy(),
+				                                                    astAliasNode));
 				
 				// Add template variables.
 				size_t templateVarIndex = 0;
