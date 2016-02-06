@@ -201,26 +201,26 @@ namespace locic {
 			
 			static Value* Bracket(Node<Value> operand) {
 				Value* value = new Value(BRACKET);
-				value->bracket.value = operand;
+				value->bracket.value = std::move(operand);
 				return value;
 			}
 			
-			static Value* Literal(const String& specifier, const Node<Constant>& constant) {
+			static Value* Literal(const String& specifier, Node<Constant> constant) {
 				Value* value = new Value(LITERAL);
 				value->literal.specifier = specifier;
-				value->literal.constant = constant;
+				value->literal.constant = std::move(constant);
 				return value;
 			}
 			
-			static Value* SymbolRef(const Node<Symbol>& symbol) {
+			static Value* SymbolRef(Node<Symbol> symbol) {
 				Value* value = new Value(SYMBOLREF);
-				value->symbolRef.symbol = symbol;
+				value->symbolRef.symbol = std::move(symbol);
 				return value;
 			}
 			
-			static Value* TypeRef(const Node<Type>& type) {
+			static Value* TypeRef(Node<Type> type) {
 				Value* value = new Value(TYPEREF);
-				value->typeRef.type = type;
+				value->typeRef.type = std::move(type);
 				return value;
 			}
 			
@@ -230,124 +230,124 @@ namespace locic {
 				return value;
 			}
 			
-			static Value* AlignOf(const Node<Type>& type) {
+			static Value* AlignOf(Node<Type> type) {
 				Value* value = new Value(ALIGNOF);
-				value->alignOf.type = type;
+				value->alignOf.type = std::move(type);
 				return value;
 			}
 			
-			static Value* SizeOf(const Node<Type>& type) {
+			static Value* SizeOf(Node<Type> type) {
 				Value* value = new Value(SIZEOF);
-				value->sizeOf.type = type;
+				value->sizeOf.type = std::move(type);
 				return value;
 			}
 			
 			static Value* UnaryOp(UnaryOpKind kind, Node<Value> operand) {
 				Value* value = new Value(UNARYOP);
 				value->unaryOp.kind = kind;
-				value->unaryOp.operand = operand;
+				value->unaryOp.operand = std::move(operand);
 				return value;
 			}
 			
 			static Value* BinaryOp(BinaryOpKind kind, Node<Value> leftOperand, Node<Value> rightOperand) {
 				Value* value = new Value(BINARYOP);
 				value->binaryOp.kind = kind;
-				value->binaryOp.leftOperand = leftOperand;
-				value->binaryOp.rightOperand = rightOperand;
+				value->binaryOp.leftOperand = std::move(leftOperand);
+				value->binaryOp.rightOperand = std::move(rightOperand);
 				return value;
 			}
 			
 			static Value* Ternary(Node<Value> condition, Node<Value> ifTrue, Node<Value> ifFalse) {
 				Value* value = new Value(TERNARY);
-				value->ternary.condition = condition;
-				value->ternary.ifTrue = ifTrue;
-				value->ternary.ifFalse = ifFalse;
+				value->ternary.condition = std::move(condition);
+				value->ternary.ifTrue = std::move(ifTrue);
+				value->ternary.ifFalse = std::move(ifFalse);
 				return value;
 			}
 			
 			static Value* Cast(CastKind castKind, Node<Type> sourceType, Node<Type> targetType, Node<Value> operand) {
 				Value* value = new Value(CAST);
 				value->cast.castKind = castKind;
-				value->cast.sourceType = sourceType;
-				value->cast.targetType = targetType;
-				value->cast.value = operand;
+				value->cast.sourceType = std::move(sourceType);
+				value->cast.targetType = std::move(targetType);
+				value->cast.value = std::move(operand);
 				return value;
 			}
 			
-			static Value* Lval(const Node<Type>& targetType, const Node<Value>& operand) {
+			static Value* Lval(Node<Type> targetType, Node<Value> operand) {
 				Value* value = new Value(LVAL);
-				value->makeLval.targetType = targetType;
-				value->makeLval.value = operand;
+				value->makeLval.targetType = std::move(targetType);
+				value->makeLval.value = std::move(operand);
 				return value;
 			}
 			
-			static Value* NoLval(const Node<Value>& operand) {
+			static Value* NoLval(Node<Value> operand) {
 				Value* value = new Value(NOLVAL);
-				value->makeNoLval.value = operand;
+				value->makeNoLval.value = std::move(operand);
 				return value;
 			}
 			
-			static Value* Ref(const Node<Type>& targetType, const Node<Value>& operand) {
+			static Value* Ref(Node<Type> targetType, Node<Value> operand) {
 				Value* value = new Value(REF);
-				value->makeRef.targetType = targetType;
-				value->makeRef.value = operand;
+				value->makeRef.targetType = std::move(targetType);
+				value->makeRef.value = std::move(operand);
 				return value;
 			}
 			
-			static Value* NoRef(const Node<Value>& operand) {
+			static Value* NoRef(Node<Value> operand) {
 				Value* value = new Value(NOREF);
-				value->makeNoRef.value = operand;
+				value->makeNoRef.value = std::move(operand);
 				return value;
 			}
 			
-			static Value* InternalConstruct(const Node<ValueList>& templateArgs, const Node<ValueList>& parameters) {
+			static Value* InternalConstruct(Node<ValueList> templateArgs, Node<ValueList> parameters) {
 				Value* value = new Value(INTERNALCONSTRUCT);
-				value->internalConstruct.templateArgs = templateArgs;
-				value->internalConstruct.parameters = parameters;
+				value->internalConstruct.templateArgs = std::move(templateArgs);
+				value->internalConstruct.parameters = std::move(parameters);
 				return value;
 			}
 			
 			static Value* MemberAccess(Node<Value> object, const String& memberName) {
 				Value* value = new Value(MEMBERACCESS);
-				value->memberAccess.object = object;
+				value->memberAccess.object = std::move(object);
 				value->memberAccess.memberName = memberName;
 				return value;
 			}
 			
-			static Value* TemplatedMemberAccess(Node<Value> object, const String& memberName, const Node<ValueList>& templateArgs) {
+			static Value* TemplatedMemberAccess(Node<Value> object, const String& memberName, Node<ValueList> templateArgs) {
 				Value* value = new Value(TEMPLATEDMEMBERACCESS);
-				value->templatedMemberAccess.object = object;
+				value->templatedMemberAccess.object = std::move(object);
 				value->templatedMemberAccess.memberName = memberName;
-				value->templatedMemberAccess.templateArgs = templateArgs;
+				value->templatedMemberAccess.templateArgs = std::move(templateArgs);
 				return value;
 			}
 			
-			static Value* FunctionCall(Node<Value> functionValue, const Node<ValueList>& parameters) {
+			static Value* FunctionCall(Node<Value> functionValue, Node<ValueList> parameters) {
 				Value* value = new Value(FUNCTIONCALL);
-				value->functionCall.functionValue = functionValue;
-				value->functionCall.parameters = parameters;
+				value->functionCall.functionValue = std::move(functionValue);
+				value->functionCall.parameters = std::move(parameters);
 				return value;
 			}
 			
 			static Value* CapabilityTest(Node<Type> checkType,
 			                             Node<Type> capabilityType) {
 				Value* value = new Value(CAPABILITYTEST);
-				value->capabilityTest.checkType = checkType;
-				value->capabilityTest.capabilityType = capabilityType;
+				value->capabilityTest.checkType = std::move(checkType);
+				value->capabilityTest.capabilityType = std::move(capabilityType);
 				return value;
 			}
 			
-			static Value* ArrayLiteral(const Node<ValueList>& values) {
+			static Value* ArrayLiteral(Node<ValueList> values) {
 				Value* value = new Value(ARRAYLITERAL);
-				value->arrayLiteral.values = values;
+				value->arrayLiteral.values = std::move(values);
 				return value;
 			}
 			
 			static Value* Merge(Node<Value> first,
 			                    Node<Value> second) {
 				Value* value = new Value(MERGE);
-				value->merge.first = first;
-				value->merge.second = second;
+				value->merge.first = std::move(first);
+				value->merge.second = std::move(second);
 				return value;
 			}
 			
