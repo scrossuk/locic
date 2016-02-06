@@ -29,8 +29,8 @@ namespace locic {
 			const Node<RequireSpecifier>& requireSpecifier() const;
 			const AST::Node<AST::Value>& value() const;
 			
-			void setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier);
-			void setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables);
+			void setRequireSpecifier(Node<RequireSpecifier> pRequireSpecifier);
+			void setTemplateVariables(Node<TemplateTypeVarList> pTemplateVariables);
 			
 			void setAlias(SEM::Alias& alias);
 			

@@ -14,7 +14,7 @@ namespace locic {
 		AliasDecl::AliasDecl(const String& pName, AST::Node<Value> pValue)
 		: name_(pName), templateVariables_(makeDefaultNode<TemplateTypeVarList>()),
 		requireSpecifier_(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
-		value_(pValue), alias_(nullptr) { }
+		value_(std::move(pValue)), alias_(nullptr) { }
 		
 		AliasDecl::~AliasDecl() { }
 		
@@ -34,12 +34,12 @@ namespace locic {
 			return value_;
 		}
 		
-		void AliasDecl::setRequireSpecifier(const Node<RequireSpecifier>& pRequireSpecifier) {
-			requireSpecifier_ = pRequireSpecifier;
+		void AliasDecl::setRequireSpecifier(Node<RequireSpecifier> pRequireSpecifier) {
+			requireSpecifier_ = std::move(pRequireSpecifier);
 		}
 		
-		void AliasDecl::setTemplateVariables(const Node<TemplateTypeVarList>& pTemplateVariables) {
-			templateVariables_ = pTemplateVariables;
+		void AliasDecl::setTemplateVariables(Node<TemplateTypeVarList> pTemplateVariables) {
+			templateVariables_ = std::move(pTemplateVariables);
 		}
 		
 		void AliasDecl::setAlias(SEM::Alias& semAlias) {
