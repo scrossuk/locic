@@ -7,6 +7,7 @@
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 
 namespace locic {
 	
@@ -75,6 +76,21 @@ namespace locic {
 			
 		}
 		
+		class AliasDependsOnItselfDiag: public Error {
+		public:
+			AliasDependsOnItselfDiag(Name name)
+			: name_(std::move(name)) { }
+			
+			std::string toString() const {
+				return makeString("alias '%s' depends on itself via a cycle",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
 		class AliasTypeResolverImpl {
 		public:
 			AliasTypeResolverImpl(Context& context)
@@ -99,8 +115,11 @@ namespace locic {
 				auto& resolveInfo = resolveMap_.at(&alias);
 				
 				if (resolveInfo.isResolving()) {
-					throw ErrorException(makeString("Circular dependency of alias '%s'.",
-					                                alias.name().toString().c_str()));
+					context_.issueDiag(AliasDependsOnItselfDiag(alias.name().copy()),
+					                   alias.astAlias().location());
+					const auto voidType = context_.typeBuilder().getVoidType();
+					alias.setType(voidType);
+					return voidType;
 				}
 				
 				resolveInfo.setIsResolving();
