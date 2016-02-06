@@ -59,6 +59,12 @@ namespace locic{
 				return *this;
 			}
 			
+			Optional& operator=(Value other) {
+				Optional tmp(std::move(other));
+				swap(tmp);
+				return *this;
+			}
+			
 			void swap(Optional& other) {
 				if (*this) {
 					if (other) {
