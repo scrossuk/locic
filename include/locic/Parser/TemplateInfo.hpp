@@ -13,6 +13,9 @@ namespace locic {
 			TemplateInfo();
 			~TemplateInfo();
 			
+			TemplateInfo(TemplateInfo&&) = default;
+			TemplateInfo& operator=(TemplateInfo&&) = default;
+			
 			AST::Node<AST::TemplateTypeVarList> templateVariables() const;
 			AST::Node<AST::RequireSpecifier> requireSpecifier() const;
 			AST::Node<AST::RequireSpecifier> moveSpecifier() const;
