@@ -10,13 +10,14 @@ namespace locic {
 		template <typename NodeType>
 		class Node {
 			public:
-				inline Node()
-					: location_(Debug::SourceLocation::Null()), contents_(NULL) { }
-					
-				inline Node(const Debug::SourceLocation& pLocation, NodeType* pContents)
-					: location_(pLocation), contents_(pContents) { }
-					
-				inline Debug::SourceLocation location() const {
+				Node()
+				: location_(Debug::SourceLocation::Null()),
+				contents_(nullptr) { }
+				
+				Node(const Debug::SourceLocation& pLocation, NodeType* pContents)
+				: location_(pLocation), contents_(pContents) { }
+				
+				Debug::SourceLocation location() const {
 					return location_;
 				}
 				
@@ -24,25 +25,25 @@ namespace locic {
 					location_ = argLocation;
 				}
 				
-				inline bool isNull() const {
+				bool isNull() const {
 					return contents_ == NULL;
 				}
 				
-				inline NodeType* get() const {
+				NodeType* get() const {
 					return contents_;
 				}
 				
-				inline NodeType* operator->() const {
+				NodeType* operator->() const {
 					assert(!isNull());
 					return contents_;
 				}
 				
-				inline NodeType& operator*() const {
+				NodeType& operator*() const {
 					assert(!isNull());
 					return *contents_;
 				}
 				
-				inline std::string toString() const {
+				std::string toString() const {
 					return makeString("Node[location = %s](%s)",
 						location_.toString().c_str(),
 						isNull() ? "[NULL]" : contents_->toString().c_str());
@@ -55,12 +56,12 @@ namespace locic {
 		};
 		
 		template <typename T>
-		inline Node<T> makeNode(const Debug::SourceLocation& pLocation, T* pContents) {
+		Node<T> makeNode(const Debug::SourceLocation& pLocation, T* pContents) {
 			return Node<T>(pLocation, pContents);
 		}
 		
 		template <typename T>
-		inline Node<T> makeDefaultNode() {
+		Node<T> makeDefaultNode() {
 			return Node<T>(Debug::SourceLocation::Null(), new T());
 		}
 		
