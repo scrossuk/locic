@@ -86,9 +86,9 @@ namespace locic {
 						return builder_.makeReturnVoidStatement(start);
 					}
 					
-					const auto value = ValueParser(reader_).parseValue();
+					auto value = ValueParser(reader_).parseValue();
 					reader_.expect(Token::SEMICOLON);
-					return builder_.makeReturnStatement(value, start);
+					return builder_.makeReturnStatement(std::move(value), start);
 				}
 				case Token::THROW: {
 					reader_.consume();
@@ -97,9 +97,9 @@ namespace locic {
 						return builder_.makeRethrowStatement(start);
 					}
 					
-					const auto value = ValueParser(reader_).parseValue();
+					auto value = ValueParser(reader_).parseValue();
 					reader_.expect(Token::SEMICOLON);
-					return builder_.makeThrowStatement(value, start);
+					return builder_.makeThrowStatement(std::move(value), start);
 				}
 				case Token::BREAK: {
 					reader_.consume();
@@ -118,9 +118,9 @@ namespace locic {
 				}
 				case Token::UNUSED_RESULT: {
 					reader_.consume();
-					const auto value = ValueParser(reader_).parseValue();
+					auto value = ValueParser(reader_).parseValue();
 					reader_.expect(Token::SEMICOLON);
-					return builder_.makeUnusedResultValueStatement(value,
+					return builder_.makeUnusedResultValueStatement(std::move(value),
 					                                               start);
 				}
 				default:
@@ -136,8 +136,8 @@ namespace locic {
 		
 		AST::Node<AST::Statement> StatementParser::parseScopeStatement() {
 			const auto start = reader_.position();
-			const auto scope = ScopeParser(reader_).parseScope();
-			return builder_.makeScopeStatement(scope, start);
+			auto scope = ScopeParser(reader_).parseScope();
+			return builder_.makeScopeStatement(std::move(scope), start);
 		}
 		
 		AST::Node<AST::Statement> StatementParser::parseIfStatement() {
@@ -150,15 +150,15 @@ namespace locic {
 			while (true) {
 				const auto token = reader_.peek();
 				if (token.kind() != Token::ELSE) {
-					return builder_.makeIfStatement(ifClauseList, start);
+					return builder_.makeIfStatement(std::move(ifClauseList), start);
 				}
 				
 				reader_.consume();
 				
 				if (reader_.peek().kind() != Token::IF) {
-					const auto elseScope = ScopeParser(reader_).parseScope();
-					return builder_.makeIfElseStatement(ifClauseList,
-					                                    elseScope, start);
+					auto elseScope = ScopeParser(reader_).parseScope();
+					return builder_.makeIfElseStatement(std::move(ifClauseList),
+					                                    std::move(elseScope), start);
 				}
 				
 				ifClauseList.push_back(parseIfClause());
@@ -169,27 +169,27 @@ namespace locic {
 			const auto start = reader_.position();
 			reader_.expect(Token::IF);
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto value = ValueParser(reader_).parseValue();
+			auto value = ValueParser(reader_).parseValue();
 			reader_.expect(Token::RROUNDBRACKET);
-			const auto scope = ScopeParser(reader_).parseScope();
-			return builder_.makeIfClause(value, scope, start);
+			auto scope = ScopeParser(reader_).parseScope();
+			return builder_.makeIfClause(std::move(value), std::move(scope), start);
 		}
 		
 		AST::Node<AST::Statement> StatementParser::parseSwitchStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::SWITCH);
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto value = ValueParser(reader_).parseValue();
+			auto value = ValueParser(reader_).parseValue();
 			reader_.expect(Token::RROUNDBRACKET);
 			reader_.expect(Token::LCURLYBRACKET);
 			
-			const auto switchCaseList = parseSwitchCaseList();
-			const auto defaultCase = parseSwitchDefaultCase();
+			auto switchCaseList = parseSwitchCaseList();
+			auto defaultCase = parseSwitchDefaultCase();
 			
 			reader_.expect(Token::RCURLYBRACKET);
 			
-			return builder_.makeSwitchStatement(value, switchCaseList,
-			                                    defaultCase, start);
+			return builder_.makeSwitchStatement(std::move(value), std::move(switchCaseList),
+			                                    std::move(defaultCase), start);
 		}
 		
 		AST::Node<AST::SwitchCaseList> StatementParser::parseSwitchCaseList() {
@@ -201,7 +201,7 @@ namespace locic {
 			while (true) {
 				const auto token = reader_.peek();
 				if (token.kind() != Token::CASE) {
-					return builder_.makeSwitchCaseList(switchCaseList,
+					return builder_.makeSwitchCaseList(std::move(switchCaseList),
 					                                   start);
 				}
 				
@@ -213,10 +213,10 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			reader_.expect(Token::CASE);
-			const auto var = VarParser(reader_).parseVar();
-			const auto scope = ScopeParser(reader_).parseScope();
+			auto var = VarParser(reader_).parseVar();
+			auto scope = ScopeParser(reader_).parseScope();
 			
-			return builder_.makeSwitchCase(var, scope, start);
+			return builder_.makeSwitchCase(std::move(var), std::move(scope), start);
 		}
 		
 		AST::Node<AST::DefaultCase> StatementParser::parseSwitchDefaultCase() {
@@ -226,41 +226,42 @@ namespace locic {
 			}
 			
 			reader_.consume();
-			const auto scope = ScopeParser(reader_).parseScope();
+			auto scope = ScopeParser(reader_).parseScope();
 			
-			return builder_.makeDefaultSwitchCase(scope, start);
+			return builder_.makeDefaultSwitchCase(std::move(scope), start);
 		}
 		
 		AST::Node<AST::Statement> StatementParser::parseWhileStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::WHILE);
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto value = ValueParser(reader_).parseValue();
+			auto value = ValueParser(reader_).parseValue();
 			reader_.expect(Token::RROUNDBRACKET);
-			const auto scope = ScopeParser(reader_).parseScope();
-			return builder_.makeWhileStatement(value, scope, start);
+			auto scope = ScopeParser(reader_).parseScope();
+			return builder_.makeWhileStatement(std::move(value), std::move(scope), start);
 		}
 		
 		AST::Node<AST::Statement> StatementParser::parseForStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::FOR);
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto var = VarParser(reader_).parseVar();
+			auto var = VarParser(reader_).parseVar();
 			reader_.expect(Token::COLON);
-			const auto value = ValueParser(reader_).parseValue();
+			auto value = ValueParser(reader_).parseValue();
 			reader_.expect(Token::RROUNDBRACKET);
-			const auto scope = ScopeParser(reader_).parseScope();
-			return builder_.makeForStatement(var, value, scope, start);
+			auto scope = ScopeParser(reader_).parseScope();
+			return builder_.makeForStatement(std::move(var), std::move(value),
+			                                 std::move(scope), start);
 		}
 		
 		AST::Node<AST::Statement> StatementParser::parseTryStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::TRY);
-			const auto scope = ScopeParser(reader_).parseScope();
+			auto scope = ScopeParser(reader_).parseScope();
 			
-			const auto catchClauseList = parseCatchClauseList();
+			auto catchClauseList = parseCatchClauseList();
 			
-			return builder_.makeTryStatement(scope, catchClauseList, start);
+			return builder_.makeTryStatement(std::move(scope), std::move(catchClauseList), start);
 		}
 		
 		AST::Node<AST::CatchClauseList> StatementParser::parseCatchClauseList() {
@@ -282,12 +283,12 @@ namespace locic {
 			
 			reader_.expect(Token::CATCH);
 			reader_.expect(Token::LROUNDBRACKET);
-			const auto var = VarParser(reader_).parseVar();
+			auto var = VarParser(reader_).parseVar();
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			const auto scope = ScopeParser(reader_).parseScope();
+			auto scope = ScopeParser(reader_).parseScope();
 			
-			return builder_.makeCatchClause(var, scope, start);
+			return builder_.makeCatchClause(std::move(var), std::move(scope), start);
 		}
 		
 		AST::Node<AST::Statement> StatementParser::parseScopeExitStatement() {
@@ -298,9 +299,9 @@ namespace locic {
 			const auto name = reader_.expectName();
 			reader_.expect(Token::RROUNDBRACKET);
 			
-			const auto scope = ScopeParser(reader_).parseScope();
+			auto scope = ScopeParser(reader_).parseScope();
 			
-			return builder_.makeScopeExitStatement(name, scope, start);
+			return builder_.makeScopeExitStatement(name, std::move(scope), start);
 		}
 		
 		static std::string readString(const Debug::SourceLocation& location) {
@@ -334,15 +335,15 @@ namespace locic {
 			
 			if (reader_.peek().kind() == Token::NOEXCEPT) {
 				reader_.consume();
-				const auto scope = ScopeParser(reader_).parseScope();
-				return builder_.makeAssertNoexceptStatement(scope, start);
+				auto scope = ScopeParser(reader_).parseScope();
+				return builder_.makeAssertNoexceptStatement(std::move(scope), start);
 			}
 			
-			const auto value = ValueParser(reader_).parseValue();
+			auto value = ValueParser(reader_).parseValue();
 			reader_.expect(Token::SEMICOLON);
 			
 			const auto assertString = readString(value.location());
-			return builder_.makeAssertStatement(value, reader_.makeString(assertString),
+			return builder_.makeAssertStatement(std::move(value), reader_.makeString(assertString),
 			                                    start);
 		}
 		
@@ -378,17 +379,17 @@ namespace locic {
 			
 			(void) reader_.consumeIfPresent(Token::LET);
 			
-			const auto var = VarParser(reader_).parseVar();
+			auto var = VarParser(reader_).parseVar();
 			reader_.expect(Token::SETEQUAL);
-			const auto value = ValueParser(reader_).parseValue();
+			auto value = ValueParser(reader_).parseValue();
 			reader_.expect(Token::SEMICOLON);
-			return builder_.makeVarDeclStatement(var, value, start);
+			return builder_.makeVarDeclStatement(std::move(var), std::move(value), start);
 		}
 		
 		AST::Node<AST::Statement> StatementParser::parseValueOrVarDeclStatement() {
 			const auto start = reader_.position();
 			
-			const auto value = ValueParser(reader_).parseValue(ValueParser::IN_TYPEDECL);
+			auto value = ValueParser(reader_).parseValue(ValueParser::IN_TYPEDECL);
 			
 			AST::AssignKind assignKind;
 			
@@ -414,39 +415,38 @@ namespace locic {
 					break;
 				case Token::NAME: {
 					// This is actually a var decl.
-					const auto type = ValueParser(reader_).interpretValueAsType(value);
+					auto type = ValueParser(reader_).interpretValueAsType(std::move(value));
 					const auto name = reader_.expectName();
-					const auto var = VarBuilder(reader_).makeTypeVar(type, name,
-					                                                 start);
+					auto var = VarBuilder(reader_).makeTypeVar(std::move(type), name, start);
 					reader_.expect(Token::SETEQUAL);
-					const auto rvalue = ValueParser(reader_).parseValue();
+					auto rvalue = ValueParser(reader_).parseValue();
 					reader_.expect(Token::SEMICOLON);
-					return builder_.makeVarDeclStatement(var, rvalue,
+					return builder_.makeVarDeclStatement(std::move(var), std::move(rvalue),
 					                                     start);
 				}
 				case Token::DOUBLE_PLUS:
 					reader_.consume();
 					reader_.expect(Token::SEMICOLON);
-					return builder_.makeIncrementStatement(value, start);
+					return builder_.makeIncrementStatement(std::move(value), start);
 				case Token::DOUBLE_MINUS:
 					reader_.consume();
 					reader_.expect(Token::SEMICOLON);
-					return builder_.makeDecrementStatement(value, start);
+					return builder_.makeDecrementStatement(std::move(value), start);
 				default:
 					reader_.expect(Token::SEMICOLON);
-					return builder_.makeValueStatement(value, start);
+					return builder_.makeValueStatement(std::move(value), start);
 			}
 			
 			reader_.consume();
 			
-			const auto rvalue = ValueParser(reader_).parseValue();
+			auto rvalue = ValueParser(reader_).parseValue();
 			reader_.expect(Token::SEMICOLON);
 			
 			if (!ValueParser(reader_).isUnaryValueOrNext(value)) {
 				reader_.issueDiagWithLoc(InvalidLvalueDiag(),
 				                         value.location());
 			}
-			return builder_.makeAssignStatement(value, rvalue,
+			return builder_.makeAssignStatement(std::move(value), std::move(rvalue),
 			                                    assignKind, start);
 		}
 		
