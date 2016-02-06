@@ -407,10 +407,25 @@ namespace locic {
 			auto value = parseShiftValue(context);
 			
 			while (true) {
-				AST::BinaryOpKind opKind;
-				
 				const auto token = reader_.peek();
-				switch (token.kind()) {
+				const auto kind = token.kind();
+				if (kind == Token::COLON) {
+					if (context == IN_TERNARY) {
+						return value;
+					}
+					
+					auto checkType = interpretValueAsType(std::move(value));
+					reader_.consume();
+					auto capabilityType = TypeParser(reader_).parseType();
+					
+					value = builder_.makeCapabilityTest(std::move(checkType),
+					                                    std::move(capabilityType),
+					                                    start);
+					continue;
+				}
+				
+				AST::BinaryOpKind opKind;
+				switch (kind) {
 					case Token::ISEQUAL:
 						opKind = AST::OP_ISEQUAL;
 						break;
@@ -437,26 +452,8 @@ namespace locic {
 					case Token::GREATEROREQUAL:
 						opKind = AST::OP_GREATERTHANOREQUAL;
 						break;
-					case Token::COLON: {
-						if (context == IN_TERNARY) {
-							return value;
-						}
-						
-						auto checkType = interpretValueAsType(std::move(value));
-						reader_.consume();
-						auto capabilityType = TypeParser(reader_).parseType();
-						
-						value = builder_.makeCapabilityTest(std::move(checkType),
-						                                    std::move(capabilityType),
-						                                    start);
-						break;
-					}
 					default:
 						return value;
-				}
-				
-				if (token.kind() == Token::COLON) {
-					continue;
 				}
 				
 				reader_.consume();
