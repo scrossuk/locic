@@ -16,8 +16,8 @@ namespace locic {
 			Node<Value> condition;
 			Node<Scope> scope;
 			
-			inline IfClause(const Node<Value>& pCondition, const Node<Scope>& pScope)
-				: condition(pCondition), scope(pScope) { }
+			IfClause(Node<Value> pCondition, Node<Scope> pScope)
+			: condition(std::move(pCondition)), scope(std::move(pScope)) { }
 		};
 		
 		typedef std::vector<Node<IfClause>> IfClauseList;
