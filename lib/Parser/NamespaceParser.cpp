@@ -24,9 +24,9 @@ namespace locic {
 		
 		AST::Node<AST::NamespaceDecl> NamespaceParser::parseGlobalNamespace() {
 			const auto start = reader_.position();
-			const auto namespaceData = parseNamespaceData();
+			auto namespaceData = parseNamespaceData();
 			reader_.expect(Token::END);
-			return builder_.makeNamespace(reader_.makeCString(""), namespaceData, start);
+			return builder_.makeNamespace(reader_.makeCString(""), std::move(namespaceData), start);
 		}
 		
 		AST::Node<AST::NamespaceDecl> NamespaceParser::parseNamespace() {
@@ -38,11 +38,11 @@ namespace locic {
 			
 			reader_.expect(Token::LCURLYBRACKET);
 			
-			const auto namespaceData = parseNamespaceData();
+			auto namespaceData = parseNamespaceData();
 			
 			reader_.expect(Token::RCURLYBRACKET);
 			
-			return builder_.makeNamespace(name, namespaceData, start);
+			return builder_.makeNamespace(name, std::move(namespaceData), start);
 		}
 		
 		AST::Node<AST::NamespaceData> NamespaceParser::parseNamespaceData() {
@@ -72,7 +72,7 @@ namespace locic {
 							data.staticAsserts.push_back(parseStaticAssert());
 						} else {
 							auto function = FunctionParser(reader_).parseGlobalFunction();
-							data.functions.push_back(function);
+							data.functions.push_back(std::move(function));
 						}
 						break;
 					case Token::ENUM:
@@ -84,7 +84,7 @@ namespace locic {
 					case Token::STRUCT:
 					case Token::UNION: {
 						auto typeInstance = TypeInstanceParser(reader_).parseTypeInstance();
-						data.typeInstances.push_back(typeInstance);
+						data.typeInstances.push_back(std::move(typeInstance));
 						break;
 					}
 					case Token::IMPORT:
@@ -93,7 +93,7 @@ namespace locic {
 							data.moduleScopes.push_back(parseModuleScope());
 						} else {
 							auto function = FunctionParser(reader_).parseGlobalFunction();
-							data.functions.push_back(function);
+							data.functions.push_back(std::move(function));
 						}
 						break;
 					case Token::NAMESPACE:
@@ -101,13 +101,13 @@ namespace locic {
 						break;
 					default: {
 						auto function = FunctionParser(reader_).parseGlobalFunction();
-						data.functions.push_back(function);
+						data.functions.push_back(std::move(function));
 						break;
 					}
 				}
 			}
 			
-			return builder_.makeNamespaceData(data, start);
+			return builder_.makeNamespaceData(std::move(data), start);
 		}
 		
 		void NamespaceParser::parseTemplatedObject(AST::NamespaceData& data) {
@@ -123,15 +123,15 @@ namespace locic {
 				case Token::PRIMITIVE:
 				case Token::STRUCT:
 				case Token::UNION: {
-					parseTemplatedTypeInstance(data, templateInfo, start);
+					parseTemplatedTypeInstance(data, std::move(templateInfo), start);
 					break;
 				}
 				case Token::USING: {
-					parseTemplatedAlias(data, templateInfo, start);
+					parseTemplatedAlias(data, std::move(templateInfo), start);
 					break;
 				}
 				default: {
-					parseTemplatedFunction(data, templateInfo, start);
+					parseTemplatedFunction(data, std::move(templateInfo), start);
 					break;
 				}
 			}
@@ -156,7 +156,7 @@ namespace locic {
 			
 			typeInstance.setLocation(reader_.locationWithRangeFrom(start));
 			
-			data.typeInstances.push_back(typeInstance);
+			data.typeInstances.push_back(std::move(typeInstance));
 		}
 		
 		void NamespaceParser::parseTemplatedAlias(AST::NamespaceData& data,
@@ -172,7 +172,7 @@ namespace locic {
 			
 			alias.setLocation(reader_.locationWithRangeFrom(start));
 			
-			data.aliases.push_back(alias);
+			data.aliases.push_back(std::move(alias));
 		}
 		
 		AST::Node<AST::AliasDecl> NamespaceParser::parseAlias() {
@@ -181,10 +181,10 @@ namespace locic {
 			reader_.expect(Token::USING);
 			const auto name = reader_.expectName();
 			reader_.expect(Token::SETEQUAL);
-			const auto value = ValueParser(reader_).parseValue();
+			auto value = ValueParser(reader_).parseValue();
 			reader_.expect(Token::SEMICOLON);
 			
-			return builder_.makeAlias(name, value, start);
+			return builder_.makeAlias(name, std::move(value), start);
 		}
 		
 		AST::Node<AST::StaticAssert> NamespaceParser::parseStaticAssert() {
@@ -192,10 +192,10 @@ namespace locic {
 			
 			reader_.expect(Token::STATIC);
 			reader_.expect(Token::ASSERT);
-			const auto predicate = PredicateParser(reader_).parsePredicate();
+			auto predicate = PredicateParser(reader_).parsePredicate();
 			reader_.expect(Token::SEMICOLON);
 			
-			return builder_.makeStaticAssert(predicate, start);
+			return builder_.makeStaticAssert(std::move(predicate), start);
 		}
 		
 		void NamespaceParser::parseTemplatedFunction(AST::NamespaceData& data,
@@ -214,7 +214,7 @@ namespace locic {
 			
 			function.setLocation(reader_.locationWithRangeFrom(start));
 			
-			data.functions.push_back(function);
+			data.functions.push_back(std::move(function));
 		}
 		
 		bool NamespaceParser::isNextObjectModuleScope() {
@@ -253,30 +253,30 @@ namespace locic {
 			if (reader_.peek().kind() == Token::LCURLYBRACKET) {
 				reader_.consume();
 				
-				const auto data = parseNamespaceData();
+				auto data = parseNamespaceData();
 				
 				reader_.expect(Token::RCURLYBRACKET);
 				
 				if (token.kind() == Token::EXPORT) {
-					return builder_.makeUnnamedExport(data, start);
+					return builder_.makeUnnamedExport(std::move(data), start);
 				} else {
-					return builder_.makeUnnamedImport(data, start);
+					return builder_.makeUnnamedImport(std::move(data), start);
 				}
 			}
 			
-			const auto moduleName = parseModuleName();
-			const auto version = parseModuleVersion();
+			auto moduleName = parseModuleName();
+			auto version = parseModuleVersion();
 			
 			reader_.expect(Token::LCURLYBRACKET);
-			const auto data = parseNamespaceData();
+			auto data = parseNamespaceData();
 			reader_.expect(Token::RCURLYBRACKET);
 			
 			if (token.kind() == Token::EXPORT) {
-				return builder_.makeNamedExport(moduleName, version,
-				                                data, start);
+				return builder_.makeNamedExport(std::move(moduleName), std::move(version),
+				                                std::move(data), start);
 			} else {
-				return builder_.makeNamedImport(moduleName, version,
-				                                data, start);
+				return builder_.makeNamedImport(std::move(moduleName), std::move(version),
+				                                std::move(data), start);
 			}
 		}
 		
@@ -297,8 +297,8 @@ namespace locic {
 		
 		AST::Node<Version> NamespaceParser::parseModuleVersion() {
 			const auto start = reader_.position();
-			const auto version = reader_.expectVersion();
-			return builder_.makeVersion(version, start);
+			auto version = reader_.expectVersion();
+			return builder_.makeVersion(std::move(version), start);
 		}
 		
 	}

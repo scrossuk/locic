@@ -17,7 +17,7 @@ namespace locic {
 		                                AST::Node<AST::NamespaceData> data,
 		                                const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::NamespaceDecl(name, data));
+			return AST::makeNode(location, new AST::NamespaceDecl(name, std::move(data)));
 		}
 		
 		AST::Node<AST::NamespaceData>
@@ -31,28 +31,28 @@ namespace locic {
 		NamespaceBuilder::makeAlias(const String name, AST::Node<AST::Value> value,
 		                            const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::AliasDecl(name, value));
+			return AST::makeNode(location, new AST::AliasDecl(name, std::move(value)));
 		}
 		
 		AST::Node<AST::StaticAssert>
 		NamespaceBuilder::makeStaticAssert(AST::Node<AST::Predicate> predicate,
 		                                   const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::StaticAssert(predicate));
+			return AST::makeNode(location, new AST::StaticAssert(std::move(predicate)));
 		}
 		
 		AST::Node<AST::ModuleScope>
 		NamespaceBuilder::makeUnnamedExport(AST::Node<AST::NamespaceData> data,
 		                                    const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::ModuleScope::Export(data));
+			return AST::makeNode(location, AST::ModuleScope::Export(std::move(data)));
 		}
 		
 		AST::Node<AST::ModuleScope>
 		NamespaceBuilder::makeUnnamedImport(AST::Node<AST::NamespaceData> data,
 		                                    const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::ModuleScope::Import(data));
+			return AST::makeNode(location, AST::ModuleScope::Import(std::move(data)));
 		}
 		
 		AST::Node<AST::ModuleScope>
@@ -61,7 +61,9 @@ namespace locic {
 		                                  AST::Node<AST::NamespaceData> data,
 		                                  const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::ModuleScope::NamedExport(name, version, data));
+			return AST::makeNode(location, AST::ModuleScope::NamedExport(std::move(name),
+			                                                             std::move(version),
+			                                                             std::move(data)));
 		}
 		
 		AST::Node<AST::ModuleScope>
@@ -70,7 +72,9 @@ namespace locic {
 		                                  AST::Node<AST::NamespaceData> data,
 		                                  const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::ModuleScope::NamedImport(name, version, data));
+			return AST::makeNode(location, AST::ModuleScope::NamedImport(std::move(name),
+			                                                             std::move(version),
+			                                                             std::move(data)));
 		}
 		
 		AST::Node<AST::StringList>
