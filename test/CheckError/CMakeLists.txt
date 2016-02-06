@@ -11,7 +11,6 @@ macro(test_check_error name)
 	endif()
 endmacro(test_check_error)
 
-add_subdirectory(Alias)
 add_subdirectory(Cast)
 add_subdirectory(Class)
 add_subdirectory(Conditional)

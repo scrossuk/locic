@@ -1,0 +1,18 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+// XFAIL: *
+
+interface DoThingAble {
+	void doThing();
+}
+
+template <typename T>
+using CanDoThing = T : DoThingAble;
+
+// The second operator to the capability check (A : B) must be a type, hence
+// this is invalid code.
+template <typename T>
+// CHECK: .loci:15:31: error: invalid operand for capability check
+using InvalidCanDoThing = T : CanDoThing<T>;
+
+// CHECK: 1 error generated.
