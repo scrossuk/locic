@@ -1,6 +1,8 @@
 #ifndef LOCIC_AST_NODE_HPP
 #define LOCIC_AST_NODE_HPP
 
+#include <memory>
+
 #include <locic/Debug/SourceLocation.hpp>
 
 namespace locic {
@@ -26,7 +28,7 @@ namespace locic {
 				}
 				
 				bool isNull() const {
-					return contents_ == NULL;
+					return get() == nullptr;
 				}
 				
 				NodeType* get() const {
@@ -35,7 +37,7 @@ namespace locic {
 				
 				NodeType* operator->() const {
 					assert(!isNull());
-					return contents_;
+					return get();
 				}
 				
 				NodeType& operator*() const {
@@ -51,6 +53,7 @@ namespace locic {
 				
 			private:
 				Debug::SourceLocation location_;
+				//std::unique_ptr<NodeType> contents_;
 				NodeType* contents_;
 				
 		};
