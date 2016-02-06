@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:1: error: definition required for internal class 'Decl'
+class Decl { }
+
+class Def() { }
+
+// CHECK: 1 error generated.
