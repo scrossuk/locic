@@ -66,6 +66,8 @@ namespace locic {
 					                  merge.first.toString().c_str(),
 					                  merge.second.toString().c_str());
 			}
+			
+			locic_unreachable("Unknown value kind.");
 		}
 		
 	}
