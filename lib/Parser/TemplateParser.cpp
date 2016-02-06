@@ -76,19 +76,19 @@ namespace locic {
 		TemplateParser::parseTemplateVar() {
 			const auto start = reader_.position();
 			
-			const auto type = TypeParser(reader_).parseType();
+			auto type = TypeParser(reader_).parseType();
 			const auto name = reader_.expectName();
 			
 			if (reader_.peek().kind() != Token::COLON) {
-				return builder_.makeTemplateVar(type, name, start);
+				return builder_.makeTemplateVar(std::move(type), name, start);
 			}
 			
 			reader_.consume();
 			
-			const auto capabilityType = TypeParser(reader_).parseType();
+			auto capabilityType = TypeParser(reader_).parseType();
 			
-			return builder_.makeCapabilityTemplateVar(type, name,
-			                                          capabilityType,
+			return builder_.makeCapabilityTemplateVar(std::move(type), name,
+			                                          std::move(capabilityType),
 			                                          start);
 		}
 		

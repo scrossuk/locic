@@ -23,7 +23,7 @@ namespace locic {
 		TemplateBuilder::makeTemplateVar(AST::Node<AST::Type> type, const String name,
 		                                 const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::TemplateTypeVar::NoSpec(type, name));
+			return AST::makeNode(location, AST::TemplateTypeVar::NoSpec(std::move(type), name));
 		}
 		
 		AST::Node<AST::TemplateTypeVar>
@@ -31,8 +31,8 @@ namespace locic {
 		                                           AST::Node<AST::Type> capabilityType,
 		                                           const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::TemplateTypeVar::WithSpec(type, name,
-			                                                              capabilityType));
+			return AST::makeNode(location, AST::TemplateTypeVar::WithSpec(std::move(type), name,
+			                                                              std::move(capabilityType)));
 		}
 		
 	}
