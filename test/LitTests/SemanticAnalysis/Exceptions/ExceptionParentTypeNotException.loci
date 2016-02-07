@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() { static create = default; }
+
+// CHECK: .loci:7:25: error: 'Exception' cannot inherit from non-exception type 'TestClass'
+exception Exception() : TestClass();
+
+// CHECK: 1 error generated.
