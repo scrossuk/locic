@@ -24,6 +24,10 @@ namespace locic {
 					ConvertFunctionDeclType(context, semChildFunction);
 				} else {
 					const auto searchResult = performSearch(context, name->getPrefix());
+					if (!searchResult.isTypeInstance()) {
+						continue;
+					}
+					
 					auto& parentTypeInstance = searchResult.typeInstance();
 					
 					// Push the type instance on the scope stack, since the extension method is

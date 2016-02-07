@@ -166,6 +166,40 @@ namespace locic {
 			return semFunction;
 		}
 		
+		class UnknownParentTypeForExceptionMethodDiag: public Error {
+		public:
+			UnknownParentTypeForExceptionMethodDiag(Name parentName, String methodName)
+			: parentName_(std::move(parentName)), methodName_(methodName) { }
+			
+			std::string toString() const {
+				return makeString("unknown parent type '%s' of extension method '%s'",
+				                  parentName_.toString(/*addPrefix=*/false).c_str(),
+				                  methodName_.c_str());
+			}
+			
+		private:
+			Name parentName_;
+			String methodName_;
+			
+		};
+		
+		class ParentOfExtentionMethodIsNotATypeDiag: public Error {
+		public:
+			ParentOfExtentionMethodIsNotATypeDiag(Name parentName, String methodName)
+			: parentName_(std::move(parentName)), methodName_(methodName) { }
+			
+			std::string toString() const {
+				return makeString("parent '%s' of extension method '%s' is not a type",
+				                  parentName_.toString(/*addPrefix=*/false).c_str(),
+				                  methodName_.c_str());
+			}
+			
+		private:
+			Name parentName_;
+			String methodName_;
+			
+		};
+		
 		void AddNamespaceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
@@ -191,13 +225,15 @@ namespace locic {
 				assert(name->size() > 1);
 				const auto searchResult = performSearch(context, name->getPrefix());
 				if (searchResult.isNone()) {
-					throw ErrorException(makeString("Failed to find parent type for extension method '%s', at position %s.",
-						name->toString().c_str(), name.location().toString().c_str()));
+					context.issueDiag(UnknownParentTypeForExceptionMethodDiag(name->getPrefix(), name->last()),
+					                  name.location());
+					return;
 				}
 				
 				if (!searchResult.isTypeInstance()) {
-					throw ErrorException(makeString("Parent type for extension method '%s' is not a valid type, at position %s.",
-						name->toString().c_str(), name.location().toString().c_str()));
+					context.issueDiag(ParentOfExtentionMethodIsNotATypeDiag(name->getPrefix(), name->last()),
+					                  name.location());
+					return;
 				}
 				
 				auto& parentTypeInstance = searchResult.typeInstance();

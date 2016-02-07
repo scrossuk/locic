@@ -27,6 +27,10 @@ namespace locic {
 			} else {
 				// Extension method.
 				const auto searchResult = performSearch(context, name->getPrefix());
+				if (!searchResult.isTypeInstance()) {
+					return;
+				}
+				
 				auto& semTypeInstance = searchResult.typeInstance();
 				
 				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semTypeInstance));
