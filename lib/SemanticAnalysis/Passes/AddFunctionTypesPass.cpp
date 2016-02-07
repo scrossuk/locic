@@ -16,11 +16,11 @@ namespace locic {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
-				auto& semChildFunction = astFunctionNode->semFunction();
 				const auto& name = astFunctionNode->name();
 				assert(!name->empty());
 				
 				if (name->size() == 1) {
+					auto& semChildFunction = astFunctionNode->semFunction();
 					ConvertFunctionDeclType(context, semChildFunction);
 				} else {
 					const auto searchResult = performSearch(context, name->getPrefix());
@@ -29,6 +29,7 @@ namespace locic {
 					}
 					
 					auto& parentTypeInstance = searchResult.typeInstance();
+					auto& semChildFunction = astFunctionNode->semFunction();
 					
 					// Push the type instance on the scope stack, since the extension method is
 					// effectively within the scope of the type instance.

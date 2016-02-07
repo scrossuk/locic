@@ -18,10 +18,10 @@ namespace locic {
 		
 		void ConvertNamespaceFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
 			const auto& name = astFunctionNode->name();
-			auto& semChildFunction = astFunctionNode->semFunction();
 			
 			if (name->size() == 1) {
 				// Normal namespace function.
+				auto& semChildFunction = astFunctionNode->semFunction();
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
 				ConvertFunctionDef(context, astFunctionNode);
 			} else {
@@ -32,6 +32,7 @@ namespace locic {
 				}
 				
 				auto& semTypeInstance = searchResult.typeInstance();
+				auto& semChildFunction = astFunctionNode->semFunction();
 				
 				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semTypeInstance));
 				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
