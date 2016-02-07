@@ -9,6 +9,16 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
+		class StaticAssertPredicateIsFalseDiag: public Error {
+		public:
+			StaticAssertPredicateIsFalseDiag() { }
+			
+			std::string toString() const {
+				return "static assert predicate evaluates to false";
+			}
+			
+		};
+		
 		void EvaluateNamespaceStaticAsserts(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			for (const auto& astStaticAssertNode: astNamespaceDataNode->staticAsserts) {
 				const auto& astPredicateNode = astStaticAssertNode->expression();
@@ -17,9 +27,8 @@ namespace locic {
 				const auto evaluateResult = evaluatePredicate(context, semPredicate, SEM::TemplateVarMap());
 				assert(evaluateResult);
 				if (!*evaluateResult) {
-					throw ErrorException(makeString("Static assert predicate '%s' is false, at position %s.",
-					                                semPredicate.toString().c_str(),
-					                                astPredicateNode.location().toString().c_str()));
+					context.issueDiag(StaticAssertPredicateIsFalseDiag(),
+					                  astPredicateNode.location());
 				}
 			}
 			
