@@ -1,8 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK-NOT: Static assert predicate 'true' is false
+// CHECK-NOT: .loci:5:15: error: static assert predicate evaluates to false
 static assert true;
 
-// CHECK: Static assert predicate 'false' is false
+// CHECK: .loci:8:15: error: static assert predicate evaluates to false
 static assert false;
+
+// CHECK: 1 error generated.
