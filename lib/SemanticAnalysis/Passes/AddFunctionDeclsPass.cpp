@@ -323,7 +323,6 @@ namespace locic {
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				assert(moduleScope.isInternal());
 				AddNamespaceDataFunctionDecls(context, astModuleScopeNode->data, ConvertModuleScope(astModuleScopeNode));
 			}
 			
