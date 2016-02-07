@@ -1,0 +1,7 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:6: error: unknown parent type 'TestClass' of extension method 'method'
+void TestClass::method() { }
+
+// CHECK: 1 error generated.

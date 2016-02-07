@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+void TestClass() { }
+
+// CHECK: .loci:7:6: error: parent 'TestClass' of extension method 'method' is not a type
+void TestClass::method() { }
+
+// CHECK: 1 error generated.
