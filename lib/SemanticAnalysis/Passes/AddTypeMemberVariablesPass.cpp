@@ -57,6 +57,24 @@ namespace locic {
 			}
 		}
 		
+		class ExceptionCannotInheritNonExceptionTypeDiag: public Error {
+		public:
+			ExceptionCannotInheritNonExceptionTypeDiag(const SEM::TypeInstance& exceptionType,
+			                                           const SEM::Type* inheritType)
+			: exceptionType_(exceptionType), inheritType_(inheritType) { }
+			
+			std::string toString() const {
+				return makeString("'%s' cannot inherit from non-exception type '%s'",
+				                  exceptionType_.name().toString(/*addPrefix=*/false).c_str(),
+				                  inheritType_->toString().c_str());
+			}
+			
+		private:
+			const SEM::TypeInstance& exceptionType_;
+			const SEM::Type* inheritType_;
+			
+		};
+		
 		// Fill in type instance structures with member variable information.
 		void AddTypeInstanceMemberVariables(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
 				std::vector<SEM::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
@@ -78,8 +96,8 @@ namespace locic {
 					const auto semType = ConvertObjectType(context, astInitializerNode->symbol);
 					
 					if (!semType->isException()) {
-						throw ErrorException(makeString("Exception parent type '%s' is not an exception type at location %s.",
-							semType->toString().c_str(), astInitializerNode.location().toString().c_str()));
+						context.issueDiag(ExceptionCannotInheritNonExceptionTypeDiag(semTypeInstance, semType),
+						                  astInitializerNode->symbol.location());
 					}
 					
 					semTypeInstance.setParentType(semType);
