@@ -34,9 +34,9 @@ namespace locic {
 						symbol.toString().c_str(),
 						"[TODO]"
 						);
-				default:
-					return "[UNKNOWN]";
 			}
+			
+			locic_unreachable("Unknown exception initializer");
 		}
 		
 	}

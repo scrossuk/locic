@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <locic/Exception.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 
@@ -69,11 +70,9 @@ namespace locic {
 						case TYPE_WITH_TYPE: {
 							return makeString("Type name '%s' clashes with existing type.", name_.toString().c_str());
 						}
-						default: {
-							assert(false);
-							return "";
-						}
 					}
+					
+					locic_unreachable("Invalid name clash kind.");
 				}
 				
 			private:
