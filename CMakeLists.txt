@@ -185,7 +185,6 @@ include(LLVMABI)
 # All headers are in the /include directory.
 include_directories (
 	"${CMAKE_SOURCE_DIR}/include"
-	"${CMAKE_SOURCE_DIR}/lib/CodeGen/llvm-abi/include"
 )
 
 set (STD_CONCURRENCY_API_FILES
