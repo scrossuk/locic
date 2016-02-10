@@ -5,13 +5,16 @@
 #include <cstring>
 #include <type_traits>
 
-namespace locic{
+namespace locic {
 	
-	struct NoneType {
-		NoneType() { }
-	};
+	// As a slightly nasty trick, represent NoneType as a pointer to member,
+	// since this encodes the NoneType-specific helper struct into the type
+	// while still being a literal type.
+	namespace Helper { struct NoneHelper{}; }
 	
-	static const NoneType None;
+	using NoneType = int Helper::NoneHelper::*;
+	
+	constexpr NoneType None = static_cast<NoneType>(0);
 	
 	template <typename Value, bool = std::is_copy_constructible<Value>::value>
 	class Optional {
