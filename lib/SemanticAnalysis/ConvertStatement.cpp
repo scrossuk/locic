@@ -215,6 +215,16 @@ namespace locic {
 			
 		};
 		
+		class UnnecessaryDefaultCaseDiag: public Warning {
+		public:
+			UnnecessaryDefaultCaseDiag() { }
+			
+			std::string toString() const {
+				return "default case in switch which covers all possible cases";
+			}
+			
+		};
+		
 		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -331,8 +341,8 @@ namespace locic {
 					
 					if (hasDefaultCase) {
 						if (unhandledCases.empty()) {
-							throw ErrorException(makeString("All cases are handled in switch with (unused) default case at position %s.",
-								location.toString().c_str()));
+							context.issueDiag(UnnecessaryDefaultCaseDiag(),
+							                  astDefaultCase.location());
 						}
 						
 						auto defaultScope = ConvertScope(context, astDefaultCase->scope);
