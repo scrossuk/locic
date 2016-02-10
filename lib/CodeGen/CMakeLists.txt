@@ -1,4 +1,4 @@
-include_directories(${LLVMABI_INCLUDE_DIRS})
+include_directories(SYSTEM ${LLVMABI_INCLUDE_DIRS})
 
 add_library(locic-codegen
 	ArgInfo.cpp
