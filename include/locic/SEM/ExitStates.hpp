@@ -214,7 +214,7 @@ namespace locic {
 			noexceptPredicate_(Predicate::True()) { }
 			
 			explicit ExitStates(const State state)
-			: states_(1 << static_cast<unsigned int>(state)),
+			: states_(static_cast<unsigned char>(1u << static_cast<unsigned int>(state))),
 			noexceptPredicate_(Predicate::True()) { }
 			
 			bool test(const unsigned int index) const {

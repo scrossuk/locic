@@ -156,8 +156,8 @@ namespace locic {
 						
 						if (astChildTypeVars->size() != typeChildVars.size()) {
 							throw ErrorException(makeString("%llu pattern match children specified; %llu expected (for type '%s') at position %s.",
-									(unsigned long long) astChildTypeVars->size(),
-									(unsigned long long) typeChildVars.size(),
+									static_cast<unsigned long long>(astChildTypeVars->size()),
+									static_cast<unsigned long long>(typeChildVars.size()),
 									varType->toString().c_str(),
 									location.toString().c_str()));
 						}
@@ -230,8 +230,8 @@ namespace locic {
 					
 					if (astChildTypeVars->size() != typeChildVars.size()) {
 						throw ErrorException(makeString("%llu pattern match children specified; %llu expected (for type '%s') at position %s.",
-								(unsigned long long) astChildTypeVars->size(),
-								(unsigned long long) typeChildVars.size(),
+								static_cast<unsigned long long>(astChildTypeVars->size()),
+								static_cast<unsigned long long>(typeChildVars.size()),
 								varType->toString().c_str(),
 								location.toString().c_str()));
 					}

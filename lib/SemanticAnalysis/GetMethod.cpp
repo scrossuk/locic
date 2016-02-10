@@ -164,8 +164,8 @@ namespace locic {
 							"arguments provided for method '%s'; %llu were required, "
 							"but %llu were provided at position %s.",
 							function->name().toString().c_str(),
-							(unsigned long long) templateVariables.size(),
-							(unsigned long long) templateArguments.size(),
+							static_cast<unsigned long long>(templateVariables.size()),
+							static_cast<unsigned long long>(templateArguments.size()),
 							location.toString().c_str()));
 					}
 				}

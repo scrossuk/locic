@@ -33,12 +33,12 @@ namespace locic{
 	template <typename T>
 	std::string makeArrayString(const T& array){
 		auto s = makeString("Array [size = %llu] {",
-			(unsigned long long) array.size());
+			static_cast<unsigned long long>(array.size()));
 		
 		for(size_t i = 0; i < array.size(); i++){
 			if(i > 0) s += ", ";
 			s += makeString("%llu: %s",
-				(unsigned long long) i,
+				static_cast<unsigned long long>(i),
 				array.at(i).toString().c_str());
 		}
 		
@@ -50,12 +50,12 @@ namespace locic{
 	template <typename T>
 	std::string makeArrayPtrString(const T& array){
 		auto s = makeString("Array [size = %llu] {",
-			(unsigned long long) array.size());
+			static_cast<unsigned long long>(array.size()));
 		
 		for(size_t i = 0; i < array.size(); i++){
 			if(i > 0) s += ", ";
 			s += makeString("%llu: %s",
-				(unsigned long long) i,
+				static_cast<unsigned long long>(i),
 				array.at(i)->toString().c_str());
 		}
 		
@@ -67,7 +67,7 @@ namespace locic{
 	template <typename T>
 	std::string makeMapString(const T& map){
 		auto s = makeString("Map [size = %llu] {",
-			(unsigned long long) map.size());
+			static_cast<unsigned long long>(map.size()));
 		
 		bool isFirst = true;
 		for (const auto& pair: map) {
@@ -90,12 +90,12 @@ namespace locic{
 	template <typename T>
 	std::string makeNameArrayString(const T& array){
 		std::string s = makeString("Array[size = %llu]{",
-			(unsigned long long) array.size());;
+			static_cast<unsigned long long>(array.size()));
 		
 		for(size_t i = 0; i < array.size(); i++){
 			if(i > 0) s += ", ";
 			s += makeString("%llu: %s",
-				(unsigned long long) i,
+				static_cast<unsigned long long>(i),
 				array.at(i)->nameToString().c_str());
 		}
 		

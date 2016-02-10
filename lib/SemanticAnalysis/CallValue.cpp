@@ -56,8 +56,8 @@ namespace locic {
 				return makeString("function '%s' called with %llu "
 				                  "parameter(s); expected %llu",
 				                  valueString_.c_str(),
-				                  (unsigned long long) argsGiven_,
-				                  (unsigned long long) argsRequired_);
+				                  static_cast<unsigned long long>(argsGiven_),
+				                  static_cast<unsigned long long>(argsRequired_));
 			}
 			
 		private:
@@ -78,8 +78,8 @@ namespace locic {
 				return makeString("vararg function '%s' called with %llu "
 				                  "parameter(s); expected at least %llu",
 				                  valueString_.c_str(),
-				                  (unsigned long long) argsGiven_,
-				                  (unsigned long long) argsRequired_);
+				                  static_cast<unsigned long long>(argsGiven_),
+				                  static_cast<unsigned long long>(argsRequired_));
 			}
 			
 		private:

@@ -59,15 +59,15 @@ namespace locic {
 				
 				std::string toString() const {
 					return makeString("SourcePosition(lineNumber = %llu, column = %llu, byteOffset = %llu)",
-					                  (unsigned long long) lineNumber_,
-					                  (unsigned long long) column_,
-					                  (unsigned long long) byteOffset_);
+					                  static_cast<unsigned long long>(lineNumber_),
+					                  static_cast<unsigned long long>(column_),
+					                  static_cast<unsigned long long>(byteOffset_));
 				}
 				
 				std::string toShortString() const {
 					return makeString("(line %llu, column %llu)",
-					                  (unsigned long long) lineNumber_,
-					                  (unsigned long long) column_);
+					                  static_cast<unsigned long long>(lineNumber_),
+					                  static_cast<unsigned long long>(column_));
 				}
 				
 			private:

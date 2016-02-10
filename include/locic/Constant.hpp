@@ -183,7 +183,8 @@ namespace locic{
 					case FLOATINGPOINT:
 						return makeString("FloatConstant(%Lf)", floatValue());
 					case CHARACTER:
-						return makeString("CharacterConstant(%llu)", (unsigned long long) characterValue());
+						return makeString("CharacterConstant(%llu)",
+						                  static_cast<unsigned long long>(characterValue()));
 					case STRING:
 						return makeString("StringConstant(\"%s\")", escapeString(stringValue().asStdString()).c_str());
 				}
