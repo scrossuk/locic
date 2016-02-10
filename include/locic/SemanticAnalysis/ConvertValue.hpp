@@ -13,7 +13,7 @@ namespace locic {
 	
 		SEM::Value ConvertValue(Context& context, const AST::Node<AST::Value>& value);
 		
-		class BuiltInTypeMissingException: public Exception {
+		class BuiltInTypeMissingException final: public Exception {
 			public:
 				inline BuiltInTypeMissingException(const String& typeName)
 					: typeName_(typeName) { }

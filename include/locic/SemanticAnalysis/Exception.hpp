@@ -15,11 +15,23 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		class Exception: public locic::Exception { };
+		class Exception: public locic::Exception {
+		protected:
+			Exception() = default;
+			Exception(const Exception&) = default;
+			Exception& operator=(const Exception&) = default;
+			~Exception() { }
+		};
 		
-		class CastException: public Exception { };
+		class CastException: public Exception {
+		protected:
+			CastException() = default;
+			CastException(const CastException&) = default;
+			CastException& operator=(const CastException&) = default;
+			~CastException() { }
+		};
 		
-		class NameClashException: public Exception {
+		class NameClashException final: public Exception {
 			public:
 				enum Kind {
 					FUNCTION_WITH_FUNCTION,
@@ -70,7 +82,7 @@ namespace locic {
 				
 		};
 		
-		class TemplateVariableClashException: public Exception {
+		class TemplateVariableClashException final: public Exception {
 			public:
 				TemplateVariableClashException(Name typeName, String varName)
 					: typeName_(std::move(typeName)), varName_(std::move(varName)) { }
@@ -85,7 +97,7 @@ namespace locic {
 				
 		};
 		
-		class MemberVariableClashException: public Exception {
+		class MemberVariableClashException final: public Exception {
 			public:
 				MemberVariableClashException(Name typeName, String varName)
 					: typeName_(std::move(typeName)), varName_(std::move(varName)) { }
@@ -100,7 +112,7 @@ namespace locic {
 				
 		};
 		
-		class NonUnifiableTypeClashException: public Exception {
+		class NonUnifiableTypeClashException final: public Exception {
 			public:
 				NonUnifiableTypeClashException(Name name)
 					: name_(std::move(name)) { }
@@ -114,7 +126,7 @@ namespace locic {
 				
 		};
 		
-		class NonUnifiableFunctionsException: public Exception {
+		class NonUnifiableFunctionsException final: public Exception {
 			public:
 				NonUnifiableFunctionsException(Name name, String newType, String existingType)
 					: name_(std::move(name)), newType_(std::move(newType)),
@@ -134,7 +146,7 @@ namespace locic {
 				
 		};
 		
-		class MultipleFunctionDefinitionsException: public Exception {
+		class MultipleFunctionDefinitionsException final: public Exception {
 			public:
 				MultipleFunctionDefinitionsException(Name name)
 					: name_(std::move(name)) { }
@@ -148,7 +160,7 @@ namespace locic {
 				
 		};
 		
-		class ParamVariableClashException: public Exception {
+		class ParamVariableClashException final: public Exception {
 			public:
 				ParamVariableClashException(Name functionName, String paramName)
 					: functionName_(std::move(functionName)), paramName_(std::move(paramName)) { }
@@ -163,7 +175,7 @@ namespace locic {
 				
 		};
 		
-		class LocalVariableClashException: public Exception {
+		class LocalVariableClashException final: public Exception {
 			public:
 				LocalVariableClashException(Name functionName, String paramName)
 					: functionName_(std::move(functionName)), paramName_(std::move(paramName)) { }
@@ -178,7 +190,7 @@ namespace locic {
 				
 		};
 		
-		class MissingReturnStatementException: public Exception {
+		class MissingReturnStatementException final: public Exception {
 			public:
 				MissingReturnStatementException(Name functionName)
 					: functionName_(std::move(functionName)) { }
@@ -192,7 +204,7 @@ namespace locic {
 				
 		};
 		
-		class ParamVoidTypeException: public Exception {
+		class ParamVoidTypeException final: public Exception {
 			public:
 				ParamVoidTypeException(Name functionName, String paramName)
 					: functionName_(std::move(functionName)), paramName_(std::move(paramName)) { }
@@ -207,7 +219,7 @@ namespace locic {
 				
 		};
 		
-		class LocalVariableShadowingException: public Exception {
+		class LocalVariableShadowingException final: public Exception {
 			public:
 				LocalVariableShadowingException(String varName)
 					: varName_(std::move(varName)) { }
@@ -221,7 +233,7 @@ namespace locic {
 				
 		};
 		
-		class ErrorException: public Exception {
+		class ErrorException final: public Exception {
 			public:
 				ErrorException(const std::string& message)
 					: message_(message) { }

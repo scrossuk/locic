@@ -18,7 +18,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		class CastTypeMismatchException: public CastException {
+		class CastTypeMismatchException final: public CastException {
 			public:
 				CastTypeMismatchException(SEM::Value* value, const SEM::Type* sourceType, const SEM::Type* destType)
 					: value_(value), sourceType_(sourceType), destType_(destType) { }
@@ -37,7 +37,7 @@ namespace locic {
 				
 		};
 		
-		class CastConstCorrectnessViolationException: public CastException {
+		class CastConstCorrectnessViolationException final: public CastException {
 			public:
 				CastConstCorrectnessViolationException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
@@ -54,7 +54,7 @@ namespace locic {
 				
 		};
 		
-		class CastLValueToRValueException: public CastException {
+		class CastLValueToRValueException final: public CastException {
 			public:
 				CastLValueToRValueException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
@@ -71,7 +71,7 @@ namespace locic {
 				
 		};
 		
-		class CastRValueToReferenceException: public CastException {
+		class CastRValueToReferenceException final: public CastException {
 			public:
 				CastRValueToReferenceException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
@@ -88,7 +88,7 @@ namespace locic {
 				
 		};
 		
-		class CastObjectTypeMismatchException: public CastException {
+		class CastObjectTypeMismatchException final: public CastException {
 			public:
 				CastObjectTypeMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
@@ -105,7 +105,7 @@ namespace locic {
 				
 		};
 		
-		class CastConstChainingViolationException: public CastException {
+		class CastConstChainingViolationException final: public CastException {
 			public:
 				CastConstChainingViolationException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
@@ -123,7 +123,7 @@ namespace locic {
 				
 		};
 		
-		class CastFunctionParameterNumberMismatchException: public CastException {
+		class CastFunctionParameterNumberMismatchException final: public CastException {
 			public:
 				CastFunctionParameterNumberMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
@@ -140,7 +140,7 @@ namespace locic {
 				
 		};
 		
-		class CastFunctionVarArgsMismatchException: public CastException {
+		class CastFunctionVarArgsMismatchException final: public CastException {
 			public:
 				CastFunctionVarArgsMismatchException(const SEM::Type* sourceType, const SEM::Type* destType)
 					: sourceType_(sourceType), destType_(destType) { }
@@ -157,7 +157,7 @@ namespace locic {
 				
 		};
 		
-		class PolyCastMissingMethodException: public CastException {
+		class PolyCastMissingMethodException final: public CastException {
 			public:
 				PolyCastMissingMethodException(const SEM::Type* sourceType, const SEM::Type* destType,
 						SEM::Function* methodFunction)
@@ -178,7 +178,7 @@ namespace locic {
 				
 		};
 		
-		class PolyCastMethodMismatchException: public CastException {
+		class PolyCastMethodMismatchException final: public CastException {
 			public:
 				PolyCastMethodMismatchException(Name methodName,
 						const SEM::Type* sourceType, const SEM::Type* destType,

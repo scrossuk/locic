@@ -29,21 +29,31 @@ namespace locic {
 		
 		virtual std::string toString() const = 0;
 		
+	protected:
+		Diag() = default;
+		Diag(const Diag&) = default;
+		Diag& operator=(const Diag&) = default;
+		Diag(Diag&&) = default;
+		Diag& operator=(Diag&&) = default;
+		
 	};
 	
 	class Error: public Diag {
+	protected:
 		DiagLevel level() const {
 			return DiagLevel::Error;
 		}
 	};
 	
 	class Warning: public Diag {
+	protected:
 		DiagLevel level() const {
 			return DiagLevel::Warning;
 		}
 	};
 	
 	class Notice: public Diag {
+	protected:
 		DiagLevel level() const {
 			return DiagLevel::Notice;
 		}
