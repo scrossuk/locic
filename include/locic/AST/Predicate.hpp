@@ -39,6 +39,7 @@ namespace locic {
 				
 				static Predicate* Or(Node<Predicate> left, Node<Predicate> right);
 				
+				Predicate(const Predicate&) = default;
 				~Predicate();
 				
 				Kind kind() const;

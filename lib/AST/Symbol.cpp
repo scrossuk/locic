@@ -16,6 +16,10 @@ namespace locic {
 		
 		SymbolElement::~SymbolElement() { }
 		
+		SymbolElement SymbolElement::copy() const {
+			return SymbolElement(*this);
+		}
+		
 		const String& SymbolElement::name() const {
 			return name_;
 		}

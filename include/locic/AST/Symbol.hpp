@@ -18,11 +18,18 @@ namespace locic {
 				SymbolElement(String n, Node<ValueList> t);
 				~SymbolElement();
 				
+				SymbolElement(SymbolElement&&) = default;
+				SymbolElement& operator=(SymbolElement&&) = default;
+				
+				SymbolElement copy() const;
+				
 				const String& name() const;
 				
 				const Node<ValueList>& templateArguments() const;
 				
 			private:
+				SymbolElement(const SymbolElement&) = default;
+				
 				String name_;
 				Node<ValueList> templateArguments_;
 				
