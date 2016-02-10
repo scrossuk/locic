@@ -21,28 +21,29 @@ namespace locic {
 				value.setDebugInfo(valueInfo);
 				return value;
 			}
-			
-		}
 		
-		HeapArray<SEM::Value> CastFunctionArguments(Context& context, HeapArray<SEM::Value> arguments, const SEM::TypeArray& types, const Debug::SourceLocation& location) {
-			HeapArray<SEM::Value> castValues;
-			castValues.reserve(arguments.size());
-			
-			for (size_t i = 0; i < arguments.size(); i++) {
-				auto& argumentValue = arguments.at(i);
+			HeapArray<SEM::Value> CastFunctionArguments(Context& context, HeapArray<SEM::Value> arguments,
+			                                            const SEM::TypeArray& types, const Debug::SourceLocation& location) {
+				HeapArray<SEM::Value> castValues;
+				castValues.reserve(arguments.size());
 				
-				// Cast arguments to the function type's corresponding
-				// argument type; var-arg arguments should be cast to
-				// one of the allowed types (since there's no specific
-				// destination type).
-				auto castArgumentValue = (i < types.size()) ?
-					ImplicitCast(context, std::move(argumentValue), types.at(i), location) :
-					VarArgCast(context, std::move(argumentValue), location);
+				for (size_t i = 0; i < arguments.size(); i++) {
+					auto& argumentValue = arguments.at(i);
+					
+					// Cast arguments to the function type's corresponding
+					// argument type; var-arg arguments should be cast to
+					// one of the allowed types (since there's no specific
+					// destination type).
+					auto castArgumentValue = (i < types.size()) ?
+						ImplicitCast(context, std::move(argumentValue), types.at(i), location) :
+						VarArgCast(context, std::move(argumentValue), location);
+					
+					castValues.push_back(std::move(castArgumentValue));
+				}
 				
-				castValues.push_back(std::move(castArgumentValue));
+				return castValues;
 			}
 			
-			return castValues;
 		}
 		
 		class CallIncorrectArgCountDiag: public Error {

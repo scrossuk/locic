@@ -21,7 +21,7 @@ namespace locic {
 	
 		void DeadCodeSearchScope(Context& context, const SEM::Scope& scope);
 		
-		void DeadCodeSearchStatement(Context& context, const SEM::Statement& statement) {
+		static void DeadCodeSearchStatement(Context& context, const SEM::Statement& statement) {
 			switch(statement.kind()) {
 				case SEM::Statement::VALUE:
 				case SEM::Statement::INITIALISE:

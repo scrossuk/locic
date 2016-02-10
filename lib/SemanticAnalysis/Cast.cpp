@@ -251,7 +251,9 @@ location, bool isTopLevel) {
 		}
 		
 		// User-defined casts.
-		Optional<SEM::Value> ImplicitCastUser(Context& context, std::vector<std::string>& errors, SEM::Value rawValue, const SEM::Type* destType, const Debug::SourceLocation& location, bool allowBind) {
+		static Optional<SEM::Value> ImplicitCastUser(Context& context, std::vector<std::string>& errors,
+		                                             SEM::Value rawValue, const SEM::Type* destType,
+		                                             const Debug::SourceLocation& location, bool allowBind) {
 			auto value = derefValue(std::move(rawValue));
 			const auto sourceDerefType = getDerefType(value.type());
 			
@@ -291,7 +293,7 @@ location, bool isTopLevel) {
 			return Optional<SEM::Value>();
 		}
 		
-		bool isStructurallyEqual(const SEM::Type* firstType, const SEM::Type* secondType) {
+		static bool isStructurallyEqual(const SEM::Type* firstType, const SEM::Type* secondType) {
 			if (firstType->kind() != secondType->kind()) {
 				return false;
 			}
@@ -305,7 +307,7 @@ location, bool isTopLevel) {
 			}
 		}
 		
-		bool canTreatConstantAsUnsigned(const SEM::Value& value, const SEM::Type* const destType) {
+		static bool canTreatConstantAsUnsigned(const SEM::Value& value, const SEM::Type* const destType) {
 			assert(value.isConstant());
 			
 			const auto sourceType = value.type()->resolveAliases();

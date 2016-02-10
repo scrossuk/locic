@@ -23,14 +23,15 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		const SEM::Type* ConvertIntegerType(Context& context, AST::Type::SignedModifier signedModifier, const String& nameString) {
+		static const SEM::Type* ConvertIntegerType(Context& context, AST::Type::SignedModifier signedModifier,
+		                                           const String& nameString) {
 			// Unsigned types have 'u' prefix and all integer types
 			// have '_t' suffix (e.g. uint_t, short_t etc.).
 			const auto fullNameString = (signedModifier == AST::Type::UNSIGNED) ? (context.getCString("u") + nameString + "_t") : (nameString + "_t");
 			return getBuiltInType(context, fullNameString, {});
 		}
 		
-		const SEM::Type* ConvertFloatType(Context& context, const String& nameString) {
+		static const SEM::Type* ConvertFloatType(Context& context, const String& nameString) {
 			// All floating point types have '_t' suffix (e.g. float_t, double_t etc.).
 			const auto fullNameString = nameString + "_t";
 			return getBuiltInType(context, fullNameString, {});

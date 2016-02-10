@@ -25,7 +25,8 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Value GetAssignValue(Context& context, AST::AssignKind assignKind, SEM::Value varValue, SEM::Value operandValue, const Debug::SourceLocation& location) {
+		static SEM::Value GetAssignValue(Context& context, AST::AssignKind assignKind, SEM::Value varValue,
+		                                 SEM::Value operandValue, const Debug::SourceLocation& location) {
 			switch (assignKind) {
 				case AST::ASSIGN_DIRECT:
 					return operandValue;
@@ -214,7 +215,7 @@ namespace locic {
 			
 		};
 		
-		SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
+		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
 			switch (statement->typeEnum) {
@@ -681,7 +682,7 @@ namespace locic {
 			std::terminate();
 		}
 		
-		Debug::StatementInfo makeStatementInfo(const AST::Node<AST::Statement>& astStatementNode) {
+		static Debug::StatementInfo makeStatementInfo(const AST::Node<AST::Statement>& astStatementNode) {
 			Debug::StatementInfo statementInfo;
 			statementInfo.location = astStatementNode.location();
 			return statementInfo;
