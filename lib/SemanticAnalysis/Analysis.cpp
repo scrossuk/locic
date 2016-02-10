@@ -6,6 +6,7 @@
 #include <locic/SEM/Context.hpp>
 #include <locic/Support/SharedMaps.hpp>
 
+#include <locic/SemanticAnalysis/Analysis.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
