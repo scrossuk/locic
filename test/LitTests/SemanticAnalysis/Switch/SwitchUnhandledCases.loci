@@ -1,0 +1,34 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+datatype Data0 = A0() | B0();
+
+void doSwitch0(Data0 data) {
+	// CHECK: .loci:8:2: error: cases not handled in switch: A0, B0
+	switch (move data) { }
+}
+
+datatype Data1 = A1() | B1();
+
+void doSwitch1(Data1 data) {
+	// CHECK: .loci:15:2: error: cases not handled in switch: B1
+	switch (move data) {
+		case A1() { }
+	}
+}
+
+datatype Data2 = A2() | B2() | C2() | D2();
+
+void doSwitch2(Data2 data) {
+	// CHECK: .loci:24:2: error: cases not handled in switch: A2, B2, C2, D2
+	switch (move data) { }
+}
+
+datatype Data3 = A3() | B3() | C3() | D3() | E3();
+
+void doSwitch3(Data3 data) {
+	// CHECK: .loci:31:2: error: cases not handled in switch: A3, B3, C3, D3, ...
+	switch (move data) { }
+}
+
+// CHECK: 4 errors generated.
