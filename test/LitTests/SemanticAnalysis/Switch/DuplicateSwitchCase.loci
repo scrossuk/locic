@@ -1,0 +1,15 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+datatype Data = A() | B();
+
+void doSwitch(Data data) {
+	switch (move data) {
+		case A() { }
+		// CHECK: .loci:10:3: error: duplicate case for type 'A'
+		case A() { }
+		case B() { }
+	}
+}
+
+// CHECK: 1 error generated.
