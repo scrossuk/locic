@@ -1073,6 +1073,104 @@ namespace locic {
 			return staticRefStr;
 		}
 		
+		std::string Type::basicToDiagString() const {
+			switch (kind()) {
+				case AUTO: {
+					return "auto";
+				}
+				case OBJECT: {
+					if (isBuiltInReference()) {
+						assert(templateArguments().size() == 1);
+						return templateArguments().front().typeRefType()->toString() + "&";
+					}
+					
+					const auto objectName = getObjectType()->name().toString(false);
+					if (templateArguments().empty()) {
+						return objectName;
+					} else {
+						std::stringstream stream;
+						stream << objectName << "<";
+						
+						bool isFirst = true;
+						for (const auto& templateArg: templateArguments()) {
+							if (isFirst) {
+								isFirst = false;
+							} else {
+								stream << ", ";
+							}
+							
+							if (templateArg.isTypeRef()) {
+								stream << templateArg.typeRefType()->toString();
+							} else {
+								stream << templateArg.toString();
+							}
+						}
+						
+						stream << ">";
+						
+						return stream.str();
+					}
+				}
+				case TEMPLATEVAR: {
+					return getTemplateVar()->name().last().asStdString();
+				}
+				case ALIAS: {
+					const auto aliasName = alias().name().toString(false);
+					if (aliasArguments().empty()) {
+						return aliasName;
+					} else {
+						std::stringstream stream;
+						stream << aliasName << "<";
+						
+						bool isFirst = true;
+						for (const auto& templateArg: aliasArguments()) {
+							if (isFirst) {
+								isFirst = false;
+							} else {
+								stream << ", ";
+							}
+							stream << templateArg.toString();
+						}
+						
+						stream << ">";
+						
+						return stream.str();
+					}
+				}
+			}
+			
+			locic_unreachable("Unknown type kind.");
+		}
+		
+		std::string Type::toDiagString() const {
+			const std::string noTagStr = isNoTag() ? makeString("notag(%s)", basicToDiagString().c_str()) : basicToDiagString();
+			
+			const std::string constStr =
+				constPredicate().isTrue() ?
+					makeString("const(%s)", noTagStr.c_str()) :
+					constPredicate().isFalse() ?
+						noTagStr :
+						makeString("const<%s>(%s)", constPredicate().toString().c_str(),
+							noTagStr.c_str());
+			
+			const std::string lvalStr =
+				isLval() ?
+				makeString("lval<%s>(%s)", lvalTarget()->toString().c_str(), constStr.c_str()) :
+				constStr;
+			
+			const std::string refStr =
+				isRef() ?
+				makeString("ref<%s>(%s)", refTarget()->toString().c_str(), lvalStr.c_str()) :
+				lvalStr;
+			
+			const std::string staticRefStr =
+				isStaticRef() ?
+				makeString("staticref<%s>(%s)", staticRefTarget()->toString().c_str(), refStr.c_str()) :
+				refStr;
+			
+			return staticRefStr;
+		}
+		
 		std::size_t Type::hash() const {
 			if (cachedHashValue_) {
 				return *cachedHashValue_;

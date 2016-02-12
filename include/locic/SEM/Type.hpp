@@ -138,8 +138,10 @@ namespace locic {
 				std::string nameToString() const;
 				
 				std::string basicToString() const;
-				
 				std::string toString() const;
+				
+				std::string basicToDiagString() const;
+				std::string toDiagString() const;
 				
 				std::size_t hash() const;
 				
