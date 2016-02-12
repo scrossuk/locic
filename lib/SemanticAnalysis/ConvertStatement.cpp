@@ -15,6 +15,7 @@
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
+#include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
@@ -215,6 +216,61 @@ namespace locic {
 			
 		};
 		
+		class DuplicateCaseDiag: public Error {
+		public:
+			DuplicateCaseDiag(const SEM::TypeInstance& typeInstance)
+			: typeInstance_(typeInstance) { }
+			
+			std::string toString() const {
+				return makeString("duplicate case for type '%s'",
+				                  typeInstance_.name().toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			const SEM::TypeInstance& typeInstance_;
+			
+		};
+		
+		class SwitchTypeNotObjectDiag: public Error {
+		public:
+			SwitchTypeNotObjectDiag(const SEM::Type* type)
+			: type_(type) { }
+			
+			std::string toString() const {
+				return makeString("switch type '%s' is not an object",
+				                  type_->toDiagString().c_str());
+			}
+			
+		private:
+			const SEM::Type* type_;
+			
+		};
+		
+		constexpr auto MAX_DIAG_LIST_SIZE = 4;
+		
+		class SwitchCasesNotHandledDiag: public Error {
+		public:
+			SwitchCasesNotHandledDiag(const Array<const SEM::TypeInstance*, 8>& unhandledCases) {
+				assert(!unhandledCases.empty());
+				for (size_t i = 0; i < std::min<size_t>(unhandledCases.size(), MAX_DIAG_LIST_SIZE); i++) {
+					if (i > 0) casesNotHandled_ += ", ";
+					casesNotHandled_ += unhandledCases[i]->name().toString(/*addPrefix=*/false);
+				}
+				if (unhandledCases.size() > MAX_DIAG_LIST_SIZE) {
+					casesNotHandled_ += ", ...";
+				}
+			}
+			
+			std::string toString() const {
+				return makeString("cases not handled in switch: %s",
+				                  casesNotHandled_.c_str());
+			}
+			
+		private:
+			std::string casesNotHandled_;
+			
+		};
+		
 		class UnnecessaryDefaultCaseDiag: public Warning {
 		public:
 			UnnecessaryDefaultCaseDiag() { }
@@ -265,7 +321,8 @@ namespace locic {
 					return SEM::Statement::If(std::move(clauseList), std::move(elseScope));
 				}
 				case AST::Statement::SWITCH: {
-					auto value = ConvertValue(context, statement->switchStmt.value);
+					auto value = tryDissolveValue(context, ConvertValue(context, statement->switchStmt.value),
+					                             statement->switchStmt.value.location());
 					
 					std::map<const SEM::TypeInstance*, const SEM::Type*> switchCaseTypes;
 					
@@ -285,74 +342,73 @@ namespace locic {
 						
 						// Check for duplicate cases.
 						if (!insertResult.second) {
-							throw ErrorException(makeString("Duplicate switch case for type '%s' at position %s.",
-								(insertResult.first->first)->refToString().c_str(),
-								location.toString().c_str()));
+							context.issueDiag(DuplicateCaseDiag(*(caseType->getObjectType())),
+							                  astCase.location());
 						}
 						
 						caseList.push_back(semCase.release());
 					}
 					
-					if (caseList.empty()) {
-						throw ErrorException(makeString("Switch statement must contain at least one case at position %s.",
-							location.toString().c_str()));
-					}
-					
-					const auto firstSwitchTypeIterator = switchCaseTypes.begin();
-					
-					// Check that all switch cases are based
-					// on the same union datatype.
-					const auto switchTypeInstance = firstSwitchTypeIterator->first->parentTypeInstance();
-					for (auto caseTypePair: switchCaseTypes) {
-						const auto caseTypeInstance = caseTypePair.first;
-						const auto caseTypeInstanceParent = caseTypeInstance->parentTypeInstance();
-						
-						if (caseTypeInstanceParent == nullptr) {
-							throw ErrorException(makeString("Switch case type '%s' is not a member of a union datatype at position %s.",
-								caseTypeInstance->refToString().c_str(),
-								location.toString().c_str()));
-						}
-						
-						if (caseTypeInstanceParent != switchTypeInstance) {
-							throw ErrorException(makeString("Switch case type '%s' does not share the same parent as type '%s' at position %s.",
-								caseTypeInstance->refToString().c_str(),
-								(firstSwitchTypeIterator->first)->refToString().c_str(),
-								location.toString().c_str()));
-						}
-					}
-					
-					const auto substitutedSwitchType = switchTypeInstance->selfType()->substitute(firstSwitchTypeIterator->second->generateTemplateVarMap());
-					
-					// Case value to switch type.
-					auto castValue = ImplicitCast(context, std::move(value), substitutedSwitchType,
-					                              statement->switchStmt.value.location());
+					const auto switchType = getDerefType(value.type())->resolveAliases()->withoutConst();
 					
 					const auto& astDefaultCase = statement->switchStmt.defaultCase;
 					const bool hasDefaultCase = astDefaultCase->hasScope;
 					
-					std::vector<SEM::TypeInstance*> unhandledCases;
-					
-					// Check whether all cases are handled.
-					for (auto variantTypeInstance: switchTypeInstance->variants()) {
-						if (switchCaseTypes.find(variantTypeInstance) == switchCaseTypes.end()) {
-							unhandledCases.push_back(variantTypeInstance);
-						}
-					}
-					
-					if (hasDefaultCase) {
-						if (unhandledCases.empty()) {
-							context.issueDiag(UnnecessaryDefaultCaseDiag(),
-							                  astDefaultCase.location());
+					if (switchType->isObject()) {
+						// Check that all switch cases are based
+						// on the same union datatype.
+						const auto switchTypeInstance = switchType->getObjectType();
+						for (auto caseTypePair: switchCaseTypes) {
+							const auto caseTypeInstance = caseTypePair.first;
+							const auto caseTypeInstanceParent = caseTypeInstance->parentTypeInstance();
+							
+							if (caseTypeInstanceParent == nullptr) {
+								throw ErrorException(makeString("Switch case type '%s' is not a member of a union datatype at position %s.",
+									caseTypeInstance->refToString().c_str(),
+									location.toString().c_str()));
+							}
+							
+							if (caseTypeInstanceParent != switchTypeInstance) {
+								throw ErrorException(makeString("Switch case type '%s' does not share the same parent as type '%s' at position %s.",
+									caseTypeInstance->refToString().c_str(),
+									switchTypeInstance->refToString().c_str(),
+									location.toString().c_str()));
+							}
 						}
 						
+						Array<const SEM::TypeInstance*, 8> unhandledCases;
+						
+						// Check whether all cases are handled.
+						for (auto variantTypeInstance: switchTypeInstance->variants()) {
+							if (switchCaseTypes.find(variantTypeInstance) == switchCaseTypes.end()) {
+								unhandledCases.push_back(variantTypeInstance);
+							}
+						}
+						
+						if (hasDefaultCase) {
+							if (unhandledCases.empty()) {
+								context.issueDiag(UnnecessaryDefaultCaseDiag(),
+								                  astDefaultCase.location());
+							}
+						} else {
+							if (!unhandledCases.empty()) {
+								context.issueDiag(SwitchCasesNotHandledDiag(unhandledCases),
+								                  location);
+							}
+						}
+					} else {
+						context.issueDiag(SwitchTypeNotObjectDiag(switchType),
+						                  statement->switchStmt.value.location());
+					}
+					
+					// Cast value to switch type.
+					auto castValue = ImplicitCast(context, std::move(value), switchType,
+					                              statement->switchStmt.value.location());
+					
+					if (hasDefaultCase) {
 						auto defaultScope = ConvertScope(context, astDefaultCase->scope);
 						return SEM::Statement::Switch(std::move(castValue), caseList, std::move(defaultScope));
 					} else {
-						if (!unhandledCases.empty()) {
-							throw ErrorException(makeString("Union datatype member '%s' not handled in switch at position %s.",
-								unhandledCases.front()->refToString().c_str(), location.toString().c_str()));
-						}
-						
 						return SEM::Statement::Switch(std::move(castValue), caseList, nullptr);
 					}
 				}
