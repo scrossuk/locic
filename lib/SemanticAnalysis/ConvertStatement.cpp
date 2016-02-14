@@ -281,6 +281,26 @@ namespace locic {
 			
 		};
 		
+		class VoidExplicitlyIgnoredDiag: public Warning {
+		public:
+			VoidExplicitlyIgnoredDiag() { }
+			
+			std::string toString() const {
+				return "void explicitly ignored in expression";
+			}
+			
+		};
+		
+		class NonVoidNotExplicitlyIgnoredDiag: public Warning {
+		public:
+			NonVoidNotExplicitlyIgnoredDiag() { }
+			
+			std::string toString() const {
+				return "non-void value result ignored in expression";
+			}
+			
+		};
+		
 		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -289,15 +309,15 @@ namespace locic {
 					auto value = ConvertValue(context, statement->valueStmt.value);
 					if (statement->valueStmt.hasVoidCast) {
 						if (value.type()->isBuiltInVoid()) {
-							throw ErrorException(makeString("Void explicitly ignored in expression '%s' at position %s.",
-								value.toString().c_str(), location.toString().c_str()));
+							context.issueDiag(VoidExplicitlyIgnoredDiag(),
+							                  location);
 						}
 						const auto voidType = context.typeBuilder().getVoidType();
 						return SEM::Statement::ValueStmt(SEM::Value::Cast(voidType, std::move(value)));
 					} else {
 						if (!value.type()->isBuiltInVoid()) {
-							throw ErrorException(makeString("Non-void value result ignored in expression '%s' at position %s.",
-								value.toString().c_str(), location.toString().c_str()));
+							context.issueDiag(NonVoidNotExplicitlyIgnoredDiag(),
+							                  location);
 						}
 						return SEM::Statement::ValueStmt(std::move(value));
 					}
