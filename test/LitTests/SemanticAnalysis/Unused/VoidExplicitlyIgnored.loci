@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import void g();
+
+export void f() {
+	// CHECK-NOT: .loci:8:2: warning: void explicitly ignored in expression
+	g();
+	// CHECK: .loci:10:2: warning: void explicitly ignored in expression
+	unused_result g();
+}
+
+// CHECK: 1 warning generated.
