@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import int g();
+
+export void f() {
+	// CHECK: .loci:8:2: warning: non-void value result ignored in expression
+	g();
+	// CHECK-NOT: .loci:10:2: warning: non-void value result ignored in expression
+	unused_result g();
+}
+
+// CHECK: 1 warning generated.
