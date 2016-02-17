@@ -231,6 +231,25 @@ namespace locic {
 			
 		};
 		
+		class SwitchCaseTypeNotMemberOfDatatype: public Error {
+		public:
+			SwitchCaseTypeNotMemberOfDatatype(const SEM::TypeInstance& caseTypeInstance,
+			                                  const SEM::TypeInstance& switchTypeInstance)
+			: caseTypeInstance_(caseTypeInstance),
+			switchTypeInstance_(switchTypeInstance) { }
+			
+			std::string toString() const {
+				return makeString("switch type '%s' is not variant of type '%s'",
+				                  caseTypeInstance_.name().toString(/*addPrefix=*/false).c_str(),
+				                  switchTypeInstance_.name().toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			const SEM::TypeInstance& caseTypeInstance_;
+			const SEM::TypeInstance& switchTypeInstance_;
+			
+		};
+		
 		class SwitchTypeNotObjectDiag: public Error {
 		public:
 			SwitchTypeNotObjectDiag(const SEM::Type* type)
@@ -344,6 +363,8 @@ namespace locic {
 					auto value = tryDissolveValue(context, ConvertValue(context, statement->switchStmt.value),
 					                             statement->switchStmt.value.location());
 					
+					const auto switchType = getDerefType(value.type())->resolveAliases()->withoutConst();
+					
 					std::map<const SEM::TypeInstance*, const SEM::Type*> switchCaseTypes;
 					
 					std::vector<SEM::SwitchCase*> caseList;
@@ -358,6 +379,16 @@ namespace locic {
 						}
 						
 						const auto caseType = semCase->var().constructType();
+						
+						// Check that all switch cases are based
+						// on the same union datatype.
+						if (switchType->isObject() &&
+						    caseType->getObjectType()->parentTypeInstance() != switchType->getObjectType()) {
+							context.issueDiag(SwitchCaseTypeNotMemberOfDatatype(*(caseType->getObjectType()),
+							                                                    *(switchType->getObjectType())),
+							                  astCase->var.location());
+						}
+						
 						const auto insertResult = switchCaseTypes.insert(std::make_pair(caseType->getObjectType(), caseType));
 						
 						// Check for duplicate cases.
@@ -369,36 +400,15 @@ namespace locic {
 						caseList.push_back(semCase.release());
 					}
 					
-					const auto switchType = getDerefType(value.type())->resolveAliases()->withoutConst();
-					
 					const auto& astDefaultCase = statement->switchStmt.defaultCase;
 					const bool hasDefaultCase = astDefaultCase->hasScope;
 					
 					if (switchType->isObject()) {
-						// Check that all switch cases are based
-						// on the same union datatype.
+						// Check whether all cases are handled.
 						const auto switchTypeInstance = switchType->getObjectType();
-						for (auto caseTypePair: switchCaseTypes) {
-							const auto caseTypeInstance = caseTypePair.first;
-							const auto caseTypeInstanceParent = caseTypeInstance->parentTypeInstance();
-							
-							if (caseTypeInstanceParent == nullptr) {
-								throw ErrorException(makeString("Switch case type '%s' is not a member of a union datatype at position %s.",
-									caseTypeInstance->refToString().c_str(),
-									location.toString().c_str()));
-							}
-							
-							if (caseTypeInstanceParent != switchTypeInstance) {
-								throw ErrorException(makeString("Switch case type '%s' does not share the same parent as type '%s' at position %s.",
-									caseTypeInstance->refToString().c_str(),
-									switchTypeInstance->refToString().c_str(),
-									location.toString().c_str()));
-							}
-						}
+						assert(switchTypeInstance != nullptr);
 						
 						Array<const SEM::TypeInstance*, 8> unhandledCases;
-						
-						// Check whether all cases are handled.
 						for (auto variantTypeInstance: switchTypeInstance->variants()) {
 							if (switchCaseTypes.find(variantTypeInstance) == switchCaseTypes.end()) {
 								unhandledCases.push_back(variantTypeInstance);
