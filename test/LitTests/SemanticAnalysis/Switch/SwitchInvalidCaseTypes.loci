@@ -1,0 +1,29 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+datatype Data0 = A0() | B0();
+datatype Data1 = A1() | B1();
+
+void doSwitchCorrect(Data0 data) {
+	switch (move data) {
+		// CHECK-NOT: .loci:10:8: error: switch type 'A0' is not variant of type 'Data0'
+		case A0() { }
+		// CHECK-NOT: .loci:12:8: error: switch type 'B0' is not variant of type 'Data0'
+		case B0() { }
+	}
+}
+
+void doSwitchIncorrect(Data0 data) {
+	switch (move data) {
+		// CHECK-NOT: .loci:19:8: error: switch type 'A0' is not variant of type 'Data0'
+		case A0() { }
+		// CHECK-NOT: .loci:21:8: error: switch type 'B0' is not variant of type 'Data0'
+		case B0() { }
+		// CHECK: .loci:23:8: error: switch type 'A1' is not variant of type 'Data0'
+		case A1() { }
+		// CHECK: .loci:25:8: error: switch type 'B1' is not variant of type 'Data0'
+		case B1() { }
+	}
+}
+
+// CHECK: 2 errors generated.
