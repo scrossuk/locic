@@ -320,6 +320,16 @@ namespace locic {
 			
 		};
 		
+		class TryWrapsScopeThatCannotThrowDiag: public Warning {
+		public:
+			TryWrapsScopeThatCannotThrowDiag() { }
+			
+			std::string toString() const {
+				return "try statement wraps scope that cannot throw";
+			}
+			
+		};
+		
 		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -466,8 +476,8 @@ namespace locic {
 						
 						const auto exitStates = tryScope->exitStates();
 						if (!exitStates.hasAnyThrowingStates()) {
-							throw ErrorException(makeString("Try statement wraps a scope that cannot throw, at position %s.",
-								location.toString().c_str()));
+							context.issueDiag(TryWrapsScopeThatCannotThrowDiag(),
+							                  location);
 						}
 					}
 					
