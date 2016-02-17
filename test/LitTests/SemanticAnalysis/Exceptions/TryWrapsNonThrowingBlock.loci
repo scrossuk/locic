@@ -1,0 +1,15 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+exception ExampleError();
+
+import void f() noexcept;
+
+export void g() {
+	// CHECK: .loci:10:2: warning: try statement wraps scope that cannot throw
+	try {
+		f();
+	} catch(unused ExampleError error) { }
+}
+
+// CHECK: 1 warning generated.
