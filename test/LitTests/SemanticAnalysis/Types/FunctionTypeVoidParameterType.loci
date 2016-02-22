@@ -1,0 +1,7 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:29: error: parameter type in function pointer type cannot be void
+using Type = (*)(void)(int, void);
+
+// CHECK: 1 error generated.
