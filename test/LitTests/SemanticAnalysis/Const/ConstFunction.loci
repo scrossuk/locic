@@ -1,0 +1,7 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:17: warning: non-method function 'f' cannot have const specifier
+export void f() const { }
+
+// CHECK: 1 warning generated.
