@@ -79,6 +79,21 @@ namespace locic {
 			
 		};
 		
+		class FunctionCannotBeStaticDiag: public Warning {
+		public:
+			FunctionCannotBeStaticDiag(const Name& name)
+			: name_(name.toString(/*addPrefix=*/false)) { }
+			
+			std::string toString() const {
+				return makeString("non-method function '%s' cannot be static",
+				                  name_.c_str());
+			}
+			
+		private:
+			std::string name_;
+			
+		};
+		
 		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
@@ -96,8 +111,8 @@ namespace locic {
 			}
 			
 			if (!isMethod && astFunctionNode->isStatic()) {
-				throw ErrorException(makeString("Non-method function '%s' cannot be static, at location %s.",
-						name.c_str(), astFunctionNode.location().toString().c_str()));
+				context.issueDiag(FunctionCannotBeStaticDiag(semFunction->name()),
+				                  astFunctionNode.location());
 			}
 			
 			// Don't treat extension methods as primitive methods.
@@ -107,7 +122,7 @@ namespace locic {
 			semFunction->setPrimitive(isPrimitiveMethod || isPrimitiveFunction);
 			
 			semFunction->setMethod(isMethod);
-			semFunction->setStaticMethod(astFunctionNode->isStatic());
+			semFunction->setStaticMethod(isMethod && astFunctionNode->isStatic());
 			
 			if (!astFunctionNode->templateVariables()->empty() && (thisTypeInstance != nullptr && thisTypeInstance->isInterface())) {
 				context.issueDiag(InterfaceMethodCannotBeTemplatedDiag(name),
