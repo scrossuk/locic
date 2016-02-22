@@ -1,0 +1,10 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class UserType() { }
+
+// CHECK: .loci:7:11: error: template variable 'T' has non-primitive type 'UserType' in function 'f'
+template <UserType T>
+void f() { }
+
+// CHECK: 1 error generated.
