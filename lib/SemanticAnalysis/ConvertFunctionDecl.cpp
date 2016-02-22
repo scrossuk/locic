@@ -64,6 +64,21 @@ namespace locic {
 			
 		};
 		
+		class FunctionCannotHaveConstSpecifierDiag: public Warning {
+		public:
+			FunctionCannotHaveConstSpecifierDiag(const Name& name)
+			: name_(name.toString(/*addPrefix=*/false)) { }
+			
+			std::string toString() const {
+				return makeString("non-method function '%s' cannot have const specifier",
+				                  name_.c_str());
+			}
+			
+		private:
+			std::string name_;
+			
+		};
+		
 		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
@@ -76,8 +91,8 @@ namespace locic {
 			const bool isMethod = thisTypeInstance != nullptr;
 			
 			if (!isMethod && !astFunctionNode->constSpecifier()->isNone()) {
-				throw ErrorException(makeString("Non-method function '%s' cannot have const specifier, at location %s.",
-						name.c_str(), astFunctionNode.location().toString().c_str()));
+				context.issueDiag(FunctionCannotHaveConstSpecifierDiag(semFunction->name()),
+				                  astFunctionNode->constSpecifier().location());
 			}
 			
 			if (!isMethod && astFunctionNode->isStatic()) {
