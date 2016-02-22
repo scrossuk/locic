@@ -87,6 +87,16 @@ namespace locic {
 			}
 		}
 		
+		class FunctionTypeParameterCannotBeVoidDiag: public Error {
+		public:
+			FunctionTypeParameterCannotBeVoidDiag() { }
+			
+			std::string toString() const {
+				return "parameter type in function pointer type cannot be void";
+			}
+			
+		};
+		
 		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
 			TypeBuilder builder(context);
 			switch (type->typeEnum) {
@@ -160,8 +170,9 @@ namespace locic {
 					for (const auto& astParamType: *astParameterTypes) {
 						const auto paramType = ConvertType(context, astParamType);
 						
-						if(paramType->isBuiltInVoid()) {
-							throw ErrorException("Parameter type (inside function type) cannot be void.");
+						if (paramType->isBuiltInVoid()) {
+							context.issueDiag(FunctionTypeParameterCannotBeVoidDiag(),
+							                  astParamType.location());
 						}
 						
 						parameterTypes.push_back(paramType);
