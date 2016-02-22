@@ -94,6 +94,27 @@ namespace locic {
 			
 		};
 		
+		class FunctionTemplateHasNonPrimitiveTypeDiag: public Error {
+		public:
+			FunctionTemplateHasNonPrimitiveTypeDiag(const String& varName,
+			                                        const SEM::Type* type,
+			                                        const Name& functionName)
+			: varName_(varName), type_(type),
+			functionName_(functionName.toString(/*addPrefix=*/false)) { }
+			
+			std::string toString() const {
+				return makeString("template variable '%s' has non-primitive type '%s' in function '%s'",
+				                  varName_.c_str(), type_->toDiagString().c_str(),
+				                  functionName_.c_str());
+			}
+			
+		private:
+			String varName_;
+			const SEM::Type* type_;
+			std::string functionName_;
+			
+		};
+		
 		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
@@ -154,10 +175,10 @@ namespace locic {
 				const auto semVarType = ConvertType(context, astVarType);
 				
 				if (!semVarType->isPrimitive()) {
-					throw ErrorException(makeString("Template variable '%s' in function '%s' has non-primitive type '%s', at position %s.",
-						templateVarName.c_str(), semFunction->name().toString().c_str(),
-						semVarType->toString().c_str(),
-						astTemplateVarNode.location().toString().c_str()));
+					context.issueDiag(FunctionTemplateHasNonPrimitiveTypeDiag(templateVarName,
+					                                                          semVarType,
+					                                                          semFunction->name()),
+					                  astTemplateVarNode->varType.location());
 				}
 				
 				semTemplateVar->setType(semVarType);
