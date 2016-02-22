@@ -1,0 +1,7 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:1: warning: non-method function 'f' cannot be static
+export static void f() { }
+
+// CHECK: 1 warning generated.
