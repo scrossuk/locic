@@ -1,4 +1,0 @@
-class SomeClass() { }
-
-template <SomeClass T>
-void function() { }

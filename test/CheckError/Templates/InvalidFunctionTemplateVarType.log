@@ -1,1 +1,0 @@
-Template variable 'T' in function '::function' has non-primitive type 'SomeClass', at position SourceLocation\(filename = (.*)/InvalidFunctionTemplateVarType\.loci, range = \(line 3, column 11\) to \(line 3, column 22\)\)\.
