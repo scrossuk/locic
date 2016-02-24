@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void f() {
+	// CHECK: .loci:6:9: error: variable 'value' cannot have void type
+	unused void value = f();
+}
+
+// CHECK: 1 error generated.
