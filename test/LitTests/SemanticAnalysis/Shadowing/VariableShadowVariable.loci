@@ -1,14 +1,22 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-void function() {
+datatype ParentType = ChildType0() | ChildType1(int value);
+
+import ParentType g();
+
+void f() {
 	unused int value = 4;
 	if (true) {
-		// CHECK: Variable 'value' shadows existing object
-		// CHECK: line 12
-		// CHECK: column 10
-		// CHECK: line 12
-		// CHECK: column 19
+		// CHECK: .loci:12:10: error: variable 'value' shadows existing variable
 		unused int value = 5;
 	}
+	
+	switch (g()) {
+		case ChildType0() { }
+		// CHECK: .loci:18:26: error: variable 'value' shadows existing variable
+		case ChildType1(unused int value) { }
+	}
 }
+
+// CHECK: 2 errors generated.
