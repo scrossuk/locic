@@ -1,0 +1,22 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+datatype UserType(int variable);
+
+import UserType g();
+
+export void f() {
+	// CHECK: .loci:10:6: error: 0 variable(s) in pattern match for type 'UserType'; expected 1
+	let UserType() = g();
+	
+	// CHECK-NOT: .loci:13:6: error
+	let UserType(unused int a) = g();
+	
+	// CHECK: .loci:16:6: error: 2 variable(s) in pattern match for type 'UserType'; expected 1
+	let UserType(unused int b, unused int c) = g();
+	
+	// CHECK: .loci:19:6: error: 3 variable(s) in pattern match for type 'UserType'; expected 1
+	let UserType(unused int d, unused int e, unused int f) = g();
+}
+
+// CHECK: 3 errors generated.

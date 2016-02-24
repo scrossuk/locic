@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+datatype UserType();
+
+// CHECK: .loci:7:15: error: pattern matching not supported for parameter variables
+export void f(UserType()) { }
+
+// CHECK: 1 error generated.

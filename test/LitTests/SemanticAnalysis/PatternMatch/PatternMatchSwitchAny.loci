@@ -1,0 +1,16 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+datatype ParentType = ChildType0() | ChildType1(int value);
+
+import ParentType g();
+
+export void f() {
+	switch (g()) {
+		case ChildType0() { }
+		// CHECK: .loci:12:19: error: 'any' vars not implemented for uninitialised variables
+		case ChildType1(_) { }
+	}
+}
+
+// CHECK: 1 error generated.

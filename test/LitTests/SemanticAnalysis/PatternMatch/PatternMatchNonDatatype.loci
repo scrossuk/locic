@@ -1,0 +1,20 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class UserType() { }
+import UserType g();
+
+datatype ParentType = ChildType(UserType value);
+import ParentType h();
+
+export void f() {
+	// CHECK: .loci:12:6: error: cannot pattern match for non-datatype 'UserType'
+	let UserType() = g();
+	
+	switch (h()) {
+		// CHECK: .loci:16:18: error: cannot pattern match for non-datatype 'UserType'
+		case ChildType(UserType()) { }
+	}
+}
+
+// CHECK: 2 errors generated.
