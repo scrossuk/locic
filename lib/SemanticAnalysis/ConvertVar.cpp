@@ -84,6 +84,72 @@ namespace locic {
 			std::terminate();
 		}
 		
+		class VariableShadowsExistingVariableDiag: public Error {
+		public:
+			VariableShadowsExistingVariableDiag(const String& name)
+			: name_(name) { }
+			
+			std::string toString() const {
+				return makeString("variable '%s' shadows existing variable",
+				                  name_.c_str());
+			}
+			
+		private:
+			String name_;
+			
+		};
+		
+		class VariableCannotHaveVoidTypeDiag: public Error {
+		public:
+			VariableCannotHaveVoidTypeDiag(const String& name)
+			: name_(name) { }
+			
+			std::string toString() const {
+				return makeString("variable '%s' cannot have void type",
+				                  name_.c_str());
+			}
+			
+		private:
+			String name_;
+			
+		};
+		
+		class CannotPatternMatchNonDatatypeDiag: public Error {
+		public:
+			CannotPatternMatchNonDatatypeDiag(const SEM::Type* const type)
+			: name_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot pattern match for non-datatype '%s'",
+				                  name_.c_str());
+			}
+			
+		private:
+			std::string name_;
+			
+		};
+		
+		class PatternMatchIncorrectVarCountDiag: public Error {
+		public:
+			PatternMatchIncorrectVarCountDiag(const size_t varCount,
+			                                  const SEM::Type* const type,
+			                                  const size_t expectedVarCount)
+			: varCount_(varCount), name_(type->toDiagString()),
+			expectedVarCount_(expectedVarCount) { }
+			
+			std::string toString() const {
+				return makeString("%llu variable(s) in pattern match for type '%s'; expected %llu",
+				                  (unsigned long long) varCount_, name_.c_str(),
+				                  (unsigned long long) expectedVarCount_);
+			}
+			
+		private:
+			size_t varCount_;
+			std::string name_;
+			size_t expectedVarCount_;
+			
+		};
+		
 		namespace {
 			
 			const SEM::Type* CastType(Context& context, const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location, bool isTopLevel) {
@@ -111,8 +177,8 @@ namespace locic {
 						// Search all scopes outside of the current scope.
 						const auto searchStartPosition = 1;
 						if (performSearch(context, Name::Relative() + varName, searchStartPosition).isVar()) {
-							throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
-								varName.c_str(), location.toString().c_str()));
+							context.issueDiag(VariableShadowsExistingVariableDiag(varName),
+							                  location);
 						}
 						
 						const auto varDeclType = ConvertType(context, astTypeVarNode->namedType())->resolveAliases();
@@ -122,8 +188,8 @@ namespace locic {
 						const auto varType = CastType(context, initialiseType, varDeclType, location, isTopLevel);
 						
 						if (varType->isBuiltInVoid()) {
-							throw ErrorException(makeString("Variable '%s' cannot have void type at position %s.",
-								astTypeVarNode->name().c_str(), location.toString().c_str()));
+							context.issueDiag(VariableCannotHaveVoidTypeDiag(varName),
+							                  location);
 						}
 						
 						// 'final' keyword uses a different lval type (which doesn't support
@@ -143,8 +209,8 @@ namespace locic {
 						const auto varDeclType = ConvertType(context, astTypeVarNode->patternType())->resolveAliases();
 						
 						if (!varDeclType->isDatatype()) {
-							throw ErrorException(makeString("Can't pattern match for non-datatype '%s' at position %s.",
-								varDeclType->toString().c_str(), location.toString().c_str()));
+							context.issueDiag(CannotPatternMatchNonDatatypeDiag(varDeclType),
+							                  astTypeVarNode->patternType().location());
 						}
 						
 						// Use cast to resolve any instances of
@@ -155,18 +221,17 @@ namespace locic {
 						const auto& typeChildVars = varType->getObjectType()->variables();
 						
 						if (astChildTypeVars->size() != typeChildVars.size()) {
-							throw ErrorException(makeString("%llu pattern match children specified; %llu expected (for type '%s') at position %s.",
-									static_cast<unsigned long long>(astChildTypeVars->size()),
-									static_cast<unsigned long long>(typeChildVars.size()),
-									varType->toString().c_str(),
-									location.toString().c_str()));
+							context.issueDiag(PatternMatchIncorrectVarCountDiag(astChildTypeVars->size(),
+							                                                    varType, typeChildVars.size()),
+							                  location);
 						}
 						
 						const auto templateVarMap = varType->generateTemplateVarMap();
 						
 						std::vector<std::unique_ptr<SEM::Var>> children;
 						
-						for (size_t i = 0; i < typeChildVars.size(); i++) {
+						const size_t numUsableVars = std::min(astChildTypeVars->size(), typeChildVars.size());
+						for (size_t i = 0; i < numUsableVars; i++) {
 							const auto& astVar = astChildTypeVars->at(i);
 							const auto& semVar = typeChildVars.at(i);
 							
@@ -184,12 +249,24 @@ namespace locic {
 			
 		}
 		
+		class AnyVarsNotImplementedForUninitialisedVariablesDiag: public Error {
+		public:
+			AnyVarsNotImplementedForUninitialisedVariablesDiag() { }
+			
+			std::string toString() const {
+				return "'any' vars not implemented for uninitialised variables";
+			}
+			
+		};
+		
 		std::unique_ptr<SEM::Var> ConvertVar(Context& context, const Debug::VarInfo::Kind varKind, const AST::Node<AST::TypeVar>& astTypeVarNode) {
 			const auto& location = astTypeVarNode.location();
 			
 			switch (astTypeVarNode->kind()) {
 				case AST::TypeVar::ANYVAR: {
-					throw ErrorException("'Any' vars not yet implemented for uninitialised variables.");
+					context.issueDiag(AnyVarsNotImplementedForUninitialisedVariablesDiag(),
+					                  location);
+					return nullptr;
 				}
 				
 				case AST::TypeVar::NAMEDVAR: {
@@ -198,8 +275,8 @@ namespace locic {
 					// Search all scopes outside of the current scope.
 					const auto searchStartPosition = 1;
 					if (varKind != Debug::VarInfo::VAR_MEMBER && performSearch(context, Name::Relative() + varName, searchStartPosition).isVar()) {
-						throw ErrorException(makeString("Variable '%s' shadows existing object at position %s.",
-							varName.c_str(), location.toString().c_str()));
+						context.issueDiag(VariableShadowsExistingVariableDiag(varName),
+						                  location);
 					}
 					
 					const auto varType = ConvertType(context, astTypeVarNode->namedType());
@@ -221,26 +298,25 @@ namespace locic {
 					const auto varType = ConvertType(context, astTypeVarNode->patternType())->resolveAliases();
 					
 					if (!varType->isDatatype()) {
-						throw ErrorException(makeString("Can't pattern match for non-datatype '%s' at position %s.",
-							varType->toString().c_str(), location.toString().c_str()));
+						context.issueDiag(CannotPatternMatchNonDatatypeDiag(varType),
+						                  astTypeVarNode->patternType().location());
 					}
 					
 					const auto& astChildTypeVars = astTypeVarNode->typeVarList();
 					const auto& typeChildVars = varType->getObjectType()->variables();
 					
 					if (astChildTypeVars->size() != typeChildVars.size()) {
-						throw ErrorException(makeString("%llu pattern match children specified; %llu expected (for type '%s') at position %s.",
-								static_cast<unsigned long long>(astChildTypeVars->size()),
-								static_cast<unsigned long long>(typeChildVars.size()),
-								varType->toString().c_str(),
-								location.toString().c_str()));
+						context.issueDiag(PatternMatchIncorrectVarCountDiag(astChildTypeVars->size(),
+						                                                    varType, typeChildVars.size()),
+						                  location);
 					}
 					
 					const auto templateVarMap = varType->generateTemplateVarMap();
 					
 					std::vector<std::unique_ptr<SEM::Var>> children;
 					
-					for (size_t i = 0; i < typeChildVars.size(); i++) {
+					const size_t numUsableVars = std::min(astChildTypeVars->size(), typeChildVars.size());
+					for (size_t i = 0; i < numUsableVars; i++) {
 						const auto& astVar = astChildTypeVars->at(i);
 						children.push_back(ConvertVar(context, varKind, astVar));
 					}
