@@ -494,6 +494,16 @@ namespace locic {
 			
 		};
 		
+		class PatternMatchingNotSupportedForParameterVariablesDiag: public Error {
+		public:
+			PatternMatchingNotSupportedForParameterVariablesDiag() { }
+			
+			std::string toString() const {
+				return "pattern matching not supported for parameter variables";
+			}
+			
+		};
+		
 		void ConvertFunctionDeclType(Context& context, SEM::Function& function) {
 			if (function.isDefault()) {
 				// Type is already converted.
@@ -535,8 +545,9 @@ namespace locic {
 			
 			for (const auto& astTypeVarNode: *(astFunctionNode->parameters())) {
 				if (!astTypeVarNode->isNamed()) {
-					throw ErrorException(makeString("Pattern variables not supported (yet!) for parameter variables, at location %s.",
-						astTypeVarNode.location().toString().c_str()));
+					context.issueDiag(PatternMatchingNotSupportedForParameterVariablesDiag(),
+					                  astTypeVarNode.location());
+					continue;
 				}
 				
 				auto paramVar = ConvertVar(context, Debug::VarInfo::VAR_ARGUMENT, astTypeVarNode);
