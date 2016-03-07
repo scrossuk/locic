@@ -1,0 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void varFunction() {
+	// CHECK: .loci:6:23: error: invalid literal specifier 'u13'
+	unused auto value0 = 42u13;
+	
+	// CHECK: .loci:9:24: error: invalid literal specifier 'i13'
+	unused auto value1 = -42i13;
+}
+
+// CHECK: 2 errors generated.
