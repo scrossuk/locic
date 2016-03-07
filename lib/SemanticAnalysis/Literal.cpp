@@ -25,7 +25,23 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		String integerSpecifierType(Context& context, const String& specifier) {
+		class InvalidLiteralSpecifierDiag: public Error {
+		public:
+			InvalidLiteralSpecifierDiag(const String specifier)
+			: specifier_(specifier) { }
+			
+			std::string toString() const {
+				return makeString("invalid literal specifier '%s'",
+				                  specifier_.c_str());
+			}
+			
+		private:
+			String specifier_;
+			
+		};
+		
+		String integerSpecifierType(Context& context, const String& specifier,
+		                            const Debug::SourceLocation& location) {
 			if (specifier == "i8") {
 				return context.getCString("int8_t");
 			} else if (specifier == "i16") {
@@ -44,7 +60,8 @@ namespace locic {
 				return context.getCString("uint64_t");
 			}
 			
-			throw ErrorException(makeString("Invalid integer literal specifier '%s'.", specifier.c_str()));
+			context.issueDiag(InvalidLiteralSpecifierDiag(specifier), location);
+			return context.getCString("int64_t");
 		}
 		
 		unsigned long long integerMax(const String& typeName) {
@@ -66,21 +83,39 @@ namespace locic {
 				return std::numeric_limits<uint64_t>::max();
 			}
 			
-			throw std::runtime_error(makeString("Invalid integer type '%s'.", typeName.c_str()));
+			locic_unreachable("Invalid integer type.");
 		}
 		
-		String getIntegerConstantType(Context& context, const String& specifier, const Constant& constant) {
+		class InvalidLiteralExceedsSpecifierMaximumDiag: public Error {
+		public:
+			InvalidLiteralExceedsSpecifierMaximumDiag(const Constant literal, const String specifier)
+			: literal_(literal), specifier_(specifier) { }
+			
+			std::string toString() const {
+				return makeString("integer literal '%llu' exceeds maximum of specifier '%s'",
+				                  (unsigned long long) literal_.integerValue(),
+				                  specifier_.c_str());
+			}
+			
+		private:
+			Constant literal_;
+			String specifier_;
+			
+		};
+		
+		String getIntegerConstantType(Context& context, const String& specifier, const Constant& constant,
+		                              const Debug::SourceLocation& location) {
 			assert(constant.kind() == Constant::INTEGER);
 			
 			const auto integerValue = constant.integerValue();
 			
 			// Use a specifier if available.
 			if (!specifier.empty() && specifier != "u") {
-				const auto typeName = integerSpecifierType(context, specifier);
+				const auto typeName = integerSpecifierType(context, specifier, location);
 				const auto typeMax = integerMax(typeName);
 				if (integerValue > typeMax) {
-					throw ErrorException(makeString("Integer literal '%llu' exceeds maximum of specifier '%s'.",
-						(unsigned long long) integerValue, specifier.c_str()));
+					context.issueDiag(InvalidLiteralExceedsSpecifierMaximumDiag(constant, specifier),
+					                  location);
 				}
 				return typeName;
 			}
@@ -118,7 +153,8 @@ namespace locic {
 			}
 		}
 		
-		String getLiteralTypeName(Context& context, const String& specifier, const Constant& constant) {
+		String getLiteralTypeName(Context& context, const String& specifier, const Constant& constant,
+		                          const Debug::SourceLocation& location) {
 			switch (constant.kind()) {
 				case Constant::NULLVAL: {
 					if (specifier.empty()) {
@@ -137,7 +173,7 @@ namespace locic {
 					}
 				}
 				case Constant::INTEGER: {
-					return getIntegerConstantType(context, specifier, constant);
+					return getIntegerConstantType(context, specifier, constant, location);
 				}
 				case Constant::FLOATINGPOINT: {
 					return getFloatingPointConstantType(context, specifier, constant);
@@ -161,7 +197,8 @@ namespace locic {
 			std::terminate();
 		}
 		
-		const SEM::Type* getLiteralType(Context& context, const String& specifier, const Constant& constant) {
+		const SEM::Type* getLiteralType(Context& context, const String& specifier, const Constant& constant,
+		                                const Debug::SourceLocation& location) {
 			switch (constant.kind()) {
 				case Constant::STRING: {
 					// C strings have the type 'const ubyte *', as opposed to just a
@@ -175,14 +212,14 @@ namespace locic {
 					return getBuiltInType(context, context.getCString("ptr_t"), { constByteType });
 				}
 				default: {
-					const auto typeName = getLiteralTypeName(context, specifier, constant);
+					const auto typeName = getLiteralTypeName(context, specifier, constant, location);
 					return getBuiltInType(context, typeName, {});
 				}
 			}
 		}
 		
 		SEM::Value getLiteralValue(Context& context, const String& specifier, const Constant& constant, const Debug::SourceLocation& location) {
-			auto constantValue = SEM::Value::Constant(constant, getLiteralType(context, specifier, constant));
+			auto constantValue = SEM::Value::Constant(constant, getLiteralType(context, specifier, constant, location));
 			
 			if (constant.kind() != Constant::STRING || specifier == "C") {
 				return constantValue;

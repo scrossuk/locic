@@ -13,7 +13,8 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Value getLiteralValue(Context& context, const String& specifier, const Constant& constant, const Debug::SourceLocation& location);
+		SEM::Value getLiteralValue(Context& context, const String& specifier, const Constant& constant,
+		                           const Debug::SourceLocation& location);
 		
 	}
 	
