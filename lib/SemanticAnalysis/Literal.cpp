@@ -153,6 +153,21 @@ namespace locic {
 			}
 		}
 		
+		class InvalidCharacterLiteralSpecifierDiag: public Error {
+		public:
+			InvalidCharacterLiteralSpecifierDiag(const String specifier)
+			: specifier_(specifier) { }
+			
+			std::string toString() const {
+				return makeString("invalid character literal specifier '%s'",
+				                  specifier_.c_str());
+			}
+			
+		private:
+			String specifier_;
+			
+		};
+		
 		String getLiteralTypeName(Context& context, const String& specifier, const Constant& constant,
 		                          const Debug::SourceLocation& location) {
 			switch (constant.kind()) {
@@ -184,8 +199,9 @@ namespace locic {
 					} else if (specifier == "C") {
 						return context.getCString("ubyte_t");
 					} else {
-						throw ErrorException(makeString("Invalid character literal specifier '%s'.",
-							specifier.c_str()));
+						context.issueDiag(InvalidCharacterLiteralSpecifierDiag(specifier),
+						                  location);
+						return context.getCString("ubyte_t");
 					}
 				}
 				case Constant::STRING: {
