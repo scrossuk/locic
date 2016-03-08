@@ -172,20 +172,12 @@ namespace locic {
 		                          const Debug::SourceLocation& location) {
 			switch (constant.kind()) {
 				case Constant::NULLVAL: {
-					if (specifier.empty()) {
-						return context.getCString("null_t");
-					} else {
-						throw ErrorException(makeString("Invalid null literal specifier '%s'.",
-							specifier.c_str()));
-					}
+					assert(specifier.empty());
+					return context.getCString("null_t");
 				}
 				case Constant::BOOLEAN: {
-					if (specifier.empty()) {
-						return context.getCString("bool_t");
-					} else {
-						throw ErrorException(makeString("Invalid boolean literal specifier '%s'.",
-							specifier.c_str()));
-					}
+					assert(specifier.empty());
+					return context.getCString("bool_t");
 				}
 				case Constant::INTEGER: {
 					return getIntegerConstantType(context, specifier, constant, location);
