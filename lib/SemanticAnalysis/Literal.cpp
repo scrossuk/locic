@@ -139,7 +139,23 @@ namespace locic {
 				integerValue));
 		}
 		
-		String getFloatingPointConstantType(Context& context, const String& specifier, const Constant& constant) {
+		class InvalidFloatingPointLiteralSpecifierDiag: public Error {
+		public:
+			InvalidFloatingPointLiteralSpecifierDiag(const String specifier)
+			: specifier_(specifier) { }
+			
+			std::string toString() const {
+				return makeString("invalid floating point literal specifier '%s'",
+				                  specifier_.c_str());
+			}
+			
+		private:
+			String specifier_;
+			
+		};
+		
+		String getFloatingPointConstantType(Context& context, const String& specifier, const Constant& constant,
+		                                    const Debug::SourceLocation& location) {
 			assert(constant.kind() == Constant::FLOATINGPOINT);
 			(void) constant;
 			
@@ -148,8 +164,9 @@ namespace locic {
 			} else if (specifier.empty() || specifier == "d") {
 				return context.getCString("double_t");
 			} else {
-				throw ErrorException(makeString("Invalid floating point literal specifier '%s'.",
-					specifier.c_str()));
+				context.issueDiag(InvalidFloatingPointLiteralSpecifierDiag(specifier),
+				                  location);
+				return context.getCString("double_t");
 			}
 		}
 		
@@ -183,7 +200,8 @@ namespace locic {
 					return getIntegerConstantType(context, specifier, constant, location);
 				}
 				case Constant::FLOATINGPOINT: {
-					return getFloatingPointConstantType(context, specifier, constant);
+					return getFloatingPointConstantType(context, specifier, constant,
+					                                    location);
 				}
 				case Constant::CHARACTER: {
 					if (specifier == "") {
