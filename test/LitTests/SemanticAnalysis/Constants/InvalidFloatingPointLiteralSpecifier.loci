@@ -1,0 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void varFunction() {
+	// CHECK: .loci:6:23: error: invalid floating point literal specifier 'abc'
+	unused auto value0 = 1.0abc;
+	
+	// CHECK: .loci:9:23: error: invalid floating point literal specifier 'abc'
+	unused auto value1 = abc 1.0;
+}
+
+// CHECK: 2 errors generated.
