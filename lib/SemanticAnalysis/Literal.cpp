@@ -218,6 +218,22 @@ namespace locic {
 			}
 		}
 		
+		class NoFunctionForStringLiteralSpecifierDiag: public Error {
+		public:
+			NoFunctionForStringLiteralSpecifierDiag(const String function, const String specifier)
+			: function_(function), specifier_(specifier) { }
+			
+			std::string toString() const {
+				return makeString("cannot find function '%s' for string literal specifier '%s'",
+				                  function_.c_str(), specifier_.c_str());
+			}
+			
+		private:
+			String function_;
+			String specifier_;
+			
+		};
+		
 		SEM::Value getLiteralValue(Context& context, const String& specifier, const Constant& constant, const Debug::SourceLocation& location) {
 			auto constantValue = SEM::Value::Constant(constant, getLiteralType(context, specifier, constant, location));
 			
@@ -229,8 +245,9 @@ namespace locic {
 			
 			const auto searchResult = performSearch(context, Name::Absolute() + functionName);
 			if (!searchResult.isFunction()) {
-				throw ErrorException(makeString("Invalid string literal specifier '%s' at %s; failed to find relevant function '%s'.",
-					specifier.c_str(), location.toString().c_str(), functionName.c_str()));
+				context.issueDiag(NoFunctionForStringLiteralSpecifierDiag(functionName, specifier),
+				                  location);
+				return constantValue;
 			}
 			
 			auto& typeBuilder = context.typeBuilder();
