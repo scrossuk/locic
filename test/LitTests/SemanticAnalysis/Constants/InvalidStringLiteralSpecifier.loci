@@ -1,0 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void varFunction() {
+	// CHECK: .loci:6:23: error: cannot find function 'string_literal_abc' for string literal specifier 'abc'
+	unused auto value0 = "string"abc;
+	
+	// CHECK: .loci:9:23: error: cannot find function 'string_literal_abc' for string literal specifier 'abc'
+	unused auto value1 = abc"string";
+}
+
+// CHECK: 2 errors generated.
