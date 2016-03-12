@@ -330,6 +330,16 @@ namespace locic {
 			
 		};
 		
+		class CatchClauseCannotUsePatternMatchingDiag: public Error {
+		public:
+			CatchClauseCannotUsePatternMatchingDiag() { }
+			
+			std::string toString() const {
+				return "catch clause cannot use pattern matching";
+			}
+			
+		};
+		
 		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -491,9 +501,8 @@ namespace locic {
 						const auto& astVar = astCatch->var;
 						
 						if (!astVar->isNamed()) {
-							throw ErrorException(makeString("Try statement catch clauses may only "
-								"contain named variables (no pattern matching) at position %s.",
-								location.toString().c_str()));
+							context.issueDiag(CatchClauseCannotUsePatternMatchingDiag(),
+							                  astVar.location());
 						}
 						
 						semCatch->setVar(ConvertVar(context, Debug::VarInfo::VAR_EXCEPTION_CATCH, astVar));
