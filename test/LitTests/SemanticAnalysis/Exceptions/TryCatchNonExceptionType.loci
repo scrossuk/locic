@@ -1,0 +1,23 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import void functionThatCouldThrow();
+
+exception ExceptionType(int value);
+
+export void function() {
+	try {
+		functionThatCouldThrow();
+		
+	// CHECK: .loci:13:11: error: cannot catch non-exception type 'int_t'
+	} catch (int value) {
+		unused_result value;
+		
+		// Verify the catch scope is still being converted.
+		// CHECK: .loci:18:17: error: use of undeclared identifier 'varThatDoesNotExist'
+		unused_result varThatDoesNotExist;
+	}
+}
+
+// CHECK: 2 errors generated.
+
