@@ -1,0 +1,24 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import void functionThatCouldThrow();
+
+exception ExceptionType(int value);
+
+export void function() {
+	try {
+		functionThatCouldThrow();
+		
+	// CHECK: .loci:14:11: error: catch clause cannot use pattern matching
+	// CHECK: .loci:14:11: error: cannot pattern match for non-datatype 'ExceptionType'
+	} catch (ExceptionType(int value)) {
+		unused_result value;
+		
+		// Verify the catch scope is still being converted.
+		// CHECK: .loci:19:17: error: use of undeclared identifier 'varThatDoesNotExist'
+		unused_result varThatDoesNotExist;
+	}
+}
+
+// CHECK: 3 errors generated.
+
