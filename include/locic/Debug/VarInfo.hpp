@@ -12,7 +12,8 @@ namespace locic {
 			enum Kind {
 				VAR_LOCAL,
 				VAR_ARGUMENT,
-				VAR_MEMBER
+				VAR_MEMBER,
+				VAR_EXCEPTION_CATCH
 			} kind;
 			String name;
 			SourceLocation declLocation;

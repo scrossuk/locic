@@ -496,19 +496,15 @@ namespace locic {
 								location.toString().c_str()));
 						}
 						
-						// Special case handling for catch variables,
-						// since they don't use lvalues.
-						const auto varType = ConvertType(context, astVar->namedType());
+						semCatch->setVar(ConvertVar(context, Debug::VarInfo::VAR_EXCEPTION_CATCH, astVar));
+						
+						const auto varType = semCatch->var().type();
 						if (!varType->isException()) {
 							throw ErrorException(makeString("Type '%s' is not an exception type and therefore "
 								"cannot be used in a catch clause at position %s.",
 								varType->toString().c_str(), location.toString().c_str()));
 						}
 						
-						auto semVar = SEM::Var::Basic(varType, varType);
-						attachVar(context, astVar->name(), astVar, *semVar, Debug::VarInfo::VAR_LOCAL);
-						
-						semCatch->setVar(std::move(semVar));
 						semCatch->setScope(ConvertScope(context, astCatch->scope));
 						
 						catchList.push_back(semCatch.release());

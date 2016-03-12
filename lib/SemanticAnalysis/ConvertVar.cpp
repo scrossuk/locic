@@ -285,7 +285,9 @@ namespace locic {
 					// moving or re-assignment).
 					const bool isFinalLval = astTypeVarNode->isFinal();
 					
-					const auto lvalType = makeLvalType(context, isFinalLval, varType);
+					// Variables in catch clauses don't use lvalues.
+					const auto lvalType = (varKind != Debug::VarInfo::VAR_EXCEPTION_CATCH) ?
+						makeLvalType(context, isFinalLval, varType) : varType;
 					
 					auto var = SEM::Var::Basic(varType, lvalType);
 					var->setMarkedUnused(astTypeVarNode->isUnused());
