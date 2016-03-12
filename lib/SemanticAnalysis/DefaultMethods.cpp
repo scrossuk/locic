@@ -453,6 +453,36 @@ namespace locic {
 			return semFunction;
 		}
 		
+		class DefaultMethodMustBeStaticDiag: public Error {
+		public:
+			DefaultMethodMustBeStaticDiag(const Name& name)
+			: nameString_(name.toString(/*addPrefix=*/false)) { }
+			
+			std::string toString() const {
+				return makeString("default method '%s' must be static",
+				                  nameString_.c_str());
+			}
+			
+		private:
+			std::string nameString_;
+			
+		};
+		
+		class DefaultMethodMustBeNonStaticDiag: public Error {
+		public:
+			DefaultMethodMustBeNonStaticDiag(const Name& name)
+			: nameString_(name.toString(/*addPrefix=*/false)) { }
+			
+			std::string toString() const {
+				return makeString("default method '%s' must be non-static",
+				                  nameString_.c_str());
+			}
+			
+		private:
+			std::string nameString_;
+			
+		};
+		
 		class UnknownDefaultMethodDiag: public Error {
 		public:
 			UnknownDefaultMethodDiag(String functionName)
@@ -477,57 +507,57 @@ namespace locic {
 			const auto canonicalName = CanonicalizeMethodName(name.last());
 			if (canonicalName == "create") {
 				if (!isStatic) {
-					throw ErrorException(makeString("Default method '%s' must be static at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
+					context.issueDiag(DefaultMethodMustBeStaticDiag(name),
+					                  location);
 				}
 				
 				return CreateDefaultConstructorDecl(context, typeInstance, name);
 			} else if (canonicalName == "__destroy") {
 				if (isStatic) {
-					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
+					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					                  location);
 				}
 				
 				return CreateDefaultDestroyDecl(context, typeInstance, name);
 			} else if (canonicalName == "__moveto") {
 				if (isStatic) {
-					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
+					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					                  location);
 				}
 				
 				return CreateDefaultMoveDecl(context, typeInstance, name);
 			} else if (canonicalName == "implicitcopy") {
 				if (isStatic) {
-					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
+					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					                  location);
 				}
 				
 				return CreateDefaultImplicitCopyDecl(context, typeInstance, name);
 			} else if (canonicalName == "copy") {
 				if (isStatic) {
-					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
+					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					                  location);
 				}
 				
 				return CreateDefaultExplicitCopyDecl(context, typeInstance, name);
 			} else if (canonicalName == "compare") {
 				if (isStatic) {
-					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
+					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					                  location);
 				}
 				
 				return CreateDefaultCompareDecl(context, typeInstance, name);
 			} else if (canonicalName == "__setdead") {
 				if (isStatic) {
-					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
+					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					                  location);
 				}
 				
 				return CreateDefaultSetDeadDecl(context, typeInstance, name);
 			} else if (canonicalName == "__islive") {
 				if (isStatic) {
-					throw ErrorException(makeString("Default method '%s' must be non-static at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
+					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					                  location);
 				}
 				
 				return CreateDefaultIsLiveDecl(context, typeInstance, name);
