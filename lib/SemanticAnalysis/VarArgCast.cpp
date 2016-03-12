@@ -64,15 +64,29 @@ namespace locic {
 			return Optional<SEM::Value>();
 		}
 		
+		class VarArgInvalidTypeDiag: public Error {
+		public:
+			VarArgInvalidTypeDiag(const SEM::Type* const type)
+			: typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot pass value of type '%s' to vararg function",
+				                  typeString_.c_str());
+			}
+			
+		private:
+			std::string typeString_;
+			
+		};
+		
 		SEM::Value VarArgCast(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
 			const std::string valueString = value.toString();
 			const auto valueType = value.type();
 			auto result = VarArgCastSearch(context, std::move(value), location);
 			if (!result) {
-				throw ErrorException(makeString("Var arg parameter '%s' has invalid type '%s' at position %s.",
-					valueString.c_str(),
-					valueType->toString().c_str(),
-					location.toString().c_str()));
+				context.issueDiag(VarArgInvalidTypeDiag(valueType),
+				                  location);
+				return SEM::Value::CastDummy(valueType);
 			}
 			return std::move(*result);
 		}

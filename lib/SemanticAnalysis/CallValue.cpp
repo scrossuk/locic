@@ -29,14 +29,16 @@ namespace locic {
 				
 				for (size_t i = 0; i < arguments.size(); i++) {
 					auto& argumentValue = arguments.at(i);
+					const auto& argLocation = argumentValue.debugInfo() ?
+						argumentValue.debugInfo()->location : location;
 					
 					// Cast arguments to the function type's corresponding
 					// argument type; var-arg arguments should be cast to
 					// one of the allowed types (since there's no specific
 					// destination type).
 					auto castArgumentValue = (i < types.size()) ?
-						ImplicitCast(context, std::move(argumentValue), types.at(i), location) :
-						VarArgCast(context, std::move(argumentValue), location);
+						ImplicitCast(context, std::move(argumentValue), types.at(i), argLocation) :
+						VarArgCast(context, std::move(argumentValue), argLocation);
 					
 					castValues.push_back(std::move(castArgumentValue));
 				}
