@@ -355,6 +355,21 @@ namespace locic {
 			
 		};
 		
+		class InvalidScopeExitStateDiag: public Error {
+		public:
+			InvalidScopeExitStateDiag(const String exitState)
+			: exitState_(exitState) { }
+			
+			std::string toString() const {
+				return makeString("invalid scope exit state '%s'",
+				                  exitState_.c_str());
+			}
+			
+		private:
+			String exitState_;
+			
+		};
+		
 		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -536,10 +551,11 @@ namespace locic {
 					return SEM::Statement::Try(std::move(tryScope), catchList);
 				}
 				case AST::Statement::SCOPEEXIT: {
-					const auto& scopeExitState = statement->scopeExitStmt.state;
+					auto scopeExitState = statement->scopeExitStmt.state;
 					if (scopeExitState != "exit" && scopeExitState != "success" && scopeExitState != "failure") {
-						throw ErrorException(makeString("Unknown scope-exit state '%s' at position %s.",
-								scopeExitState.c_str(), location.toString().c_str()));
+						context.issueDiag(InvalidScopeExitStateDiag(scopeExitState),
+						                  location);
+						scopeExitState = context.getCString("exit");
 					}
 					
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::ScopeAction(scopeExitState));
