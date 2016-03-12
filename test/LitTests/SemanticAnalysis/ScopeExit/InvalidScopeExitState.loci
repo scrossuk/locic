@@ -1,0 +1,14 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void function() {
+	// CHECK: .loci:6:2: error: invalid scope exit state 'nonexistent'
+	scope (nonexistent) {
+		// Verify the scope is still being converted.
+		// CHECK: .loci:9:17: error: use of undeclared identifier 'varThatDoesNotExist'
+		unused_result varThatDoesNotExist;
+	}
+}
+
+// CHECK: 2 errors generated.
+
