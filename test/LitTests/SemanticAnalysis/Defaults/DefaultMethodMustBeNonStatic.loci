@@ -1,0 +1,27 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	// CHECK: .loci:6:2: error: default method 'TestClass::__destroy' must be non-static
+	static __destroy = default;
+	
+	// CHECK: .loci:9:2: error: default method 'TestClass::__moveto' must be non-static
+	static __moveto = default;
+	
+	// CHECK: .loci:12:2: error: default method 'TestClass::implicitcopy' must be non-static
+	static implicitcopy = default;
+	
+	// CHECK: .loci:15:2: error: default method 'TestClass::copy' must be non-static
+	static copy = default;
+	
+	// CHECK: .loci:18:2: error: default method 'TestClass::compare' must be non-static
+	static compare = default;
+	
+	// CHECK: .loci:21:2: error: default method 'TestClass::__setdead' must be non-static
+	static __setdead = default;
+	
+	// CHECK: .loci:24:2: error: default method 'TestClass::__islive' must be non-static
+	static __islive = default;
+}
+
+// CHECK: 7 errors generated.
