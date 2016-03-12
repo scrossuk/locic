@@ -340,6 +340,21 @@ namespace locic {
 			
 		};
 		
+		class CannotCatchNonExceptionTypeDiag: public Error {
+		public:
+			CannotCatchNonExceptionTypeDiag(const SEM::Type* const type)
+			: typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot catch non-exception type '%s'",
+				                  typeString_.c_str());
+			}
+			
+		private:
+			std::string typeString_;
+			
+		};
+		
 		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -509,9 +524,8 @@ namespace locic {
 						
 						const auto varType = semCatch->var().type();
 						if (!varType->isException()) {
-							throw ErrorException(makeString("Type '%s' is not an exception type and therefore "
-								"cannot be used in a catch clause at position %s.",
-								varType->toString().c_str(), location.toString().c_str()));
+							context.issueDiag(CannotCatchNonExceptionTypeDiag(varType),
+							                  astVar.location());
 						}
 						
 						semCatch->setScope(ConvertScope(context, astCatch->scope));
