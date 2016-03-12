@@ -1,0 +1,29 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import void f(int a, ...);
+
+class TestClass() {
+	static create = default;
+}
+
+export void g() {
+	// CHECK: .loci:12:7: error: cannot pass value of type 'TestClass' to vararg function
+	f(1, TestClass());
+}
+
+datatype TestDatatype()
+
+export void h() {
+	// CHECK: .loci:19:7: error: cannot pass value of type 'TestDatatype' to vararg function
+	f(2, TestDatatype());
+}
+
+struct TestStruct { }
+
+export void i() {
+	// CHECK: .loci:26:7: error: cannot pass value of type 'TestStruct' to vararg function
+	f(3, TestStruct());
+}
+
+// CHECK: 3 errors generated.
