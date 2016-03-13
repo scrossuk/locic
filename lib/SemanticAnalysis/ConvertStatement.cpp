@@ -385,6 +385,16 @@ namespace locic {
 			
 		};
 		
+		class CannotReturnInScopeActionDiag: public Error {
+		public:
+			CannotReturnInScopeActionDiag() { }
+			
+			std::string toString() const {
+				return "cannot return in scope action";
+			}
+			
+		};
+		
 		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -578,8 +588,6 @@ namespace locic {
 					auto scopeExitScope = ConvertScope(context, statement->scopeExitStmt.scope);
 					const auto exitStates = scopeExitScope->exitStates();
 					
-					assert(!exitStates.hasReturnExit());
-					
 					// scope(success) is allowed to throw.
 					if (scopeExitState != "success" && exitStates.hasThrowExit()) {
 						// TODO: remove this; each potentially throwing site should check for this.
@@ -676,8 +684,9 @@ namespace locic {
 						const auto pos = context.scopeStack().size() - i - 1;
 						const auto& element = context.scopeStack()[pos];
 						if (element.isScopeAction()) {
-							throw ErrorException(makeString("Cannot 'return' in scope action at position %s.",
-								location.toString().c_str()));
+							context.issueDiag(CannotReturnInScopeActionDiag(),
+							                  location);
+							break;
 						}
 					}
 					
