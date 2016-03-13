@@ -1,0 +1,22 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+import void g();
+
+export int f() {
+	scope (exit) {
+		// CHECK: .loci:9:3: error: cannot return in scope action
+		return 1;
+	}
+	scope (success) {
+		// CHECK: .loci:13:3: error: cannot return in scope action
+		return 2;
+	}
+	scope (failure) {
+		// CHECK: .loci:17:3: error: cannot return in scope action
+		return 3;
+	}
+	g();
+}
+
+// CHECK: 3 errors generated.
