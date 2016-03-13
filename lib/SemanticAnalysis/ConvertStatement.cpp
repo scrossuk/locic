@@ -370,6 +370,21 @@ namespace locic {
 			
 		};
 		
+		class CannotReturnVoidInNonVoidFunctionDiag: public Error {
+		public:
+			CannotReturnVoidInNonVoidFunctionDiag(const Name& functionName)
+			: functionNameString_(functionName.toString(/*addPrefix=*/false)) { }
+			
+			std::string toString() const {
+				return makeString("cannot return void in function '%s' with non-void return type",
+				                  functionNameString_.c_str());
+			}
+			
+		private:
+			std::string functionNameString_;
+			
+		};
+		
 		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -646,9 +661,9 @@ namespace locic {
 				case AST::Statement::RETURNVOID: {
 					// Void return statement (i.e. return;)
 					if (!getParentFunctionReturnType(context.scopeStack())->isBuiltInVoid()) {
-						throw ErrorException(makeString("Cannot return void in function '%s' with non-void return type at position %s.",
-							lookupParentFunction(context.scopeStack())->name().toString().c_str(),
-							location.toString().c_str()));
+						const auto& functionName = lookupParentFunction(context.scopeStack())->name();
+						context.issueDiag(CannotReturnVoidInNonVoidFunctionDiag(functionName),
+						                  location);
 					}
 					
 					return SEM::Statement::ReturnVoid();
