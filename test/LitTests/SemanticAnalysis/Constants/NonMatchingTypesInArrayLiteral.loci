@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export int8_t[2] f() {
+	// CHECK: .loci:6:9: error: array literal element types 'int8_t' and 'double_t' do not match
+	return { 2, 2.0 };
+}
+
+// CHECK: 1 error generated.
