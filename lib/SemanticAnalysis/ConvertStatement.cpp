@@ -707,7 +707,10 @@ namespace locic {
 					
 					auto semValue = ConvertValue(context, statement->returnStmt.value);
 					
-					if (getParentFunctionReturnType(context.scopeStack())->isBuiltInVoid()) {
+					const bool functionIsVoid = getParentFunctionReturnType(context.scopeStack())->isBuiltInVoid();
+					const bool valueIsVoid = semValue.type()->isBuiltInVoid();
+					
+					if (functionIsVoid && !valueIsVoid) {
 						// Can't return in a function that returns void.
 						const auto& name = lookupParentFunction(context.scopeStack())->name();
 						context.issueDiag(CannotReturnNonVoidInVoidFunctionDiag(name),
@@ -715,11 +718,12 @@ namespace locic {
 						return SEM::Statement::Return(std::move(semValue));
 					}
 					
-					// Can't return void.
-					if (semValue.type()->isBuiltInVoid()) {
-						throw ErrorException(makeString("Cannot return void in function '%s' with non-void return type at position %s.",
-							lookupParentFunction(context.scopeStack())->name().toString().c_str(),
-							location.toString().c_str()));
+					if (!functionIsVoid && valueIsVoid) {
+						// Can't return void.
+						const auto& name = lookupParentFunction(context.scopeStack())->name();
+						context.issueDiag(CannotReturnVoidInNonVoidFunctionDiag(name),
+						                  location);
+						return SEM::Statement::Return(std::move(semValue));
 					}
 					
 					// Cast the return value to the function's
