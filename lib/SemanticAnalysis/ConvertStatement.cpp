@@ -385,6 +385,21 @@ namespace locic {
 			
 		};
 		
+		class CannotReturnNonVoidInVoidFunctionDiag: public Error {
+		public:
+			CannotReturnNonVoidInVoidFunctionDiag(const Name& functionName)
+			: functionNameString_(functionName.toString(/*addPrefix=*/false)) { }
+			
+			std::string toString() const {
+				return makeString("cannot return non-void value in function '%s' with void return type",
+				                  functionNameString_.c_str());
+			}
+			
+		private:
+			std::string functionNameString_;
+			
+		};
+		
 		class CannotReturnInScopeActionDiag: public Error {
 		public:
 			CannotReturnInScopeActionDiag() { }
@@ -690,14 +705,15 @@ namespace locic {
 						}
 					}
 					
-					// Can't return in a function that returns void.
-					if (getParentFunctionReturnType(context.scopeStack())->isBuiltInVoid()) {
-						throw ErrorException(makeString("Cannot return value in function '%s' with void return type at position %s.",
-							lookupParentFunction(context.scopeStack())->name().toString().c_str(),
-							location.toString().c_str()));
-					}
-					
 					auto semValue = ConvertValue(context, statement->returnStmt.value);
+					
+					if (getParentFunctionReturnType(context.scopeStack())->isBuiltInVoid()) {
+						// Can't return in a function that returns void.
+						const auto& name = lookupParentFunction(context.scopeStack())->name();
+						context.issueDiag(CannotReturnNonVoidInVoidFunctionDiag(name),
+						                  location);
+						return SEM::Statement::Return(std::move(semValue));
+					}
 					
 					// Can't return void.
 					if (semValue.type()->isBuiltInVoid()) {
