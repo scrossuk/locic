@@ -211,6 +211,16 @@ namespace locic {
 			
 		};
 		
+		class EmptyArrayLiteralNotSupportedDiag: public Error {
+		public:
+			 EmptyArrayLiteralNotSupportedDiag() { }
+			
+			std::string toString() const {
+				return "empty array literals not currently supported";
+			}
+			
+		};
+		
 		class SetFakeDiagnosticReceiver {
 		public:
 			SetFakeDiagnosticReceiver(Context& context)
@@ -745,11 +755,13 @@ namespace locic {
 					}
 					
 					if (elementValues.empty()) {
-						throw ErrorException(makeString("Empty array literals not currently supported, at position %s.",
-						                                location.toString().c_str()));
+						context.issueDiag(EmptyArrayLiteralNotSupportedDiag(),
+						                  location);
 					}
 					
-					const auto elementType = elementValues[0].type();
+					auto& typeBuilder = context.typeBuilder();
+					const auto elementType = elementValues.empty() ?
+						typeBuilder.getIntType() : elementValues[0].type();
 					
 					for (const auto& elementValue: elementValues) {
 						if (elementType != elementValue.type()) {
@@ -760,7 +772,6 @@ namespace locic {
 						}
 					}
 					
-					auto& typeBuilder = context.typeBuilder();
 					const auto arrayType = typeBuilder.getConstantStaticArrayType(elementType,
 					                                                              elementValues.size(),
 					                                                              location);
