@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export int[0] f() {
+	// CHECK: .loci:6:9: error: empty array literals not currently supported
+	return {};
+}
+
+// CHECK: 1 error generated.
