@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void f() {
+	// CHECK: .loci:6:2: error: cannot return non-void value in function 'f' with void return type
+	return 42;
+}
+
+// CHECK: 1 error generated.
