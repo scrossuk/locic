@@ -221,6 +221,24 @@ namespace locic {
 			
 		};
 		
+		class NonMatchingArrayLiteralTypesDiag: public Error {
+		public:
+			NonMatchingArrayLiteralTypesDiag(const SEM::Type* const firstType,
+			                                 const SEM::Type* const secondType)
+			: firstTypeString_(firstType->toDiagString()),
+			secondTypeString_(secondType->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("array literal element types '%s' and '%s' do not match",
+				                  firstTypeString_.c_str(), secondTypeString_.c_str());
+			}
+			
+		private:
+			std::string firstTypeString_;
+			std::string secondTypeString_;
+			
+		};
+		
 		class SetFakeDiagnosticReceiver {
 		public:
 			SetFakeDiagnosticReceiver(Context& context)
@@ -765,10 +783,9 @@ namespace locic {
 					
 					for (const auto& elementValue: elementValues) {
 						if (elementType != elementValue.type()) {
-							throw ErrorException(makeString("Element value types '%s' and '%s' don't match, at position %s.",
-							                                elementType->toString().c_str(),
-							                                elementValue.type()->toString().c_str(),
-							                                location.toString().c_str()));
+							context.issueDiag(NonMatchingArrayLiteralTypesDiag(elementType,
+							                                                   elementValue.type()),
+							                  location);
 						}
 					}
 					
