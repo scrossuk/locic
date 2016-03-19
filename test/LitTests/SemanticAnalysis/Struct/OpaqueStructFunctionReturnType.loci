@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+struct OpaqueStruct;
+
+// CHECK: .loci:7:8: error: return type 'OpaqueStruct' of function 'f' is not movable
+import OpaqueStruct f();
+
+// CHECK: 1 error generated.
