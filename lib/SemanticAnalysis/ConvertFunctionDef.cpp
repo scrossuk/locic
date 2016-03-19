@@ -260,6 +260,24 @@ namespace locic {
 			
 		};
 		
+		class ReturnTypeNotMovableDiag: public Error {
+		public:
+			ReturnTypeNotMovableDiag(const SEM::Type* const type,
+			                         const Name& functionName)
+			: typeString_(type->toDiagString()),
+			functionNameString_(functionName.toString(/*addPrefix=*/false)) { }
+			
+			std::string toString() const {
+				return makeString("return type '%s' of function '%s' is not movable",
+				                  typeString_.c_str(), functionNameString_.c_str());
+			}
+			
+		private:
+			std::string typeString_;
+			std::string functionNameString_;
+			
+		};
+		
 		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
 			auto& semFunction = context.scopeStack().back().function();
 			
@@ -270,10 +288,9 @@ namespace locic {
 			const auto functionType = semFunction.type();
 			
 			if (!supportsMove(context, functionType.returnType())) {
-				throw ErrorException(makeString("Return type '%s' of function '%s' is not movable, at position %s.",
-					functionType.returnType()->toString().c_str(),
-					semFunction.name().toString().c_str(),
-					astFunctionNode.location().toString().c_str()));
+				context.issueDiag(ReturnTypeNotMovableDiag(functionType.returnType(),
+				                                           semFunction.name()),
+				                  astFunctionNode->returnType().location());
 			}
 			
 			if (astFunctionNode->isDefaultDefinition()) {
