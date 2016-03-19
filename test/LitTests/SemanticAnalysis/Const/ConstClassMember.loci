@@ -1,7 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
 
 // Class members can't (or at least, shouldn't)
 // be const since this affects the movability
 // of the object.
 class TestClass(const int value) { }
 
+// CHECK: .loci:10:8: error: return type 'TestClass' of function 'getValue' is not movable
 import TestClass getValue();
+
+// CHECK: 1 error generated.
