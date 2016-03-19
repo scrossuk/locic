@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+template <typename T>
+// CHECK: .loci:6:8: error: return type 'T' of function 'f' is not movable
+import T f();
+
+template <typename T>
+require(is_movable<T>)
+// CHECK-NOT: .loci:11:8: error: return type 'T' of function 'g' is not movable
+import T g();
+
+// CHECK: 1 error generated.
