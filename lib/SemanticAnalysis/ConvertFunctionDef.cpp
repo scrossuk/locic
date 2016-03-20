@@ -278,6 +278,21 @@ namespace locic {
 			
 		};
 		
+		class MissingReturnStatementDiag: public Error {
+		public:
+			MissingReturnStatementDiag(const Name& functionName)
+			: functionNameString_(functionName.toString(/*addPrefix=*/false)) { }
+			
+			std::string toString() const {
+				return makeString("control reaches end of function '%s' with non-void return type; it needs a return statement",
+				                  functionNameString_.c_str());
+			}
+			
+		private:
+			std::string functionNameString_;
+			
+		};
+		
 		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
 			auto& semFunction = context.scopeStack().back().function();
 			
@@ -314,9 +329,8 @@ namespace locic {
 			if (exitStates.hasNormalExit()) {
 				if (!returnType->isBuiltInVoid()) {
 					// Functions with non-void return types must return a value.
-					throw ErrorException(makeString("Control reaches end of function '%s' with non-void return type; it needs a return statement, at location %s.",
-						semFunction.name().toString().c_str(),
-						astFunctionNode.location().toString().c_str()));
+					context.issueDiag(MissingReturnStatementDiag(semFunction.name()),
+					                  astFunctionNode->scope().location());
 				} else {
 					// Need to add a void return statement if the program didn't.
 					semScope->statements().push_back(SEM::Statement::ReturnVoid());
