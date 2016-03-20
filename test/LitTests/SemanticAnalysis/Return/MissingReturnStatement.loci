@@ -1,0 +1,10 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:16: error: control reaches end of function 'f' with non-void return type; it needs a return statement
+export int f() { }
+
+// CHECK-NOT: .loci:8:17: error: control reaches end of function 'g' with non-void return type; it needs a return statement
+export void g() { }
+
+// CHECK: 1 error generated.
