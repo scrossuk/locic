@@ -2,10 +2,10 @@
 // RUN: FileCheck < %t %s
 
 export void varFunction() {
-	// CHECK: .loci:6:23: error: integer literal '1000' exceeds maximum of specifier 'u8'
+	// CHECK: .loci:6:23: error: integer literal exceeds maximum of specifier 'u8'
 	unused auto value0 = 1000u8;
 	
-	// CHECK: .loci:9:24: error: integer literal '1000' exceeds maximum of specifier 'i8'
+	// CHECK: .loci:9:24: error: integer literal exceeds maximum of specifier 'i8'
 	unused auto value1 = -1000i8;
 }
 

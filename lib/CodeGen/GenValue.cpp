@@ -163,8 +163,12 @@ namespace locic {
 						return irEmitter_.constantGenerator().getBool(value.constant().boolValue());
 					case locic::Constant::INTEGER: {
 						assert(value.type()->isObject());
-						const auto integerValue = value.constant().integerValue();
-						return irEmitter_.constantGenerator().getPrimitiveInt(value.type()->primitiveID(), integerValue);
+						const auto& integerValue = value.constant().integerValue();
+						
+						// We can currently only have ints up to 64 bits in size.
+						const auto int64Value = integerValue.asUint64();
+						
+						return irEmitter_.constantGenerator().getPrimitiveInt(value.type()->primitiveID(), int64Value);
 					}
 					
 					case locic::Constant::FLOATINGPOINT: {

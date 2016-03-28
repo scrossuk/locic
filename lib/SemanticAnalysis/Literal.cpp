@@ -8,6 +8,7 @@
 
 #include <locic/Constant.hpp>
 #include <locic/Debug.hpp>
+#include <locic/Support/APInt.hpp>
 #include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
 
@@ -64,7 +65,7 @@ namespace locic {
 			return context.getCString("int64_t");
 		}
 		
-		unsigned long long integerMax(const String& typeName) {
+		APInt integerMax(const String& typeName) {
 			if (typeName == "int8_t") {
 				return std::numeric_limits<int8_t>::max();
 			} else if (typeName == "int16_t") {
@@ -88,17 +89,15 @@ namespace locic {
 		
 		class InvalidLiteralExceedsSpecifierMaximumDiag: public Error {
 		public:
-			InvalidLiteralExceedsSpecifierMaximumDiag(const Constant literal, const String specifier)
-			: literal_(literal), specifier_(specifier) { }
+			InvalidLiteralExceedsSpecifierMaximumDiag(const String specifier)
+			: specifier_(specifier) { }
 			
 			std::string toString() const {
-				return makeString("integer literal '%llu' exceeds maximum of specifier '%s'",
-				                  (unsigned long long) literal_.integerValue(),
+				return makeString("integer literal  exceeds maximum of specifier '%s'",
 				                  specifier_.c_str());
 			}
 			
 		private:
-			Constant literal_;
 			String specifier_;
 			
 		};
@@ -107,14 +106,14 @@ namespace locic {
 		                              const Debug::SourceLocation& location) {
 			assert(constant.kind() == Constant::INTEGER);
 			
-			const auto integerValue = constant.integerValue();
+			const auto& integerValue = constant.integerValue();
 			
 			// Use a specifier if available.
 			if (!specifier.empty() && specifier != "u") {
 				const auto typeName = integerSpecifierType(context, specifier, location);
 				const auto typeMax = integerMax(typeName);
 				if (integerValue > typeMax) {
-					context.issueDiag(InvalidLiteralExceedsSpecifierMaximumDiag(constant, specifier),
+					context.issueDiag(InvalidLiteralExceedsSpecifierMaximumDiag(specifier),
 					                  location);
 				}
 				return typeName;
@@ -129,7 +128,6 @@ namespace locic {
 			
 			for (const auto& typeName: types) {
 				const auto specTypeName = specifier + typeName;
-				// TODO: use arbitary-precision arithmetic.
 				if (integerValue <= integerMax(specTypeName)) {
 					return specTypeName;
 				}

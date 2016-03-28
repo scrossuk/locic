@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <cassert>
 
+#include <locic/Support/APInt.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Hasher.hpp>
 #include <locic/Support/String.hpp>
@@ -21,7 +22,6 @@ namespace locic{
 				STRING
 			};
 			
-			typedef unsigned long long IntegerVal;
 			typedef long double FloatVal;
 			typedef uint32_t CharVal;
 			
@@ -41,9 +41,9 @@ namespace locic{
 				return constant;
 			}
 			
-			static Constant Integer(IntegerVal value){
+			static Constant Integer(APInt value){
 				Constant constant(INTEGER);
-				constant.integer_ = value;
+				constant.integer_ = std::move(value);
 				return constant;
 			}
 			
@@ -65,9 +65,33 @@ namespace locic{
 				return constant;
 			}
 			
-			// Default (non-initialising!) constructor allows
-			// placing this type in unions.
-			Constant() = default;
+			Constant() : kind_(NULLVAL) { }
+			
+			Constant(const Constant& other)
+			: kind_(other.kind_) {
+				switch (other.kind()) {
+					case NULLVAL:
+						break;
+					case BOOLEAN:
+						bool_ = other.boolValue();
+						break;
+					case INTEGER:
+						integer_ = other.integerValue().copy();
+						break;
+					case FLOATINGPOINT:
+						float_ = other.floatValue();
+						break;
+					case CHARACTER:
+						character_ = other.characterValue();
+						break;
+					case STRING:
+						string_ = other.stringValue();
+						break;
+				}
+			}
+			
+			Constant(Constant&&) = default;
+			Constant& operator=(Constant&&) = default;
 			
 			Kind kind() const{
 				return kind_;
@@ -102,7 +126,7 @@ namespace locic{
 				return bool_;
 			}
 			
-			IntegerVal integerValue() const{
+			const APInt& integerValue() const{
 				assert(kind_ == INTEGER);
 				return integer_;
 			}
@@ -179,7 +203,7 @@ namespace locic{
 					case BOOLEAN:
 						return makeString("BoolConstant(%s)", bool_ ? "true" : "false");
 					case INTEGER:
-						return makeString("IntegerConstant(%llu)", integerValue());
+						return makeString("IntegerConstant(%s)", integerValue().toString().c_str());
 					case FLOATINGPOINT:
 						return makeString("FloatConstant(%Lf)", floatValue());
 					case CHARACTER:
@@ -197,10 +221,10 @@ namespace locic{
 			: kind_(pKind) { }
 			
 			Kind kind_;
+			APInt integer_;
 			
 			union{
 				bool bool_;
-				IntegerVal integer_;
 				FloatVal float_;
 				CharVal character_;
 				String string_;

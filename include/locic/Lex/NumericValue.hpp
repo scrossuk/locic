@@ -3,6 +3,8 @@
 
 #include <cassert>
 
+#include <locic/Support/APInt.hpp>
+
 namespace locic {
 	
 	namespace Lex {
@@ -15,9 +17,9 @@ namespace locic {
 				VERSION
 			};
 			
-			static NumericValue Integer(unsigned long long integerValue) {
+			static NumericValue Integer(APInt integerValue) {
 				NumericValue value(INTEGER);
-				value.data_.integerValue = integerValue;
+				value.integerValue_ = std::move(integerValue);
 				return value;
 			}
 			
@@ -41,9 +43,14 @@ namespace locic {
 				return kind() == INTEGER;
 			}
 			
-			unsigned long long integerValue() const {
+			APInt& integerValue() {
 				assert(isInteger());
-				return data_.integerValue;
+				return integerValue_;
+			}
+			
+			const APInt& integerValue() const {
+				assert(isInteger());
+				return integerValue_;
 			}
 			
 			bool isFloat() const {
@@ -69,9 +76,9 @@ namespace locic {
 			: kind_(argKind) { }
 			
 			Kind kind_;
+			APInt integerValue_;
 			
 			union {
-				unsigned long long integerValue;
 				long double floatValue;
 				class Version versionValue;
 			} data_;

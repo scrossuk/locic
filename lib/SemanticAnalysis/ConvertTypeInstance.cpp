@@ -21,7 +21,7 @@ namespace locic {
 			
 			HeapArray<SEM::Value> constructValues;
 			
-			const auto intConstant = Constant::Integer(static_cast<Constant::IntegerVal>(value));
+			const auto intConstant = Constant::Integer(APInt(value));
 			const auto intType = getBuiltInType(context, context.getCString("int_t"), {});
 			constructValues.push_back(SEM::Value::Constant(intConstant, intType));
 			

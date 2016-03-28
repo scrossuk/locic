@@ -80,8 +80,8 @@ namespace locic {
 		                                                 const llvm_abi::TypeBuilder& abiTypeBuilder,
 		                                                 llvm::ArrayRef<SEM::Value> templateArguments) const {
 			const auto elementType = genABIType(module, templateArguments.front().typeRefType());
-			const auto elementCount = templateArguments.back().constant().integerValue();
-			return abiTypeBuilder.getArrayTy(elementCount,
+			const auto& elementCount = templateArguments.back().constant().integerValue();
+			return abiTypeBuilder.getArrayTy(elementCount.asUint64(),
 			                                 elementType);
 		}
 		
@@ -89,9 +89,9 @@ namespace locic {
 		                                            const TypeGenerator& typeGenerator,
 		                                            llvm::ArrayRef<SEM::Value> templateArguments) const {
 			const auto elementType = genType(module, templateArguments.front().typeRefType());
-			const auto elementCount = templateArguments.back().constant().integerValue();
+			const auto& elementCount = templateArguments.back().constant().integerValue();
 			return typeGenerator.getArrayType(elementType,
-			                                  elementCount);
+			                                  elementCount.asUint64());
 		}
 		
 		namespace {

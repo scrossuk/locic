@@ -36,9 +36,9 @@ namespace locic {
 			Optional<Predicate> predicate;
 			TypeArray typeArray;
 			ValueArray valueArray;
+			locic::Constant constant;
 			
 			union {
-				locic::Constant constant;
 				const SEM::Alias* alias;
 				
 				struct {
@@ -112,9 +112,9 @@ namespace locic {
 			return Value(THIS, type, ExitStates::Normal());
 		}
 		
-		Value Value::Constant(const locic::Constant constant, const Type* const type) {
+		Value Value::Constant(locic::Constant constant, const Type* const type) {
 			Value value(CONSTANT, type, ExitStates::Normal());
-			value.impl_->union_.constant = constant;
+			value.impl_->constant = std::move(constant);
 			return value;
 		}
 		
@@ -425,7 +425,7 @@ namespace locic {
 		
 		const locic::Constant& Value::constant() const {
 			assert(isConstant());
-			return impl_->union_.constant;
+			return impl_->constant;
 		}
 		
 		bool Value::isAlias() const {

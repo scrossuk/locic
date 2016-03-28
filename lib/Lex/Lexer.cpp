@@ -151,33 +151,42 @@ namespace locic {
 		}
 		
 		NumericValue getHexIntegerConstant(const Array<Character, 16>& digits) {
-			std::string data = "";
+			APInt value = 0;
 			
-			for (const auto value: digits) {
-				data += value.asciiValue();
+			for (const auto digit: digits) {
+				value *= 16;
+				if (digit.asciiValue() >= '0' && digit.asciiValue() <= '9') {
+					value += (digit.asciiValue() - '0');
+				} else if (digit.asciiValue() >= 'A' && digit.asciiValue() <= 'F') {
+					value += (digit.asciiValue() - 'A') + 10;
+				} else {
+					value += (digit.asciiValue() - 'a') + 10;
+				}
 			}
 			
-			return NumericValue::Integer(strtoll(data.c_str(), NULL, 16));
+			return NumericValue::Integer(std::move(value));
 		}
 		
 		NumericValue getOctalIntegerConstant(const Array<Character, 16>& digits) {
-			std::string data = "";
+			APInt value = 0;
 			
-			for (const auto value: digits) {
-				data += value.asciiValue();
+			for (const auto digit: digits) {
+				value *= 8;
+				value += (digit.asciiValue() - '0');
 			}
 			
-			return NumericValue::Integer(strtoll(data.c_str(), NULL, 8));
+			return NumericValue::Integer(std::move(value));
 		}
 		
 		NumericValue getIntegerConstant(const Array<Character, 16>& digits) {
-			std::string data;
+			APInt value = 0;
 			
-			for (const auto value: digits) {
-				data += value.asciiValue();
+			for (const auto digit: digits) {
+				value *= 10;
+				value += (digit.asciiValue() - '0');
 			}
 			
-			return NumericValue::Integer(strtoll(data.c_str(), NULL, 10));
+			return NumericValue::Integer(std::move(value));
 		}
 		
 		NumericValue getFloatConstant(const Array<Character, 16>& digits) {
@@ -201,10 +210,10 @@ namespace locic {
 		}
 		
 		Token Lexer::lexNumericToken() {
-			const auto numericValue = lexNumericConstant();
+			auto numericValue = lexNumericConstant();
 			switch (numericValue.kind()) {
 				case NumericValue::INTEGER:
-					return Token::Constant(Constant::Integer(numericValue.integerValue()));
+					return Token::Constant(Constant::Integer(std::move(numericValue.integerValue())));
 				case NumericValue::FLOAT:
 					return Token::Constant(Constant::Float(numericValue.floatValue()));
 				case NumericValue::VERSION:
@@ -225,7 +234,8 @@ namespace locic {
 				digits.push_back(startDigit);
 				
 				if (reader_.peek() == 'x') {
-					digits.push_back(reader_.get());
+					reader_.consume();
+					digits.clear();
 					while (reader_.peek().isHexDigit()) {
 						digits.push_back(reader_.get());
 					}

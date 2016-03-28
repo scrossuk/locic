@@ -182,10 +182,10 @@ namespace locic {
 				return token;
 			}
 			
-			static Token Constant(const Constant constantValue,
+			static Token Constant(Constant constantValue,
 			                      const Debug::SourceRange sourceRange = Debug::SourceRange::Null()) {
 				Token token(CONSTANT, sourceRange);
-				token.data_.constantValue = constantValue;
+				token.constantValue_ = std::move(constantValue);
 				return token;
 			}
 			
@@ -227,7 +227,7 @@ namespace locic {
 			
 			const class Constant& constant() const {
 				assert(kind() == CONSTANT);
-				return data_.constantValue;
+				return constantValue_;
 			}
 			
 			void setSourceRange(const Debug::SourceRange argSourceRange) {
@@ -407,10 +407,10 @@ namespace locic {
 			
 			Kind kind_;
 			Debug::SourceRange sourceRange_;
+			class Constant constantValue_;
 			
 			union {
 				String stringValue;
-				class Constant constantValue;
 				class Version versionValue;
 			} data_;
 			
