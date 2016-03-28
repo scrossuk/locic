@@ -231,7 +231,7 @@ namespace locic {
 				
 				// Currently, reinterpret_cast is only implemented for pointers.
 				assert(sourceValue->getType()->isPointerTy());
-				assert(genType(module, value.type())->isPointerTy());
+				assert(genType(irEmitter_.module(), value.type())->isPointerTy());
 				
 				return sourceValue;
 			}
