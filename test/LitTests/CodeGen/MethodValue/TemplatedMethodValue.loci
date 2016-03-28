@@ -1,0 +1,20 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	template <typename T>
+	void method() const { }
+}
+
+// CHECK-LABEL: define void @function(i8*)
+export void function(const TestClass& object) {
+	// CHECK:      %[[VAR_ALLOCA:[0-9]+]] = alloca i8*
+	// CHECK:      %[[METHOD_ALLOCA:[0-9]+]] = alloca { i8*, { i8*, %__template_generator } }
+	// CHECK:      store {{.*}}%0, {{.*}}%[[VAR_ALLOCA]]
+	// CHECK-NEXT: %[[VAR:[0-9]+]] = load {{.*}}%[[VAR_ALLOCA]]
+	// CHECK-NEXT: %[[METHOD_PART:[0-9]+]] = insertvalue {{.*}}undef, {{.*}}%[[VAR]], 0
+	// CHECK-NEXT: %[[METHOD:[0-9]+]] = insertvalue {{.*}}%[[METHOD_PART]], {{.*}}@MT1N9TestClassF1N6method{{.*}}, {{.*}}@template_root{{.*}}, 1
+	// CHECK-NEXT: store {{.*}}[[METHOD]], {{.*}}[[METHOD_ALLOCA]]
+	// CHECK-NEXT: ret void
+	unused auto value = object.method<int>;
+}
