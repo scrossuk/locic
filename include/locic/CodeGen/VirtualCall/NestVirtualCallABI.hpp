@@ -48,7 +48,8 @@ namespace locic {
 			emitCall(IREmitter& irEmitter,
 			         SEM::FunctionType functionType,
 			         VirtualMethodComponents methodComponents,
-			         llvm::ArrayRef<llvm::Value*> args);
+			         llvm::ArrayRef<llvm::Value*> args,
+			         llvm::Value* hintResultValue);
 			
 			llvm::Value*
 			emitCountFnCall(IREmitter& irEmitter,

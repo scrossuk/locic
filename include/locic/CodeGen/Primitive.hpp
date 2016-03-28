@@ -95,12 +95,14 @@ namespace locic {
 			 * \param typeTemplateArguments The template arguments provided to the primitive type.
 			 * \param functionTemplateArguments The template arguments provided to the primitive method.
 			 * \param args The runtime arguments to the function.
+			 * \param hintResultValue Pointer to store result, or NULL if no pointer is available.
 			 * \return The IR value result.
 			 */
 			virtual llvm::Value* emitMethod(IREmitter& irEmitter, MethodID methodID,
 			                                llvm::ArrayRef<SEM::Value> typeTemplateArguments,
 			                                llvm::ArrayRef<SEM::Value> functionTemplateArguments,
-			                                PendingResultArray args) const = 0;
+			                                PendingResultArray args,
+			                                llvm::Value* hintResultValue) const = 0;
 			
 		};
 		

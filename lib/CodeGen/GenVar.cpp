@@ -24,12 +24,12 @@ namespace locic {
 				return;
 			}
 			
-			IREmitter irEmitter(function, hintResultValue);
+			IREmitter irEmitter(function);
 			
 			if (var->isBasic()) {
 				auto& module = function.module();
 				
-				const auto stackObject = irEmitter.emitReturnAlloca(var->type());
+				const auto stackObject = irEmitter.emitAlloca(var->type(), hintResultValue);
 				
 				// Generate debug information for the variable
 				// if any is available.

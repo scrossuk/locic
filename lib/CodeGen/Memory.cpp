@@ -36,11 +36,12 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genValuePtr(Function& function, llvm::Value* const value, const SEM::Type* const type, llvm::Value* hintResultValue) {
+		llvm::Value* genValuePtr(Function& function, llvm::Value* const value, const SEM::Type* const type,
+		                         llvm::Value* hintResultValue) {
 			// Members must have a pointer to the object, which
 			// may require generating a fresh 'alloca'.
-			IREmitter irEmitter(function, hintResultValue);
-			const auto ptrValue = irEmitter.emitReturnAlloca(type);
+			IREmitter irEmitter(function);
+			const auto ptrValue = irEmitter.emitAlloca(type, hintResultValue);
 			irEmitter.emitMoveStore(value, ptrValue, type);
 			
 			// Call destructor for the object at the end of the current scope.

@@ -48,7 +48,8 @@ namespace locic {
 			llvm::Value* emitMethod(IREmitter& irEmitter, MethodID methodID,
 			                        llvm::ArrayRef<SEM::Value> typeTemplateVariables,
 			                        llvm::ArrayRef<SEM::Value> functionTemplateVariables,
-			                        PendingResultArray args) const;
+			                        PendingResultArray args,
+			                        llvm::Value* hintResultValue) const;
 			
 		private:
 			const SEM::TypeInstance& typeInstance_;

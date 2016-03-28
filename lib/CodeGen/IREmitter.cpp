@@ -22,10 +22,8 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		IREmitter::IREmitter(Function& functionGenerator,
-		                     llvm::Value* argHintResultValue)
-		: functionGenerator_(functionGenerator),
-		  hintResultValue_(argHintResultValue) { }
+		IREmitter::IREmitter(Function& functionGenerator)
+		: functionGenerator_(functionGenerator) { }
 		
 		ConstantGenerator
 		IREmitter::constantGenerator() {
@@ -341,13 +339,9 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		IREmitter::emitReturnAlloca(const SEM::Type* const type) {
-			return genAlloca(*this, type, hintResultValue_);
-		}
-		
-		llvm::Value*
-		IREmitter::emitAlloca(const SEM::Type* const type) {
-			return genAlloca(*this, type, nullptr);
+		IREmitter::emitAlloca(const SEM::Type* const type,
+		                      llvm::Value* const hintResultValue) {
+			return genAlloca(*this, type, hintResultValue);
 		}
 		
 		// TODO: move this inline.
@@ -516,28 +510,28 @@ namespace locic {
 		llvm::Value*
 		IREmitter::emitImplicitCopyCall(llvm::Value* value,
 		                                const SEM::Type* type,
-		                                llvm::Value* callHintResultValue) {
+		                                llvm::Value* hintResultValue) {
 			return emitCopyCall(METHOD_IMPLICITCOPY,
 			                    value,
 			                    type,
-			                    callHintResultValue);
+			                    hintResultValue);
 		}
 		
 		llvm::Value*
 		IREmitter::emitExplicitCopyCall(llvm::Value* value,
 		                                const SEM::Type* type,
-		                                llvm::Value* callHintResultValue) {
+		                                llvm::Value* hintResultValue) {
 			return emitCopyCall(METHOD_COPY,
 			                    value,
 			                    type,
-			                    callHintResultValue);
+			                    hintResultValue);
 		}
 		
 		llvm::Value*
 		IREmitter::emitCopyCall(const MethodID methodID,
 		                        llvm::Value* value,
 		                        const SEM::Type* rawType,
-		                        llvm::Value* callHintResultValue) {
+		                        llvm::Value* hintResultValue) {
 			assert(methodID == METHOD_IMPLICITCOPY ||
 			       methodID == METHOD_COPY);
 			
@@ -568,7 +562,7 @@ namespace locic {
 			                     methodInfo,
 			                     Optional<PendingResult>(thisPendingResult),
 			                     /*args=*/{},
-			                     callHintResultValue);
+			                     hintResultValue);
 		}
 		
 		static const SEM::Type*
@@ -694,10 +688,6 @@ namespace locic {
 		
 		Function& IREmitter::function() {
 			return functionGenerator_;
-		}
-		
-		llvm::Value* IREmitter::hintResultValue() {
-			return hintResultValue_;
 		}
 		
 		Module& IREmitter::module() {

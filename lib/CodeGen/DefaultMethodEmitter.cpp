@@ -107,9 +107,9 @@ namespace locic {
 				return ConstantGenerator(module).getNull(genType(module, type));
 			}
 			
-			IREmitter irEmitter(functionGenerator_, hintResultValue);
+			IREmitter irEmitter(functionGenerator_);
 			
-			const auto resultValue = irEmitter.emitReturnAlloca(type);
+			const auto resultValue = irEmitter.emitAlloca(type, hintResultValue);
 			
 			for (size_t i = 0; i < typeInstance.variables().size(); i++) {
 				const auto& memberVar = typeInstance.variables()[i];
@@ -682,7 +682,7 @@ namespace locic {
 			
 			const auto thisPointer = args[0].resolve(functionGenerator_);
 			
-			IREmitter irEmitter(functionGenerator_, hintResultValue);
+			IREmitter irEmitter(functionGenerator_);
 			
 			if (typeInstance.isUnion()) {
 				return irEmitter.emitMoveLoad(thisPointer, type);
@@ -690,7 +690,7 @@ namespace locic {
 			
 			auto& module = functionGenerator_.module();
 			
-			const auto resultValue = irEmitter.emitReturnAlloca(type);
+			const auto resultValue = irEmitter.emitAlloca(type, hintResultValue);
 			
 			if (typeInstance.isUnionDatatype()) {
 				const auto loadedTag = irEmitter.emitLoadDatatypeTag(thisPointer);

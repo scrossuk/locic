@@ -139,19 +139,21 @@ namespace locic {
 					const auto& methodName = value.functionRefFunction()->name().last();
 					const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 					
-					IREmitter irEmitter(function, hintResultValue);
+					IREmitter irEmitter(function);
 					PrimitiveFunctionEmitter primitiveFunctionEmitter(irEmitter);
 					return primitiveFunctionEmitter.emitFunction(methodID,
 					                                             value.functionRefParentType(),
 					                                             arrayRef(value.functionRefTemplateArguments()),
-					                                             std::move(args));
+					                                             std::move(args),
+					                                             hintResultValue);
 				}
 				
 				case SEM::Value::METHODOBJECT: {
 					const auto& dataValue = value.methodOwner();
 					const CallValuePendingResult dataResult(dataValue);
 					const PendingResult dataPendingResult(dataResult);
-					return genTrivialMethodCall(function, value.methodObject(), valueArgs, make_optional(dataPendingResult), hintResultValue);
+					return genTrivialMethodCall(function, value.methodObject(), valueArgs,
+					                            make_optional(dataPendingResult), hintResultValue);
 				}
 				
 				default: {

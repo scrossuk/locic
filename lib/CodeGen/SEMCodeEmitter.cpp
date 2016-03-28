@@ -69,11 +69,12 @@ namespace locic {
 				
 				const auto type = typeInstance != nullptr ? typeInstance->selfType() : nullptr;
 				
-				IREmitter irEmitter(functionGenerator_, hintResultValue);
+				IREmitter irEmitter(functionGenerator_);
 				PrimitiveFunctionEmitter primitiveFunctionEmitter(irEmitter);
 				return primitiveFunctionEmitter.emitFunction(methodID, type,
 				                                             arrayRef(templateArgs),
-				                                             std::move(args));
+				                                             std::move(args),
+				                                             hintResultValue);
 			}
 		}
 		

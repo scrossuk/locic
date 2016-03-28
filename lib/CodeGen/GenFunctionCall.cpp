@@ -38,7 +38,7 @@ namespace locic {
 		                                llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			
-			IREmitter irEmitter(function, hintResultValue);
+			IREmitter irEmitter(function);
 			
 			const auto functionType = semCallValue.type()->asFunctionType();
 			
@@ -202,7 +202,7 @@ namespace locic {
 		                             llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			
-			IREmitter irEmitter(function, hintResultValue);
+			IREmitter irEmitter(function);
 			
 			const auto argInfo = getFunctionArgInfo(function.module(), functionType);
 			
@@ -215,7 +215,7 @@ namespace locic {
 			// potentially being unknown).
 			llvm::Value* returnVar = nullptr;
 			if (argInfo.hasReturnVarArgument()) {
-				returnVar = irEmitter.emitReturnAlloca(functionType.returnType());
+				returnVar = irEmitter.emitAlloca(functionType.returnType(), hintResultValue);
 				llvmArgs.push_back(llvm_abi::TypedValue(returnVar,
 				                                        llvm_abi::PointerTy));
 			}
@@ -281,12 +281,13 @@ namespace locic {
 			const VirtualObjectComponents objectComponents(getTypeInfoComponents(function, typeInfo), contextPointer);
 			const VirtualMethodComponents methodComponents(objectComponents, methodHashValue);
 			
-			IREmitter irEmitter(function, hintResultValue);
+			IREmitter irEmitter(function);
 			auto& module = function.module();
 			return module.virtualCallABI().emitCall(irEmitter,
 			                                        methodInfo.functionType,
 			                                        methodComponents,
-			                                        llvmArgs);
+			                                        llvmArgs,
+			                                        hintResultValue);
 		}
 		
 		llvm::Value* genMethodCall(Function& function, const MethodInfo& methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,

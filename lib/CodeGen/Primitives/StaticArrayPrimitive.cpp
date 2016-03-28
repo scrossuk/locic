@@ -125,7 +125,8 @@ namespace locic {
 		                                              const MethodID methodID,
 		                                              llvm::ArrayRef<SEM::Value> typeTemplateArguments,
 		                                              llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
-		                                              PendingResultArray args) const {
+		                                              PendingResultArray args,
+		                                              llvm::Value* const hintResultValue) const {
 			auto& builder = irEmitter.builder();
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
@@ -155,7 +156,7 @@ namespace locic {
 					if (typeInfo.isSizeAlwaysKnown(type)) {
 						return ConstantGenerator(module).getUndef(genType(module, type));
 					} else {
-						const auto result = irEmitter.emitReturnAlloca(type);
+						const auto result = irEmitter.emitAlloca(type, hintResultValue);
 						// TODO
 						return result;
 					}
@@ -212,7 +213,7 @@ namespace locic {
 					const auto arraySize = genValue(function, elementCount);
 					const auto arrayPtr = args[0].resolve(function);
 					
-					const auto result = irEmitter.emitReturnAlloca(type);
+					const auto result = irEmitter.emitAlloca(type, hintResultValue);
 					
 					const auto beforeLoopBB = builder.GetInsertBlock();
 					const auto loopBB = function.createBasicBlock("");

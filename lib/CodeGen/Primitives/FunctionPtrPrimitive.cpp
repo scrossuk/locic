@@ -235,7 +235,8 @@ namespace locic {
 		                                              const MethodID methodID,
 		                                              llvm::ArrayRef<SEM::Value> typeTemplateArguments,
 		                                              llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
-		                                              PendingResultArray args) const {
+		                                              PendingResultArray args,
+		                                              llvm::Value* const hintResultValue) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
@@ -272,7 +273,7 @@ namespace locic {
 					return genFunctionPtrCallMethod(function,
 					                                type,
 					                                std::move(args),
-					                                irEmitter.hintResultValue());
+					                                hintResultValue);
 				default:
 					llvm_unreachable("Unknown function_ptr primitive method.");
 			}

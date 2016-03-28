@@ -27,8 +27,7 @@ namespace locic {
 		 */
 		class IREmitter {
 		public:
-			IREmitter(Function& functionGenerator,
-			          llvm::Value* hintResultValue = nullptr);
+			IREmitter(Function& functionGenerator);
 			
 			/**
 			 * \brief Get constant generator.
@@ -142,10 +141,8 @@ namespace locic {
 			 * type, and return a pointer to that space.
 			 */
 			llvm::Value*
-			emitAlloca(const SEM::Type* type);
-			
-			llvm::Value*
-			emitReturnAlloca(const SEM::Type* type);
+			emitAlloca(const SEM::Type* type,
+			           llvm::Value* const hintResultValue=nullptr);
 			
 			/**
 			 * \brief Move a value by loading it from a memory location.
@@ -271,12 +268,10 @@ namespace locic {
 			// FIXME: Remove these.
  			llvm::IRBuilder<>& builder();
  			Function& function();
- 			llvm::Value* hintResultValue();
  			Module& module();
 			
 		private:
 			Function& functionGenerator_;
-			llvm::Value* hintResultValue_;
 			
 		};
 		

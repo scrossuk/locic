@@ -37,7 +37,8 @@ namespace locic {
 			emitCall(IREmitter& irEmitter,
 			         SEM::FunctionType functionType,
 			         VirtualMethodComponents methodComponents,
-			         llvm::ArrayRef<llvm::Value*> args) = 0;
+			         llvm::ArrayRef<llvm::Value*> args,
+			         llvm::Value* hintResultValue) = 0;
 			
 			enum CountFnKind {
 				ALIGNOF,

@@ -56,8 +56,8 @@ namespace locic {
 				assert(value_->getType()->isPointerTy());
 				return value_;
 			}
-			IREmitter irEmitter(function, hintResultValue);
-			const auto result = irEmitter.emitReturnAlloca(refTargetType_);
+			IREmitter irEmitter(function);
+			const auto result = irEmitter.emitAlloca(refTargetType_, hintResultValue);
 			irEmitter.emitMoveStore(value_, result, refTargetType_);
 			return result;
 		}

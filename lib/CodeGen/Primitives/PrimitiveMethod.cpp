@@ -142,14 +142,14 @@ namespace locic {
 			auto& module = function.module();
 			const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 			
-			IREmitter irEmitter(function, hintResultValue);
+			IREmitter irEmitter(function);
 			
 			const auto& primitive = module.getPrimitive(*(type->getObjectType()));
 			return primitive.emitMethod(irEmitter,
 			                            methodID,
 			                            arrayRef(type->templateArguments()),
 			                            /*functionTemplateArguments=*/arrayRef(templateArgs),
-			                            std::move(args));
+			                            std::move(args), hintResultValue);
 		}
 		
 		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* const typeInstance, SEM::Function* const semFunction, llvm::Function& llvmFunction) {

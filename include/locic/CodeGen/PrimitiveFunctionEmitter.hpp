@@ -25,12 +25,14 @@ namespace locic {
 			llvm::Value*
 			emitMinOrMax(MethodID methodID,
 			             llvm::ArrayRef<SEM::Value> functionTemplateArguments,
-			             PendingResultArray args);
+			             PendingResultArray args,
+			             llvm::Value* hintResultValue);
 			
 			llvm::Value*
 			emitRange(MethodID methodID,
 			          llvm::ArrayRef<SEM::Value> functionTemplateArguments,
-			          PendingResultArray args);
+			          PendingResultArray args,
+			          llvm::Value* hintResultValue);
 			
 			/**
 			 * \brief Emit function code for primitive.
@@ -38,12 +40,14 @@ namespace locic {
 			 * \param methodID The method's ID.
 			 * \param functionTemplateArguments The template arguments provided to the primitive method.
 			 * \param args The runtime arguments to the function.
+			 * \param hintResultValue Pointer to store result, or NULL if no pointer is available.
 			 * \return The IR value result.
 			 */
 			llvm::Value*
 			emitStandaloneFunction(MethodID methodID,
-			                      llvm::ArrayRef<SEM::Value> functionTemplateArguments,
-			                      PendingResultArray args);
+			                       llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+			                       PendingResultArray args,
+			                       llvm::Value* hintResultValue);
 			
 			/**
 			 * \brief Emit method code for primitive.
@@ -51,13 +55,15 @@ namespace locic {
 			 * \param methodID The method's ID.
 			 * \param functionTemplateArguments The template arguments provided to the primitive method.
 			 * \param args The runtime arguments to the function.
+			 * \param hintResultValue Pointer to store result, or NULL if no pointer is available.
 			 * \return The IR value result.
 			 */
 			llvm::Value*
 			emitMethod(MethodID methodID,
 			           const SEM::Type* parentType,
 			           llvm::ArrayRef<SEM::Value> functionTemplateArguments,
-			           PendingResultArray args);
+			           PendingResultArray args,
+			           llvm::Value* hintResultValue);
 			
 			/**
 			 * \brief Emit function code for primitive.
@@ -65,13 +71,15 @@ namespace locic {
 			 * \param methodID The method's ID.
 			 * \param functionTemplateArguments The template arguments provided to the primitive method.
 			 * \param args The runtime arguments to the function.
+			 * \param hintResultValue Pointer to store result, or NULL if no pointer is available.
 			 * \return The IR value result.
 			 */
 			llvm::Value*
 			emitFunction(MethodID methodID,
 			             const SEM::Type* parentType,
 			             llvm::ArrayRef<SEM::Value> functionTemplateArguments,
-			             PendingResultArray args);
+			             PendingResultArray args,
+			             llvm::Value* hintResultValue);
 			
 		private:
 			IREmitter& irEmitter_;

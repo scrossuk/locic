@@ -299,7 +299,8 @@ namespace locic {
 		GenericVirtualCallABI::emitCall(IREmitter& irEmitter,
 		                                SEM::FunctionType functionType,
 		                                VirtualMethodComponents methodComponents,
-		                                llvm::ArrayRef<llvm::Value*> args) {
+		                                llvm::ArrayRef<llvm::Value*> args,
+		                                llvm::Value* const hintResultValue) {
 			const auto returnType = functionType.returnType();
 			const bool hasReturnVar = !returnType->isBuiltInVoid();
 			
@@ -307,7 +308,7 @@ namespace locic {
 			
 			// If the return type isn't void, allocate space on the stack for the return value.
 			const auto returnVarValue = hasReturnVar ?
-				irEmitter.emitReturnAlloca(returnType) :
+				irEmitter.emitAlloca(returnType, hintResultValue) :
 				constGen.getNullPointer();
 			
 			emitCallWithReturnVar(irEmitter, functionType,

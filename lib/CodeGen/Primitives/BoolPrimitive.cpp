@@ -85,7 +85,8 @@ namespace locic {
 		                                       const MethodID methodID,
 		                                       llvm::ArrayRef<SEM::Value> typeTemplateArguments,
 		                                       llvm::ArrayRef<SEM::Value> functionTemplateArguments,
-		                                       PendingResultArray args) const {
+		                                       PendingResultArray args,
+		                                       llvm::Value* const hintResultValue) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
@@ -138,7 +139,7 @@ namespace locic {
 					const auto methodOwner = args[0].resolveWithoutBind(function);
 					return callCastMethod(function, methodOwner, type, methodID,
 					                      functionTemplateArguments.front().typeRefType(),
-					                      irEmitter.hintResultValue());
+					                      hintResultValue);
 				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:

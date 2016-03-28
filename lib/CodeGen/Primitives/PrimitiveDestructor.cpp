@@ -32,7 +32,8 @@ namespace locic {
 			                            METHOD_DESTROY,
 			                            arrayRef(type->templateArguments()),
 			                            /*functionTemplateArguments=*/llvm::ArrayRef<SEM::Value>(),
-			                            std::move(arguments));
+			                            std::move(arguments),
+			                            /*hintResultValue=*/nullptr);
 		}
 		
 	}

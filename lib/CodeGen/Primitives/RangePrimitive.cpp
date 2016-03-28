@@ -136,10 +136,11 @@ namespace locic {
 		};
 		
 		llvm::Value* RangePrimitive::emitMethod(IREmitter& irEmitter,
-		                                      const MethodID methodID,
-		                                      llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                      llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
-		                                      PendingResultArray args) const {
+		                                        const MethodID methodID,
+		                                        llvm::ArrayRef<SEM::Value> typeTemplateArguments,
+		                                        llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                        PendingResultArray args,
+		                                        llvm::Value* const hintResultValue) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
@@ -162,7 +163,7 @@ namespace locic {
 					return irEmitter.emitSizeOf(targetType);
 				}
 				case METHOD_CREATE: {
-					const auto result = irEmitter.emitReturnAlloca(type);
+					const auto result = irEmitter.emitAlloca(type, hintResultValue);
 					
 					const auto destPtrFirst = elementAccess.getFirstPtr(result);
 					const auto firstArgumentValue = args[0].resolve(function, destPtrFirst); 
@@ -180,7 +181,7 @@ namespace locic {
 				case METHOD_IMPLICITCOPY: {
 					auto methodOwner = args[0].resolve(function);
 					
-					const auto result = irEmitter.emitReturnAlloca(type);
+					const auto result = irEmitter.emitAlloca(type, hintResultValue);
 					
 					// Copy first element of range pair.
 					const auto copySourcePtrFirst = elementAccess.getFirstPtr(methodOwner);

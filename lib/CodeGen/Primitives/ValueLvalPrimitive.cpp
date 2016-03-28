@@ -84,15 +84,16 @@ namespace locic {
 		namespace {
 			
 			llvm::Value* genValueLvalDeadMethod(Function& functionGenerator, const SEM::Type* const targetType, llvm::Value* const hintResultValue) {
-				IREmitter irEmitter(functionGenerator, hintResultValue);
-				const auto objectVar = irEmitter.emitReturnAlloca(targetType);
+				IREmitter irEmitter(functionGenerator);
+				const auto objectVar = irEmitter.emitAlloca(targetType, hintResultValue);
 				genSetDeadState(functionGenerator, targetType, objectVar);
 				return irEmitter.emitMoveLoad(objectVar, targetType);
 			}
 			
-			llvm::Value* genValueLvalCreateMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args, llvm::Value* const hintResultValue) {
-				IREmitter irEmitter(functionGenerator, hintResultValue);
-				const auto objectVar = irEmitter.emitReturnAlloca(targetType);
+			llvm::Value* genValueLvalCreateMethod(Function& functionGenerator, const SEM::Type* const targetType,
+			                                      PendingResultArray args, llvm::Value* const hintResultValue) {
+				IREmitter irEmitter(functionGenerator);
+				const auto objectVar = irEmitter.emitAlloca(targetType, hintResultValue);
 				const auto operand = args[0].resolve(functionGenerator, hintResultValue);
 				
 				// Store the object.
@@ -160,18 +161,19 @@ namespace locic {
 		}
 		
 		llvm::Value* ValueLvalPrimitive::emitMethod(IREmitter& irEmitter,
-		                                                const MethodID methodID,
-		                                                llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                                llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
-		                                                PendingResultArray args) const {
+		                                            const MethodID methodID,
+		                                            llvm::ArrayRef<SEM::Value> typeTemplateArguments,
+		                                            llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                            PendingResultArray args,
+		                                            llvm::Value* const hintResultValue) const {
 			auto& functionGenerator = irEmitter.function();
 			const auto targetType = typeTemplateArguments.front().typeRefType();
 			
 			switch (methodID) {
 				case METHOD_DEAD:
-					return genValueLvalDeadMethod(functionGenerator, targetType, irEmitter.hintResultValue());
+					return genValueLvalDeadMethod(functionGenerator, targetType, hintResultValue);
 				case METHOD_CREATE:
-					return genValueLvalCreateMethod(functionGenerator, targetType, std::move(args), irEmitter.hintResultValue());
+					return genValueLvalCreateMethod(functionGenerator, targetType, std::move(args), hintResultValue);
 				case METHOD_DESTROY: {
 					auto& module = functionGenerator.module();
 					irEmitter.emitDestructorCall(args[0].resolve(functionGenerator), targetType);
@@ -179,7 +181,7 @@ namespace locic {
 				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:
-					return genValueLvalCopyMethod(functionGenerator, methodID, targetType, std::move(args), irEmitter.hintResultValue());
+					return genValueLvalCopyMethod(functionGenerator, methodID, targetType, std::move(args), hintResultValue);
 				case METHOD_ALIGNMASK:
 					return genAlignMask(functionGenerator, targetType);
 				case METHOD_SIZEOF:

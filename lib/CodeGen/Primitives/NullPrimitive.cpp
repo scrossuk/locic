@@ -85,7 +85,8 @@ namespace locic {
 		                                       const MethodID methodID,
 		                                       llvm::ArrayRef<SEM::Value> typeTemplateArguments,
 		                                       llvm::ArrayRef<SEM::Value> functionTemplateArguments,
-		                                       PendingResultArray /*args*/) const {
+		                                       PendingResultArray /*args*/,
+		                                       llvm::Value* const hintResultValue) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
@@ -113,7 +114,8 @@ namespace locic {
 					const auto type = SEM::Type::Object(&typeInstance_,
 					                                    std::move(valueArray));
 					const auto targetType = functionTemplateArguments.front().typeRefType();
-					return callRawCastMethod(function, nullptr, type, module.getCString("null"), targetType, irEmitter.hintResultValue());
+					return callRawCastMethod(function, nullptr, type, module.getCString("null"),
+					                         targetType, hintResultValue);
 				}
 				default:
 					llvm_unreachable("Unknown null_t primitive method.");

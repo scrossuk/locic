@@ -266,11 +266,12 @@ namespace locic {
 			const bool hasReturnVar = !canPassByValue(module_, functionType.returnType());
 			const auto hintResultValue = hasReturnVar ? functionGenerator.getReturnVar() : nullptr;
 			
-			IREmitter irEmitter(functionGenerator, hintResultValue);
+			IREmitter irEmitter(functionGenerator);
 			const auto result = module_.virtualCallABI().emitCall(irEmitter,
 			                                                      functionType,
 			                                                      methodComponents,
-			                                                      argList);
+			                                                      argList,
+			                                                      hintResultValue);
 			
 			if (hasReturnVar) {
 				irEmitter.emitMoveStore(result, functionGenerator.getReturnVar(), functionType.returnType());

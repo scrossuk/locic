@@ -89,7 +89,8 @@ namespace locic {
 		                                            const MethodID methodID,
 		                                            llvm::ArrayRef<SEM::Value> typeTemplateArguments,
 		                                            llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
-		                                            PendingResultArray args) const {
+		                                            PendingResultArray args,
+		                                            llvm::Value* const hintResultValue) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
@@ -97,7 +98,7 @@ namespace locic {
 			
 			switch (methodID) {
 				case METHOD_DEAD: {
-					const auto objectVar = irEmitter.emitReturnAlloca(targetType);
+					const auto objectVar = irEmitter.emitAlloca(targetType, hintResultValue);
 					genSetDeadState(function, targetType, objectVar);
 					return irEmitter.emitMoveLoad(objectVar, targetType);
 				}

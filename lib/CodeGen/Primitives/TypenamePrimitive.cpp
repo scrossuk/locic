@@ -81,10 +81,11 @@ namespace locic {
 		}
 		
 		llvm::Value* TypenamePrimitive::emitMethod(IREmitter& irEmitter,
-		                                                const MethodID methodID,
-		                                                llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                                llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
-		                                                PendingResultArray args) const {
+		                                           const MethodID methodID,
+		                                           llvm::ArrayRef<SEM::Value> typeTemplateArguments,
+		                                           llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                           PendingResultArray args,
+		                                           llvm::Value* /*hintResultValue*/) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			

@@ -196,7 +196,8 @@ namespace locic {
 		NestVirtualCallABI::emitCall(IREmitter& irEmitter,
 		                             const SEM::FunctionType functionType,
 		                             const VirtualMethodComponents methodComponents,
-		                             llvm::ArrayRef<llvm::Value*> args) {
+		                             llvm::ArrayRef<llvm::Value*> args,
+		                             llvm::Value* const hintResultValue) {
 			const auto argInfo = getFunctionArgInfo(irEmitter.module(),
 			                                        functionType);
 			
@@ -204,7 +205,7 @@ namespace locic {
 			const auto returnType = functionType.returnType();
 			llvm::Value* returnVarPointer = nullptr;
 			if (argInfo.hasReturnVarArgument()) {
-				returnVarPointer = irEmitter.emitReturnAlloca(returnType);
+				returnVarPointer = irEmitter.emitAlloca(returnType, hintResultValue);
 			}
 			
 			const auto result = emitRawCall(irEmitter,
