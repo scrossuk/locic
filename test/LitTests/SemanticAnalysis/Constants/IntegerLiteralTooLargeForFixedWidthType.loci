@@ -1,0 +1,32 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void varFunction() {
+	// 2^63 - 1 is representable for signed 64-bit integers.
+	unused auto value2Pow63MinusOneSigned = 9223372036854775807;
+	
+	// 2^63 - 1 is representable for unsigned 64-bit integers.
+	unused auto value2Pow63MinusOneUnsigned = 9223372036854775807u;
+	
+	// 2^63 exceeds maximum because it doesn't have 'u' (unsigned) suffix.
+	// CHECK: .loci:13:34: error: integer literal is too large to be represented in a fixed width type
+	unused auto value2Pow63Signed = 9223372036854775808;
+	
+	// 2^63 is representable for unsigned 64-bit integers.
+	unused auto value2Pow63Unsigned = 9223372036854775808u;
+	
+	// 2^64 - 1 exceeds maximum because it doesn't have 'u' (unsigned) suffix.
+	// CHECK: .loci:20:42: error: integer literal is too large to be represented in a fixed width type
+	unused auto value2Pow64MinusOneSigned = 18446744073709551615;
+	
+	// 2^64 - 1 is representable for unsigned 64-bit integers.
+	unused auto value2Pow64MinusOneUnsigned = 18446744073709551615u;
+	
+	// 2^64 exceeds maximum for any 64-bit type, signed or unsigned.
+	// CHECK: .loci:27:34: error: integer literal is too large to be represented in a fixed width type
+	unused auto value2Pow64Signed = 18446744073709551616;
+	// CHECK: .loci:29:36: error: integer literal is too large to be represented in a fixed width type
+	unused auto value2Pow64Unsigned = 18446744073709551616u;
+}
+
+// CHECK: 4 errors generated.
