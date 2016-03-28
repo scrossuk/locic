@@ -102,6 +102,16 @@ namespace locic {
 			
 		};
 		
+		class InvalidLiteralTooLargeForFixedWidthTypeDiag: public Error {
+		public:
+			InvalidLiteralTooLargeForFixedWidthTypeDiag() { }
+			
+			std::string toString() const {
+				return "integer literal is too large to be represented in a fixed width type";
+			}
+			
+		};
+		
 		String getIntegerConstantType(Context& context, const String& specifier, const Constant& constant,
 		                              const Debug::SourceLocation& location) {
 			assert(constant.kind() == Constant::INTEGER);
@@ -133,8 +143,9 @@ namespace locic {
 				}
 			}
 			
-			throw ErrorException(makeString("Integer literal '%llu' is too large to be represented in a fixed width type.",
-				integerValue));
+			context.issueDiag(InvalidLiteralTooLargeForFixedWidthTypeDiag(),
+			                  location);
+			return types.back();
 		}
 		
 		class InvalidFloatingPointLiteralSpecifierDiag: public Error {
