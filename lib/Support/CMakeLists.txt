@@ -1,5 +1,6 @@
 
 add_library(locic-support
+	APInt.cpp
 	ErrorHandling.cpp
 	Hasher.cpp
 	MethodID.cpp
