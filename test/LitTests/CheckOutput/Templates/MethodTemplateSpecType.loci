@@ -1,0 +1,58 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: PrintableInt: i = 3
+// CHECK: PrintableFloat: f = 3.14159
+// CHECK: PrintableDouble: d = 3.141592654
+
+import void printf(const ubyte * str, ...);
+
+interface Printable {
+	void print();
+}
+
+class TestClass() {
+	static create = default;
+	
+	template <typename T: Printable>
+	void printObject(T object) {
+		object.print();
+	}
+}
+
+class PrintableInt(int i) {
+	static create = default;
+	
+	void print() {
+		printf(C"PrintableInt: i = %d\n", @i);
+	}
+}
+
+class PrintableFloat(float f) {
+	static create = default;
+	
+	void print() {
+		printf(C"PrintableFloat: f = %.5f\n", @f);
+	}
+}
+
+class PrintableDouble(double d) {
+	static create = default;
+	
+	void print() {
+		printf(C"PrintableDouble: d = %.9f\n", @d);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass testObject = TestClass();
+	
+	testObject.printObject<PrintableInt>(PrintableInt(3));
+	
+	testObject.printObject<PrintableFloat>(PrintableFloat(3.14159f));
+	
+	testObject.printObject<PrintableDouble>(PrintableDouble(3.141592654));
+	
+	return 0;
+}
+

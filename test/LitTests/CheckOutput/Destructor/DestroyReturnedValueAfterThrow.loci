@@ -1,0 +1,45 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+// XFAIL: *
+
+// CHECK: TestClass.Create: Value = 1
+// CHECK: Throwing
+// CHECK: TestClass.~: Value = 1
+// CHECK: Caught
+
+import void printf(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class TestClass(int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	~ {
+		printf(C"TestClass.~: Value = %d\n", @value);
+	}
+}
+
+exception TestException();
+
+TestClass f() {
+	scope(success) {
+		printf(C"Throwing\n");
+		throw TestException();
+	}
+	
+	return TestClass(1);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	try {
+		unused TestClass result = f();
+		printf(C"ERROR: Got result.\n");
+	} catch(TestException e) {
+		printf(C"Caught\n");
+	}
+	
+	return 0;
+}
+

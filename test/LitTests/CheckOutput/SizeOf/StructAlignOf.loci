@@ -1,0 +1,81 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: alignof(A) = 1
+// CHECK: alignof(B) = 2
+// CHECK: alignof(C) = 4
+// CHECK: alignof(D) = 8
+// CHECK: alignof(E) = 8
+// CHECK: alignof(F) = 4
+// CHECK: alignof(G) = 8
+// CHECK: alignof(H) = 8
+// CHECK: alignof(I) = 8
+
+import void printf(const ubyte * str, ...);
+
+struct A {
+	byte a;
+};
+
+struct B {
+	byte a;
+	short b;
+};
+
+struct C {
+	byte a;
+	short b;
+	int c;
+};
+
+struct D {
+	byte a;
+	short b;
+	int c;
+	long d;
+};
+
+struct E {
+	byte a;
+	short b;
+	int c;
+	long d;
+	long long e;
+};
+
+struct F {
+	float a;
+};
+
+struct G {
+	float a;
+	double b;
+};
+
+struct H {
+	byte a;
+	long long b;
+	byte c;
+	long long d;
+};
+
+struct I {
+	byte a;
+	byte b;
+	long long c;
+	long long d;
+};
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"alignof(A) = %llu\n", alignof(A).cast<ulonglong_t>());
+	printf(C"alignof(B) = %llu\n", alignof(B).cast<ulonglong_t>());
+	printf(C"alignof(C) = %llu\n", alignof(C).cast<ulonglong_t>());
+	printf(C"alignof(D) = %llu\n", alignof(D).cast<ulonglong_t>());
+	printf(C"alignof(E) = %llu\n", alignof(E).cast<ulonglong_t>());
+	printf(C"alignof(F) = %llu\n", alignof(F).cast<ulonglong_t>());
+	printf(C"alignof(G) = %llu\n", alignof(G).cast<ulonglong_t>());
+	printf(C"alignof(H) = %llu\n", alignof(H).cast<ulonglong_t>());
+	printf(C"alignof(I) = %llu\n", alignof(I).cast<ulonglong_t>());
+	return 0;
+}
+

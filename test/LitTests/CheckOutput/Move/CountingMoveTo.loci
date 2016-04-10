@@ -1,0 +1,43 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: auto testInstance = TestClass();
+// CHECK: Move Count = 0
+// CHECK: auto testInstanceMoved = move testInstance;
+// CHECK: Move Count = 1
+// CHECK: auto testInstanceMovedAgain = move testInstanceMoved;
+// CHECK: Move Count = 2
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass(int value) {
+	static Create() {
+		return @(0);
+	}
+	
+	void __moveto(void* ptr, size_t position) noexcept {
+		@value += 1;
+		@value.__moveto(ptr, position);
+	}
+	
+	int value() const noexcept {
+		return @value;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"auto testInstance = TestClass();\n");
+	auto testInstance = TestClass();
+	printf(C"Move Count = %d\n", testInstance.value());
+	
+	printf(C"auto testInstanceMoved = move testInstance;\n");
+	auto testInstanceMoved = move testInstance;
+	printf(C"Move Count = %d\n", testInstanceMoved.value());
+	
+	printf(C"auto testInstanceMovedAgain = move testInstanceMoved;\n");
+	auto testInstanceMovedAgain = move testInstanceMoved;
+	printf(C"Move Count = %d\n", testInstanceMovedAgain.value());
+	
+	return 0;
+}
+

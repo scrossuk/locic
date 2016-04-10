@@ -1,0 +1,38 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.implicitCastInt8T
+// CHECK: TestClass.printValue: Value = 22
+// CHECK: TestClass.implicitCastInt16T
+// CHECK: TestClass.printValue: Value = 1022
+
+import void printf(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class TestClass(int value) {
+	static implicitCastInt8T(int8_t value) noexcept {
+		printf(C"TestClass.implicitCastInt8T\n");
+		return @(value);
+	}
+	
+	static implicitCastInt16T(int16_t value) noexcept {
+		printf(C"TestClass.implicitCastInt16T\n");
+		return @(value);
+	}
+	
+	void printValue() noexcept {
+		printf(C"TestClass.printValue: Value = %d\n", @value);
+	}
+	
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass testInstance1 = 22;
+	testInstance1.printValue();
+	
+	auto intValue = 1022;
+	TestClass testInstance2 = move intValue;
+	testInstance2.printValue();
+	return 0;
+}
+

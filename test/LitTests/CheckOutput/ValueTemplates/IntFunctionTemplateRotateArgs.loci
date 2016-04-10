@@ -1,0 +1,67 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: printValues0:
+// CHECK:   value1 = 1
+// CHECK:   value2 = 2
+// CHECK:   value3 = 3
+// CHECK: printValues1:
+// CHECK:   value1 = 3
+// CHECK:   value2 = 1
+// CHECK:   value3 = 2
+// CHECK: printValues2:
+// CHECK:   value1 = 2
+// CHECK:   value2 = 3
+// CHECK:   value3 = 1
+// CHECK: printValues3:
+// CHECK:   value1 = 1
+// CHECK:   value2 = 2
+// CHECK:   value3 = 3
+
+import void printf(const ubyte * str, ...) noexcept;
+
+template <int value1, int value2, int value3>
+void printValues0() {
+	printf(C"printValues0:\n");
+	printf(C"  value1 = %d\n", value1);
+	printf(C"  value2 = %d\n", value2);
+	printf(C"  value3 = %d\n", value3);
+}
+
+template <int value1, int value2, int value3>
+void printValues1() {
+	printValues0<value2, value3, value1>();
+	printf(C"printValues1:\n");
+	printf(C"  value1 = %d\n", value1);
+	printf(C"  value2 = %d\n", value2);
+	printf(C"  value3 = %d\n", value3);
+}
+
+template <int value1, int value2, int value3>
+void printValues2() {
+	printValues1<value2, value3, value1>();
+	printf(C"printValues2:\n");
+	printf(C"  value1 = %d\n", value1);
+	printf(C"  value2 = %d\n", value2);
+	printf(C"  value3 = %d\n", value3);
+}
+
+template <int value1, int value2, int value3>
+void printValues3() {
+	printValues2<value2, value3, value1>();
+	printf(C"printValues3:\n");
+	printf(C"  value1 = %d\n", value1);
+	printf(C"  value2 = %d\n", value2);
+	printf(C"  value3 = %d\n", value3);
+}
+
+template <int value1, int value2, int value3>
+void printValues() {
+	printValues3<value1, value2, value3>();
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printValues<1, 2, 3>();
+	return 0;
+}
+

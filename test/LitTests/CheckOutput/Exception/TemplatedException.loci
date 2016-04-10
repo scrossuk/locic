@@ -1,0 +1,35 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Caught child exception with values 111 and 222!
+// CHECK: Caught parent exception with value 333!
+
+import void printf(const ubyte * str, ...);
+
+template <typename T : movable_t>
+interface Copyable {
+	T implicitCopy() const;
+}
+
+template <typename T : movable_t>
+exception ParentError(T value);
+
+template <typename T>
+require(T : Copyable<T> and is_movable<T>)
+exception ChildError(T value0, T value1) : ParentError<T>(value0);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	try {
+		throw ChildError<int>(111, 222);
+	} catch (ChildError<int> error) {
+		printf(C"Caught child exception with values %d and %d!\n", error.value0, error.value1);
+	}
+	
+	try {
+		throw ChildError<int>(333, 444);
+	} catch (ParentError<int> error) {
+		printf(C"Caught parent exception with value %d!\n", error.value);
+	}
+	return 0;
+}
+

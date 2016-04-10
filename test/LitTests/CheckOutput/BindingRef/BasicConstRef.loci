@@ -1,0 +1,28 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: function: value = 10
+// CHECK: function: value = 20
+// CHECK: function: value = 30
+// CHECK: function: value = 40
+
+import void printf(const ubyte * str, ...);
+
+void function(const int& value) {
+	printf(C"function: value = %d\n", value);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	function(10);
+	
+	function(20);
+	
+	int i = 30;
+	function(i);
+	
+	int j = 40;
+	function(move j);
+	
+	return 0;
+}
+

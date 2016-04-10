@@ -1,0 +1,44 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: printEnum: Value2
+// CHECK: printEnum: Value0
+// CHECK: printEnum: Value1
+// CHECK: printEnum: Value2
+
+import void printf(const ubyte * str, ...);
+
+enum EnumType {
+	Value0,
+	Value1,
+	Value2
+}
+
+EnumType getEnum(const int i) {
+	if (i == 0) {
+		return EnumType.Value0();
+	} else if (i == 1) {
+		return EnumType.Value1();
+	} else {
+		return EnumType.Value2();
+	}
+}
+
+void printEnum(const EnumType enumValue) {
+	if (enumValue == EnumType.Value0()) {
+		printf(C"printEnum: Value0\n");
+	} else if (enumValue == EnumType.Value1()) {
+		printf(C"printEnum: Value1\n");
+	} else {
+		printf(C"printEnum: Value2\n");
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printEnum(getEnum(-1));
+	printEnum(getEnum(0));
+	printEnum(getEnum(1));
+	printEnum(getEnum(2));
+	return 0;
+}
+

@@ -1,0 +1,27 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass::create()
+
+import void printf(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class TestClass() {
+	static create() noexcept {
+		printf(C"TestClass::create()\n");
+		return @();
+	}
+	
+	TestClass implicitCopy() const noexcept {
+		printf(C"TestClass::implicitCopy()\n");
+		return TestClass();
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass value = TestClass();
+	TestClass& ref0 = value;
+	unused TestClass& ref1 = ref0;
+	return 0;
+}
+

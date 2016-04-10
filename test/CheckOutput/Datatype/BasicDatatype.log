@@ -1,4 +1,0 @@
-testEntryPoint: data1 = TestDatatype(a = 1, b = 2, c = 3)
-printData: TestDatatype(a = 1, b = 2, c = 3)
-testEntryPoint: data2 = TestDatatype(a = 10, b = 20, c = 30)
-printData: TestDatatype(a = 10, b = 20, c = 30)

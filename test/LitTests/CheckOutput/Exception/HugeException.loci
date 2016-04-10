@@ -1,0 +1,34 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Caught exception!
+// CHECK:     a = 1
+// CHECK:     b = 2
+// CHECK:     c = 3
+// CHECK:     d = 4
+// CHECK:     e = 5
+// CHECK:     f = 6
+// CHECK:     g = 7
+// CHECK:     h = 8
+
+import void printf(const ubyte * str, ...);
+
+exception ExampleError(int a, int b, int c, int d, int e, int f, int g, int h);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	try {
+		throw ExampleError(1,2,3,4,5,6,7,8);
+	} catch (ExampleError error) {
+		printf(C"Caught exception!\n");
+		printf(C"    a = %d\n", error.a);
+		printf(C"    b = %d\n", error.b);
+		printf(C"    c = %d\n", error.c);
+		printf(C"    d = %d\n", error.d);
+		printf(C"    e = %d\n", error.e);
+		printf(C"    f = %d\n", error.f);
+		printf(C"    g = %d\n", error.g);
+		printf(C"    h = %d\n", error.h);
+	}
+	return 0;
+}
+

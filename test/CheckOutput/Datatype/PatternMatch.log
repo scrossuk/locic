@@ -1,4 +1,0 @@
-testEntryPoint: data = Data(a = 1, b = 2)
-testEntryPoint: Pattern match Data: a = 1, b = 2
-testEntryPoint: data2 = Data2(v = 40, data = Data(a = 50, b = 60))
-testEntryPoint: Pattern match Data2: v = 40, data.a = 50, data.b = 60

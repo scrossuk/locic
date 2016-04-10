@@ -1,0 +1,41 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create(10)
+// CHECK: testInstance.getValue() = 10
+// CHECK: TestClass.Create(20)
+// CHECK: testInstance2.getValue() = 20
+// CHECK: testInstance.getValue() = 10
+// CHECK: testInstance2.getValue() = 10
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass(int v) {
+	static Create(int v) {
+		printf(C"TestClass.Create(%d)\n", v);
+		return @(v);
+	}
+	
+	int getValue() const noexcept {
+		return @v;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto testInstance = TestClass(10);
+	printf(C"testInstance.getValue() = %d\n", testInstance.getValue());
+	
+	auto testInstance2 = TestClass(20);
+	printf(C"testInstance2.getValue() = %d\n", testInstance2.getValue());
+	
+	// This is very dangerous (since it messes around the destructors)!
+	// It's only used here since we can make reasonable assumptions about
+	// the compiler.
+	testInstance.__moveto(reinterpret_cast<TestClass*, void*>(&testInstance2), 0u);
+	
+	printf(C"testInstance.getValue() = %d\n", testInstance.getValue());
+	printf(C"testInstance2.getValue() = %d\n", testInstance2.getValue());
+	
+	return 0;
+}
+

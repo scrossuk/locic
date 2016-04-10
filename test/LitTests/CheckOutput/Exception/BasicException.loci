@@ -1,0 +1,18 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Caught exception with value 1024!
+
+import void printf(const ubyte * str, ...);
+
+exception ExampleError(int value);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	try {
+		throw ExampleError(1024);
+	} catch (ExampleError error) {
+		printf(C"Caught exception with value %d!\n", error.value);
+	}
+	return 0;
+}
+

@@ -1,0 +1,58 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: Value = 44.
+// CHECK: TestClass.getValue: Value = 44.
+// CHECK: main: Value = 44.
+// CHECK: TestClass.getValue: Value = 44.
+// CHECK: function: Ref value = 44.
+// CHECK: TestClass.implicitCopy: Previous value = 44, New value = 88.
+// CHECK: TestClass.getValue: Value = 88.
+// CHECK: function: Copy value = 88.
+// CHECK: TestClass.getValue: Value = 44.
+// CHECK: main: Value = 44.
+
+import void printf(const ubyte * str, ...);
+
+class TestClass (int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: Value = %d.\n", value);
+		return @(value);
+	}
+	
+	TestClass implicitCopy() const {
+		int newValue = @value * 2;
+		printf(C"TestClass.implicitCopy: Previous value = %d, New value = %d.\n", @value, newValue);
+		return @(newValue);
+	}
+	
+	int getValue() {
+		printf(C"TestClass.getValue: Value = %d.\n", @value);
+		return @value;
+	}
+}
+
+TestClass& function(TestClass& object) {
+	auto& refObject = object;
+	
+	printf(C"function: Ref value = %d.\n", refObject.getValue());
+	
+	auto copyObject = object;
+	
+	printf(C"function: Copy value = %d.\n", copyObject.getValue());
+	
+	return object;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto inst = TestClass(44);
+	
+	printf(C"main: Value = %d.\n", inst.getValue());
+	
+	auto& inst2 = function(inst);
+	
+	printf(C"main: Value = %d.\n", inst2.getValue());
+	
+	return 0;
+}
+

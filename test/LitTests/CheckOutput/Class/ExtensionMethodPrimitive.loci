@@ -1,0 +1,20 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: uint8_t.printSelf: self = 20
+// CHECK: uint8_t.printSelf: self = 30
+
+import void printf(const ubyte * str, ...);
+
+void int_t::printSelf() const {
+	printf(C"uint8_t.printSelf: self = %d\n", self);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int i = 20;
+	i.printSelf();
+	int j = 30;
+	j.printSelf();
+	return 0;
+}
+

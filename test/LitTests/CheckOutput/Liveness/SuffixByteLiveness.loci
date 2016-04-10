@@ -1,0 +1,96 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: ---- checkSize()
+// CHECK: sizeof(TypeWithoutDestructor) = 4
+// CHECK: sizeof(TypeWithDestructor) = 8
+// CHECK: ---- checkLive()
+// CHECK: value.getSuffixByte() = 1
+// CHECK: Destructor called.
+// CHECK: ---- checkDead()
+// CHECK: value.getSuffixByte() = 0
+// CHECK: ---- checkMove()
+// CHECK: value.getSuffixByte() = 1
+// CHECK: * Move object.
+// CHECK: movedValue.getSuffixByte() = 1
+// CHECK: * Destroy moved object.
+// CHECK: Destructor called.
+// CHECK: value.getSuffixByte() = 0
+// CHECK: * Destroy original object.
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TypeWithoutDestructor(uint32_t value) {
+	static create() noexcept {
+		return @(0u);
+	}
+}
+
+struct WithSuffixByte {
+	uint32_t value;
+	uint8_t suffixByte;
+};
+
+class TypeWithDestructor(uint32_t value) {
+	static create() noexcept {
+		return @(0u);
+	}
+	
+	~ {
+		// This destructor forces a liveness indicator to
+		// be created, which will have to be added as
+		// a suffix byte (since the 'value' member doesn't
+		// have an invalid state.
+		printf(C"Destructor called.\n");
+	}
+	
+	uint8_t getSuffixByte() const noexcept {
+		const auto ptr = reinterpret_cast<const TypeWithDestructor*, const WithSuffixByte*>(this);
+		return ptr->suffixByte;
+	}
+}
+
+void checkSize() {
+	printf(C"---- checkSize()\n");
+	printf(C"sizeof(TypeWithoutDestructor) = %llu\n",
+		sizeof(TypeWithoutDestructor).cast<ulonglong_t>());
+	
+	printf(C"sizeof(TypeWithDestructor) = %llu\n",
+		sizeof(TypeWithDestructor).cast<ulonglong_t>());
+}
+
+void checkLive() {
+	printf(C"---- checkLive()\n");
+	auto value = TypeWithDestructor();
+	printf(C"value.getSuffixByte() = %u\n", value.getSuffixByte());
+}
+
+void checkDead() {
+	printf(C"---- checkDead()\n");
+	auto value = TypeWithDestructor();
+	value.__setdead();
+	printf(C"value.getSuffixByte() = %u\n", value.getSuffixByte());
+}
+
+void checkMove() {
+	printf(C"---- checkMove()\n");
+	auto value = TypeWithDestructor();
+	printf(C"value.getSuffixByte() = %u\n", value.getSuffixByte());
+	{
+		printf(C"* Move object.\n");
+		auto movedValue = move value;
+		printf(C"movedValue.getSuffixByte() = %u\n", movedValue.getSuffixByte());
+		printf(C"* Destroy moved object.\n");
+	}
+	printf(C"value.getSuffixByte() = %u\n", value.getSuffixByte());
+	printf(C"* Destroy original object.\n");
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	checkSize();
+	checkLive();
+	checkDead();
+	checkMove();
+	return 0;
+}
+

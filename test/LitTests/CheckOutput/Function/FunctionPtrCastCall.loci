@@ -1,0 +1,27 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+// XFAIL: *
+
+// CHECK: i = 42
+
+import void printf(const ubyte * str, ...);
+
+void function(int i) {
+	printf(C"i = %d\n", i);
+}
+
+template <typename T>
+require(is_movable<T>)
+void callFunction((*)(void)(T) f, T value) {
+	f(move value);
+}
+
+(*)(void)(int) getFunctionPtr() {
+	return function;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	callFunction<int>(getFunctionPtr(), 42);
+	return 0;
+}
+

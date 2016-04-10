@@ -1,6 +1,0 @@
-Constructor called with value=0.
-object.islive: YES
-objectCopy.islive: YES
-After move: object.islive: NO
-Destructor called with value=0.
-Destructor called with value=0.

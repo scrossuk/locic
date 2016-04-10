@@ -1,0 +1,23 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create
+// CHECK: TestClass.Create
+
+import void printf(const ubyte * str, ...);
+
+// Class definition.
+class TestClass() {
+	static Create() {
+		printf(C"TestClass.Create\n");
+		return @();
+	}
+	
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	unused auto testInstance = TestClass();
+	unused_result TestClass();
+	return 0;
+}
+

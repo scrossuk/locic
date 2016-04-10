@@ -1,2 +1,0 @@
-testEntryPoint: Before f().
-testEntryPoint: Caught exception.

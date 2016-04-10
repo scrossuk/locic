@@ -1,0 +1,63 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: evaluateBool: value is TRUE
+// CHECK: evaluateInt: value is 1
+// CHECK: main: selectValue(true, 1, 2) = 1
+// CHECK: evaluateBool: value is FALSE
+// CHECK: evaluateInt: value is 2
+// CHECK: main: selectValue(false, 1, 2) = 2
+// CHECK: evaluateBool: value is TRUE
+// CHECK: evaluateInt: value is -1
+// CHECK: main: selectValue(true, -1, -2) = -1
+// CHECK: evaluateBool: value is FALSE
+// CHECK: evaluateInt: value is -2
+// CHECK: main: selectValue(false, -1, -2) = -2
+// CHECK: evaluateBool: value is TRUE
+// CHECK: evaluateInt: value is 100
+// CHECK: main: selectValue(getBool(), 100, 101) = 100
+// CHECK: evaluateBool: value is FALSE
+// CHECK: evaluateInt: value is 101
+// CHECK: main: selectValue(getBool(), 100, 101) = 101
+// CHECK: evaluateBool: value is TRUE
+// CHECK: evaluateInt: value is 100
+// CHECK: main: selectValue(getBool(), 100, 101) = 100
+// CHECK: evaluateBool: value is FALSE
+// CHECK: evaluateInt: value is 101
+// CHECK: main: selectValue(getBool(), 100, 101) = 101
+
+import void printf(const ubyte * str, ...);
+
+bool evaluateBool(bool value) {
+	printf(C"evaluateBool: value is %s\n", value ? C"TRUE\n" : C"FALSE\n");
+	return value;
+}
+
+int evaluateInt(int value) {
+	printf(C"evaluateInt: value is %d\n", value);
+	return value;
+}
+
+int selectValue(bool getFirst, int first, int second) {
+	return evaluateBool(getFirst) ? evaluateInt(first) : evaluateInt(second);
+}
+
+bool getBool(bool* value) {
+	*value = !*value;
+	return *value;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"main: selectValue(true, 1, 2) = %d\n", selectValue(true, 1, 2));
+	printf(C"main: selectValue(false, 1, 2) = %d\n", selectValue(false, 1, 2));
+	printf(C"main: selectValue(true, -1, -2) = %d\n", selectValue(true, -1, -2));
+	printf(C"main: selectValue(false, -1, -2) = %d\n", selectValue(false, -1, -2));
+	
+	bool cond = false;
+	printf(C"main: selectValue(getBool(), 100, 101) = %d\n", selectValue(getBool(&cond), 100, 101));
+	printf(C"main: selectValue(getBool(), 100, 101) = %d\n", selectValue(getBool(&cond), 100, 101));
+	printf(C"main: selectValue(getBool(), 100, 101) = %d\n", selectValue(getBool(&cond), 100, 101));
+	printf(C"main: selectValue(getBool(), 100, 101) = %d\n", selectValue(getBool(&cond), 100, 101));
+	return 0;
+}
+

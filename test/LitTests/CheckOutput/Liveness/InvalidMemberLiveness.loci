@@ -1,0 +1,100 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: ---- checkSize()
+// CHECK: sizeof(TypeWithoutDestructor) = 1
+// CHECK: sizeof(TypeWithDestructor) = 1
+// CHECK: ---- checkLive()
+// CHECK: Invalidatable::__isvalid : true
+// CHECK: Destructor called.
+// CHECK: Invalidatable::__setinvalid
+// CHECK: ---- checkDead()
+// CHECK: Invalidatable::__setinvalid
+// CHECK: Invalidatable::__isvalid : false
+// CHECK: ---- checkMove()
+// CHECK: * Move object.
+// CHECK: Invalidatable::__isvalid : true
+// CHECK: Invalidatable::__setinvalid
+// CHECK: * Destroy moved object.
+// CHECK: Invalidatable::__isvalid : true
+// CHECK: Destructor called.
+// CHECK: Invalidatable::__setinvalid
+// CHECK: * Destroy original object.
+// CHECK: Invalidatable::__isvalid : false
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class Invalidatable(bool isValid) {
+	static create() noexcept {
+		return @(true);
+	}
+	
+	void __setinvalid() noexcept {
+		printf(C"Invalidatable::__setinvalid\n");
+		@isValid = false;
+	}
+	
+	bool __isvalid() const noexcept {
+		printf(C"Invalidatable::__isvalid : %s\n", @isValid ? C"true\n" : C"false\n");
+		return @isValid;
+	}
+}
+
+class TypeWithoutDestructor(Invalidatable member) {
+	static create() noexcept {
+		return @(Invalidatable());
+	}
+}
+
+class TypeWithDestructor(Invalidatable member) {
+	static create() noexcept {
+		return @(Invalidatable());
+	}
+	
+	~ {
+		// This destructor forces a liveness indicator to
+		// be created, which can be aliased with the invalid
+		// state of the member variable.
+		printf(C"Destructor called.\n");
+	}
+}
+
+void checkSize() {
+	printf(C"---- checkSize()\n");
+	printf(C"sizeof(TypeWithoutDestructor) = %llu\n",
+		sizeof(TypeWithoutDestructor).cast<ulonglong_t>());
+	
+	printf(C"sizeof(TypeWithDestructor) = %llu\n",
+		sizeof(TypeWithDestructor).cast<ulonglong_t>());
+}
+
+void checkLive() {
+	printf(C"---- checkLive()\n");
+	unused auto value = TypeWithDestructor();
+}
+
+void checkDead() {
+	printf(C"---- checkDead()\n");
+	auto value = TypeWithDestructor();
+	value.__setdead();
+}
+
+void checkMove() {
+	printf(C"---- checkMove()\n");
+	auto value = TypeWithDestructor();
+	{
+		printf(C"* Move object.\n");
+		unused auto movedValue = move value;
+		printf(C"* Destroy moved object.\n");
+	}
+	printf(C"* Destroy original object.\n");
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	checkSize();
+	checkLive();
+	checkDead();
+	checkMove();
+	return 0;
+}
+

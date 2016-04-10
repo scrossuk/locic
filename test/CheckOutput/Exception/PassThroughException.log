@@ -1,2 +1,0 @@
-functionThatThrows: Throwing exception.
-testEntryPoint: Caught exception with value 8000!

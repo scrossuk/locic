@@ -1,0 +1,90 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: array[0] = 1
+// CHECK: array[1] = 2
+// CHECK: array[2] = 3
+// CHECK: array[3] = 4
+// CHECK: array[0] = 1.000000
+// CHECK: array[1] = 2.000000
+// CHECK: array[2] = 3.000000
+// CHECK: array[3] = 4.000000
+// CHECK: Rotate...
+// CHECK: array[0] = 2
+// CHECK: array[1] = 3
+// CHECK: array[2] = 4
+// CHECK: array[3] = 1
+// CHECK: array[0] = 2.000000
+// CHECK: array[1] = 3.000000
+// CHECK: array[2] = 4.000000
+// CHECK: array[3] = 1.000000
+// CHECK: Rotate...
+// CHECK: array[0] = 3
+// CHECK: array[1] = 4
+// CHECK: array[2] = 1
+// CHECK: array[3] = 2
+// CHECK: array[0] = 3.000000
+// CHECK: array[1] = 4.000000
+// CHECK: array[2] = 1.000000
+// CHECK: array[3] = 2.000000
+
+import void printf(const ubyte * str, ...) noexcept;
+
+template <typename T>
+require(is_movable<T>)
+static_array_t<T, 4u> makeArray(T value0, T value1, T value2, T value3) {
+	auto array = static_array_t<T, 4u>.uninitialized();
+	array[0u] = move value0;
+	array[1u] = move value1;
+	array[2u] = move value2;
+	array[3u] = move value3;
+	return move array;
+}
+
+template <typename T>
+require(is_movable<T>)
+static_array_t<T, 4u> rotate(static_array_t<T, 4u> array) {
+	T tmp = move array[0u];
+	array[0u] = move array[1u];
+	array[1u] = move array[2u];
+	array[2u] = move array[3u];
+	array[3u] = move tmp;
+	return move array;
+}
+
+void printIntArray(static_array_t<int, 4u> array) {
+	printf(C"array[0] = %d\n", array[0u]);
+	printf(C"array[1] = %d\n", array[1u]);
+	printf(C"array[2] = %d\n", array[2u]);
+	printf(C"array[3] = %d\n", array[3u]);
+}
+
+void printFloatArray(static_array_t<float, 4u> array) {
+	printf(C"array[0] = %f\n", array[0u]);
+	printf(C"array[1] = %f\n", array[1u]);
+	printf(C"array[2] = %f\n", array[2u]);
+	printf(C"array[3] = %f\n", array[3u]);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto intArray = makeArray<int>(1, 2, 3, 4);
+	auto floatArray = makeArray<float>(1.0f, 2.0f, 3.0f, 4.0f);
+	
+	printIntArray(intArray);
+	printFloatArray(floatArray);
+	
+	printf(C"Rotate...\n");
+	intArray = rotate<int>(intArray);
+	floatArray = rotate<float>(floatArray);
+	
+	printIntArray(intArray);
+	printFloatArray(floatArray);
+	
+	printf(C"Rotate...\n");
+	intArray = rotate<int>(intArray);
+	floatArray = rotate<float>(floatArray);
+	
+	printIntArray(intArray);
+	printFloatArray(floatArray);
+	return 0;
+}

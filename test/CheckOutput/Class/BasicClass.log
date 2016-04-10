@@ -1,4 +1,0 @@
-TestClass.Create: Value = 10
-getValue: Value = 10
-TestClass.Create: Value = 15
-doSomething: Value = 15

@@ -1,0 +1,17 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: getTypeSize<int>() = 4
+
+import void printf(const ubyte * str, ...);
+
+template <typename T: sized_type_t>
+size_t getTypeSize() {
+	return sizeof(T);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"getTypeSize<int>() = %llu\n", getTypeSize<int>().cast<ulonglong_t>());
+	return 0;
+}
+

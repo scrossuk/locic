@@ -1,0 +1,24 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: sizeof(A) = 1
+// CHECK: A.__sizeof() = 1
+// CHECK: sizeof(B) = 1
+// CHECK: B.__sizeof() = 1
+// CHECK: sizeof(Empty) = 2
+// CHECK: Empty.__sizeof() = 2
+
+import void printf(const ubyte * str, ...);
+
+datatype Empty = A() | B();
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"sizeof(A) = %llu\n", sizeof(A).cast<ulonglong_t>());
+	printf(C"A.__sizeof() = %llu\n", A.__sizeof().cast<ulonglong_t>());
+	printf(C"sizeof(B) = %llu\n", sizeof(B).cast<ulonglong_t>());
+	printf(C"B.__sizeof() = %llu\n", B.__sizeof().cast<ulonglong_t>());
+	printf(C"sizeof(Empty) = %llu\n", sizeof(Empty).cast<ulonglong_t>());
+	printf(C"Empty.__sizeof() = %llu\n", Empty.__sizeof().cast<ulonglong_t>());
+	return 0;
+}
+

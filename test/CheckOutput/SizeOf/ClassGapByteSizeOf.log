@@ -1,8 +1,0 @@
-sizeof(ClassInt8Int16) = 4
-ClassInt8Int16.__sizeof() = 4
-sizeof(ClassInt16Int8) = 4
-ClassInt16Int8.__sizeof() = 4
-sizeof(ClassInt16Int32) = 8
-ClassInt16Int32.__sizeof() = 8
-sizeof(ClassInt32Int16) = 8
-ClassInt32Int16.__sizeof() = 8

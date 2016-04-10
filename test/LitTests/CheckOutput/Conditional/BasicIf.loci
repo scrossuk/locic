@@ -1,0 +1,23 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: START
+// CHECK: main: i == 321
+// CHECK: main: END
+
+import void printf(const ubyte * str, ...);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int i = 321;
+	
+	printf(C"main: START\n");
+	
+	if (i == 321) {
+		printf(C"main: i == 321\n");
+	}
+	
+	printf(C"main: END\n");
+	
+	return 0;
+}
+

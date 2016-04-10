@@ -1,7 +1,0 @@
-mutableInst value = 40
-mutableInst value (by pointer) = 40
-mutableInst value (by const pointer) = 40
-mutableInst value (by const pointer after first modification) = 60
-mutableInst value (by const pointer after second modification) = 70
-constInst value = 50
-constInst value (by const pointer) = 50

@@ -1,0 +1,49 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create()
+// CHECK: BuildClass.Create(): 42
+// CHECK: TestClass.print()
+// CHECK: BuildClass.print(): 42
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class BuildClass(int value) {
+	static Create(int value) {
+		printf(C"BuildClass.Create(): %d\n", value);
+		return @(value);
+	}
+	
+	void print() {
+		printf(C"BuildClass.print(): %d\n", @value);
+	}
+}
+
+template <typename T : movable_t>
+interface Constructible {
+	static T Create(int value);
+	
+	void print();
+}
+
+template <typename T>
+require(T : Constructible<T> and is_movable<T>)
+class TestClass(T value) {
+	static Create(int value) {
+		printf(C"TestClass.Create()\n");
+		return @(T(value));
+	}
+	
+	void print() {
+		printf(C"TestClass.print()\n");
+		@value.print();
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass<BuildClass> testClass = TestClass<BuildClass>(42);
+	testClass.print();
+	
+	return 0;
+}
+

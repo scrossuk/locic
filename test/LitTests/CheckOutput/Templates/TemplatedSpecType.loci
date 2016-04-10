@@ -1,0 +1,75 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: object0.isEqual = YES
+// CHECK: object1.isEqual = NO
+// CHECK: object2.isEqual = NO
+// CHECK: CustomType.compare: 0 vs 0
+// CHECK: object3.isEqual = YES
+// CHECK: CustomType.compare: 0 vs 1
+// CHECK: object4.isEqual = NO
+// CHECK: CustomType.compare: -1 vs 1
+// CHECK: object5.isEqual = NO
+
+import void printf(const ubyte * str, ...);
+
+template <typename T : movable_t>
+interface Comparable {
+	T implicitCopy() const;
+	
+	compare_result_t compare(const T& other) const;
+}
+
+template <typename T>
+require(T : Comparable<T> and is_movable<T>)
+class TestClass(T value0, T value1) {
+	static Create(T value0, T value1) {
+		return @(move value0, move value1);
+	}
+	
+	bool isEqual() const {
+		return @value0 == @value1;
+	}
+}
+
+class CustomType(int value) {
+	static Create(int value) {
+		return @(value);
+	}
+	
+	CustomType implicitCopy() const {
+		return @(@value);
+	}
+	
+	int value() const {
+		return @value;
+	}
+	
+	compare_result_t compare(const CustomType& other) const {
+		printf(C"CustomType.compare: %d vs %d\n", @value, other.value());
+		return @value.compare(other.value());
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass<int> object0 = TestClass<int>(0, 0);
+	printf(C"object0.isEqual = %s\n", object0.isEqual() ? C"YES\n" : C"NO\n");
+	
+	TestClass<int> object1 = TestClass<int>(0, 1);
+	printf(C"object1.isEqual = %s\n", object1.isEqual() ? C"YES\n" : C"NO\n");
+	
+	TestClass<int> object2 = TestClass<int>(-1, 1);
+	printf(C"object2.isEqual = %s\n", object2.isEqual() ? C"YES\n" : C"NO\n");
+	
+	TestClass<CustomType> object3 = TestClass<CustomType>(CustomType(0), CustomType(0));
+	printf(C"object3.isEqual = %s\n", object3.isEqual() ? C"YES\n" : C"NO\n");
+	
+	TestClass<CustomType> object4 = TestClass<CustomType>(CustomType(0), CustomType(1));
+	printf(C"object4.isEqual = %s\n", object4.isEqual() ? C"YES\n" : C"NO\n");
+	
+	TestClass<CustomType> object5 = TestClass<CustomType>(CustomType(-1), CustomType(1));
+	printf(C"object5.isEqual = %s\n", object5.isEqual() ? C"YES\n" : C"NO\n");
+	
+	return 0;
+}
+

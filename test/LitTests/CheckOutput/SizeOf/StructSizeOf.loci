@@ -1,0 +1,81 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: sizeof(A) = 1
+// CHECK: sizeof(B) = 4
+// CHECK: sizeof(C) = 8
+// CHECK: sizeof(D) = 16
+// CHECK: sizeof(E) = 24
+// CHECK: sizeof(F) = 4
+// CHECK: sizeof(G) = 16
+// CHECK: sizeof(H) = 32
+// CHECK: sizeof(I) = 24
+
+import void printf(const ubyte * str, ...);
+
+struct A {
+	byte a;
+};
+
+struct B {
+	byte a;
+	short b;
+};
+
+struct C {
+	byte a;
+	short b;
+	int c;
+};
+
+struct D {
+	byte a;
+	short b;
+	int c;
+	long d;
+};
+
+struct E {
+	byte a;
+	short b;
+	int c;
+	long d;
+	long long e;
+};
+
+struct F {
+	float a;
+};
+
+struct G {
+	float a;
+	double b;
+};
+
+struct H {
+	byte a;
+	long long b;
+	byte c;
+	long long d;
+};
+
+struct I {
+	byte a;
+	byte b;
+	long long c;
+	long long d;
+};
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"sizeof(A) = %llu\n", sizeof(A).cast<ulonglong_t>());
+	printf(C"sizeof(B) = %llu\n", sizeof(B).cast<ulonglong_t>());
+	printf(C"sizeof(C) = %llu\n", sizeof(C).cast<ulonglong_t>());
+	printf(C"sizeof(D) = %llu\n", sizeof(D).cast<ulonglong_t>());
+	printf(C"sizeof(E) = %llu\n", sizeof(E).cast<ulonglong_t>());
+	printf(C"sizeof(F) = %llu\n", sizeof(F).cast<ulonglong_t>());
+	printf(C"sizeof(G) = %llu\n", sizeof(G).cast<ulonglong_t>());
+	printf(C"sizeof(H) = %llu\n", sizeof(H).cast<ulonglong_t>());
+	printf(C"sizeof(I) = %llu\n", sizeof(I).cast<ulonglong_t>());
+	return 0;
+}
+

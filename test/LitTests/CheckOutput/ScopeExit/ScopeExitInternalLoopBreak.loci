@@ -1,0 +1,63 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: Add outer scope exit #1
+// CHECK: main: Add inner scope exit
+// CHECK: main: Inner scope exit
+// CHECK: main: Inner scope exit loop value = 0
+// CHECK: main: Inner scope exit loop value = 1
+// CHECK: main: Add outer scope exit #2
+// CHECK: main: Outer scope exit #2
+// CHECK: main: Outer scope exit #2 loop value = 0
+// CHECK: main: Outer scope exit #2 loop value = 1
+// CHECK: main: Outer scope exit #1
+// CHECK: main: Outer scope exit #1 loop value = 0
+// CHECK: main: Outer scope exit #1 loop value = 1
+
+import void printf(const ubyte * str, ...) noexcept;
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"main: Add outer scope exit #1\n");
+	scope (exit) {
+		printf(C"main: Outer scope exit #1\n");
+		int i = 0;
+		while (i < 3) {
+			printf(C"main: Outer scope exit #1 loop value = %d\n", i);
+			i = i + 1;
+			if (i == 2) {
+				break;
+			}
+		}
+	}
+	
+	{
+		printf(C"main: Add inner scope exit\n");
+		scope (exit) {
+			printf(C"main: Inner scope exit\n");
+			int i = 0;
+			while (i < 3) {
+				printf(C"main: Inner scope exit loop value = %d\n", i);
+				i = i + 1;
+				if (i == 2) {
+					break;
+				}
+			}
+		}
+	}
+	
+	printf(C"main: Add outer scope exit #2\n");
+	scope (exit) {
+		printf(C"main: Outer scope exit #2\n");
+		int i = 0;
+		while (i < 3) {
+			printf(C"main: Outer scope exit #2 loop value = %d\n", i);
+			i = i + 1;
+			if (i == 2) {
+				break;
+			}
+		}
+	}
+	
+	return 0;
+}
+

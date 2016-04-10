@@ -1,0 +1,63 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: START
+// CHECK: main: i = 98
+// CHECK: main: i = 99
+// CHECK: main: i = 100
+// CHECK: main: i = 10
+// CHECK: main: i = 49
+// CHECK: main: i = 98
+// CHECK: main: i = 99
+// CHECK: main: END
+
+import void printf(const ubyte * str, ...);
+
+int testVal(int value) {
+	if (value >= 100) {
+		return value / 10;
+	} else if (value == 10) {
+		return 49;
+	} else if (value < 50) {
+		return value * 2;
+	}
+	
+	return value + 1;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int i = 98;
+	
+	printf(C"main: START\n");
+	
+	printf(C"main: i = %d\n", i);
+	
+	i = testVal(i);
+	
+	printf(C"main: i = %d\n", i);
+	
+	i = testVal(i);
+	
+	printf(C"main: i = %d\n", i);
+	
+	i = testVal(i);
+	
+	printf(C"main: i = %d\n", i);
+	
+	i = testVal(i);
+	
+	printf(C"main: i = %d\n", i);
+	
+	i = testVal(i);
+	
+	printf(C"main: i = %d\n", i);
+	
+	i = testVal(i);
+	
+	printf(C"main: i = %d\n", i);
+	
+	printf(C"main: END\n");
+	
+	return 0;
+}
+

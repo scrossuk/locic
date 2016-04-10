@@ -1,0 +1,51 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: Value = 4
+// CHECK: assignFunction: Previous value = 4
+// CHECK: assignFunction: New value = 10
+// CHECK: main: Value = 10
+// CHECK: moveFunction: Previous value = 10
+// CHECK: moveFunction: Moved value = 10
+// CHECK: moveFunction: New value = 0
+// CHECK: main: Value = 0
+// CHECK: assignFunction: Previous value = 0
+// CHECK: assignFunction: New value = 20
+// CHECK: main: Value = 20
+
+import void printf(const ubyte * str, ...);
+
+void assignFunction(lval<int> value_lval_t<int>& objectLval, int value) {
+	printf(C"assignFunction: Previous value = %d\n", objectLval);
+	objectLval = value;
+	printf(C"assignFunction: New value = %d\n", objectLval);
+}
+
+void moveFunction(lval<int> value_lval_t<int>& objectLval) {
+	printf(C"moveFunction: Previous value = %d\n", objectLval);
+	int value = move objectLval;
+	printf(C"moveFunction: Moved value = %d\n", value);
+	objectLval = 0;
+	printf(C"moveFunction: New value = %d\n", objectLval);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int value = 4;
+	
+	printf(C"main: Value = %d\n", value);
+	
+	assignFunction(value, 10);
+	
+	printf(C"main: Value = %d\n", value);
+	
+	moveFunction(value);
+	
+	printf(C"main: Value = %d\n", value);
+	
+	assignFunction(value, 20);
+	
+	printf(C"main: Value = %d\n", value);
+	
+	return 0;
+}
+

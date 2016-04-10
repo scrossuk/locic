@@ -1,6 +1,0 @@
-TestClass.Create: Value = 1
-TestClass.~: Value = 1
-afterFunctionExit()
-TestClass.Create: Value = 2
-TestClass.~: Value = 2
-afterFunctionExit()

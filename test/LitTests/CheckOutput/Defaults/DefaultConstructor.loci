@@ -1,0 +1,51 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: StructType1(1, StructType2(2, 3))
+// CHECK: OtherClass.printValue: a = 4, b = 5, c = 6
+// CHECK: TestClass.printValue
+// CHECK: OtherClass.printValue: a = 7, b = 8, c = 9
+
+import void printf(const ubyte * str, ...);
+
+struct StructType2 {
+	int var1;
+	int var2;
+};
+
+struct StructType1 {
+	int var1;
+	StructType2 var2;
+};
+
+class OtherClass(int a, int b, int c) {
+	static Create = default;
+	
+	void printValue() {
+		printf(C"OtherClass.printValue: a = %d, b = %d, c = %d\n", @a, @b, @c);
+	}
+}
+
+class TestClass(OtherClass value) {
+	static Create = default;
+	
+	void printValue() {
+		printf(C"TestClass.printValue\n");
+		@value.printValue();
+	}
+	
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	StructType1 structType = StructType1(1, StructType2(2, 3));
+	printf(C"StructType1(%d, StructType2(%d, %d))\n", structType.var1, structType.var2.var1, structType.var2.var2);
+	
+	OtherClass otherInst = OtherClass(4, 5, 6);
+	otherInst.printValue();
+	
+	TestClass inst = TestClass(OtherClass(7, 8, 9));
+	inst.printValue();
+	
+	return 0;
+}
+

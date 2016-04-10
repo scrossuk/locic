@@ -1,5 +1,0 @@
-TestClass.Create: Value = 50
-TestClass.implicit_copy: @value = 50
-TestClass.print: @value = 55
-TestClass.make_copy: @value = 50
-TestClass.print: @value = 60

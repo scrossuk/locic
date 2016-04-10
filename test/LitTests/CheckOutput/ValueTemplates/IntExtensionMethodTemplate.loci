@@ -1,0 +1,29 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass<1>().getValue() = 1
+// CHECK: TestClass<2>().getValue() = 2
+// CHECK: TestClass<3>().getValue() = 3
+// CHECK: TestClass<4>().getValue() = 4
+// CHECK: TestClass<5>().getValue() = 5
+
+import void printf(const ubyte * str, ...) noexcept;
+
+template <int value>
+class TestClass() {
+	static Create = default;
+}
+
+int TestClass::getValue() const {
+	return value;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"TestClass<1>().getValue() = %d\n", TestClass<1>().getValue());
+	printf(C"TestClass<2>().getValue() = %d\n", TestClass<2>().getValue());
+	printf(C"TestClass<3>().getValue() = %d\n", TestClass<3>().getValue());
+	printf(C"TestClass<4>().getValue() = %d\n", TestClass<4>().getValue());
+	printf(C"TestClass<5>().getValue() = %d\n", TestClass<5>().getValue());
+	return 0;
+}
+

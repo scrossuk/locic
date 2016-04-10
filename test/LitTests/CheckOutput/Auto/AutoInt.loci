@@ -1,0 +1,40 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: i = 4.
+// CHECK: main: i = 4, j = 6.
+// CHECK: main: i = 4, j = 6, k = 6.
+// CHECK: main: i = 1, j = 6, k = 6.
+// CHECK: main: i = 1, j = 2, k = 6.
+// CHECK: main: i = 1, j = 2, k = 3.
+
+import void printf(const ubyte * str, ...);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int i = 4;
+	
+	printf(C"main: i = %d.\n", i);
+	
+	auto j = i.abs() + 2;
+	
+	printf(C"main: i = %d, j = %d.\n", i, j);
+	
+	auto k = j;
+	
+	printf(C"main: i = %d, j = %d, k = %d.\n", i, j, k);
+	
+	i = 1;
+	
+	printf(C"main: i = %d, j = %d, k = %d.\n", i, j, k);
+	
+	j = 2;
+	
+	printf(C"main: i = %d, j = %d, k = %d.\n", i, j, k);
+	
+	k = 3;
+	
+	printf(C"main: i = %d, j = %d, k = %d.\n", i, j, k);
+	
+	return 0;
+}
+

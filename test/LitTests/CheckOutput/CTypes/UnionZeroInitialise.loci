@@ -1,0 +1,21 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: unionValue.intValue = 0
+
+import void printf(const ubyte * str, ...);
+
+union TestUnion {
+	int intValue;
+};
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto unionValue = TestUnion();
+	// Set to garbage value to try to trigger a bug.
+	unionValue.intValue = 546;
+	
+	unionValue = TestUnion();
+	printf(C"unionValue.intValue = %d\n", unionValue.intValue);
+	return 0;
+}
+

@@ -1,0 +1,60 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: alignof(ClassInt8Int16) = 2
+// CHECK: ClassInt8Int16.__alignmask() = 1
+// CHECK: alignof(ClassInt16Int8) = 2
+// CHECK: ClassInt16Int8.__alignmask() = 1
+// CHECK: alignof(ClassInt16Int32) = 4
+// CHECK: ClassInt16Int32.__alignmask() = 3
+// CHECK: alignof(ClassInt32Int16) = 4
+// CHECK: ClassInt32Int16.__alignmask() = 3
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class ClassInt8Int16(int8_t v0, int16_t v1) {
+	static create = default;
+	
+	~ {
+		printf(C"Destroy\n");
+	}
+}
+
+class ClassInt16Int8(int16_t v0, int8_t v1) {
+	static create = default;
+	
+	~ {
+		printf(C"Destroy\n");
+	}
+}
+
+class ClassInt16Int32(int16_t v0, int32_t v1) {
+	static create = default;
+	
+	~ {
+		printf(C"Destroy\n");
+	}
+}
+
+class ClassInt32Int16(int32_t v0, int16_t v1) {
+	static create = default;
+	
+	~ {
+		printf(C"Destroy\n");
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"alignof(ClassInt8Int16) = %llu\n", alignof(ClassInt8Int16).cast<ulonglong_t>());
+	printf(C"ClassInt8Int16.__alignmask() = %llu\n", ClassInt8Int16.__alignmask().cast<ulonglong_t>());
+	
+	printf(C"alignof(ClassInt16Int8) = %llu\n", alignof(ClassInt16Int8).cast<ulonglong_t>());
+	printf(C"ClassInt16Int8.__alignmask() = %llu\n", ClassInt16Int8.__alignmask().cast<ulonglong_t>());
+	
+	printf(C"alignof(ClassInt16Int32) = %llu\n", alignof(ClassInt16Int32).cast<ulonglong_t>());
+	printf(C"ClassInt16Int32.__alignmask() = %llu\n", ClassInt16Int32.__alignmask().cast<ulonglong_t>());
+	
+	printf(C"alignof(ClassInt32Int16) = %llu\n", alignof(ClassInt32Int16).cast<ulonglong_t>());
+	printf(C"ClassInt32Int16.__alignmask() = %llu\n", ClassInt32Int16.__alignmask().cast<ulonglong_t>());
+	return 0;
+}

@@ -1,0 +1,18 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: sizeof(Empty) = 0
+// CHECK: Empty.__sizeof() = 0
+
+import void printf(const ubyte * str, ...);
+
+struct Empty { };
+
+export int main(unused int argc, unused ubyte ** argv) {
+	// Empty structs are ZERO bytes for compatibility with GCC's empty
+	// struct extension to C; note that in C++ empty structs are one byte.
+	printf(C"sizeof(Empty) = %llu\n", sizeof(Empty).cast<ulonglong_t>());
+	printf(C"Empty.__sizeof() = %llu\n", Empty.__sizeof().cast<ulonglong_t>());
+	return 0;
+}
+

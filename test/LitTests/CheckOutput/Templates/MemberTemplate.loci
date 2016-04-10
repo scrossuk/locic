@@ -1,0 +1,54 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: OuterClass.printValue
+// CHECK:     MiddleClass.printValue
+// CHECK:         InnerClass.printValue: value = 2014
+
+import void printf(const ubyte * str, ...);
+
+interface Printable {
+	void print();
+}
+
+class InnerClass(int value) {
+	static Create(int value) {
+		return @(move value);
+	}
+	
+	void print() {
+		printf(C"        InnerClass.printValue: value = %d\n", @value);
+	}
+}
+
+template <typename T>
+require(T : Printable and is_movable<T>)
+class MiddleClass(T value) {
+	static Create(T value) {
+		return @(move value);
+	}
+	
+	void print() {
+		printf(C"    MiddleClass.printValue\n");
+		@value.print();
+	}
+}
+
+class OuterClass(MiddleClass<InnerClass> value) {
+	static Create(MiddleClass<InnerClass> value) {
+		return @(move value);
+	}
+	
+	void print() {
+		printf(C"OuterClass.printValue\n");
+		@value.print();
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	OuterClass object = OuterClass(MiddleClass<InnerClass>(InnerClass(2014)));
+	object.print();
+	
+	return 0;
+}
+

@@ -1,0 +1,97 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: ---- checkSize()
+// CHECK: Type sizes match: yes
+// CHECK: ---- checkLive()
+// CHECK: value.isRefValid() = yes
+// CHECK: Destructor called.
+// CHECK: ---- checkDead()
+// CHECK: value.isRefValid() = no
+// CHECK: ---- checkMove()
+// CHECK: value.isRefValid() = yes
+// CHECK: * Move object.
+// CHECK: movedValue.isRefValid() = yes
+// CHECK: value.isRefValid() = no
+// CHECK: * Destroy moved object.
+// CHECK: Destructor called.
+// CHECK: value.isRefValid() = no
+// CHECK: * Destroy original object.
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TypeWithoutDestructor(int& member) {
+	static create(int& value) noexcept {
+		return @(value);
+	}
+}
+
+// TODO: remove need for this function...
+const int& removeLval(const int& refValue) noexcept {
+	return refValue;
+}
+
+class TypeWithDestructor(int& member) {
+	static create(int& value) noexcept {
+		return @(value);
+	}
+	
+	~ {
+		// This destructor forces a liveness indicator to
+		// be created, which can be aliased with the invalid
+		// state of the reference member variable.
+		printf(C"Destructor called.\n");
+	}
+	
+	bool isRefValid() const noexcept {
+		return noref(removeLval(@member)).__isvalid();
+	}
+}
+
+void checkSize() {
+	printf(C"---- checkSize()\n");
+	const auto withoutDestructorSize = sizeof(TypeWithoutDestructor);
+	const auto withDestructorSize = sizeof(TypeWithDestructor);
+	
+	printf(C"Type sizes match: %s\n", withoutDestructorSize == withDestructorSize ? C"yes\n" : C"no\n");
+}
+
+void checkLive() {
+	int i = 0;
+	printf(C"---- checkLive()\n");
+	auto value = TypeWithDestructor(i);
+	printf(C"value.isRefValid() = %s\n", value.isRefValid() ? C"yes\n" : C"no\n");
+}
+
+void checkDead() {
+	int i = 0;
+	printf(C"---- checkDead()\n");
+	auto value = TypeWithDestructor(i);
+	value.__setdead();
+	printf(C"value.isRefValid() = %s\n", value.isRefValid() ? C"yes\n" : C"no\n");
+}
+
+void checkMove() {
+	int i = 0;
+	printf(C"---- checkMove()\n");
+	auto value = TypeWithDestructor(i);
+	printf(C"value.isRefValid() = %s\n", value.isRefValid() ? C"yes\n" : C"no\n");
+	{
+		printf(C"* Move object.\n");
+		auto movedValue = move value;
+		printf(C"movedValue.isRefValid() = %s\n", movedValue.isRefValid() ? C"yes\n" : C"no\n");
+		printf(C"value.isRefValid() = %s\n", value.isRefValid() ? C"yes\n" : C"no\n");
+		printf(C"* Destroy moved object.\n");
+	}
+	printf(C"value.isRefValid() = %s\n", value.isRefValid() ? C"yes\n" : C"no\n");
+	printf(C"* Destroy original object.\n");
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	checkSize();
+	checkLive();
+	checkDead();
+	checkMove();
+	return 0;
+}
+

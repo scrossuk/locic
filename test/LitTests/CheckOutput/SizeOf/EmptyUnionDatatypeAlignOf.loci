@@ -1,0 +1,24 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: alignof(A) = 1
+// CHECK: A.__alignmask() = 0
+// CHECK: alignof(B) = 1
+// CHECK: B.__alignmask() = 0
+// CHECK: alignof(Empty) = 1
+// CHECK: Empty.__alignmask() = 0
+
+import void printf(const ubyte * str, ...);
+
+datatype Empty = A() | B();
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"alignof(A) = %llu\n", alignof(A).cast<ulonglong_t>());
+	printf(C"A.__alignmask() = %llu\n", A.__alignmask().cast<ulonglong_t>());
+	printf(C"alignof(B) = %llu\n", alignof(B).cast<ulonglong_t>());
+	printf(C"B.__alignmask() = %llu\n", B.__alignmask().cast<ulonglong_t>());
+	printf(C"alignof(Empty) = %llu\n", alignof(Empty).cast<ulonglong_t>());
+	printf(C"Empty.__alignmask() = %llu\n", Empty.__alignmask().cast<ulonglong_t>());
+	return 0;
+}
+

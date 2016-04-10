@@ -1,0 +1,34 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: assert v == 1
+// CHECK: assert v == 2
+// CHECK: assert v == 4
+// CHECK: assert v == -1
+
+import void printf(const ubyte * str, ...);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int v = 1;
+	
+	printf(C"assert v == 1\n");
+	assert v == 1;
+	
+	v += 1;
+	
+	printf(C"assert v == 2\n");
+	assert v == 2;
+	
+	v *= 2;
+	
+	printf(C"assert v == 4\n");
+	assert v == 4;
+	
+	v -= 5;
+	
+	printf(C"assert v == -1\n");
+	assert v == -1;
+	
+	return 0;
+}
+

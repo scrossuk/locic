@@ -1,0 +1,17 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: getTypeAlign<int>() = 4
+
+import void printf(const ubyte * str, ...);
+
+template <typename T: sized_type_t>
+size_t getTypeAlign() {
+	return alignof(T);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"getTypeAlign<int>() = %llu\n", getTypeAlign<int>().cast<ulonglong_t>());
+	return 0;
+}
+

@@ -1,0 +1,36 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: Returning 1.
+// CHECK: main: Success case; throwing exception.
+// CHECK: main: Failure case.
+// CHECK: main: Exiting try scope.
+// CHECK: main: Caught exception; returning 0.
+
+import void printf(const ubyte * str, ...) noexcept;
+
+exception TestError();
+
+export int main(unused int argc, unused ubyte ** argv) {
+	try {
+		scope (exit) {
+			printf(C"main: Exiting try scope.\n");
+		}
+		
+		scope (failure) {
+			printf(C"main: Failure case.\n");
+		}
+		
+		scope (success) {
+			printf(C"main: Success case; throwing exception.\n");
+			throw TestError();
+		}
+		
+		printf(C"main: Returning 1.\n");
+		return 1;
+	} catch (TestError e) {
+		printf(C"main: Caught exception; returning 0.\n");
+		return 0;
+	}
+}
+

@@ -1,2 +1,0 @@
-sizeof(Empty) = 0
-Empty.__sizeof() = 0

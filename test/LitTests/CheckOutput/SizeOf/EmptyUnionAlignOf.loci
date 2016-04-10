@@ -1,0 +1,16 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: alignof(Empty) = 1
+// CHECK: Empty.__alignmask() = 0
+
+import void printf(const ubyte * str, ...);
+
+union Empty { };
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"alignof(Empty) = %llu\n", alignof(Empty).cast<ulonglong_t>());
+	printf(C"Empty.__alignmask() = %llu\n", Empty.__alignmask().cast<ulonglong_t>());
+	return 0;
+}
+

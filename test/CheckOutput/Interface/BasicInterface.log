@@ -1,6 +1,0 @@
-TestClass1.Create: Value = 100
-TestClass1.getValue: Value = 100
-polymorphicPrint: Value = 100
-TestClass2.Create: Value = 200
-TestClass2.getValue: Value = 200
-polymorphicPrint: Value = 200

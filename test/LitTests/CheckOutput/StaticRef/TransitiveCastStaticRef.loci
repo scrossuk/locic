@@ -1,0 +1,92 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: function0
+// CHECK: typeValue.print80()
+// CHECK: TestClass: Printing 80
+// CHECK: typeValue.print81()
+// CHECK: TestClass: Printing 81
+// CHECK: typeValue.print82()
+// CHECK: TestClass: Printing 82
+// CHECK: function1
+// CHECK: typeValue.print80()
+// CHECK: TestClass: Printing 80
+// CHECK: typeValue.print81()
+// CHECK: TestClass: Printing 81
+// CHECK: function2
+// CHECK: typeValue.print80()
+// CHECK: TestClass: Printing 80
+
+import void printf(const ubyte * str, ...);
+
+class TestClass () {
+	static void print80() {
+		printf(C"TestClass: Printing 80\n");
+	}
+	
+	static void print81() {
+		printf(C"TestClass: Printing 81\n");
+	}
+	
+	static void print82() {
+		printf(C"TestClass: Printing 82\n");
+	}
+}
+
+interface Printable0 {
+	static void print80();
+	
+	static void print81();
+	
+	static void print82();
+}
+
+interface Printable1 {
+	static void print80();
+	
+	static void print81();
+}
+
+interface Printable2 {
+	static void print80();
+}
+
+void function0(staticref<Printable0> typename_t typeValue) {
+	printf(C"function0\n");
+	
+	printf(C"typeValue.print80()\n");
+	typeValue.print80();
+	
+	printf(C"typeValue.print81()\n");
+	typeValue.print81();
+	
+	printf(C"typeValue.print82()\n");
+	typeValue.print82();
+	
+	function1(typeValue);
+}
+
+void function1(staticref<Printable1> typename_t typeValue) {
+	printf(C"function1\n");
+	
+	printf(C"typeValue.print80()\n");
+	typeValue.print80();
+	
+	printf(C"typeValue.print81()\n");
+	typeValue.print81();
+	
+	function2(typeValue);
+}
+
+void function2(staticref<Printable2> typename_t typeValue) {
+	printf(C"function2\n");
+	
+	printf(C"typeValue.print80()\n");
+	typeValue.print80();
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	function0(TestClass);
+	return 0;
+}
+

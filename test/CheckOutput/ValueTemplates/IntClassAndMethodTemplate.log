@@ -1,5 +1,0 @@
-TestClass<1>().getValue<1>() = 1
-TestClass<2>().getValue<2>() = 4
-TestClass<3>().getValue<3>() = 9
-TestClass<4>().getValue<4>() = 16
-TestClass<5>().getValue<5>() = 25

@@ -1,2 +1,0 @@
-passThrough<int>(1000) = 1000
-passThrough<float>(1000.0f) = 1000.000000

@@ -1,0 +1,18 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: sizeof(Empty) = 0
+// CHECK: Empty.__sizeof() = 0
+
+import void printf(const ubyte * str, ...);
+
+union Empty { };
+
+export int main(unused int argc, unused ubyte ** argv) {
+	// Empty unions are ZERO bytes for compatibility with GCC's empty
+	// union extension to C; note that in C++ empty unions are one byte.
+	printf(C"sizeof(Empty) = %llu\n", sizeof(Empty).cast<ulonglong_t>());
+	printf(C"Empty.__sizeof() = %llu\n", Empty.__sizeof().cast<ulonglong_t>());
+	return 0;
+}
+

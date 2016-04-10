@@ -1,0 +1,45 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.zero()
+// CHECK: TestClass: value = 0
+// CHECK: TestClass.one()
+// CHECK: TestClass: value = 1
+// CHECK: TestClass.create(2)
+// CHECK: TestClass: value = 2
+// CHECK: TestClass(3)
+// CHECK: TestClass: value = 3
+
+import void printf(const ubyte * str, ...);
+
+class TestClass (int value) {
+	static zero() {
+		return @(0);
+	}
+	
+	static one() {
+		return @(1);
+	}
+	
+	static create = default;
+	
+	void print() const {
+		printf(C"TestClass: value = %d\n", @value);
+	}
+};
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"TestClass.zero()\n");
+	TestClass.zero().print();
+	
+	printf(C"TestClass.one()\n");
+	TestClass.one().print();
+	
+	printf(C"TestClass.create(2)\n");
+	TestClass.create(2).print();
+	
+	printf(C"TestClass(3)\n");
+	TestClass(3).print();
+	return 0;
+}
+

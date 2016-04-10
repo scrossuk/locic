@@ -1,0 +1,34 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: intUnion.intValue = 10
+// CHECK: floatUnion.floatValue = 10.0
+
+import void printf(const ubyte * str, ...);
+
+union TestUnion {
+	int intValue;
+	float floatValue;
+};
+
+TestUnion getUnionWithInt() {
+	auto value = TestUnion();
+	value.intValue = 10;
+	return value;
+}
+
+TestUnion getUnionWithFloat() {
+	auto value = TestUnion();
+	value.floatValue = 10.0f;
+	return value;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	const auto intUnion = getUnionWithInt();
+	printf(C"intUnion.intValue = %d\n", intUnion.intValue);
+	
+	const auto floatUnion = getUnionWithFloat();
+	printf(C"floatUnion.floatValue = %.1f\n", floatUnion.floatValue);
+	return 0;
+}
+

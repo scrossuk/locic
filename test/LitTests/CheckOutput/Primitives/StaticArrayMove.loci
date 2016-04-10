@@ -1,0 +1,67 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass move: @v = 0
+// CHECK: TestClass move: @v = 1
+// CHECK: TestClass move: @v = 2
+// CHECK: TestClass move: @v = 3
+// CHECK: array[0] = 1
+// CHECK: array[1] = 2
+// CHECK: array[2] = 5
+// CHECK: array[3] = 0
+// CHECK: TestClass move: @v = 1
+// CHECK: TestClass move: @v = 2
+// CHECK: TestClass move: @v = 5
+// CHECK: TestClass move: @v = 0
+// CHECK: array[0] = 2
+// CHECK: array[1] = 5
+// CHECK: array[2] = 6
+// CHECK: array[3] = 1
+// CHECK: TestClass move: @v = 2
+// CHECK: TestClass move: @v = 5
+// CHECK: TestClass move: @v = 6
+// CHECK: TestClass move: @v = 1
+// CHECK: array[0] = 5
+// CHECK: array[1] = 6
+// CHECK: array[2] = 7
+// CHECK: array[3] = 2
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass(int v) {
+	static create = default;
+	
+	void __moveto(void* dest, size_t offset) noexcept {
+		printf(C"TestClass move: @v = %d\n", @v);
+		@v = (@v * @v + 1) % 10;
+		@v.__moveto(dest, offset);
+	}
+	
+	int getValue() const {
+		return @v;
+	}
+}
+
+void printArray(const static_array_t<TestClass, 4u>& array) {
+	printf(C"array[0] = %d\n", array[0u].getValue());
+	printf(C"array[1] = %d\n", array[1u].getValue());
+	printf(C"array[2] = %d\n", array[2u].getValue());
+	printf(C"array[3] = %d\n", array[3u].getValue());
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto array = static_array_t<TestClass, 4u>.uninitialized();
+	array[0u] = TestClass(0);
+	array[1u] = TestClass(1);
+	array[2u] = TestClass(2);
+	array[3u] = TestClass(3);
+	printArray(array);
+	
+	auto arrayMoved = move array;
+	printArray(arrayMoved);
+	
+	auto arrayMovedMoved = move arrayMoved;
+	printArray(arrayMovedMoved);
+	return 0;
+}
+

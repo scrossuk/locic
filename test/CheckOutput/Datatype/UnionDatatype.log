@@ -1,3 +1,0 @@
-testEntryPoint: data = TestDatatype(a = 12345)
-printData: TestDatatype(a = 12345)
-printData: Test2Datatype(a = 4, b = 5)

@@ -1,2 +1,0 @@
-alignof(Empty) = 1
-Empty.__alignmask() = 0

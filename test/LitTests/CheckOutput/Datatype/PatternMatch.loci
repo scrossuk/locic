@@ -1,0 +1,37 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: data = Data(a = 1, b = 2)
+// CHECK: main: Pattern match Data: a = 1, b = 2
+// CHECK: main: data2 = Data2(v = 40, data = Data(a = 50, b = 60))
+// CHECK: main: Pattern match Data2: v = 40, data.a = 50, data.b = 60
+
+import void printf(const ubyte * str, ...);
+
+datatype Data(int a, int b);
+
+datatype Data2(int v, Data data);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	Data data = Data(1, 2);
+	
+	printf(C"main: data = Data(a = %d, b = %d)\n",
+		data.a, data.b);
+	
+	let Data(int a, int b) = move data;
+	
+	printf(C"main: Pattern match Data: a = %d, b = %d\n", a, b);
+	
+	Data2 data2 = Data2(40, Data(50, 60));
+	
+	printf(C"main: data2 = Data2(v = %d, data = Data(a = %d, b = %d))\n",
+		data2.v, data2.data.a, data2.data.b);
+	
+	let Data2(int v, Data(int dataA, int dataB)) = move data2;
+	
+	printf(C"main: Pattern match Data2: v = %d, data.a = %d, data.b = %d\n",
+		v, dataA, dataB);
+	
+	return 0;
+}
+

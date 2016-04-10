@@ -1,0 +1,299 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: getValue1: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue2: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue3: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue4: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue5: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue6: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue7: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue8: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue9: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue10: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue11: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue12: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue13: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue14: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue15: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue16: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue17: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue18: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue19: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue20: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue21: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue22: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue23: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue24: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue25: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue26: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue27: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue28: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue29: value = 42
+// CHECK: polymorphicPrint: Value = 42
+// CHECK: getValue30: value = 42
+// CHECK: polymorphicPrint: Value = 42
+
+import void printf(const ubyte * str, ...);
+
+// The VTable hash table should have 20 slots,
+// so this should cause multiple clashes.
+interface HugeInterface {
+	int getValue1();
+	int getValue2();
+	int getValue3();
+	int getValue4();
+	int getValue5();
+	int getValue6();
+	int getValue7();
+	int getValue8();
+	int getValue9();
+	int getValue10();
+	int getValue11();
+	int getValue12();
+	int getValue13();
+	int getValue14();
+	int getValue15();
+	int getValue16();
+	int getValue17();
+	int getValue18();
+	int getValue19();
+	int getValue20();
+	int getValue21();
+	int getValue22();
+	int getValue23();
+	int getValue24();
+	int getValue25();
+	int getValue26();
+	int getValue27();
+	int getValue28();
+	int getValue29();
+	int getValue30();
+}
+
+class HugeClass (int value) {
+	static Create(int value) {
+		return @(value);
+	}
+	
+	int getValue1() {
+		printf(C"getValue1: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue2() {
+		printf(C"getValue2: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue3() {
+		printf(C"getValue3: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue4() {
+		printf(C"getValue4: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue5() {
+		printf(C"getValue5: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue6() {
+		printf(C"getValue6: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue7() {
+		printf(C"getValue7: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue8() {
+		printf(C"getValue8: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue9() {
+		printf(C"getValue9: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue10() {
+		printf(C"getValue10: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue11() {
+		printf(C"getValue11: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue12() {
+		printf(C"getValue12: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue13() {
+		printf(C"getValue13: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue14() {
+		printf(C"getValue14: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue15() {
+		printf(C"getValue15: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue16() {
+		printf(C"getValue16: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue17() {
+		printf(C"getValue17: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue18() {
+		printf(C"getValue18: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue19() {
+		printf(C"getValue19: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue20() {
+		printf(C"getValue20: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue21() {
+		printf(C"getValue21: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue22() {
+		printf(C"getValue22: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue23() {
+		printf(C"getValue23: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue24() {
+		printf(C"getValue24: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue25() {
+		printf(C"getValue25: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue26() {
+		printf(C"getValue26: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue27() {
+		printf(C"getValue27: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue28() {
+		printf(C"getValue28: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue29() {
+		printf(C"getValue29: value = %d\n", @value);
+		return @value;
+	}
+	
+	int getValue30() {
+		printf(C"getValue30: value = %d\n", @value);
+		return @value;
+	}
+	
+}
+
+void polymorphicPrint(HugeInterface& object) {
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue1());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue2());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue3());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue4());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue5());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue6());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue7());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue8());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue9());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue10());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue11());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue12());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue13());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue14());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue15());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue16());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue17());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue18());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue19());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue20());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue21());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue22());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue23());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue24());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue25());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue26());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue27());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue28());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue29());
+	printf(C"polymorphicPrint: Value = %d\n", object.getValue30());
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto instance = HugeClass(42);
+	
+	polymorphicPrint(instance);
+	
+	return 0;
+}
+

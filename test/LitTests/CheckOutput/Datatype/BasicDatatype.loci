@@ -1,0 +1,39 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: data1 = TestDatatype(a = 1, b = 2, c = 3)
+// CHECK: printData: TestDatatype(a = 1, b = 2, c = 3)
+// CHECK: main: data2 = TestDatatype(a = 10, b = 20, c = 30)
+// CHECK: printData: TestDatatype(a = 10, b = 20, c = 30)
+
+import void printf(const ubyte * str, ...);
+
+datatype TestDatatype(int a, int b, int c);
+
+TestDatatype makeData() {
+	return TestDatatype(10, 20, 30);
+}
+
+void printData(TestDatatype& data) {
+	printf(C"printData: TestDatatype(a = %d, b = %d, c = %d)\n",
+		data.a, data.b, data.c);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestDatatype data1 = TestDatatype(1, 2, 3);
+	
+	printf(C"main: data1 = TestDatatype(a = %d, b = %d, c = %d)\n",
+		data1.a, data1.b, data1.c);
+	
+	printData(data1);
+	
+	TestDatatype data2 = makeData();
+	
+	printf(C"main: data2 = TestDatatype(a = %d, b = %d, c = %d)\n",
+		data2.a, data2.b, data2.c);
+	
+	printData(data2);
+	
+	return 0;
+}
+

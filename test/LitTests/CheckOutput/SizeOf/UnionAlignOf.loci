@@ -1,0 +1,39 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: alignof(UnionInt32Float) = 4
+// CHECK: UnionInt32Float.__alignmask() = 3
+// CHECK: alignof(UnionInt8Float) = 4
+// CHECK: UnionInt8Float.__alignmask() = 3
+// CHECK: alignof(UnionInt8Int16) = 2
+// CHECK: UnionInt8Int16.__alignmask() = 1
+
+import void printf(const ubyte * str, ...);
+
+union UnionInt32Float {
+	int32_t intValue;
+	float floatValue;
+};
+
+union UnionInt8Float {
+	int8_t intValue;
+	float floatValue;
+};
+
+union UnionInt8Int16 {
+	int8_t int8Value;
+	int16_t int16Value;
+};
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"alignof(UnionInt32Float) = %llu\n", alignof(UnionInt32Float).cast<ulonglong_t>());
+	printf(C"UnionInt32Float.__alignmask() = %llu\n", UnionInt32Float.__alignmask().cast<ulonglong_t>());
+	
+	printf(C"alignof(UnionInt8Float) = %llu\n", alignof(UnionInt8Float).cast<ulonglong_t>());
+	printf(C"UnionInt8Float.__alignmask() = %llu\n", UnionInt8Float.__alignmask().cast<ulonglong_t>());
+	
+	printf(C"alignof(UnionInt8Int16) = %llu\n", alignof(UnionInt8Int16).cast<ulonglong_t>());
+	printf(C"UnionInt8Int16.__alignmask() = %llu\n", UnionInt8Int16.__alignmask().cast<ulonglong_t>());
+	return 0;
+}
+

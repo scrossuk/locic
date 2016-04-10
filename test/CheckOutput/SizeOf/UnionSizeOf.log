@@ -1,6 +1,0 @@
-sizeof(UnionInt32Float) = 4
-UnionInt32Float.__sizeof() = 4
-sizeof(UnionInt8Float) = 4
-UnionInt8Float.__sizeof() = 4
-sizeof(UnionInt8Int16) = 2
-UnionInt8Int16.__sizeof() = 2

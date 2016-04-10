@@ -1,0 +1,147 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^8): value = 1
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^8): value = 2
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^8): value = 4
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^8): value = 8
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^8): value = 16
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^8): value = 32
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^8): value = 64
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^8): value = 128
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^8): value = 256
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 1
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 2
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 4
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 8
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 16
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 32
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 64
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 128
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 256
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 512
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 1024
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 2048
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 4096
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 8192
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 16384
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 32768
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main(up to 2^16): value = 65536
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+
+import void printf(const ubyte * str, ...);
+
+class test_range(int value, int position, int limit) {
+	static Create(int limit) {
+		return @(1, 0, limit);
+	}
+	
+	int front() {
+		printf(C"test_range: front\n");
+		return @value;
+	}
+	
+	void skipFront() {
+		printf(C"test_range: skipFront\n");
+		@position += 1;
+		@value *= 2;
+	}
+	
+	bool empty() {
+		printf(C"test_range: empty\n");
+		return @position > @limit;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	
+	for (auto value: test_range(8)) {
+		printf(C"main(up to 2^8): value = %d\n", value);
+	}
+	
+	for (auto value: test_range(16)) {
+		printf(C"main(up to 2^16): value = %d\n", value);
+	}
+	
+	return 0;
+}
+

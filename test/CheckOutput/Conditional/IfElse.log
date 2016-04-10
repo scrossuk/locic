@@ -1,9 +1,0 @@
-testEntryPoint: START
-testEntryPoint: i = 8
-testEntryPoint: i = 9
-testEntryPoint: i = 10
-testEntryPoint: i = 11
-testEntryPoint: i = 10
-testEntryPoint: i = 11
-testEntryPoint: i = 10
-testEntryPoint: END

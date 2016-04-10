@@ -1,0 +1,31 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: #5
+// CHECK: main: #4
+// CHECK: main: #3
+// CHECK: main: #2
+// CHECK: main: #1
+
+import void printf(const ubyte * str, ...) noexcept;
+
+export int main(unused int argc, unused ubyte ** argv) {
+	scope (exit) {
+		scope (exit) {
+			scope (exit) {
+				scope (exit) {
+					scope (exit) {
+						printf(C"main: #1\n");
+					}
+					printf(C"main: #2\n");
+				}
+				printf(C"main: #3\n");
+			}
+			printf(C"main: #4\n");
+		}
+		printf(C"main: #5\n");
+	}
+	
+	return 0;
+}
+

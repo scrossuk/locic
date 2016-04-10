@@ -1,0 +1,36 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: i = 0, j = 1
+// CHECK: main: i = 1, j = 2
+// CHECK: main: i = 2, j = 4
+// CHECK: main: i = 3, j = 8
+// CHECK: main: i = 4, j = 16
+// CHECK: main: i = 5, j = 32
+// CHECK: main: i = 6, j = 64
+// CHECK: main: i = 7, j = 128
+// CHECK: main: i = 8, j = 256
+// CHECK: main: i = 9, j = 512
+// CHECK: main: i = 10, j = 1024
+// CHECK: main: i = 11, j = 2048
+// CHECK: main: i = 12, j = 4096
+// CHECK: main: i = 13, j = 8192
+// CHECK: main: i = 14, j = 16384
+// CHECK: main: i = 15, j = 32768
+// CHECK: main: i = 16, j = 65536
+
+import void printf(const ubyte * str, ...);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int i = 0;
+	int j = 1;
+	
+	while (i <= 16) {
+		printf(C"main: i = %d, j = %d\n", i, j);
+		i = i + 1;
+		j = j * 2;
+	}
+	
+	return 0;
+}
+

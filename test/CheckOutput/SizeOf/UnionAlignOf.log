@@ -1,6 +1,0 @@
-alignof(UnionInt32Float) = 4
-UnionInt32Float.__alignmask() = 3
-alignof(UnionInt8Float) = 4
-UnionInt8Float.__alignmask() = 3
-alignof(UnionInt8Int16) = 2
-UnionInt8Int16.__alignmask() = 1

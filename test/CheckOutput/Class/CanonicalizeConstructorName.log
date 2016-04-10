@@ -1,6 +1,0 @@
-TestClass.create: Value = 50
-TestClass.create: Value = 49
-TestClass.null
-TestClass: @value = 48
-TestClass.another_constructor
-TestClass: @value = 45

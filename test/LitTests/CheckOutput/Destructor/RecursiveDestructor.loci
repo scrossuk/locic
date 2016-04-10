@@ -1,0 +1,38 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: InnerClass.Create
+// CHECK: TestClass.Create
+// CHECK: TestClass.~
+// CHECK: InnerClass.~
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class InnerClass() {
+	static Create() {
+		printf(C"InnerClass.Create\n");
+		return @();
+	}
+	
+	~ {
+		printf(C"InnerClass.~\n");
+	}
+}
+
+class TestClass(InnerClass value) {
+	static Create(InnerClass value) {
+		printf(C"TestClass.Create\n");
+		return @(move value);
+	}
+	
+	~ {
+		printf(C"TestClass.~\n");
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	unused TestClass object = TestClass(InnerClass());
+	
+	return 0;
+}
+

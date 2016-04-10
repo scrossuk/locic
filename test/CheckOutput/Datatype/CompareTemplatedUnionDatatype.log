@@ -1,3 +1,0 @@
-checkValue: TestData1<bool>()
-checkValue: TestData2<bool>(false)
-checkValue: TestData2<bool>(true)

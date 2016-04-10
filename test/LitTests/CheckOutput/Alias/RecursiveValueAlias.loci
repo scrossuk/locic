@@ -1,0 +1,18 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: IntValue = 100
+
+import void printf(const ubyte * str, ...);
+
+using IntValue0 = 100;
+using IntValue1 = IntValue0;
+using IntValue2 = IntValue1;
+using IntValue3 = IntValue2;
+using IntValue = IntValue3;
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"IntValue = %d\n", IntValue);
+	return 0;
+}
+

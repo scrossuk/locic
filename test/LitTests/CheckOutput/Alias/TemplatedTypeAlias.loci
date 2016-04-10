@@ -1,0 +1,29 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: From object: 10
+// CHECK: From alias: 20
+
+import void printf(const ubyte * str, ...);
+
+template <typename T : movable_t>
+class TestClass(T value) {
+	static Create = default;
+	
+	const T& getValue() {
+		return @value;
+	}
+}
+
+template <typename T : movable_t>
+using TestClassAlias = TestClass<T>;
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass<int> object = TestClass<int>(10);
+	printf(C"From object: %d\n", object.getValue());
+	
+	TestClassAlias<int> alias = TestClassAlias<int>(20);
+	printf(C"From alias: %d\n", alias.getValue());
+	return 0;
+}
+

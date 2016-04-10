@@ -1,0 +1,20 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: i = 42
+
+import void printf(const ubyte * str, ...);
+
+void function(int i) {
+	printf(C"i = %d\n", i);
+}
+
+(*)(void)(int) getFunctionPtr() {
+	return function;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	getFunctionPtr()(42);
+	return 0;
+}
+

@@ -1,0 +1,117 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: OuterClass -> print MiddleClass
+// CHECK:   MiddleClass -> print InnerClass
+// CHECK:     InnerClass -> print R
+// CHECK:       ThirdClass: 3
+// CHECK:     InnerClass -> print S
+// CHECK:       FirstClass: 1
+// CHECK:     InnerClass -> print T
+// CHECK:       SecondClass: 2
+// CHECK:   MiddleClass -> print R
+// CHECK:       SecondClass: 2
+// CHECK:   MiddleClass -> print S
+// CHECK:       ThirdClass: 3
+// CHECK:   MiddleClass -> print T
+// CHECK:       FirstClass: 1
+// CHECK: OuterClass -> print R
+// CHECK:       FirstClass: 1
+// CHECK: OuterClass -> print S
+// CHECK:       SecondClass: 2
+// CHECK: OuterClass -> print T
+// CHECK:       ThirdClass: 3
+
+import void printf(const ubyte * str, ...);
+
+interface Printable {
+	void print();
+}
+
+class FirstClass(int i) {
+	static Create = default;
+	
+	void print() {
+		printf(C"      FirstClass: %d\n", @i);
+	}
+}
+
+class SecondClass(int i) {
+	static Create = default;
+	
+	void print() {
+		printf(C"      SecondClass: %d\n", @i);
+	}
+}
+
+class ThirdClass(int i) {
+	static Create = default;
+	
+	void print() {
+		printf(C"      ThirdClass: %d\n", @i);
+	}
+}
+
+template <typename R : Printable, typename S : Printable, typename T : Printable>
+class InnerClass (R& r, S& s, T& t) {
+	static Create(R& r, S& s, T& t) {
+		return @(r, s, t);
+	}
+	
+	void print() {
+		printf(C"    InnerClass -> print R\n");
+		@r.print();
+		printf(C"    InnerClass -> print S\n");
+		@s.print();
+		printf(C"    InnerClass -> print T\n");
+		@t.print();
+	}
+}
+
+template <typename R : Printable, typename S : Printable, typename T : Printable>
+class MiddleClass (InnerClass<S, T, R> member, R& r, S& s, T& t) {
+	static Create(R& r, S& s, T& t) {
+		return @(InnerClass<S, T, R>(s, t, r), r, s, t);
+	}
+	
+	void print() {
+		printf(C"  MiddleClass -> print InnerClass\n");
+		@member.print();
+		printf(C"  MiddleClass -> print R\n");
+		@r.print();
+		printf(C"  MiddleClass -> print S\n");
+		@s.print();
+		printf(C"  MiddleClass -> print T\n");
+		@t.print();
+	}
+}
+
+template <typename R : Printable, typename S : Printable, typename T : Printable>
+class OuterClass (MiddleClass<S, T, R> member, R& r, S& s, T& t) {
+	static Create(R& r, S& s, T& t) {
+		return @(MiddleClass<S, T, R>(s, t, r), r, s, t);
+	}
+	
+	void print() {
+		printf(C"OuterClass -> print MiddleClass\n");
+		@member.print();
+		printf(C"OuterClass -> print R\n");
+		@r.print();
+		printf(C"OuterClass -> print S\n");
+		@s.print();
+		printf(C"OuterClass -> print T\n");
+		@t.print();
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	FirstClass r = FirstClass(1);
+	SecondClass s = SecondClass(2);
+	ThirdClass t = ThirdClass(3);
+	
+	OuterClass<FirstClass, SecondClass, ThirdClass> outerClass = OuterClass<FirstClass, SecondClass, ThirdClass>(r, s, t);
+	outerClass.print();
+	
+	return 0;
+}
+

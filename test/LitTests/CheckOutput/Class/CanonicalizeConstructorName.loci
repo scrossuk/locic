@@ -1,0 +1,46 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.create: Value = 50
+// CHECK: TestClass.create: Value = 49
+// CHECK: TestClass.null
+// CHECK: TestClass: @value = 48
+// CHECK: TestClass.another_constructor
+// CHECK: TestClass: @value = 45
+
+import void printf(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class TestClass(int value) {
+	static create(int value) noexcept {
+		printf(C"TestClass.create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	static null() noexcept {
+		printf(C"TestClass.null\n");
+		return @(48);
+	}
+	
+	static another_constructor() noexcept {
+		printf(C"TestClass.another_constructor\n");
+		return @(45);
+	}
+	
+	void print() noexcept {
+		printf(C"TestClass: @value = %d\n", @value);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	unused_result TestClass(50);
+	unused_result TestClass::create(49);
+	
+	TestClass nullObject = null;
+	nullObject.print();
+	
+	TestClass object = TestClass::AnotherConstructor();
+	object.print();
+	return 0;
+}
+

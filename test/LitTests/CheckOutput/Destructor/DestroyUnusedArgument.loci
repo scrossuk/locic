@@ -1,0 +1,40 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: Value = 1
+// CHECK: TestClass.~: Value = 1
+// CHECK: afterFunctionExit()
+// CHECK: TestClass.Create: Value = 2
+// CHECK: TestClass.~: Value = 2
+// CHECK: afterFunctionExit()
+
+import void printf(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class TestClass(int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	~ {
+		printf(C"TestClass.~: Value = %d\n", @value);
+	}
+}
+
+// This function checks that the destructor is called before the function exits.
+void afterFunctionExit(unused int value) {
+	printf(C"afterFunctionExit()\n");
+}
+
+int consumeObject(unused TestClass object) {
+	return 0;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	afterFunctionExit(consumeObject(TestClass(1)));
+	afterFunctionExit(consumeObject(TestClass(2)));
+	
+	return 0;
+}
+

@@ -1,0 +1,34 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: object.getValue() = 200
+// CHECK: object.getValue() = 400
+
+import void printf(const ubyte * str, ...);
+
+template <typename T : movable_t>
+class TestClass(T value) {
+	static Create(T value) {
+		return @(move value);
+	}
+	
+	T& getValue() {
+		return @value;
+	}
+	
+	void setValue(T newValue) {
+		@value = move newValue;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass<int> object = TestClass<int>(200);
+	
+	printf(C"object.getValue() = %d\n", object.getValue());
+	
+	object.setValue(400);
+	printf(C"object.getValue() = %d\n", object.getValue());
+	
+	return 0;
+}
+

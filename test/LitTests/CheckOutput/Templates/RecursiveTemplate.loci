@@ -1,0 +1,160 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: OuterClass.printValue
+// CHECK:     MiddleClass.printValue
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 1900
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 1901
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 0
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 1
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 2
+// CHECK:     MiddleClass.printValue
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 3
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 4
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 0
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 1
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 2
+// CHECK:     MiddleClass.printValue
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 1
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 2
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 0
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 1
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 2
+// CHECK:     MiddleClass.printValue
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 0
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 1
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 0
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 1
+// CHECK:         InnerClass.printValue
+// CHECK:             TestClass.printValue: value = 2
+
+import void printf(const ubyte * str, ...);
+
+interface Printable {
+	void print();
+}
+
+interface Incrementable {
+	void addOne();
+	
+	void reset();
+	
+	void print();
+}
+
+interface Counter {
+	void addOne();
+	
+	void subtractOne();
+	
+	void reset();
+	
+	void print();
+}
+
+class TestClass(int value) {
+	static Create(int value) {
+		return @(move value);
+	}
+	
+	void addOne() {
+		@value += 1;
+	}
+	
+	void subtractOne() {
+		@value -= 1;
+	}
+	
+	void reset() {
+		@value = 0;
+	}
+	
+	void print() {
+		printf(C"            TestClass.printValue: value = %d\n", @value);
+	}
+}
+
+template <typename T: Printable>
+class InnerClass(T& valueRef) {
+	static Create(T& value) {
+		return @(value);
+	}
+	
+	void print() {
+		printf(C"        InnerClass.printValue\n");
+		@valueRef.print();
+	}
+}
+
+template <typename T: Incrementable>
+class MiddleClass(T& valueRef, InnerClass<T> value) {
+	static Create(T& value) {
+		return @(value, InnerClass<T>(value));
+	}
+	
+	void print() {
+		printf(C"    MiddleClass.printValue\n");
+		@value.print();
+		
+		@valueRef.addOne();
+		@value.print();
+		
+		@valueRef.reset();
+		@value.print();
+		
+		@valueRef.addOne();
+		@value.print();
+		
+		@valueRef.addOne();
+		@value.print();
+	}
+}
+
+template <typename T: Counter>
+class OuterClass(T& valueRef, MiddleClass<T> value) {
+	static Create(T& value) {
+		return @(value, MiddleClass<T>(value));
+	}
+	
+	void print() {
+		printf(C"OuterClass.printValue\n");
+		@value.print();
+		
+		@valueRef.addOne();
+		@value.print();
+		
+		@valueRef.subtractOne();
+		@value.print();
+		
+		@valueRef.reset();
+		@value.print();
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass testObject = TestClass(1900);
+	OuterClass<TestClass> object = OuterClass<TestClass>(testObject);
+	object.print();
+	
+	return 0;
+}
+

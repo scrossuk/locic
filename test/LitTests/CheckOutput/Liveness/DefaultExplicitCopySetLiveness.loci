@@ -1,0 +1,41 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Constructor called with value=0.
+// CHECK: object.islive: YES
+// CHECK: objectCopy.islive: YES
+// CHECK: After move: object.islive: NO
+// CHECK: Destructor called with value=0.
+// CHECK: Destructor called with value=0.
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TypeWithDestructor(int value) {
+	static create(int value) noexcept {
+		printf(C"Constructor called with value=%d.\n", value);
+		return @(value);
+	}
+	
+	copy = default;
+	
+	~ {
+		// This destructor forces a liveness indicator to be created.
+		printf(C"Destructor called with value=%d.\n", @value);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto object = TypeWithDestructor(0);
+	printf(C"object.islive: %s\n", object.__islive() ? C"YES\n" : C"NO\n");
+	
+	auto objectCopy = object.copy();
+	printf(C"objectCopy.islive: %s\n", objectCopy.__islive() ? C"YES\n" : C"NO\n");
+	
+	unused auto objectMove = move object;
+	
+	// Sanity check.
+	printf(C"After move: object.islive: %s\n", object.__islive() ? C"YES\n" : C"NO\n");
+	
+	return 0;
+}
+

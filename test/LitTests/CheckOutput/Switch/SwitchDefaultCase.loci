@@ -1,0 +1,54 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: printData: TestDatatype1(a = 0)
+// CHECK: printData: Default
+// CHECK: printData (default): TestDatatype2(a = 11, b = 22)
+// CHECK: printData: TestDatatype3(a = 33, b = 44, c = 55)
+// CHECK: printData: Default
+// CHECK: printData (default): TestDatatype4(a = 66, b = 77, c = 88, d = 99)
+
+import void printf(const ubyte * str, ...);
+
+datatype UnionDataType =
+	TestDatatype1(int a) |
+	TestDatatype2(int a, int b) |
+	TestDatatype3(int a, int b, int c) |
+	TestDatatype4(int a, int b, int c, int d);
+
+void printData(UnionDataType data) {
+	switch (data) {
+		case TestDatatype1(int a) {
+			printf(C"printData: TestDatatype1(a = %d)\n", a);
+		}
+		case TestDatatype3(int a, int b, int c) {
+			printf(C"printData: TestDatatype3(a = %d, b = %d, c = %d)\n", a, b, c);
+		}
+		default {
+			printf(C"printData: Default\n");
+			switch (data) {
+				case TestDatatype1(int a) {
+					printf(C"printData (default): TestDatatype1(a = %d)\n", a);
+				}
+				case TestDatatype2(int a, int b) {
+					printf(C"printData (default): TestDatatype2(a = %d, b = %d)\n", a, b);
+				}
+				case TestDatatype3(int a, int b, int c) {
+					printf(C"printData (default): TestDatatype3(a = %d, b = %d, c = %d)\n", a, b, c);
+				}
+				case TestDatatype4(int a, int b, int c, int d) {
+					printf(C"printData (default): TestDatatype4(a = %d, b = %d, c = %d, d = %d)\n", a, b, c, d);
+				}
+			}
+		}
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printData(TestDatatype1(0));
+	printData(TestDatatype2(11, 22));
+	printData(TestDatatype3(33, 44, 55));
+	printData(TestDatatype4(66, 77, 88, 99));
+	return 0;
+}
+

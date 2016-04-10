@@ -1,0 +1,43 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: Value = 1
+// CHECK: TestClass.Create: Value = 2
+// CHECK: TestClass.Create: Value = 3
+// CHECK: TestClass.~: Value = 3
+// CHECK: TestClass.Create: Value = 4
+// CHECK: TestClass.~: Value = 4
+// CHECK: TestClass.Create: Value = 5
+// CHECK: TestClass.~: Value = 5
+// CHECK: TestClass.~: Value = 2
+// CHECK: TestClass.~: Value = 1
+
+import void printf(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class TestClass(int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	~ {
+		printf(C"TestClass.~: Value = %d\n", @value);
+	}
+	
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	unused auto testInstance1 = TestClass(1);
+	unused auto testInstance2 = TestClass(2);
+	
+	{
+		unused_result TestClass(3);
+		unused auto testInstance3 = TestClass(4);
+	}
+	
+	unused auto testInstance5 = TestClass(5);
+	
+	return 0;
+}
+

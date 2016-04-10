@@ -1,0 +1,29 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: addValues<1, 2>(true) = 6
+// CHECK: addValues<2, 3>(true) = 9
+// CHECK: addValues<3, 4>(true) = 12
+// CHECK: addValues<4, 5>(true) = 15
+// CHECK: addValues<5, 6>(true) = 18
+
+import void printf(const ubyte * str, ...) noexcept;
+
+template <int value0, int value1>
+int addValues(bool recurse) {
+	if(recurse) {
+		return addValues<value1, value0>(false) + 1;
+	} else {
+		return value0 * 2 + value1;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"addValues<1, 2>(true) = %d\n", (addValues<1, 2>(true)));
+	printf(C"addValues<2, 3>(true) = %d\n", (addValues<2, 3>(true)));
+	printf(C"addValues<3, 4>(true) = %d\n", (addValues<3, 4>(true)));
+	printf(C"addValues<4, 5>(true) = %d\n", (addValues<4, 5>(true)));
+	printf(C"addValues<5, 6>(true) = %d\n", (addValues<5, 6>(true)));
+	return 0;
+}
+

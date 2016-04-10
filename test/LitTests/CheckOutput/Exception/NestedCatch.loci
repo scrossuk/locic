@@ -1,0 +1,41 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: 2: Executing 1.
+// CHECK: 1: Executing 0.
+// CHECK: 0: Throwing.
+// CHECK: 0: Caught error with value 333.
+// CHECK: 1: Successfully finished 0.
+// CHECK: 1: Throwing.
+// CHECK: 1: Caught error with value 444.
+// CHECK: 2: Successfully finished 1.
+
+import void printf(const ubyte * str, ...);
+
+exception ExampleError(int value);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	try {
+		printf(C"2: Executing 1.\n");
+		try {
+			printf(C"1: Executing 0.\n");
+			try {
+				printf(C"0: Throwing.\n");
+				throw ExampleError(333);
+			} catch (ExampleError error) {
+				printf(C"0: Caught error with value %d.\n", error.value);
+			}
+			printf(C"1: Successfully finished 0.\n");
+			
+			printf(C"1: Throwing.\n");
+			throw ExampleError(444);
+		} catch (ExampleError error) {
+			printf(C"1: Caught error with value %d.\n", error.value);
+		}
+		printf(C"2: Successfully finished 1.\n");
+	} catch (ExampleError error) {
+		printf(C"2: Caught error with value %d.\n", error.value);
+	}
+	return 0;
+}
+

@@ -1,9 +1,0 @@
-object0.isEqual = YES
-object1.isEqual = NO
-object2.isEqual = NO
-CustomType.compare: 0 vs 0
-object3.isEqual = YES
-CustomType.compare: 0 vs 1
-object4.isEqual = NO
-CustomType.compare: -1 vs 1
-object5.isEqual = NO

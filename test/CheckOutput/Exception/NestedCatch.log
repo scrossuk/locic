@@ -1,8 +1,0 @@
-2: Executing 1.
-1: Executing 0.
-0: Throwing.
-0: Caught error with value 333.
-1: Successfully finished 0.
-1: Throwing.
-1: Caught error with value 444.
-2: Successfully finished 1.

@@ -1,0 +1,34 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: functionThatThrows: Throwing exception.
+// CHECK: intermediateFunction: Caught exception with value 8080!
+// CHECK: main: Caught exception with value 8080!
+
+import void printf(const ubyte * str, ...) noexcept;
+
+exception ExampleError(int value);
+
+void functionThatThrows() {
+	printf(C"functionThatThrows: Throwing exception.\n");
+	throw ExampleError(8080);
+}
+
+void intermediateFunction() {
+	try {
+		functionThatThrows();
+	} catch (ExampleError error) {
+		printf(C"intermediateFunction: Caught exception with value %d!\n", error.value);
+		throw;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	try {
+		intermediateFunction();
+	} catch (ExampleError error) {
+		printf(C"main: Caught exception with value %d!\n", error.value);
+	}
+	return 0;
+}
+

@@ -1,0 +1,40 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: getValue: 0
+// CHECK: getValue: 1
+// CHECK: data0: 0
+// CHECK: data1: 1
+
+import void printf(const ubyte * str, ...);
+
+datatype TestData =
+	TestData1(int a, int b) |
+	TestData2(int a);
+
+TestData getValue(int i, int a, int b) {
+	printf(C"getValue: %d\n", i);
+	return i == 0 ? TestData1(a, b) : TestData2(a);
+}
+
+int getVal(TestData data) {
+	switch (data) {
+		case TestData1(int a, int b) {
+			return 0;
+		}
+		case TestData2(int a) {
+			return 1;
+		}
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestData data0 = getValue(0, 1, 2);
+	TestData data1 = getValue(1, 3, 4);
+	
+	printf(C"data0: %d\n", getVal(data0));
+	printf(C"data1: %d\n", getVal(data1));
+	
+	return 0;
+}
+

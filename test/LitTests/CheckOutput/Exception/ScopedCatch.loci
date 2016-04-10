@@ -1,0 +1,70 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Started.
+// CHECK: ExampleClass Constructor: 0.
+// CHECK: ExampleClass Constructor: 1.
+// CHECK: ExampleClass Constructor: 2.
+// CHECK: ExampleClass Constructor: 3.
+// CHECK: ExampleClass Destructor: 3.
+// CHECK: Caught exception V2 with value 212121!
+// CHECK: ExampleClass Destructor: 2.
+// CHECK: ExampleClass Destructor: 1.
+// CHECK: ExampleClass Constructor: 1.
+// CHECK: ExampleClass Constructor: 2.
+// CHECK: ExampleClass Constructor: 3.
+// CHECK: ExampleClass Destructor: 3.
+// CHECK: ExampleClass Destructor: 2.
+// CHECK: ExampleClass Destructor: 1.
+// CHECK: ExampleClass Destructor: 0.
+// CHECK: ExampleClass Constructor: 4.
+// CHECK: Caught exception with value 424242!
+// CHECK: ExampleClass Destructor: 4.
+// CHECK: Finished.
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class ExampleClass(int i) {
+	static Create(int i) {
+		printf(C"ExampleClass Constructor: %d.\n", i);
+		return @(i);
+	}
+	
+	~ {
+		printf(C"ExampleClass Destructor: %d.\n", @i);
+	}
+}
+
+exception ExampleError(long value);
+exception ExampleError2(long value);
+
+void throwFunction(bool throwFirst) {
+	unused auto value1 = ExampleClass(1);
+	unused auto value2 = ExampleClass(2);
+	
+	try {
+		unused auto value3 = ExampleClass(3);
+		if (throwFirst) {
+			throw ExampleError(424242);
+		} else {
+			throw ExampleError2(212121);
+		}
+	} catch (ExampleError2 error) {
+		printf(C"Caught exception V2 with value %ld!\n", error.value);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"Started.\n");
+	try {
+		unused auto value0 = ExampleClass(0);
+		throwFunction(false);
+		throwFunction(true);
+	} catch (ExampleError error) {
+		unused auto value4 = ExampleClass(4);
+		printf(C"Caught exception with value %ld!\n", error.value);
+	}
+	printf(C"Finished.\n");
+	return 0;
+}
+

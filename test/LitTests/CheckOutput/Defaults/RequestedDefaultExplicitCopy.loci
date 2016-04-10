@@ -1,0 +1,26 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: object = TestClass(a = 1, b = 2, c = 3)
+// CHECK: main: object = TestClass(a = 1, b = 2, c = 3)
+
+import void printf(const ubyte * str, ...);
+
+class TestClass(int a, int b, int c) {
+	static create = default;
+	
+	copy = default;
+	
+	void printValue() const {
+		printf(C"main: object = TestClass(a = %d, b = %d, c = %d)\n", @a, @b, @c);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto data = TestClass(1, 2, 3);
+	data.printValue();
+	auto copy = data.copy();
+	copy.printValue();
+	return 0;
+}
+

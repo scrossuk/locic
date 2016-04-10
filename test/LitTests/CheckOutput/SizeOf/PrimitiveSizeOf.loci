@@ -1,0 +1,25 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: sizeof(byte) = 1
+// CHECK: sizeof(short) = 2
+// CHECK: sizeof(int) = 4
+// CHECK: sizeof(long) = 8
+// CHECK: sizeof(long long) = 8
+// CHECK: sizeof(float) = 4
+// CHECK: sizeof(double) = 8
+
+import void printf(const ubyte * str, ...);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"sizeof(byte) = %llu\n", sizeof(byte).cast<ulonglong_t>());
+	printf(C"sizeof(short) = %llu\n", sizeof(short).cast<ulonglong_t>());
+	printf(C"sizeof(int) = %llu\n", sizeof(int).cast<ulonglong_t>());
+	printf(C"sizeof(long) = %llu\n", sizeof(long).cast<ulonglong_t>());
+	printf(C"sizeof(long long) = %llu\n", sizeof(long long).cast<ulonglong_t>());
+	
+	printf(C"sizeof(float) = %llu\n", sizeof(float).cast<ulonglong_t>());
+	printf(C"sizeof(double) = %llu\n", sizeof(double).cast<ulonglong_t>());
+	return 0;
+}
+

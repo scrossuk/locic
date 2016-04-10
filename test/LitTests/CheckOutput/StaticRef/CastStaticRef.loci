@@ -1,0 +1,50 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: typeValue.print100()
+// CHECK: TestClass: Printing 100
+// CHECK: typeValue.print200()
+// CHECK: TestClass: Printing 200
+// CHECK: typeValue.print300()
+// CHECK: TestClass: Printing 300
+
+import void printf(const ubyte * str, ...);
+
+class TestClass () {
+	static void print100() {
+		printf(C"TestClass: Printing 100\n");
+	}
+	
+	static void print200() {
+		printf(C"TestClass: Printing 200\n");
+	}
+	
+	static void print300() {
+		printf(C"TestClass: Printing 300\n");
+	}
+}
+
+interface Printable {
+	static void print100();
+	
+	static void print200();
+	
+	static void print300();
+}
+
+void function(staticref<Printable> typename_t typeValue) {
+	printf(C"typeValue.print100()\n");
+	typeValue.print100();
+	
+	printf(C"typeValue.print200()\n");
+	typeValue.print200();
+	
+	printf(C"typeValue.print300()\n");
+	typeValue.print300();
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	function(TestClass);
+	return 0;
+}
+

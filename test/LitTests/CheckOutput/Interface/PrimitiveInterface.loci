@@ -1,0 +1,32 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Value1 = 4
+// CHECK: Value2 = 5
+// CHECK: polymorphicAddAndPrint: Sum = 9
+
+import void printf(const ubyte * str, ...);
+
+template <typename T>
+require(is_movable<notag(T)>)
+interface PrimitiveInterface {
+	notag(T) add(const T& value) const;
+}
+
+void polymorphicAddAndPrint(const PrimitiveInterface<int>& value1, int value2) {
+	auto sum = value1.add(value2);
+	printf(C"polymorphicAddAndPrint: Sum = %d\n", sum);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int value1 = 4;
+	int value2 = 5;
+	
+	printf(C"Value1 = %d\n", value1);
+	printf(C"Value2 = %d\n", value2);
+	
+	polymorphicAddAndPrint(value1, value2);
+	
+	return 0;
+}
+

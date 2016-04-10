@@ -1,0 +1,56 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: value = 100
+// CHECK: function: value = 100
+// CHECK: TestClass.Create: value = 200
+// CHECK: function: value = 200
+// CHECK: TestClass.Create: value = 300
+// CHECK: function: value = 300
+// CHECK: TestClass.Create: value = 400
+// CHECK: function: value = 400
+// CHECK: TestClass.~: value = 400
+// CHECK: TestClass.~: value = 300
+// CHECK: TestClass.~: value = 200
+// CHECK: TestClass.~: value = 100
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass (int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: value = %d\n", value);
+		return @(value);
+	}
+	
+	~ {
+		printf(C"TestClass.~: value = %d\n", @value);
+	}
+	
+	TestClass implicitCopy() const {
+		printf(C"TestClass.implicitCopy: value = %d\n", @value);
+		return @(@value);
+	}
+	
+	int value() {
+		return @value;
+	}
+}
+
+void function(TestClass& object) {
+	printf(C"function: value = %d\n", object.value());
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	function(TestClass(100));
+	
+	function(TestClass(200));
+	
+	TestClass i = TestClass(300);
+	function(i);
+	
+	TestClass j = TestClass(400);
+	function(move j);
+	
+	return 0;
+}
+

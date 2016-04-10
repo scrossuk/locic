@@ -1,7 +1,0 @@
-TestClass testInstance = TestClass(MemberClass());
-MemberClass.__moveto
-TestClass testInstanceMoved = move testInstance;
-MemberClass.__moveto
-auto extractedObject = testInstanceMoved.extract();
-MemberClass.__moveto
-MemberClass.~

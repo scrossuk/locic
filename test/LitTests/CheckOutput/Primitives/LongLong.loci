@@ -1,0 +1,101 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: alignof(long long) = 8
+// CHECK: sizeof(long long) = 8
+// CHECK: i = 10
+// CHECK: i.implicitcopy() = 10
+// CHECK: i.copy() = 10
+// CHECK: i.plus() = 10
+// CHECK: i.minus() = -10
+// CHECK: i.abs() = 10
+// CHECK: i.minus().abs() = 10
+// CHECK: i.add(3) = 13
+// CHECK: i.subtract(3) = 7
+// CHECK: i.multiply(3) = 30
+// CHECK: i.divide(3) = 3
+// CHECK: i.modulo(3) = 1
+// CHECK: i.equal(0) = false
+// CHECK: i.not_equal(0) = true
+// CHECK: i.less_than(0) = false
+// CHECK: i.less_than_or_equal(0) = false
+// CHECK: i.greater_than(0) = true
+// CHECK: i.greater_than_or_equal(0) = true
+// CHECK: i.compare(0) = greater than
+// CHECK: i.equal(10) = true
+// CHECK: i.not_equal(10) = false
+// CHECK: i.less_than(10) = false
+// CHECK: i.less_than_or_equal(10) = true
+// CHECK: i.greater_than(10) = false
+// CHECK: i.greater_than_or_equal(10) = true
+// CHECK: i.compare(10) = equal
+// CHECK: i.equal(20) = false
+// CHECK: i.not_equal(20) = true
+// CHECK: i.less_than(20) = true
+// CHECK: i.less_than_or_equal(20) = true
+// CHECK: i.greater_than(20) = false
+// CHECK: i.greater_than_or_equal(20) = false
+// CHECK: i.compare(20) = less than
+// CHECK: move i = 10
+
+import void printf(const ubyte * str, ...) noexcept;
+
+const ubyte* compareResultString(compare_result_t result) {
+	if (result.is_equal()) {
+		return C"equal\n";
+	} else if (result.is_less_than()) {
+		return C"less than\n";
+	} else if (result.is_greater_than()) {
+		return C"greater than\n";
+	} else {
+		unreachable;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"alignof(long long) = %llu\n", alignof(long long).cast<ulonglong_t>());
+	printf(C"sizeof(long long) = %llu\n", sizeof(long long).cast<ulonglong_t>());
+	
+	long long i = 10;
+	printf(C"i = %lld\n", i);
+	printf(C"i.implicitcopy() = %lld\n", i.implicitcopy());
+	printf(C"i.copy() = %lld\n", i.copy());
+	printf(C"i.plus() = %lld\n", i.plus());
+	printf(C"i.minus() = %lld\n", i.minus());
+	printf(C"i.abs() = %lld\n", i.abs());
+	printf(C"i.minus().abs() = %lld\n", i.minus().abs());
+	
+	printf(C"i.add(3) = %lld\n", i.add(3));
+	printf(C"i.subtract(3) = %lld\n", i.subtract(3));
+	printf(C"i.multiply(3) = %lld\n", i.multiply(3));
+	printf(C"i.divide(3) = %lld\n", i.divide(3));
+	printf(C"i.modulo(3) = %lld\n", i.modulo(3));
+	
+	printf(C"i.equal(0) = %s\n", i.equal(0) ? C"true\n" : C"false\n");
+	printf(C"i.not_equal(0) = %s\n", i.not_equal(0) ? C"true\n" : C"false\n");
+	printf(C"i.less_than(0) = %s\n", i.less_than(0) ? C"true\n" : C"false\n");
+	printf(C"i.less_than_or_equal(0) = %s\n", i.less_than_or_equal(0) ? C"true\n" : C"false\n");
+	printf(C"i.greater_than(0) = %s\n", i.greater_than(0) ? C"true\n" : C"false\n");
+	printf(C"i.greater_than_or_equal(0) = %s\n", i.greater_than_or_equal(0) ? C"true\n" : C"false\n");
+	printf(C"i.compare(0) = %s\n", compareResultString(i.compare(0)));
+	
+	printf(C"i.equal(10) = %s\n", i.equal(10) ? C"true\n" : C"false\n");
+	printf(C"i.not_equal(10) = %s\n", i.not_equal(10) ? C"true\n" : C"false\n");
+	printf(C"i.less_than(10) = %s\n", i.less_than(10) ? C"true\n" : C"false\n");
+	printf(C"i.less_than_or_equal(10) = %s\n", i.less_than_or_equal(10) ? C"true\n" : C"false\n");
+	printf(C"i.greater_than(10) = %s\n", i.greater_than(10) ? C"true\n" : C"false\n");
+	printf(C"i.greater_than_or_equal(10) = %s\n", i.greater_than_or_equal(10) ? C"true\n" : C"false\n");
+	printf(C"i.compare(10) = %s\n", compareResultString(i.compare(10)));
+	
+	printf(C"i.equal(20) = %s\n", i.equal(20) ? C"true\n" : C"false\n");
+	printf(C"i.not_equal(20) = %s\n", i.not_equal(20) ? C"true\n" : C"false\n");
+	printf(C"i.less_than(20) = %s\n", i.less_than(20) ? C"true\n" : C"false\n");
+	printf(C"i.less_than_or_equal(20) = %s\n", i.less_than_or_equal(20) ? C"true\n" : C"false\n");
+	printf(C"i.greater_than(20) = %s\n", i.greater_than(20) ? C"true\n" : C"false\n");
+	printf(C"i.greater_than_or_equal(20) = %s\n", i.greater_than_or_equal(20) ? C"true\n" : C"false\n");
+	printf(C"i.compare(20) = %s\n", compareResultString(i.compare(20)));
+	
+	printf(C"move i = %lld\n", move i);
+	return 0;
+}
+

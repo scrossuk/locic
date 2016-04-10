@@ -1,0 +1,60 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: Value = 4.
+// CHECK: main: Ref 1 = 7.
+// CHECK: main: Ref 2 = 13.
+// CHECK: main: Ref 3 = 25.
+// CHECK: main: Copy = 4.
+
+import void printf(const ubyte * str, ...);
+
+template <typename T: movable_t>
+interface TestCopyable {
+	T implicitCopy() const;
+	
+	int abs();
+}
+
+template <typename T>
+require(T : TestCopyable<T> and is_movable<T>)
+class TestClass(T value, int extra) {
+	static Create(T value) {
+		return @(move value, 1);
+	}
+	
+	TestClass<T> implicitCopy() const {
+		return @(@value, 1);
+	}
+	
+	int abs() {
+		int result = @value.abs() + @extra;
+		@extra = @extra * 2;
+		return result;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto inst = TestClass<TestClass<TestClass<int>>>(TestClass<TestClass<int>>(TestClass<int>(1)));
+	
+	printf(C"main: Value = %d.\n", inst.abs());
+	
+	TestClass<auto>& instRef1 = inst;
+	
+	printf(C"main: Ref 1 = %d.\n", instRef1.abs());
+	
+	TestClass<TestClass<auto>>& instRef2 = inst;
+	
+	printf(C"main: Ref 2 = %d.\n", instRef2.abs());
+	
+	TestClass<TestClass<TestClass<auto>>>& instRef3 = inst;
+	
+	printf(C"main: Ref 3 = %d.\n", instRef3.abs());
+	
+	TestClass<auto> instCopy = inst;
+	
+	printf(C"main: Copy = %d.\n", instCopy.abs());
+	
+	return 0;
+}
+

@@ -1,0 +1,37 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.print(): makeInt() = 1000
+// CHECK: TestClass.print(): makeFloat() = 2000.0
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class StaticMethodClass() {
+	static int makeInt() {
+		return 1000;
+	}
+	
+	static float makeFloat() {
+		return 2000.0f;
+	}
+}
+
+interface StaticMethodAPI {
+	static int makeInt();
+	
+	static float makeFloat();
+}
+
+template <typename T: StaticMethodAPI>
+class TestClass() {
+	static void print() {
+		printf(C"TestClass.print(): makeInt() = %d\n", T.makeInt());
+		printf(C"TestClass.print(): makeFloat() = %.1f\n", T.makeFloat());
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass<StaticMethodClass>::print();
+	return 0;
+}
+

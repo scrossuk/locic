@@ -1,0 +1,44 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: InnerClass.Create
+// CHECK: TestClass.Create
+// CHECK: TestClass.~
+// CHECK: InnerClass.~
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class InnerClass() {
+	static Create() {
+		printf(C"InnerClass.Create\n");
+		return @();
+	}
+	
+	~ {
+		printf(C"InnerClass.~\n");
+	}
+}
+
+interface Destroyable {
+	void __destroy() noexcept;
+}
+
+template <typename T>
+require(T : Destroyable and is_movable<T>)
+class TestClass(T value) {
+	static Create(T value) {
+		printf(C"TestClass.Create\n");
+		return @(move value);
+	}
+	
+	~ {
+		printf(C"TestClass.~\n");
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	unused TestClass<InnerClass> object = TestClass<InnerClass>(InnerClass());
+	
+	return 0;
+}
+

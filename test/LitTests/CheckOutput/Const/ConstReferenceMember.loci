@@ -1,0 +1,53 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: mutableInst.getValue() = 10
+// CHECK: constInst.getValue() = 10
+// CHECK: constInst.getValue() = 20 (after modification)
+
+import void printf(const ubyte * str, ...);
+
+class IntWrapper(int value) {
+	static create = default;
+	
+	IntWrapper implicitCopy() const {
+		// Should not be called!
+		printf(C"IntWrapper.implicitCopy()\n");
+		unreachable;
+	}
+	
+	int get() const {
+		return @value;
+	}
+}
+
+class TestClass(const IntWrapper& valueRef) {
+	static create = default;
+	
+	const IntWrapper& getValue() const {
+		return @valueRef;
+	}
+	
+	TestClass copy() const {
+		return @(@valueRef);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto value = IntWrapper(10);
+	
+	auto mutableInst = TestClass(value);
+	
+	printf(C"mutableInst.getValue() = %d\n", mutableInst.getValue().get());
+	
+	const auto& constInst = mutableInst;
+	
+	printf(C"constInst.getValue() = %d\n", constInst.getValue().get());
+	
+	value = IntWrapper(20);
+	
+	printf(C"constInst.getValue() = %d (after modification)\n", constInst.getValue().get());
+	
+	return 0;
+}
+

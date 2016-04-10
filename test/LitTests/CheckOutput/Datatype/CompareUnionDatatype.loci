@@ -1,0 +1,37 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: checkValue: TestData1()
+// CHECK: checkValue: TestData2(false)
+// CHECK: checkValue: TestData2(true)
+
+import void printf(const ubyte * str, ...);
+
+datatype TestData =
+	TestData1() |
+	TestData2(bool v);
+
+void checkValue(TestData data) {
+	if (data == TestData1()) {
+		printf(C"checkValue: TestData1()\n");
+		return;
+	}
+	
+	if (data == TestData2(false)) {
+		printf(C"checkValue: TestData2(false)\n");
+		return;
+	}
+	
+	if (data == TestData2(true)) {
+		printf(C"checkValue: TestData2(true)\n");
+		return;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	checkValue(TestData1());
+	checkValue(TestData2(false));
+	checkValue(TestData2(true));
+	return 0;
+}
+

@@ -1,0 +1,55 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Printing value...
+// CHECK: Value = 101
+// CHECK: ...and again...
+// CHECK: Value = 101
+// CHECK: Printing value...
+// CHECK: Value = 212
+// CHECK: ...and again...
+// CHECK: Value = 212
+// CHECK: Printing value...
+// CHECK: Value = 323
+// CHECK: ...and again...
+// CHECK: Value = 323
+// CHECK: Printing value...
+// CHECK: Value = 434
+// CHECK: ...and again...
+// CHECK: Value = 434
+// CHECK: Printing value...
+// CHECK: Value = 545
+// CHECK: ...and again...
+// CHECK: Value = 545
+
+import void printf(const ubyte * str, ...);
+
+interface Printable {
+	void printValue();
+}
+
+template <typename T: Printable>
+void function(T arg) {
+	printf(C"Printing value...\n");
+	arg.printValue();
+	printf(C"...and again...\n");
+	arg.printValue();
+}
+
+class PrintableValue (int i) {
+	static Create = default;
+	
+	void printValue() {
+		printf(C"Value = %d\n", @i);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	function<PrintableValue>(PrintableValue(101));
+	function<PrintableValue>(PrintableValue(212));
+	function<PrintableValue>(PrintableValue(323));
+	function<PrintableValue>(PrintableValue(434));
+	function<PrintableValue>(PrintableValue(545));
+	return 0;
+}
+

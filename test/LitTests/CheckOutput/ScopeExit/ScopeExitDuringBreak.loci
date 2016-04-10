@@ -1,0 +1,47 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: Value = 0
+// CHECK: main: Exiting loop scope with value = 1
+// CHECK: main: TestClass destructor value = 1
+// CHECK: main: Value = 1
+// CHECK: main: Exiting loop scope with value = 2
+// CHECK: main: TestClass destructor value = 2
+// CHECK: main: Value = 2
+// CHECK: main: Exiting loop scope with value = 3
+// CHECK: main: TestClass destructor value = 3
+// CHECK: main: Value = 3
+// CHECK: main: Exiting loop scope with value = 4
+// CHECK: main: TestClass destructor value = 4
+// CHECK: main: Value = 4
+// CHECK: main: Exiting loop scope with value = 5
+// CHECK: main: TestClass destructor value = 5
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass(int i) {
+	static Create = default;
+	
+	~ {
+		printf(C"main: TestClass destructor value = %d\n", @i);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int i = 0;
+	while (i < 10) {
+		printf(C"main: Value = %d\n", i);
+		scope (exit) {
+			unused auto testObject = TestClass(i);
+			printf(C"main: Exiting loop scope with value = %d\n", i);
+		}
+		
+		i = i + 1;
+		if (i == 5) {
+			break;
+		}
+	}
+	
+	return 0;
+}
+

@@ -1,0 +1,28 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: functionThatThrows: Throwing exception.
+// CHECK: main: Caught exception with value 8000!
+
+import void printf(const ubyte * str, ...) noexcept;
+
+exception ExampleError(int value);
+
+void functionThatThrows() {
+	printf(C"functionThatThrows: Throwing exception.\n");
+	throw ExampleError(8000);
+}
+
+void intermediateFunction() {
+	functionThatThrows();
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	try {
+		intermediateFunction();
+	} catch (ExampleError error) {
+		printf(C"main: Caught exception with value %d!\n", error.value);
+	}
+	return 0;
+}
+

@@ -1,0 +1,114 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: callFunction0
+// CHECK: function = null!
+// CHECK: callFunction0
+// CHECK: functionToBeCalled0
+// CHECK: callFunction1
+// CHECK: function = null!
+// CHECK: callFunction1
+// CHECK: functionToBeCalled1
+// CHECK: value0 = 2
+// CHECK: callFunction2
+// CHECK: function = null!
+// CHECK: callFunction2
+// CHECK: functionToBeCalled2
+// CHECK: value0 = 2
+// CHECK: value1 = 4
+// CHECK: callFunction3
+// CHECK: function = null!
+// CHECK: callFunction3
+// CHECK: functionToBeCalled3
+// CHECK: value0 = 2
+// CHECK: value1 = 4
+// CHECK: value2 = 6
+
+import void printf(const ubyte * str, ...) noexcept;
+
+void functionToBeCalled0() {
+	printf(C"functionToBeCalled0\n");
+}
+
+void callFunction0((*)(void)() function) {
+	printf(C"callFunction0\n");
+	
+	if (function == null) {
+		printf(C"function = null!\n");
+		return;
+	}
+	
+	function();
+}
+
+void functionToBeCalled1(int value0) {
+	printf(C"functionToBeCalled1\n");
+	printf(C"value0 = %d\n", value0);
+}
+
+void callFunction1((*)(void)(int) function, int value0) {
+	printf(C"callFunction1\n");
+	
+	if (function == null) {
+		printf(C"function = null!\n");
+		return;
+	}
+	
+	function(value0);
+}
+
+void functionToBeCalled2(int value0, int value1) {
+	printf(C"functionToBeCalled2\n");
+	printf(C"value0 = %d\n", value0);
+	printf(C"value1 = %d\n", value1);
+}
+
+void callFunction2((*)(void)(int, int) function, int value0, int value1) {
+	printf(C"callFunction2\n");
+	
+	if (function == null) {
+		printf(C"function = null!\n");
+		return;
+	}
+	
+	function(value0, value1);
+}
+
+void functionToBeCalled3(int value0, int value1, int value2) {
+	printf(C"functionToBeCalled3\n");
+	printf(C"value0 = %d\n", value0);
+	printf(C"value1 = %d\n", value1);
+	printf(C"value2 = %d\n", value2);
+}
+
+void callFunction3((*)(void)(int, int, int) function, int value0, int value1, int value2) {
+	printf(C"callFunction3\n");
+	
+	if (function == null) {
+		printf(C"function = null!\n");
+		return;
+	}
+	
+	function(value0, value1, value2);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	{
+		callFunction0(null);
+		callFunction0(functionToBeCalled0);
+	}
+	{
+		callFunction1(null, 1);
+		callFunction1(functionToBeCalled1, 2);
+	}
+	{
+		callFunction2(null, 1, 3);
+		callFunction2(functionToBeCalled2, 2, 4);
+	}
+	{
+		callFunction3(null, 1, 3, 5);
+		callFunction3(functionToBeCalled3, 2, 4, 6);
+	}
+	return 0;
+}
+

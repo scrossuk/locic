@@ -1,0 +1,50 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: Printing object...
+// CHECK: TestClass: Printing value...
+// CHECK: PrintableClass: value = 50
+// CHECK: main: Printing alias...
+// CHECK: TestClass: Printing value...
+// CHECK: PrintableClass: value = 60
+
+import void printf(const ubyte * str, ...);
+
+interface Printable {
+	void print();
+}
+
+class PrintableClass(int value) {
+	static create = default;
+	
+	void print() {
+		printf(C"PrintableClass: value = %d\n", @value);
+	}
+}
+
+template <typename T>
+require(T : Printable and is_movable<T>)
+class TestClass(T value) {
+	static Create = default;
+	
+	void print() {
+		printf(C"TestClass: Printing value...\n");
+		@value.print();
+	}
+}
+
+template <typename T>
+require(T : Printable and is_movable<T>)
+using TestClassAlias = TestClass<T>;
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass<PrintableClass> object = TestClass<PrintableClass>(PrintableClass(50));
+	printf(C"main: Printing object...\n");
+	object.print();
+	
+	TestClassAlias<PrintableClass> alias = TestClassAlias<PrintableClass>(PrintableClass(60));
+	printf(C"main: Printing alias...\n");
+	alias.print();
+	return 0;
+}
+

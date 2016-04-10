@@ -1,0 +1,41 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: START
+// CHECK: main: LOOP START i = 0
+// CHECK: main: LOOP END i = 1
+// CHECK: main: LOOP START i = 1
+// CHECK: main: LOOP END i = 2
+// CHECK: main: LOOP START i = 2
+// CHECK: main: LOOP END i = 3
+// CHECK: main: LOOP START i = 3
+// CHECK: main: LOOP END i = 4
+// CHECK: main: LOOP START i = 4
+// CHECK: main: break
+// CHECK: main: END
+
+import void printf(const ubyte * str, ...);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"main: START\n");
+	
+	int i = 0;
+	
+	while (i <= 8) {
+		printf(C"main: LOOP START i = %d\n", i);
+		
+		if (i >= 4) {
+			printf(C"main: break\n");
+			break;
+		}
+		
+		i += 1;
+		
+		printf(C"main: LOOP END i = %d\n", i);
+	}
+	
+	printf(C"main: END\n");
+	
+	return 0;
+}
+

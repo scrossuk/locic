@@ -1,0 +1,34 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Null
+// CHECK: TestClass.Null
+// CHECK: TestClass.printValue: Value = 1
+// CHECK: TestClass.printValue: Value = 1
+
+import void printf(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class TestClass(int value) {
+	static Null() noexcept {
+		printf(C"TestClass.Null\n");
+		return @(1);
+	}
+	
+	void printValue() noexcept {
+		printf(C"TestClass.printValue: Value = %d\n", @value);
+	}
+	
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass testInstance1 = null;
+	
+	auto nullValue = null;
+	TestClass testInstance2 = move nullValue;
+	
+	testInstance1.printValue();
+	testInstance2.printValue();
+	return 0;
+}
+

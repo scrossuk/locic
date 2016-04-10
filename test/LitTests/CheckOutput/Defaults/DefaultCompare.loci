@@ -1,0 +1,113 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: data = TestDatatype(a = 1, b = 2, c = 3)
+// CHECK: main: Compare with (1, 2, 3)
+// CHECK: main: Is EQUAL.
+// CHECK: main: Compare with (2, 2, 3)
+// CHECK: main: Is NOT EQUAL.
+// CHECK: main: Compare with (3, 2, 1)
+// CHECK: main: Is NOT EQUAL.
+// CHECK: main: Compare with (0, 0, 0)
+// CHECK: main: Is NOT EQUAL.
+// CHECK: main: object = TestClass(a = 10, b = 20, c = 30)
+// CHECK: main: Compare with (0, 0, 0)
+// CHECK: main: Is NOT EQUAL.
+// CHECK: main: Compare with (10, 10, 10)
+// CHECK: main: Is NOT EQUAL.
+// CHECK: main: Compare with (10, 20, 30)
+// CHECK: main: Is EQUAL.
+// CHECK: main: Compare with (20, 20, 30)
+// CHECK: main: Is NOT EQUAL.
+// CHECK: main: Compare with (-10, -20, -30)
+// CHECK: main: Is NOT EQUAL.
+
+import void printf(const ubyte * str, ...);
+
+datatype TestDatatype(int a, int b, int c);
+
+class TestClass (int a, int b, int c) {
+	static Create = default;
+	
+	compare = default;
+	
+	void printValue() const {
+		printf(C"main: object = TestClass(a = %d, b = %d, c = %d)\n", @a, @b, @c);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestDatatype data = TestDatatype(1, 2, 3);
+	
+	printf(C"main: data = TestDatatype(a = %d, b = %d, c = %d)\n",
+		data.a, data.b, data.c);
+	
+	printf(C"main: Compare with (1, 2, 3)\n");
+	if (data == TestDatatype(1, 2, 3)) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	printf(C"main: Compare with (2, 2, 3)\n");
+	if (data == TestDatatype(2, 2, 3)) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	printf(C"main: Compare with (3, 2, 1)\n");
+	if (data == TestDatatype(3, 2, 1)) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	printf(C"main: Compare with (0, 0, 0)\n");
+	if (data == TestDatatype(0, 0, 0)) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	TestClass object = TestClass(10, 20, 30);
+	object.printValue();
+	
+	printf(C"main: Compare with (0, 0, 0)\n");
+	if (object == TestClass(0, 0, 0)) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	printf(C"main: Compare with (10, 10, 10)\n");
+	if (object == TestClass(10, 10, 10)) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	printf(C"main: Compare with (10, 20, 30)\n");
+	if (object == TestClass(10, 20, 30)) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	printf(C"main: Compare with (20, 20, 30)\n");
+	if (object == TestClass(20, 20, 30)) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	printf(C"main: Compare with (-10, -20, -30)\n");
+	if (object == TestClass(-10, -20, -30)) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	return 0;
+}
+

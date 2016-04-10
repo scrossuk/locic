@@ -1,0 +1,57 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: mutableInst value = 103
+// CHECK: mutableInst value (by pointer) = 103
+// CHECK: mutableInst value (by const pointer) = 103
+// CHECK: mutableInst value (by const pointer after first modification) = 104
+// CHECK: mutableInst value (by const pointer after second modification) = 105
+// CHECK: constInst value = 106
+// CHECK: constInst value (by const pointer) = 106
+
+import void printf(const ubyte * str, ...);
+
+class TestClass(int value) {
+	static create = default;
+	
+	int getValue() const {
+		return @value;
+	}
+	
+	void setValue(int value) {
+		@value = value;
+	}
+	
+	template <bool IsConst>
+	const<IsConst>(int)* pointer() const(IsConst) {
+		return &@value;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto mutableInst = TestClass(103);
+	
+	printf(C"mutableInst value = %d\n", mutableInst.getValue());
+	
+	printf(C"mutableInst value (by pointer) = %d\n", *(mutableInst.pointer<false>()));
+	
+	printf(C"mutableInst value (by const pointer) = %d\n", *(mutableInst.pointer<true>()));
+	
+	mutableInst.setValue(104);
+	
+	const int* constPtr = mutableInst.pointer<true>();
+	printf(C"mutableInst value (by const pointer after first modification) = %d\n", *constPtr);
+	
+	*(mutableInst.pointer<false>()) = 105;
+	
+	printf(C"mutableInst value (by const pointer after second modification) = %d\n", *constPtr);
+	
+	const auto constInst = TestClass(106);
+	
+	printf(C"constInst value = %d\n", constInst.getValue());
+	
+	printf(C"constInst value (by const pointer) = %d\n", *(constInst.pointer<true>()));
+	
+	return 0;
+}
+

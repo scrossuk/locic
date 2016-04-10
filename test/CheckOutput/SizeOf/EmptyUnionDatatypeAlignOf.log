@@ -1,6 +1,0 @@
-alignof(A) = 1
-A.__alignmask() = 0
-alignof(B) = 1
-B.__alignmask() = 0
-alignof(Empty) = 1
-Empty.__alignmask() = 0

@@ -1,0 +1,42 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: object.getValue() = 16000
+// CHECK: object.getValue() = 17000
+
+import void printf(const ubyte * str, ...);
+
+class TestClass(int value) {
+	static Create = default;
+	
+	int getValue() const {
+		return @value;
+	}
+}
+
+interface MakeIntable {
+	int makeInt() const;
+}
+
+template <typename S: MakeIntable>
+void TestClass::setValue(S value) {
+	@value = value.makeInt();
+}
+
+class SetValueImpl(int value) {
+	static Create = default;
+	
+	int makeInt() const {
+		return @value;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass object = TestClass(16000);
+	printf(C"object.getValue() = %d\n", object.getValue());
+	object.setValue<SetValueImpl>(SetValueImpl(17000));
+	printf(C"object.getValue() = %d\n", object.getValue());
+	
+	return 0;
+}
+

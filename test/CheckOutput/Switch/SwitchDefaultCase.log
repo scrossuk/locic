@@ -1,6 +1,0 @@
-printData: TestDatatype1(a = 0)
-printData: Default
-printData (default): TestDatatype2(a = 11, b = 22)
-printData: TestDatatype3(a = 33, b = 44, c = 55)
-printData: Default
-printData (default): TestDatatype4(a = 66, b = 77, c = 88, d = 99)

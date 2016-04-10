@@ -1,0 +1,44 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: Value = 50
+// CHECK: TestClass.implicit_copy: @value = 50
+// CHECK: TestClass.print: @value = 55
+// CHECK: TestClass.make_copy: @value = 50
+// CHECK: TestClass.print: @value = 60
+
+import void printf(const ubyte * str, ...);
+
+// Class definition.
+class TestClass(int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	TestClass implicit_copy() const {
+		printf(C"TestClass.implicit_copy: @value = %d\n", @value);
+		return @(@value + 5);
+	}
+	
+	TestClass make_copy() const {
+		printf(C"TestClass.make_copy: @value = %d\n", @value);
+		return @(@value + 10);
+	}
+	
+	void print() {
+		printf(C"TestClass.print: @value = %d\n", @value);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass object = TestClass::Create(50);
+	
+	TestClass objectCopy = object;
+	objectCopy.print();
+	
+	TestClass objectCopy2 = object.makeCopy();
+	objectCopy2.print();
+	return 0;
+}
+

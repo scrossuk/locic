@@ -1,0 +1,62 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: array[0] = 1
+// CHECK: array[1] = 2
+// CHECK: array[2] = 3
+// CHECK: array[3] = 4
+// CHECK: TestClass copy: @v = 1
+// CHECK: TestClass copy: @v = 2
+// CHECK: TestClass copy: @v = 3
+// CHECK: TestClass copy: @v = 4
+// CHECK: array[0] = 1
+// CHECK: array[1] = 4
+// CHECK: array[2] = 9
+// CHECK: array[3] = 16
+// CHECK: TestClass copy: @v = 1
+// CHECK: TestClass copy: @v = 4
+// CHECK: TestClass copy: @v = 9
+// CHECK: TestClass copy: @v = 16
+// CHECK: array[0] = 1
+// CHECK: array[1] = 16
+// CHECK: array[2] = 81
+// CHECK: array[3] = 256
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass(int v) {
+	static create = default;
+	
+	TestClass copy() const {
+		printf(C"TestClass copy: @v = %d\n", @v);
+		return TestClass(@v * @v);
+	}
+	
+	int getValue() const {
+		return @v;
+	}
+}
+
+void printArray(const static_array_t<TestClass, 4u>& array) {
+	printf(C"array[0] = %d\n", array[0u].getValue());
+	printf(C"array[1] = %d\n", array[1u].getValue());
+	printf(C"array[2] = %d\n", array[2u].getValue());
+	printf(C"array[3] = %d\n", array[3u].getValue());
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto array = static_array_t<TestClass, 4u>.uninitialized();
+	array[0u] = TestClass(1);
+	array[1u] = TestClass(2);
+	array[2u] = TestClass(3);
+	array[3u] = TestClass(4);
+	printArray(array);
+	
+	auto arrayCopy = array.copy();
+	printArray(arrayCopy);
+	
+	auto arrayCopyCopy = arrayCopy.copy();
+	printArray(arrayCopyCopy);
+	return 0;
+}
+

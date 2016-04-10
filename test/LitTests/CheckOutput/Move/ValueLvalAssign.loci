@@ -1,0 +1,45 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass testInstance = TestClass(MemberClass());
+// CHECK: MemberClass.__moveto
+// CHECK: testInstance = TestClass(MemberClass());
+// CHECK: MemberClass.__moveto
+// CHECK: MemberClass.~
+// CHECK: MemberClass.__moveto
+// CHECK: MemberClass.~
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass(MemberClass member) {
+	static create(MemberClass value) noexcept {
+		return @(move value);
+	}
+	
+	MemberClass extract() noexcept {
+		return move @member;
+	}
+}
+
+class MemberClass() {
+	static create = default;
+	
+	~ {
+		printf(C"MemberClass.~\n");
+	}
+	
+	void __moveto(unused void* ptr, unused size_t position) noexcept {
+		printf(C"MemberClass.__moveto\n");
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"TestClass testInstance = TestClass(MemberClass());\n");
+	TestClass testInstance = TestClass(MemberClass());
+	
+	printf(C"testInstance = TestClass(MemberClass());\n");
+	testInstance = TestClass(MemberClass());
+	
+	return 0;
+}
+

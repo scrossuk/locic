@@ -1,0 +1,102 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: ---- checkSize()
+// CHECK: sizeof(TypeWithoutDestructor) = 1
+// CHECK: sizeof(TypeWithDestructor) = 1
+// CHECK: ---- checkLive()
+// CHECK: __islive called.
+// CHECK: Destructor called.
+// CHECK: __setdead called.
+// CHECK: ---- checkDead()
+// CHECK: __setdead called.
+// CHECK: __islive called.
+// CHECK: ---- checkMove()
+// CHECK: * Move object.
+// CHECK: __islive called.
+// CHECK: __setdead called.
+// CHECK: * Destroy moved object.
+// CHECK: __islive called.
+// CHECK: Destructor called.
+// CHECK: __setdead called.
+// CHECK: * Destroy original object.
+// CHECK: __islive called.
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class TypeWithoutDestructor(bool isLive) {
+	static create() noexcept {
+		return @(true);
+	}
+	
+	void __setdead() noexcept {
+		@isLive = false;
+	}
+	
+	bool __islive() const noexcept {
+		return @isLive;
+	}
+}
+
+class TypeWithDestructor(bool isLive) {
+	static create() noexcept {
+		return @(true);
+	}
+	
+	void __setdead() noexcept {
+		printf(C"__setdead called.\n");
+		@isLive = false;
+	}
+	
+	bool __islive() const noexcept {
+		printf(C"__islive called.\n");
+		return @isLive;
+	}
+	
+	~ {
+		// This destructor forces a liveness indicator to
+		// be created, which just uses the __dead() and
+		// __islive() custom methods of this object.
+		printf(C"Destructor called.\n");
+	}
+}
+
+void checkSize() {
+	printf(C"---- checkSize()\n");
+	printf(C"sizeof(TypeWithoutDestructor) = %llu\n",
+		sizeof(TypeWithoutDestructor).cast<ulonglong_t>());
+	
+	printf(C"sizeof(TypeWithDestructor) = %llu\n",
+		sizeof(TypeWithDestructor).cast<ulonglong_t>());
+}
+
+void checkLive() {
+	printf(C"---- checkLive()\n");
+	unused auto value = TypeWithDestructor();
+}
+
+void checkDead() {
+	printf(C"---- checkDead()\n");
+	auto value = TypeWithDestructor();
+	value.__setdead();
+}
+
+void checkMove() {
+	printf(C"---- checkMove()\n");
+	auto value = TypeWithDestructor();
+	{
+		printf(C"* Move object.\n");
+		unused auto movedValue = move value;
+		printf(C"* Destroy moved object.\n");
+	}
+	printf(C"* Destroy original object.\n");
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	checkSize();
+	checkLive();
+	checkDead();
+	checkMove();
+	return 0;
+}
+

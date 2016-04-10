@@ -1,0 +1,26 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.printText: Text = "Extension method test!"
+
+import void printf(const ubyte * str, ...);
+
+// Class definition.
+class TestClass(const ubyte* text) {
+	static Create = default;
+	
+	const ubyte* getText() const {
+		return @text;
+	}
+}
+
+void TestClass::printText() {
+	printf(C"TestClass.printText: Text = \"%s\"\n", self.getText());
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto testObject = TestClass(C"Extension method test!");
+	testObject.printText();
+	return 0;
+}
+

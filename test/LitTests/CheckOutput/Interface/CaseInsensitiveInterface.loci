@@ -1,0 +1,42 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: Value = 54321
+// CHECK: TestClass.getValue: Value = 54321
+// CHECK: polymorphicPrint: Value = 54321
+
+import void printf(const ubyte * str, ...);
+
+class TestClass (unsigned int value) {
+	static Create(unsigned int value) {
+		printf(C"TestClass.Create: Value = %u\n", value);
+		return @(value);
+	}
+	
+	unsigned int getValue() {
+		printf(C"TestClass.getValue: Value = %u\n", @value);
+		return @value;
+	}
+	
+}
+
+// By canonicalisation (underscores removed and
+// all converted to lower case) of the method name,
+// this should be a valid interface for TestClass.
+interface TestInterface {
+	unsigned int get_value();
+}
+
+void polymorphicPrint(TestInterface& object) {
+	unsigned int value = object.get_value();
+	printf(C"polymorphicPrint: Value = %u\n", value);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto testInstance = TestClass(54321u);
+	
+	polymorphicPrint(testInstance);
+	
+	return 0;
+}
+

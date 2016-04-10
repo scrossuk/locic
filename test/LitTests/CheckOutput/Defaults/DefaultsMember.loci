@@ -1,0 +1,103 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass(data = TestDatatype(a = 44, b = 55, c = 66))
+// CHECK: TestClass(data = TestDatatype(a = 44, b = 55, c = 66))
+// CHECK: main: Compare with its copy...
+// CHECK: main: Is EQUAL.
+// CHECK: TestMemberClass1.Create(101)
+// CHECK: TestMemberClass2.printValue()
+// CHECK:     TestMemberClass1(value = 101)
+// CHECK: TestMemberClass1.implicitCopy() : @value = 101
+// CHECK: TestMemberClass2.printValue()
+// CHECK:     TestMemberClass1(value = 101)
+// CHECK: main: Compare with its copy...
+// CHECK: TestMemberClass1.compare() : @value = 101, other.getValue() = 101
+// CHECK: main: Is EQUAL.
+
+import void printf(const ubyte * str, ...);
+
+datatype TestDatatype(int a, int b, int c);
+
+class TestClass (TestDatatype data) {
+	static Create = default;
+	
+	implicitCopy = default;
+	
+	compare = default;
+	
+	void printValue() const {
+		printf(C"TestClass(data = TestDatatype(a = %d, b = %d, c = %d))\n",
+			@data.a, @data.b, @data.c);
+	}
+}
+
+class TestMemberClass1 (int value) {
+	static Create(int value) {
+		printf(C"TestMemberClass1.Create(%d)\n", value);
+		return @(value);
+	}
+	
+	TestMemberClass1 implicitCopy() const {
+		printf(C"TestMemberClass1.implicitCopy() : @value = %d\n", @value);
+		return @(@value);
+	}
+	
+	compare_result_t compare(const TestMemberClass1& other) const {
+		printf(C"TestMemberClass1.compare() : @value = %d, other.getValue() = %d\n",
+			@value, other.getValue());
+		return @value.compare(other.getValue());
+	}
+	
+	int getValue() const {
+		return @value;
+	}
+	
+	void printValue() const {
+		printf(C"    TestMemberClass1(value = %d)\n", @value);
+	}
+}
+
+class TestMemberClass2 (TestMemberClass1 object) {
+	static Create = default;
+	
+	implicitCopy = default;
+	
+	compare = default;
+	
+	void printValue() const {
+		printf(C"TestMemberClass2.printValue()\n");
+		@object.printValue();
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass object = TestClass(TestDatatype(44, 55, 66));
+	object.printValue();
+	
+	TestClass objectCopy = object;
+	objectCopy.printValue();
+	
+	printf(C"main: Compare with its copy...\n");
+	if (object == objectCopy) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	TestMemberClass2 memberObject = TestMemberClass2(TestMemberClass1(101));
+	memberObject.printValue();
+	
+	TestMemberClass2 memberObjectCopy = memberObject;
+	memberObjectCopy.printValue();
+	
+	printf(C"main: Compare with its copy...\n");
+	if (memberObject == memberObjectCopy) {
+		printf(C"main: Is EQUAL.\n");
+	} else {
+		printf(C"main: Is NOT EQUAL.\n");
+	}
+	
+	return 0;
+}
+

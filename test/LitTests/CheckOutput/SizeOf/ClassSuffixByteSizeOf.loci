@@ -1,0 +1,47 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: sizeof(ClassInt8Int8) = 3
+// CHECK: ClassInt8Int8.__sizeof() = 3
+// CHECK: sizeof(ClassInt16Int16) = 6
+// CHECK: ClassInt16Int16.__sizeof() = 6
+// CHECK: sizeof(ClassInt32Int32) = 12
+// CHECK: ClassInt32Int32.__sizeof() = 12
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class ClassInt8Int8(int8_t v0, int8_t v1) {
+	static create = default;
+	
+	~ {
+		printf(C"Destroy\n");
+	}
+}
+
+class ClassInt16Int16(int16_t v0, int16_t v1) {
+	static create = default;
+	
+	~ {
+		printf(C"Destroy\n");
+	}
+}
+
+class ClassInt32Int32(int32_t v0, int32_t v1) {
+	static create = default;
+	
+	~ {
+		printf(C"Destroy\n");
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"sizeof(ClassInt8Int8) = %llu\n", sizeof(ClassInt8Int8).cast<ulonglong_t>());
+	printf(C"ClassInt8Int8.__sizeof() = %llu\n", ClassInt8Int8.__sizeof().cast<ulonglong_t>());
+	
+	printf(C"sizeof(ClassInt16Int16) = %llu\n", sizeof(ClassInt16Int16).cast<ulonglong_t>());
+	printf(C"ClassInt16Int16.__sizeof() = %llu\n", ClassInt16Int16.__sizeof().cast<ulonglong_t>());
+	
+	printf(C"sizeof(ClassInt32Int32) = %llu\n", sizeof(ClassInt32Int32).cast<ulonglong_t>());
+	printf(C"ClassInt32Int32.__sizeof() = %llu\n", ClassInt32Int32.__sizeof().cast<ulonglong_t>());
+	return 0;
+}

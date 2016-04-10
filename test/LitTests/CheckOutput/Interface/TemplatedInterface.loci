@@ -1,0 +1,59 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: Value = 1
+// CHECK: TestClass.getValue: Value = 1
+// CHECK: polymorphicPrint: Value = 1
+// CHECK: TestClass.getValue: Value = 1
+// CHECK: TestClass.setValue: Value = 2
+// CHECK: TestClass.getValue: Value = 2
+// CHECK: polymorphicPrint: Value = 2
+// CHECK: TestClass.getValue: Value = 2
+// CHECK: TestClass.setValue: Value = 4
+// CHECK: TestClass.getValue: Value = 4
+// CHECK: polymorphicPrint: Value = 4
+// CHECK: TestClass.getValue: Value = 4
+// CHECK: TestClass.setValue: Value = 8
+
+import void printf(const ubyte * str, ...);
+
+class TestClass (int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	int getValue() const {
+		printf(C"TestClass.getValue: Value = %d\n", @value);
+		return @value;
+	}
+	
+	void setValue(int value) {
+		printf(C"TestClass.setValue: Value = %d\n", value);
+		@value = value;
+	}
+	
+}
+
+template <typename T : movable_t>
+interface ValueHolder {
+	T getValue() const;
+	
+	void setValue(T value);
+}
+
+void polymorphicPrint(ValueHolder<int>& holder) {
+	final int value = holder.getValue();
+	printf(C"polymorphicPrint: Value = %d\n", value);
+	holder.setValue(holder.getValue() * 2);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto testInstance = TestClass(1);
+	
+	polymorphicPrint(testInstance);
+	polymorphicPrint(testInstance);
+	polymorphicPrint(testInstance);
+	return 0;
+}
+

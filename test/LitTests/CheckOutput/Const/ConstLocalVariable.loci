@@ -1,0 +1,35 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: constValue = 4
+// CHECK: constValue (by pointer) = 4
+// CHECK: mutableValue = 5
+// CHECK: mutableValue (by pointer) = 5
+// CHECK: mutableValue (by const pointer) = 5
+// CHECK: mutableValue (by const pointer after modification) = 6
+
+import void printf(const ubyte* str, ...);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	const int constValue = 4;
+	printf(C"constValue = %d\n", constValue);
+	
+	const int* constValuePtr = &constValue;
+	printf(C"constValue (by pointer) = %d\n", *constValuePtr);
+	
+	int mutableValue = 5;
+	printf(C"mutableValue = %d\n", mutableValue);
+	
+	int* mutableValuePtr = &mutableValue;
+	printf(C"mutableValue (by pointer) = %d\n", *mutableValuePtr);
+	
+	const int* constMutableValuePtr = mutableValuePtr;
+	printf(C"mutableValue (by const pointer) = %d\n", *constMutableValuePtr);
+	
+	mutableValue = 6;
+	
+	printf(C"mutableValue (by const pointer after modification) = %d\n", *constMutableValuePtr);
+	
+	return 0;
+}
+

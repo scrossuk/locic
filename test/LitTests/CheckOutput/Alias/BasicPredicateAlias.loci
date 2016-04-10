@@ -1,0 +1,23 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.print()
+
+import void printf(const ubyte * str, ...);
+
+using SetConst = true;
+
+class TestClass() {
+	static Create = default;
+	
+	void print() const(SetConst) {
+		printf(C"TestClass.print()\n");
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	const TestClass object = TestClass();
+	object.print();
+	return 0;
+}
+

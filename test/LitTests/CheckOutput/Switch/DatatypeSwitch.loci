@@ -1,0 +1,29 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: printData: TestDatatype1(a = 1)
+// CHECK: printData: TestDatatype2(a = 2, b = 3)
+
+import void printf(const ubyte * str, ...);
+
+datatype UnionDataType =
+	TestDatatype1(int a) |
+	TestDatatype2(int a, int b);
+
+void printData(UnionDataType data) {
+	switch (data) {
+		case TestDatatype1(int a) {
+			printf(C"printData: TestDatatype1(a = %d)\n", a);
+		}
+		case TestDatatype2(int a, int b) {
+			printf(C"printData: TestDatatype2(a = %d, b = %d)\n", a, b);
+		}
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printData(TestDatatype1(1));
+	printData(TestDatatype2(2, 3));
+	return 0;
+}
+

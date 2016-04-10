@@ -1,0 +1,72 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: START
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main: LOOP START i = 0
+// CHECK: main: LOOP END i = 0
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main: LOOP START i = 1
+// CHECK: main: LOOP END i = 1
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main: LOOP START i = 2
+// CHECK: main: LOOP END i = 2
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main: LOOP START i = 3
+// CHECK: main: LOOP END i = 3
+// CHECK: test_range: skipFront
+// CHECK: test_range: empty
+// CHECK: test_range: front
+// CHECK: main: LOOP START i = 4
+// CHECK: main: break
+// CHECK: main: END
+
+import void printf(const ubyte * str, ...);
+
+class test_range(int i) {
+	static Create() {
+		return @(0);
+	}
+	
+	int front() {
+		printf(C"test_range: front\n");
+		return @i;
+	}
+	
+	void skipFront() {
+		printf(C"test_range: skipFront\n");
+		@i += 1;
+	}
+	
+	bool empty() {
+		printf(C"test_range: empty\n");
+		return @i > 8;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"main: START\n");
+	
+	for (auto i: test_range()) {
+		printf(C"main: LOOP START i = %d\n", i);
+		
+		if (i >= 4) {
+			printf(C"main: break\n");
+			break;
+		}
+		
+		printf(C"main: LOOP END i = %d\n", i);
+	}
+	
+	printf(C"main: END\n");
+	
+	return 0;
+}
+

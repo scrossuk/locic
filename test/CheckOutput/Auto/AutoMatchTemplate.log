@@ -1,5 +1,0 @@
-testEntryPoint: Value = 4.
-testEntryPoint: Ref 1 = 7.
-testEntryPoint: Ref 2 = 13.
-testEntryPoint: Ref 3 = 25.
-testEntryPoint: Copy = 4.

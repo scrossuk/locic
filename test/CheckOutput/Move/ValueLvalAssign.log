@@ -1,7 +1,0 @@
-TestClass testInstance = TestClass(MemberClass());
-MemberClass.__moveto
-testInstance = TestClass(MemberClass());
-MemberClass.__moveto
-MemberClass.~
-MemberClass.__moveto
-MemberClass.~

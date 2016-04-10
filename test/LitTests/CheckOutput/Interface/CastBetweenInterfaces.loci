@@ -1,0 +1,73 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: First = 5, Second = 6
+// CHECK: TestClass.getFirst: First = 5
+// CHECK: TestClass.getSecond: Second = 6
+// CHECK: polymorphicPrintBoth: First = 5, Second = 6
+// CHECK: TestClass.getFirst: First = 5
+// CHECK: polymorphicPrintFirst: Value = 5
+// CHECK: TestClass.getSecond: Second = 6
+// CHECK: polymorphicPrintSecond: Value = 6
+
+import void printf(const ubyte * str, ...);
+
+class TestClass (int first, int second) {
+	static Create(int first, int second) {
+		printf(C"TestClass.Create: First = %d, Second = %d\n", first, second);
+		return @(first, second);
+	}
+	
+	int getFirst() {
+		printf(C"TestClass.getFirst: First = %d\n", @first);
+		return @first;
+	}
+	
+	int getSecond() {
+		printf(C"TestClass.getSecond: Second = %d\n", @second);
+		return @second;
+	}
+	
+}
+
+interface TestInterfaceBoth {
+	int getFirst();
+	
+	int getSecond();
+}
+
+interface TestInterfaceFirstOnly {
+	int getFirst();
+}
+
+interface TestInterfaceSecondOnly {
+	int getSecond();
+}
+
+void polymorphicPrintFirst(TestInterfaceFirstOnly& object) {
+	int value = object.getFirst();
+	printf(C"polymorphicPrintFirst: Value = %d\n", value);
+}
+
+void polymorphicPrintSecond(TestInterfaceSecondOnly& object) {
+	int value = object.getSecond();
+	printf(C"polymorphicPrintSecond: Value = %d\n", value);
+}
+
+void polymorphicPrintBoth(TestInterfaceBoth& object) {
+	int first = object.getFirst();
+	int second = object.getSecond();
+	printf(C"polymorphicPrintBoth: First = %d, Second = %d\n", first, second);
+	
+	polymorphicPrintFirst(object);
+	polymorphicPrintSecond(object);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto testInstance = TestClass(5, 6);
+	
+	polymorphicPrintBoth(testInstance);
+	
+	return 0;
+}
+

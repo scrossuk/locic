@@ -1,6 +1,0 @@
-testEntryPoint: Value = 1.
-testEntryPoint: Value = 11.
-testEntryPoint: Value = 111.
-testEntryPoint: Value ref = 111.
-testEntryPoint: Value = 1111, Value ref = 1111.
-testEntryPoint: Value = 1111.

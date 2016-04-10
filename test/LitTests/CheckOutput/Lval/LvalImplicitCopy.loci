@@ -1,0 +1,98 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: Value = 1
+// CHECK: TestClass.implicitCopy: Value = 1, Copy value = 2
+// CHECK: TestClass.implicitCopy: Value = 1, Copy value = 2
+// CHECK: TestClass.implicitCopy: Value = 2, Copy value = 4
+// CHECK: TestClass.implicitCopy: Value = 2, Copy value = 4
+// CHECK: TestClass.implicitCopy: Value = 4, Copy value = 8
+// CHECK: TestClass.implicitCopy: Value = 4, Copy value = 8
+// CHECK: TestClass.getValue: Value = 8
+// CHECK: TestClass.combine: Value = 8, Arg value = 8, Combined value = 64
+// CHECK: TestClass.getValue: Value = 1
+// CHECK: Inst1: Value = 1
+// CHECK: TestClass.getValue: Value = 2
+// CHECK: Inst2: Value = 2
+// CHECK: TestClass.getValue: Value = 2
+// CHECK: Inst3: Value = 2
+// CHECK: TestClass.getValue: Value = 4
+// CHECK: Inst4: Value = 4
+// CHECK: TestClass.getValue: Value = 4
+// CHECK: Inst5: Value = 4
+// CHECK: TestClass.getValue: Value = 8
+// CHECK: Inst6: Value = 8
+// CHECK: TestClass.getValue: Value = 8
+// CHECK: Inst7: Value = 8
+// CHECK: TestClass.getValue: Value = 64
+// CHECK: Combined: Value = 64
+
+import void printf(const ubyte * str, ...);
+
+class TestClass (int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	TestClass implicitCopy() const {
+		int result = @value * 2;
+		printf(C"TestClass.implicitCopy: Value = %d, Copy value = %d\n", @value, result);
+		return @(result);
+	}
+	
+	int getValue() {
+		printf(C"TestClass.getValue: Value = %d\n", @value);
+		return @value;
+	}
+	
+	TestClass combine(TestClass& arg) {
+		int argValue = arg.getValue();
+		int result = @value * argValue;
+		printf(C"TestClass.combine: Value = %d, Arg value = %d, Combined value = %d\n", @value, argValue, result);
+		return @(result);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass inst1 = TestClass(1);
+	
+	// Should have no effect.
+	unused TestClass& inst1Ref = inst1;
+	
+	// Should have no effect.
+	unused lval<TestClass> value_lval_t<TestClass>& inst1LvalRef = inst1;
+	
+	TestClass inst2 = inst1;
+	
+	TestClass inst3 = inst1;
+	
+	TestClass inst4 = inst2;
+	
+	TestClass inst5 = inst2;
+	
+	TestClass inst6 = inst4;
+	
+	TestClass inst7 = inst4;
+	
+	TestClass combined = inst6.combine(inst7);
+	
+	printf(C"Inst1: Value = %d\n", inst1.getValue());
+	
+	printf(C"Inst2: Value = %d\n", inst2.getValue());
+	
+	printf(C"Inst3: Value = %d\n", inst3.getValue());
+	
+	printf(C"Inst4: Value = %d\n", inst4.getValue());
+	
+	printf(C"Inst5: Value = %d\n", inst5.getValue());
+	
+	printf(C"Inst6: Value = %d\n", inst6.getValue());
+	
+	printf(C"Inst7: Value = %d\n", inst7.getValue());
+	
+	printf(C"Combined: Value = %d\n", combined.getValue());
+	
+	return 0;
+}
+

@@ -1,6 +1,0 @@
-testEntryPoint: i = 4.
-testEntryPoint: i = 4, j = 6.
-testEntryPoint: i = 4, j = 6, k = 6.
-testEntryPoint: i = 1, j = 6, k = 6.
-testEntryPoint: i = 1, j = 2, k = 6.
-testEntryPoint: i = 1, j = 2, k = 3.

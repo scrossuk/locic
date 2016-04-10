@@ -1,0 +1,18 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: i = 44
+
+import void printf(const ubyte * str, ...);
+
+template <typename T>
+void function(int i) {
+	printf(C"i = %d\n", i);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto f = function<int>;
+	f(44);
+	return 0;
+}
+

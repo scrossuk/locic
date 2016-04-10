@@ -1,0 +1,105 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: alignof(double) = 8
+// CHECK: sizeof(double) = 8
+// CHECK: d = 1.000000
+// CHECK: d.implicitcopy() = 1.000000
+// CHECK: d.copy() = 1.000000
+// CHECK: d.implicitcast<long double>() = 1.000000
+// CHECK: d.cast<long double>() = 1.000000
+// CHECK: d.plus() = 1.000000
+// CHECK: d.minus() = -1.000000
+// CHECK: d.abs() = 1.000000
+// CHECK: d.minus().abs() = 1.000000
+// CHECK: d.add(2.0) = 3.000000
+// CHECK: d.subtract(2.0) = -1.000000
+// CHECK: d.multiply(2.0) = 2.000000
+// CHECK: d.divide(2.0) = 0.500000
+// CHECK: d.modulo(0.3) = 0.100000
+// CHECK: d.equal(0.0) = false
+// CHECK: d.not_equal(0.0) = true
+// CHECK: d.less_than(0.0) = false
+// CHECK: d.less_than_or_equal(0.0) = false
+// CHECK: d.greater_than(0.0) = true
+// CHECK: d.greater_than_or_equal(0.0) = true
+// CHECK: d.compare(0.0) = greater than
+// CHECK: d.equal(1.0) = true
+// CHECK: d.not_equal(1.0) = false
+// CHECK: d.less_than(1.0) = false
+// CHECK: d.less_than_or_equal(1.0) = true
+// CHECK: d.greater_than(1.0) = false
+// CHECK: d.greater_than_or_equal(1.0) = true
+// CHECK: d.compare(1.0) = equal
+// CHECK: d.equal(2.0) = false
+// CHECK: d.not_equal(2.0) = true
+// CHECK: d.less_than(2.0) = true
+// CHECK: d.less_than_or_equal(2.0) = true
+// CHECK: d.greater_than(2.0) = false
+// CHECK: d.greater_than_or_equal(2.0) = false
+// CHECK: d.compare(2.0) = less than
+// CHECK: move d = 1.000000
+
+import void printf(const ubyte * str, ...) noexcept;
+
+const ubyte* compareResultString(compare_result_t result) {
+	if (result.is_equal()) {
+		return C"equal\n";
+	} else if (result.is_less_than()) {
+		return C"less than\n";
+	} else if (result.is_greater_than()) {
+		return C"greater than\n";
+	} else {
+		unreachable;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"alignof(double) = %llu\n", alignof(double).cast<ulonglong_t>());
+	printf(C"sizeof(double) = %llu\n", sizeof(double).cast<ulonglong_t>());
+	
+	double d = 1.0;
+	printf(C"d = %f\n", d);
+	printf(C"d.implicitcopy() = %f\n", d.implicitcopy());
+	printf(C"d.copy() = %f\n", d.copy());
+	printf(C"d.implicitcast<long double>() = %lf\n", d.implicitcast<long double>());
+	printf(C"d.cast<long double>() = %lf\n", d.cast<long double>());
+	printf(C"d.plus() = %f\n", d.plus());
+	printf(C"d.minus() = %f\n", d.minus());
+	printf(C"d.abs() = %f\n", d.abs());
+	printf(C"d.minus().abs() = %f\n", d.minus().abs());
+	
+	printf(C"d.add(2.0) = %f\n", d.add(2.0));
+	printf(C"d.subtract(2.0) = %f\n", d.subtract(2.0));
+	printf(C"d.multiply(2.0) = %f\n", d.multiply(2.0));
+	printf(C"d.divide(2.0) = %f\n", d.divide(2.0));
+	printf(C"d.modulo(0.3) = %f\n", d.modulo(0.3));
+	
+	printf(C"d.equal(0.0) = %s\n", d.equal(0.0) ? C"true\n" : C"false\n");
+	printf(C"d.not_equal(0.0) = %s\n", d.not_equal(0.0) ? C"true\n" : C"false\n");
+	printf(C"d.less_than(0.0) = %s\n", d.less_than(0.0) ? C"true\n" : C"false\n");
+	printf(C"d.less_than_or_equal(0.0) = %s\n", d.less_than_or_equal(0.0) ? C"true\n" : C"false\n");
+	printf(C"d.greater_than(0.0) = %s\n", d.greater_than(0.0) ? C"true\n" : C"false\n");
+	printf(C"d.greater_than_or_equal(0.0) = %s\n", d.greater_than_or_equal(0.0) ? C"true\n" : C"false\n");
+	printf(C"d.compare(0.0) = %s\n", compareResultString(d.compare(0.0)));
+	
+	printf(C"d.equal(1.0) = %s\n", d.equal(1.0) ? C"true\n" : C"false\n");
+	printf(C"d.not_equal(1.0) = %s\n", d.not_equal(1.0) ? C"true\n" : C"false\n");
+	printf(C"d.less_than(1.0) = %s\n", d.less_than(1.0) ? C"true\n" : C"false\n");
+	printf(C"d.less_than_or_equal(1.0) = %s\n", d.less_than_or_equal(1.0) ? C"true\n" : C"false\n");
+	printf(C"d.greater_than(1.0) = %s\n", d.greater_than(1.0) ? C"true\n" : C"false\n");
+	printf(C"d.greater_than_or_equal(1.0) = %s\n", d.greater_than_or_equal(1.0) ? C"true\n" : C"false\n");
+	printf(C"d.compare(1.0) = %s\n", compareResultString(d.compare(1.0)));
+	
+	printf(C"d.equal(2.0) = %s\n", d.equal(2.0) ? C"true\n" : C"false\n");
+	printf(C"d.not_equal(2.0) = %s\n", d.not_equal(2.0) ? C"true\n" : C"false\n");
+	printf(C"d.less_than(2.0) = %s\n", d.less_than(2.0) ? C"true\n" : C"false\n");
+	printf(C"d.less_than_or_equal(2.0) = %s\n", d.less_than_or_equal(2.0) ? C"true\n" : C"false\n");
+	printf(C"d.greater_than(2.0) = %s\n", d.greater_than(2.0) ? C"true\n" : C"false\n");
+	printf(C"d.greater_than_or_equal(2.0) = %s\n", d.greater_than_or_equal(2.0) ? C"true\n" : C"false\n");
+	printf(C"d.compare(2.0) = %s\n", compareResultString(d.compare(2.0)));
+	
+	printf(C"move d = %f\n", move d);
+	return 0;
+}
+

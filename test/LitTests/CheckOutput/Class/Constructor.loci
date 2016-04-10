@@ -1,0 +1,29 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: Value = 1
+// CHECK: TestClass.Create: Value = 2
+// CHECK: TestClass.Other: Value = 3
+
+import void printf(const ubyte * str, ...);
+
+// Class definition.
+class TestClass(int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	static Other(int value) {
+		printf(C"TestClass.Other: Value = %d\n", value);
+		return @(value);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	unused_result TestClass(1);
+	unused_result TestClass::Create(2);
+	unused_result TestClass::Other(3);
+	return 0;
+}
+

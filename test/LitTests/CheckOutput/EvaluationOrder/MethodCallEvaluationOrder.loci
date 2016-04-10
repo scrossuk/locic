@@ -1,0 +1,34 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: getValue(0)
+// CHECK: getValue(1)
+// CHECK: getValue(2)
+// CHECK: getObject()
+// CHECK: TestClass.method()
+
+import void printf(const ubyte * str, ...);
+
+class TestClass() {
+	static create = default;
+	
+	void method(unused int i, unused int j, unused int k) const {
+		printf(C"TestClass.method()\n");
+	}
+}
+
+TestClass getObject() {
+	printf(C"getObject()\n");
+	return TestClass();
+}
+
+int getValue(int value) {
+	printf(C"getValue(%d)\n", value);
+	return value;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	getObject().method(getValue(0), getValue(1), getValue(2));
+	return 0;
+}
+

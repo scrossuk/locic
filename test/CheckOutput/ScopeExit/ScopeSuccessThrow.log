@@ -1,5 +1,0 @@
-testEntryPoint: Returning 1.
-testEntryPoint: Success case; throwing exception.
-testEntryPoint: Failure case.
-testEntryPoint: Exiting try scope.
-testEntryPoint: Caught exception; returning 0.

@@ -1,0 +1,80 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: polymorphicPrint()
+// CHECK: TestClass -> print A
+// CHECK: FirstClass: 100
+// CHECK: TestClass -> print B
+// CHECK: SecondClass: 200
+// CHECK: polymorphicPrint()
+// CHECK: PolymorphicClass.print()
+// CHECK: TestClass -> print A
+// CHECK: FirstClass: 100
+// CHECK: TestClass -> print B
+// CHECK: SecondClass: 200
+
+import void printf(const ubyte * str, ...);
+
+interface Printable {
+	void print();
+}
+
+class FirstClass(int i) {
+	static Create = default;
+	
+	void print() {
+		printf(C"FirstClass: %d\n", @i);
+	}
+}
+
+class SecondClass(int i) {
+	static Create = default;
+	
+	void print() {
+		printf(C"SecondClass: %d\n", @i);
+	}
+}
+
+template <typename A, typename B>
+require(A : Printable and A : movable_t and B : Printable and B : movable_t)
+class TestClass(A a, B b) {
+	static Create = default;
+	
+	void print() {
+		printf(C"TestClass -> print A\n");
+		@a.print();
+		printf(C"TestClass -> print B\n");
+		@b.print();
+	}
+}
+
+void polymorphicPrint(Printable& printable) {
+	printf(C"polymorphicPrint()\n");
+	printable.print();
+}
+
+class PolymorphicClass(Printable& printable) {
+	static Create = default;
+	
+	void print() {
+		printf(C"PolymorphicClass.print()\n");
+		@printable.print();
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	FirstClass a = FirstClass(100);
+	SecondClass b = SecondClass(200);
+	
+	TestClass<FirstClass, SecondClass> testClass = TestClass<FirstClass, SecondClass>(move a, move b);
+	polymorphicPrint(testClass);
+	
+	PolymorphicClass polyClass = PolymorphicClass(testClass);
+	polymorphicPrint(polyClass);
+	
+	//PolymorphicClass polyClass2 = PolymorphicClass(polyClass);
+	//polymorphicPrint(polyClass2);
+	
+	return 0;
+}
+

@@ -1,0 +1,49 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: typeValue.thirty()
+// CHECK: TestClass: value = 30
+// CHECK: typeValue.fourty()
+// CHECK: TestClass: value = 40
+// CHECK: typeValue.create(50)
+// CHECK: TestClass: value = 50
+// CHECK: typeValue(60)
+// CHECK: TestClass: value = 60
+
+import void printf(const ubyte * str, ...);
+
+class TestClass (int value) {
+	static thirty() {
+		return @(30);
+	}
+	
+	static fourty() {
+		return @(40);
+	}
+	
+	static create = default;
+	
+	void print() const {
+		printf(C"TestClass: value = %d\n", @value);
+	}
+}
+
+void function(staticref<TestClass> typename_t typeValue) {
+	printf(C"typeValue.thirty()\n");
+	typeValue.thirty().print();
+	
+	printf(C"typeValue.fourty()\n");
+	typeValue.fourty().print();
+	
+	printf(C"typeValue.create(50)\n");
+	typeValue.create(50).print();
+	
+	printf(C"typeValue(60)\n");
+	typeValue(60).print();
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	function(TestClass);
+	return 0;
+}
+

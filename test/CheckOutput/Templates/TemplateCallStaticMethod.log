@@ -1,2 +1,0 @@
-TestClass.print(): makeInt() = 1000
-TestClass.print(): makeFloat() = 2000.0

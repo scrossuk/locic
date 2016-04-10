@@ -1,0 +1,33 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: evaluate: value is false
+// CHECK: main: logicalAnd(false, false) = false
+// CHECK: evaluate: value is false
+// CHECK: main: logicalAnd(false, true) = false
+// CHECK: evaluate: value is true
+// CHECK: evaluate: value is false
+// CHECK: main: logicalAnd(true, false) = false
+// CHECK: evaluate: value is true
+// CHECK: evaluate: value is true
+// CHECK: main: logicalAnd(true, true) = true
+
+import void printf(const ubyte * str, ...);
+
+bool evaluate(bool value) {
+	printf(C"evaluate: value is %s\n", value ? C"true\n" : C"false\n");
+	return value;
+}
+
+bool logicalAnd(bool first, bool second) {
+	return evaluate(first) && evaluate(second);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"main: logicalAnd(false, false) = %s\n", logicalAnd(false, false) ? C"true\n" : C"false\n");
+	printf(C"main: logicalAnd(false, true) = %s\n", logicalAnd(false, true) ? C"true\n" : C"false\n");
+	printf(C"main: logicalAnd(true, false) = %s\n", logicalAnd(true, false) ? C"true\n" : C"false\n");
+	printf(C"main: logicalAnd(true, true) = %s\n", logicalAnd(true, true) ? C"true\n" : C"false\n");
+	return 0;
+}
+

@@ -1,2 +1,0 @@
-sizeof(EmptyClass) = 1
-EmptyClass.__sizeof() = 1

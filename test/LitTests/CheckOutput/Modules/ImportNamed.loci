@@ -1,0 +1,22 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+// XFAIL: *
+
+// CHECK: main: #5
+// CHECK: main: #4
+// CHECK: main: #3
+// CHECK: main: #2
+// CHECK: main: #1
+
+import void printf(const ubyte* str, ...) noexcept;
+
+import test.module 1.0.0 {
+	int moduleAPI();
+}
+
+export int main(unused int argc, unused ubyte** argv) {
+	printf(C"main: moduleAPI() returned %d\n", moduleAPI());
+	
+	return 0;
+}
+

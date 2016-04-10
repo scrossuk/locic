@@ -1,0 +1,23 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: getValue<1> = 1
+// CHECK: getValue<2> = 2
+// CHECK: getValue<3> = 3
+// CHECK: getValue<4> = 4
+// CHECK: getValue<5> = 5
+
+import void printf(const ubyte * str, ...) noexcept;
+
+template <int value>
+using getValue = value;
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"getValue<1> = %d\n", getValue<1>);
+	printf(C"getValue<2> = %d\n", getValue<2>);
+	printf(C"getValue<3> = %d\n", getValue<3>);
+	printf(C"getValue<4> = %d\n", getValue<4>);
+	printf(C"getValue<5> = %d\n", getValue<5>);
+	return 0;
+}
+

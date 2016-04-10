@@ -1,0 +1,36 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.Create: Value = 10
+// CHECK: getValue: Value = 10
+// CHECK: TestClass.Create: Value = 15
+// CHECK: doSomething: Value = 15
+
+import void printf(const ubyte * str, ...);
+
+class TestClass(int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	int getValue() {
+		printf(C"getValue: Value = %d\n", @value);
+		return @value;
+	}
+	
+	void doSomething() {
+		printf(C"doSomething: Value = %d\n", @value);
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto testInstance = TestClass(10);
+	
+	auto testInstance2 = TestClass(testInstance.getValue() + 5);
+	
+	testInstance2.doSomething();
+	
+	return 0;
+}
+

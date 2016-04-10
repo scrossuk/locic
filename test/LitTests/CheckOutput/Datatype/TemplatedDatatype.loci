@@ -1,0 +1,46 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: printBasicDatatype: data = TestBasicDatatype(a = 9, b = 99, c = 999)
+// CHECK: printUnionDatatype: data = TestUnionDatatype0(a = 9)
+// CHECK: printUnionDatatype: data = TestUnionDatatype1(a = 9, b = 99)
+// CHECK: printUnionDatatype: data = TestUnionDatatype2(a = 9, b = 99, c = 999)
+
+import void printf(const ubyte * str, ...);
+
+template <typename T : movable_t>
+datatype TestBasicDatatype(T a, T b, T c);
+
+template <typename T : movable_t>
+datatype TestUnionDatatype =
+	TestUnionDatatype0(T a) |
+	TestUnionDatatype1(T a, T b) |
+	TestUnionDatatype2(T a, T b, T c);
+
+void printBasicDatatype(TestBasicDatatype<int> data) {
+	printf(C"printBasicDatatype: data = TestBasicDatatype(a = %d, b = %d, c = %d)\n",
+		data.a, data.b, data.c);
+}
+
+void printUnionDatatype(TestUnionDatatype<int> data) {
+	switch (move data) {
+		case TestUnionDatatype0<int>(int a) {
+			printf(C"printUnionDatatype: data = TestUnionDatatype0(a = %d)\n", a);
+		}
+		case TestUnionDatatype1<int>(int a, int b) {
+			printf(C"printUnionDatatype: data = TestUnionDatatype1(a = %d, b = %d)\n", a, b);
+		}
+		case TestUnionDatatype2<int>(int a, int b, int c) {
+			printf(C"printUnionDatatype: data = TestUnionDatatype2(a = %d, b = %d, c = %d)\n", a, b, c);
+		}
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printBasicDatatype(TestBasicDatatype<int>(9, 99, 999));
+	printUnionDatatype(TestUnionDatatype0<int>(9));
+	printUnionDatatype(TestUnionDatatype1<int>(9, 99));
+	printUnionDatatype(TestUnionDatatype2<int>(9, 99, 999));
+	return 0;
+}
+

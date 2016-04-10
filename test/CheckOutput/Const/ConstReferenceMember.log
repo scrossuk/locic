@@ -1,3 +1,0 @@
-mutableInst.getValue() = 10
-constInst.getValue() = 10
-constInst.getValue() = 20 (after modification)

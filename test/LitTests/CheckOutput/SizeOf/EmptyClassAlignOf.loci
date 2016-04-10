@@ -1,0 +1,16 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: alignof(EmptyClass) = 1
+// CHECK: EmptyClass.__alignmask() = 0
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class EmptyClass() { }
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"alignof(EmptyClass) = %llu\n", alignof(EmptyClass).cast<ulonglong_t>());
+	printf(C"EmptyClass.__alignmask() = %llu\n", EmptyClass.__alignmask().cast<ulonglong_t>());
+	return 0;
+}
+

@@ -1,0 +1,39 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: sizeof(UnionInt32Float) = 4
+// CHECK: UnionInt32Float.__sizeof() = 4
+// CHECK: sizeof(UnionInt8Float) = 4
+// CHECK: UnionInt8Float.__sizeof() = 4
+// CHECK: sizeof(UnionInt8Int16) = 2
+// CHECK: UnionInt8Int16.__sizeof() = 2
+
+import void printf(const ubyte * str, ...);
+
+union UnionInt32Float {
+	int32_t intValue;
+	float floatValue;
+};
+
+union UnionInt8Float {
+	int8_t intValue;
+	float floatValue;
+};
+
+union UnionInt8Int16 {
+	int8_t int8Value;
+	int16_t int16Value;
+};
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"sizeof(UnionInt32Float) = %llu\n", sizeof(UnionInt32Float).cast<ulonglong_t>());
+	printf(C"UnionInt32Float.__sizeof() = %llu\n", UnionInt32Float.__sizeof().cast<ulonglong_t>());
+	
+	printf(C"sizeof(UnionInt8Float) = %llu\n", sizeof(UnionInt8Float).cast<ulonglong_t>());
+	printf(C"UnionInt8Float.__sizeof() = %llu\n", UnionInt8Float.__sizeof().cast<ulonglong_t>());
+	
+	printf(C"sizeof(UnionInt8Int16) = %llu\n", sizeof(UnionInt8Int16).cast<ulonglong_t>());
+	printf(C"UnionInt8Int16.__sizeof() = %llu\n", UnionInt8Int16.__sizeof().cast<ulonglong_t>());
+	return 0;
+}
+

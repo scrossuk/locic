@@ -1,0 +1,62 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass1.Create: Value = 100
+// CHECK: TestClass1.getValue: Value = 100
+// CHECK: polymorphicPrint: Value = 100
+// CHECK: TestClass2.Create: Value = 200
+// CHECK: TestClass2.getValue: Value = 200
+// CHECK: polymorphicPrint: Value = 200
+
+import void printf(const ubyte * str, ...);
+
+// First interface implementation.
+class TestClass1 (int value) {
+	static Create(int value) {
+		printf(C"TestClass1.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	int getValue() {
+		printf(C"TestClass1.getValue: Value = %d\n", @value);
+		return @value;
+	}
+	
+}
+
+// Second interface implementation.
+class TestClass2 (int value) {
+	static Create(int value) {
+		printf(C"TestClass2.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	int getValue() {
+		printf(C"TestClass2.getValue: Value = %d\n", @value);
+		return @value;
+	}
+	
+}
+
+// Interface definition.
+interface TestInterface {
+	int getValue();
+}
+
+void polymorphicPrint(TestInterface& object) {
+	int value = object.getValue();
+	printf(C"polymorphicPrint: Value = %d\n", value);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto testInstance1 = TestClass1(100);
+	
+	polymorphicPrint(testInstance1);
+	
+	auto testInstance2 = TestClass2(200);
+	
+	polymorphicPrint(testInstance2);
+	
+	return 0;
+}
+

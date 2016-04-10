@@ -1,0 +1,47 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: i = 4
+// CHECK: main: j = 5
+// CHECK: TestClass.Create: Value = 6
+// CHECK: TestClass.getValue: Value = 6
+// CHECK: main: inst1 = 6
+// CHECK: TestClass.getValue: Value = 6
+// CHECK: TestClass.Create: Value = 12
+// CHECK: TestClass.getValue: Value = 12
+// CHECK: main: inst2 = 12
+
+import void printf(const ubyte * str, ...);
+
+class TestClass (final int value) {
+	static Create(int value) {
+		printf(C"TestClass.Create: Value = %d\n", value);
+		return @(value);
+	}
+	
+	int getValue() {
+		printf(C"TestClass.getValue: Value = %d\n", @value);
+		return @value;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int i = 4;
+	
+	printf(C"main: i = %d\n", i);
+	
+	final int j = 5;
+	
+	printf(C"main: j = %d\n", j);
+	
+	TestClass inst1 = TestClass(6);
+	
+	printf(C"main: inst1 = %d\n", inst1.getValue());
+	
+	TestClass inst2 = TestClass(inst1.getValue() * 2);
+	
+	printf(C"main: inst2 = %d\n", inst2.getValue());
+	
+	return 0;
+}
+

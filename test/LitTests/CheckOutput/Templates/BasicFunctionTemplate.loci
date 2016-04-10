@@ -1,0 +1,23 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: i = 20
+// CHECK: f = 20.000000
+
+import void printf(const ubyte * str, ...);
+
+template <typename T : movable_t>
+T function(T arg) {
+	return move arg;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	int i = function<int>(20);
+	printf(C"i = %d\n", i);
+	
+	float f = function<float>(20.0f);
+	printf(C"f = %f\n", f);
+	
+	return 0;
+}
+

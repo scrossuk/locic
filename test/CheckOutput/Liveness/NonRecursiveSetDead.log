@@ -1,8 +1,0 @@
-OuterType.create()
-OuterType.create()
-OuterType.__moveto() - begin
-InnerType.__islive()
-InnerType.__moveto()
-InnerType.__setdead()
-OuterType.__moveto() - end
-OuterType.~()

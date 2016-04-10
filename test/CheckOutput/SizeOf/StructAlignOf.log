@@ -1,9 +1,0 @@
-alignof(A) = 1
-alignof(B) = 2
-alignof(C) = 4
-alignof(D) = 8
-alignof(E) = 8
-alignof(F) = 4
-alignof(G) = 8
-alignof(H) = 8
-alignof(I) = 8

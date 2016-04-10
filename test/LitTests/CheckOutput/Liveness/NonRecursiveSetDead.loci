@@ -1,0 +1,63 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: OuterType.create()
+// CHECK: OuterType.create()
+// CHECK: OuterType.__moveto() - begin
+// CHECK: InnerType.__islive()
+// CHECK: InnerType.__moveto()
+// CHECK: InnerType.__setdead()
+// CHECK: OuterType.__moveto() - end
+// CHECK: OuterType.~()
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class InnerType() {
+	static create() noexcept {
+		return @();
+	}
+	
+	bool __islive() const noexcept {
+		printf(C"InnerType.__islive()\n");
+		return true;
+	}
+	
+	void __setdead() noexcept {
+		printf(C"InnerType.__setdead()\n");
+	}
+	
+	void __moveto(unused void* dest, unused size_t offset) noexcept {
+		printf(C"InnerType.__moveto()\n");
+	}
+}
+
+class OuterType(InnerType inner) {
+	static create() noexcept {
+		printf(C"OuterType.create()\n");
+		return @(InnerType());
+	}
+	
+	~ {
+		printf(C"OuterType.~()\n");
+	}
+	
+	void __moveto(void* dest, size_t offset) noexcept {
+		printf(C"OuterType.__moveto() - begin\n");
+		@inner.__moveto(dest, offset);
+		printf(C"OuterType.__moveto() - end\n");
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	// Check that default __setdead does NOT recurse and hence does
+	// NOT set the member to a dead state.
+	auto outer = OuterType();
+	outer.__setdead();
+	
+	// Check that __moveto DOES recurse and hence DOES set the
+	// member to a dead state.
+	auto sourceOuter = OuterType();
+	sourceOuter.__moveto(reinterpret_cast<OuterType*, void*>(&outer), 0u);
+	return 0;
+}
+

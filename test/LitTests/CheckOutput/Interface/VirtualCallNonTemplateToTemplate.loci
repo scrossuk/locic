@@ -1,0 +1,40 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Value is 42
+
+import void printf(const ubyte * str, ...);
+
+interface IntReceiver {
+	void send(int object);
+}
+
+void passToMethod(IntReceiver& receiver, int value) {
+	receiver.send(value);
+}
+
+template <typename T : movable_t>
+class ValueReceiver(T object) {
+	static create(T object) {
+		return @(move object);
+	}
+	
+	void send(T object) {
+		@object = move object;
+	}
+	
+	const T& get() const {
+		return @object;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto valueReceiver = ValueReceiver<int>(20);
+	
+	passToMethod(valueReceiver, 42);
+	
+	printf(C"Value is %d\n", valueReceiver.get());
+	
+	return 0;
+}
+

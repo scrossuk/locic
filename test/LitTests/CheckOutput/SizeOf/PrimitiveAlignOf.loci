@@ -1,0 +1,25 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: alignof(byte) = 1
+// CHECK: alignof(short) = 2
+// CHECK: alignof(int) = 4
+// CHECK: alignof(long) = 8
+// CHECK: alignof(long long) = 8
+// CHECK: alignof(float) = 4
+// CHECK: alignof(double) = 8
+
+import void printf(const ubyte * str, ...);
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"alignof(byte) = %llu\n", alignof(byte).cast<ulonglong_t>());
+	printf(C"alignof(short) = %llu\n", alignof(short).cast<ulonglong_t>());
+	printf(C"alignof(int) = %llu\n", alignof(int).cast<ulonglong_t>());
+	printf(C"alignof(long) = %llu\n", alignof(long).cast<ulonglong_t>());
+	printf(C"alignof(long long) = %llu\n", alignof(long long).cast<ulonglong_t>());
+	
+	printf(C"alignof(float) = %llu\n", alignof(float).cast<ulonglong_t>());
+	printf(C"alignof(double) = %llu\n", alignof(double).cast<ulonglong_t>());
+	return 0;
+}
+

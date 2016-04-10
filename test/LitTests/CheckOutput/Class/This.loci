@@ -1,0 +1,29 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestClass.printValue: Value = 12123
+// CHECK: TestClass.printValue: Value = 12123
+
+import void printf(const ubyte * str, ...);
+
+// Class definition.
+class TestClass(int value) {
+	static Create = default;
+	
+	void printValue() {
+		printf(C"TestClass.printValue: Value = %d\n", @value);
+	}
+	
+	void printValueTwice() {
+		this->printValue();
+		this->printValue();
+	}
+	
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto testObject = TestClass(12123);
+	testObject.printValueTwice();
+	return 0;
+}
+

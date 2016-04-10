@@ -1,0 +1,27 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: passThrough<int>(2000) = 2000
+// CHECK: passThrough<float>(2000.0f) = 2000.000000
+
+import void printf(const ubyte * str, ...);
+
+template <typename S : movable_t>
+class TestClass(S object) {
+	static create = default;
+	
+	template <typename T : movable_t>
+	T passThrough(T object) {
+		return move object;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass<int> testObject = TestClass<int>(1);
+	
+	printf(C"passThrough<int>(2000) = %d\n", testObject.passThrough<int>(2000));
+	printf(C"passThrough<float>(2000.0f) = %f\n", testObject.passThrough<float>(2000.0f));
+	
+	return 0;
+}
+

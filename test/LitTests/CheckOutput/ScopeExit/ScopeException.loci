@@ -1,0 +1,87 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: testFunction: Throw
+// CHECK: testFunction: Function failure
+// CHECK: testFunction: Function exit
+// CHECK: main: Scope failure
+// CHECK: main: Scope exit
+// CHECK: main: Catch TestError
+// CHECK: main: Loop end
+// CHECK: main: Loop exit
+// CHECK: testFunction: Return
+// CHECK: testFunction: Function success
+// CHECK: testFunction: Function exit
+// CHECK: main: Function didn't throw
+// CHECK: main: Scope success
+// CHECK: main: Scope exit
+// CHECK: main: Loop end
+// CHECK: main: Loop exit
+// CHECK: main: Program exit
+
+import void printf(const ubyte * str, ...) noexcept;
+
+exception TestError();
+
+void testFunction(int i) {
+	scope (exit) {
+		printf(C"testFunction: Function exit\n");
+	}
+	
+	scope (success) {
+		printf(C"testFunction: Function success\n");
+	}
+	
+	scope (failure) {
+		printf(C"testFunction: Function failure\n");
+	}
+	
+	if (i == 0) {
+		printf(C"testFunction: Throw\n");
+		throw TestError();
+	} else {
+		printf(C"testFunction: Return\n");
+		return;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	scope (exit) {
+		printf(C"main: Program exit\n");
+	}
+	
+	int i = 0;
+	
+	while (i < 2) {
+		scope (exit) {
+			printf(C"main: Loop exit\n");
+		}
+		
+		try {
+			scope (exit) {
+				printf(C"main: Scope exit\n");
+			}
+			
+			scope (success) {
+				printf(C"main: Scope success\n");
+			}
+			
+			scope (failure) {
+				printf(C"main: Scope failure\n");
+			}
+			
+			testFunction(i);
+			
+			printf(C"main: Function didn't throw\n");
+		} catch (TestError error) {
+			printf(C"main: Catch TestError\n");
+		}
+		
+		i += 1;
+		
+		printf(C"main: Loop end\n");
+	}
+	
+	return 0;
+}
+

@@ -1,0 +1,18 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Caught empty exception!
+
+import void printf(const ubyte * str, ...);
+
+exception ExampleEmptyError();
+
+export int main(unused int argc, unused ubyte ** argv) {
+	try {
+		throw ExampleEmptyError();
+	} catch (ExampleEmptyError error) {
+		printf(C"Caught empty exception!\n");
+	}
+	return 0;
+}
+

@@ -1,0 +1,33 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: main: Add outer scope exit #1
+// CHECK: main: Add inner scope exit
+// CHECK: main: Inner scope exit
+// CHECK: main: Add outer scope exit #2
+// CHECK: main: Outer scope exit #2
+// CHECK: main: Outer scope exit #1
+
+import void printf(const ubyte * str, ...) noexcept;
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"main: Add outer scope exit #1\n");
+	scope (exit) {
+		printf(C"main: Outer scope exit #1\n");
+	}
+	
+	{
+		printf(C"main: Add inner scope exit\n");
+		scope (exit) {
+			printf(C"main: Inner scope exit\n");
+		}
+	}
+	
+	printf(C"main: Add outer scope exit #2\n");
+	scope (exit) {
+		printf(C"main: Outer scope exit #2\n");
+	}
+	
+	return 0;
+}
+

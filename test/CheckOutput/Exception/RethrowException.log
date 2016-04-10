@@ -1,3 +1,0 @@
-functionThatThrows: Throwing exception.
-intermediateFunction: Caught exception with value 8080!
-testEntryPoint: Caught exception with value 8080!

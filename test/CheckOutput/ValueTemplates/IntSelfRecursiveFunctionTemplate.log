@@ -1,5 +1,0 @@
-getValue<1>(true) = 2
-getValue<2>(true) = 3
-getValue<3>(true) = 4
-getValue<4>(true) = 5
-getValue<5>(true) = 6

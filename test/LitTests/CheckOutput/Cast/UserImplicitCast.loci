@@ -1,0 +1,48 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: SourceClass: value = 45
+// CHECK: DestClass: value = 225
+
+import void printf(const ubyte * str, ...) noexcept;
+
+// Class definition.
+class DestClass(int value) {
+	static implicitCastSourceClass(const SourceClass& object) {
+		return @(object.value() * 5);
+	}
+	
+	int value() const {
+		return @value;
+	}
+}
+
+template <typename T>
+require(is_movable<T>)
+interface CastFromSourceClass {
+	static T implicitCastSourceClass(const SourceClass& object);
+}
+
+class SourceClass(int value) {
+	static create = default;
+	
+	template <typename T>
+	T implicitCast() const require(T : CastFromSourceClass<T> and is_movable<T>) {
+		return T.implicitCastSourceClass(self);
+	}
+	
+	int value() const {
+		return @value;
+	}
+	
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	SourceClass originalObject = SourceClass(45);
+	DestClass castedObject = originalObject;
+	
+	printf(C"SourceClass: value = %d\n", originalObject.value());
+	printf(C"DestClass: value = %d\n", castedObject.value());
+	return 0;
+}
+

@@ -1,0 +1,29 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: checkValue: TestData<bool>(false)
+// CHECK: checkValue: TestData<bool>(true)
+
+import void printf(const ubyte * str, ...);
+
+template <typename T>
+datatype TestData(T v);
+
+void checkValue(TestData<bool> data) {
+	if (data == TestData<bool>(false)) {
+		printf(C"checkValue: TestData<bool>(false)\n");
+		return;
+	}
+	
+	if (data == TestData<bool>(true)) {
+		printf(C"checkValue: TestData<bool>(true)\n");
+		return;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	checkValue(TestData<bool>(false));
+	checkValue(TestData<bool>(true));
+	return 0;
+}
+

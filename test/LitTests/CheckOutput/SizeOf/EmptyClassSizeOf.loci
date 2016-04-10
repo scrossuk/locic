@@ -1,0 +1,16 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: sizeof(EmptyClass) = 1
+// CHECK: EmptyClass.__sizeof() = 1
+
+import void printf(const ubyte * str, ...) noexcept;
+
+class EmptyClass() { }
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"sizeof(EmptyClass) = %llu\n", sizeof(EmptyClass).cast<ulonglong_t>());
+	printf(C"EmptyClass.__sizeof() = %llu\n", EmptyClass.__sizeof().cast<ulonglong_t>());
+	return 0;
+}
+

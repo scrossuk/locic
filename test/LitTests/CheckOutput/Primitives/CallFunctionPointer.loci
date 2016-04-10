@@ -1,0 +1,100 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: callFunction0
+// CHECK: functionToBeCalled0
+// CHECK: callFunction0
+// CHECK: functionToBeCalled0
+// CHECK: callFunction1
+// CHECK: functionToBeCalled1
+// CHECK: value0 = 1
+// CHECK: callFunction1
+// CHECK: functionToBeCalled1
+// CHECK: value0 = 2
+// CHECK: callFunction2
+// CHECK: functionToBeCalled2
+// CHECK: value0 = 1
+// CHECK: value1 = 3
+// CHECK: callFunction2
+// CHECK: functionToBeCalled2
+// CHECK: value0 = 2
+// CHECK: value1 = 4
+// CHECK: callFunction3
+// CHECK: functionToBeCalled3
+// CHECK: value0 = 1
+// CHECK: value1 = 3
+// CHECK: value2 = 5
+// CHECK: callFunction3
+// CHECK: functionToBeCalled3
+// CHECK: value0 = 2
+// CHECK: value1 = 4
+// CHECK: value2 = 6
+
+import void printf(const ubyte * str, ...) noexcept;
+
+void functionToBeCalled0() {
+	printf(C"functionToBeCalled0\n");
+}
+
+void callFunction0((*)(void)() function) {
+	printf(C"callFunction0\n");
+	function();
+}
+
+void functionToBeCalled1(int value0) {
+	printf(C"functionToBeCalled1\n");
+	printf(C"value0 = %d\n", value0);
+}
+
+void callFunction1((*)(void)(int) function, int value0) {
+	printf(C"callFunction1\n");
+	function(value0);
+}
+
+void functionToBeCalled2(int value0, int value1) {
+	printf(C"functionToBeCalled2\n");
+	printf(C"value0 = %d\n", value0);
+	printf(C"value1 = %d\n", value1);
+}
+
+void callFunction2((*)(void)(int, int) function, int value0, int value1) {
+	printf(C"callFunction2\n");
+	function(value0, value1);
+}
+
+void functionToBeCalled3(int value0, int value1, int value2) {
+	printf(C"functionToBeCalled3\n");
+	printf(C"value0 = %d\n", value0);
+	printf(C"value1 = %d\n", value1);
+	printf(C"value2 = %d\n", value2);
+}
+
+void callFunction3((*)(void)(int, int, int) function, int value0, int value1, int value2) {
+	printf(C"callFunction3\n");
+	function(value0, value1, value2);
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	{
+		auto function = functionToBeCalled0;
+		callFunction0(function);
+		callFunction0(functionToBeCalled0);
+	}
+	{
+		auto function = functionToBeCalled1;
+		callFunction1(function, 1);
+		callFunction1(functionToBeCalled1, 2);
+	}
+	{
+		auto function = functionToBeCalled2;
+		callFunction2(function, 1, 3);
+		callFunction2(functionToBeCalled2, 2, 4);
+	}
+	{
+		auto function = functionToBeCalled3;
+		callFunction3(function, 1, 3, 5);
+		callFunction3(functionToBeCalled3, 2, 4, 6);
+	}
+	return 0;
+}
+
