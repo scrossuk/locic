@@ -21,6 +21,7 @@
 #include <locic/CodeGen/CodeGenerator.hpp>
 #include <locic/CodeGen/Context.hpp>
 #include <locic/CodeGen/Interpreter.hpp>
+#include <locic/CodeGen/Linker.hpp>
 #include <locic/CodeGen/ModulePtr.hpp>
 #include <locic/CodeGen/TargetOptions.hpp>
 #include <locic/SemanticAnalysis.hpp>
@@ -215,6 +216,42 @@ Optional<CompilerOptions> parseOptions(const int argc, char* argv[]) {
 	return make_optional(std::move(options));
 }
 
+struct module_info {
+	const char* name;
+	const char* version;
+	const char* const * api_files;
+	const char* const * binary_files;
+	const char* const * dependencies;
+};
+
+extern const struct module_info* const std_modules[];
+
+class StandardModuleMap {
+public:
+	StandardModuleMap() {
+		for (size_t i = 0; std_modules[i] != nullptr; i++) {
+			addModule(std_modules[i]);
+		}
+	}
+	
+	void addModule(const module_info* const module) {
+		const auto name = module->name;
+		modules_.insert(std::make_pair(name, std::move(module)));
+	}
+	
+	const module_info* getModule(const std::string& name) const {
+		const auto iterator = modules_.find(name);
+		if (iterator == modules_.end()) {
+			return nullptr;
+		}
+		return iterator->second;
+	}
+	
+private:
+	std::map<std::string, const module_info*> modules_;
+	
+};
+
 class Driver {
 public:
 	Driver(const CompilerOptions& options)
@@ -235,11 +272,53 @@ public:
 		renderer.emitDiagnosticSummary(std::cout);
 	}
 	
+	void addFilesForModule(const std::string& moduleName,
+	                       const std::string& version) {
+		if (modulesAdded_.find(moduleName) != modulesAdded_.end()) {
+			return;
+		}
+		
+		const auto moduleInfo = moduleMap_.getModule(moduleName);
+		if (moduleInfo == nullptr) {
+			printf("ERROR: Failed to find module '%s'\n",
+			       moduleName.c_str());
+			return;
+		}
+		
+		for (size_t i = 0; moduleInfo->api_files[i]; i++) {
+			files_.push_back(moduleInfo->api_files[i]);
+		}
+		
+		for (size_t i = 0; moduleInfo->binary_files[i]; i++) {
+			modules_.push_back(moduleInfo->binary_files[i]);
+		}
+		
+		for (size_t i = 0; moduleInfo->dependencies[i]; i++) {
+			addFilesForModule(moduleInfo->dependencies[i], version);
+		}
+		
+		modulesAdded_.insert(moduleName);
+	}
+	
+	void addModuleFiles() {
+		for (const auto& filename: options_.inputFileNames) {
+			const auto pos = filename.find(":");
+			if (pos == std::string::npos) {
+				files_.push_back(filename);
+				continue;
+			}
+			
+			const auto moduleName = filename.substr(0, pos);
+			const auto version = filename.substr(pos+1);
+			addFilesForModule(moduleName, version);
+		}
+	}
+	
 	bool runParser(AST::NamespaceList& astRootNamespaceList) {
 		Timer timer;
 		bool success = true;
 		
-		for (const auto& filename: options_.inputFileNames) {
+		for (const auto& filename: files_) {
 			const auto file = (filename == "BuiltInTypes.loci") ? builtInTypesFile() : fopen(filename.c_str(), "rb");
 			
 			if (file == nullptr) {
@@ -272,7 +351,7 @@ public:
 		std::ofstream ofs(options_.astDebugFileName.c_str(), std::ios_base::binary);
 		
 		for (size_t i = 0; i < astRootNamespaceList.size(); i++) {
-			const std::string spacedFileName = generateSpacedText(options_.inputFileNames.at(i), 20);
+			const std::string spacedFileName = generateSpacedText(files_[i], 20);
 			ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
 			ofs << spacedFileName << std::endl;
 			ofs << makeRepeatChar('=', spacedFileName.length()) << std::endl;
@@ -401,7 +480,15 @@ public:
 	}
 	
 	int interpret(CodeGen::Context& codeGenContext, CodeGen::ModulePtr module) {
-		CodeGen::Interpreter interpreter(codeGenContext, std::move(module));
+		// Link with any of the dependencies.
+		CodeGen::Linker linker(codeGenContext, std::move(module));
+		
+		for (const auto& dependencyModuleName: modules_) {
+			linker.loadModule(dependencyModuleName);
+		}
+		
+		CodeGen::Interpreter interpreter(codeGenContext,
+		                                 linker.releaseModule());
 		
 		// Treat entry point function as if it is 'main' by passing in
 		// a fake program name.
@@ -416,6 +503,10 @@ private:
 	const CompilerOptions& options_;
 	DiagnosticArray diagArray_;
 	SharedMaps sharedMaps_;
+	StandardModuleMap moduleMap_;
+	std::set<std::string> modulesAdded_;
+	std::vector<std::string> files_;
+	std::vector<std::string> modules_;
 	
 };
 
@@ -447,6 +538,8 @@ int main(int argc, char* argv[]) {
 	
 	try {
 		Driver driver(*options);
+		
+		driver.addModuleFiles();
 		
 		AST::NamespaceList astRootNamespaceList;
 		
