@@ -1,1 +1,0 @@
-Cannot refer to mutator method 'modify' from const object of type 'const\(TemplateVarType\(templateVar: TemplateVar\(name = ::function::T, index = 0\)\)\)' at position SourceLocation\(filename = (.*)/CallNonConstMethodOnConstTemplateVar\.loci, range = \(line 7, column 2\) to \(line 7, column 15\)\)\.

@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Cannot find static method '__sizeof' for type 'TemplateVarType(templateVar: TemplateVar(name = ::getTypeSize::T, index = 0))' at position SourceLocation(filename = {{.*}}/SizeOfUnsizedTemplateType.loci, range = (line 8, column 9) to (line 8, column 18)).
+
+template <typename T>
+size_t getTypeSize() {
+	return sizeof(T);
+}

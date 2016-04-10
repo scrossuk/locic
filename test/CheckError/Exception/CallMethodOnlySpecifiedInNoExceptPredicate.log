@@ -1,1 +1,0 @@
-Can't access member 'doOtherThing' in type 'TemplateVarType\(templateVar: TemplateVar\(name = ::doThing::T, index = 0\)\)' at position SourceLocation\(filename = (.*)/CallMethodOnlySpecifiedInNoExceptPredicate\.loci, range = \(line 13, column 2\) to \(line 13, column 21\)\)\.

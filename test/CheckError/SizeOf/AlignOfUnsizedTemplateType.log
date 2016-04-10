@@ -1,1 +1,0 @@
-Cannot find static method '__alignmask' for type 'TemplateVarType\(templateVar: TemplateVar\(name = ::getTypeAlign::T, index = 0\)\)' at position SourceLocation\(filename = (.*)/AlignOfUnsizedTemplateType\.loci, range = \(line 3, column 9\) to \(line 3, column 19\)\)\.

@@ -1,5 +1,0 @@
-struct OpaqueStruct;
-
-OpaqueStruct* plusOne(OpaqueStruct* ptr) {
-	return ptr + 1u;
-}

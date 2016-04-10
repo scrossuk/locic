@@ -1,1 +1,0 @@
-Template arguments do not satisfy require predicate 'and\(satisfies\(type: int_t, requirement: comparable_t<int_t>\), satisfies\(type: TestClass, requirement: comparable_t<TestClass>\)\)' of method 'compare' at position SourceLocation\(filename = (.*)/ComparePartiallyNonComparableDatatype\.loci, range = \(line 8, column 9\) to \(line 8, column 15\)\)\.

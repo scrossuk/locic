@@ -1,1 +1,0 @@
-Variable name 'value' at position SourceLocation\(filename = (.*)/DuplicateMemberVar\.loci, range = \(line 1, column 28\) to \(line 1, column 37\)\) duplicates existing variable of the same name at position SourceLocation\(filename = (.*)/DuplicateMemberVar\.loci, range = \(line 1, column 17\) to \(line 1, column 26\)\)\.

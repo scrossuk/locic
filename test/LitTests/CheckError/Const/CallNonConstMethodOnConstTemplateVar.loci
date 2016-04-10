@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Cannot refer to mutator method 'modify' from const object of type 'const(TemplateVarType(templateVar: TemplateVar(name = ::function::T, index = 0)))' at position SourceLocation(filename = {{.*}}/CallNonConstMethodOnConstTemplateVar.loci, range = (line 12, column 2) to (line 12, column 15)).
+
+interface Changeable {
+	void modify();
+}
+
+template <typename T>
+void function(const T& object) require(T : Changeable) {
+	object.modify();
+}

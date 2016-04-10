@@ -1,0 +1,15 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: User cast failed from type 'null_t' to type 'notag(TestClass)' at position SourceLocation(filename = {{.*}}/NoNullConstructor.loci, range = (line 12, column 2) to (line 12, column 26)).
+
+class TestClass(int value) {
+	static Create = default;
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	TestClass object = null;
+	return 0;
+}
+

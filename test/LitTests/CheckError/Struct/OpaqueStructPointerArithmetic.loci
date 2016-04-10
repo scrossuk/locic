@@ -1,0 +1,10 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Template arguments do not satisfy require predicate 'satisfies(type: OpaqueStruct, requirement: sized_type_t)' of method 'add' at position SourceLocation(filename = {{.*}}/OpaqueStructPointerArithmetic.loci, range = (line 9, column 9) to (line 9, column 17)).
+
+struct OpaqueStruct;
+
+OpaqueStruct* plusOne(OpaqueStruct* ptr) {
+	return ptr + 1u;
+}

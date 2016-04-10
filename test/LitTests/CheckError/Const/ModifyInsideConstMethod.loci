@@ -1,0 +1,20 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Cannot refer to mutator method 'assign' from const object of type 'lval<const(int_t)>(const(value_lval_t<const(int_t)>))' at position SourceLocation(filename = {{.*}}/ModifyInsideConstMethod.loci, range = (line 10, column 3) to (line 10, column 16)).
+
+class TestClass(int value) {
+	static create = default;
+	
+	void modify() const {
+		@value = 100;
+	}
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	const TestClass object = TestClass(10);
+	object.modify();
+	return 0;
+}
+

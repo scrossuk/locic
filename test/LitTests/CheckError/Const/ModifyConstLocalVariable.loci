@@ -1,0 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Template arguments do not satisfy require predicate 'satisfies(type: const(int_t), requirement: movable_t)' of method 'assign' at position SourceLocation(filename = {{.*}}/ModifyConstLocalVariable.loci, range = (line 9, column 2) to (line 9, column 12)).
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	const int value = 0;
+	value = 1;
+	return 0;
+}
+

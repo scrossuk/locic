@@ -1,6 +1,0 @@
-# Template tests.
-
-test_check_error(IncorrectTemplateType)
-test_check_error(InvalidAliasTemplateVarType)
-test_check_error(InvalidTypeInstanceTemplateVarType)
-

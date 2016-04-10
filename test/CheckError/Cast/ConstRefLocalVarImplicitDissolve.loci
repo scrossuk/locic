@@ -1,3 +1,0 @@
-export void function(const int& constValueRef) {
-	unused int& valueRef = constValueRef;
-}

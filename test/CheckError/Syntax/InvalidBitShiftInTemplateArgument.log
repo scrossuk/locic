@@ -1,4 +1,0 @@
-(.*)/InvalidBitShiftInTemplateArgument.loci:8:13: error: Expected 'NAME'; got 'RTRIBRACKET'.
-(.*)/InvalidBitShiftInTemplateArgument.loci:8:16: error: Expected 'LROUNDBRACKET'; got 'RTRIBRACKET'.
-(.*)/InvalidBitShiftInTemplateArgument.loci:12:58: error: Expected 'NAME'; got 'RTRIBRACKET'.
-(.*)/InvalidBitShiftInTemplateArgument.loci:12:61: error: Expected 'RROUNDBRACKET'; got 'RTRIBRACKET'.

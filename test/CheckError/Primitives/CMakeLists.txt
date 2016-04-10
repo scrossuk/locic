@@ -1,5 +1,0 @@
-# Primitive tests.
-
-test_check_error(InvalidConstantStaticArraySizeParameter)
-test_check_error(InvalidTemplateStaticArraySizeParameter)
-

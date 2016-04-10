@@ -1,0 +1,86 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:45:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:46:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:47:10: warning: Operand of bitwise and depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:48:10: warning: Operand of bitwise or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:49:10: warning: Operand of logical and depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:50:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:51:10: warning: Operand of ternary depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:53:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:54:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:55:10: warning: Operand of bitwise and depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:56:10: warning: Operand of bitwise or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:57:10: warning: Operand of logical and depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:58:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:59:10: warning: Operand of ternary depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:61:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:62:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:63:10: warning: Operand of bitwise and depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:64:10: warning: Operand of bitwise or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:65:10: warning: Operand of logical and depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:66:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:67:10: warning: Operand of ternary depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:69:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:70:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:71:10: warning: Operand of bitwise and depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:72:10: warning: Operand of bitwise or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:73:10: warning: Operand of logical and depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:74:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:75:10: warning: Operand of ternary depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:77:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:78:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:79:10: warning: Operand of bitwise and depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:80:10: warning: Operand of bitwise or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:81:10: warning: Operand of logical and depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:82:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidArithmeticOperatorCombinations.loci:83:10: warning: Operand of ternary depends on subtle precedence; add parentheses.
+
+
+// The point here is that any confusing operator precedence combinations are
+// disallowed; users can specify parentheses (and this is much clearer).
+export int testArithmeticOperatorSequence(int value) {
+	// Check all possibilities!
+	value = value + value << value;
+	value = value + value >> value;
+	value = value + value & value; // C precedence would make this (value + value) & value, which is considered confusing.
+	value = value + value | value;
+	value = value + value && value; // 'value + value' isn't a valid condition.
+	value = value + value || value;
+	value = value + value ? value : value;
+	
+	value = value - value << value;
+	value = value - value >> value;
+	value = value - value & value;
+	value = value - value | value;
+	value = value - value && value;
+	value = value - value || value;
+	value = value - value ? value : value;
+	
+	value = value * value << value;
+	value = value * value >> value;
+	value = value * value & value;
+	value = value * value | value;
+	value = value * value && value;
+	value = value * value || value;
+	value = value * value ? value : value;
+	
+	value = value / value << value;
+	value = value / value >> value;
+	value = value / value & value;
+	value = value / value | value;
+	value = value / value && value;
+	value = value / value || value;
+	value = value / value ? value : value;
+	
+	value = value % value << value;
+	value = value % value >> value;
+	value = value % value & value;
+	value = value % value | value;
+	value = value % value && value;
+	value = value % value || value;
+	value = value % value ? value : value;
+	
+	return value;
+}

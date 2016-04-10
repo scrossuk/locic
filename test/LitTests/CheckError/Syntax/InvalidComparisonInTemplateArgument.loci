@@ -1,0 +1,30 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:13:12: error: Expected 'RTRIBRACKET'; got 'LTRIBRACKET'.
+// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:16:15: error: Expected 'LROUNDBRACKET'; got 'RTRIBRACKET'.
+// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:24:63: error: Expected 'RTRIBRACKET'; got 'LTRIBRACKET'.
+// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:26:66: error: Expected 'RROUNDBRACKET'; got 'RTRIBRACKET'.
+
+template <bool V>
+class C () { }
+
+template <int A, int B>
+import C< A<B > testLessThanInTemplateArgument();
+
+template <int A, int B>
+import C< A>B > testMoreThanInTemplateArgument();
+
+template <int A, int B>
+import C< A==B > testIsEqualInTemplateArgument();
+
+template <int A, int B>
+import C< A!=B > testIsNotEqualInTemplateArgument();
+
+export void testLessThanInVariableTemplateArgument(unused C< A<B > value) { }
+
+export void testMoreThanInVariableTemplateArgument(unused C< A>B > value) { }
+
+export void testIsEqualInVariableTemplateArgument(unused C< A==B > value) { }
+
+export void testIsNotEqualInVariableTemplateArgument(unused C< A!=B > value) { }

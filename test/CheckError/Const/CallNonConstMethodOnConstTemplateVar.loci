@@ -1,8 +1,0 @@
-interface Changeable {
-	void modify();
-}
-
-template <typename T>
-void function(const T& object) require(T : Changeable) {
-	object.modify();
-}

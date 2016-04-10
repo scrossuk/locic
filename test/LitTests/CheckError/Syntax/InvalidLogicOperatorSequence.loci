@@ -1,0 +1,33 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: {{.*}}/InvalidLogicOperatorSequence.loci:16:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidLogicOperatorSequence.loci:18:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidLogicOperatorSequence.loci:20:19: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidLogicOperatorSequence.loci:21:19: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidLogicOperatorSequence.loci:25:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidLogicOperatorSequence.loci:26:10: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidLogicOperatorSequence.loci:28:19: warning: Operand of logical or depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidLogicOperatorSequence.loci:30:19: warning: Operand of logical or depends on subtle precedence; add parentheses.
+
+
+export int testLogicOperatorSequence(int value) {
+	// Check all possibilities!
+	value = value && value || value;
+	value = value && value and value;
+	value = value && value or value;
+	
+	value = value || value && value;
+	value = value || value and value;
+	value = value || value or value;
+	
+	value = value and value && value;
+	value = value and value || value;
+	value = value and value or value;
+	
+	value = value or value && value;
+	value = value or value || value;
+	value = value or value and value;
+	
+	return value;
+}

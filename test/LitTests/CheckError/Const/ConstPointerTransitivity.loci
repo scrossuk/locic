@@ -1,0 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Template arguments do not satisfy require predicate 'satisfies(type: const(int_t), requirement: movable_t)' of method 'assign' at position SourceLocation(filename = {{.*}}/ConstPointerTransitivity.loci, range = (line 11, column 2) to (line 11, column 18)).
+
+struct S {
+	int* p;
+};
+
+void f(const S* value) {
+	*(value->p) = 1;
+}

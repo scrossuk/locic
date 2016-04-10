@@ -1,1 +1,0 @@
-Cannot find static method '__alignmask' for type 'OpaqueStruct' at position SourceLocation\(filename = (.*)/OpaqueStructAlignOf\.loci, range = \(line 4, column 9\) to \(line 4, column 30\)\)\.

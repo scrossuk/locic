@@ -1,4 +1,0 @@
-(.*)/InvalidComparisonInTemplateArgument.loci:5:12: error: Expected 'RTRIBRACKET'; got 'LTRIBRACKET'.
-(.*)/InvalidComparisonInTemplateArgument.loci:8:15: error: Expected 'LROUNDBRACKET'; got 'RTRIBRACKET'.
-(.*)/InvalidComparisonInTemplateArgument.loci:16:63: error: Expected 'RTRIBRACKET'; got 'LTRIBRACKET'.
-(.*)/InvalidComparisonInTemplateArgument.loci:18:66: error: Expected 'RROUNDBRACKET'; got 'RTRIBRACKET'.

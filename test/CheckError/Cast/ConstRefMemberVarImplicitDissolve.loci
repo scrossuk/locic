@@ -1,7 +1,0 @@
-
-class TestClass(int& member) {
-	int& getRef() const {
-		// Error: member is const here.
-		return @member;
-	}
-}

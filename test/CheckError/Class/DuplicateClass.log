@@ -1,1 +1,0 @@
-Type instance name '::TestClass', at position SourceLocation\(filename = (.*)/DuplicateClass\.loci, range = \(line 5, column 1\) to \(line 7, column 2\)\), clashes with existing name, at position SourceLocation\(filename = (.*)/DuplicateClass\.loci, range = \(line 1, column 1\) to \(line 3, column 2\)\)\.

@@ -1,4 +1,0 @@
-# Exception tests.
-
-test_check_error(CallMethodOnlySpecifiedInNoExceptPredicate)
-test_check_error(NoExceptPredicateReverseImplication)

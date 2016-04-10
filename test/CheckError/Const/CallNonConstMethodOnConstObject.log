@@ -1,1 +1,0 @@
-Cannot refer to mutator method 'modify' from const object of type 'const\(TestClass\)' at position SourceLocation\(filename = (.*)/CallNonConstMethodOnConstObject\.loci, range = \(line 12, column 2\) to \(line 12, column 15\)\)\.

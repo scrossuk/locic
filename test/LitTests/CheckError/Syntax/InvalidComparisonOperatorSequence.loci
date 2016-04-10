@@ -1,0 +1,87 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:44:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:45:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:46:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:47:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:48:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:49:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:51:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:52:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:53:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:54:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:55:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:56:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:58:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:59:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:60:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:61:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:62:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:63:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:65:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:66:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:67:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:68:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:69:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:70:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:72:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:73:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:74:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:75:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:76:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:77:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:79:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:80:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:81:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:82:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:83:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidComparisonOperatorSequence.loci:84:10: warning: Operand of comparison depends on subtle precedence; add parentheses.
+
+
+export int testComparisonOperatorSequence(int value) {
+	// Check all possibilities!
+	value = value < value < value;
+	value = value < value <= value;
+	value = value < value > value;
+	value = value < value >= value;
+	value = value < value == value;
+	value = value < value != value;
+	
+	value = value <= value < value;
+	value = value <= value <= value;
+	value = value <= value > value;
+	value = value <= value >= value;
+	value = value <= value == value;
+	value = value <= value != value;
+	
+	value = value > value < value;
+	value = value > value <= value;
+	value = value > value > value;
+	value = value > value >= value;
+	value = value > value == value;
+	value = value > value != value;
+	
+	value = value >= value < value;
+	value = value >= value <= value;
+	value = value >= value > value;
+	value = value >= value >= value;
+	value = value >= value == value;
+	value = value >= value != value;
+	
+	value = value == value < value;
+	value = value == value <= value;
+	value = value == value > value;
+	value = value == value >= value;
+	value = value == value == value;
+	value = value == value != value;
+	
+	value = value != value < value;
+	value = value != value <= value;
+	value = value != value > value;
+	value = value != value >= value;
+	value = value != value == value;
+	value = value != value != value;
+	
+	return value;
+}

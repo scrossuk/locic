@@ -1,1 +1,0 @@
-Cannot refer to mutator method 'doSomething' from const object of type 'const\(TestClass<Constant\(BoolConstant\(false\)\)>\)' at position SourceLocation\(filename = (.*)/CallNonConstMethodOnConstPredicateObject\.loci, range = \(line 15, column 2\) to \(line 15, column 20\)\)\.

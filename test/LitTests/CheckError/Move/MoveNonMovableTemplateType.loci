@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Template arguments do not satisfy require predicate 'satisfies(type: TemplateVarType(templateVar: TemplateVar(name = ::moveObject::T, index = 0)), requirement: movable_t)' of method 'move' at position SourceLocation(filename = {{.*}}/MoveNonMovableTemplateType.loci, range = (line 8, column 16) to (line 8, column 27)).
+
+template <typename T>
+void moveObject(T object) {
+	unused_result move object;
+}

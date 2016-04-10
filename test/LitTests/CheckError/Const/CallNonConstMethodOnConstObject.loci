@@ -1,0 +1,20 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Cannot refer to mutator method 'modify' from const object of type 'const(TestClass)' at position SourceLocation(filename = {{.*}}/CallNonConstMethodOnConstObject.loci, range = (line 17, column 2) to (line 17, column 15)).
+
+class TestClass(int value) {
+	static create = default;
+	
+	void modify() {
+		@value = 100;
+	}
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	const TestClass object = TestClass(10);
+	object.modify();
+	return 0;
+}
+

@@ -1,0 +1,35 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Can't access member 'doOtherThing' in type 'TemplateVarType(templateVar: TemplateVar(name = ::doThing::T, index = 0))' at position SourceLocation(filename = {{.*}}/CallMethodOnlySpecifiedInNoExceptPredicate.loci, range = (line 18, column 2) to (line 18, column 21)).
+
+interface CanDoThing {
+	void doThing();
+}
+
+interface CanDoThingNoExcept {
+	void doThing() noexcept;
+	void doOtherThing() noexcept;
+}
+
+template <typename T>
+void doThing(T& object) noexcept(T : CanDoThingNoExcept) require(T : CanDoThing) {
+	object.doThing();
+	object.doOtherThing();
+}
+
+class TestClass() {
+	void doThing() { }
+}
+
+class TestClassNoExcept() {
+	void doThing() noexcept { }
+}
+
+void callDoThing(TestClass& object) {
+	doThing<TestClass>(object);
+}
+
+void callDoThingNoExcept(TestClassNoExcept& object) noexcept {
+	doThing<TestClassNoExcept>(object);
+}

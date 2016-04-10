@@ -1,0 +1,14 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Variable name 'value' at position SourceLocation(filename = {{.*}}/DuplicateMemberVar.loci, range = (line 6, column 28) to (line 6, column 37)) duplicates existing variable of the same name at position SourceLocation(filename = {{.*}}/DuplicateMemberVar.loci, range = (line 6, column 17) to (line 6, column 26)).
+
+class TestClass(int value, int value) {
+	static Create = default;
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	return 0;
+}
+

@@ -1,4 +1,0 @@
-(.*)/InvalidShiftOperatorSequence.loci:5:10: warning: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidShiftOperatorSequence.loci:6:10: warning: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidShiftOperatorSequence.loci:7:10: warning: Operand of shift depends on subtle precedence; add parentheses.
-(.*)/InvalidShiftOperatorSequence.loci:8:10: warning: Operand of shift depends on subtle precedence; add parentheses.

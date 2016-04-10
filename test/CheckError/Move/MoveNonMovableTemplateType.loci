@@ -1,4 +1,0 @@
-template <typename T>
-void moveObject(T object) {
-	unused_result move object;
-}

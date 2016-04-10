@@ -1,0 +1,21 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Can't implicitly cast value of type 'ref<lval<staticref<TestClass>(typename_t)>(value_lval_t<staticref<TestClass>(typename_t)>)>(lval<staticref<TestClass>(typename_t)>(value_lval_t<staticref<TestClass>(typename_t)>)&)' to type 'staticref<TestClass2>(typename_t)' at position SourceLocation(filename = {{.*}}/InvalidStaticRefTargetTypeCast.loci, range = (line 11, column 12) to (line 11, column 21)).
+
+class TestClass() { }
+
+class TestClass2() { }
+
+void function0(staticref<TestClass> typename_t typeValue) {
+	function1(typeValue);
+}
+
+void function1(staticref<TestClass2> typename_t typeValue) { }
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	function0(TestClass);
+	return 0;
+}
+

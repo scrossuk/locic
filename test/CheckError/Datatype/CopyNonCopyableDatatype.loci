@@ -1,9 +1,0 @@
-class TestClass() {
-	// Not implicitly copyable.
-}
-
-datatype TestDatatype(TestClass object);
-
-TestDatatype doImplicitCopy(TestDatatype value) {
-	return value;
-}
