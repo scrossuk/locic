@@ -93,25 +93,6 @@ install(TARGETS locic
 	DESTINATION bin
 )
 
-# Build test tool.
-add_executable(loci-test
-	loci-test.cpp
-)
-
-target_link_libraries(loci-test
-	locic-semanalysis
-	locic-codegen
-	locic-sem
-	locic-parser
-	locic-ast
-	locic-lex
-	locic-frontend
-	locic-support
-	loci-builtintypes
-	loci-runtime
-	${REQ_LIBS}
-)
-
 # Build vtable generator.
 add_executable(loci-vtable
 	loci-vtable.cpp
