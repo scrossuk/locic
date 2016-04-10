@@ -415,6 +415,13 @@ public:
 		BuildOptions buildOptions;
 		buildOptions.unsafe = options_.unsafe;
 		
+		if (options_.interpret) {
+			// If we're running the interpreter (normally for
+			// tests), zero all stack allocations to try to ensure
+			// deterministic failure.
+			buildOptions.zeroAllAllocas = true;
+		}
+		
 		CodeGen::CodeGenerator codeGenerator(codeGenContext, options_.outputFileName,
 		                                     debugModule, buildOptions);
 		
