@@ -68,8 +68,7 @@ before_script:
 script:
   # Make sure we use the correct Clang binary.
   - cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DCLANG_BINARY_NAME="clang-$CLANG_VERSION" -DCMAKE_INSTALL_PREFIX=./artifacts/locic -DSPHINX_OUTPUT_PDF=ON ..
-  # Expect all tests to pass except those labelled 'EXPECT_FAIL'.
-  - make && ctest --label-exclude EXPECT_FAIL --output-on-failure && ! ctest --label-regex EXPECT_FAIL
+  - make && ctest --output-on-failure
   - make install
 
 after_success:
