@@ -1,0 +1,11 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	unused const float& floatValue = 1.0f;
+	unused const double& doubleValue = 1.0f;
+	unused const long double& longDoubleValue = 1.0f;
+	return 0;
+}
+

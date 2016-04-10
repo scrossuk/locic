@@ -1,0 +1,4 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+
+static assert true;

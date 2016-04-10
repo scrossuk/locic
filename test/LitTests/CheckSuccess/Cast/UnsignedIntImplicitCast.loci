@@ -1,0 +1,13 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	unsigned byte unsignedByteValue = 1u;
+	unsigned short unsignedShortValue = unsignedByteValue;
+	unsigned int unsignedIntValue = unsignedShortValue;
+	unsigned long unsignedLongValue = unsignedIntValue;
+	unused unsigned long long unsignedLongLongValue = unsignedLongValue;
+	return 0;
+}
+

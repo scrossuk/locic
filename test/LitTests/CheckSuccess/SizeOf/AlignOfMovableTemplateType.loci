@@ -1,0 +1,6 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+template <typename T: movable_t>
+size_t getTypeAlign() {
+	return alignof(T);
+}

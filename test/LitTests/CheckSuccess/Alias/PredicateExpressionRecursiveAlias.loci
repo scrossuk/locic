@@ -1,0 +1,26 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+template <bool Value>
+require(Value)
+class CheckIsTrue() { }
+
+template <bool A, bool B>
+using AliasValue0 = A or B;
+
+template <bool A, bool B>
+using AliasValue1 = AliasValue0<A, B>;
+
+template <bool A, bool B>
+using AliasValue2 = AliasValue1<A, B>;
+
+template <bool A, bool B>
+using AliasValue3 = AliasValue2<A, B>;
+
+template <bool A, bool B>
+using AliasValue = AliasValue3<A, B>;
+
+import CheckIsTrue<AliasValue<false, true>> checkAliasValueFalseOrTrue();
+
+import CheckIsTrue<AliasValue<true, false>> checkAliasValueTrueOrFalse();
+
+import CheckIsTrue<AliasValue<true, true>> checkAliasValueTrueOrTrue();

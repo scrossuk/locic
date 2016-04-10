@@ -1,6 +1,0 @@
-template <typename A, typename B>
-class C () { }
-
-import C< C<int, int>, C<int, int> > testTwoLevelNestedTemplateArguments();
-
-import C< C< C<int, int>, C<int, int> >, C< C<int, int>, C<int, int> > > testThreeLevelNestedTemplateArguments();

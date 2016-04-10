@@ -1,0 +1,8 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+template <typename T>
+require(is_movable<notag(T)> and is_implicit_copyable<T>)
+class CheckIsCopyable() { }
+
+import CheckIsCopyable<int*> checkMutablePointerIsCopyable();
+import CheckIsCopyable<const(int*)> checkConstPointerIsCopyable();

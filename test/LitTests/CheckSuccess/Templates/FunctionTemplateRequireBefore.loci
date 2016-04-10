@@ -1,0 +1,12 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+
+interface CanDoThing {
+	void doThing();
+}
+
+template <typename T>
+require(T : CanDoThing)
+void f(T& object) {
+	object.doThing();
+}

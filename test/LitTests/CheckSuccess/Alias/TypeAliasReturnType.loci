@@ -1,0 +1,9 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+class TestClass() {
+	TestClassAlias& getSelf() {
+		return self;
+	}
+}
+
+using TestClassAlias = TestClass;

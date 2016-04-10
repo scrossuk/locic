@@ -1,0 +1,10 @@
+// RUN: %locic %s --parse-only
+
+class C() { }
+
+export C& f(C& v) {
+	// Ensure this isn't confused with (C & c) = ..., which would be assigning
+	// to the bitwise-and of 'C' and 'c'.
+	C& c = v;
+	return c;
+}

@@ -1,9 +1,0 @@
-
-interface CanDoThing {
-	void doThing();
-}
-
-template <typename T>
-void f(T& object) require(T : CanDoThing) {
-	object.doThing();
-}

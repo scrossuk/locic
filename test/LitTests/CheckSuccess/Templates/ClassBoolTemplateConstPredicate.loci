@@ -1,0 +1,20 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+template <bool V>
+class C () {
+	static create = default;
+	
+	bool get() const(V) {
+		return true;
+	}
+}
+
+bool f() {
+	const auto value = C<true>();
+	return value.get();
+}
+
+bool g() {
+	auto value = C<false>();
+	return value.get();
+}

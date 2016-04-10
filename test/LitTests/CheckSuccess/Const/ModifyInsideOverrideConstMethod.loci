@@ -1,0 +1,17 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+class TestClass(__override_const int value) {
+	static create = default;
+	
+	void modify() const {
+		@value = 100;
+	}
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	const TestClass object = TestClass(10);
+	object.modify();
+	return 0;
+}
+

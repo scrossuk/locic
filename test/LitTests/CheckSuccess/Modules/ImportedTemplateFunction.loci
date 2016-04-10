@@ -1,0 +1,5 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+
+template <typename T>
+import void f();

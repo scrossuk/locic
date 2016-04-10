@@ -1,0 +1,10 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+template <bool Value>
+require(Value)
+class CheckIsTrue() { }
+
+template <bool IsTrue>
+using AliasValue = IsTrue;
+
+import CheckIsTrue<AliasValue<true>> checkAliasValueIsTrue();

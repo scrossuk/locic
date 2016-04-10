@@ -1,0 +1,16 @@
+// RUN: %locic %s --parse-only
+
+template <bool V>
+class C () { }
+
+template <int A, int B>
+import C<(A<<B)> testLeftShiftInTemplateArgument();
+
+template <int A, int B>
+import C<(A>>B)> testRightShiftInTemplateArgument();
+
+template <int A, int B>
+export void testLeftShiftInVariableTemplate(unused C<(A<<B)> value) { }
+
+template <int A, int B>
+export void testRightShiftInVariableTemplate(unused C<(A>>B)> value) { }

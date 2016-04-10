@@ -1,0 +1,5 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+
+template <typename T>
+void f() { }

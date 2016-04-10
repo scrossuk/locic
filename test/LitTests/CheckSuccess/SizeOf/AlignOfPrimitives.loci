@@ -1,0 +1,43 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+
+void getAligns() {
+	unused_result alignof(null_t);
+	unused_result alignof(bool);
+	unused_result alignof(void*);
+	unused_result alignof(compare_result_t);
+	unused_result alignof(typename_t);
+	
+	unused_result alignof(function0_ptr_t<false, int>);
+	unused_result alignof(method0_t<false, int>);
+	unused_result alignof(methodfunction0_ptr_t<false, int>);
+	unused_result alignof(staticinterfacemethod0_t<false, int>);
+	unused_result alignof(templatedfunction0_ptr_t<false, int>);
+	unused_result alignof(templatedmethod0_t<false, int>);
+	unused_result alignof(templatedmethodfunction0_ptr_t<false, int>);
+	unused_result alignof(varargfunction0_ptr_t<false, int>);
+	
+	unused_result alignof(byte);
+	unused_result alignof(short);
+	unused_result alignof(int);
+	unused_result alignof(long);
+	unused_result alignof(long long);
+	unused_result alignof(ssize_t);
+	
+	unused_result alignof(int8_t);
+	unused_result alignof(int16_t);
+	unused_result alignof(int32_t);
+	unused_result alignof(int64_t);
+	
+	unused_result alignof(unsigned byte);
+	unused_result alignof(unsigned short);
+	unused_result alignof(unsigned int);
+	unused_result alignof(unsigned long);
+	unused_result alignof(unsigned long long);
+	unused_result alignof(size_t);
+	
+	unused_result alignof(uint8_t);
+	unused_result alignof(uint16_t);
+	unused_result alignof(uint32_t);
+	unused_result alignof(uint64_t);
+}

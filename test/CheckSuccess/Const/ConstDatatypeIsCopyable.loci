@@ -1,8 +1,0 @@
-template <typename T>
-require(is_movable<notag(T)> and is_implicit_copyable<T>)
-class CheckIsCopyable() { }
-
-datatype Data(int value);
-
-import CheckIsCopyable<Data> checkMutableDataIsCopyable();
-import CheckIsCopyable<const Data> checkConstDataIsCopyable();

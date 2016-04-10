@@ -1,0 +1,21 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+interface CanDoOneThing {
+	void doFirstThing();
+}
+
+interface CanDoTwoThings {
+	void doFirstThing();
+	void doSecondThing();
+}
+
+template <typename T : movable_t>
+require(T : CanDoOneThing)
+class TestClass() { }
+
+template <typename T : movable_t>
+require(T : CanDoTwoThings)
+using TestClassAlias = TestClass<T>;
+
+template <typename T>
+import TestClassAlias<T> checkAliasTypeIsValid() require(is_movable<T> and T : CanDoTwoThings);

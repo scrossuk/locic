@@ -1,4 +1,0 @@
-
-template <typename T>
-require(is_movable<T>)
-export void f() { }

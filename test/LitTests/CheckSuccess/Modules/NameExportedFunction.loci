@@ -1,0 +1,8 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+
+export a.b.c 1.0.0 {
+	
+	void f() { }
+	
+}

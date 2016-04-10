@@ -1,0 +1,25 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+import void f0(bool arg);
+import void f1(bool arg0, bool arg1);
+
+export void compareInFunctionCall() {
+	int A = 1;
+	int B = 2;
+	
+	// These calls need to be checked because they can conflict with
+	// templated type constructor calls in some cases.
+	f0(A<B);
+	f0(A>B);
+	f1(A<B, B>A);
+	
+	// These are not treated as templates, since '&&' can't appear inside a
+	// template without surrounding parentheses.
+	f0(A<B && B>(A));
+	f1(A<B && B>(A), A<B && B>(A));
+	
+	// These are not treated as templates, since '||' can't appear inside a
+	// template without surrounding parentheses.
+	f0(A<B || B>(A));
+	f1(A<B || B>(A), A<B || B>(A));
+}

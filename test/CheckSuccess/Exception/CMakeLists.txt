@@ -1,6 +1,0 @@
-# Exception tests.
-
-test_check_success(AssertNoExcept)
-test_check_success(NoExceptPredicate)
-test_check_success(NoExceptPredicateImplication)
-test_check_success(NoExceptPredicateMultipleMethods)

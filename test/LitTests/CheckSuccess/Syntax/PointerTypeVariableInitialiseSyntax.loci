@@ -1,0 +1,10 @@
+// RUN: %locic %s --parse-only
+
+class C() { }
+
+export C* f() {
+	// Ensure this isn't confused with (C * c) = ..., which would be assigning
+	// to the multiplication of 'C' and 'c'.
+	C* c = null;
+	return c;
+}

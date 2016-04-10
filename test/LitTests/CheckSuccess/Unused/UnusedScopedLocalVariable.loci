@@ -1,0 +1,12 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+void function() {
+	{
+		unused int scopedLocalVariable = 0;
+	}
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	function();
+	return 0;
+}

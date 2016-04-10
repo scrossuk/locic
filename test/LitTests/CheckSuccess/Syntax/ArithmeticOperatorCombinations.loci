@@ -1,0 +1,36 @@
+// RUN: %locic %s --parse-only
+
+export int testArithmeticOperatorSequence(int value) {
+	// Check all possibilities!
+	value = value + value + value;
+	value = value + value - value;
+	value = value + value * value;
+	value = value + value / value;
+	value = value + value % value;
+	
+	value = value - value + value;
+	value = value - value - value;
+	value = value - value * value;
+	value = value - value / value;
+	value = value - value % value;
+	
+	value = value * value + value;
+	value = value * value - value;
+	value = value * value * value;
+	value = value * value / value;
+	value = value * value % value;
+	
+	value = value / value + value;
+	value = value / value - value;
+	value = value / value * value;
+	value = value / value / value;
+	value = value / value % value;
+	
+	value = value % value + value;
+	value = value % value - value;
+	value = value % value * value;
+	value = value % value / value;
+	value = value % value % value;
+	
+	return value;
+}

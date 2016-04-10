@@ -1,4 +1,0 @@
-template <typename T>
-class C () { }
-
-import C<int> f();

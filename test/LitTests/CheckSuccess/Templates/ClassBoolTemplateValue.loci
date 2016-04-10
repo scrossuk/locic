@@ -1,0 +1,6 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+template <bool V>
+class C () { }
+
+import C<true> f();

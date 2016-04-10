@@ -1,6 +1,0 @@
-
-import a.b.c 1.0.0 {
-	
-	void f();
-	
-}

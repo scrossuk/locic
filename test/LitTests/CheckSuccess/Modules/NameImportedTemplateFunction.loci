@@ -1,0 +1,9 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+
+import a.b.c 1.0.0 {
+	
+	template <typename T>
+	void f();
+	
+}

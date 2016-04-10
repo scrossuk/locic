@@ -1,0 +1,23 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+template <bool A, bool B>
+using IsBoth = A and B;
+
+template <bool A, bool B>
+using IsEither = A or B;
+
+template <bool A, bool B, bool C, bool D>
+require(IsBoth<IsEither<A, B>, IsEither<C, D>>)
+class CheckValues() { }
+
+import CheckValues<false, true, false, true> checkFalseTrueFalseTrue();
+import CheckValues<false, true, true, false> checkFalseTrueTrueFalse();
+import CheckValues<false, true, true, true> checkFalseTrueTrueTrue();
+
+import CheckValues<true, false, false, true> checkTrueFalseFalseTrue();
+import CheckValues<true, false, true, false> checkTrueFalseTrueFalse();
+import CheckValues<true, false, true, true> checkTrueFalseTrueTrue();
+
+import CheckValues<true, true, false, true> checkTrueTrueFalseTrue();
+import CheckValues<true, true, true, false> checkTrueTrueTrueFalse();
+import CheckValues<true, true, true, true> checkTrueTrueTrueTrue();

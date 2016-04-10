@@ -1,0 +1,47 @@
+// RUN: %locic %s --parse-only
+
+import {
+
+class C {
+	lval<int> ptr_lval_t<int> add(const C& other) const;
+	lval<int> ptr_lval_t<int> subtract(const C& other) const;
+	lval<int> ptr_lval_t<int> multiply(const C& other) const;
+	lval<int> ptr_lval_t<int> divide(const C& other) const;
+	lval<int> ptr_lval_t<int> modulo(const C& other) const;
+	lval<int> ptr_lval_t<int> left_shift(const C& other) const;
+	lval<int> ptr_lval_t<int> right_shift(const C& other) const;
+	lval<int> ptr_lval_t<int> bitwise_and(const C& other) const;
+	lval<int> ptr_lval_t<int> bitwise_or(const C& other) const;
+	lval<int> ptr_lval_t<int> equal(const C& other) const;
+	lval<int> ptr_lval_t<int> not_equal(const C& other) const;
+	lval<int> ptr_lval_t<int> less_than(const C& other) const;
+	lval<int> ptr_lval_t<int> less_than_or_equal(const C& other) const;
+	lval<int> ptr_lval_t<int> greater_than(const C& other) const;
+	lval<int> ptr_lval_t<int> greater_than_or_equal(const C& other) const;
+}
+
+}
+
+export void f(C value) {
+	// The following are extremely poor taste, but nevertheless expressions like
+	// this, when wrapped in parentheses, ought to be valid (from the point of
+	// view of the correctness of the parser).
+	(value + value) = 0;
+	(value - value) = 0;
+	(value * value) = 0;
+	(value / value) = 0;
+	(value % value) = 0;
+	(value << value) = 0;
+	(value >> value) = 0;
+	(value & value) = 0;
+	(value | value) = 0;
+	(value == value) = 0;
+	(value != value) = 0;
+	(value < value) = 0;
+	(value <= value) = 0;
+	(value > value) = 0;
+	(value >= value) = 0;
+	
+	int v = 0;
+	(true ? v : v) = 0;
+}

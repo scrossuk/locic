@@ -1,9 +1,0 @@
-
-// Entry point.
-export int testEntryPoint(unused int argc, unused ubyte ** argv) {
-	unused float floatValue = 1.0f;
-	unused double doubleValue = 1.0f;
-	unused long double longDoubleValue = 1.0f;
-	return 0;
-}
-
