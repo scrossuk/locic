@@ -462,11 +462,21 @@ int main(int argc, char* argv[]) {
 		SEM::Context semContext;
 		SEM::Module semModule(semContext);
 		
-		const auto semaResult = driver.runSemanticAnalysis(astRootNamespaceList,
-		                                                   semModule, debugModule);
-		driver.printDiagnostics();
-		if (!semaResult) {
-			return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;
+		try {
+			const auto semaResult =
+				driver.runSemanticAnalysis(astRootNamespaceList,
+				                           semModule, debugModule);
+			driver.printDiagnostics();
+			if (!semaResult) {
+				return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;
+			}
+		} catch (const Exception& e) {
+			if (options->verifying) {
+				// Make sure we print the diagnostics if we're
+				// in a test.
+				driver.printDiagnostics();
+			}
+			throw;
 		}
 		
 		if (options->verifying) {
@@ -489,6 +499,10 @@ int main(int argc, char* argv[]) {
 		
 		return driver.interpret(codeGenContext, std::move(irModule));
 	} catch (const Exception& e) {
+		if (options->verifying) {
+			// Some of the older tests need to see unformatted errors.
+			printf("%s\n", e.toString().c_str());
+		}
 		printf("Compilation failed (errors should be shown above).\n");
 		return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;
 	}
