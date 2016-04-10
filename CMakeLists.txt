@@ -200,6 +200,11 @@ set (STD_CONCURRENCY_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/concurrency/std_concurrency.bc"
 )
 
+set (STD_CONCURRENCY_DEPENDENCIES
+	"std.container"
+	"std.event"
+)
+
 set (STD_CONTAINER_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/circular_queue.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/counter.loci"
@@ -214,6 +219,10 @@ set (STD_CONTAINER_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/container/std_container.bc"
 )
 
+set (STD_CONTAINER_DEPENDENCIES
+	"std.memory"
+)
+
 set (STD_EVENT_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/event/api/generator.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/event/api/source.loci"
@@ -222,6 +231,10 @@ set (STD_EVENT_API_FILES
 
 set (STD_EVENT_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/event/std_event.bc"
+)
+
+set (STD_EVENT_DEPENDENCIES
+	"std.memory"
 )
 
 set (STD_MEMORY_API_FILES
@@ -234,6 +247,8 @@ set (STD_MEMORY_API_FILES
 set (STD_MEMORY_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/memory/std_memory.bc"
 )
+
+set (STD_MEMORY_DEPENDENCIES )
 
 set (STD_NETWORK_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/network/api/ip/address.loci"
@@ -249,6 +264,11 @@ set (STD_NETWORK_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/network/std_network.bc"
 )
 
+set (STD_NETWORK_DEPENDENCIES
+	"std.event"
+	"std.memory"
+)
+
 set (STD_STRING_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string_builder.loci"
@@ -261,6 +281,20 @@ set (STD_STRING_API_FILES
 
 set (STD_STRING_BINARY_FILES
 	"${CMAKE_BINARY_DIR}/stdlib/std/string/std_string.bc"
+)
+
+set (STD_STRING_DEPENDENCIES
+	"std.container"
+	"std.memory"
+)
+
+set(STD_MODULES
+	"concurrency"
+	"container"
+	"event"
+	"memory"
+	"network"
+	"string"
 )
 
 # 3rd-party library Loci bindings.
