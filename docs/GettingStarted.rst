@@ -111,12 +111,6 @@ If one of the tests fail, run the following command to see the output of all fai
 
 	ctest --output-on-failure
 
-Note that some tests are **expected to fail** and these are given the ``EXPECT_FAIL`` label. You can exclude these tests by running:
-
-.. code-block:: bash
-
-	ctest --label-exclude EXPECT_FAIL
-
 Building LLVM
 ~~~~~~~~~~~~~
 
