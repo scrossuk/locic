@@ -118,10 +118,11 @@ struct CompilerOptions {
 	bool verifying;
 	bool unsafe;
 	bool interpret;
+	bool parseOnly;
 	
 	CompilerOptions()
 	: optimisationLevel(0), timingsEnabled(false), emitIRText(false),
-	verifying(false), unsafe(false), interpret(false) { }
+	verifying(false), unsafe(false), interpret(false), parseOnly(false) { }
 };
 
 Optional<CompilerOptions> parseOptions(const int argc, char* argv[]) {
@@ -148,6 +149,7 @@ Optional<CompilerOptions> parseOptions(const int argc, char* argv[]) {
 	("timings", "Print out timings of the compiler stages")
 	("emit-llvm", "Emit LLVM IR text")
 	("verify", "Verify code and accept failures")
+	("parse-only", "Only perform parsing stage")
 	("ast-debug-file", po::value<std::string>(&(options.astDebugFileName)), "Set Parser AST tree debug output file")
 	("sem-debug-file", po::value<std::string>(&(options.semDebugFileName)), "Set Semantic Analysis SEM tree debug output file")
 	("codegen-debug-file", po::value<std::string>(&(options.codeGenDebugFileName)), "Set CodeGen LLVM IR debug output file")
@@ -210,6 +212,7 @@ Optional<CompilerOptions> parseOptions(const int argc, char* argv[]) {
 	options.verifying = !variableMap["verify"].empty();
 	options.unsafe = !variableMap["unsafe"].empty();
 	options.interpret = !variableMap["interpret"].empty();
+	options.parseOnly = !variableMap["parse-only"].empty();
 	
 	options.inputFileNames.push_back("BuiltInTypes.loci");
 	
@@ -551,9 +554,10 @@ int main(int argc, char* argv[]) {
 		AST::NamespaceList astRootNamespaceList;
 		
 		const bool parseResult = driver.runParser(astRootNamespaceList);
-		if (!parseResult) {
+		if (!parseResult || options->parseOnly) {
 			driver.printDiagnostics();
-			return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;
+			return (options->verifying || parseResult) ?
+			       EXIT_SUCCESS : EXIT_FAILURE;
 		}
 		
 		// Debug information.
