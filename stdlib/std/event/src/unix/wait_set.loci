@@ -45,6 +45,9 @@ export std.event 0.1.0 {
 					}
 				}
 				
+				// TODO: add list of sources that got events.
+				// TODO: add timeout.
+				// TODO: use EPOLLONESHOT
 				void wait() {
 					const int waitResult = std_event_wait_internal(@waitHandle, 0);
 					if (waitResult < 0) {
