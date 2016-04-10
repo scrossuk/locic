@@ -20,6 +20,8 @@
 #include <locic/Parser/DefaultParser.hpp>
 #include <locic/CodeGen/CodeGenerator.hpp>
 #include <locic/CodeGen/Context.hpp>
+#include <locic/CodeGen/Interpreter.hpp>
+#include <locic/CodeGen/ModulePtr.hpp>
 #include <locic/CodeGen/TargetOptions.hpp>
 #include <locic/SemanticAnalysis.hpp>
 #include <locic/Support/SharedMaps.hpp>
@@ -106,14 +108,19 @@ struct CompilerOptions {
 	std::string codeGenDebugFileName;
 	std::string optDebugFileName;
 	
+	// Interpreter
+	std::string entryPointName;
+	std::vector<std::string> programArgs;
+	
 	bool timingsEnabled;
 	bool emitIRText;
 	bool verifying;
 	bool unsafe;
+	bool interpret;
 	
 	CompilerOptions()
 	: optimisationLevel(0), timingsEnabled(false), emitIRText(false),
-	verifying(false), unsafe(false) { }
+	verifying(false), unsafe(false), interpret(false) { }
 };
 
 Optional<CompilerOptions> parseOptions(const int argc, char* argv[]) {
@@ -144,6 +151,11 @@ Optional<CompilerOptions> parseOptions(const int argc, char* argv[]) {
 	("sem-debug-file", po::value<std::string>(&(options.semDebugFileName)), "Set Semantic Analysis SEM tree debug output file")
 	("codegen-debug-file", po::value<std::string>(&(options.codeGenDebugFileName)), "Set CodeGen LLVM IR debug output file")
 	("opt-debug-file", po::value<std::string>(&(options.optDebugFileName)), "Set Optimiser LLVM IR debug output file")
+	("interpret", "Interpret the given program")
+	("entry-point", po::value<std::string>(&(options.entryPointName))->default_value("main"),
+	 "Set entry point function name")
+	("args", po::value<std::vector<std::string>>(&(options.programArgs))->multitoken(),
+	 "Set program arguments")
 	;
 	
 	po::options_description hiddenOptions;
@@ -196,6 +208,7 @@ Optional<CompilerOptions> parseOptions(const int argc, char* argv[]) {
 	options.emitIRText = !variableMap["emit-llvm"].empty();
 	options.verifying = !variableMap["verify"].empty();
 	options.unsafe = !variableMap["unsafe"].empty();
+	options.interpret = !variableMap["interpret"].empty();
 	
 	options.inputFileNames.push_back("BuiltInTypes.loci");
 	
@@ -303,19 +316,26 @@ public:
 		}
 	}
 	
-	void runCodeGen(SEM::Context& semContext, SEM::Module& semModule,
-	                Debug::Module& debugModule) {
-		BuildOptions buildOptions;
-		buildOptions.unsafe = options_.unsafe;
-		
+	SharedMaps& sharedMaps() {
+		return sharedMaps_;
+	}
+	
+	CodeGen::TargetOptions getTargetOptions() const {
 		CodeGen::TargetOptions targetOptions;
 		targetOptions.triple = options_.targetTripleString;
 		targetOptions.arch = options_.targetArchString;
 		targetOptions.cpu = options_.targetCPUString;
 		targetOptions.floatABI = options_.targetFloatABIString;
 		targetOptions.fpu = options_.targetFPUString;
+		return targetOptions;
+	}
+	
+	CodeGen::ModulePtr
+	runCodeGen(CodeGen::Context& codeGenContext, SEM::Module& semModule,
+	           Debug::Module& debugModule) {
+		BuildOptions buildOptions;
+		buildOptions.unsafe = options_.unsafe;
 		
-		CodeGen::Context codeGenContext(semContext, sharedMaps_, targetOptions);
 		CodeGen::CodeGenerator codeGenerator(codeGenContext, options_.outputFileName,
 		                                     debugModule, buildOptions);
 		
@@ -358,6 +378,11 @@ public:
 			}
 		}
 		
+		if (options_.interpret) {
+			// If we're interpreting, don't output any code.
+			return codeGenerator.releaseModule();
+		}
+		
 		if (options_.emitIRText) {
 			Timer timer;
 			codeGenerator.dumpToFile(options_.outputFileName);
@@ -371,6 +396,20 @@ public:
 				printf("Write Bitcode: %f seconds.\n", timer.getTime());
 			}
 		}
+		
+		return codeGenerator.releaseModule();
+	}
+	
+	int interpret(CodeGen::Context& codeGenContext, CodeGen::ModulePtr module) {
+		CodeGen::Interpreter interpreter(codeGenContext, std::move(module));
+		
+		// Treat entry point function as if it is 'main' by passing in
+		// a fake program name.
+		auto programArgs = options_.programArgs;
+		programArgs.insert(programArgs.begin(), "<interpreted>");
+		
+		return interpreter.runAsMain(options_.entryPointName,
+		                             programArgs);
 	}
 	
 private:
@@ -379,6 +418,24 @@ private:
 	SharedMaps sharedMaps_;
 	
 };
+
+#if defined(_WIN32)
+# if defined(_WIN64)
+#  define FORCE_UNDEFINED_SYMBOL(x) __pragma(comment (linker, "/export:" #x))
+# else
+#  define FORCE_UNDEFINED_SYMBOL(x) __pragma(comment (linker, "/export:_" #x))
+# endif
+#else
+# define FORCE_UNDEFINED_SYMBOL(x) extern "C" void x(void); void (*__ ## x ## _fp)(void)=&x;
+#endif
+
+// Force dependency on runtime ABI, for the benefit of interpreted code.
+FORCE_UNDEFINED_SYMBOL(__loci_assert_failed)
+FORCE_UNDEFINED_SYMBOL(__loci_allocate_exception)
+FORCE_UNDEFINED_SYMBOL(__loci_free_exception)
+FORCE_UNDEFINED_SYMBOL(__loci_throw)
+FORCE_UNDEFINED_SYMBOL(__loci_get_exception)
+FORCE_UNDEFINED_SYMBOL(__loci_personality_v0)
 
 int main(int argc, char* argv[]) {
 	Timer totalTimer;
@@ -416,11 +473,21 @@ int main(int argc, char* argv[]) {
 			return EXIT_SUCCESS;
 		}
 		
-		driver.runCodeGen(semContext, semModule, debugModule);
+		CodeGen::Context codeGenContext(semContext, driver.sharedMaps(),
+		                                driver.getTargetOptions());
+		
+		auto irModule = driver.runCodeGen(codeGenContext, semModule,
+		                                  debugModule);
 		
 		if (options->timingsEnabled) {
 			printf("--- Total time: %f seconds.\n", totalTimer.getTime());
 		}
+		
+		if (!options->interpret) {
+			return EXIT_SUCCESS;
+		}
+		
+		return driver.interpret(codeGenContext, std::move(irModule));
 	} catch (const Exception& e) {
 		printf("Compilation failed (errors should be shown above).\n");
 		return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;

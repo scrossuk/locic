@@ -31,6 +31,7 @@ target_link_libraries(locic
 	locic-frontend
 	locic-support
 	loci-builtintypes
+	loci-runtime
 	${REQ_LIBS}
 )
 
