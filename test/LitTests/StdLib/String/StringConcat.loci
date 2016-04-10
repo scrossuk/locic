@@ -1,0 +1,25 @@
+// RUN: %locic %s std.string:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: helloString = hello
+// CHECK: worldString = world
+// CHECK: combinedString = hello world
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	auto helloString = "hello";
+	auto worldString = "world";
+	
+	printf(C"helloString = %s\n", helloString.make_buffer().c_str());
+	printf(C"worldString = %s\n", worldString.make_buffer().c_str());
+	
+	auto combinedString = helloString + " " + worldString;
+	
+	printf(C"combinedString = %s\n", combinedString.make_buffer().c_str());
+	
+	return 0;
+}
+

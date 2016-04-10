@@ -1,0 +1,23 @@
+// RUN: %locic %s std.string:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: joinedString = A - 1, B - 2, C - 3
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	auto elements = std::varray<std::string>();
+	elements.push_back("A - 1");
+	elements.push_back("B - 2");
+	elements.push_back("C - 3");
+	
+	auto range = elements.all();
+	auto joinedString = ", ".join<ptr_lval_t<const std::string>>(range);
+	
+	printf(C"joinedString = %s\n", joinedString.make_buffer().c_str());
+	
+	return 0;
+}
+

@@ -1,0 +1,35 @@
+// RUN: %locic %s std.memory:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Create TestClass: 0
+// CHECK: Before delete.
+// CHECK: Destroy TestClass: 0
+// CHECK: After delete.
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass(int value) {
+	static create(int value) {
+		printf(C"Create TestClass: %d\n", value);
+		return @(value);
+	}
+	
+	~ {
+		printf(C"Destroy TestClass: %d\n", @value);
+	}
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	auto rawPtr = std::new_raw<TestClass>(TestClass(0));
+	
+	printf(C"Before delete.\n");
+	
+	std::delete_raw<TestClass>(rawPtr);
+	
+	printf(C"After delete.\n");
+	
+	return 0;
+}
+

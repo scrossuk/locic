@@ -1,0 +1,34 @@
+// RUN: %locic %s std.concurrency:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: testCreateThread
+// CHECK: Creating thread.
+// CHECK: TestRunnable::run()
+// CHECK: Joined thread.
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestRunnable() {
+	static create = default;
+	
+	void run() {
+		printf(C"TestRunnable::run()\n");
+	}
+}
+
+void testCreateThread() {
+	printf(C"testCreateThread\n");
+	
+	printf(C"Creating thread.\n");
+	auto thread = std::new_thread<TestRunnable>(TestRunnable());
+	thread.join();
+	printf(C"Joined thread.\n");
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	testCreateThread();
+	return 0;
+}
+

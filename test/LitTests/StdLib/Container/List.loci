@@ -1,0 +1,118 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: list.size() = 10
+// CHECK: list.front() = 0
+// CHECK: list.back() = 9
+// CHECK: Print all values...
+// CHECK:     Value = 0
+// CHECK:     Value = 1
+// CHECK:     Value = 2
+// CHECK:     Value = 3
+// CHECK:     Value = 4
+// CHECK:     Value = 5
+// CHECK:     Value = 6
+// CHECK:     Value = 7
+// CHECK:     Value = 8
+// CHECK:     Value = 9
+// CHECK: Pop front!
+// CHECK: list.size() = 9
+// CHECK: list.front() = 1
+// CHECK: list.back() = 9
+// CHECK: Print all values...
+// CHECK:     Value = 1
+// CHECK:     Value = 2
+// CHECK:     Value = 3
+// CHECK:     Value = 4
+// CHECK:     Value = 5
+// CHECK:     Value = 6
+// CHECK:     Value = 7
+// CHECK:     Value = 8
+// CHECK:     Value = 9
+// CHECK: Pop back!
+// CHECK: list.size() = 8
+// CHECK: list.front() = 1
+// CHECK: list.back() = 8
+// CHECK: Print all values...
+// CHECK:     Value = 1
+// CHECK:     Value = 2
+// CHECK:     Value = 3
+// CHECK:     Value = 4
+// CHECK:     Value = 5
+// CHECK:     Value = 6
+// CHECK:     Value = 7
+// CHECK:     Value = 8
+// CHECK: Push front!
+// CHECK: list.size() = 9
+// CHECK: list.front() = -1
+// CHECK: list.back() = 8
+// CHECK: Print all values...
+// CHECK:     Value = -1
+// CHECK:     Value = 1
+// CHECK:     Value = 2
+// CHECK:     Value = 3
+// CHECK:     Value = 4
+// CHECK:     Value = 5
+// CHECK:     Value = 6
+// CHECK:     Value = 7
+// CHECK:     Value = 8
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	auto list = std::list<int>();
+	
+	for (auto i: std::counter<int>(0, 10, 1)) {
+		list.push_back(i);
+	}
+	
+	printf(C"list.size() = %llu\n", list.size().cast<ulonglong_t>());
+	printf(C"list.front() = %d\n", list.front());
+	printf(C"list.back() = %d\n", list.back());
+	
+	printf(C"Print all values...\n");
+	for (const auto& value: list.all()) {
+		printf(C"    Value = %d\n", value);
+	}
+	
+	printf(C"Pop front!\n");
+	list.pop_front();
+	
+	printf(C"list.size() = %llu\n", list.size().cast<ulonglong_t>());
+	printf(C"list.front() = %d\n", list.front());
+	printf(C"list.back() = %d\n", list.back());
+	
+	printf(C"Print all values...\n");
+	for (const auto& value: list.all()) {
+		printf(C"    Value = %d\n", value);
+	}
+	
+	printf(C"Pop back!\n");
+	list.pop_back();
+	
+	printf(C"list.size() = %llu\n", list.size().cast<ulonglong_t>());
+	printf(C"list.front() = %d\n", list.front());
+	printf(C"list.back() = %d\n", list.back());
+	
+	printf(C"Print all values...\n");
+	for (const auto& value: list.all()) {
+		printf(C"    Value = %d\n", value);
+	}
+	
+	printf(C"Push front!\n");
+	list.push_front(-1);
+	
+	printf(C"list.size() = %llu\n", list.size().cast<ulonglong_t>());
+	printf(C"list.front() = %d\n", list.front());
+	printf(C"list.back() = %d\n", list.back());
+	
+	printf(C"Print all values...\n");
+	for (const auto& value: list.all()) {
+		printf(C"    Value = %d\n", value);
+	}
+	
+	return 0;
+}
+

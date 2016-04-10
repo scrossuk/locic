@@ -1,0 +1,235 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Counting from 0 to 0 in increments of 1.
+// CHECK: CountObject: compare 0 and 0
+// CHECK: CountObject: compare 0 and 0
+// CHECK: Counting from 0 to 10 in increments of 1.
+// CHECK: CountObject: compare 0 and 10
+// CHECK: CountObject: compare 0 and 10
+// CHECK: Value 0 = 0.
+// CHECK: CountObject: 0 + 1
+// CHECK: CountObject: compare 1 and 10
+// CHECK: Value 1 = 1.
+// CHECK: CountObject: 1 + 1
+// CHECK: CountObject: compare 2 and 10
+// CHECK: Value 2 = 2.
+// CHECK: CountObject: 2 + 1
+// CHECK: CountObject: compare 3 and 10
+// CHECK: Value 3 = 3.
+// CHECK: CountObject: 3 + 1
+// CHECK: CountObject: compare 4 and 10
+// CHECK: Value 4 = 4.
+// CHECK: CountObject: 4 + 1
+// CHECK: CountObject: compare 5 and 10
+// CHECK: Value 5 = 5.
+// CHECK: CountObject: 5 + 1
+// CHECK: CountObject: compare 6 and 10
+// CHECK: Value 6 = 6.
+// CHECK: CountObject: 6 + 1
+// CHECK: CountObject: compare 7 and 10
+// CHECK: Value 7 = 7.
+// CHECK: CountObject: 7 + 1
+// CHECK: CountObject: compare 8 and 10
+// CHECK: Value 8 = 8.
+// CHECK: CountObject: 8 + 1
+// CHECK: CountObject: compare 9 and 10
+// CHECK: Value 9 = 9.
+// CHECK: CountObject: 9 + 1
+// CHECK: CountObject: compare 10 and 10
+// CHECK: Counting from 0 to 100 in increments of 10.
+// CHECK: CountObject: compare 0 and 100
+// CHECK: CountObject: compare 0 and 100
+// CHECK: Value 0 = 0.
+// CHECK: CountObject: 0 + 10
+// CHECK: CountObject: compare 10 and 100
+// CHECK: Value 1 = 10.
+// CHECK: CountObject: 10 + 10
+// CHECK: CountObject: compare 20 and 100
+// CHECK: Value 2 = 20.
+// CHECK: CountObject: 20 + 10
+// CHECK: CountObject: compare 30 and 100
+// CHECK: Value 3 = 30.
+// CHECK: CountObject: 30 + 10
+// CHECK: CountObject: compare 40 and 100
+// CHECK: Value 4 = 40.
+// CHECK: CountObject: 40 + 10
+// CHECK: CountObject: compare 50 and 100
+// CHECK: Value 5 = 50.
+// CHECK: CountObject: 50 + 10
+// CHECK: CountObject: compare 60 and 100
+// CHECK: Value 6 = 60.
+// CHECK: CountObject: 60 + 10
+// CHECK: CountObject: compare 70 and 100
+// CHECK: Value 7 = 70.
+// CHECK: CountObject: 70 + 10
+// CHECK: CountObject: compare 80 and 100
+// CHECK: Value 8 = 80.
+// CHECK: CountObject: 80 + 10
+// CHECK: CountObject: compare 90 and 100
+// CHECK: Value 9 = 90.
+// CHECK: CountObject: 90 + 10
+// CHECK: CountObject: compare 100 and 100
+// CHECK: Counting inclusively from 0 to 0 in increments of 1.
+// CHECK: CountObject: compare 0 and 0
+// CHECK: Value 0 = 0.
+// CHECK: CountObject: compare 0 and 0
+// CHECK: Counting inclusively from 0 to 10 in increments of 1.
+// CHECK: CountObject: compare 0 and 10
+// CHECK: Value 0 = 0.
+// CHECK: CountObject: compare 0 and 10
+// CHECK: CountObject: 0 + 1
+// CHECK: Value 1 = 1.
+// CHECK: CountObject: compare 1 and 10
+// CHECK: CountObject: 1 + 1
+// CHECK: Value 2 = 2.
+// CHECK: CountObject: compare 2 and 10
+// CHECK: CountObject: 2 + 1
+// CHECK: Value 3 = 3.
+// CHECK: CountObject: compare 3 and 10
+// CHECK: CountObject: 3 + 1
+// CHECK: Value 4 = 4.
+// CHECK: CountObject: compare 4 and 10
+// CHECK: CountObject: 4 + 1
+// CHECK: Value 5 = 5.
+// CHECK: CountObject: compare 5 and 10
+// CHECK: CountObject: 5 + 1
+// CHECK: Value 6 = 6.
+// CHECK: CountObject: compare 6 and 10
+// CHECK: CountObject: 6 + 1
+// CHECK: Value 7 = 7.
+// CHECK: CountObject: compare 7 and 10
+// CHECK: CountObject: 7 + 1
+// CHECK: Value 8 = 8.
+// CHECK: CountObject: compare 8 and 10
+// CHECK: CountObject: 8 + 1
+// CHECK: Value 9 = 9.
+// CHECK: CountObject: compare 9 and 10
+// CHECK: CountObject: 9 + 1
+// CHECK: Value 10 = 10.
+// CHECK: CountObject: compare 10 and 10
+// CHECK: Counting inclusively from 0 to 100 in increments of 10.
+// CHECK: CountObject: compare 0 and 100
+// CHECK: Value 0 = 0.
+// CHECK: CountObject: compare 0 and 100
+// CHECK: CountObject: 0 + 10
+// CHECK: Value 1 = 10.
+// CHECK: CountObject: compare 10 and 100
+// CHECK: CountObject: 10 + 10
+// CHECK: Value 2 = 20.
+// CHECK: CountObject: compare 20 and 100
+// CHECK: CountObject: 20 + 10
+// CHECK: Value 3 = 30.
+// CHECK: CountObject: compare 30 and 100
+// CHECK: CountObject: 30 + 10
+// CHECK: Value 4 = 40.
+// CHECK: CountObject: compare 40 and 100
+// CHECK: CountObject: 40 + 10
+// CHECK: Value 5 = 50.
+// CHECK: CountObject: compare 50 and 100
+// CHECK: CountObject: 50 + 10
+// CHECK: Value 6 = 60.
+// CHECK: CountObject: compare 60 and 100
+// CHECK: CountObject: 60 + 10
+// CHECK: Value 7 = 70.
+// CHECK: CountObject: compare 70 and 100
+// CHECK: CountObject: 70 + 10
+// CHECK: Value 8 = 80.
+// CHECK: CountObject: compare 80 and 100
+// CHECK: CountObject: 80 + 10
+// CHECK: Value 9 = 90.
+// CHECK: CountObject: compare 90 and 100
+// CHECK: CountObject: 90 + 10
+// CHECK: Value 10 = 100.
+// CHECK: CountObject: compare 100 and 100
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+class CountObject(int value) {
+	static create = default;
+	
+	CountObject implicitCopy() const noexcept {
+		return @(@value);
+	}
+	
+	compare_result_t compare(const CountObject& other) const noexcept {
+		printf(C"CountObject: compare %d and %d\n", @value, other.getValue());
+		return @value.compare(other.getValue());
+	}
+	
+	CountObject add(const CountObject& other) const noexcept {
+		printf(C"CountObject: %d + %d\n", @value, other.getValue());
+		return @(@value + other.getValue());
+	}
+	
+	int getValue() const noexcept {
+		return @value;
+	}
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"Counting from 0 to 0 in increments of 1.\n");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter<CountObject>(CountObject(0), CountObject(0), CountObject(1))) {
+			printf(C"Value %d = %d.\n", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	printf(C"Counting from 0 to 10 in increments of 1.\n");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter<CountObject>(CountObject(0), CountObject(10), CountObject(1))) {
+			printf(C"Value %d = %d.\n", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	printf(C"Counting from 0 to 100 in increments of 10.\n");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter<CountObject>(CountObject(0), CountObject(100), CountObject(10))) {
+			printf(C"Value %d = %d.\n", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	printf(C"Counting inclusively from 0 to 0 in increments of 1.\n");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter_incl<CountObject>(CountObject(0), CountObject(0), CountObject(1))) {
+			printf(C"Value %d = %d.\n", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	printf(C"Counting inclusively from 0 to 10 in increments of 1.\n");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter_incl<CountObject>(CountObject(0), CountObject(10), CountObject(1))) {
+			printf(C"Value %d = %d.\n", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	printf(C"Counting inclusively from 0 to 100 in increments of 10.\n");
+	{
+		int position = 0;
+		
+		for (auto i: std::counter_incl<CountObject>(CountObject(0), CountObject(100), CountObject(10))) {
+			printf(C"Value %d = %d.\n", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	return 0;
+}
+

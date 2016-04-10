@@ -1,0 +1,32 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: varray[0] = 0
+// CHECK: varray[1] = 1
+// CHECK: varray[2] = 2
+// CHECK: varray[3] = 3
+// CHECK: varray[4] = 4
+// CHECK: varray[5] = 5
+// CHECK: varray[6] = 6
+// CHECK: varray[7] = 7
+// CHECK: varray[8] = 8
+// CHECK: varray[9] = 9
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	auto varray = std::varray<int>();
+	
+	for (auto i: std::counter<int>(0, 10, 1)) {
+		varray.push_back(i);
+	}
+	
+	for (auto i: std::counter<size_t>(0u, 10u, 1u)) {
+		printf(C"varray[%llu] = %d\n", i.cast<ulonglong_t>(), varray[i]);
+	}
+	
+	return 0;
+}
+

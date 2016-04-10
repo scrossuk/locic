@@ -1,0 +1,63 @@
+// RUN: %locic %s std.concurrency:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: testFibonacciMessageQueue
+// CHECK: Sending value: 1
+// CHECK: Received value: 1
+// CHECK: Sending value: 2
+// CHECK: Received value: 2
+// CHECK: Sending value: 3
+// CHECK: Received value: 3
+// CHECK: Sending value: 5
+// CHECK: Received value: 5
+// CHECK: Sending value: 8
+// CHECK: Received value: 8
+// CHECK: Sending value: 13
+// CHECK: Received value: 13
+// CHECK: Sending value: 21
+// CHECK: Received value: 21
+// CHECK: Sending value: 34
+// CHECK: Received value: 34
+// CHECK: Sending value: 55
+// CHECK: Received value: 55
+// CHECK: Sending value: 89
+// CHECK: Received value: 89
+// CHECK: Sending value: 144
+// CHECK: Received value: 144
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+void testFibonacciMessageQueue() {
+	printf(C"testFibonacciMessageQueue\n");
+	
+	auto messageQueue = std::concurrency::message_queue<int>();
+	
+	int currentFibonacciNumber = 1;
+	int nextFibonacciNumber = 2;
+	
+	while (true) {
+		if (!messageQueue.empty()) {
+			const int value = messageQueue.receive();
+			printf(C"Received value: %d\n", value);
+			
+			if (value > 100) {
+				break;
+			}
+		}
+		
+		printf(C"Sending value: %d\n", currentFibonacciNumber);
+		messageQueue.send(currentFibonacciNumber);
+		
+		const int previousFibonacciNumber = currentFibonacciNumber;
+		currentFibonacciNumber = nextFibonacciNumber;
+		nextFibonacciNumber = previousFibonacciNumber + currentFibonacciNumber;
+	}
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	testFibonacciMessageQueue();
+	return 0;
+}
+

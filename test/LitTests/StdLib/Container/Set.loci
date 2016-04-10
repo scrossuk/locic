@@ -1,0 +1,56 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: testIntSet
+// CHECK: Set values = {
+// CHECK:   1
+// CHECK:   2
+// CHECK:   3
+// CHECK:   4
+// CHECK: }
+// CHECK: set.try_insert(1) = false
+// CHECK: Set values = {
+// CHECK:   1
+// CHECK:   2
+// CHECK:   3
+// CHECK:   4
+// CHECK: }
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+void testIntSet() {
+	printf(C"testIntSet\n");
+	
+	auto set = std::set<int>();
+	set.insert(1);
+	set.insert(2);
+	set.insert(3);
+	set.insert(4);
+	
+	printf(C"Set values = {\n");
+	for (const auto& value: set.all()) {
+		printf(C"  %d\n", value);
+	}
+	printf(C"}\n");
+	
+	const bool was_inserted = set.try_insert(1);
+	printf(C"set.try_insert(1) = %s\n", was_inserted ? C"true\n" : C"false\n");
+	
+	set.erase(2);
+	
+	set.insert(2);
+	
+	printf(C"Set values = {\n");
+	for (const auto& value: set.all()) {
+		printf(C"  %d\n", value);
+	}
+	printf(C"}\n");
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	testIntSet();
+	return 0;
+}
+

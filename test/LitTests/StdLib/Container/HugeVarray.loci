@@ -1,0 +1,23 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Array size = 10000.
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	auto varray = std::varray<uint32_t>();
+	
+	varray.reserve(10000u);
+	
+	for (auto i: std::counter<uint32_t>(0u, 10000u, 1u)) {
+		varray.push_back(i);
+	}
+	
+	printf(C"Array size = %llu.\n", varray.size().cast<ulonglong_t>());
+	
+	return 0;
+}
+

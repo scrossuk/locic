@@ -1,0 +1,65 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: testIntToIntMap
+// CHECK: Map values = {
+// CHECK:   1 => 10
+// CHECK:   2 => 20
+// CHECK:   3 => 30
+// CHECK:   4 => 40
+// CHECK: }
+// CHECK: map[1] = 10
+// CHECK: map[2] = 20
+// CHECK: map[3] = 30
+// CHECK: map[4] = 40
+// CHECK: map.try_insert(std::pair<int, int>(1, 11)) = false
+// CHECK: Map values = {
+// CHECK:   1 => 10
+// CHECK:   2 => 22
+// CHECK:   3 => 30
+// CHECK:   4 => 40
+// CHECK: }
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+void testIntToIntMap() {
+	printf(C"testIntToIntMap\n");
+	
+	auto map = std::map<int, int>();
+	map.insert(std::pair<int, int>(1, 10));
+	map.insert(std::pair<int, int>(2, 20));
+	map.insert(std::pair<int, int>(3, 30));
+	map.insert(std::pair<int, int>(4, 40));
+	
+	printf(C"Map values = {\n");
+	for (const auto& value: map.all()) {
+		printf(C"  %d => %d\n", value.first, value.second);
+	}
+	printf(C"}\n");
+	
+	printf(C"map[1] = %d\n", map[1]);
+	printf(C"map[2] = %d\n", map[2]);
+	printf(C"map[3] = %d\n", map[3]);
+	printf(C"map[4] = %d\n", map[4]);
+	
+	const bool was_inserted = map.try_insert(std::pair<int, int>(1, 11));
+	printf(C"map.try_insert(std::pair<int, int>(1, 11)) = %s\n", was_inserted ? C"true\n" : C"false\n");
+	
+	map.erase(2);
+	
+	map.insert(std::pair<int, int>(2, 22));
+	
+	printf(C"Map values = {\n");
+	for (const auto& value: map.all()) {
+		printf(C"  %d => %d\n", value.first, value.second);
+	}
+	printf(C"}\n");
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	testIntToIntMap();
+	return 0;
+}
+

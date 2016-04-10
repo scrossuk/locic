@@ -1,0 +1,74 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: TestInterface& objectRef = varray[0];
+// CHECK: objectRef.doSomething();
+// CHECK: TestClass::doSomething()
+// CHECK: TestInterface& objectRef = varray[1];
+// CHECK: objectRef.doSomething();
+// CHECK: TestClass::doSomething()
+// CHECK: TestInterface& objectRef = varray[2];
+// CHECK: objectRef.doSomething();
+// CHECK: TestClass::doSomething()
+// CHECK: TestInterface& objectRef = varray[3];
+// CHECK: objectRef.doSomething();
+// CHECK: TestClass::doSomething()
+// CHECK: TestInterface& objectRef = varray[4];
+// CHECK: objectRef.doSomething();
+// CHECK: TestClass::doSomething()
+// CHECK: TestInterface& objectRef = varray[5];
+// CHECK: objectRef.doSomething();
+// CHECK: TestClass::doSomething()
+// CHECK: TestInterface& objectRef = varray[6];
+// CHECK: objectRef.doSomething();
+// CHECK: TestClass::doSomething()
+// CHECK: TestInterface& objectRef = varray[7];
+// CHECK: objectRef.doSomething();
+// CHECK: TestClass::doSomething()
+// CHECK: TestInterface& objectRef = varray[8];
+// CHECK: objectRef.doSomething();
+// CHECK: TestClass::doSomething()
+// CHECK: TestInterface& objectRef = varray[9];
+// CHECK: objectRef.doSomething();
+// CHECK: TestClass::doSomething()
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass() {
+	static create = default;
+	
+	void doSomething() {
+		printf(C"TestClass::doSomething()\n");
+	}
+}
+
+interface TestInterface {
+	void doSomething();
+}
+
+void f(TestInterface& objectRef) {
+	objectRef.doSomething();
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	auto object = TestClass();
+	TestInterface& interfaceRef = object;
+	
+	auto varray = std::varray<TestInterface&>();
+	
+	for (auto i: std::counter<int>(0, 10, 1)) {
+		varray.push_back(interfaceRef);
+	}
+	
+	for (auto i: std::counter<size_t>(0u, 10u, 1u)) {
+		printf(C"TestInterface& objectRef = varray[%llu];\n", i.cast<ulonglong_t>());
+		TestInterface& objectRef = varray[i];
+		printf(C"objectRef.doSomething();\n");
+		f(objectRef);
+	}
+	
+	return 0;
+}
+

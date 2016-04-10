@@ -1,9 +1,0 @@
-Create TestClass: 10
-Create owner0.
-Create owner1.
-Copy owner0 as owner2.
-Destroy owner2.
-Destroy owner0.
-Destroy owner1.
-Destroy TestClass: 10
-All pointers destroyed...

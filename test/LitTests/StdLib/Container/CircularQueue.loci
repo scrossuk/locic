@@ -1,0 +1,126 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: testIntCircularQueue
+// CHECK: Queue values = {
+// CHECK:   1
+// CHECK: }
+// CHECK: Queue values = {
+// CHECK:   1
+// CHECK:   2
+// CHECK:   3
+// CHECK:   4
+// CHECK: }
+// CHECK: queue[0u] = 1
+// CHECK: queue[1u] = 2
+// CHECK: queue[2u] = 3
+// CHECK: queue[3u] = 4
+// CHECK: Queue values = {
+// CHECK:   3
+// CHECK:   4
+// CHECK: }
+// CHECK: Queue values = {
+// CHECK:   4
+// CHECK:   5
+// CHECK: }
+// CHECK: Queue values = {
+// CHECK:   5
+// CHECK:   6
+// CHECK: }
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+void testIntCircularQueue() {
+	printf(C"testIntCircularQueue\n");
+	
+	auto queue = std::circular_queue<int>(4u);
+	
+	assert queue.empty();
+	assert !queue.full();
+	assert queue.size() == 0u;
+	
+	queue.push_back(1);
+	
+	assert !queue.empty();
+	assert !queue.full();
+	assert queue.size() == 1u;
+	
+	printf(C"Queue values = {\n");
+	for (const auto& value: queue.all()) {
+		printf(C"  %d\n", value);
+	}
+	printf(C"}\n");
+	
+	queue.push_back(2);
+	queue.push_back(3);
+	queue.push_back(4);
+	
+	assert !queue.empty();
+	assert queue.full();
+	assert queue.size() == 4u;
+	
+	printf(C"Queue values = {\n");
+	for (const auto& value: queue.all()) {
+		printf(C"  %d\n", value);
+	}
+	printf(C"}\n");
+	
+	printf(C"queue[0u] = %d\n", queue[0u]);
+	printf(C"queue[1u] = %d\n", queue[1u]);
+	printf(C"queue[2u] = %d\n", queue[2u]);
+	printf(C"queue[3u] = %d\n", queue[3u]);
+	
+	queue.pop_front();
+	queue.pop_front();
+	
+	assert !queue.empty();
+	assert !queue.full();
+	assert queue.size() == 2u;
+	
+	printf(C"Queue values = {\n");
+	for (const auto& value: queue.all()) {
+		printf(C"  %d\n", value);
+	}
+	printf(C"}\n");
+	
+	queue.pop_front();
+	queue.push_back(5);
+	
+	assert !queue.empty();
+	assert !queue.full();
+	assert queue.size() == 2u;
+	
+	printf(C"Queue values = {\n");
+	for (const auto& value: queue.all()) {
+		printf(C"  %d\n", value);
+	}
+	printf(C"}\n");
+	
+	queue.pop_front();
+	queue.push_back(6);
+	
+	assert !queue.empty();
+	assert !queue.full();
+	assert queue.size() == 2u;
+	
+	printf(C"Queue values = {\n");
+	for (const auto& value: queue.all()) {
+		printf(C"  %d\n", value);
+	}
+	printf(C"}\n");
+	
+	queue.pop_front();
+	queue.pop_front();
+	
+	assert queue.empty();
+	assert !queue.full();
+	assert queue.size() == 0u;
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	testIntCircularQueue();
+	return 0;
+}
+

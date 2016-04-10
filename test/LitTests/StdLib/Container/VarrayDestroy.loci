@@ -1,0 +1,49 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Create TestClass: 0
+// CHECK: Create TestClass: 1
+// CHECK: Create TestClass: 2
+// CHECK: Create TestClass: 3
+// CHECK: Create TestClass: 4
+// CHECK: Create TestClass: 5
+// CHECK: Create TestClass: 6
+// CHECK: Create TestClass: 7
+// CHECK: Create TestClass: 8
+// CHECK: Create TestClass: 9
+// CHECK: Destroy TestClass: 9
+// CHECK: Destroy TestClass: 8
+// CHECK: Destroy TestClass: 7
+// CHECK: Destroy TestClass: 6
+// CHECK: Destroy TestClass: 5
+// CHECK: Destroy TestClass: 4
+// CHECK: Destroy TestClass: 3
+// CHECK: Destroy TestClass: 2
+// CHECK: Destroy TestClass: 1
+// CHECK: Destroy TestClass: 0
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass(int value) {
+	static create(int value) {
+		printf(C"Create TestClass: %d\n", value);
+		return @(value);
+	}
+	
+	~ {
+		printf(C"Destroy TestClass: %d\n", @value);
+	}
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	auto varray = std::varray<TestClass>();
+	
+	for (auto i: std::counter<int>(0, 10, 1)) {
+		varray.push_back(TestClass(i));
+	}
+	
+	return 0;
+}
+

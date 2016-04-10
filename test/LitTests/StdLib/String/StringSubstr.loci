@@ -1,0 +1,48 @@
+// RUN: %locic %s std.string:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: string = Hello world
+// CHECK: string.substr(string.all()) = Hello world
+// CHECK: string.substr(range) = ello worl
+// CHECK: string.substr(range) = worl
+// CHECK: string.substr(range) = 
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	auto string = "Hello world";
+	
+	printf(C"string = %s\n", string.make_buffer().c_str());
+	
+	auto range = string.all();
+	
+	printf(C"string.substr(string.all()) = %s\n", string.substr(range).make_buffer().c_str());
+	
+	// Skip some characters.
+	range.skip_front();
+	range.skip_back();
+	
+	printf(C"string.substr(range) = %s\n", string.substr(range).make_buffer().c_str());
+	
+	// Skip some more characters.
+	range.skip_front();
+	range.skip_front();
+	range.skip_front();
+	range.skip_front();
+	range.skip_front();
+	
+	printf(C"string.substr(range) = %s\n", string.substr(range).make_buffer().c_str());
+	
+	// Skip all remaining characters.
+	range.skip_back();
+	range.skip_back();
+	range.skip_back();
+	range.skip_back();
+	
+	printf(C"string.substr(range) = %s\n", string.substr(range).make_buffer().c_str());
+	
+	return 0;
+}
+

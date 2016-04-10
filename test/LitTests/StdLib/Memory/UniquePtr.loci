@@ -1,0 +1,41 @@
+// RUN: %locic %s std.memory:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Create TestClass: 1
+// CHECK: Calling function().
+// CHECK: function()!
+// CHECK: Destroy TestClass: 1
+// CHECK: Finished function().
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass(int value) {
+	static create(int value) {
+		printf(C"Create TestClass: %d\n", value);
+		return @(value);
+	}
+	
+	~ {
+		printf(C"Destroy TestClass: %d\n", @value);
+	}
+}
+
+void function(std::unique_ptr<TestClass> testObject) {
+	printf(C"function()!\n");
+	unused_result testObject;
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	auto uniquePtr = std::new_unique<TestClass>(TestClass(1));
+	
+	printf(C"Calling function().\n");
+	
+	function(move uniquePtr);
+	
+	printf(C"Finished function().\n");
+	
+	return 0;
+}
+

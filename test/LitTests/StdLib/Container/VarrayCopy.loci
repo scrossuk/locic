@@ -1,0 +1,102 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: ---- testCopyMutableArray
+// CHECK: Create TestClass: 5
+// CHECK: Create TestClass: 10
+// CHECK: Copy TestClass: 5
+// CHECK: Copy TestClass: 10
+// CHECK: Destroy TestClass: 10
+// CHECK: Destroy TestClass: 5
+// CHECK: Destroy TestClass: 10
+// CHECK: Destroy TestClass: 5
+// CHECK: ---- testCopyConstElementArray
+// CHECK: Create TestClass: 5
+// CHECK: Create TestClass: 10
+// CHECK: Copy TestClass: 5
+// CHECK: Copy TestClass: 10
+// CHECK: Destroy TestClass: 10
+// CHECK: Destroy TestClass: 5
+// CHECK: Destroy TestClass: 10
+// CHECK: Destroy TestClass: 5
+// CHECK: ---- testCopyConstArray
+// CHECK: Create TestClass: 5
+// CHECK: Create TestClass: 10
+// CHECK: Copy TestClass: 5
+// CHECK: Copy TestClass: 10
+// CHECK: Destroy TestClass: 10
+// CHECK: Destroy TestClass: 5
+// CHECK: Destroy TestClass: 10
+// CHECK: Destroy TestClass: 5
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+class TestClass(int value) {
+	static create(int value) {
+		printf(C"Create TestClass: %d\n", value);
+		return @(value);
+	}
+	
+	~ {
+		printf(C"Destroy TestClass: %d\n", @value);
+	}
+	
+	TestClass copy() const {
+		printf(C"Copy TestClass: %d\n", @value);
+		return @(@value);
+	}
+}
+
+void testCopyMutableArray() {
+	printf(C"---- testCopyMutableArray\n");
+	
+	auto varray = std::varray<TestClass>();
+	
+	for (auto i: std::counter<int>(5, 15, 5)) {
+		varray.push_back(TestClass(i));
+	}
+	
+	unused auto varrayCopy = varray.copy();
+}
+
+std::varray<const TestClass> copyConstElementArray(const std::varray<TestClass>& array) {
+	return array.copy();
+}
+
+void testCopyConstElementArray() {
+	printf(C"---- testCopyConstElementArray\n");
+	
+	auto varray = std::varray<TestClass>();
+	
+	for (auto i: std::counter<int>(5, 15, 5)) {
+		varray.push_back(TestClass(i));
+	}
+	
+	unused auto varrayCopy = copyConstElementArray(varray);
+}
+
+std::varray<TestClass> copyConstArray(const std::varray<TestClass>& array) {
+	return array.copy();
+}
+
+void testCopyConstArray() {
+	printf(C"---- testCopyConstArray\n");
+	
+	auto varray = std::varray<TestClass>();
+	
+	for (auto i: std::counter<int>(5, 15, 5)) {
+		varray.push_back(TestClass(i));
+	}
+	
+	unused auto varrayCopy = copyConstArray(varray);
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	testCopyMutableArray();
+	testCopyConstElementArray();
+	testCopyConstArray();
+	return 0;
+}
+
