@@ -1,0 +1,28 @@
+Standard: Cpp11
+AlwaysBreakTemplateDeclarations: true
+AllowShortFunctionsOnASingleLine: true
+AllowShortBlocksOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+IndentCaseLabels: true
+ColumnLimit: 120
+PointerAlignment: Left
+IndentWidth: 8
+AccessModifierOffset: -8
+NamespaceIndentation: All
+UseTab: ForIndentation
+BreakBeforeBraces: Attach
+AllowShortIfStatementsOnASingleLine: false
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpaceAfterCStyleCast: true
+
+SpacesInContainerLiterals: true
+BinPackArguments: true
+AlwaysBreakAfterDefinitionReturnType: None
+ConstructorInitializerIndentWidth: 0
+
+PenaltyReturnTypeOnItsOwnLine: 0
+PenaltyExcessCharacter: 100000
+PenaltyBreakBeforeFirstCallParameter: 10000
+PenaltyBreakString: 10
