@@ -65,6 +65,24 @@ add_definitions(
 # Enable most warnings.
 set(LOCIC_BUILD_WARNINGS "-pedantic -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+	set(LOCIC_BUILD_WARNINGS "${LOCIC_BUILD_WARNINGS} -Weverything")
+	
+	# Not concerned about C++98 compatibility.
+	set(LOCIC_BUILD_WARNINGS "${LOCIC_BUILD_WARNINGS} -Wno-c++98-compat-pedantic")
+	
+	# Not that concerned about switches which don't explicitly handle every case
+	# (i.e. and use a default case instead).
+	set(LOCIC_BUILD_WARNINGS "${LOCIC_BUILD_WARNINGS} -Wno-switch-enum")
+	
+	# Not that concerned about vtables emitted in every compilation unit (they
+	# should be merged when linking).
+	set(LOCIC_BUILD_WARNINGS "${LOCIC_BUILD_WARNINGS} -Wno-weak-vtables")
+	
+	# Often very difficult to avoid padding warnings.
+	set(LOCIC_BUILD_WARNINGS "${LOCIC_BUILD_WARNINGS} -Wno-padded")
+endif()
+
 # Use C++11.
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
