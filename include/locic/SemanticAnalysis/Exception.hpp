@@ -31,7 +31,12 @@ namespace locic {
 			CastException& operator=(const CastException&) = default;
 			~CastException() { }
 		};
-		
+
+		class SkipException final : public Exception {
+		public:
+			std::string toString() const { return "SkipException"; }
+		};
+
 		class NameClashException final: public Exception {
 			public:
 				enum Kind {

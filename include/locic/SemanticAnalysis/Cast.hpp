@@ -34,11 +34,15 @@ namespace locic {
 		 */
 		
 		SEM::Value ImplicitCast(Context& context, SEM::Value value, const SEM::Type* type, const Debug::SourceLocation& location, bool formatOnly = false);
-		
-		const SEM::Type* ImplicitCastTypeFormatOnly(const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location);
-		
-		Optional<SEM::Value> ImplicitCastFormatOnly(SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location);
-		
+
+		const SEM::Type*
+		ImplicitCastTypeFormatOnly(Context& context, const SEM::Type* sourceType, const SEM::Type* destType,
+		                           const Debug::SourceLocation& location);
+
+		Optional<SEM::Value>
+		ImplicitCastFormatOnly(Context& context, SEM::Value value, const SEM::Type* destType,
+		                       const Debug::SourceLocation& location);
+
 		bool TypeSatisfiesInterface(Context& context, const SEM::Type* objectType, const SEM::Type* interfaceType);
 		
 		const SEM::Type* UnifyTypes(Context& context, const SEM::Type* first, const SEM::Type* second, const Debug::SourceLocation& location);

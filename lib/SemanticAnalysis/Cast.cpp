@@ -22,10 +22,28 @@
 namespace locic {
 
 	namespace SemanticAnalysis {
-	
-		static const SEM::Type* ImplicitCastTypeFormatOnlyChain(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel = false);
-		
-		static const SEM::Type* ImplicitCastTypeFormatOnlyChainCheckType(const SEM::Type* sourceType, const SEM::Type* destType, bool hasConstChain, const Debug::SourceLocation& location) {
+
+		static const SEM::Type*
+		ImplicitCastTypeFormatOnlyChain(Context& context, const SEM::Type* sourceType,
+		                                const SEM::Type* destType, bool hasParentConstChain,
+		                                const Debug::SourceLocation& location, bool isTopLevel = false);
+
+		class CannotCastTemplateTypeDiag : public Error {
+		public:
+			CannotCastTemplateTypeDiag(const SEM::Type* sourceType, const SEM::Type* destType)
+			: message_(makeString("Cannot cast from template type '%s' to template type '%s'.",
+			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
+
+			std::string toString() const { return message_; }
+
+		private:
+			std::string message_;
+		};
+
+		static const SEM::Type*
+		ImplicitCastTypeFormatOnlyChainCheckType(Context& context, const SEM::Type* sourceType,
+		                                         const SEM::Type* destType, bool hasConstChain,
+		                                         const Debug::SourceLocation& location) {
 			if (sourceType == destType) {
 				return sourceType;
 			}
@@ -75,7 +93,12 @@ namespace locic {
 						const auto& destTemplateArg = destType->templateArguments()[i];
 						
 						if (sourceTemplateArg.isTypeRef() && destTemplateArg.isTypeRef()) {
-							const auto templateArg = ImplicitCastTypeFormatOnlyChain(sourceTemplateArg.typeRefType(), destTemplateArg.typeRefType(), hasConstChain, location);
+							const auto templateArg =
+							    ImplicitCastTypeFormatOnlyChain(context, sourceTemplateArg
+							                                                 .typeRefType(),
+							                                    destTemplateArg
+							                                        .typeRefType(),
+							                                    hasConstChain, location);
 							if (templateArg == nullptr) return nullptr;
 							
 							templateArgs.push_back(SEM::Value::TypeRef(templateArg, sourceTemplateArg.type()));
@@ -91,8 +114,9 @@ namespace locic {
 				}
 				case SEM::Type::TEMPLATEVAR: {
 					if (sourceType->getTemplateVar() != destType->getTemplateVar()) {
-						throw ErrorException(makeString("Can't cast from template type '%s' to template type '%s'.",
-							sourceType->toString().c_str(), destType->toString().c_str()));
+						context.issueDiag(CannotCastTemplateTypeDiag(sourceType, destType),
+						                  location);
+						throw SkipException();
 					}
 					return sourceType->withoutTags();
 				}
@@ -100,9 +124,11 @@ namespace locic {
 			
 			std::terminate();
 		}
-		
-		static const SEM::Type* ImplicitCastTypeFormatOnlyChainCheckTags(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& 
-location, bool isTopLevel) {
+
+		static const SEM::Type*
+		ImplicitCastTypeFormatOnlyChainCheckTags(Context& context, const SEM::Type* sourceType,
+		                                         const SEM::Type* destType, bool hasParentConstChain,
+		                                         const Debug::SourceLocation& location, bool isTopLevel) {
 			// TODO: fix this to evaluate the const predicates.
 			const bool isSourceConst = !sourceType->constPredicate().isFalse();
 			const bool isDestConst = !destType->constPredicate().isFalse();
@@ -136,7 +162,9 @@ location, bool isTopLevel) {
 				}
 				
 				// Must perform substitutions for the lval target type.
-				lvalTarget = ImplicitCastTypeFormatOnlyChain(sourceType->lvalTarget(), destType->lvalTarget(), hasConstChain, location);
+				lvalTarget =
+				    ImplicitCastTypeFormatOnlyChain(context, sourceType->lvalTarget(),
+				                                    destType->lvalTarget(), hasConstChain, location);
 				if (lvalTarget == nullptr) return nullptr;
 			}
 			
@@ -149,7 +177,9 @@ location, bool isTopLevel) {
 				}
 				
 				// Must perform substitutions for the ref target type.
-				refTarget = ImplicitCastTypeFormatOnlyChain(sourceType->refTarget(), destType->refTarget(), hasConstChain, location);
+				refTarget =
+				    ImplicitCastTypeFormatOnlyChain(context, sourceType->refTarget(),
+				                                    destType->refTarget(), hasConstChain, location);
 				if (refTarget == nullptr) return nullptr;
 			}
 			
@@ -162,12 +192,16 @@ location, bool isTopLevel) {
 				}
 				
 				// Must perform substitutions for the ref target type.
-				staticRefTarget = ImplicitCastTypeFormatOnlyChain(sourceType->staticRefTarget(), destType->staticRefTarget(), hasConstChain, location);
+				staticRefTarget =
+				    ImplicitCastTypeFormatOnlyChain(context, sourceType->staticRefTarget(),
+				                                    destType->staticRefTarget(), hasConstChain,
+				                                    location);
 				if (staticRefTarget == nullptr) return nullptr;
 			}
 			
 			// Generate the 'untagged' type.
-			auto resultType = ImplicitCastTypeFormatOnlyChainCheckType(sourceType, destType, hasConstChain, location);
+			auto resultType = ImplicitCastTypeFormatOnlyChainCheckType(context, sourceType, destType,
+			                                                           hasConstChain, location);
 			if (resultType == nullptr) return nullptr;
 			
 			// Add the substituted tags.
@@ -187,24 +221,34 @@ location, bool isTopLevel) {
 			// the resulting type must be const.
 			return resultType->createTransitiveConstType(SEM::Predicate::Or(sourceType->constPredicate().copy(), destType->constPredicate().copy()));
 		}
-		
-		inline static const SEM::Type* ImplicitCastTypeFormatOnlyChain(const SEM::Type* sourceType, const SEM::Type* destType, bool hasParentConstChain, const Debug::SourceLocation& location, bool isTopLevel) {
-			return ImplicitCastTypeFormatOnlyChainCheckTags(sourceType, destType, hasParentConstChain, location, isTopLevel);
+
+		inline static const SEM::Type*
+		ImplicitCastTypeFormatOnlyChain(Context& context, const SEM::Type* sourceType,
+		                                const SEM::Type* destType, bool hasParentConstChain,
+		                                const Debug::SourceLocation& location, bool isTopLevel) {
+			return ImplicitCastTypeFormatOnlyChainCheckTags(context, sourceType, destType,
+			                                                hasParentConstChain, location, isTopLevel);
 		}
-		
-		const SEM::Type* ImplicitCastTypeFormatOnly(const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location) {
+
+		const SEM::Type*
+		ImplicitCastTypeFormatOnly(Context& context, const SEM::Type* sourceType, const SEM::Type* destType,
+		                           const Debug::SourceLocation& location) {
 			// Needed for the main format-only cast function to ensure the
 			// const chaining rule from root is followed; since this
 			// is root there is a valid chain of (zero) const parent types.
 			const bool hasParentConstChain = true;
 			
 			const bool isTopLevel = true;
-			
-			return ImplicitCastTypeFormatOnlyChain(sourceType->resolveAliases(), destType->resolveAliases(), hasParentConstChain, location, isTopLevel);
+
+			return ImplicitCastTypeFormatOnlyChain(context, sourceType->resolveAliases(),
+			                                       destType->resolveAliases(), hasParentConstChain,
+			                                       location, isTopLevel);
 		}
-		
-		Optional<SEM::Value> ImplicitCastFormatOnly(SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location) {
-			auto resultType = ImplicitCastTypeFormatOnly(value.type(), destType, location);
+
+		Optional<SEM::Value>
+		ImplicitCastFormatOnly(Context& context, SEM::Value value, const SEM::Type* destType,
+		                       const Debug::SourceLocation& location) {
+			auto resultType = ImplicitCastTypeFormatOnly(context, value.type(), destType, location);
 			if (resultType == nullptr) {
 				return Optional<SEM::Value>();
 			}
@@ -217,9 +261,12 @@ location, bool isTopLevel) {
 				return make_optional(std::move(value));
 			}
 		}
-		
-		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool allowBind, bool formatOnly = false);
-		
+
+		Optional<SEM::Value>
+		ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value value,
+		                    const SEM::Type* destType, const Debug::SourceLocation& location, bool allowBind,
+		                    bool formatOnly = false);
+
 		static Optional<SEM::Value> PolyCastRefValueToType(Context& context, SEM::Value value, const SEM::Type* destType) {
 			const auto sourceType = value.type();
 			assert(sourceType->isRef() && destType->isRef());
@@ -333,17 +380,29 @@ location, bool isTopLevel) {
 			// in the destination type.
 			return sourcePrimitiveID.asUnsigned().isSubsetOf(destPrimitiveID);
 		}
-		
+
+		class FormatOnlyCastFailedDiag : public Error {
+		public:
+			FormatOnlyCastFailedDiag(const SEM::Type* sourceType, const SEM::Type* destType)
+			: message_(makeString("Format only cast failed from type %s to type %s.",
+			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
+
+			std::string toString() const { return message_; }
+
+		private:
+			std::string message_;
+		};
+
 		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, const SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool allowBind, bool formatOnly) {
 			{
 				// Try a format only cast first, since
 				// this requires no transformations.
-				auto castResult = ImplicitCastFormatOnly(value.copy(), destType, location);
+				auto castResult = ImplicitCastFormatOnly(context, value.copy(), destType, location);
 				if (castResult) {
 					return castResult;
 				} else if (formatOnly) {
-					throw ErrorException(makeString("Format only cast failed from type %s to type %s at position %s.",
-						value.type()->toString().c_str(), destType->toString().c_str(), location.toString().c_str()));
+					context.issueDiag(FormatOnlyCastFailedDiag(value.type(), destType), location);
+					throw SkipException();
 				}
 			}
 			
@@ -529,7 +588,41 @@ location, bool isTopLevel) {
 			
 			return Optional<SEM::Value>();
 		}
-		
+
+		class CannotImplicitlyCastTypeDiag : public Error {
+		public:
+			CannotImplicitlyCastTypeDiag(const SEM::Type* sourceType, const SEM::Type* destType)
+			: message_(makeString("Can't implicitly cast type '%s' to type '%s'.",
+			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
+
+			std::string toString() const { return message_; }
+
+		private:
+			std::string message_;
+		};
+
+		class CannotImplicitlyCastValueToTypeDiag : public Error {
+		public:
+			CannotImplicitlyCastValueToTypeDiag(const SEM::Type* sourceType, const SEM::Type* destType)
+			: message_(makeString("Can't implicitly cast value of type '%s' to type '%s'.",
+			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
+
+			std::string toString() const { return message_; }
+
+		private:
+			std::string message_;
+		};
+
+		class CastErrorDiag : public Error {
+		public:
+			CastErrorDiag(std::string message) : message_(std::move(message)) {}
+
+			std::string toString() const { return message_; }
+
+		private:
+			std::string message_;
+		};
+
 		SEM::Value ImplicitCast(Context& context, SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
 			std::vector<std::string> errors;
 			const auto valueKind = value.kind();
@@ -542,18 +635,16 @@ location, bool isTopLevel) {
 			
 			if (errors.empty()) {
 				if (valueKind == SEM::Value::CASTDUMMYOBJECT) {
-					throw ErrorException(makeString("Can't implicitly cast type '%s' to type '%s' at position %s.",
-						valueType->toString().c_str(),
-						destType->toString().c_str(),
-						location.toString().c_str()));
+					context.issueDiag(CannotImplicitlyCastTypeDiag(valueType, destType), location);
+					throw SkipException();
 				} else {
-					throw ErrorException(makeString("Can't implicitly cast value of type '%s' to type '%s' at position %s.",
-						valueType->toString().c_str(),
-						destType->toString().c_str(),
-						location.toString().c_str()));
+					context.issueDiag(CannotImplicitlyCastValueToTypeDiag(valueType, destType),
+					                  location);
+					throw SkipException();
 				}
 			} else {
-				throw ErrorException(errors.front());
+				context.issueDiag(CastErrorDiag(errors.front()), location);
+				throw SkipException();
 			}
 		}
 		

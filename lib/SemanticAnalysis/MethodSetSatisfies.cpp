@@ -153,14 +153,13 @@ namespace locic {
 					return false;
 				}
 			}
-			
+
 			const auto castReturnType =
-			ImplicitCastTypeFormatOnly(
-				checkFunctionElement.returnType()->substitute(satisfyTemplateVarMap),
-				requireFunctionElement.returnType(),
-				Debug::SourceLocation::Null()
-			);
-			
+			    ImplicitCastTypeFormatOnly(context, checkFunctionElement.returnType()->substitute(
+			                                            satisfyTemplateVarMap),
+			                               requireFunctionElement.returnType(),
+			                               Debug::SourceLocation::Null());
+
 			if (castReturnType == nullptr) {
 				if (DEBUG_METHOD_SET_ELEMENT) {
 					printf("\nReturn type doesn't match for '%s'.\n    Source: %s\n    Require: %s\n\n",

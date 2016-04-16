@@ -62,6 +62,8 @@ namespace locic {
 				
 				// ---- Fill in function code.
 				ConvertNamespace(context, rootASTNamespaces);
+			} catch (const SkipException& e) {
+				(void) e;
 			} catch(const Exception& e) {
 				printf("Semantic Analysis Error: %s\n", formatMessage(e.toString()).c_str());
 				throw;
