@@ -332,8 +332,9 @@ namespace locic {
 					// There still might be some aspects to cast with the constructed type.
 					return ImplicitCastConvert(context, errors, std::move(castValue), destType, location, allowBind);
 				} else {
-					errors.push_back(makeString("User cast failed from type '%s' to type '%s' at position %s.",
-						sourceDerefType->toString().c_str(), destDerefType->toString().c_str(), location.toString().c_str()));
+					errors.push_back(makeString("User cast failed from type '%s' to type '%s'.",
+					                            sourceDerefType->toString().c_str(),
+					                            destDerefType->toString().c_str()));
 				}
 			}
 			
@@ -530,12 +531,12 @@ namespace locic {
 					// This almost certainly would have worked
 					// if implicitCopy was available, so let's
 					// report this error to the user.
-					errors.push_back(makeString("Unable to copy type '%s' because it doesn't have a valid 'implicitcopy' method, "
-							"in cast from type %s to type %s at position %s.",
-						sourceDerefType->toString().c_str(),
-						sourceType->toString().c_str(),
-						destType->toString().c_str(),
-						location.toString().c_str()));
+					errors.push_back(makeString("Unable to copy type '%s' because it doesn't have "
+					                            "a valid 'implicitcopy' method, "
+					                            "in cast from type %s to type %s.",
+					                            sourceDerefType->toString().c_str(),
+					                            sourceType->toString().c_str(),
+					                            destType->toString().c_str()));
 				}
 			}
 			
