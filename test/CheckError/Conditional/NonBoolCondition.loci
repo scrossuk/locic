@@ -1,17 +1,16 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Can't implicitly cast value of type 'TestClass' to type 'bool_t' at position SourceLocation(filename = {{.*}}/NonBoolCondition.loci, range = (line 12, column 2) to (line 14, column 3)).
-
 class TestClass(int value) {
 	static create = default;
 }
 
-// Entry point.
 export int main(unused int argc, unused ubyte ** argv) {
+	// CHECK: .loci:10:2: error: Can't implicitly cast value of type 'TestClass' to type 'bool_t'.
 	if (TestClass(10)) {
 		// ...
 	}
 	return 0;
 }
 
+// CHECK: 1 error generated.

@@ -1,11 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: User cast failed from type 'double_t' to type 'notag(int8_t)' at position SourceLocation(filename = {{.*}}/MismatchedTernaryValues.loci, range = (line 8, column 16) to (line 8, column 30)).
-
-// Entry point.
 export int main(unused int argc, unused ubyte ** argv) {
+	// CHECK: .loci:6:16: error: User cast failed from type 'double_t' to type 'notag(int8_t)'.
 	unused_result(true ? 1 : 1.0);
 	return 0;
 }
 
+// CHECK: 1 error generated.

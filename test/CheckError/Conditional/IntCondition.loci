@@ -1,16 +1,15 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: User cast failed from type 'int8_t' to type 'notag(bool_t)' at position SourceLocation(filename = {{.*}}/IntCondition.loci, range = (line 11, column 2) to (line 13, column 3)).
-
 // Integers can't be used as conditions in Loci
 // (no implicit cast to bool).
 
-// Entry point.
 export int main(unused int argc, unused ubyte ** argv) {
+	// CHECK: .loci:9:2: error: User cast failed from type 'int8_t' to type 'notag(bool_t)'.
 	if (1) {
 		// ...
 	}
 	return 0;
 }
 
+// CHECK: 1 error generated.

@@ -1,8 +1,6 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Unable to copy type 'TestDatatype' because it doesn't have a valid 'implicitcopy' method, in cast from type ref<TestDatatype>(TestDatatype&) to type TestDatatype at position SourceLocation(filename = {{.*}}/CopyNonCopyableDatatype.loci, range = (line 13, column 2) to (line 13, column 15)).
-
 class TestClass() {
 	// Not implicitly copyable.
 }
@@ -10,5 +8,8 @@ class TestClass() {
 datatype TestDatatype(TestClass object);
 
 TestDatatype doImplicitCopy(TestDatatype value) {
+	// CHECK: .loci:12:2: error: Unable to copy type 'TestDatatype' because it doesn't have a valid 'implicitcopy' method, in cast from type ref<TestDatatype>(TestDatatype&) to type TestDatatype.
 	return value;
 }
+
+// CHECK: 1 error generated.

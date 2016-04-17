@@ -10,12 +10,7 @@ class NonCopyable() { }
 datatype Data = A(NonCopyable a) | B();
 
 void doSwitch(const Data& data) {
-	// CHECK: Can't implicitly cast value of type
-	// CHECK: to type 'Data'
-	// CHECK: line 19
-	// CHECK-NEXT: column 10
-	// CHECK: line 19
-	// CHECK-NEXT: column 14
+	// CHECK: .loci:14:10: error: Can't implicitly cast value of type 'ref<ref<const(Data)>(const(Data)&)>(ref<const(Data)>(const(Data)&)&)' to type 'Data'.
 	switch (data) {
 		case A(unused NonCopyable a) {
 			unused_result a;
@@ -23,3 +18,5 @@ void doSwitch(const Data& data) {
 		case B() { }
 	}
 }
+
+// CHECK: 1 error generated.

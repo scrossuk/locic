@@ -1,12 +1,12 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Can't implicitly cast value of type 'ref<lval<ref<const(int_t)>(const(const(int_t)&))>(const(value_lval_t<ref<const(int_t)>(const(const(int_t)&))>))>(lval<ref<const(int_t)>(const(const(int_t)&))>(const(value_lval_t<ref<const(int_t)>(const(const(int_t)&))>))&)' to type 'ref<int_t>(int_t&)' at position SourceLocation(filename = {{.*}}/ConstRefMemberVarImplicitDissolve.loci, range = (line 10, column 3) to (line 10, column 18)).
-
-
 class TestClass(int& member) {
 	int& getRef() const {
 		// Error: member is const here.
+		// CHECK: .loci:8:3: error: Can't implicitly cast value of type 'ref<lval<ref<const(int_t)>(const(const(int_t)&))>(const(value_lval_t<ref<const(int_t)>(const(const(int_t)&))>))>(lval<ref<const(int_t)>(const(const(int_t)&))>(const(value_lval_t<ref<const(int_t)>(const(const(int_t)&))>))&)' to type 'ref<int_t>(int_t&)'.
 		return @member;
 	}
 }
+
+// CHECK: 1 error generated.
