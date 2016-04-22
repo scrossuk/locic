@@ -215,13 +215,13 @@ Most recursive template instantiations are relatively trivial and typically invo
 .. code-block:: c++
 
 	template <typename A, typename B>
-	require(is_movable<A> and is_movable<B>)
+	require(movable<A> and movable<B>)
 	A f(B value) {
 		return g<A, B>(move value);
 	}
 	
 	template <typename A, typename B>
-	require(is_movable<A> and is_movable<B>)
+	require(movable<A> and movable<B>)
 	import A g(B value);
 
 This could produce the following template generator for ``f()``:
@@ -269,13 +269,13 @@ A variant of pass-through is 'prefix' pass-through, which is the same concept ap
 .. code-block:: c++
 
 	template <typename A, typename B>
-	require(is_movable<A> and is_movable<B>)
+	require(movable<A> and movable<B>)
 	A f(B value) {
 		return g<A, B, float>(move value, 10.0f);
 	}
 	
 	template <typename A, typename B, typename C>
-	require(is_movable<A> and is_movable<B> and is_movable<C>)
+	require(movable<A> and movable<B> and movable<C>)
 	import A g(B value, C value);
 
 Without pass-through we'd produce a template generator like the following:
@@ -320,13 +320,13 @@ The same concept can be applied the opposite way around:
 .. code-block:: c++
 
 	template <typename A, typename B, typename C>
-	require(is_movable<A> and is_movable<B> and is_movable<C>)
+	require(movable<A> and movable<B> and movable<C>)
 	A f(B value, unused C value) {
 		return g<A, B>(move value);
 	}
 	
 	template <typename A, typename B>
-	require(is_movable<A> and is_movable<B>)
+	require(movable<A> and movable<B>)
 	import A g(B value);
 
 This will produce the following optimised template generator:
@@ -348,7 +348,7 @@ Pass-through appears to have an obvious pathological case:
 .. code-block:: c++
 
 	template <typename A, typename B>
-	require(is_movable<A> and is_movable<B>)
+	require(movable<A> and movable<B>)
 	void f(A a, B b, int i) {
 		if (i == 0) {
 			return;
@@ -358,7 +358,7 @@ Pass-through appears to have an obvious pathological case:
 	}
 	
 	template <typename A, typename B>
-	require(is_movable<A> and is_movable<B>)
+	require(movable<A> and movable<B>)
 	void g(A a, B b, int i) {
 		if (i == 0) {
 			return;

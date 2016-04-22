@@ -8,7 +8,7 @@
 import void printf(const ubyte * str, ...);
 
 template <typename T>
-require(is_movable<notag(T)>)
+require(movable<notag(T)>)
 interface PrimitiveInterface {
 	notag(T) add(const T& value) const;
 }

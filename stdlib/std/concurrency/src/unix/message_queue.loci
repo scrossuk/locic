@@ -5,7 +5,7 @@ export std.concurrency 0.1.0 {
 		namespace concurrency {
 			
 			template <typename T>
-			require(is_sized_type<T>)
+			require(sized_type<T>)
 			// TODO: use a queue<T>!
 			class message_queue(__override_const mutex mutex, size_t position, varray<T> array, event::generator generator) {
 				static create() {
@@ -18,7 +18,7 @@ export std.concurrency 0.1.0 {
 					return @position == @array.size();
 				}
 				
-				void send(T message) require(is_movable<T>) {
+				void send(T message) require(movable<T>) {
 					unused auto lock = unique_lock(@mutex);
 					assert @position <= @array.size();
 					@array.push_back(move message);
@@ -26,7 +26,7 @@ export std.concurrency 0.1.0 {
 					@generator.notify();
 				}
 				
-				T receive() require(is_movable<T>) {
+				T receive() require(movable<T>) {
 					unused auto lock = unique_lock(@mutex);
 					
 					assert @position < @array.size();

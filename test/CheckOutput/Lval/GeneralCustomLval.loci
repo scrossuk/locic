@@ -35,7 +35,7 @@ interface serializable {
 }
 
 template <typename T>
-require(T : serializable and is_movable<T>)
+require(T : serializable and movable<T>)
 // Use a 'value_lval' since it supports move operations.
 class custom_lval(bool hasValue, lval<T> value_lval_t<T> value) {
 	static Create(T value) {

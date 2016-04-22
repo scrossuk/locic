@@ -3,11 +3,11 @@ interface decrementable_t {
 }
 
 template <typename T>
-using is_decrementable = T : decrementable_t;
+using decrementable = T : decrementable_t;
 
 interface noexcept_decrementable_t {
 	void decrement() noexcept;
 }
 
 template <typename T>
-using is_noexcept_decrementable = T : noexcept_decrementable_t;
+using noexcept_decrementable = T : noexcept_decrementable_t;

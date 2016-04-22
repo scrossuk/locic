@@ -379,7 +379,7 @@ For example, here's a Loci templated function:
 .. code-block:: c++
 
 	template <typename T>
-	require(is_lessthancomparable<T>)
+	require(lessthancomparable<T>)
 	T min(T a, T b);
 
 We should just need to translate the C++ type into a Loci type, and then instantiate. The main complexity will be that root template generators would need to be emitted in C++ so the C++ compiler can produce them itself. Something like:

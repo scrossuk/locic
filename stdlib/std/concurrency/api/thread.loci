@@ -3,13 +3,13 @@ import std.concurrency 0.1.0 {
 	namespace std {
 		
 		template <typename T>
-		concurrency::thread new_thread(T runnable_object) require(T : concurrency::runnable and is_movable<T>);
+		concurrency::thread new_thread(T runnable_object) require(T : concurrency::runnable and movable<T>);
 		
 		namespace concurrency {
 			
 			class thread {
 				template <typename T>
-				static thread create(T runnable_object) require(T : runnable and is_movable<T>);
+				static thread create(T runnable_object) require(T : runnable and movable<T>);
 				
 				void cancel();
 				

@@ -1,25 +1,25 @@
 template <typename T, size_t element_count>
 notag(T)
 __primitive static_array_t {
-	static static_array_t<notag(T), element_count> uninitialized() require(is_movable<T>);
+	static static_array_t<notag(T), element_count> uninitialized() require(movable<T>);
 	
 	// Temporarily disabled until support is implemented.
-	//static static_array_t<notag(T), element_count> null() require(is_nullable<T>);
+	//static static_array_t<notag(T), element_count> null() require(nullable<T>);
 	
-	static size_t __alignmask() noexcept require(is_sized_type<T>);
-	static size_t __sizeof() noexcept require(is_sized_type<T>);
+	static size_t __alignmask() noexcept require(sized_type<T>);
+	static size_t __sizeof() noexcept require(sized_type<T>);
 	
 	void __destroy() noexcept;
 	
-	static_array_t<notag(T), element_count> implicit_copy() const noexcept(is_noexcept_implicit_copyable<T>) require(is_implicit_copyable<T>);
+	static_array_t<notag(T), element_count> implicit_copy() const noexcept(noexcept_implicit_copyable<T>) require(implicit_copyable<T>);
 	
-	static_array_t<notag(T), element_count> copy() const noexcept(is_noexcept_copyable<T>) require(is_copyable<T>);
+	static_array_t<notag(T), element_count> copy() const noexcept(noexcept_copyable<T>) require(copyable<T>);
 	
 	template <bool IsConst>
-	lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept require(is_sized_type<T>);
+	lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept require(sized_type<T>);
 	
 	// Temporarily disabled until support is implemented.
-	//compare_result_t compare(const size_t& v) const noexcept(is_noexcept_comparable<T>) require(is_comparable<T>);
+	//compare_result_t compare(const size_t& v) const noexcept(noexcept_comparable<T>) require(comparable<T>);
 	
-	void __moveto(void* ptr, size_t position) noexcept require(is_movable<T>);
+	void __moveto(void* ptr, size_t position) noexcept require(movable<T>);
 }

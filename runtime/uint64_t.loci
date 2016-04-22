@@ -26,10 +26,10 @@ __primitive uint64_t {
 	bool __islive() const noexcept;
 	
 	template <typename T>
-	T implicit_cast() const noexcept require(T : __implicit_cast_from_uint64_t<T> and is_movable<T>);
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_uint64_t<T> and movable<T>);
 	
 	template <typename T>
-	T cast() const noexcept require(T : __cast_from_uint64_t<T> and is_movable<T>);
+	T cast() const noexcept require(T : __cast_from_uint64_t<T> and movable<T>);
 
 	uint64_t add(const uint64_t& v) const noexcept;
 	uint64_t subtract(const uint64_t& v) const noexcept;

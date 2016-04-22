@@ -31,7 +31,7 @@
 import void printf(const ubyte * str, ...) noexcept;
 
 template <typename T>
-require(is_movable<T>)
+require(movable<T>)
 static_array_t<T, 4u> makeArray(T value0, T value1, T value2, T value3) {
 	auto array = static_array_t<T, 4u>.uninitialized();
 	array[0u] = move value0;
@@ -42,7 +42,7 @@ static_array_t<T, 4u> makeArray(T value0, T value1, T value2, T value3) {
 }
 
 template <typename T>
-require(is_movable<T>)
+require(movable<T>)
 static_array_t<T, 4u> rotate(static_array_t<T, 4u> array) {
 	T tmp = move array[0u];
 	array[0u] = move array[1u];

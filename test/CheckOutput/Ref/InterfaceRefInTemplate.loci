@@ -6,7 +6,7 @@
 import void printf(const ubyte * str, ...) noexcept;
 
 template <typename T>
-require(is_movable<T>)
+require(movable<T>)
 class TemplatedClass(T object) {
 	static create(T object) noexcept {
 		return @(move object);

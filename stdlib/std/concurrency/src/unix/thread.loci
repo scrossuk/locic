@@ -3,7 +3,7 @@ export std.concurrency 0.1.0 {
 	namespace std {
 		
 		template <typename T>
-		concurrency::thread new_thread(T runnable_object) require(T : concurrency::runnable and is_movable<T>) {
+		concurrency::thread new_thread(T runnable_object) require(T : concurrency::runnable and movable<T>) {
 			return concurrency::thread::create<T>(move runnable_object);
 		}
 		
@@ -14,7 +14,7 @@ export std.concurrency 0.1.0 {
 			
 			class thread(internal_thread_api& internal_thread) {
 				template <typename T>
-				static create(T runnable_object) require(T : runnable and is_movable<T>) {
+				static create(T runnable_object) require(T : runnable and movable<T>) {
 					auto internal_thread_ptr = new_unique<internal_thread<T>>(internal_thread<T>(move runnable_object));
 					internal_thread_ptr->start();
 					return @(*(internal_thread_ptr.release()));

@@ -22,7 +22,7 @@ class InnerClass(int value) {
 }
 
 template <typename T>
-require(T : Printable and is_movable<T>)
+require(T : Printable and movable<T>)
 class MiddleClass(T value) {
 	static Create(T value) {
 		return @(move value);

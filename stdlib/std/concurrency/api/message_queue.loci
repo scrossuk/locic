@@ -8,15 +8,15 @@ import std.concurrency 0.1.0 {
 			 * \brief Single-reader, single-writer message queue.
 			 */
 			template <typename T>
-			require(is_sized_type<T>)
+			require(sized_type<T>)
 			class message_queue {
 				static message_queue<T> create();
 				
 				bool empty() const;
 				
-				void send(T message) require(is_movable<T>);
+				void send(T message) require(movable<T>);
 				
-				T receive() require(is_movable<T>);
+				T receive() require(movable<T>);
 				
 				event::source event_source() const noexcept;
 			}

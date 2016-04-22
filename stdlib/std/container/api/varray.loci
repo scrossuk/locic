@@ -7,7 +7,7 @@ import std.container 0.1.0 {
 		 * \brief Resizable array.
 		 */
 		template <typename T>
-		require(is_sized_type<T>) notag(T)
+		require(sized_type<T>) notag(T)
 		class varray {
 			static varray<T> create() noexcept;
 			
@@ -15,7 +15,7 @@ import std.container 0.1.0 {
 			
 			size_t capacity() const noexcept;
 			
-			void resize(size_t size, T element) require(is_copyable<T>);
+			void resize(size_t size, T element) require(copyable<T>);
 			
 			bool empty() const noexcept;
 			
@@ -29,18 +29,18 @@ import std.container 0.1.0 {
 			
 			void clear() noexcept;
 			
-			void push_back(T value) require (is_movable<T>);
+			void push_back(T value) require (movable<T>);
 			
 			void pop_back() noexcept;
 			
-			varray<notag(T)> copy() const require(is_copyable<T>);
+			varray<notag(T)> copy() const require(copyable<T>);
 			
 			template <bool IsConst>
 			varray_range<T, IsConst> all() const(IsConst) noexcept;
 		}
 		
 		template <typename T, bool IsArrayConst>
-		require(is_sized_type<T>)
+		require(sized_type<T>)
 		class varray_range {
 			varray_range<T, IsArrayConst> implicitCopy() const noexcept;
 			

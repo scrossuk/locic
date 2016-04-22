@@ -5,4 +5,4 @@ interface movable_t {
 }
 
 template <typename T>
-using is_movable = T : movable_t;
+using movable = T : movable_t;

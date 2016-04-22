@@ -17,7 +17,7 @@ interface TestCopyable {
 }
 
 template <typename T>
-require(T : TestCopyable<T> and is_movable<T>)
+require(T : TestCopyable<T> and movable<T>)
 class TestClass(T value, int extra) {
 	static Create(T value) {
 		return @(move value, 1);

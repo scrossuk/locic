@@ -1,33 +1,33 @@
 // RUN: %locic %s --emit-llvm -o %t
 
-static assert is_comparable<byte>;
-static assert is_comparable<short>;
-static assert is_comparable<int>;
-static assert is_comparable<long>;
-static assert is_comparable<long long>;
+static assert comparable<byte>;
+static assert comparable<short>;
+static assert comparable<int>;
+static assert comparable<long>;
+static assert comparable<long long>;
 
-static assert is_comparable<unsigned byte>;
-static assert is_comparable<unsigned short>;
-static assert is_comparable<unsigned int>;
-static assert is_comparable<unsigned long>;
-static assert is_comparable<unsigned long long>;
+static assert comparable<unsigned byte>;
+static assert comparable<unsigned short>;
+static assert comparable<unsigned int>;
+static assert comparable<unsigned long>;
+static assert comparable<unsigned long long>;
 
-static assert is_comparable<int8_t>;
-static assert is_comparable<int16_t>;
-static assert is_comparable<int32_t>;
-static assert is_comparable<int64_t>;
+static assert comparable<int8_t>;
+static assert comparable<int16_t>;
+static assert comparable<int32_t>;
+static assert comparable<int64_t>;
 
-static assert is_comparable<uint8_t>;
-static assert is_comparable<uint16_t>;
-static assert is_comparable<uint32_t>;
-static assert is_comparable<uint64_t>;
+static assert comparable<uint8_t>;
+static assert comparable<uint16_t>;
+static assert comparable<uint32_t>;
+static assert comparable<uint64_t>;
 
-static assert is_comparable<size_t>;
-static assert is_comparable<ssize_t>;
-static assert is_comparable<ptrdiff_t>;
+static assert comparable<size_t>;
+static assert comparable<ssize_t>;
+static assert comparable<ptrdiff_t>;
 
-static assert is_comparable<float>;
-static assert is_comparable<double>;
-static assert is_comparable<long double>;
+static assert comparable<float>;
+static assert comparable<double>;
+static assert comparable<long double>;
 
-static assert is_comparable<int*>;
+static assert comparable<int*>;

@@ -3,11 +3,11 @@ interface incrementable_t {
 }
 
 template <typename T>
-using is_incrementable = T : incrementable_t;
+using incrementable = T : incrementable_t;
 
 interface noexcept_incrementable_t {
 	void increment() noexcept;
 }
 
 template <typename T>
-using is_noexcept_incrementable = T : noexcept_incrementable_t;
+using noexcept_incrementable = T : noexcept_incrementable_t;

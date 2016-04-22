@@ -4,7 +4,7 @@ import std.memory 0.1.0 {
 		
 		template <typename T>
 		class unique_ptr {
-			static unique_ptr<T> create(T value) require(is_movable<T>);
+			static unique_ptr<T> create(T value) require(movable<T>);
 			
 			static unique_ptr<T> null() noexcept;
 			
@@ -20,7 +20,7 @@ import std.memory 0.1.0 {
 		}
 		
 		template <typename T>
-		require(is_movable<T>)
+		require(movable<T>)
 		unique_ptr<T> new_unique(T value);
 		
 	}

@@ -26,7 +26,7 @@ interface Destroyable {
 }
 
 template <typename T>
-require(T : Destroyable and is_movable<T>)
+require(T : Destroyable and movable<T>)
 class TestClass(T value0, T value1) {
 	static Create(T value0, T value1) {
 		printf(C"TestClass.Create\n");

@@ -45,7 +45,7 @@ class TestClassFloat (float value) {
 }
 
 template <typename T>
-require(T : Incrementable and is_movable<T>)
+require(T : Incrementable and movable<T>)
 class TestClass(T value) {
 	static Create(T value) {
 		return @(move value);

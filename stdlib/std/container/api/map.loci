@@ -10,7 +10,7 @@ import std.container 0.1.0 {
 		 * \brief Map.
 		 */
 		template <typename Key, typename Value>
-		require(is_sized_type<Key> and is_sized_type<Value>)
+		require(sized_type<Key> and sized_type<Value>)
 		class map {
 			static map<Key, Value> create();
 			
@@ -21,34 +21,37 @@ import std.container 0.1.0 {
 			void clear() noexcept;
 			
 			template <bool IsConst>
-			lval<const<IsConst>(Value)> ptr_lval_t<const<IsConst>(Value)> index(const Key& key) const(IsConst) noexcept require(is_noexcept_comparable<Key>);
+			lval<const<IsConst>(Value)> ptr_lval_t<const<IsConst>(Value)>
+			index(const Key& key) const(IsConst) noexcept require(noexcept_comparable<Key>);
 			
-			void insert(pair<Key, Value> value) require(is_noexcept_comparable<Key> and is_movable<Key> and is_movable<Value>);
+			void insert(pair<Key, Value> value) require(noexcept_comparable<Key> and movable<Key> and movable<Value>);
 			
-			bool try_insert(pair<Key, Value> value) require(is_noexcept_comparable<Key> and is_movable<Key> and is_movable<Value>);
+			bool try_insert(pair<Key, Value> value) require(noexcept_comparable<Key> and movable<Key> and movable<Value>);
 			
-			Value& get_or_insert(const Key& key) require(is_movable<Key> and is_noexcept_comparable<Key> and is_copyable<Key> and is_default_constructible<Value> and is_movable<Value>);
+			Value& get_or_insert(const Key& key) require(movable<Key> and noexcept_comparable<Key> and copyable<Key> and default_constructible<Value> and movable<Value>);
 			
-			void erase(const Key& key) require(is_noexcept_comparable<Key> and is_movable<Key> and is_movable<Value>);
+			void erase(const Key& key) require(noexcept_comparable<Key> and movable<Key> and movable<Value>);
 			
 			template <bool IsConst>
 			map_range<Key, Value, IsConst> all() const(IsConst) noexcept;
 		}
 		
 		template <typename Key, typename Value, bool IsMapConst>
-		require(is_sized_type<Key> and is_sized_type<Value>)
+		require(sized_type<Key> and sized_type<Value>)
 		class map_range {
 			map_range<Key, Value, IsMapConst> implicit_copy() const noexcept;
 			
 			map_range<Key, Value, IsMapConst> copy() const noexcept;
 			
 			template <bool IsConst>
-			lval<const<IsConst or IsMapConst>(pair<Key, Value>)> ptr_lval_t<const<IsConst or IsMapConst>(pair<Key, Value>)> front() const(IsConst) noexcept;
+			lval<const<IsConst or IsMapConst>(pair<Key, Value>)> ptr_lval_t<const<IsConst or IsMapConst>(pair<Key, Value>)>
+			front() const(IsConst) noexcept;
 			
 			void skip_front() noexcept;
 			
 			template <bool IsConst>
-			lval<const<IsConst or IsMapConst>(pair<Key, Value>)> ptr_lval_t<const<IsConst or IsMapConst>(pair<Key, Value>)> back() const(IsConst) noexcept;
+			lval<const<IsConst or IsMapConst>(pair<Key, Value>)> ptr_lval_t<const<IsConst or IsMapConst>(pair<Key, Value>)>
+			back() const(IsConst) noexcept;
 			
 			void skip_back() noexcept;
 			

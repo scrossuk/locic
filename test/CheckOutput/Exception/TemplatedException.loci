@@ -15,7 +15,7 @@ template <typename T : movable_t>
 exception ParentError(T value);
 
 template <typename T>
-require(T : Copyable<T> and is_movable<T>)
+require(T : Copyable<T> and movable<T>)
 exception ChildError(T value0, T value1) : ParentError<T>(value0);
 
 export int main(unused int argc, unused ubyte ** argv) {

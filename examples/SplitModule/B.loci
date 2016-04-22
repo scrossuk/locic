@@ -9,7 +9,7 @@ export B 1.0.0 {
 	}
 	
 	template <typename T>
-	require(T : Printable and is_movable<T>)
+	require(T : Printable and movable<T>)
 	class TestClass(T value) {
 		static Create = default;
 		

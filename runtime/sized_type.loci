@@ -4,4 +4,4 @@ interface sized_type_t {
 }
 
 template <typename T>
-using is_sized_type = T : sized_type_t;
+using sized_type = T : sized_type_t;

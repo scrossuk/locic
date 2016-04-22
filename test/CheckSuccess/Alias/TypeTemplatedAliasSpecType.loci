@@ -18,4 +18,4 @@ require(T : CanDoTwoThings)
 using TestClassAlias = TestClass<T>;
 
 template <typename T>
-import TestClassAlias<T> checkAliasTypeIsValid() require(is_movable<T> and T : CanDoTwoThings);
+import TestClassAlias<T> checkAliasTypeIsValid() require(movable<T> and T : CanDoTwoThings);

@@ -19,7 +19,7 @@ static thread_ref thread_ref::empty() noexcept {
 }
 
 template <typename T>
-require(T : std::concurrency::runnable and is_movable<T>)
+require(T : std::concurrency::runnable and movable<T>)
 class internal_thread(thread_ref self_ref,
 		pthread_t thread_object,
 		std::concurrency::mutex mutex,

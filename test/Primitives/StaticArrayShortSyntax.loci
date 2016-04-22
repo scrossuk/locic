@@ -25,7 +25,7 @@ int_t[10u][10u] getArrayArray(int_t[10u][10u] array) {
 }
 
 template <typename T>
-T[10u] getTemplateArray(static_array_t<T, 10u> array) require(is_movable<T>) {
+T[10u] getTemplateArray(static_array_t<T, 10u> array) require(movable<T>) {
 	return move array;
 }
 

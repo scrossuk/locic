@@ -1,7 +1,7 @@
 // RUN: %locic %s --emit-llvm -o %t
 
 template <typename T>
-require(is_movable<notag(T)> and is_implicit_copyable<T>)
+require(movable<notag(T)> and implicit_copyable<T>)
 class CheckIsCopyable() { }
 
 datatype Data(int value);

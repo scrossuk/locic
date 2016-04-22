@@ -21,7 +21,7 @@ interface Comparable {
 }
 
 template <typename T>
-require(T : Comparable<T> and is_movable<T>)
+require(T : Comparable<T> and movable<T>)
 class TestClass(T value0, T value1) {
 	static Create(T value0, T value1) {
 		return @(move value0, move value1);

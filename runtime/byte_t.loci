@@ -13,10 +13,10 @@ __primitive byte_t {
 	bool __islive() const noexcept;
 	
 	template <typename T>
-	T implicit_cast() const noexcept require(T : __implicit_cast_from_byte_t<T> and is_movable<T>);
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_byte_t<T> and movable<T>);
 	
 	template <typename T>
-	T cast() const noexcept require(T : __cast_from_byte_t<T> and is_movable<T>);
+	T cast() const noexcept require(T : __cast_from_byte_t<T> and movable<T>);
 	
 	byte_t plus() const noexcept;
 	byte_t minus() const noexcept;

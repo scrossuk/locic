@@ -3,7 +3,7 @@
 
 // CHECK-LABEL: declare void @g
 template <typename T>
-require(is_movable<T>)
+require(movable<T>)
 import void g(T i);
 
 // CHECK-LABEL: define void @f

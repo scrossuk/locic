@@ -52,7 +52,7 @@ Loci also supports templated functions, e.g.:
 .. code-block:: c++
 
 	template <typename T>
-	require(is_movable<T> and is_comparable<T>)
+	require(movable<T> and comparable<T>)
 	T getMin(T first, T second) {
 		return first < second ?
 			move first :
@@ -64,7 +64,7 @@ Similarly, it's possible to use templates with methods:
 .. code-block:: c++
 
 	template <typename T>
-	require(is_movable<T>)
+	require(movable<T>)
 	interface CastFromTestClass {
 		static T castFromTestClass(const TestClass& object);
 	}
@@ -73,7 +73,7 @@ Similarly, it's possible to use templates with methods:
 		// Etc.
 		
 		template <typename T>
-		T cast() const require(is_movable<T> and T : CastFromTestClass<T>) {
+		T cast() const require(movable<T> and T : CastFromTestClass<T>) {
 			return T.castFromTestClass(self);
 		}
 		
@@ -116,7 +116,7 @@ In Loci the compiler only creates one instance of the class, which works correct
 	import A 1.0.0 {
 		
 		template <typename T>
-		move(is_movable<T>) // Type is only movable if T is movable.
+		move(movable<T>) // Type is only movable if T is movable.
 		class ExampleClass {
 			static ExampleClass<T> create(T value);
 		}

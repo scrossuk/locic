@@ -4,7 +4,7 @@ import std.container 0.1.0 {
 		
 		template <typename T>
 		interface output_range {
-			void push_back(T value) require(is_movable<T>);
+			void push_back(T value) require(movable<T>);
 		}
 		
 		template <typename T, typename LvalType>
@@ -13,7 +13,7 @@ import std.container 0.1.0 {
 			
 			void skip_front();
 			
-			lval<const T> LvalType front() const require(is_movable<LvalType>);
+			lval<const T> LvalType front() const require(movable<LvalType>);
 		}
 		
 		template <typename T, typename LvalType>
@@ -22,11 +22,11 @@ import std.container 0.1.0 {
 			
 			void skip_front();
 			
-			lval<T> LvalType front() const require(is_movable<LvalType>);
+			lval<T> LvalType front() const require(movable<LvalType>);
 			
 			void skip_back();
 			
-			lval<T> LvalType back() const require(is_movable<LvalType>);
+			lval<T> LvalType back() const require(movable<LvalType>);
 		}
 		
 	}

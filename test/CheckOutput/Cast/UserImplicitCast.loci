@@ -18,7 +18,7 @@ class DestClass(int value) {
 }
 
 template <typename T>
-require(is_movable<T>)
+require(movable<T>)
 interface CastFromSourceClass {
 	static T implicitCastSourceClass(const SourceClass& object);
 }
@@ -27,7 +27,7 @@ class SourceClass(int value) {
 	static create = default;
 	
 	template <typename T>
-	T implicitCast() const require(T : CastFromSourceClass<T> and is_movable<T>) {
+	T implicitCast() const require(T : CastFromSourceClass<T> and movable<T>) {
 		return T.implicitCastSourceClass(self);
 	}
 	

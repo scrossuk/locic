@@ -11,7 +11,7 @@ void function(int i) {
 }
 
 template <typename T>
-require(is_movable<T>)
+require(movable<T>)
 void callFunction((*)(void)(T) f, T value) {
 	f(move value);
 }

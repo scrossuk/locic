@@ -6,7 +6,7 @@ template <typename T>
 import T f();
 
 template <typename T>
-require(is_movable<T>)
+require(movable<T>)
 // CHECK-NOT: .loci:11:8: error: return type 'T' of function 'g' is not movable
 import T g();
 

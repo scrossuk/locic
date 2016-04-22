@@ -21,7 +21,7 @@ Input Range
 		
 		void skip_front();
 		
-		lval<T> LvalType front() require(is_movable<LvalType>);
+		lval<T> LvalType front() require(movable<LvalType>);
 	}
 
 Input ranges are the most common kind of range, due to their use in :ref:`for-each loops <foreachloop>`. Here's an example:
@@ -61,11 +61,11 @@ Bidirectional Range
 		
 		void skip_front();
 		
-		lval<T> LvalType front() require(is_movable<LvalType>);
+		lval<T> LvalType front() require(movable<LvalType>);
 		
 		void skip_back();
 		
-		lval<T> LvalType back() require(is_movable<LvalType>);
+		lval<T> LvalType back() require(movable<LvalType>);
 	}
 
 A bidirectional range is simply an input range that supports both accessing the first and last operations. This is useful for operations such as:
@@ -91,7 +91,7 @@ Output Range
 
 	template <typename T>
 	interface output_range {
-		void push_back(T value) require(is_movable<T>);
+		void push_back(T value) require(movable<T>);
 	}
 
 Output ranges are append-only, so they can provided by an array, a list, a circular buffer etc.

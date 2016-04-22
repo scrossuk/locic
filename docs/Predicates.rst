@@ -8,11 +8,11 @@ Here's a relevant example:
 .. code-block:: c++
 
 	template <typename T>
-	require(is_movable<T>)
+	require(movable<T>)
 	class TestClass(T value) {
 		// ...
 		
-		TestClass<T> copy() const require(is_copyable<T>) {
+		TestClass<T> copy() const require(copyable<T>) {
 			return @(@value.copy());
 		}
 		
@@ -114,7 +114,7 @@ Move predicates are just require() predicates for the type's implicitly generate
 .. code-block:: c++
 
 	template <typename T>
-	move(is_movable<T>)
+	move(movable<T>)
 	class TestClass { }
 
 This just says that TestClass is only movable if the type parameter T is movable.
@@ -227,16 +227,16 @@ Built-in aliases
 
 Here are a few built-in aliases that can be used to query type properties:
 
-* `is_movable<T>` - check if type T is movable
-* `is_copyable<T>` - check if type T can be copied (has `copy` method)
-* `is_noexcept_copyable<T>` - check if type T can be copied without throwing exceptions
-* `is_implicit_copyable<T>` - check if type T can be implicitly copied (has `implicit_copy` method)
-* `is_noexcept_implicit_copyable<T>` - check if type T can be implicitly copied without throwing exceptions
-* `is_comparable<T>` - check if type T can be compared to itself
-* `is_noexcept_comparable<T>` - check if type T can be compared to itself without throwing exceptions
-* `is_default_constructible<T>` - check if type T has be constructed with no arguments
-* `is_dissolvable<T>` - check if type T can be dissolved (see :doc:`LvaluesAndRvalues`)
-* `is_const_dissolvable<T>` - check if type T can be dissolved to produce `const` reference
+* `movable<T>` - check if type T is movable
+* `copyable<T>` - check if type T can be copied (has `copy` method)
+* `noexcept_copyable<T>` - check if type T can be copied without throwing exceptions
+* `implicit_copyable<T>` - check if type T can be implicitly copied (has `implicit_copy` method)
+* `noexcept_implicit_copyable<T>` - check if type T can be implicitly copied without throwing exceptions
+* `comparable<T>` - check if type T can be compared to itself
+* `noexcept_comparable<T>` - check if type T can be compared to itself without throwing exceptions
+* `default_constructible<T>` - check if type T has be constructed with no arguments
+* `dissolvable<T>` - check if type T can be dissolved (see :doc:`LvaluesAndRvalues`)
+* `const_dissolvable<T>` - check if type T can be dissolved to produce `const` reference
 
 Indirect Requirements
 ~~~~~~~~~~~~~~~~~~~~~
@@ -246,13 +246,13 @@ Sometimes predicate aliases will have particular requirements themselves; for ex
 .. code-block:: c++
 
 	template <typename T>
-	require(is_movable<T>)
+	require(movable<T>)
 	interface CreateValue {
 		T createValue();
 	}
 	
 	template <typename T, typename CreateType>
-	require(is_movable<CreateType>)
+	require(movable<CreateType>)
 	using CanCreateValue = T : CreateValue<CreateType>;
 
 Here the type being created must be movable because it's being returned from a function. When this predicate is used this requirement must be re-stated:
@@ -260,7 +260,7 @@ Here the type being created must be movable because it's being returned from a f
 .. code-block:: c++
 
 	template <typename T, typename CreateType>
-	require(is_movable<CreateType> and CanCreateValue<T, CreateType>)
+	require(movable<CreateType> and CanCreateValue<T, CreateType>)
 	CreateType createValue(T& value) {
 		return value.createValue();
 	}
@@ -270,8 +270,8 @@ If this isn't the intention, you can add the requirement to the alias predicate,
 .. code-block:: c++
 
 	template <typename T, typename CreateType>
-	require(is_movable<CreateType>)
-	using CanCreateValue = is_movable<CreateType> and T : CreateValue<CreateType>;
+	require(movable<CreateType>)
+	using CanCreateValue = movable<CreateType> and T : CreateValue<CreateType>;
 
 Hence the user only needs to specify the alias:
 

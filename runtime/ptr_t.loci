@@ -16,12 +16,12 @@ __primitive ptr_t {
 	lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> deref() const(IsConst) noexcept;
 	
 	template <bool IsConst>
-	lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept require(is_sized_type<T>);
+	lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept require(sized_type<T>);
 	
 	template <bool IsConst>
-	ptr_t<const<IsConst>(T)> add(const ptrdiff_t& v) const(IsConst) noexcept require(is_sized_type<T>);
+	ptr_t<const<IsConst>(T)> add(const ptrdiff_t& v) const(IsConst) noexcept require(sized_type<T>);
 	
-	ptrdiff_t subtract(const ptr_t<T>& v) const noexcept require(is_sized_type<T>);
+	ptrdiff_t subtract(const ptr_t<T>& v) const noexcept require(sized_type<T>);
 	
 	bool equal(const ptr_t<T>& value) const noexcept;
 	bool not_equal(const ptr_t<T>& value) const noexcept;
@@ -30,8 +30,8 @@ __primitive ptr_t {
 	bool greater_than(const ptr_t<T>& v) const noexcept;
 	bool greater_than_or_equal(const ptr_t<T>& v) const noexcept;
 	
-	void increment() noexcept require(is_sized_type<T>);
-	void decrement() noexcept require(is_sized_type<T>);
+	void increment() noexcept require(sized_type<T>);
+	void decrement() noexcept require(sized_type<T>);
 	
 	compare_result_t compare(const ptr_t<T>& value) const noexcept;
 	

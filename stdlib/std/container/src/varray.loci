@@ -6,7 +6,7 @@ export std.container 0.1.0 {
 		 * \brief Resizable array.
 		 */
 		template <typename T>
-		require(is_sized_type<T>)
+		require(sized_type<T>)
 		class varray(size_t size, size_t capacity, T* data) {
 			static create() noexcept {
 				return @(0u, 0u, null);
@@ -29,7 +29,7 @@ export std.container 0.1.0 {
 				return @data != null;
 			}
 			
-			void reserve(size_t size) require (is_movable<T>) {
+			void reserve(size_t size) require (movable<T>) {
 				if (size <= self.capacity()) {
 					return;
 				}
@@ -50,7 +50,7 @@ export std.container 0.1.0 {
 				return @capacity;
 			}
 			
-			void resize(size_t size, const T element) require(is_copyable<T>) {
+			void resize(size_t size, const T element) require(copyable<T>) {
 				self.reserve(size);
 				if (size < self.size()) {
 					for (auto i: reverse_counter<size_t>(self.size(), size, 1u)) {
@@ -90,7 +90,7 @@ export std.container 0.1.0 {
 				@size = 0u;
 			}
 			
-			void push_back(T value) require (is_movable<T>) {
+			void push_back(T value) require (movable<T>) {
 				self.reserve(@size + 1u);
 				nolval(@data[@size]).setvalue(move value);
 				@size = @size + 1u;
@@ -102,7 +102,7 @@ export std.container 0.1.0 {
 				nolval(@data[@size]).destroyvalue();
 			}
 			
-			varray<notag(T)> copy() const require(is_copyable<T>) {
+			varray<notag(T)> copy() const require(copyable<T>) {
 				auto array = varray<T>();
 				array.reserve(@size);
 				for (auto i: counter<size_t>(0u, @size, 1u)) {
@@ -119,7 +119,7 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T, bool IsArrayConst>
-		require(is_sized_type<T>)
+		require(sized_type<T>)
 		class varray_range(const<IsArrayConst>(varray<T>)& array, size_t begin, size_t end) {
 			static create(const<IsArrayConst>(varray<T>)& array) noexcept {
 				return @(array, 0u, array.size());

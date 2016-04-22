@@ -4,7 +4,7 @@ interface comparable_t {
 }
 
 template <typename T>
-using is_comparable = T : comparable_t<T>;
+using comparable = T : comparable_t<T>;
 
 template <typename T>
 interface noexcept_comparable_t {
@@ -12,7 +12,7 @@ interface noexcept_comparable_t {
 }
 
 template <typename T>
-using is_noexcept_comparable = T : noexcept_comparable_t<T>;
+using noexcept_comparable = T : noexcept_comparable_t<T>;
 
 template <typename T>
 interface lessthancomparable_t {
@@ -20,7 +20,7 @@ interface lessthancomparable_t {
 }
 
 template <typename T>
-using is_lessthancomparable = T : lessthancomparable_t<T>;
+using lessthancomparable = T : lessthancomparable_t<T>;
 
 template <typename T>
 interface noexcept_lessthancomparable_t {
@@ -28,4 +28,4 @@ interface noexcept_lessthancomparable_t {
 }
 
 template <typename T>
-using is_noexcept_lessthancomparable = T : noexcept_lessthancomparable_t<T>;
+using noexcept_lessthancomparable = T : noexcept_lessthancomparable_t<T>;

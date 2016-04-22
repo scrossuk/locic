@@ -2,5 +2,5 @@
 
 
 template <typename T>
-require(is_movable<T>)
+require(movable<T>)
 export void f() { }

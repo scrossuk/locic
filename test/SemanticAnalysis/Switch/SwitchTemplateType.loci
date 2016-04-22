@@ -2,7 +2,7 @@
 // RUN: FileCheck < %t %s
 
 template <typename T>
-require(is_movable<T>)
+require(movable<T>)
 void doSwitch(T data) {
 	// CHECK: .loci:8:10: error: switch type 'T' is not an object
 	switch (move data) { }

@@ -3,7 +3,7 @@ export std.container 0.1.0 {
 	namespace std {
 		
 		template <typename T>
-		require (is_movable<T>)
+		require (movable<T>)
 		interface counter_type {
 			T implicit_copy() const noexcept;
 			
@@ -13,11 +13,11 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T>
-		require(is_movable<T>)
-		using is_countable = is_movable<T> and T : counter_type<T>;
+		require(movable<T>)
+		using countable = movable<T> and T : counter_type<T>;
 		
 		template <typename T>
-		require (is_countable<T>)
+		require (countable<T>)
 		class counter (T begin, T end, T increment) {
 			static create(T begin, T end, T increment) noexcept {
 				assert begin <= end;
@@ -38,7 +38,7 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T>
-		require (is_countable<T>)
+		require (countable<T>)
 		class counter_incl (T begin, T end, T increment, bool empty) {
 			static create(T begin, T end, T increment) noexcept {
 				assert begin <= end;
@@ -63,7 +63,7 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T>
-		require (is_movable<T>)
+		require (movable<T>)
 		interface reverse_counter_type {
 			T implicit_copy() const noexcept;
 			
@@ -73,11 +73,11 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T>
-		require(is_movable<T>)
-		using is_reverse_countable = is_movable<T> and T : reverse_counter_type<T>;
+		require(movable<T>)
+		using reverse_countable = movable<T> and T : reverse_counter_type<T>;
 		
 		template <typename T>
-		require (is_reverse_countable<T>)
+		require (reverse_countable<T>)
 		class reverse_counter (T begin, T end, T decrement, bool empty) {
 			static create(T begin, T end, T decrement) noexcept {
 				assert begin >= end;
@@ -107,7 +107,7 @@ export std.container 0.1.0 {
 		}
 		
 		template <typename T>
-		require (is_reverse_countable<T>)
+		require (reverse_countable<T>)
 		class reverse_counter_incl (T begin, T end, T decrement, bool empty) {
 			static create(T begin, T end, T decrement) noexcept {
 				assert begin >= end;
