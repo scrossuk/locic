@@ -118,6 +118,24 @@ namespace locic {
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, {}, location);
 		}
 		
+		class TemplateArgsDoNotSatisfyMethodRequirePredicateDiag : public Error {
+		public:
+			TemplateArgsDoNotSatisfyMethodRequirePredicateDiag(const SEM::Predicate& requirePredicate,
+			                                                   const String& name)
+			: requirePredicateString_(requirePredicate.toString()), name_(name) { }
+
+			std::string toString() const {
+				return makeString("template arguments do not satisfy require predicate "
+				                  "'%s' of method '%s'", requirePredicateString_.c_str(),
+				                  name_.c_str());
+			}
+
+		private:
+			std::string requirePredicateString_;
+			String name_;
+			
+		};
+		
 		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const String& methodName, SEM::ValueArray templateArguments, const Debug::SourceLocation& location) {
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
 			if (!type->isObjectOrTemplateVar()) {
@@ -209,12 +227,12 @@ namespace locic {
 			// Now check the template arguments satisfy the requires predicate.
 			const auto& requirePredicate = methodElement.requirePredicate();
 			
-			if (!evaluatePredicate(context, requirePredicate, templateVariableAssignments)) {
-				throw ErrorException(makeString("Template arguments do not satisfy "
-					"require predicate '%s' of method '%s' at position %s.",
-					requirePredicate.substitute(templateVariableAssignments).toString().c_str(),
-					methodName.c_str(),
-					location.toString().c_str()));
+			auto result = evaluatePredicate(context, requirePredicate, templateVariableAssignments);
+			if (!result) {
+				const auto substitutedRequirePredicate = requirePredicate.substitute(templateVariableAssignments);
+				context.issueDiag(TemplateArgsDoNotSatisfyMethodRequirePredicateDiag(substitutedRequirePredicate,
+				                                                                     methodName),
+				                  location, std::move(result));
 			}
 			
 			auto& typeBuilder = context.typeBuilder();

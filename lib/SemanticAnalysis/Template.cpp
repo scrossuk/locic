@@ -41,6 +41,24 @@ namespace locic {
 			
 		}
 		
+		class TemplateArgsDoNotSatisfyRequirePredicateDiag : public Error {
+		public:
+			TemplateArgsDoNotSatisfyRequirePredicateDiag(const SEM::Predicate& requirePredicate,
+			                                             const Name& name)
+			: requirePredicateString_(requirePredicate.toString()), name_(name.copy()) { }
+
+			std::string toString() const {
+				return makeString("template arguments do not satisfy require predicate "
+				                  "'%s' of function or type '%s'", requirePredicateString_.c_str(),
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+
+		private:
+			std::string requirePredicateString_;
+			Name name_;
+			
+		};
+		
 		void CheckTemplateInstantiation(Context& context,
 		                                const SEM::TemplatedObject& templatedObject,
 		                                const SEM::TemplateVarMap& variableAssignments,
@@ -48,12 +66,12 @@ namespace locic {
 			// Requires predicate is already known so check it immediately.
 			const auto& requiresPredicate = templatedObject.requiresPredicate();
 			
-			if (!evaluatePredicate(context, requiresPredicate, variableAssignments)) {
-				throw ErrorException(makeString("Template arguments do not satisfy "
-					"requires predicate '%s' of function or type '%s' at position %s.",
-					requiresPredicate.substitute(variableAssignments).toString().c_str(),
-					templatedObject.name().toString().c_str(),
-					location.toString().c_str()));
+			auto result = evaluatePredicate(context, requiresPredicate, variableAssignments);
+			if (!result) {
+				const auto substitutedRequirePredicate = requiresPredicate.substitute(variableAssignments);
+				context.issueDiag(TemplateArgsDoNotSatisfyRequirePredicateDiag(substitutedRequirePredicate,
+				                                                               templatedObject.name()),
+				                  location, std::move(result));
 			}
 			
 			for (const auto& assignment: variableAssignments) {
