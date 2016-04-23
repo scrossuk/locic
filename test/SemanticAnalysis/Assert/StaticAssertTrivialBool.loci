@@ -4,7 +4,8 @@
 // CHECK-NOT: .loci:5:15: error: static assert predicate evaluates to false
 static assert true;
 
-// CHECK: .loci:8:15: error: static assert predicate evaluates to false
+// CHECK: .loci:9:15: error: static assert predicate evaluates to false
+// CHECK: .loci:9:15: note: because: predicate has literal 'false'
 static assert false;
 
 // CHECK: 1 error generated.
