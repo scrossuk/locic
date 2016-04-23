@@ -6,6 +6,8 @@
 
 namespace locic {
 	
+	class OptionalDiag;
+	
 	namespace SEM {
 		
 		class Predicate;
@@ -44,7 +46,8 @@ namespace locic {
 			return ConvertPredicateSpecifier(context, astRequireSpecifierNode, noneValue, noPredicateValue);
 		}
 		
-		bool evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments);
+		OptionalDiag
+		evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments);
 		
 		bool doesPredicateImplyPredicate(Context& context, const SEM::Predicate& firstPredicate, const SEM::Predicate& secondPredicate);
 		

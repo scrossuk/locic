@@ -167,27 +167,64 @@ namespace locic {
 			
 		};
 		
-		bool evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments) {
+		class PredicateHasLiteralFalseDiag: public Error {
+		public:
+			PredicateHasLiteralFalseDiag() { }
+			
+			std::string toString() const {
+				return "predicate has literal 'false'";
+			}
+			
+		};
+		
+		class PredicateVariableNotFoundDiag: public Error {
+		public:
+			PredicateVariableNotFoundDiag(const String name)
+			: name_(name) { }
+			
+			std::string toString() const {
+				return makeString("predicate variable '%s' not found",
+				                  name_.c_str());
+			}
+			
+		private:
+			String name_;
+			
+		};
+		
+		OptionalDiag
+		evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments) {
 			switch (predicate.kind()) {
 				case SEM::Predicate::TRUE:
 				{
-					return true;
+					return OptionalDiag();
 				}
 				case SEM::Predicate::FALSE:
 				{
-					return false;
+					return OptionalDiag(PredicateHasLiteralFalseDiag());
 				}
 				case SEM::Predicate::AND:
 				{
-					const auto leftIsTrue = evaluatePredicate(context, predicate.andLeft(), variableAssignments);
-					const auto rightIsTrue = evaluatePredicate(context, predicate.andRight(), variableAssignments);
-					return leftIsTrue && rightIsTrue;
+					auto leftResult = evaluatePredicate(context, predicate.andLeft(), variableAssignments);
+					if (!leftResult) {
+						return leftResult;
+					}
+					
+					return evaluatePredicate(context, predicate.andRight(), variableAssignments);
 				}
 				case SEM::Predicate::OR:
 				{
-					const auto leftIsTrue = evaluatePredicate(context, predicate.orLeft(), variableAssignments);
-					const auto rightIsTrue = evaluatePredicate(context, predicate.orRight(), variableAssignments);
-					return leftIsTrue || rightIsTrue;
+					auto leftResult = evaluatePredicate(context, predicate.orLeft(), variableAssignments);
+					if (leftResult) {
+						return leftResult;
+					}
+					
+					auto rightResult = evaluatePredicate(context, predicate.orRight(), variableAssignments);
+					if (rightResult) {
+						return rightResult;
+					}
+					
+					return leftResult;
 				}
 				case SEM::Predicate::SATISFIES:
 				{
@@ -201,7 +238,7 @@ namespace locic {
 					if (substitutedCheckType->isAuto()) {
 						// Presumably this will work.
 						// TODO: fix this by removing auto type!
-						return true;
+						return OptionalDiag();
 					}
 					
 					// Avoid cycles such as:
@@ -216,7 +253,7 @@ namespace locic {
 					// this is being used to compute whether it is itself true
 					// and a cyclic dependency like this is acceptable).
 					if (context.isAssumedSatisfies(substitutedCheckType, substitutedRequireType)) {
-						return true;
+						return OptionalDiag();
 					}
 					
 					PushAssumedSatisfies assumedSatisfies(context, substitutedCheckType, substitutedRequireType);
@@ -234,7 +271,7 @@ namespace locic {
 					if (iterator == variableAssignments.end()) {
 						// TODO: we should be looking at the function/type's require()
 						// predicate here.
-						return false;
+						return OptionalDiag(PredicateVariableNotFoundDiag(templateVar->name().last()));
 					}
 					
 					const auto& templateValue = iterator->second;
