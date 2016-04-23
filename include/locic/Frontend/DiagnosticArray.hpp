@@ -7,16 +7,19 @@
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Frontend/DiagnosticReceiver.hpp>
 #include <locic/Frontend/Diagnostics.hpp>
+#include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/Support/Array.hpp>
 
 namespace locic {
 	
-	struct DiagPair {
+	struct DiagInfo {
 		std::unique_ptr<Diag> diag;
 		Debug::SourceLocation location;
+		OptionalDiag chain;
 		
-		DiagPair(std::unique_ptr<Diag> d, const Debug::SourceLocation& l)
-		: diag(std::move(d)), location(l) { }
+		DiagInfo(std::unique_ptr<Diag> d, const Debug::SourceLocation& l,
+		         OptionalDiag c)
+		: diag(std::move(d)), location(l), chain(std::move(c)) { }
 	};
 	
 	class DiagnosticArray: public DiagnosticReceiver {
@@ -33,23 +36,24 @@ namespace locic {
 			return false;
 		}
 		
-		void issueDiag(std::unique_ptr<Diag> diag, const Debug::SourceLocation& location) {
-			diags_.push_back(DiagPair(std::move(diag), location));
-			std::sort(diags_.begin(), diags_.end(), [](const DiagPair& a, const DiagPair& b) {
+		void issueDiag(std::unique_ptr<Diag> diag, const Debug::SourceLocation& location,
+		               OptionalDiag chain = OptionalDiag()) {
+			diags_.push_back(DiagInfo(std::move(diag), location, std::move(chain)));
+			std::sort(diags_.begin(), diags_.end(), [](const DiagInfo& a, const DiagInfo& b) {
 				return a.location.range().start() < b.location.range().start();
 			});
 		}
 		
-		Array<DiagPair, 8>& diags() {
+		Array<DiagInfo, 8>& diags() {
 			return diags_;
 		}
 		
-		const Array<DiagPair, 8>& diags() const {
+		const Array<DiagInfo, 8>& diags() const {
 			return diags_;
 		}
 		
 	private:
-		Array<DiagPair, 8> diags_;
+		Array<DiagInfo, 8> diags_;
 		
 	};
 	

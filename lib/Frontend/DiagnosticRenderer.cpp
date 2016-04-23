@@ -3,6 +3,7 @@
 #include <locic/Debug/SourceLocation.hpp>
 #include <locic/Frontend/DiagnosticRenderer.hpp>
 #include <locic/Frontend/Diagnostics.hpp>
+#include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/Support/ErrorHandling.hpp>
 
 #define MESSAGE_COLOR "\033[0;1;37m"
@@ -28,20 +29,39 @@ namespace locic {
 	}
 	
 	void DiagnosticRenderer::emitDiagnostic(std::ostream& stream, const Diag& diagnostic,
-	                                        const Debug::SourceLocation& location) {
-		emitDiagnosticMessage(stream, diagnostic, location);
+	                                        const Debug::SourceLocation& location,
+	                                        const OptionalDiag& chain) {
+		emitDiagnosticMessage(stream, diagnostic, location, /*isChain=*/false);
+		emitCodeContext(stream, location);
+		
+		const OptionalDiag* chainPtr = &chain;
+		while (chainPtr->hasDiag()) {
+			const auto& chainLocation = chainPtr->location().range().isNull() ?
+				location : chainPtr->location();
+			emitChainDiagnostic(stream, chainPtr->diag(), chainLocation);
+			chainPtr = &(chainPtr->chain());
+		}
+	}
+	
+	void DiagnosticRenderer::emitChainDiagnostic(std::ostream& stream, const Diag& diagnostic,
+	                                             const Debug::SourceLocation& location) {
+		emitDiagnosticMessage(stream, diagnostic, location, /*isChain=*/true);
 		emitCodeContext(stream, location);
 	}
 	
 	void DiagnosticRenderer::emitDiagnosticMessage(std::ostream& stream, const Diag& diagnostic,
-	                                               const Debug::SourceLocation& location) {
+	                                               const Debug::SourceLocation& location,
+	                                               const bool isChain) {
 		setColor(stream, MESSAGE_COLOR);
 		stream << location.fileName().c_str() << ":";
 		stream << location.range().start().lineNumber() << ":";
 		stream << location.range().start().column() << ": ";
 		resetColor(stream);
-		emitDiagnosticLevel(stream, diagnostic.level());
+		emitDiagnosticLevel(stream, isChain ? DiagLevel::Notice : diagnostic.level());
 		setColor(stream, MESSAGE_COLOR);
+		if (isChain) {
+			stream << "because: ";
+		}
 		stream << diagnostic.toString();
 		resetColor(stream);
 		stream << "\n";

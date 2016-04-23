@@ -267,9 +267,9 @@ public:
 		
 		DiagnosticRenderer renderer(/*useColors=*/isStdOutATTY());
 		
-		for (const auto& diagPair: diagArray_.diags()) {
-			renderer.emitDiagnostic(std::cout, *(diagPair.diag),
-			                        diagPair.location);
+		for (const auto& diagInfo: diagArray_.diags()) {
+			renderer.emitDiagnostic(std::cout, *(diagInfo.diag),
+			                        diagInfo.location, diagInfo.chain);
 		}
 		
 		renderer.emitDiagnosticSummary(std::cout);

@@ -3,6 +3,8 @@
 
 #include <memory>
 
+#include <locic/Frontend/OptionalDiag.hpp>
+
 namespace locic {
 	
 	namespace Debug {
@@ -19,7 +21,8 @@ namespace locic {
 		
 	public:
 		virtual void issueDiag(std::unique_ptr<Diag> diag,
-		                       const Debug::SourceLocation& location) = 0;
+		                       const Debug::SourceLocation& location,
+		                       OptionalDiag chain = OptionalDiag()) = 0;
 		
 	};
 	
