@@ -44,9 +44,7 @@ namespace locic {
 			return ConvertPredicateSpecifier(context, astRequireSpecifierNode, noneValue, noPredicateValue);
 		}
 		
-		Optional<bool> evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments);
-		
-		bool evaluatePredicateWithDefault(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments, bool defaultValue);
+		bool evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments);
 		
 		bool doesPredicateImplyPredicate(Context& context, const SEM::Predicate& firstPredicate, const SEM::Predicate& secondPredicate);
 		

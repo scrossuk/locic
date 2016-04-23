@@ -208,10 +208,7 @@ namespace locic {
 			// Now check the template arguments satisfy the requires predicate.
 			const auto& requirePredicate = methodElement.requirePredicate();
 			
-			// Conservatively assume require predicate is not satisified if result is undetermined.
-			const bool satisfiesRequireDefault = false;
-			
-			if (!evaluatePredicateWithDefault(context, requirePredicate, templateVariableAssignments, satisfiesRequireDefault)) {
+			if (!evaluatePredicate(context, requirePredicate, templateVariableAssignments)) {
 				throw ErrorException(makeString("Template arguments do not satisfy "
 					"require predicate '%s' of method '%s' at position %s.",
 					requirePredicate.substitute(templateVariableAssignments).toString().c_str(),

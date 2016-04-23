@@ -47,10 +47,7 @@ namespace locic {
 			// Requires predicate is already known so check it immediately.
 			const auto& requiresPredicate = templatedObject.requiresPredicate();
 			
-			// Conservatively assume require predicate is not satisified if result is undetermined.
-			const bool satisfiesRequiresDefault = false;
-			
-			if (!evaluatePredicateWithDefault(context, requiresPredicate, variableAssignments, satisfiesRequiresDefault)) {
+			if (!evaluatePredicate(context, requiresPredicate, variableAssignments)) {
 				throw ErrorException(makeString("Template arguments do not satisfy "
 					"requires predicate '%s' of function or type '%s' at position %s.",
 					requiresPredicate.substitute(variableAssignments).toString().c_str(),

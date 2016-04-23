@@ -25,8 +25,7 @@ namespace locic {
 				const auto semPredicate = ConvertPredicate(context, astPredicateNode);
 				
 				const auto evaluateResult = evaluatePredicate(context, semPredicate, SEM::TemplateVarMap());
-				assert(evaluateResult);
-				if (!*evaluateResult) {
+				if (!evaluateResult) {
 					context.issueDiag(StaticAssertPredicateIsFalseDiag(),
 					                  astPredicateNode.location());
 				}

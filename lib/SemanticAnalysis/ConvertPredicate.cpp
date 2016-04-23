@@ -166,61 +166,27 @@ namespace locic {
 			
 		};
 		
-		Optional<bool> evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments) {
+		bool evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments) {
 			switch (predicate.kind()) {
 				case SEM::Predicate::TRUE:
 				{
-					return make_optional(true);
+					return true;
 				}
 				case SEM::Predicate::FALSE:
 				{
-					return make_optional(false);
+					return false;
 				}
 				case SEM::Predicate::AND:
 				{
 					const auto leftIsTrue = evaluatePredicate(context, predicate.andLeft(), variableAssignments);
 					const auto rightIsTrue = evaluatePredicate(context, predicate.andRight(), variableAssignments);
-					
-					if (leftIsTrue && !(*leftIsTrue)) {
-						return make_optional(false);
-					}
-					
-					if (rightIsTrue && !(*rightIsTrue)) {
-						return make_optional(false);
-					}
-					
-					if (!leftIsTrue) {
-						return None;
-					}
-					
-					if (!rightIsTrue) {
-						return None;
-					}
-					
-					return make_optional(*leftIsTrue && *rightIsTrue);
+					return leftIsTrue && rightIsTrue;
 				}
 				case SEM::Predicate::OR:
 				{
 					const auto leftIsTrue = evaluatePredicate(context, predicate.orLeft(), variableAssignments);
 					const auto rightIsTrue = evaluatePredicate(context, predicate.orRight(), variableAssignments);
-					
-					if (leftIsTrue && (*leftIsTrue)) {
-						return make_optional(true);
-					}
-					
-					if (rightIsTrue && (*rightIsTrue)) {
-						return make_optional(true);
-					}
-					
-					if (!leftIsTrue) {
-						return None;
-					}
-					
-					if (!rightIsTrue) {
-						return None;
-					}
-					
-					return make_optional(*leftIsTrue || *rightIsTrue);
+					return leftIsTrue || rightIsTrue;
 				}
 				case SEM::Predicate::SATISFIES:
 				{
@@ -234,7 +200,7 @@ namespace locic {
 					if (substitutedCheckType->isAuto()) {
 						// Presumably this will work.
 						// TODO: fix this by removing auto type!
-						return make_optional(true);
+						return true;
 					}
 					
 					// Avoid cycles such as:
@@ -249,7 +215,7 @@ namespace locic {
 					// this is being used to compute whether it is itself true
 					// and a cyclic dependency like this is acceptable).
 					if (context.isAssumedSatisfies(substitutedCheckType, substitutedRequireType)) {
-						return make_optional(true);
+						return true;
 					}
 					
 					PushAssumedSatisfies assumedSatisfies(context, substitutedCheckType, substitutedRequireType);
@@ -257,24 +223,7 @@ namespace locic {
 					const auto sourceMethodSet = getTypeMethodSet(context, substitutedCheckType);
 					const auto requireMethodSet = getTypeMethodSet(context, substitutedRequireType);
 					
-					const bool result = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
-					
-					if (result) {
-						// If the result is true then we
-						// know for sure that the check
-						// type satisfies the requirement,
-						// but a false result might just
-						// be a lack of information.
-						return make_optional(true);
-					}
-					
-					if (!checkType->dependsOnOnly({}) || !requireType->dependsOnOnly({})) {
-						// Types still depend on some template
-						// variables so result is unknown.
-						return None;
-					}
-					
-					return make_optional(false);
+					return methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
 				}
 				case SEM::Predicate::VARIABLE:
 				{
@@ -282,8 +231,9 @@ namespace locic {
 					const auto iterator = variableAssignments.find(templateVar);
 					
 					if (iterator == variableAssignments.end()) {
-						// Unknown result since we don't know the variable's value.
-						return None;
+						// TODO: we should be looking at the function/type's require()
+						// predicate here.
+						return false;
 					}
 					
 					const auto& templateValue = iterator->second;
@@ -292,11 +242,6 @@ namespace locic {
 			}
 			
 			throw std::logic_error("Unknown predicate kind.");
-		}
-		
-		bool evaluatePredicateWithDefault(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments, const bool defaultValue) {
-			const auto result = evaluatePredicate(context, predicate, variableAssignments);
-			return result ? *result : defaultValue;
 		}
 		
 		bool doesPredicateImplyPredicate(Context& /*context*/, const SEM::Predicate& firstPredicate, const SEM::Predicate& secondPredicate) {

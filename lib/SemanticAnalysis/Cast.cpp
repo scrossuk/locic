@@ -321,10 +321,7 @@ namespace locic {
 				const auto& castTemplateVar = castFunction.templateVariables().front();
 				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, SEM::Value::TypeRef(destDerefType, castTemplateVar->type()->createStaticRefType(destDerefType))));
 				
-				// Conservatively assume require predicate is not satisified if result is undetermined.
-				const bool satisfiesRequiresDefault = false;
-				
-				if (evaluatePredicateWithDefault(context, requiresPredicate, combinedTemplateVarMap, satisfiesRequiresDefault)) {
+				if (evaluatePredicate(context, requiresPredicate, combinedTemplateVarMap)) {
 					auto boundValue = bindReference(context, std::move(value));
 					auto method = GetTemplatedMethod(context, std::move(boundValue), context.getCString("implicitcast"), makeTemplateArgs(context, { destDerefType }), location);
 					auto castValue = CallValue(context, std::move(method), {}, location);

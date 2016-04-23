@@ -59,10 +59,7 @@ namespace locic {
 					if (!function->isMethod()) return false;
 					if (function->isStaticMethod()) return false;
 					
-					// Conservatively assume method is not const if result is undetermined.
-					const bool isConstMethodDefault = false;
-					
-					if (!evaluatePredicateWithDefault(context, function->constPredicate(), type->generateTemplateVarMap(), isConstMethodDefault)) return false;
+					if (!evaluatePredicate(context, function->constPredicate(), type->generateTemplateVarMap())) return false;
 					if (!function->parameters().empty()) return false;
 					if (function->templateVariables().size() != 1) return false;
 					
