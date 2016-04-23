@@ -13,7 +13,8 @@ public:
 	MockDiagnosticReceiver() { }
 	
 	void issueDiag(std::unique_ptr<locic::Diag> diag,
-	               const locic::Debug::SourceLocation& location) {
+	               const locic::Debug::SourceLocation& location,
+	               locic::OptionalDiag /*optionalDiag*/) {
 		diags_.push_back(DiagPair(std::move(diag), location));
 	}
 	

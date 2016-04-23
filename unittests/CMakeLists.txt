@@ -24,6 +24,7 @@ function(add_unit_test name)
 		locic-parser
 		locic-ast
 		locic-lex
+		locic-frontend
 		locic-support
 		${CMAKE_DL_LIBS}
 		${CMAKE_THREAD_LIBS_INIT}
