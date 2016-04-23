@@ -19,6 +19,7 @@ set(RUNTIME_FILES
 	final_lval_t.loci
 	float_t.loci
 	function_ptr_t.loci
+	hashable.loci
 	incrementable.loci
 	int16_t.loci
 	int32_t.loci

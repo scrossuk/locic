@@ -1,0 +1,20 @@
+/**
+ * \brief Hashable Type Interface
+ */
+template <typename Hasher>
+interface hashable_t {
+	/**
+	 * \brief Hash type.
+	 *
+	 * This method hashes the type using the given Hasher type. Individual
+	 * types will have specific requirements for the Hasher type (e.g. for
+	 * 'int' values it must have a 'hash_int()' method.
+	 *
+	 * The structure of this method allows a type to be hashed with many
+	 * different algorithms.
+	 */
+	void hash(Hasher& hasher) const noexcept;
+}
+
+template <typename T, typename Hasher>
+using hashable = T : hashable_t<Hasher>;
