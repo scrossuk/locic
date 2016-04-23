@@ -547,26 +547,25 @@ namespace locic {
 				}
 				case AND:
 				{
-					return makeString("and(%s, %s)",
+					return makeString("%s and %s",
 						andLeft().toString().c_str(),
 						andRight().toString().c_str());
 				}
 				case OR:
 				{
-					return makeString("or(%s, %s)",
+					return makeString("%s or %s",
 						orLeft().toString().c_str(),
 						orRight().toString().c_str());
 				}
 				case SATISFIES:
 				{
-					return makeString("satisfies(type: %s, requirement: %s)",
-						satisfiesType()->toString().c_str(),
-						satisfiesRequirement()->toString().c_str());
+					return makeString("%s : %s",
+						satisfiesType()->toDiagString().c_str(),
+						satisfiesRequirement()->toDiagString().c_str());
 				}
 				case VARIABLE:
 				{
-					return makeString("variable(templateVar: %s)",
-						variableTemplateVar()->toString().c_str());
+					return variableTemplateVar()->name().last().asStdString();
 				}
 			}
 			

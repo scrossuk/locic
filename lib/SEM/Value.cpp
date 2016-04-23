@@ -1316,9 +1316,9 @@ namespace locic {
 				case BIND_REFERENCE:
 					return makeString("<bind> %s", bindReferenceOperand().toDiagString().c_str());
 				case TYPEREF:
-					return typeRefType()->toString();
+					return typeRefType()->toDiagString();
 				case TEMPLATEVARREF:
-					return templateVar()->toString();
+					return templateVar()->name().last().asStdString();
 				case CALL:
 					return makeString("%s(%s)", callValue().toDiagString().c_str(),
 						makeArrayString(callParameters()).c_str());

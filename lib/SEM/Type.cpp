@@ -1081,7 +1081,7 @@ namespace locic {
 				case OBJECT: {
 					if (isBuiltInReference()) {
 						assert(templateArguments().size() == 1);
-						return templateArguments().front().typeRefType()->toString() + "&";
+						return templateArguments().front().typeRefType()->toDiagString() + "&";
 					}
 					
 					const auto objectName = getObjectType()->name().toString(false);
@@ -1098,12 +1098,7 @@ namespace locic {
 							} else {
 								stream << ", ";
 							}
-							
-							if (templateArg.isTypeRef()) {
-								stream << templateArg.typeRefType()->toString();
-							} else {
-								stream << templateArg.toString();
-							}
+							stream << templateArg.toDiagString();
 						}
 						
 						stream << ">";
@@ -1129,7 +1124,7 @@ namespace locic {
 							} else {
 								stream << ", ";
 							}
-							stream << templateArg.toString();
+							stream << templateArg.toDiagString();
 						}
 						
 						stream << ">";
@@ -1155,17 +1150,17 @@ namespace locic {
 			
 			const std::string lvalStr =
 				isLval() ?
-				makeString("lval<%s>(%s)", lvalTarget()->toString().c_str(), constStr.c_str()) :
+				makeString("lval<%s>(%s)", lvalTarget()->toDiagString().c_str(), constStr.c_str()) :
 				constStr;
 			
 			const std::string refStr =
 				isRef() && !isBuiltInReference() ?
-				makeString("ref<%s>(%s)", refTarget()->toString().c_str(), lvalStr.c_str()) :
+				makeString("ref<%s>(%s)", refTarget()->toDiagString().c_str(), lvalStr.c_str()) :
 				lvalStr;
 			
 			const std::string staticRefStr =
 				isStaticRef() ?
-				makeString("staticref<%s>(%s)", staticRefTarget()->toString().c_str(), refStr.c_str()) :
+				makeString("staticref<%s>(%s)", staticRefTarget()->toDiagString().c_str(), refStr.c_str()) :
 				refStr;
 			
 			return staticRefStr;
