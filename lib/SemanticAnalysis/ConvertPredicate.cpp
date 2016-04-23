@@ -25,6 +25,72 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
+		class PredicateAliasNotBoolDiag: public Error {
+		public:
+			PredicateAliasNotBoolDiag(const Name& name, const SEM::Type* const type)
+			: name_(name.copy()), typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("alias '%s' has non-boolean type '%s' and "
+				                  "therefore cannot be used in predicate",
+				                  name_.toString(/*addPrefix=*/false).c_str(),
+				                  typeString_.c_str());
+			}
+			
+		private:
+			Name name_;
+			std::string typeString_;
+			
+		};
+		
+		class PredicateTemplateVarNotBoolDiag: public Error {
+		public:
+			PredicateTemplateVarNotBoolDiag(const Name& name, const SEM::Type* const type)
+			: name_(name.copy()), typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("template variable '%s' has non-boolean type '%s' "
+				                  "and therefore cannot be used in predicate",
+				                  name_.toString(/*addPrefix=*/false).c_str(),
+				                  typeString_.c_str());
+			}
+			
+		private:
+			Name name_;
+			std::string typeString_;
+			
+		};
+		
+		class InvalidSymbolInPredicateDiag: public Error {
+		public:
+			InvalidSymbolInPredicateDiag(const Name& name)
+			: name_(name.copy()) { }
+			
+			std::string toString() const {
+				return makeString("symbol '%s' cannot be used in predicate",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
+		class UnknownSymbolInPredicateDiag: public Error {
+		public:
+			UnknownSymbolInPredicateDiag(const Name& name)
+			: name_(name.copy()) { }
+			
+			std::string toString() const {
+				return makeString("unknown symbol '%s' cannot be used in predicate",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
 		SEM::Predicate ConvertPredicate(Context& context, const AST::Node<AST::Predicate>& astPredicateNode) {
 			const auto& location = astPredicateNode.location();
 			
@@ -60,11 +126,9 @@ namespace locic {
 						
 						const auto aliasValue = alias.value().substitute(templateVarMap);
 						if (!aliasValue.type()->isBuiltInBool()) {
-							throw ErrorException(makeString("Alias '%s' has non-boolean type '%s' "
-								"and therefore cannot be used in predicate, at position %s.",
-								name.toString().c_str(),
-								aliasValue.type()->toString().c_str(),
-								location.toString().c_str()));
+							context.issueDiag(PredicateAliasNotBoolDiag(name, aliasValue.type()),
+							                  location);
+							return SEM::Predicate::False();
 						}
 						
 						return aliasValue.makePredicate();
@@ -72,24 +136,18 @@ namespace locic {
 						auto& templateVar = searchResult.templateVar();
 						
 						if (!templateVar.type()->isBuiltInBool()) {
-							throw ErrorException(makeString("Template variable '%s' has non-boolean type '%s' "
-								"and therefore cannot be used in predicate, at position %s.",
-								name.toString().c_str(),
-								templateVar.type()->toString().c_str(),
-								location.toString().c_str()));
+							context.issueDiag(PredicateTemplateVarNotBoolDiag(name, templateVar.type()),
+							                  location);
+							return SEM::Predicate::False();
 						}
 						
 						return SEM::Predicate::Variable(&templateVar);
 					} else if (!searchResult.isNone()) {
-						throw ErrorException(makeString("Invalid symbol '%s' "
-							"in predicate, at position %s.",
-							name.toString().c_str(),
-							location.toString().c_str()));
+						context.issueDiag(InvalidSymbolInPredicateDiag(name), location);
+						return SEM::Predicate::False();
 					} else {
-						throw ErrorException(makeString("Failed to find symbol '%s' "
-							"in predicate, at position %s.",
-							name.toString().c_str(),
-							location.toString().c_str()));
+						context.issueDiag(UnknownSymbolInPredicateDiag(name), location);
+						return SEM::Predicate::False();
 					}
 				}
 				case AST::Predicate::AND: {
