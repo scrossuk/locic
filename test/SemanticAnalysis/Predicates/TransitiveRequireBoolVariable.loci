@@ -1,0 +1,21 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// Currently this test fails because we're not checking for 'B' in the function's
+// require predicate.
+// XFAIL: *
+
+template <bool B>
+require(B)
+void f() { }
+
+template <bool B>
+require(B)
+// CHECK-NOT: .loci:11:12: error: template arguments do not satisfy require predicate {{.*}} of function or type 'f'
+void g() { f<B>(); }
+
+template <bool B>
+// CHECK: .loci:16:12: error: template arguments do not satisfy require predicate {{.*}} of function or type 'f'
+void h() { f<B>(); }
+
+// CHECK: 1 error generated.
