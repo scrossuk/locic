@@ -117,8 +117,9 @@ namespace locic {
 		}
 		
 		void Context::issueDiagPtr(std::unique_ptr<Diag> diag,
-		                           const Debug::SourceLocation& location) {
-			diagnosticReceiver().issueDiag(std::move(diag), location);
+		                           const Debug::SourceLocation& location,
+		                           OptionalDiag chain) {
+			diagnosticReceiver().issueDiag(std::move(diag), location, std::move(chain));
 		}
 		
 		AliasTypeResolver& Context::aliasTypeResolver() {

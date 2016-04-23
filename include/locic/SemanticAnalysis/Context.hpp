@@ -54,13 +54,15 @@ namespace locic {
 				void setDiagnosticReceiver(DiagnosticReceiver& receiver);
 				
 				template <typename DiagType>
-				void issueDiag(DiagType diag, const Debug::SourceLocation& location) {
+				void issueDiag(DiagType diag, const Debug::SourceLocation& location,
+				               OptionalDiag chain = OptionalDiag()) {
 					issueDiagPtr(std::unique_ptr<Diag>(new DiagType(std::move(diag))),
-					             location);
+					             location, std::move(chain));
 				}
 				
 				void issueDiagPtr(std::unique_ptr<Diag> diag,
-				                  const Debug::SourceLocation& location);
+				                  const Debug::SourceLocation& location,
+				                  OptionalDiag chain);
 				
 				AliasTypeResolver& aliasTypeResolver();
 				const SharedMaps& sharedMaps() const;
