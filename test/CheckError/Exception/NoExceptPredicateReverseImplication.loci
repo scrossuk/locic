@@ -1,7 +1,7 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Function '::doThing' has noexcept predicate 'satisfies(type: TemplateVarType(templateVar: TemplateVar(name = ::doThing::T, index = 0)), requirement: CanDoThingAndOtherThingNoExcept)' which isn't implied by explicitly declared noexcept predicate 'satisfies(type: TemplateVarType(templateVar: TemplateVar(name = ::doThing::T, index = 0)), requirement: CanDoThingNoExcept)', at location SourceLocation(filename = {{.*}}/NoExceptPredicateReverseImplication.loci, range = (line 26, column 1) to (line 29, column 2)).
+// CHECK: Function '::doThing' has noexcept predicate 'T : CanDoThingAndOtherThingNoExcept' which isn't implied by explicitly declared noexcept predicate 'T : CanDoThingNoExcept', at location SourceLocation(filename = {{.*}}/NoExceptPredicateReverseImplication.loci, range = (line 26, column 1) to (line 29, column 2)).
 
 interface CanDoThing {
 	void doThing();

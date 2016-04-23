@@ -17,20 +17,9 @@ class TestClass() {
 // from it about what methods T supports.
 template <typename T>
 int function(T& object) require(TestClass<T> : Requirements) {
-	// CHECK: Template arguments do not satisfy require predicate 'satisfies(
-	// CHECK-NEXT:     type: TestClass<
-	// CHECK-NEXT:         TemplateVarType(
-	// CHECK-NEXT:             templateVar: TemplateVar(
-	// CHECK-NEXT:                 name = ::function::T,
-	// CHECK-NEXT:                 index = 0
-	// CHECK-NEXT:             )
-	// CHECK-NEXT:         )
-	// CHECK-NEXT:     >,
-	// CHECK-NEXT:     requirement: Requirements
-	// CHECK-NEXT: )' of method 'methodA'
-	// CHECK: line 35
-	// CHECK-NEXT: column 9
-	// CHECK: line 35
-	// CHECK-NEXT: column 23
+	// CHECK: .loci:22:9: error: template arguments do not satisfy require predicate 'TestClass<T> : Requirements' of method 'methodA'
+	// CHECK: .loci:22:9: note: because: return type in method 'methoda' has type void_t in source but type int_t in requirement
 	return object.methodA();
 }
+
+// CHECK: 1 error generated.

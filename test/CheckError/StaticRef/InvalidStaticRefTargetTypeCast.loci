@@ -6,7 +6,7 @@ class TestClass() { }
 class TestClass2() { }
 
 void function0(staticref<TestClass> typename_t typeValue) {
-	// CHECK: .loci:10:12: error: Can't implicitly cast value of type 'ref<lval<staticref<TestClass>(typename_t)>(value_lval_t<staticref<TestClass>(typename_t)>)>(lval<staticref<TestClass>(typename_t)>(value_lval_t<staticref<TestClass>(typename_t)>)&)' to type 'staticref<TestClass2>(typename_t)'.
+	// CHECK: .loci:10:12: error: Can't implicitly cast value of type 'lval<staticref<TestClass>(typename_t)>(value_lval_t<staticref<TestClass>(typename_t)>)&' to type 'staticref<TestClass2>(typename_t)'.
 	function1(typeValue);
 }
 

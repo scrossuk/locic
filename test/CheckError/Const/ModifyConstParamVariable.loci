@@ -1,8 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Template arguments do not satisfy require predicate 'satisfies(type: const(int_t), requirement: movable_t)' of method 'assign' at position SourceLocation(filename = {{.*}}/ModifyConstParamVariable.loci, range = (line 7, column 2) to (line 7, column 12)).
-
 void f(const int value) {
+	// CHECK: .loci:7:2: error: template arguments do not satisfy require predicate 'const(int_t) : movable_t' of method 'assign'
+	// CHECK: .loci:7:2: note: because: mutator method '__moveto' is required but type is const
 	value = 1;
 }
+
+// CHECK: 1 error generated.

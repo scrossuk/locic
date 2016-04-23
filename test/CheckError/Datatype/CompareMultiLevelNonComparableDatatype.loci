@@ -1,8 +1,6 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Template arguments do not satisfy require predicate 'satisfies(type: TestDatatype2, requirement: comparable_t<TestDatatype2>)' of method 'compare' at position SourceLocation(filename = {{.*}}/CompareMultiLevelNonComparableDatatype.loci, range = (line 17, column 9) to (line 17, column 15)).
-
 class TestClass() {
 	// Not comparable.
 }
@@ -14,5 +12,9 @@ datatype TestDatatype2(int value, TestDatatype1 object);
 datatype TestDatatype3(TestDatatype2 object);
 
 bool doCompare(const TestDatatype3& a, const TestDatatype3& b) {
+	// CHECK: .loci:17:9: error: template arguments do not satisfy require predicate 'TestDatatype2 : comparable_t<TestDatatype2>' of method 'compare'
+	// CHECK: .loci:17:9: note: because: method 'compare' has require predicate 'true' in required type which doesn't imply require predicate 'false' in source type
 	return a == b;
 }
+
+// CHECK: 1 error generated.

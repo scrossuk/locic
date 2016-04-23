@@ -1,9 +1,11 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Template arguments do not satisfy require predicate 'satisfies(type: TemplateVarType(templateVar: TemplateVar(name = ::moveObject::T, index = 0)), requirement: movable_t)' of method 'move' at position SourceLocation(filename = {{.*}}/MoveNonMovableTemplateType.loci, range = (line 8, column 16) to (line 8, column 27)).
-
 template <typename T>
 void moveObject(T object) {
+	// CHECK: .loci:8:16: error: template arguments do not satisfy require predicate 'T : movable_t' of method 'move'
+	// CHECK: .loci:8:16: note: because: method '__alignmask' not found
 	unused_result move object;
 }
+
+// CHECK: 1 error generated.

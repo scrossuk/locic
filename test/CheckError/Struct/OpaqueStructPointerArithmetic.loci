@@ -1,10 +1,13 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Template arguments do not satisfy require predicate 'satisfies(type: OpaqueStruct, requirement: sized_type_t)' of method 'add' at position SourceLocation(filename = {{.*}}/OpaqueStructPointerArithmetic.loci, range = (line 9, column 9) to (line 9, column 17)).
-
 struct OpaqueStruct;
 
 OpaqueStruct* plusOne(OpaqueStruct* ptr) {
+	// .loci:12:9: error: template arguments do not satisfy require predicate 'OpaqueStruct : sized_type_t' of method 'add'
+	// .loci:12:9: note: because: method '__alignmask' not found
+	// .loci:12:15: error: User cast failed from type 'uint8_t' to type 'notag(ptrdiff_t)'.
 	return ptr + 1u;
 }
+
+// CHECK: 2 errors generated.

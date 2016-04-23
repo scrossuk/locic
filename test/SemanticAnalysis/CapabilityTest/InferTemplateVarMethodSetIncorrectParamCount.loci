@@ -17,20 +17,9 @@ class TestClass() {
 // from it about what methods T supports.
 template <typename T>
 void function(T& object) require(TestClass<T> : Requirements) {
-	// CHECK: Template arguments do not satisfy require predicate 'satisfies(
-	// CHECK-NEXT:     type: TestClass<
-	// CHECK-NEXT:         TemplateVarType(
-	// CHECK-NEXT:             templateVar: TemplateVar(
-	// CHECK-NEXT:                 name = ::function::T,
-	// CHECK-NEXT:                 index = 0
-	// CHECK-NEXT:             )
-	// CHECK-NEXT:         )
-	// CHECK-NEXT:     >,
-	// CHECK-NEXT:     requirement: Requirements
-	// CHECK-NEXT: )' of method 'methodA'
-	// CHECK: line 35
-	// CHECK-NEXT: column 2
-	// CHECK: line 35
-	// CHECK-NEXT: column 16
+	// CHECK: .loci:22:2: error: template arguments do not satisfy require predicate 'TestClass<T> : Requirements' of method 'methodA'
+	// CHECK: .loci:22:2: note: because: method 'methoda' has 1 parameter(s) in source type but 2 parameter(s) in required type
 	object.methodA(0, 0);
 }
+
+// CHECK: 1 error generated.

@@ -1,10 +1,12 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Template arguments do not satisfy require predicate 'satisfies(type: OpaqueStruct, requirement: movable_t)' of method 'move' at position SourceLocation(filename = {{.*}}/OpaqueStructMove.loci, range = (line 9, column 16) to (line 9, column 25)).
-
 struct OpaqueStruct;
 
 void f(OpaqueStruct* ptr) {
+	// CHECK: .loci:9:16: error: template arguments do not satisfy require predicate 'OpaqueStruct : movable_t' of method 'move'
+	// CHECK: .loci:9:16: note: because: method '__alignmask' not found
 	unused_result move *ptr;
 }
+
+// CHECK: 1 error generated.
