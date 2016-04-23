@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include <locic/AST.hpp>
+#include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>
 

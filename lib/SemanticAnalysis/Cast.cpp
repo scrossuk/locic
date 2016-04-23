@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include <locic/Debug.hpp>
+#include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/SEM.hpp>

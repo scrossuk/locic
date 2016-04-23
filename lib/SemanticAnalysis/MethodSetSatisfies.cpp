@@ -6,6 +6,8 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/Frontend/OptionalDiag.hpp>
+
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Cast.hpp>
@@ -48,11 +50,179 @@ namespace locic {
 			return templateVarMap;
 		}
 		
+		class MismatchingStaticDiag: public Error {
+		public:
+			MismatchingStaticDiag(const String name, bool sourceIsStatic,
+			                      bool requireIsStatic)
+			: name_(name), sourceIsStatic_(sourceIsStatic),
+			requireIsStatic_(requireIsStatic) {
+				assert(sourceIsStatic != requireIsStatic);
+			}
+			
+			std::string toString() const {
+				return makeString("method '%s' is %s in source type but %s in required type",
+				                  name_.c_str(), sourceIsStatic_ ? "static" : "non-static",
+				                  requireIsStatic_ ? "static" : "non-static");
+			}
+			
+		private:
+			String name_;
+			bool sourceIsStatic_;
+			bool requireIsStatic_;
+			
+		};
+		
+		class ParentConstPredicateImplicationFailedDiag: public Error {
+		public:
+			ParentConstPredicateImplicationFailedDiag(const String name, const SEM::Predicate& parentPredicate,
+			                                          const SEM::Predicate& methodPredicate)
+			: name_(name), parentPredicateString_(parentPredicate.toString()),
+			methodPredicateString_(methodPredicate.toString()) { }
+			
+			std::string toString() const {
+				return makeString("const predicate %s in type doesn't imply const "
+				                  "predicate %s in method '%s'", parentPredicateString_.c_str(),
+				                  methodPredicateString_.c_str(), name_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string parentPredicateString_;
+			std::string methodPredicateString_;
+			
+		};
+		
+		class ConstPredicateImplicationFailedDiag: public Error {
+		public:
+			ConstPredicateImplicationFailedDiag(const String name, const SEM::Predicate& requirePredicate,
+			                                    const SEM::Predicate& sourcePredicate)
+			: name_(name), requirePredicateString_(requirePredicate.toString()),
+			sourcePredicateString_(sourcePredicate.toString()) { }
+			
+			std::string toString() const {
+				return makeString("method '%s' has const predicate %s in required type "
+				                  "which doesn't imply const predicate %s in source type",
+				                  name_.c_str(), requirePredicateString_.c_str(),
+				                  sourcePredicateString_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string requirePredicateString_;
+			std::string sourcePredicateString_;
+			
+		};
+		
+		class RequirePredicateImplicationFailedDiag: public Error {
+		public:
+			RequirePredicateImplicationFailedDiag(const String name, const SEM::Predicate& requirePredicate,
+			                                      const SEM::Predicate& sourcePredicate)
+			: name_(name), requirePredicateString_(requirePredicate.toString()),
+			sourcePredicateString_(sourcePredicate.toString()) { }
+			
+			std::string toString() const {
+				return makeString("method '%s' has require predicate %s in required type "
+				                  "which doesn't imply require predicate %s in source type",
+				                  name_.c_str(), requirePredicateString_.c_str(),
+				                  sourcePredicateString_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string requirePredicateString_;
+			std::string sourcePredicateString_;
+			
+		};
+		
+		class NoexceptPredicateImplicationFailedDiag: public Error {
+		public:
+			NoexceptPredicateImplicationFailedDiag(const String name, const SEM::Predicate& requirePredicate,
+			                                       const SEM::Predicate& sourcePredicate)
+			: name_(name), requirePredicateString_(requirePredicate.toString()),
+			sourcePredicateString_(sourcePredicate.toString()) { }
+			
+			std::string toString() const {
+				return makeString("method '%s' has noexcept predicate %s in required type "
+				                  "which doesn't imply noexcept predicate %s in source type",
+				                  name_.c_str(), requirePredicateString_.c_str(),
+				                  sourcePredicateString_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string requirePredicateString_;
+			std::string sourcePredicateString_;
+			
+		};
+		
+		class ParamCountMismatchDiag: public Error {
+		public:
+			ParamCountMismatchDiag(const String name, const size_t sourceParamCount,
+			                       const size_t requireParamCount)
+			: name_(name), sourceParamCount_(sourceParamCount),
+			requireParamCount_(requireParamCount) { }
+			
+			std::string toString() const {
+				return makeString("method '%s' has %zu parameter(s) in source type "
+				                  "but %zu parameter(s) in source type",
+				                  name_.c_str(), sourceParamCount_, requireParamCount_);
+			}
+			
+		private:
+			String name_;
+			size_t sourceParamCount_;
+			size_t requireParamCount_;
+			
+		};
+		
+		class ParamTypeMismatchDiag: public Error {
+		public:
+			ParamTypeMismatchDiag(const String name, const size_t index,
+			                      const SEM::Type* sourceType, const SEM::Type* requireType)
+			: name_(name), index_(index), sourceType_(sourceType),
+			requireType_(requireType) { }
+			
+			std::string toString() const {
+				return makeString("cannot cast type '%s' to '%s' for parameter %zu in method '%s'",
+				                  requireType_->toDiagString().c_str(), sourceType_->toDiagString().c_str(),
+				                  index_, name_.c_str());
+			}
+			
+		private:
+			String name_;
+			size_t index_;
+			const SEM::Type* sourceType_;
+			const SEM::Type* requireType_;
+			
+		};
+		
+		class ReturnTypeMismatchDiag: public Error {
+		public:
+			ReturnTypeMismatchDiag(const String name, const SEM::Type* sourceType,
+			                       const SEM::Type* requireType)
+			: name_(name), sourceType_(sourceType), requireType_(requireType) { }
+			
+			std::string toString() const {
+				return makeString("return type in method '%s' has type %s in source "
+				                  "but type %s in requirement", name_.c_str(),
+				                  sourceType_->toDiagString().c_str(),
+				                  requireType_->toDiagString().c_str());
+			}
+			
+		private:
+			String name_;
+			const SEM::Type* sourceType_;
+			const SEM::Type* requireType_;
+			
+		};
+		
 		constexpr bool DEBUG_METHOD_SET_ELEMENT = false;
 		constexpr bool DEBUG_METHOD_SET = false;
 		
-		bool methodSetElementSatisfiesRequirement(Context& context, const SEM::Predicate& checkConstPredicate, const String& functionName,
-				const MethodSetElement& checkFunctionElement, const MethodSetElement& requireFunctionElement) {
+		OptionalDiag
+		methodSetElementSatisfiesRequirement(Context& context, const SEM::Predicate& checkConstPredicate,
+		                                     const String& functionName, const MethodSetElement& checkFunctionElement,
+		                                     const MethodSetElement& requireFunctionElement) {
 			const auto satisfyTemplateVarMap = generateSatisfyTemplateVarMap(checkFunctionElement, requireFunctionElement);
 			
 			// Can't cast between static/non-static methods.
@@ -64,7 +234,9 @@ namespace locic {
 					       requireFunctionElement.isStatic() ? "static" : "not static"
 					);
 				}
-				return false;
+				return OptionalDiag(MismatchingStaticDiag(functionName,
+				                                          checkFunctionElement.isStatic(),
+				                                          requireFunctionElement.isStatic()));
 			}
 			
 			const auto reducedConstPredicate = reducePredicate(context, checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap));
@@ -79,7 +251,9 @@ namespace locic {
 					       reducedConstPredicate.toString().c_str()
 					);
 				}
-				return false;
+				return OptionalDiag(ParentConstPredicateImplicationFailedDiag(functionName,
+				                                                              requireFunctionElement.constPredicate(),
+				                                                              reducedConstPredicate));
 			}
 			
 			// The requirement method's const predicate needs to imply the
@@ -94,7 +268,9 @@ namespace locic {
 					       requireFunctionElement.constPredicate().toString().c_str()
 					);
 				}
-				return false;
+				return OptionalDiag(ConstPredicateImplicationFailedDiag(functionName,
+				                                                        requireFunctionElement.constPredicate(),
+				                                                        reducedConstPredicate));
 			}
 			
 			const auto reducedRequirePredicate = reducePredicate(context, checkFunctionElement.requirePredicate().substitute(satisfyTemplateVarMap));
@@ -109,7 +285,9 @@ namespace locic {
 					       requireFunctionElement.requirePredicate().toString().c_str()
 					);
 				}
-				return false;
+				return OptionalDiag(RequirePredicateImplicationFailedDiag(functionName,
+				                                                          requireFunctionElement.requirePredicate(),
+				                                                          reducedRequirePredicate));
 			}
 			
 			const auto reducedNoexceptPredicate = reducePredicate(context, checkFunctionElement.noexceptPredicate().substitute(satisfyTemplateVarMap));
@@ -123,7 +301,9 @@ namespace locic {
 					       requireFunctionElement.noexceptPredicate().toString().c_str()
 					);
 				}
-				return false;
+				return OptionalDiag(NoexceptPredicateImplicationFailedDiag(functionName,
+				                                                           requireFunctionElement.noexceptPredicate(),
+				                                                           reducedNoexceptPredicate));
 			}
 			
 			const auto& firstList = checkFunctionElement.parameterTypes();
@@ -137,44 +317,71 @@ namespace locic {
 					       (unsigned long long) secondList.size()
 					);
 				}
-				return false;
+				return OptionalDiag(ParamCountMismatchDiag(functionName, firstList.size(),
+				                                           secondList.size()));
 			}
 			
 			for (size_t i = 0; i < firstList.size(); i++) {
-				if (firstList.at(i)->substitute(satisfyTemplateVarMap) != secondList.at(i)) {
+				const auto sourceParamType = firstList.at(i)->substitute(satisfyTemplateVarMap);
+				const auto requireParamType = secondList.at(i);
+				const auto castParamType =
+				    ImplicitCastTypeFormatOnly(context, requireParamType, sourceParamType,
+				                               Debug::SourceLocation::Null());
+				
+				if (castParamType == nullptr) {
 					if (DEBUG_METHOD_SET_ELEMENT) {
 						printf("\nParameter types don't match for '%s' (param %llu).\n    Source: %s\n    Require: %s\n\n",
 						       functionName.c_str(),
 						       (unsigned long long) i,
-						       firstList.at(i)->substitute(satisfyTemplateVarMap)->toString().c_str(),
-						       secondList.at(i)->toString().c_str()
+						       sourceParamType->toString().c_str(),
+						       requireParamType->toString().c_str()
 						);
 					}
-					return false;
+					return OptionalDiag(ParamTypeMismatchDiag(functionName, i, sourceParamType,
+					                                          requireParamType));
 				}
 			}
 
+			const auto sourceReturnType =
+			    checkFunctionElement.returnType()->substitute(satisfyTemplateVarMap);
+			const auto requireReturnType = requireFunctionElement.returnType();
 			const auto castReturnType =
-			    ImplicitCastTypeFormatOnly(context, checkFunctionElement.returnType()->substitute(
-			                                            satisfyTemplateVarMap),
-			                               requireFunctionElement.returnType(),
+			    ImplicitCastTypeFormatOnly(context, sourceReturnType, requireReturnType,
 			                               Debug::SourceLocation::Null());
 
 			if (castReturnType == nullptr) {
 				if (DEBUG_METHOD_SET_ELEMENT) {
 					printf("\nReturn type doesn't match for '%s'.\n    Source: %s\n    Require: %s\n\n",
 					       functionName.c_str(),
-					       checkFunctionElement.returnType()->substitute(satisfyTemplateVarMap)->toString().c_str(),
-					       requireFunctionElement.returnType()->toString().c_str()
+					       sourceReturnType->toString().c_str(),
+					       requireReturnType->toString().c_str()
 					);
 				}
-				return false;
+				return OptionalDiag(ReturnTypeMismatchDiag(functionName, sourceReturnType,
+				                                           requireReturnType));
 			}
 			
-			return true;
+			return OptionalDiag();
 		}
 		
-		bool methodSetSatisfiesRequirement(Context& context, const MethodSet* const checkSet, const MethodSet* const requireSet) {
+		class MethodNotFoundDiag: public Error {
+		public:
+			MethodNotFoundDiag(const String name)
+			: name_(name) { }
+			
+			std::string toString() const {
+				return makeString("method '%s' not found",
+				                  name_.c_str());
+			}
+			
+		private:
+			String name_;
+			
+		};
+		
+		OptionalDiag
+		methodSetSatisfiesRequirement(Context& context, const MethodSet* const checkSet,
+		                              const MethodSet* const requireSet) {
 			auto checkIterator = checkSet->begin();
 			auto requireIterator = requireSet->begin();
 			
@@ -198,7 +405,7 @@ namespace locic {
 							formatMessage(checkSet->toString()).c_str(),
 							formatMessage(requireSet->toString()).c_str());
 					}
-					return false;
+					return OptionalDiag(MethodNotFoundDiag(requireFunctionName));
 				}
 				
 				const auto& checkFunctionName = checkIterator->first;
@@ -216,20 +423,23 @@ namespace locic {
 					continue;
 				}
 				
-				if (!methodSetElementSatisfiesRequirement(context, checkConstPredicate, checkFunctionName,
-						checkFunctionElement, requireFunctionElement)) {
+				auto optionalDiag =
+				    methodSetElementSatisfiesRequirement(context, checkConstPredicate,
+				                                         checkFunctionName, checkFunctionElement,
+				                                         requireFunctionElement);
+				if (!optionalDiag) {
 					if (DEBUG_METHOD_SET) {
 						printf("\n...in methodSetSatisfiesRequirement:\n    Source: %s\n    Require: %s\n\n",
 							formatMessage(checkSet->toString()).c_str(),
 							formatMessage(requireSet->toString()).c_str());
 					}
-					return false;
+					return optionalDiag;
 				}
 				
 				++requireIterator;
 			}
 			
-			return true;
+			return OptionalDiag();
 		}
 		
 	}

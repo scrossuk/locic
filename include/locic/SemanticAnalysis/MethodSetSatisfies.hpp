@@ -3,14 +3,17 @@
 
 namespace locic {
 	
+	class OptionalDiag;
+	
 	namespace SemanticAnalysis {
 		
 		class Context;
 		class MethodSet;
 		
-		bool methodSetSatisfiesRequirement(Context& context,
-		                                   const MethodSet* checkSet,
-		                                   const MethodSet* requireSet);
+		OptionalDiag
+		methodSetSatisfiesRequirement(Context& context,
+		                              const MethodSet* checkSet,
+		                              const MethodSet* requireSet);
 		
 	}
 	
