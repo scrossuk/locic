@@ -25,10 +25,11 @@ namespace locic {
 				const auto& astPredicateNode = astStaticAssertNode->expression();
 				const auto semPredicate = ConvertPredicate(context, astPredicateNode);
 				
-				const auto evaluateResult = evaluatePredicate(context, semPredicate, SEM::TemplateVarMap());
+				auto evaluateResult = evaluatePredicate(context, semPredicate, SEM::TemplateVarMap());
 				if (!evaluateResult) {
 					context.issueDiag(StaticAssertPredicateIsFalseDiag(),
-					                  astPredicateNode.location());
+					                  astPredicateNode.location(),
+					                  std::move(evaluateResult));
 				}
 			}
 			
