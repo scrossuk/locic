@@ -72,6 +72,21 @@ namespace locic {
 			
 		};
 		
+		class ParentIsConstMethodIsNotDiag: public Error {
+		public:
+			ParentIsConstMethodIsNotDiag(const String name)
+			: name_(name) { }
+			
+			std::string toString() const {
+				return makeString("mutator method '%s' is required but type is const",
+				                  name_.c_str());
+			}
+			
+		private:
+			String name_;
+			
+		};
+		
 		class ParentConstPredicateImplicationFailedDiag: public Error {
 		public:
 			ParentConstPredicateImplicationFailedDiag(const String name, const SEM::Predicate& parentPredicate,
@@ -251,8 +266,11 @@ namespace locic {
 					       reducedConstPredicate.toString().c_str()
 					);
 				}
-				return OptionalDiag(ParentConstPredicateImplicationFailedDiag(functionName,
-				                                                              requireFunctionElement.constPredicate(),
+				if (checkConstPredicate.isTrue() && reducedConstPredicate.isFalse()) {
+					return OptionalDiag(ParentIsConstMethodIsNotDiag(functionName));
+				}
+				
+				return OptionalDiag(ParentConstPredicateImplicationFailedDiag(functionName, checkConstPredicate,
 				                                                              reducedConstPredicate));
 			}
 			
