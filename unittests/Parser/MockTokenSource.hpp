@@ -8,6 +8,7 @@
 #include <locic/Debug/SourcePosition.hpp>
 #include <locic/Debug/SourceRange.hpp>
 #include <locic/Frontend/DiagnosticReceiver.hpp>
+#include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/Lex/LexerAPI.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/Support/StringHost.hpp>
@@ -64,7 +65,8 @@ namespace locic {
 			}
 			
 			void issueDiag(std::unique_ptr<Diag> /*diag*/,
-			               const Debug::SourceLocation& /*location*/) {
+			               const Debug::SourceLocation& /*location*/,
+			               OptionalDiag /*chain*/) {
 				throw std::logic_error("Unexpected parser error.");
 			}
 			
