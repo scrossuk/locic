@@ -1,6 +1,7 @@
 loci_module(std.container std_container.bc ""
 	src/circular_queue.loci
 	src/counter.loci
+	src/hash.loci
 	src/list.loci
 	src/map.loci
 	src/range.loci

@@ -1,0 +1,24 @@
+
+import std.container 0.1.0 {
+	
+	namespace std {
+		
+		class hasher {
+			static hasher create() noexcept;
+			
+			void hash_int(int value) noexcept;
+			
+			size_t get() const noexcept;
+		}
+		
+		template <typename T>
+		require(hashable<T, hasher>)
+		class hash {
+			static hash<T> create() noexcept;
+			
+			size_t call(const T& object) const noexcept;
+		}
+		
+	}
+	
+}

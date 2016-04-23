@@ -1,0 +1,34 @@
+
+export std.container 0.1.0 {
+	
+	namespace std {
+		
+		class hasher(size_t value) {
+			static create() noexcept {
+				return @(0);
+			}
+			
+			void hash_int(int value) noexcept {
+				@value += value.cast<size_t>();
+			}
+			
+			size_t get() const noexcept {
+				return @value;
+			}
+		}
+		
+		template <typename T>
+		require(hashable<T, hasher>)
+		class hash() {
+			static create = default;
+			
+			size_t call(const T& object) const noexcept {
+				auto h = hasher();
+				object.hash(h);
+				return h.get();
+			}
+		}
+		
+	}
+	
+}
