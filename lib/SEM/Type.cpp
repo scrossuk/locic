@@ -1159,7 +1159,7 @@ namespace locic {
 				constStr;
 			
 			const std::string refStr =
-				isRef() ?
+				isRef() && !isBuiltInReference() ?
 				makeString("ref<%s>(%s)", refTarget()->toString().c_str(), lvalStr.c_str()) :
 				lvalStr;
 			
