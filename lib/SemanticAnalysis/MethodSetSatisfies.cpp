@@ -80,8 +80,8 @@ namespace locic {
 			methodPredicateString_(methodPredicate.toString()) { }
 			
 			std::string toString() const {
-				return makeString("const predicate %s in type doesn't imply const "
-				                  "predicate %s in method '%s'", parentPredicateString_.c_str(),
+				return makeString("const predicate '%s' in type doesn't imply const "
+				                  "predicate '%s' in method '%s'", parentPredicateString_.c_str(),
 				                  methodPredicateString_.c_str(), name_.c_str());
 			}
 			
@@ -100,8 +100,8 @@ namespace locic {
 			sourcePredicateString_(sourcePredicate.toString()) { }
 			
 			std::string toString() const {
-				return makeString("method '%s' has const predicate %s in required type "
-				                  "which doesn't imply const predicate %s in source type",
+				return makeString("method '%s' has const predicate '%s' in required type "
+				                  "which doesn't imply const predicate '%s' in source type",
 				                  name_.c_str(), requirePredicateString_.c_str(),
 				                  sourcePredicateString_.c_str());
 			}
@@ -121,8 +121,8 @@ namespace locic {
 			sourcePredicateString_(sourcePredicate.toString()) { }
 			
 			std::string toString() const {
-				return makeString("method '%s' has require predicate %s in required type "
-				                  "which doesn't imply require predicate %s in source type",
+				return makeString("method '%s' has require predicate '%s' in required type "
+				                  "which doesn't imply require predicate '%s' in source type",
 				                  name_.c_str(), requirePredicateString_.c_str(),
 				                  sourcePredicateString_.c_str());
 			}
@@ -142,8 +142,8 @@ namespace locic {
 			sourcePredicateString_(sourcePredicate.toString()) { }
 			
 			std::string toString() const {
-				return makeString("method '%s' has noexcept predicate %s in required type "
-				                  "which doesn't imply noexcept predicate %s in source type",
+				return makeString("method '%s' has noexcept predicate '%s' in required type "
+				                  "which doesn't imply noexcept predicate '%s' in source type",
 				                  name_.c_str(), requirePredicateString_.c_str(),
 				                  sourcePredicateString_.c_str());
 			}
@@ -164,7 +164,7 @@ namespace locic {
 			
 			std::string toString() const {
 				return makeString("method '%s' has %zu parameter(s) in source type "
-				                  "but %zu parameter(s) in source type",
+				                  "but %zu parameter(s) in required type",
 				                  name_.c_str(), sourceParamCount_, requireParamCount_);
 			}
 			
