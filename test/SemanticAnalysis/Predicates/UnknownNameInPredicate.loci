@@ -1,0 +1,7 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:18: error: unknown symbol 'Unknown' cannot be used in predicate
+void f() require(Unknown) { }
+
+// CHECK: 1 error generated.

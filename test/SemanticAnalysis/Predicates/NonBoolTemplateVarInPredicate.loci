@@ -1,0 +1,8 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+template <int T>
+// CHECK: .loci:6:18: error: template variable 'T' has non-boolean type 'int_t' and therefore cannot be used in predicate
+void f() require(T) { }
+
+// CHECK: 1 error generated.

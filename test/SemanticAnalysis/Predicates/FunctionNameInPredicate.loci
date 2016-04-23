@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:18: error: symbol 'g' cannot be used in predicate
+void f() require(g) { }
+
+void g() { }
+
+// CHECK: 1 error generated.

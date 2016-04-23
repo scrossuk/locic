@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+using Alias = 10;
+
+// CHECK: .loci:7:18: error: alias 'Alias' has non-boolean type 'int8_t' and therefore cannot be used in predicate
+void f() require(Alias) { }
+
+// CHECK: 1 error generated.
