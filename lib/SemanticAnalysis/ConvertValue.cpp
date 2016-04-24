@@ -143,6 +143,22 @@ namespace locic {
 			return GetMethod(context, std::move(value), binaryOpName(context, opKind), location);
 		}
 		
+		class CannotFindMemberInTypeDiag: public Error {
+		public:
+			CannotFindMemberInTypeDiag(String name, const SEM::Type* type)
+			: name_(name), typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot find member '%s' in type '%s'",
+				                  name_.c_str(), typeString_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string typeString_;
+			
+		};
+		
 		SEM::Value MakeMemberAccess(Context& context, SEM::Value rawValue, const String& memberName, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			const auto derefType = getStaticDerefType(getDerefType(value.type()->resolveAliases()));
@@ -175,8 +191,9 @@ namespace locic {
 				}
 			}
 			
-			throw ErrorException(makeString("Can't access member '%s' in type '%s' at position %s.",
-				memberName.c_str(), derefType->toString().c_str(), location.toString().c_str()));
+			context.issueDiag(CannotFindMemberInTypeDiag(memberName, derefType),
+			                  location);
+			throw SkipException();
 		}
 		
 		static Name getCanonicalName(const Name& name) {

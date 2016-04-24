@@ -1,8 +1,6 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Can't access member 'doOtherThing' in type 'TemplateVarType(templateVar: TemplateVar(name = ::doThing::T, index = 0))' at position SourceLocation(filename = {{.*}}/CallMethodOnlySpecifiedInNoExceptPredicate.loci, range = (line 18, column 2) to (line 18, column 21)).
-
 interface CanDoThing {
 	void doThing();
 }
@@ -15,6 +13,7 @@ interface CanDoThingNoExcept {
 template <typename T>
 void doThing(T& object) noexcept(T : CanDoThingNoExcept) require(T : CanDoThing) {
 	object.doThing();
+	// CHECK: .loci:17:2: error: cannot find member 'doOtherThing' in type 'T'
 	object.doOtherThing();
 }
 
@@ -33,3 +32,5 @@ void callDoThing(TestClass& object) {
 void callDoThingNoExcept(TestClassNoExcept& object) noexcept {
 	doThing<TestClassNoExcept>(object);
 }
+
+// CHECK: 1 error generated.

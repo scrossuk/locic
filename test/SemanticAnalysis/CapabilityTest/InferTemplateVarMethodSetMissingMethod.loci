@@ -19,15 +19,8 @@ class TestClass() {
 // from it about what methods T supports.
 template <typename T>
 void function(T& object) require(TestClass<T> : Requirements) {
-	// CHECK: Can't access member 'methodA' in type 'TemplateVarType(
-	// CHECK-NEXT:     templateVar: TemplateVar(
-	// CHECK-NEXT:         name = ::function::T,
-	// CHECK-NEXT:         index = 0
-	// CHECK-NEXT:     )
-	// CHECK-NEXT: )'
-	// CHECK: line 32
-	// CHECK-NEXT: column 2
-	// CHECK: line 32
-	// CHECK-NEXT: column 16
+	// CHECK: .loci:23:2: error: cannot find member 'methodA' in type 'T'
 	object.methodA();
 }
+
+// CHECK: 1 error generated.
