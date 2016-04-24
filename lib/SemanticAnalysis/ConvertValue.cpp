@@ -338,6 +338,46 @@ namespace locic {
 			
 		};
 		
+		class CannotApplyNoLvalToNonLvalDiag: public Error {
+		public:
+			CannotApplyNoLvalToNonLvalDiag() { }
+			
+			std::string toString() const {
+				return "cannot use 'nolval' operator on non-lval value";
+			}
+			
+		};
+		
+		class CannotApplyRefToRefDiag: public Error {
+		public:
+			CannotApplyRefToRefDiag() { }
+			
+			std::string toString() const {
+				return "cannot create ref of value that is already a ref";
+			}
+			
+		};
+		
+		class CannotApplyRefToLvalDiag: public Error {
+		public:
+			CannotApplyRefToLvalDiag() { }
+			
+			std::string toString() const {
+				return "cannot create ref of value that is already a lval";
+			}
+			
+		};
+		
+		class CannotApplyNoRefToNonRefDiag: public Error {
+		public:
+			CannotApplyNoRefToNonRefDiag() { }
+			
+			std::string toString() const {
+				return "cannot use 'noref' operator on non-ref value";
+			}
+			
+		};
+		
 		class SetFakeDiagnosticReceiver {
 		public:
 			SetFakeDiagnosticReceiver(Context& context)
@@ -736,8 +776,8 @@ namespace locic {
 					auto sourceValue = ConvertValue(context, astValueNode->makeNoLval.value);
 					
 					if (!getDerefType(sourceValue.type())->isLval()) {
-						throw ErrorException(makeString("Can't use 'nolval' operator on non-lval value '%s' at position '%s'.",
-							sourceValue.toString().c_str(), location.toString().c_str()));
+						context.issueDiag(CannotApplyNoLvalToNonLvalDiag(), location);
+						return sourceValue;
 					}
 					
 					return SEM::Value::NoLval(std::move(sourceValue));
@@ -746,13 +786,13 @@ namespace locic {
 					auto sourceValue = ConvertValue(context, astValueNode->makeRef.value);
 					
 					if (sourceValue.type()->isLval()) {
-						throw ErrorException(makeString("Can't create value that is both an lval and a ref, for value '%s' at position %s.",
-							sourceValue.toString().c_str(), location.toString().c_str()));
+						context.issueDiag(CannotApplyRefToLvalDiag(), location);
+						return sourceValue;
 					}
 					
 					if (sourceValue.type()->isRef()) {
-						throw ErrorException(makeString("Can't create ref of value that is already a ref, for value '%s' at position %s.",
-							sourceValue.toString().c_str(), location.toString().c_str()));
+						context.issueDiag(CannotApplyRefToRefDiag(), location);
+						return sourceValue;
 					}
 					
 					const auto targetType = ConvertType(context, astValueNode->makeRef.targetType);
@@ -762,8 +802,8 @@ namespace locic {
 					auto sourceValue = ConvertValue(context, astValueNode->makeNoRef.value);
 					
 					if (!sourceValue.type()->isRef()) {
-						throw ErrorException(makeString("Can't use 'noref' operator on non-ref value '%s' at position '%s'.",
-							sourceValue.toString().c_str(), location.toString().c_str()));
+						context.issueDiag(CannotApplyNoRefToNonRefDiag(), location);
+						return sourceValue;
 					}
 					
 					return SEM::Value::NoRef(std::move(sourceValue));
