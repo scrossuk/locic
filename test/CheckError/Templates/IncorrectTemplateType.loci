@@ -1,14 +1,12 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Template argument 'TypeRef(targetType: int_t)' has type 'staticref<int_t>(typename_t)', which doesn't match type 'bool_t' of template variable '::TestClass::T', at position SourceLocation(filename = {{.*}}/IncorrectTemplateType.loci, range = (line 11, column 16) to (line 11, column 30)).
-
 template <bool T>
-class TestClass() { }
+void g() { }
 
-// Entry point.
-export int main(unused int argc, unused ubyte ** argv) {
-	unused_result TestClass<int>();
-	return 0;
+export void f() {
+	// CHECK: .loci:9:2: error: template argument has type 'staticref<int_t>(typename_t)', which doesn't match type 'bool_t' of template variable 'T'
+	g<int>();
 }
 
+// CHECK: 1 error generated.
