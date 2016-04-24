@@ -221,6 +221,21 @@ namespace locic {
 			
 		};
 		
+		class CannotFindMemberVariableDiag: public Error {
+		public:
+			CannotFindMemberVariableDiag(const String name)
+			: name_(name) { }
+			
+			std::string toString() const {
+				return makeString("cannot find member variable '@%s'",
+				                  name_.c_str());
+			}
+			
+		private:
+			String name_;
+			
+		};
+		
 		class EmptyArrayLiteralNotSupportedDiag: public Error {
 		public:
 			 EmptyArrayLiteralNotSupportedDiag() { }
@@ -381,8 +396,9 @@ namespace locic {
 					const auto variableIterator = typeInstance->namedVariables().find(memberName);
 					
 					if (variableIterator == typeInstance->namedVariables().end()) {
-						throw ErrorException(makeString("Member variable '@%s' not found at position %s.",
-							memberName.c_str(), location.toString().c_str()));
+						context.issueDiag(CannotFindMemberVariableDiag(memberName),
+						                  location);
+						return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 					}
 					
 					return createMemberVarRef(context, std::move(selfValue), *(variableIterator->second));
