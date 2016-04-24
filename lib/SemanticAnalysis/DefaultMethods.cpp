@@ -757,25 +757,13 @@ namespace locic {
 				CreateDefaultConstructor(context, typeInstance, function, location);
 				return true;
 			} else if (canonicalName == "implicitcopy") {
-				if (!HasDefaultImplicitCopy(context, typeInstance)) {
-					throw ErrorException(makeString("Default method '%s' is not supported for this type kind, at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
-				}
-				
+				assert(HasDefaultImplicitCopy(context, typeInstance));
 				return CreateDefaultImplicitCopy(context, typeInstance, function, location);
 			} else if (canonicalName == "copy") {
-				if (!HasDefaultExplicitCopy(context, typeInstance)) {
-					throw ErrorException(makeString("Default method '%s' is not supported for this type kind, at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
-				}
-				
+				assert(HasDefaultExplicitCopy(context, typeInstance));
 				return CreateDefaultExplicitCopy(context, typeInstance, function, location);
 			} else if (canonicalName == "compare") {
-				if (!HasDefaultCompare(context, typeInstance)) {
-					throw ErrorException(makeString("Default method '%s' is not supported for this type kind, at position %s.",
-						name.toString().c_str(), location.toString().c_str()));
-				}
-				
+				assert(HasDefaultCompare(context, typeInstance));
 				return CreateDefaultCompare(context, typeInstance, function, location);
 			} else {
 				// Unknown default methods should be handled by now.
