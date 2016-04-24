@@ -279,6 +279,26 @@ namespace locic {
 			
 		};
 		
+		class ConstCastNotImplementedDiag: public Error {
+		public:
+			ConstCastNotImplementedDiag() { }
+			
+			std::string toString() const {
+				return "const_cast not yet implemented.";
+			}
+			
+		};
+		
+		class DynamicCastNotImplementedDiag: public Error {
+		public:
+			DynamicCastNotImplementedDiag() { }
+			
+			std::string toString() const {
+				return "dynamic_cast not yet implemented.";
+			}
+			
+		};
+		
 		class SetFakeDiagnosticReceiver {
 		public:
 			SetFakeDiagnosticReceiver(Context& context)
@@ -640,9 +660,11 @@ namespace locic {
 					
 					switch(astValueNode->cast.castKind) {
 						case AST::Value::CAST_CONST:
-							throw ErrorException("const_cast not yet implemented.");
+							context.issueDiag(ConstCastNotImplementedDiag(), location);
+							throw SkipException();
 						case AST::Value::CAST_DYNAMIC:
-							throw ErrorException("dynamic_cast not yet implemented.");
+							context.issueDiag(DynamicCastNotImplementedDiag(), location);
+							throw SkipException();
 						case AST::Value::CAST_REINTERPRET:
 							if (!sourceType->isPrimitive() || sourceType->getObjectType()->name().last() != "ptr_t"
 								|| !targetType->isPrimitive() || targetType->getObjectType()->name().last() != "ptr_t") {
