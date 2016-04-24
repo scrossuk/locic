@@ -1,0 +1,26 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	static create = default;
+	
+	template <typename A, typename B>
+	void method() { }
+}
+
+export void f() {
+	auto object = TestClass();
+	
+	// CHECK: .loci:15:2: error: incorrect number of template arguments provided for method 'method'; 2 were required, but 0 were provided
+	object.method();
+	
+	// CHECK: .loci:18:2: error: incorrect number of template arguments provided for method 'method'; 2 were required, but 1 were provided
+	object.method<int>();
+	
+	object.method<int, int>();
+	
+	// CHECK: .loci:23:2: error: incorrect number of template arguments provided for method 'method'; 2 were required, but 3 were provided
+	object.method<int, int, int>();
+}
+
+// CHECK: 3 errors generated.
