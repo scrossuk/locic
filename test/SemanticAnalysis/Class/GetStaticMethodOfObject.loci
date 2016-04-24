@@ -1,0 +1,15 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	static create = default;
+	
+	static void method() { }
+}
+
+export void f() {
+	// CHECK: .loci:12:2: error: cannot access static method 'method' for value of type 'TestClass'
+	TestClass().method();
+}
+
+// CHECK: 1 error generated.
