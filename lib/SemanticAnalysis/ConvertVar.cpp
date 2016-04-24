@@ -51,6 +51,16 @@ namespace locic {
 			
 		}
 		
+		class PreviousVariableDiag: public Error {
+		public:
+			PreviousVariableDiag() { }
+			
+			std::string toString() const {
+				return "variable previously defined here";
+			}
+			
+		};
+		
 		// Attach the variable to the SemanticAnalysis node tree.
 		void attachVar(Context& context, const String& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var& var, const Debug::VarInfo::Kind varKind) {
 			assert(var.isBasic());
@@ -176,9 +186,13 @@ namespace locic {
 						
 						// Search all scopes outside of the current scope.
 						const auto searchStartPosition = 1;
-						if (performSearch(context, Name::Relative() + varName, searchStartPosition).isVar()) {
+						const auto searchResult = performSearch(context, Name::Relative() + varName,
+						                                        searchStartPosition);
+						if (searchResult.isVar()) {
+							OptionalDiag previousVarDiag(PreviousVariableDiag(),
+							                             searchResult.var().debugInfo()->declLocation);
 							context.issueDiag(VariableShadowsExistingVariableDiag(varName),
-							                  location);
+							                  location, std::move(previousVarDiag));
 						}
 						
 						const auto varDeclType = ConvertType(context, astTypeVarNode->namedType())->resolveAliases();
@@ -274,9 +288,15 @@ namespace locic {
 					
 					// Search all scopes outside of the current scope.
 					const auto searchStartPosition = 1;
-					if (varKind != Debug::VarInfo::VAR_MEMBER && performSearch(context, Name::Relative() + varName, searchStartPosition).isVar()) {
-						context.issueDiag(VariableShadowsExistingVariableDiag(varName),
-						                  location);
+					if (varKind != Debug::VarInfo::VAR_MEMBER) {
+						const auto searchResult = performSearch(context, Name::Relative() + varName,
+						                                        searchStartPosition);
+						if (searchResult.isVar()) {
+							OptionalDiag previousVarDiag(PreviousVariableDiag(),
+							                             searchResult.var().debugInfo()->declLocation);
+							context.issueDiag(VariableShadowsExistingVariableDiag(varName),
+							                  location, std::move(previousVarDiag));
+						}
 					}
 					
 					const auto varType = ConvertType(context, astTypeVarNode->namedType());

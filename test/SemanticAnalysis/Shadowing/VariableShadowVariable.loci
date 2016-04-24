@@ -8,13 +8,15 @@ import ParentType g();
 void f() {
 	unused int value = 4;
 	if (true) {
-		// CHECK: .loci:12:10: error: variable 'value' shadows existing variable
+		// CHECK: .loci:13:10: error: variable 'value' shadows existing variable
+		// CHECK: .loci:9:9: note: because: variable previously defined here
 		unused int value = 5;
 	}
 	
 	switch (g()) {
 		case ChildType0() { }
-		// CHECK: .loci:18:26: error: variable 'value' shadows existing variable
+		// CHECK: .loci:20:26: error: variable 'value' shadows existing variable
+		// CHECK: .loci:9:9: note: because: variable previously defined here
 		case ChildType1(unused int value) { }
 	}
 }
