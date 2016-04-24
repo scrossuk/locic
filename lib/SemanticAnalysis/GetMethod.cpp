@@ -77,11 +77,7 @@ namespace locic {
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
 			assert(value.type()->refTarget()->isStaticRef());
 			const auto targetType = value.type()->refTarget()->staticRefTarget()->resolveAliases();
-			
-			if (!targetType->isObjectOrTemplateVar()) {
-				throw ErrorException(makeString("Cannot get static method '%s' for non-object type '%s' at position %s.",
-					methodName.c_str(), targetType->toString().c_str(), location.toString().c_str()));
-			}
+			assert(targetType->isObjectOrTemplateVar());
 			
 			const auto methodSet = getTypeMethodSet(context, targetType);
 			
@@ -237,10 +233,7 @@ namespace locic {
 		
 		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const String& methodName, SEM::ValueArray templateArguments, const Debug::SourceLocation& location) {
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
-			if (!type->isObjectOrTemplateVar()) {
-				throw ErrorException(makeString("Cannot get method '%s' for non-object type '%s' at position %s.",
-					methodName.c_str(), type->toString().c_str(), location.toString().c_str()));
-			}
+			assert(type->isObjectOrTemplateVar());
 			
 			const auto methodSet = getTypeMethodSet(context, type);
 			const auto& objectConstPredicate = methodSet->constPredicate();
