@@ -147,6 +147,76 @@ namespace locic {
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, {}, location);
 		}
 		
+		class CannotFindMethodDiag: public Error {
+		public:
+			CannotFindMethodDiag(const String name, const SEM::Type* type)
+			: name_(name), typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot find method '%s' for type '%s'",
+				                  name_.c_str(), typeString_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string typeString_;
+			
+		};
+		
+		class CannotAccessStaticMethodDiag: public Error {
+		public:
+			CannotAccessStaticMethodDiag(const String name, const SEM::Type* type)
+			: name_(name), typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot access static method '%s' for value of type '%s'",
+				                  name_.c_str(), typeString_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string typeString_;
+			
+		};
+		
+		class InvalidMethodTemplateArgDiag: public Error {
+		public:
+			InvalidMethodTemplateArgDiag(const SEM::Type* type, const String varName,
+			                             const String methodName)
+			: typeString_(type->toDiagString()), varName_(varName),
+			methodName_(methodName) { }
+			
+			std::string toString() const {
+				return makeString("invalid type '%s' passed as template parameter "
+				                  "'%s' for method '%s'", typeString_.c_str(),
+				                  varName_.c_str(), methodName_.c_str());
+			}
+			
+		private:
+			std::string typeString_;
+			String varName_;
+			String methodName_;
+			
+		};
+		
+		class CannotReferToMutatorMethodFromConstDiag: public Error {
+		public:
+			CannotReferToMutatorMethodFromConstDiag(const String name,
+			                                        const SEM::Type* type)
+			: name_(name), typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot refer to mutator method '%s' from "
+				                  "const object of type '%s'", name_.c_str(),
+				                  typeString_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string typeString_;
+			
+		};
+		
 		class TemplateArgsDoNotSatisfyMethodRequirePredicateDiag : public Error {
 		public:
 			TemplateArgsDoNotSatisfyMethodRequirePredicateDiag(const SEM::Predicate& requirePredicate,
@@ -179,18 +249,15 @@ namespace locic {
 			const auto methodIterator = methodSet->find(canonicalMethodName);
 			
 			if (methodIterator == methodSet->end()) {
-				throw ErrorException(makeString("Cannot find method '%s' for type '%s' at position %s.",
-					methodName.c_str(),
-					type->toString().c_str(),
-					location.toString().c_str()));
+				context.issueDiag(CannotFindMethodDiag(methodName, type),
+				                  location);
+				return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 			}
 			
 			const auto& methodElement = methodIterator->second;
 			if (methodElement.isStatic()) {
-				throw ErrorException(makeString("Cannot access static method '%s' for value of type '%s' at position %s.",
-					methodName.c_str(),
-					type->toString().c_str(),
-					location.toString().c_str()));
+				context.issueDiag(CannotAccessStaticMethodDiag(methodName, type),
+				                  location);
 			}
 			
 			auto templateVariableAssignments = type->generateTemplateVarMap();
@@ -227,12 +294,10 @@ namespace locic {
 						const auto templateTypeValue = templateValue.typeRefType()->resolveAliases();
 						
 						if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
-							throw ErrorException(makeString("Invalid type '%s' passed "
-								"as template parameter '%s' for method '%s' at position %s.",
-								templateTypeValue->toString().c_str(),
-								templateVariable->name().toString().c_str(),
-								function->name().toString().c_str(),
-								location.toString().c_str()));
+							context.issueDiag(InvalidMethodTemplateArgDiag(templateTypeValue,
+							                                               templateVariable->name().last(),
+							                                               function->name().last()),
+							                  location);
 						}
 						
 						templateVariableAssignments.insert(std::make_pair(templateVariable, SEM::Value::TypeRef(templateTypeValue, templateValue.type())));
@@ -247,10 +312,8 @@ namespace locic {
 			const auto methodConstPredicate = methodElement.constPredicate().substitute(templateVariableAssignments);
 			
 			if (!objectConstPredicate.implies(methodConstPredicate)) {
-				throw ErrorException(makeString("Cannot refer to mutator method '%s' from const object of type '%s' at position %s.",
-					methodName.c_str(),
-					type->toString().c_str(),
-					location.toString().c_str()));
+				context.issueDiag(CannotReferToMutatorMethodFromConstDiag(methodName, type),
+				                  location);
 			}
 			
 			// Now check the template arguments satisfy the requires predicate.
