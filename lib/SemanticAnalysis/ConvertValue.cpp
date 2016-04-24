@@ -318,6 +318,26 @@ namespace locic {
 			
 		};
 		
+		class CannotApplyLvalToLvalDiag: public Error {
+		public:
+			CannotApplyLvalToLvalDiag() { }
+			
+			std::string toString() const {
+				return "cannot create lval of value that is already a lval";
+			}
+			
+		};
+		
+		class CannotApplyLvalToRefDiag: public Error {
+		public:
+			CannotApplyLvalToRefDiag() { }
+			
+			std::string toString() const {
+				return "cannot create lval of value that is already a ref";
+			}
+			
+		};
+		
 		class SetFakeDiagnosticReceiver {
 		public:
 			SetFakeDiagnosticReceiver(Context& context)
@@ -700,13 +720,13 @@ namespace locic {
 					auto sourceValue = ConvertValue(context, astValueNode->makeLval.value);
 					
 					if (sourceValue.type()->isLval()) {
-						throw ErrorException(makeString("Can't create lval of value that is already a lval, for value '%s' at position %s.",
-							sourceValue.toString().c_str(), location.toString().c_str()));
+						context.issueDiag(CannotApplyLvalToLvalDiag(), location);
+						return sourceValue;
 					}
 					
 					if (sourceValue.type()->isRef()) {
-						throw ErrorException(makeString("Can't create value that is both an lval and a ref, for value '%s' at position %s.",
-							sourceValue.toString().c_str(), location.toString().c_str()));
+						context.issueDiag(CannotApplyLvalToRefDiag(), location);
+						return sourceValue;
 					}
 					
 					const auto targetType = ConvertType(context, astValueNode->makeLval.targetType);
