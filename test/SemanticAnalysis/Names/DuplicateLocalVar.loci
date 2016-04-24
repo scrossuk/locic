@@ -4,16 +4,10 @@
 int function() {
 	int value = 1;
 	
-	// CHECK: Variable name 'value'
-	// CHECK: line 17
-	// CHECK-NEXT: column 2
-	// CHECK: line 17
-	// CHECK-NEXT: column 11
-	// CHECK: duplicates existing variable of the same name
-	// CHECK: line 5
-	// CHECK-NEXT: column 2
-	// CHECK: line 5
-	// CHECK-NEXT: column 11
+	// CHECK: .loci:9:2: error: variable 'value' duplicates existing variable
+	// CHECK: .loci:5:2: note: because: variable previously defined here
 	int value = 2;
 	return value;
 }
+
+// CHECK: 1 error generated.

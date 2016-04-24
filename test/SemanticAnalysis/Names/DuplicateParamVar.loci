@@ -1,16 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Variable name 'value'
-// CHECK: line 14
-// CHECK-NEXT: column 25
-// CHECK: line 14
-// CHECK-NEXT: column 34
-// CHECK: duplicates existing variable of the same name
-// CHECK: line 14
-// CHECK-NEXT: column 14
-// CHECK: line 14
-// CHECK-NEXT: column 23
+// CHECK: .loci:6:25: error: variable 'value' duplicates existing variable
+// CHECK: .loci:6:14: note: because: variable previously defined here
 int function(int value, int value) {
 	return value;
 }
+
+// CHECK: 1 error generated.

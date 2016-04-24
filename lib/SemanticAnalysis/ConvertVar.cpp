@@ -51,6 +51,21 @@ namespace locic {
 			
 		}
 		
+		class VariableDuplicatesExistingVariableDiag: public Error {
+		public:
+			VariableDuplicatesExistingVariableDiag(const String& name)
+			: name_(name) { }
+			
+			std::string toString() const {
+				return makeString("variable '%s' duplicates existing variable",
+				                  name_.c_str());
+			}
+			
+		private:
+			String name_;
+			
+		};
+		
 		class PreviousVariableDiag: public Error {
 		public:
 			PreviousVariableDiag() { }
@@ -68,9 +83,10 @@ namespace locic {
 			const auto insertResult = insertVar(context.scopeStack().back(), name, &var);
 			if (!insertResult.second) {
 				const auto existingVar = insertResult.first->second;
-				throw ErrorException(makeString("Variable name '%s' at position %s duplicates existing variable of the same name at position %s.",
-					name.c_str(), astTypeVarNode.location().toString().c_str(),
-					existingVar->debugInfo()->declLocation.toString().c_str()));
+				OptionalDiag previousVarDiag(PreviousVariableDiag(),
+				                             existingVar->debugInfo()->declLocation);
+				context.issueDiag(VariableDuplicatesExistingVariableDiag(name),
+				                  astTypeVarNode.location(), std::move(previousVarDiag));
 			}
 			
 			var.setDebugInfo(makeVarInfo(varKind, astTypeVarNode));
