@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void f() {
+	int value = 10;
+	// CHECK-NOT: .loci:7:16: error: reinterpret_cast only supports pointers
+	unused_result reinterpret_cast<int*, float*>(&value);
+	
+	// CHECK: .loci:10:16: error: reinterpret_cast only supports pointers, in cast from type 'int_t' to type 'float_t'
+	unused_result reinterpret_cast<int, float>(10);
+}
+
+// CHECK: 1 error generated.
