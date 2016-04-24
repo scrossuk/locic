@@ -123,9 +123,7 @@ namespace locic {
 				SEM::ValueArray values, const Debug::SourceLocation& location, SEM::TemplateVarMap variableAssignments) {
 			const auto& templateVariables = templatedObject.templateVariables();
 			
-			assert(templateVariables.size() == values.size());
-			
-			for (size_t i = 0; i < templateVariables.size(); i++) {
+			for (size_t i = 0; i < std::min(templateVariables.size(), values.size()); i++) {
 				const auto& templateVar = templateVariables[i];
 				auto& templateValue = values[i];
 				variableAssignments.insert(std::make_pair(templateVar, std::move(templateValue)));
@@ -179,6 +177,44 @@ namespace locic {
 			return variableAssignments;
 		}
 		
+		class InvalidTemplateArgCountDiag: public Error {
+		public:
+			InvalidTemplateArgCountDiag(const Name& name, size_t argsExpected,
+			                            size_t argsGiven)
+			: name_(name.copy()), argsExpected_(argsExpected),
+			argsGiven_(argsGiven) { }
+			
+			std::string toString() const {
+				return makeString("incorrect number of template arguments provided "
+				                  "for function or type '%s'; %zu were required, but %zu "
+				                  "were provided", name_.toString(/*addPrefix=*/false).c_str(),
+				                  argsExpected_, argsGiven_);
+			}
+			
+		private:
+			Name name_;
+			size_t argsExpected_;
+			size_t argsGiven_;
+			
+		};
+		
+		class UnexpectedTemplateArgDiag: public Error {
+		public:
+			UnexpectedTemplateArgDiag(const Name& name, size_t argsGiven)
+			: name_(name.copy()), argsGiven_(argsGiven) { }
+			
+			std::string toString() const {
+				return makeString("%zu template arguments provided for non-function "
+				                  "and non-type node '%s'; none should be provided",
+				                  argsGiven_, name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			size_t argsGiven_;
+			
+		};
+		
 		SEM::TemplateVarMap GenerateSymbolTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
 			const auto& location = astSymbol.location();
 			
@@ -190,7 +226,6 @@ namespace locic {
 			for (size_t i = 0; i < astSymbol->size(); i++) {
 				const auto& astSymbolElement = astSymbol->at(i);
 				const auto& astTemplateArgs = astSymbolElement->templateArguments();
-				const size_t numTemplateArguments = astTemplateArgs->size();
 				
 				const Name name = fullName.substr(i + 1);
 				
@@ -200,31 +235,28 @@ namespace locic {
 					const auto& templatedObject = getTemplatedObject(searchResult);
 					const auto& templateVariables = templatedObject.templateVariables();
 					
-					if (templateVariables.size() != numTemplateArguments) {
-						throw ErrorException(makeString("Incorrect number of template "
-							"arguments provided for function or type '%s'; %llu were required, "
-							"but %llu were provided at position %s.",
-							name.toString().c_str(),
-							(unsigned long long) templateVariables.size(),
-							(unsigned long long) numTemplateArguments,
-							location.toString().c_str()));
-					}
-					
 					SEM::ValueArray templateValues;
 					for (const auto& astTemplateArg: *astTemplateArgs) {
 						templateValues.push_back(ConvertValue(context, astTemplateArg));
 					}
 					
-					variableAssignments = GenerateTemplateVarMap(context, templatedObject, std::move(templateValues), location, std::move(variableAssignments));
-				} else {
-					if (numTemplateArguments > 0) {
-						throw ErrorException(makeString("%llu template "
-							"arguments provided for non-function and non-type node '%s'; "
-							"none should be provided at position %s.",
-							(unsigned long long) numTemplateArguments,
-							name.toString().c_str(),
-							location.toString().c_str()));
+					if (templateValues.size() != templateVariables.size()) {
+						context.issueDiag(InvalidTemplateArgCountDiag(name,
+						                                              templateVariables.size(),
+						                                              templateValues.size()),
+						                  location);
+						
+						while (templateValues.size() < templateVariables.size()) {
+							templateValues.push_back(templateVariables[templateValues.size()]->selfRefValue());
+						}
 					}
+					
+					variableAssignments = GenerateTemplateVarMap(context, templatedObject,
+					                                             std::move(templateValues),
+					                                             location, std::move(variableAssignments));
+				} else if (astTemplateArgs->size() > 0) {
+					context.issueDiag(UnexpectedTemplateArgDiag(name, astTemplateArgs->size()),
+					                  location);
 				}
 			}
 			
