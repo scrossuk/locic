@@ -299,6 +299,25 @@ namespace locic {
 			
 		};
 		
+		class ReinterpretCastOnlySupportsPointersDiag: public Error {
+		public:
+			ReinterpretCastOnlySupportsPointersDiag(const SEM::Type* sourceType,
+			                                        const SEM::Type* destType)
+			: sourceTypeString_(sourceType->toDiagString()),
+			destTypeString_(destType->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("reinterpret_cast only supports pointers, in cast "
+				                  "from type '%s' to type '%s'",
+				                  sourceTypeString_.c_str(), destTypeString_.c_str());
+			}
+			
+		private:
+			std::string sourceTypeString_;
+			std::string destTypeString_;
+			
+		};
+		
 		class SetFakeDiagnosticReceiver {
 		public:
 			SetFakeDiagnosticReceiver(Context& context)
@@ -668,10 +687,9 @@ namespace locic {
 						case AST::Value::CAST_REINTERPRET:
 							if (!sourceType->isPrimitive() || sourceType->getObjectType()->name().last() != "ptr_t"
 								|| !targetType->isPrimitive() || targetType->getObjectType()->name().last() != "ptr_t") {
-								throw ErrorException(makeString("reinterpret_cast currently only supports ptr_t<T>, "
-									"in cast from value %s of type %s to type %s at position %s.",
-									sourceValue.toString().c_str(), sourceType->toString().c_str(),
-									targetType->toString().c_str(), location.toString().c_str()));
+								context.issueDiag(ReinterpretCastOnlySupportsPointersDiag(sourceType, targetType),
+								                  location);
+								throw SkipException();
 							}
 							return SEM::Value::Reinterpret(ImplicitCast(context, std::move(sourceValue), sourceType, location), targetType);
 					}
