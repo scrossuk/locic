@@ -1,0 +1,16 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	void method() { }
+}
+
+export void f() {
+	// CHECK: .loci:10:2: error: use of undeclared identifier 'TestClass::method'
+	TestClass::method();
+	
+	// CHECK: .loci:13:2: error: cannot call non-static method 'method' for type 'TestClass'
+	TestClass.method();
+}
+
+// CHECK: 3 errors generated.
