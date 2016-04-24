@@ -378,6 +378,50 @@ namespace locic {
 			
 		};
 		
+		class CannotCallInternalConstructorInNonMethodDiag: public Error {
+		public:
+			CannotCallInternalConstructorInNonMethodDiag() { }
+			
+			std::string toString() const {
+				return "cannot call internal constructor in non-method";
+			}
+			
+		};
+		
+		class InternalConstructorIncorrectTemplateArgCountDiag: public Error {
+		public:
+			InternalConstructorIncorrectTemplateArgCountDiag(size_t argsGiven, size_t argsRequired)
+			: argsGiven_(argsGiven), argsRequired_(argsRequired) { }
+			
+			std::string toString() const {
+				return makeString("internal constructor given %zu "
+				                  "template parameter(s); expected %zu",
+				                  argsGiven_, argsRequired_);
+			}
+			
+		private:
+			size_t argsGiven_;
+			size_t argsRequired_;
+			
+		};
+		
+		class InternalConstructorIncorrectArgCountDiag: public Error {
+		public:
+			InternalConstructorIncorrectArgCountDiag(size_t argsGiven, size_t argsRequired)
+			: argsGiven_(argsGiven), argsRequired_(argsRequired) { }
+			
+			std::string toString() const {
+				return makeString("internal constructor called with %zu "
+				                  "parameter(s); expected %zu",
+				                  argsGiven_, argsRequired_);
+			}
+			
+		private:
+			size_t argsGiven_;
+			size_t argsRequired_;
+			
+		};
+		
 		class SetFakeDiagnosticReceiver {
 		public:
 			SetFakeDiagnosticReceiver(Context& context)
@@ -815,51 +859,61 @@ namespace locic {
 					const auto thisTypeInstance = lookupParentType(context.scopeStack());
 					
 					if (thisTypeInstance == nullptr) {
-						throw ErrorException(makeString("Cannot call internal constructor in non-method at position %s.",
-							location.toString().c_str()));
-					}
-					
-					if (!astTemplateArgs->empty() && astTemplateArgs->size() != thisTypeInstance->templateVariables().size()) {
-						throw ErrorException(makeString("Internal constructor given "
-							   "incorrect number of template arguments; received %llu, expected %llu at position %s.",
-							(unsigned long long) astTemplateArgs->size(),
-							(unsigned long long) thisTypeInstance->templateVariables().size(),
-							location.toString().c_str()));
+						context.issueDiag(CannotCallInternalConstructorInNonMethodDiag(), location);
+						return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 					}
 					
 					SEM::ValueArray templateArgs;
 					templateArgs.reserve(thisTypeInstance->templateVariables().size());
+					for (const auto& astTemplateArg: *astTemplateArgs) {
+						templateArgs.push_back(ConvertValue(context, astTemplateArg));
+					}
 					
-					if (!astTemplateArgs->empty()) {
-						assert(astTemplateArgs->size() == thisTypeInstance->templateVariables().size());
-						for (const auto& astTemplateArg: *astTemplateArgs) {
-							templateArgs.push_back(ConvertValue(context, astTemplateArg));
-						}
-					} else {
+					bool useSelfTemplateArgs = astTemplateArgs->empty();
+					
+					if (!useSelfTemplateArgs && templateArgs.size() != thisTypeInstance->templateVariables().size()) {
+						const size_t argsGiven = templateArgs.size();
+						const size_t argsExpected = thisTypeInstance->templateVariables().size();
+						context.issueDiag(InternalConstructorIncorrectTemplateArgCountDiag(argsGiven,
+						                                                                   argsExpected),
+						                  location);
+						useSelfTemplateArgs = true;
+					}
+					
+					if (useSelfTemplateArgs) {
+						templateArgs.clear();
 						for (const auto& templateVar: thisTypeInstance->templateVariables()) {
 							templateArgs.push_back(templateVar->selfRefValue());
 						}
+					} else {
+						assert(templateArgs.size() == thisTypeInstance->templateVariables().size());
 					}
 					
 					const auto templateVarMap = GenerateTemplateVarMap(context, *thisTypeInstance, std::move(templateArgs), location);
 					const auto thisType = SEM::Type::Object(thisTypeInstance, GetTemplateValues(templateVarMap, thisTypeInstance->templateVariables()));
 					
 					if (astParameterValueNodes->size() != thisTypeInstance->variables().size()) {
-						throw ErrorException(makeString("Internal constructor called "
-							   "with wrong number of arguments; received %llu, expected %llu at position %s.",
-							(unsigned long long) astParameterValueNodes->size(),
-							(unsigned long long) thisTypeInstance->variables().size(),
-							location.toString().c_str()));
+						const size_t argsGiven = astParameterValueNodes->size();
+						const size_t argsExpected = thisTypeInstance->variables().size();
+						context.issueDiag(InternalConstructorIncorrectArgCountDiag(argsGiven,
+						                                                           argsExpected),
+						                  location);
 					}
 					
 					HeapArray<SEM::Value> semValues;
-					semValues.reserve(thisTypeInstance->variables().size());
+					semValues.reserve(astParameterValueNodes->size());
 					
-					for (size_t i = 0; i < thisTypeInstance->variables().size(); i++) {
-						const auto semVar = thisTypeInstance->variables().at(i);
+					for (size_t i = 0; i < astParameterValueNodes->size(); i++) {
 						auto semValue = ConvertValue(context, astParameterValueNodes->at(i));
-						auto semParam = ImplicitCast(context, std::move(semValue), semVar->constructType()->substitute(templateVarMap), location);
-						semValues.push_back(std::move(semParam));
+						if (i < thisTypeInstance->variables().size()) {
+							const auto semVar = thisTypeInstance->variables().at(i);
+							auto semParam = ImplicitCast(context, std::move(semValue),
+							                             semVar->constructType()->substitute(templateVarMap),
+							                             location);
+							semValues.push_back(std::move(semParam));
+						} else {
+							semValues.push_back(std::move(semValue));
+						}
 					}
 					
 					return SEM::Value::InternalConstruct(thisType, std::move(semValues));
