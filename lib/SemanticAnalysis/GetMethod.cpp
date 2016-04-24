@@ -40,6 +40,38 @@ namespace locic {
 			return SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate)), returnType, argTypes.copy());
 		}
 		
+		class CannotFindStaticMethodDiag: public Error {
+		public:
+			CannotFindStaticMethodDiag(const String name, const SEM::Type* type)
+			: name_(name), typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot find static method '%s' for type '%s'",
+				                  name_.c_str(), typeString_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string typeString_;
+			
+		};
+		
+		class CannotCallNonStaticMethodDiag: public Error {
+		public:
+			CannotCallNonStaticMethodDiag(const String name, const SEM::Type* type)
+			: name_(name), typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot call non-static method '%s' for type '%s'",
+				                  name_.c_str(), typeString_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string typeString_;
+			
+		};
+		
 		SEM::Value GetStaticMethod(Context& context, SEM::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
 			auto value = derefOrBindValue(context, std::move(rawValue));
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
@@ -57,19 +89,16 @@ namespace locic {
 			const auto methodIterator = methodSet->find(canonicalMethodName);
 			
 			if (methodIterator == methodSet->end()) {
-				throw ErrorException(makeString("Cannot find static method '%s' for type '%s' at position %s.",
-					methodName.c_str(),
-					targetType->toString().c_str(),
-					location.toString().c_str()));
+				context.issueDiag(CannotFindStaticMethodDiag(methodName, targetType),
+				                  location);
+				return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 			}
 			
 			const auto& methodElement = methodIterator->second;
 			
 			if (!methodElement.isStatic()) {
-				throw ErrorException(makeString("Cannot call non-static method '%s' for type '%s' at position %s.",
-					methodName.c_str(),
-					targetType->toString().c_str(),
-					location.toString().c_str()));
+				context.issueDiag(CannotCallNonStaticMethodDiag(methodName, targetType),
+				                  location);
 			}
 			
 			auto& typeBuilder = context.typeBuilder();
