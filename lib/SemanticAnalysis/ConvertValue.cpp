@@ -264,6 +264,21 @@ namespace locic {
 			
 		};
 		
+		class CannotConstructInterfaceTypeDiag: public Error {
+		public:
+			CannotConstructInterfaceTypeDiag(const Name& name)
+			: name_(name.copy()) { }
+			
+			std::string toString() const {
+				return makeString("cannot construct interface type '%s'",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
 		class SetFakeDiagnosticReceiver {
 		public:
 			SetFakeDiagnosticReceiver(Context& context)
@@ -351,8 +366,8 @@ namespace locic {
 						auto& typeInstance = searchResult.typeInstance();
 						
 						if (typeInstance.isInterface()) {
-							throw ErrorException(makeString("Can't construct interface type '%s' at %s.",
-								name.toString().c_str(), location.toString().c_str()));
+							context.issueDiag(CannotConstructInterfaceTypeDiag(name),
+							                  location);
 						}
 						
 						const auto typenameType = context.typeBuilder().getTypenameType();
