@@ -1,0 +1,11 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() {
+	int method() {
+		// CHECK: .loci:7:10: error: cannot find member variable '@value'
+		return @value;
+	}
+}
+
+// CHECK: 1 error generated.
