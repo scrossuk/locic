@@ -345,6 +345,9 @@ namespace locic {
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				
 				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function, std::move(templateArguments), functionRefType), location);
+				if (methodElement.isStatic()) {
+					return functionRef;
+				}
 				
 				if (type->isInterface()) {
 					const auto interfaceMethodType = typeBuilder.getInterfaceMethodType(functionType);
@@ -358,6 +361,9 @@ namespace locic {
 				const auto functionType = methodElement.createFunctionType(isTemplated);
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				auto functionRef = addDebugInfo(SEM::Value::TemplateFunctionRef(type, methodName, functionRefType), location);
+				if (methodElement.isStatic()) {
+					return functionRef;
+				}
 				
 				const auto methodType = typeBuilder.getMethodType(functionType);
 				return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);
