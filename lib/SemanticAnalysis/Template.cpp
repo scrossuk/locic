@@ -59,6 +59,26 @@ namespace locic {
 			
 		};
 		
+		class TemplateArgHasInvalidTypeDiag : public Error {
+		public:
+			TemplateArgHasInvalidTypeDiag(const String& name, const SEM::Type* expectedType,
+			                              const SEM::Type* actualType)
+			: name_(name), expectedTypeString_(expectedType->toDiagString()),
+			actualTypeString_(actualType->toDiagString()) { }
+
+			std::string toString() const {
+				return makeString("template argument has type '%s', which doesn't match "
+				                  "type '%s' of template variable '%s'", actualTypeString_.c_str(),
+				                  expectedTypeString_.c_str(), name_.c_str());
+			}
+
+		private:
+			String name_;
+			std::string expectedTypeString_;
+			std::string actualTypeString_;
+			
+		};
+		
 		void CheckTemplateInstantiation(Context& context,
 		                                const SEM::TemplatedObject& templatedObject,
 		                                const SEM::TemplateVarMap& variableAssignments,
@@ -81,11 +101,10 @@ namespace locic {
 				const auto templateValueType = templateValue.type()->resolveAliases();
 				
 				if (templateVarType != templateValueType) {
-					throw ErrorException(makeString("Template argument '%s' has type '%s', which doesn't match type '%s' of template variable '%s', at position %s.",
-						templateValue.toString().c_str(),
-						templateValueType->toString().c_str(),
-						templateVarType->toString().c_str(),
-						templateVar->name().toString().c_str(), location.toString().c_str()));
+					context.issueDiag(TemplateArgHasInvalidTypeDiag(templateVar->name().last(),
+					                                                templateVarType,
+					                                                templateValueType),
+					                  location);
 				}
 				
 				if (templateValue.isTypeRef()) {
