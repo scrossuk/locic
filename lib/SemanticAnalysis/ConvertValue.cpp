@@ -126,13 +126,10 @@ namespace locic {
 			return context.getCString(cString);
 		}
 		
-		bool HasBinaryOp(Context& context, const SEM::Value& value, AST::BinaryOpKind opKind, const Debug::SourceLocation& location) {
+		bool HasBinaryOp(Context& context, const SEM::Value& value, AST::BinaryOpKind opKind,
+		                 const Debug::SourceLocation& /*location*/) {
 			const auto derefType = getDerefType(value.type());
-			
-			if (!derefType->isObjectOrTemplateVar()) {
-				throw ErrorException(makeString("Can't perform binary operator '%s' for non-object type '%s' at position %s.",
-					binaryOpToString(opKind).c_str(), derefType->toString().c_str(), location.toString().c_str()));
-			}
+			assert(derefType->isObjectOrTemplateVar());
 			
 			const auto methodSet = getTypeMethodSet(context, derefType);
 			const auto methodName = binaryOpName(context, opKind);
@@ -162,11 +159,7 @@ namespace locic {
 		SEM::Value MakeMemberAccess(Context& context, SEM::Value rawValue, const String& memberName, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			const auto derefType = getStaticDerefType(getDerefType(value.type()->resolveAliases()));
-			
-			if (!derefType->isObjectOrTemplateVar()) {
-				throw ErrorException(makeString("Can't access member '%s' of type '%s' at position %s.",
-					memberName.c_str(), derefType->toString().c_str(), location.toString().c_str()));
-			}
+			assert(derefType->isObjectOrTemplateVar());
 			
 			const auto methodSet = getTypeMethodSet(context, derefType);
 			
@@ -325,10 +318,7 @@ namespace locic {
 						const auto functionType = typeBuilder.getFunctionPointerType(function.type().substitute(templateVarMap));
 						
 						if (function.isMethod()) {
-							if (!function.isStaticMethod()) {
-								throw ErrorException(makeString("Cannot refer directly to non-static class method '%s' at %s.",
-									name.toString().c_str(), location.toString().c_str()));
-							}
+							assert(function.isStaticMethod());
 							
 							const auto typeSearchResult = performSearch(context, name.getPrefix());
 							assert(typeSearchResult.isTypeInstance());
