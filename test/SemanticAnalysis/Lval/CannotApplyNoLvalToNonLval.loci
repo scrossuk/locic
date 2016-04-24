@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void f() {
+	// CHECK: .loci:6:16: error: cannot use 'nolval' operator on non-lval value
+	unused_result nolval(10);
+}
+
+// CHECK: 1 error generated.

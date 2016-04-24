@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void f() {
+	// CHECK: .loci:6:16: error: cannot use 'noref' operator on non-ref value
+	unused_result noref(10);
+}
+
+// CHECK: 1 error generated.
