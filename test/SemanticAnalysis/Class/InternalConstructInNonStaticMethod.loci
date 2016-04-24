@@ -1,0 +1,7 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+class TestClass() {
+	TestClass method() {
+		return @();
+	}
+}

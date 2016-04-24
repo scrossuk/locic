@@ -1,0 +1,26 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass(int a, int b) {
+	static TestClass noArgs() {
+		// CHECK: .loci:7:10: error: internal constructor called with 0 parameter(s); expected 2
+		return @();
+	}
+	
+	static TestClass tooFewArgs() {
+		// CHECK: .loci:12:10: error: internal constructor called with 1 parameter(s); expected 2
+		return @(1);
+	}
+	
+	static TestClass correctNumberOfArgs() {
+		// CHECK-NOT: .loci:17:10: error
+		return @(1, 2);
+	}
+	
+	static TestClass tooManyArgs() {
+		// CHECK: .loci:22:10: error: internal constructor called with 3 parameter(s); expected 2
+		return @(1, 2, 3);
+	}
+}
+
+// CHECK: 3 errors generated.

@@ -1,0 +1,27 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+template <typename A, typename B>
+class TestClass() {
+	static TestClass<A, B> noTemplateArgs() {
+		// CHECK-NOT: .loci:8:10: error
+		return @();
+	}
+	
+	static TestClass<A, B> tooFewTemplateArgs() {
+		// CHECK: .loci:13:10: error: internal constructor given 1 template parameter(s); expected 2
+		return @<int>();
+	}
+	
+	static TestClass<int, int> correctNumberOfTemplateArgs() {
+		// CHECK-NOT: .loci:18:10: error
+		return @<int, int>();
+	}
+	
+	static TestClass<A, B> tooManyTemplateArgs() {
+		// CHECK: .loci:23:10: error: internal constructor given 3 template parameter(s); expected 2
+		return @<int, int, int>();
+	}
+}
+
+// CHECK: 2 errors generated.
