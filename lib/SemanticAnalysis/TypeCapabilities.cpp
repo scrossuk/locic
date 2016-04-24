@@ -47,6 +47,12 @@ namespace locic {
 			return checkCapabilityWithType(context, rawType, capability, getCapabilityType(context, capability, std::move(templateArgs)));
 		}
 		
+		bool hasCallMethod(Context& context, const SEM::Type* type) {
+			const auto methodSet = getTypeMethodSet(context, type);
+			const auto methodIterator = methodSet->find(context.getCString("call"));
+			return methodIterator != methodSet->end();
+		}
+		
 		bool supportsImplicitCast(Context& context, const SEM::Type* type) {
 			switch (type->kind()) {
 				case SEM::Type::TEMPLATEVAR:

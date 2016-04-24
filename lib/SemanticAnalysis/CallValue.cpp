@@ -6,6 +6,8 @@
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
+#include <locic/SemanticAnalysis/TypeCapabilities.hpp>
 #include <locic/SemanticAnalysis/VarArgCast.hpp>
 #include <locic/Support/String.hpp>
 
@@ -47,6 +49,21 @@ namespace locic {
 			}
 			
 		}
+		
+		class TypeNotCallableDiag: public Error {
+		public:
+			TypeNotCallableDiag(const SEM::Type* type)
+			: typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("type '%s' is not callable; it needs a 'call' method",
+				                  typeString_.c_str());
+			}
+			
+		private:
+			std::string typeString_;
+			
+		};
 		
 		class CallIncorrectArgCountDiag: public Error {
 		public:
@@ -101,7 +118,15 @@ namespace locic {
 			
 			if (!value.type()->isCallable()) {
 				// Try to use 'call' method.
-				return CallValue(context, GetMethod(context, std::move(value), context.getCString("call"), location), std::move(args), location);
+				if (hasCallMethod(context, getDerefType(value.type()))) {
+					return CallValue(context, GetMethod(context, std::move(value),
+					                                    context.getCString("call"), location),
+					                 std::move(args), location);
+				} else {
+					context.issueDiag(TypeNotCallableDiag(getDerefType(value.type())),
+					                  location);
+					return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
+				}
 			}
 			
 			const auto functionType = value.type()->asFunctionType();

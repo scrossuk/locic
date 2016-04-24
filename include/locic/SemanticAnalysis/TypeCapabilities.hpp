@@ -13,6 +13,8 @@ namespace locic {
 		
 		class Context;
 		
+		bool hasCallMethod(Context& context, const SEM::Type* type);
+		
 		bool supportsImplicitCast(Context& context, const SEM::Type* type);
 		
 		bool supportsImplicitCopy(Context& context, const SEM::Type* type);
