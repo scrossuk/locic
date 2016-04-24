@@ -1,23 +1,20 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Cannot refer to mutator method 'doSomething' from const object of type 'const(TestClass<Constant(BoolConstant(false))>)' at position SourceLocation(filename = {{.*}}/CallNonConstMethodOnConstPredicateObject.loci, range = (line 20, column 2) to (line 20, column 20)).
-
 template <bool IsConst>
 class TestClass(int value) {
 	static create = default;
 	
-	void doSomething() const(IsConst) {
-	}
+	void doSomething() const(IsConst) { }
 }
 
-// Entry point.
-export int main(unused int argc, unused ubyte ** argv) {
+export void f() {
 	const auto constPredicatedObject = TestClass<true>(10);
 	constPredicatedObject.doSomething();
 	
 	const auto object = TestClass<false>(10);
+	// CHECK: .loci:17:2: error: cannot refer to mutator method 'doSomething' from const object of type 'const(TestClass<BoolConstant(false)>)'
 	object.doSomething();
-	return 0;
 }
 
+// CHECK: 1 error generated.

@@ -1,10 +1,11 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Cannot find static method '__sizeof' for type 'OpaqueStruct' at position SourceLocation(filename = {{.*}}/OpaqueStructSizeOf.loci, range = (line 9, column 9) to (line 9, column 29)).
-
 struct OpaqueStruct;
 
 size_t f() {
+	// CHECK: .loci:8:9: error: cannot find static method '__sizeof' for type 'OpaqueStruct'
 	return sizeof(OpaqueStruct);
 }
+
+// CHECK: 2 errors generated.

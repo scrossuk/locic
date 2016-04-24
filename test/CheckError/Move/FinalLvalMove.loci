@@ -1,22 +1,15 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Cannot find method 'move' for type 'lval<TestClass>(final_lval_t<TestClass>)' at position SourceLocation(filename = {{.*}}.loci, range = (line 18, column 27) to (line 18, column 44)).
-
-// Test output.
-import void printf(const ubyte * str, ...) noexcept;
-
 class TestClass() {
 	static create = default;
 }
 
-// Entry point.
-export int main(unused int argc, unused ubyte ** argv) {
+export void f() {
 	final auto testInstance = TestClass();
 	
-	// Error; can't move from final_lval!
-	auto testInstanceMoved = move testInstance;
-	
-	return 0;
+	// CHECK: .loci:12:34: error: cannot find method 'move' for type 'lval<TestClass>(final_lval_t<TestClass>)'
+	unused auto testInstanceMoved = move testInstance;
 }
 
+// CHECK: 2 errors generated.

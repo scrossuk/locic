@@ -1,10 +1,11 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Cannot find static method '__alignmask' for type 'OpaqueStruct' at position SourceLocation(filename = {{.*}}/OpaqueStructAlignOf.loci, range = (line 9, column 9) to (line 9, column 30)).
-
 struct OpaqueStruct;
 
 size_t f() {
+	// CHECK: .loci:8:9: error: cannot find static method '__alignmask' for type 'OpaqueStruct'
 	return alignof(OpaqueStruct);
 }
+
+// CHECK: 3 errors generated.

@@ -1,22 +1,15 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Cannot find method 'assign' for type 'lval<TestClass>(final_lval_t<TestClass>)' at position SourceLocation(filename = {{.*}}.loci, range = (line 18, column 2) to (line 18, column 29)).
-
-// Test output.
-import void printf(const ubyte * str, ...) noexcept;
-
 class TestClass() {
 	static create = default;
 }
 
-// Entry point.
-export int main(unused int argc, unused ubyte ** argv) {
+export void f() {
 	final auto testInstance = TestClass();
 	
-	// Error; can't assign to final_lval!
+	// CHECK: .loci:12:2: error: cannot find method 'assign' for type 'lval<TestClass>(final_lval_t<TestClass>)'
 	testInstance = TestClass();
-	
-	return 0;
 }
 
+// CHECK: 2 errors generated.

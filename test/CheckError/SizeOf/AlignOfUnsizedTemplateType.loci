@@ -1,9 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Cannot find static method '__alignmask' for type 'TemplateVarType(templateVar: TemplateVar(name = ::getTypeAlign::T, index = 0))' at position SourceLocation(filename = {{.*}}/AlignOfUnsizedTemplateType.loci, range = (line 8, column 9) to (line 8, column 19)).
-
 template <typename T>
 size_t getTypeAlign() {
+	// CHECK: .loci:7:9: error: cannot find static method '__alignmask' for type 'T'
 	return alignof(T);
 }
+
+// CHECK: 3 errors generated.
