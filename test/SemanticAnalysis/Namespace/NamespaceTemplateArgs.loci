@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+namespace Namespace {
+	void f() { }
+}
+
+export void f() {
+	// CHECK: .loci:10:2: error: 1 template arguments provided for non-function and non-type node 'Namespace'; none should be provided
+	Namespace<int>::f();
+}
+
+// CHECK: 1 error generated.
