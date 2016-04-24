@@ -112,23 +112,8 @@ namespace locic {
 					
 					// Presumably auto will always work...
 					if (!templateTypeValue->isAuto()) {
-						if (!templateTypeValue->isObjectOrTemplateVar()) {
-							throw ErrorException(makeString("Cannot use non-object and non-template type '%s' "
-								"as template parameter %llu for function or type '%s' at position %s.",
-								templateTypeValue->toString().c_str(),
-								(unsigned long long) templateVar->index(),
-								templatedObject.name().toString().c_str(),
-								location.toString().c_str()));
-						}
-						
-						if (templateTypeValue->isInterface()) {
-							throw ErrorException(makeString("Cannot use abstract type '%s' "
-								"as template parameter %llu for function or type '%s' at position %s.",
-								templateTypeValue->getObjectType()->name().toString().c_str(),
-								(unsigned long long) templateVar->index(),
-								templatedObject.name().toString().c_str(),
-								location.toString().c_str()));
-						}
+						assert(templateTypeValue->isObjectOrTemplateVar());
+						assert(!templateTypeValue->isInterface());
 					}
 				}
 			}
