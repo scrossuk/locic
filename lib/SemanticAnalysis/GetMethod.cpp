@@ -175,6 +175,27 @@ namespace locic {
 			
 		};
 		
+		class InvalidMethodTemplateArgCountDiag: public Error {
+		public:
+			InvalidMethodTemplateArgCountDiag(const String name,
+			                                  size_t argsExpected,
+			                                  size_t argsGiven)
+			: name_(name), argsExpected_(argsExpected), argsGiven_(argsGiven) { }
+			
+			std::string toString() const {
+				return makeString("incorrect number of template arguments provided "
+				                  "for method '%s'; %zu were required, but %zu "
+						  "were provided", name_.c_str(), argsExpected_,
+				                  argsGiven_);
+			}
+			
+		private:
+			String name_;
+			size_t argsExpected_;
+			size_t argsGiven_;
+			
+		};
+		
 		class InvalidMethodTemplateArgDiag: public Error {
 		public:
 			InvalidMethodTemplateArgDiag(const SEM::Type* type, const String varName,
@@ -268,18 +289,15 @@ namespace locic {
 						const auto boolType = context.typeBuilder().getBoolType();
 						templateArguments.push_back(SEM::Value::PredicateExpr(objectConstPredicate.copy(), boolType));
 					} else {
-						throw ErrorException(makeString("Incorrect number of template "
-							"arguments provided for method '%s'; %llu were required, "
-							"but %llu were provided at position %s.",
-							function->name().toString().c_str(),
-							static_cast<unsigned long long>(templateVariables.size()),
-							static_cast<unsigned long long>(templateArguments.size()),
-							location.toString().c_str()));
+						context.issueDiag(InvalidMethodTemplateArgCountDiag(function->name().last(),
+						                                                    templateVariables.size(),
+						                                                    templateArguments.size()),
+						                  location);
 					}
 				}
 				
 				// Add function template variable => argument mapping.
-				for (size_t i = 0; i < templateArguments.size(); i++) {
+				for (size_t i = 0; i < std::min(templateVariables.size(), templateArguments.size()); i++) {
 					const auto templateVariable = templateVariables.at(i);
 					const auto& templateValue = templateArguments.at(i);
 					
