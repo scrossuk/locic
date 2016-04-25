@@ -546,71 +546,51 @@ int main(int argc, char* argv[]) {
 		return EXIT_FAILURE;
 	}
 	
-	try {
-		Driver driver(*options);
-		
-		driver.addModuleFiles();
-		
-		AST::NamespaceList astRootNamespaceList;
-		
-		const bool parseResult = driver.runParser(astRootNamespaceList);
-		if (!parseResult || options->parseOnly) {
-			driver.printDiagnostics();
-			return (options->verifying || parseResult) ?
-			       EXIT_SUCCESS : EXIT_FAILURE;
-		}
-		
-		// Debug information.
-		Debug::Module debugModule;
-		
-		SEM::Context semContext;
-		SEM::Module semModule(semContext);
-		
-		try {
-			const auto semaResult =
-				driver.runSemanticAnalysis(astRootNamespaceList,
-				                           semModule, debugModule);
-			driver.printDiagnostics();
-			if (!semaResult) {
-				return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;
-			}
-		} catch (const Exception& e) {
-			if (options->verifying) {
-				// Make sure we print the diagnostics if we're
-				// in a test.
-				driver.printDiagnostics();
-			}
-			throw;
-		}
-		
-		if (options->verifying) {
-			return EXIT_SUCCESS;
-		}
-		
-		CodeGen::Context codeGenContext(semContext, driver.sharedMaps(),
-		                                driver.getTargetOptions());
-		
-		auto irModule = driver.runCodeGen(codeGenContext, semModule,
-		                                  debugModule);
-		
-		if (options->timingsEnabled) {
-			printf("--- Total time: %f seconds.\n", totalTimer.getTime());
-		}
-		
-		if (!options->interpret) {
-			return EXIT_SUCCESS;
-		}
-		
-		return driver.interpret(codeGenContext, std::move(irModule));
-	} catch (const Exception& e) {
-		if (options->verifying) {
-			// Some of the older tests need to see unformatted errors.
-			printf("%s\n", e.toString().c_str());
-		}
-		printf("Compilation failed (errors should be shown above).\n");
+	Driver driver(*options);
+	
+	driver.addModuleFiles();
+	
+	AST::NamespaceList astRootNamespaceList;
+	
+	const bool parseResult = driver.runParser(astRootNamespaceList);
+	if (!parseResult || options->parseOnly) {
+		driver.printDiagnostics();
+		return (options->verifying || parseResult) ?
+		       EXIT_SUCCESS : EXIT_FAILURE;
+	}
+	
+	// Debug information.
+	Debug::Module debugModule;
+	
+	SEM::Context semContext;
+	SEM::Module semModule(semContext);
+	
+	const auto semaResult =
+		driver.runSemanticAnalysis(astRootNamespaceList,
+		                           semModule, debugModule);
+	driver.printDiagnostics();
+	if (!semaResult) {
 		return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;
 	}
 	
-	return 0;
+	if (options->verifying) {
+		return EXIT_SUCCESS;
+	}
+	
+	CodeGen::Context codeGenContext(semContext, driver.sharedMaps(),
+	                                driver.getTargetOptions());
+	
+	auto irModule = driver.runCodeGen(codeGenContext, semModule,
+	                                  debugModule);
+	
+	if (options->timingsEnabled) {
+		printf("--- Total time: %f seconds.\n", totalTimer.getTime());
+	}
+	
+	if (!options->interpret) {
+		return EXIT_SUCCESS;
+	}
+	
+	return driver.interpret(codeGenContext, std::move(irModule));
 }
 
