@@ -166,6 +166,21 @@ namespace locic {
 			return semFunction;
 		}
 		
+		class FunctionClashesWithExistingNameDiag: public Error {
+		public:
+			FunctionClashesWithExistingNameDiag(const Name& name)
+			: name_(name.copy()) { }
+			
+			std::string toString() const {
+				return makeString("function '%s' clashes with existing name",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
 		class UnknownParentTypeForExceptionMethodDiag: public Error {
 		public:
 			UnknownParentTypeForExceptionMethodDiag(Name parentName, String methodName)
@@ -212,8 +227,8 @@ namespace locic {
 				
 				const auto iterator = parentNamespace.items().find(name->last());
 				if (iterator != parentNamespace.items().end()) {
-					throw ErrorException(makeString("Function name '%s' clashes with existing name, at position %s.",
-						fullName.toString().c_str(), name.location().toString().c_str()));
+					context.issueDiag(FunctionClashesWithExistingNameDiag(fullName),
+					                  name.location());
 				}
 				
 				auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
@@ -319,6 +334,21 @@ namespace locic {
 			parentTypeInstance.attachFunction(std::move(semFunction));
 		}
 		
+		class EnumConstructorClashesWithExistingNameDiag: public Error {
+		public:
+			EnumConstructorClashesWithExistingNameDiag(const Name& name)
+			: name_(name.copy()) { }
+			
+			std::string toString() const {
+				return makeString("enum constructor '%s' clashes with existing name",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
 		void AddEnumConstructorDecls(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
 			auto& semTypeInstance = context.scopeStack().back().typeInstance();
 			
@@ -328,8 +358,8 @@ namespace locic {
 				
 				const auto existingFunction = semTypeInstance.findFunction(canonicalMethodName);
 				if (existingFunction != nullptr) {
-					throw ErrorException(makeString("Enum constructor name '%s' clashes with existing name, at position %s.",
-						fullName.toString().c_str(), astTypeInstanceNode.location().toString().c_str()));
+					context.issueDiag(EnumConstructorClashesWithExistingNameDiag(fullName),
+					                  astTypeInstanceNode->constructors.location());
 				}
 				
 				std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(semTypeInstance),

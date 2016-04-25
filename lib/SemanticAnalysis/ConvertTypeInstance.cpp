@@ -17,6 +17,14 @@ namespace locic {
 		void CreateEnumConstructorMethod(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function& function, const size_t value) {
 			assert(typeInstance->isEnum());
 			
+			if (function.isDefinition()) {
+				// Function already has a scope; this can happen when
+				// the user has given duplicate enum constructors, in
+				// which case we will have issued an error but continued
+				// onwards to find more errors.
+				return;
+			}
+			
 			auto functionScope = SEM::Scope::Create();
 			
 			HeapArray<SEM::Value> constructValues;

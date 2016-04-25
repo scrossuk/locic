@@ -49,6 +49,31 @@ namespace locic {
 			std::terminate();
 		}
 		
+		class TypeInstanceClashesWithExistingNameDiag: public Error {
+		public:
+			TypeInstanceClashesWithExistingNameDiag(const Name& name)
+			: name_(name.copy()) { }
+			
+			std::string toString() const {
+				return makeString("type '%s' clashes with existing name",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
+		class PreviousDefinedDiag: public Error {
+		public:
+			PreviousDefinedDiag() { }
+			
+			std::string toString() const {
+				return "previously defined here";
+			}
+			
+		};
+		
 		namespace {
 			
 			class ShadowsTemplateParameterDiag: public Error {
@@ -142,9 +167,10 @@ namespace locic {
 			if (iterator != parentNamespace.items().end()) {
 				const auto& existingTypeInstance = iterator->second.typeInstance();
 				const auto& debugInfo = *(existingTypeInstance.debugInfo());
-				throw ErrorException(makeString("Type instance name '%s', at position %s, clashes with existing name, at position %s.",
-					fullTypeName.toString().c_str(), astTypeInstanceNode.location().toString().c_str(),
-					debugInfo.location.toString().c_str()));
+				OptionalDiag previousDefinedDiag(PreviousDefinedDiag(), debugInfo.location);
+				context.issueDiag(TypeInstanceClashesWithExistingNameDiag(fullTypeName),
+				                  astTypeInstanceNode.location(),
+				                  std::move(previousDefinedDiag));
 			}
 			
 			const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);
@@ -253,6 +279,36 @@ namespace locic {
 			
 		};
 		
+		class AliasClashesWithExistingNameDiag: public Error {
+		public:
+			AliasClashesWithExistingNameDiag(const Name& name)
+			: name_(name.copy()) { }
+			
+			std::string toString() const {
+				return makeString("alias '%s' clashes with existing name",
+				                  name_.toString(/*addPrefix=*/false).c_str());
+			}
+			
+		private:
+			Name name_;
+			
+		};
+		
+		class TemplateVarClashesWithExistingNameDiag: public Error {
+		public:
+			TemplateVarClashesWithExistingNameDiag(const String& name)
+			: name_(name) { }
+			
+			std::string toString() const {
+				return makeString("template variable '%s' clashes with existing name",
+				                  name_.c_str());
+			}
+			
+		private:
+			String name_;
+			
+		};
+		
 		void AddNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
@@ -290,8 +346,8 @@ namespace locic {
 				const auto fullTypeName = semNamespace.name() + aliasName;
 				const auto iterator = semNamespace.items().find(aliasName);
 				if (iterator != semNamespace.items().end()) {
-					throw ErrorException(makeString("Type alias name '%s' clashes with existing name, at position %s.",
-						fullTypeName.toString().c_str(), astAliasNode.location().toString().c_str()));
+					context.issueDiag(AliasClashesWithExistingNameDiag(fullTypeName),
+					                  astAliasNode.location());
 				}
 				
 				std::unique_ptr<SEM::Alias> semAlias(new SEM::Alias(context.semContext(),
@@ -313,7 +369,8 @@ namespace locic {
 					
 					const auto templateVarIterator = semAlias->namedTemplateVariables().find(templateVarName);
 					if (templateVarIterator != semAlias->namedTemplateVariables().end()) {
-						throw TemplateVariableClashException(fullTypeName.copy(), templateVarName);
+						context.issueDiag(TemplateVarClashesWithExistingNameDiag(templateVarName),
+						                  astTemplateVarNode.location());
 					}
 					
 					semAlias->templateVariables().push_back(semTemplateVar);
