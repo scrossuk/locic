@@ -52,6 +52,7 @@ Binary Operators
 * ``a % b``: ``modulo``
 * ``a & b``: ``bitwiseand``
 * ``a | b``: ``bitwiseor``
+* ``a ^ b``: ``bitwisexor``
 * ``a == b``: ``equal`` (or ``compare``)
 * ``a != b``: ``notequal`` (or ``compare``)
 * ``a < b``: ``lessthan`` (or ``compare``)

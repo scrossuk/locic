@@ -67,6 +67,8 @@ namespace locic {
 					return "&";
 				case AST::OP_BITWISEOR:
 					return "|";
+				case AST::OP_BITWISEXOR:
+					return "^";
 				case AST::OP_LEFTSHIFT:
 					return "<<";
 				case AST::OP_RIGHTSHIFT:
@@ -110,6 +112,8 @@ namespace locic {
 					return "bitwise_and";
 				case AST::OP_BITWISEOR:
 					return "bitwise_or";
+				case AST::OP_BITWISEXOR:
+					return "bitwise_xor";
 				case AST::OP_LEFTSHIFT:
 					return "left_shift";
 				case AST::OP_RIGHTSHIFT:
@@ -746,6 +750,10 @@ namespace locic {
 						}
 						case AST::OP_BITWISEOR: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("bitwise_or"), location);
+							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
+						}
+						case AST::OP_BITWISEXOR: {
+							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("bitwise_xor"), location);
 							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_LEFTSHIFT: {
