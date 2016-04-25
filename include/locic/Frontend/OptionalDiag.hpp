@@ -8,7 +8,7 @@
 
 namespace locic {
 	
-	class DiagInfo;
+	struct DiagInfo;
 	
 	class OptionalDiag {
 	public:
