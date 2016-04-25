@@ -324,7 +324,7 @@ The C code then must allocate the necessary space for the class and pass a point
 
 An alignment mask is just the alignment (which is always a power of 2) minus one, which is useful because calculating the maximum alignment of a set of fields (e.g. when computing the alignment of a class) just involves a bitwise OR of the alignment masks and then adding one.
 
-It's worth noting at this point that the mangling and method names are not yet fully standardised but that it is expected this will occur soon (i.e. version 1.3).
+It's worth noting at this point that the mangling and method names are not yet fully standardised but that it is expected this will occur soon.
 
 .. _c_strings:
 
