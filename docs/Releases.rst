@@ -6,6 +6,40 @@ Available Releases
 
 This section lists completed releases of the Loci Compiler Tools, in reverse version order.
 
+v1.4
+~~~~
+
+Available here: `locic-1.4.src.tar.xz <http://loci-lang.org/releases/locic-1.4.src.tar.xz>`_
+
+Released on 25th April 2016, version 1.4 provides:
+
+**Compiler**
+
+* New and vastly better compiler diagnostics system.
+* Rewritten lexer and parser to provide improved diagnostics (see http://scross.co.uk/2016/01/30/glr-vs-recursive-descent-parsing/ ).
+
+**Test**
+
+* All tests have now been moved to Lit (from CTest).
+* Many more tests for diagnostics (tests added as diagnostics were converted to new system).
+* New unit tests for lexer/parser.
+
+**Language features**
+
+* Renamed ``__empty`` :doc:`lifetime method <LifetimeMethods>` to ``__dead``.
+
+**Primitives**
+
+* Added ``min()`` and ``max()`` built-in functions.
+* Added built-in :doc:`value generators <ValueGenerators>` ``range()``, ``range_incl()``, ``reverse_range()`` and ``reverse_range_incl()``.
+* Removed ``is_`` prefix from built-in predicates (e.g. ``is_movable`` is now just ``movable``).
+* Renamed ``ptr_lval`` to ``ptr_lval_t`` for consistency with other primitives.
+* Added initial code for allowing hashable types.
+
+**Standard library**
+
+* Added initial code for hashing types (to be used in hash set/map implementations in next version).
+
 v1.3
 ~~~~
 
@@ -200,10 +234,10 @@ Future Releases
 
 This section lists planned releases of the Loci Compiler Tools, in reverse version order.
 
-v1.4
+v1.5
 ~~~~
 
-Planned for around January 2016, version 1.4 aims to provide:
+Versions 1.5 aims to provide:
 
 **Language features**
 
@@ -212,7 +246,6 @@ Planned for around January 2016, version 1.4 aims to provide:
 **Primitives**
 
 * Add static array comparison support.
-* Min, max and range
 
 **Standard library**
 
@@ -226,7 +259,6 @@ Planned for around January 2016, version 1.4 aims to provide:
 
 **Compiler**
 
-* Improve compiler diagnostics
 * Add CMake module files to make it easier to create Loci projects
 * Improve emitted debug information
 
