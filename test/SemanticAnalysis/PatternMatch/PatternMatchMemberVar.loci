@@ -1,0 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+datatype UserType(int variable);
+
+// CHECK: .loci:10:17: error: pattern variables not supported for member variables
+
+// Use an invalid type name to check we're still converting the variable.
+// CHECK: .loci:10:26: error: unknown type name 'invalid_type'
+class TestClass(UserType(invalid_type v)) { }
+
+// CHECK: 2 errors generated.
