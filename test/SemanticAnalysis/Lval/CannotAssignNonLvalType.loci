@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export void f() {
+	// CHECK: .loci:6:2: error: cannot assign to non-lval type 'int8_t'
+	10 = 10;
+}
+
+// CHECK: 1 error generated.
