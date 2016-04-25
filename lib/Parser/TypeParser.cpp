@@ -154,7 +154,7 @@ namespace locic {
 				case Token::STATICREF:
 					return builder_.makeStaticRefType(std::move(targetType), std::move(type), start);
 				default:
-					throw std::logic_error("Unknown type qualifier kind.");
+					locic_unreachable("Unknown type qualifier kind.");
 			}
 		}
 		

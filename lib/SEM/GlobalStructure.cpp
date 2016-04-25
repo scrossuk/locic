@@ -53,7 +53,7 @@ namespace locic {
 					return typeInstance().name();
 			}
 			
-			throw std::logic_error("Unknown GlobalStructure kind.");
+			locic_unreachable("Unknown GlobalStructure kind.");
 		}
 		
 		GlobalStructure& GlobalStructure::parent() {
@@ -66,7 +66,7 @@ namespace locic {
 					return typeInstance().parent();
 			}
 			
-			throw std::logic_error("Unknown GlobalStructure kind.");
+			locic_unreachable("Unknown GlobalStructure kind.");
 		}
 		
 		const GlobalStructure& GlobalStructure::parent() const {
@@ -79,7 +79,7 @@ namespace locic {
 					return typeInstance().parent();
 			}
 			
-			throw std::logic_error("Unknown GlobalStructure kind.");
+			locic_unreachable("Unknown GlobalStructure kind.");
 		}
 		
 		SEM::Alias& GlobalStructure::alias() {
@@ -132,7 +132,7 @@ namespace locic {
 					return typeInstance().toString();
 			}
 			
-			throw std::logic_error("Unknown GlobalStructure kind.");
+			locic_unreachable("Unknown GlobalStructure kind.");
 		}
 		
 		GlobalStructure::GlobalStructure(Kind pKind)

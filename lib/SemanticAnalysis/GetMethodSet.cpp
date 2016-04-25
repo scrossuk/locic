@@ -194,7 +194,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown predicate kind.");
+			locic_unreachable("Unknown predicate kind.");
 		}
 		
 		/**

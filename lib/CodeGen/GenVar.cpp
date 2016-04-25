@@ -52,7 +52,7 @@ namespace locic {
 					genVarAlloca(function, childVar.get());
 				}
 			} else {
-				throw std::runtime_error("Unknown variable kind.");
+				locic_unreachable("Unknown variable kind.");
 			}
 		}
 		
@@ -86,7 +86,7 @@ namespace locic {
 					genVarInitialise(function, childVar.get(), loadedChildInitialiseValue);
 				}
 			} else {
-				throw std::runtime_error("Unknown var kind.");
+				locic_unreachable("Unknown var kind.");
 			}
 		}
 		

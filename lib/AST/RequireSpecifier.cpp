@@ -1,8 +1,7 @@
-#include <stdexcept>
-
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Predicate.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 
 namespace locic {
@@ -54,7 +53,7 @@ namespace locic {
 					return makeString("RequireSpecifier(kind = EXPR, expr = %s)", expr().toString().c_str());
 			}
 			
-			throw std::logic_error("Unknown require specifier kind.");
+			locic_unreachable("Unknown require specifier kind.");
 		}
 		
 	}

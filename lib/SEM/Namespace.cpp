@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/String.hpp>
 
@@ -108,7 +109,7 @@ namespace locic {
 					return typeInstance().toString();
 			}
 			
-			throw std::logic_error("Unknown NamespaceItem kind.");
+			locic_unreachable("Unknown NamespaceItem kind.");
 		}
 		
 		NamespaceItem::NamespaceItem(Kind pKind)

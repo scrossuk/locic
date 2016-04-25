@@ -1,6 +1,7 @@
 #include <cassert>
 #include <string>
 
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 
@@ -221,7 +222,7 @@ namespace locic {
 				// TODO?
 				return PrimitiveSize;
 			default:
-				throw std::logic_error("Unknown integer type.");
+				locic_unreachable("Unknown integer type.");
 		}
 	}
 	
@@ -259,7 +260,7 @@ namespace locic {
 			case PrimitivePtrDiff:
 				return 2;
 			default:
-				throw std::logic_error("Not an integer type.");
+				locic_unreachable("Not an integer type.");
 		}
 	}
 	
@@ -297,7 +298,7 @@ namespace locic {
 				case PrimitiveLongDouble:
 					return other == PrimitiveLongDouble;
 				default:
-					throw std::logic_error("Unknown float type.");
+					locic_unreachable("Unknown float type.");
 			}
 		} else {
 			return false;
@@ -419,7 +420,7 @@ namespace locic {
 				return "static_array_t";
 		}
 		
-		throw std::logic_error("Unknown primitive ID.");
+		locic_unreachable("Unknown primitive ID.");
 	}
 	
 	std::string PrimitiveID::toString() const {

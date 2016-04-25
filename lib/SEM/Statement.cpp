@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/CatchClause.hpp>
@@ -478,7 +479,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown SEM::Statement kind.");
+			locic_unreachable("Unknown SEM::Statement kind.");
 		}
 		
 	}

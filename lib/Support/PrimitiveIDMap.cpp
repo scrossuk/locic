@@ -1,7 +1,7 @@
 #include <memory>
-#include <stdexcept>
 #include <unordered_map>
 
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/PrimitiveIDMap.hpp>
@@ -113,7 +113,7 @@ namespace locic {
 			return iterator->second;
 		}
 		
-		throw std::logic_error(makeString("Unknown Primitive ID name '%s'.", name.c_str()));
+		locic_unreachable("Unknown Primitive ID name.");
 	}
 	
 }

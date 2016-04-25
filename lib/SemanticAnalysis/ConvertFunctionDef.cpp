@@ -170,7 +170,7 @@ namespace locic {
 						// scope(success) has executed.
 						lastScopeExit = nullptr;
 					} else {
-						throw std::logic_error("Unknown scope exit state.");
+						locic_unreachable("Unknown scope exit state.");
 					}
 				}
 				

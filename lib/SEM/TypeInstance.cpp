@@ -1,5 +1,6 @@
 #include <string>
 
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/Support/Name.hpp>
@@ -345,7 +346,7 @@ namespace locic {
 									  name().toString().c_str());
 			}
 			
-			throw std::logic_error("Unknown SEM::TypeInstance kind.");
+			locic_unreachable("Unknown SEM::TypeInstance kind.");
 		}
 		
 		std::string TypeInstance::toString() const {

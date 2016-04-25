@@ -1015,7 +1015,7 @@ namespace locic {
 					return true;
 			}
 			
-			throw std::logic_error("Unknown value kind.");
+			locic_unreachable("Unknown value kind.");
 		}
 		
 		Value Value::copy() const {
@@ -1033,7 +1033,7 @@ namespace locic {
 				case TEMPLATEVARREF:
 					return array.contains(const_cast<TemplateVar*>(templateVar()));
 				default:
-					throw std::logic_error(makeString("dependsOnAny() not implemented for: %s", toString().c_str()));
+					locic_unreachable("Invalid value kind for dependsOnAny().");
 			}
 		}
 		
@@ -1046,7 +1046,7 @@ namespace locic {
 				case TEMPLATEVARREF:
 					return array.contains(const_cast<TemplateVar*>(templateVar()));
 				default:
-					throw std::logic_error(makeString("dependsOnOnly() not implemented for: %s", toString().c_str()));
+					locic_unreachable("Invalid value kind for dependsOnOnly().");
 			}
 		}
 		
@@ -1107,7 +1107,7 @@ namespace locic {
 					                      type());
 				}
 				default:
-					throw std::logic_error(makeString("substitute() not implemented for: %s", toString().c_str()));
+					locic_unreachable("Invalid value kind for substitute().");
 			}
 		}
 		
@@ -1137,7 +1137,7 @@ namespace locic {
 					                            capabilityTestCapabilityType());
 				}
 				default:
-					throw std::logic_error(makeString("Invalid value for predicate: %s", toString().c_str()));
+					locic_unreachable("Invalid value kind for makePredicate().");
 			}
 		}
 		

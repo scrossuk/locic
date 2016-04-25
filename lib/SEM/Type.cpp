@@ -1,10 +1,10 @@
 #include <sstream>
-#include <stdexcept>
 #include <string>
 
 #include <boost/functional/hash.hpp>
 
 #include <locic/Constant.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/Support/PrimitiveID.hpp>
@@ -967,10 +967,9 @@ namespace locic {
 						return stream.str();
 					}
 				}
-				default: {
-					return makeString("[UNKNOWN TYPE: kind = %llu]", (unsigned long long) kind());
-				}
 			}
+			
+			locic_unreachable("Unknown type kind.");
 		}
 		
 		std::string Type::basicToString() const {
@@ -1038,10 +1037,9 @@ namespace locic {
 						return stream.str();
 					}
 				}
-				default: {
-					return makeString("[UNKNOWN TYPE: kind = %llu]", (unsigned long long) kind());
-				}
 			}
+			
+			locic_unreachable("Unknown type kind.");
 		}
 		
 		std::string Type::toString() const {
@@ -1314,7 +1312,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown type kind.");
+			locic_unreachable("Unknown type kind.");
 		}
 		
 	}

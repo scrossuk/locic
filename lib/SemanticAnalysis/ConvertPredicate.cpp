@@ -162,7 +162,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown AST Predicate kind.");
+			locic_unreachable("Unknown AST Predicate kind.");
 		}
 		
 		SEM::Predicate ConvertConstSpecifier(Context& context, const AST::Node<AST::ConstSpecifier>& astConstSpecifierNode) {
@@ -182,7 +182,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown AST ConstSpecifier kind.");
+			locic_unreachable("Unknown AST ConstSpecifier kind.");
 		}
 		
 		SEM::Predicate ConvertPredicateSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode,
@@ -206,7 +206,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown AST RequireSpecifier kind.");
+			locic_unreachable("Unknown AST RequireSpecifier kind.");
 		}
 		
 		class PushAssumedSatisfies {
@@ -337,7 +337,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown predicate kind.");
+			locic_unreachable("Unknown predicate kind.");
 		}
 		
 		bool doesPredicateImplyPredicate(Context& /*context*/, const SEM::Predicate& firstPredicate, const SEM::Predicate& secondPredicate) {
@@ -429,7 +429,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown predicate kind.");
+			locic_unreachable("Unknown predicate kind.");
 		}
 		
 	}

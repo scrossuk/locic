@@ -1,7 +1,7 @@
 #include <memory>
-#include <stdexcept>
 #include <unordered_map>
 
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MethodID.hpp>
 #include <locic/Support/MethodIDMap.hpp>
 #include <locic/Support/Optional.hpp>
@@ -153,8 +153,7 @@ namespace locic {
 		}
 		
 		printf("%s\n", name.c_str());
-		
-		throw std::logic_error("Unknown Method ID name.");
+		locic_unreachable("Unknown Method ID name.");
 	}
 	
 }

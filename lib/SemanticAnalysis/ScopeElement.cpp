@@ -169,7 +169,7 @@ namespace locic {
 			} else if (isFunction()) {
 				return function().name().last();
 			} else {
-				throw std::logic_error("Can't access name of unnamed scope element.");
+				locic_unreachable("Can't access name of unnamed scope element.");
 			}
 		}
 		

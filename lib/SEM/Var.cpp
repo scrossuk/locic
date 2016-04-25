@@ -1,8 +1,8 @@
 #include <cassert>
 #include <memory>
-#include <stdexcept>
 #include <string>
 
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/SEM/Type.hpp>
@@ -124,9 +124,9 @@ namespace locic {
 				case COMPOSITE:
 					return makeString("Var[COMPOSITE](type: %s, children: %s)", type()->toString().c_str(),
 							makeArrayPtrString(children()).c_str());
-				default:
-					throw std::runtime_error("Unknown var kind.");
 			}
+			
+			locic_unreachable("Unknown var kind.");
 		}
 		
 	}

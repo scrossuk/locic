@@ -35,7 +35,7 @@ namespace locic {
 					case SearchResult::TYPEINSTANCE:
 						return searchResult.typeInstance();
 					default:
-						throw std::logic_error("Unknown templated object search result.");
+						locic_unreachable("Unknown templated object search result.");
 				}
 			}
 			

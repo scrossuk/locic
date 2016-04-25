@@ -1,7 +1,6 @@
 #include <assert.h>
 
 #include <memory>
-#include <stdexcept>
 #include <string>
 
 #include <locic/SEM/Predicate.hpp>
@@ -9,6 +8,7 @@
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/Hasher.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/String.hpp>
@@ -114,7 +114,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown predicate kind.");
+			locic_unreachable("Unknown predicate kind.");
 		}
 		
 		Predicate Predicate::substitute(const TemplateVarMap& templateVarMap) const {
@@ -152,7 +152,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown predicate kind.");
+			locic_unreachable("Unknown predicate kind.");
 		}
 		
 		/*bool Predicate::isEvaluatable() const {
@@ -268,7 +268,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown predicate kind.");
+			locic_unreachable("Unknown predicate kind.");
 		}
 		
 		bool Predicate::dependsOnAny(const TemplateVarArray& array) const {
@@ -305,7 +305,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown predicate kind.");
+			locic_unreachable("Unknown predicate kind.");
 		}
 		
 		Predicate Predicate::reduceToDependencies(const TemplateVarArray& array, const bool conservativeDefault) const {
@@ -341,7 +341,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown predicate kind.");
+			locic_unreachable("Unknown predicate kind.");
 		}
 		
 		bool Predicate::implies(const SEM::Predicate& other) const {
@@ -393,7 +393,7 @@ namespace locic {
 				case VARIABLE:
 					return variableTemplateVar() == other.variableTemplateVar();
 				default:
-					throw std::logic_error("Reached unreachable block in 'implies'.");
+					locic_unreachable("Reached unreachable block in 'implies'.");
 			}
 		}
 		
@@ -494,7 +494,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown predicate kind.");
+			locic_unreachable("Unknown predicate kind.");
 		}
 		
 		size_t Predicate::hash() const {
@@ -569,7 +569,7 @@ namespace locic {
 				}
 			}
 			
-			throw std::logic_error("Unknown predicate kind.");
+			locic_unreachable("Unknown predicate kind.");
 		}
 		
 	}

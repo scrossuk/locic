@@ -79,7 +79,7 @@ namespace locic {
 				}
 					
 				default:
-					throw std::runtime_error("Unknown SEM type kind.");
+					locic_unreachable("Unknown SEM type kind.");
 			}
 		}
 		

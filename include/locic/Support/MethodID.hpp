@@ -4,6 +4,7 @@
 #include <cassert>
 #include <string>
 
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 
 namespace locic {
@@ -344,7 +345,7 @@ namespace locic {
 					return "reverserangeincl";
 			}
 			
-			throw std::logic_error("Unknown Method ID.");
+			locic_unreachable("Unknown Method ID.");
 		}
 		
 		std::string toString() const;

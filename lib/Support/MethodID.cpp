@@ -1,6 +1,6 @@
-#include <stdexcept>
 #include <string>
 
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {
@@ -102,7 +102,7 @@ namespace locic {
 				return FUNCTION;
 		}
 		
-		throw std::logic_error("Unknown Method ID.");
+		locic_unreachable("Unknown Method ID.");
 	}
 	
 	bool MethodID::isConstructor() const {

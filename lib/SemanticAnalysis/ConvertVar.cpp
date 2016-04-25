@@ -44,8 +44,7 @@ namespace locic {
 				} else if (element.isTypeInstance()) {
 					return element.typeInstance().namedVariables().insert(std::make_pair(name, var));
 				} else {
-					assert(false && "Invalid element kind for inserting var.");
-					throw std::logic_error("Invalid element kind for inserting var.");
+					locic_unreachable("Invalid element kind for inserting var.");
 				}
 			}
 			

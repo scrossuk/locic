@@ -1,6 +1,6 @@
-#include <stdexcept>
 #include <string>
 
+#include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
@@ -64,7 +64,7 @@ namespace locic {
 					return "Export";
 			}
 			
-			throw std::logic_error("Unknown SEM::ModuleScope kind.");
+			locic_unreachable("Unknown SEM::ModuleScope kind.");
 		}
 		
 		std::string ModuleScope::toString() const {
