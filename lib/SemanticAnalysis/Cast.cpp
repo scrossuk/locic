@@ -9,7 +9,6 @@
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Cast.hpp>
-#include <locic/SemanticAnalysis/CastException.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
