@@ -293,6 +293,30 @@ namespace locic {
 			
 		};
 		
+		class NoExceptPredicateIsntImpliedDiag: public Error {
+		public:
+			NoExceptPredicateIsntImpliedDiag(const Name& functionName,
+			                                 const SEM::Predicate& noexceptPredicate,
+			                                 const SEM::Predicate& declaredNoexceptPredicate)
+			: functionNameString_(functionName.toString(/*addPrefix=*/false)),
+			noexceptPredicateString_(noexceptPredicate.toString()),
+			declaredNoexceptPredicateString_(declaredNoexceptPredicate.toString()) { }
+			
+			std::string toString() const {
+				return makeString("function '%s' has noexcept predicate '%s' which "
+				                  "isn't implied by explicitly declared noexcept "
+				                  "predicate '%s'", functionNameString_.c_str(),
+				                  noexceptPredicateString_.c_str(),
+				                  declaredNoexceptPredicateString_.c_str());
+			}
+			
+		private:
+			std::string functionNameString_;
+			std::string noexceptPredicateString_;
+			std::string declaredNoexceptPredicateString_;
+			
+		};
+		
 		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
 			auto& semFunction = context.scopeStack().back().function();
 			
@@ -344,15 +368,16 @@ namespace locic {
 			
 			if (!declaredNoexceptPredicate.implies(actualNoexceptPredicate)) {
 				// TODO: These diagnostics should appear where we actually throw.
+				const auto location = astFunctionNode->noexceptSpecifier().location().range().isNull() ?
+				    astFunctionNode.location() : astFunctionNode->noexceptSpecifier().location();
 				if (declaredNoexceptPredicate.isTrue() && actualNoexceptPredicate.isFalse()) {
 					context.issueDiag(NoExceptFunctionThrowsDiag(semFunction.name().toString()),
-					                  astFunctionNode.location());
+					                  location);
 				} else {
-					throw ErrorException(makeString("Function '%s' has noexcept predicate '%s' which isn't implied by explicitly declared noexcept predicate '%s', at location %s.",
-						semFunction.name().toString().c_str(),
-						exitStates.noexceptPredicate().toString().c_str(),
-						functionType.attributes().noExceptPredicate().toString().c_str(),
-						astFunctionNode.location().toString().c_str()));
+					context.issueDiag(NoExceptPredicateIsntImpliedDiag(semFunction.name(),
+					                                                   exitStates.noexceptPredicate(),
+					                                                   functionType.attributes().noExceptPredicate()),
+					                  location);
 				}
 			}
 			
