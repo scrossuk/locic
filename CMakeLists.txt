@@ -65,7 +65,8 @@ add_definitions(
 # Enable most warnings.
 set(LOCIC_BUILD_WARNINGS "-pedantic -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+set(LOCIC_SHOW_EXTRA_WARNINGS OFF CACHE BOOL "Show extra warnings.")
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND LOCIC_SHOW_EXTRA_WARNINGS)
 	set(LOCIC_BUILD_WARNINGS "${LOCIC_BUILD_WARNINGS} -Weverything")
 	
 	# Not concerned about C++98 compatibility.
