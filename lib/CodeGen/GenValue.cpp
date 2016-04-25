@@ -602,8 +602,9 @@ namespace locic {
 				llvm::Value* functionValue = nullptr;
 				
 				if (callInfo.templateGenerator != nullptr) {
-					const auto type = genType(irEmitter_.module(), value.type());
-					functionValue = irEmitter_.constantGenerator().getUndef(type);
+					const auto functionPtrType = getBasicPrimitiveType(irEmitter_.module(),
+					                                                   PrimitiveTemplatedMethodFunctionPtr0);
+					functionValue = irEmitter_.constantGenerator().getUndef(functionPtrType);
 					functionValue = irEmitter_.emitInsertValue(functionValue, callInfo.functionPtr, { 0 });
 					functionValue = irEmitter_.emitInsertValue(functionValue, callInfo.templateGenerator, { 1 });
 				} else {
