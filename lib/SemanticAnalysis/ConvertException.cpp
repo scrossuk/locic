@@ -44,7 +44,8 @@ namespace locic {
 				return parameters;
 			}
 			
-			void attachParameters(SEM::Function& function, const AST::Node<AST::TypeVarList>& astParametersNode, const std::vector<SEM::Var*>& semParameters) {
+			void attachParameters(SEM::Function& function, const AST::Node<AST::TypeVarList>& astParametersNode,
+			                      const std::vector<SEM::Var*>& semParameters) {
 				assert(astParametersNode->size() == semParameters.size());
 				
 				for (size_t i = 0; i < astParametersNode->size(); i++) {
@@ -54,10 +55,9 @@ namespace locic {
 					
 					const auto& varName = astTypeVarNode->name();
 					
-					const auto insertResult = function.namedVariables().insert(std::make_pair(varName, semVar));
-					if (!insertResult.second) {
-						throw ParamVariableClashException(function.name().copy(), varName);
-					}
+					// It doesn't matter if this fails to insert the variable as we
+					// will have already issued an error to the user.
+					(void) function.namedVariables().insert(std::make_pair(varName, semVar));
 				}
 			}
 			
@@ -113,7 +113,8 @@ namespace locic {
 			assert(semTypeInstance->parentType() != nullptr);
 			
 			// Attach parameters to the function.
-			attachParameters(*function, astTypeInstanceNode->variables, function->parameters());
+			attachParameters(*function, astTypeInstanceNode->variables,
+			                 function->parameters());
 			
 			// Push function on to scope stack (to resolve references to parameters).
 			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(*function));
