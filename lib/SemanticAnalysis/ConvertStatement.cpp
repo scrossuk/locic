@@ -410,6 +410,21 @@ namespace locic {
 			
 		};
 		
+		class CannotAssignToNonLvalTypeDiag: public Error {
+		public:
+			CannotAssignToNonLvalTypeDiag(const SEM::Type* type)
+			: typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot assign to non-lval type '%s'",
+				                  typeString_.c_str());
+			}
+			
+		private:
+			std::string typeString_;
+			
+		};
+		
 		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::Statement>& statement) {
 			const auto& location = statement.location();
 			
@@ -643,9 +658,9 @@ namespace locic {
 					auto semOperandValue = ConvertValue(context, statement->assignStmt.value);
 					
 					if (!getDerefType(semVarValue.type())->isLval()) {
-						throw ErrorException(makeString("Can't assign to non-lval type '%s' at position %s.",
-							semVarValue.type()->toString().c_str(),
-							location.toString().c_str()));
+						context.issueDiag(CannotAssignToNonLvalTypeDiag(semVarValue.type()),
+						                  statement->assignStmt.var.location());
+						return SEM::Statement::ValueStmt(std::move(semOperandValue));
 					}
 					
 					// TODO: fix this to not copy the value!
