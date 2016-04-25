@@ -8,6 +8,23 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
+		class TemplateVarHasNonPrimitiveTypeDiag: public Error {
+		public:
+			TemplateVarHasNonPrimitiveTypeDiag(const String& name,
+			                                   const SEM::Type* type)
+			: name_(name), typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("template variable '%s' has non-primitive type '%s'",
+				                  name_.c_str(), typeString_.c_str());
+			}
+			
+		private:
+			String name_;
+			std::string typeString_;
+			
+		};
+		
 		void AddAliasTemplateVariableTypes(Context& context, const AST::Node<AST::AliasDecl>& astAliasNode) {
 			auto& alias = context.scopeStack().back().alias();
 			
@@ -20,10 +37,8 @@ namespace locic {
 				const auto semVarType = ConvertType(context, astVarType);
 				
 				if (!semVarType->isPrimitive()) {
-					throw ErrorException(makeString("Template variable '%s' in type alias '%s' has non-primitive type '%s', at position %s.",
-						templateVarName.c_str(), alias.name().toString().c_str(),
-						semVarType->toString().c_str(),
-						astTemplateVarNode.location().toString().c_str()));
+					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, semVarType),
+					                  astTemplateVarNode.location());
 				}
 				
 				semTemplateVar->setType(semVarType);
@@ -42,10 +57,8 @@ namespace locic {
 				const auto semVarType = ConvertType(context, astVarType);
 				
 				if (!semVarType->isPrimitive()) {
-					throw ErrorException(makeString("Template variable '%s' in type '%s' has non-primitive type '%s', at position %s.",
-						templateVarName.c_str(), typeInstance.name().toString().c_str(),
-						semVarType->toString().c_str(),
-						astTemplateVarNode.location().toString().c_str()));
+					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, semVarType),
+					                  astTemplateVarNode.location());
 				}
 				
 				semTemplateVar->setType(semVarType);
