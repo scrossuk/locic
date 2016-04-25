@@ -39,7 +39,7 @@ CMake will output various information about the build configuration; make sure t
 
 ::
 
-	-- Building Loci Compiler Tools version 1.3.0.0 using build type ''.
+	-- Building Loci Compiler Tools version 1.4.0.0 using build type ''.
 	--     Source directory is '/home/user/locic/locic-src'.
 	--     Build directory is '/home/user/locic/build'.
 	-- LLVM_ROOT_DIR wasn't specified (you can use this to search for LLVM in a particular path).
