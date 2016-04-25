@@ -72,7 +72,6 @@ namespace locic {
 				case SEM::Type::OBJECT: {
 					// Objects can only be cast to the same object type.
 					if (sourceType->getObjectType() != destType->getObjectType()) {
-						// throw CastObjectTypeMismatchException(sourceType, destType);
 						return nullptr;
 					}
 					
@@ -81,8 +80,6 @@ namespace locic {
 					const auto destNumArgs = destType->templateArguments().size();
 					
 					if (sourceNumArgs != destNumArgs) {
-						// throw ErrorException(makeString("Template argument count doesn't match in type '%s' and type '%s'.",
-						//	sourceType->toString().c_str(), destType->toString().c_str()));
 						return nullptr;
 					}
 					
