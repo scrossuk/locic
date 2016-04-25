@@ -75,6 +75,16 @@ namespace locic {
 			
 		};
 		
+		class PatternMemberVarsNotSupportedDiag: public Error {
+		public:
+			PatternMemberVarsNotSupportedDiag() { }
+			
+			std::string toString() const {
+				return "pattern variables not supported for member variables";
+			}
+			
+		};
+		
 		// Fill in type instance structures with member variable information.
 		void AddTypeInstanceMemberVariables(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
 				std::vector<SEM::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
@@ -111,14 +121,11 @@ namespace locic {
 			
 			for (const auto& astTypeVarNode: *(astTypeInstanceNode->variables)) {
 				if (!astTypeVarNode->isNamed()) {
-					throw ErrorException(makeString("Pattern variables not supported (yet!) for member variables, at location %s.",
-						astTypeVarNode.location().toString().c_str()));
+					context.issueDiag(PatternMemberVarsNotSupportedDiag(),
+					                  astTypeVarNode.location());
 				}
 				
 				auto var = ConvertVar(context, Debug::VarInfo::VAR_MEMBER, astTypeVarNode);
-				assert(var->isBasic());
-				
-				// Add mapping from position to variable.
 				semTypeInstance.attachVariable(std::move(var));
 			}
 			
