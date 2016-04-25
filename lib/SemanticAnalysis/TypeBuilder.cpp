@@ -109,6 +109,25 @@ namespace locic {
 			                          location);
 		}
 		
+		class StaticArraySizeInvalidTypeDiag: public Error {
+		public:
+			StaticArraySizeInvalidTypeDiag(const SEM::Type* actualType,
+			                               const SEM::Type* expectedType)
+			: actualTypeString_(actualType->toDiagString()),
+			expectedTypeString_(expectedType->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("static array size has type '%s', which doesn't "
+				                  "match expected type '%s'", actualTypeString_.c_str(),
+				                  expectedTypeString_.c_str());
+			}
+			
+		private:
+			std::string actualTypeString_;
+			std::string expectedTypeString_;
+			
+		};
+		
 		const SEM::Type*
 		TypeBuilder::getStaticArrayType(const SEM::Type* const elementType,
 		                                SEM::Value arraySize,
@@ -124,11 +143,9 @@ namespace locic {
 			}
 			
 			if (arraySize.type() != arraySizeType) {
-				throw ErrorException(makeString("Static array size '%s' has type '%s', which doesn't match expected type '%s', at position %s.",
-					arraySize.toString().c_str(),
-					arraySize.type()->toString().c_str(),
-					arraySizeType->toString().c_str(),
-					location.toString().c_str()));
+				context_.issueDiag(StaticArraySizeInvalidTypeDiag(arraySize.type(),
+				                                                  arraySizeType),
+				                   location);
 			}
 			
 			templateArgValues.push_back(SEM::Value::TypeRef(elementType,
