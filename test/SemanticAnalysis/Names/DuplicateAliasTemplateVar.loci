@@ -1,0 +1,8 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:23: error: template variable 'T' clashes with existing name
+template <typename T, typename T>
+using TestAlias = T;
+
+// CHECK: 1 error generated.

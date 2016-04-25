@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+using TestAlias = 10;
+
+// CHECK: .loci:7:1: error: alias 'TestAlias' clashes with existing name
+using TestAlias = 10;
+
+// CHECK: 1 error generated.

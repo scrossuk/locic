@@ -1,0 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:6:28: error: variable 'a' duplicates existing variable
+// CHECK: .loci:6:21: note: because: variable previously defined here
+exception TestError(int a, int a);
+
+// CHECK: .loci:10:33: error: variable 'a' duplicates existing variable
+// CHECK: .loci:10:26: note: because: variable previously defined here
+exception TestErrorChild(int a, int a) : TestError(a, a);
+
+// CHECK: 2 errors generated.

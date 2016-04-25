@@ -1,0 +1,10 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+enum TestEnum {
+	// CHECK: .loci:6:2: error: enum constructor 'TestEnum::VALUE' clashes with existing name
+	VALUE,
+	VALUE
+};
+
+// CHECK: 1 error generated.
