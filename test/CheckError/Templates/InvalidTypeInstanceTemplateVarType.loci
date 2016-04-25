@@ -1,9 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Template variable 'T' in type '::TestClass' has non-primitive type 'SomeClass', at position SourceLocation(filename = {{.*}}/InvalidTypeInstanceTemplateVarType.loci, range = (line 8, column 11) to (line 8, column 22)).
-
 class SomeClass() { }
 
+// CHECK: .loci:7:11: error: template variable 'T' has non-primitive type 'SomeClass'
 template <SomeClass T>
 class TestClass() { }
+
+// CHECK: 1 error generated.

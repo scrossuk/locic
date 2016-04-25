@@ -11,14 +11,9 @@ class TestClass (int value) {
 	}
 }
 
-// CHECK: .loci:15:1: error: function '::function' is declared as 'noexcept' but can throw
+// CHECK: .loci:15:17: error: function '::function' is declared as 'noexcept' but can throw
 void function() noexcept {
 	unused_result(TestClass(1) + 1);
-}
-
-// Entry point.
-export int testEntryPoint(unused int argc, unused ubyte ** argv) {
-	return 0;
 }
 
 // CHECK: 1 error generated.

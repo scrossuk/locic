@@ -5,7 +5,7 @@ exception TestError();
 
 class TestClass() {
 	// CHECK: .loci:9:2: error: lifetime method '::TestClass::__setdead' isn't marked 'noexcept'
-	// CHECK: .loci:9:2: error: function '::TestClass::__setdead' is declared as 'noexcept' but can throw
+	// CHECK: .loci:9:19: error: function '::TestClass::__setdead' is declared as 'noexcept' but can throw
 	void __setdead() {
 		throw TestError();
 	}

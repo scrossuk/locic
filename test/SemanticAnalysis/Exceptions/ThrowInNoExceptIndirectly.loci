@@ -7,14 +7,9 @@ void functionThatThrows() {
 	throw ExampleError(1);
 }
 
-// CHECK: .loci:11:1: error: function '::function' is declared as 'noexcept' but can throw
+// CHECK: .loci:11:17: error: function '::function' is declared as 'noexcept' but can throw
 void function() noexcept {
 	functionThatThrows();
-}
-
-// Entry point.
-export int testEntryPoint(unused int argc, unused ubyte ** argv) {
-	return 0;
 }
 
 // CHECK: 1 error generated.

@@ -5,7 +5,7 @@ exception TestError();
 
 class TestClass() {
 	// CHECK: .loci:9:2: error: lifetime method '::TestClass::__isvalid' isn't marked 'noexcept'
-	// CHECK: .loci:9:2: error: function '::TestClass::__isvalid' is declared as 'noexcept' but can throw
+	// CHECK: .loci:9:25: error: function '::TestClass::__isvalid' is declared as 'noexcept' but can throw
 	bool __isvalid() const {
 		throw TestError();
 	}

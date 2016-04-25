@@ -1,7 +1,8 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Static array size 'TemplateVarRef(templateVar: TemplateVar(name = ::invalidDoubleSizeParameter::V, index = 0))' has type 'double_t', which doesn't match expected type 'size_t', at position SourceLocation(filename = {{.*}}/InvalidTemplateStaticArraySizeParameter.loci, range = (line 7, column 8) to (line 7, column 14)).
-
 template <double V>
+// CHECK: .loci:6:8: error: static array size has type 'double_t', which doesn't match expected type 'size_t'
 import int[V] invalidDoubleSizeParameter();
+
+// CHECK: 1 error generated.

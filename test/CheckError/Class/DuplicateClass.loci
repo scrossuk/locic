@@ -1,18 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Type instance name '::TestClass', at position SourceLocation(filename = {{.*}}/DuplicateClass.loci, range = (line 10, column 1) to (line 12, column 2)), clashes with existing name, at position SourceLocation(filename = {{.*}}/DuplicateClass.loci, range = (line 6, column 1) to (line 8, column 2)).
+class TestClass() { }
 
-class TestClass(int value) {
-	static Create = default;
-}
+// CHECK: .loci:8:1: error: type 'TestClass' clashes with existing name
+// CHECK: .loci:4:1: note: because: previously defined here
+class TestClass() { }
 
-class TestClass(int value) {
-	static Create = default;
-}
-
-// Entry point.
-export int main(unused int argc, unused ubyte ** argv) {
-	return 0;
-}
-
+// CHECK: 1 error generated.

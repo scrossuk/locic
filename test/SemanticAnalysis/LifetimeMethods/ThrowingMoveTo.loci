@@ -5,7 +5,7 @@ exception TestError();
 
 class TestClass() {
 	// CHECK: .loci:9:2: error: lifetime method '::TestClass::__moveto' isn't marked 'noexcept'
-	// CHECK: .loci:9:2: error: function '::TestClass::__moveto' is declared as 'noexcept' but can throw
+	// CHECK: .loci:9:57: error: function '::TestClass::__moveto' is declared as 'noexcept' but can throw
 	void __moveto(unused void* dest, unused size_t offset) {
 		throw TestError();
 	}

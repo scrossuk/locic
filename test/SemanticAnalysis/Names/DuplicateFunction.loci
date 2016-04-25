@@ -3,9 +3,7 @@
 
 void function() { }
 
-// CHECK: Function name '::function' clashes with existing name
-// CHECK: line 11
-// CHECK-NEXT: column 6
-// CHECK: line 11
-// CHECK-NEXT: column 14
+// CHECK: .loci:7:6: error: function 'function' clashes with existing name
 void function() { }
+
+// CHECK: 1 error generated.

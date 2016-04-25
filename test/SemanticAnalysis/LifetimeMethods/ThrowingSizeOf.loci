@@ -5,7 +5,7 @@ exception TestError();
 
 class TestClass() {
 	// CHECK: .loci:9:2: error: lifetime method '::TestClass::__sizeof' isn't marked 'noexcept'
-	// CHECK: .loci:9:2: error: function '::TestClass::__sizeof' is declared as 'noexcept' but can throw
+	// CHECK: .loci:9:27: error: function '::TestClass::__sizeof' is declared as 'noexcept' but can throw
 	static size_t __sizeof() {
 		throw TestError();
 	}

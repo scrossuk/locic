@@ -1,8 +1,6 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Function '::doThing' has noexcept predicate 'T : CanDoThingAndOtherThingNoExcept' which isn't implied by explicitly declared noexcept predicate 'T : CanDoThingNoExcept', at location SourceLocation(filename = {{.*}}/NoExceptPredicateReverseImplication.loci, range = (line 26, column 1) to (line 29, column 2)).
-
 interface CanDoThing {
 	void doThing();
 	void doOtherThing();
@@ -24,6 +22,7 @@ void doThingAndOtherThing(T& object) noexcept(T : CanDoThingAndOtherThingNoExcep
 }
 
 template <typename T>
+// CHECK: .loci:26:25: error: function 'doThing' has noexcept predicate 'T : CanDoThingAndOtherThingNoExcept' which isn't implied by explicitly declared noexcept predicate 'T : CanDoThingNoExcept'
 void doThing(T& object) noexcept(T : CanDoThingNoExcept) require(T : CanDoThing) {
 	doThingAndOtherThing<T>(object);
 }
@@ -45,3 +44,5 @@ void callDoThing(TestClass& object) {
 void callDoThingNoExcept(TestClassNoExcept& object) noexcept {
 	doThing<TestClassNoExcept>(object);
 }
+
+// CHECK: 1 error generated.

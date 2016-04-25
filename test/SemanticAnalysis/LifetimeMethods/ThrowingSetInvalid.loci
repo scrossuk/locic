@@ -5,7 +5,7 @@ exception TestError();
 
 class TestClass() {
 	// CHECK: .loci:9:2: error: lifetime method '::TestClass::__setinvalid' isn't marked 'noexcept'
-	// CHECK: .loci:9:2: error: function '::TestClass::__setinvalid' is declared as 'noexcept' but can throw
+	// CHECK: .loci:9:22: error: function '::TestClass::__setinvalid' is declared as 'noexcept' but can throw
 	void __setinvalid() {
 		throw TestError();
 	}

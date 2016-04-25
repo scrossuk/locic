@@ -5,7 +5,7 @@ exception TestError();
 
 class TestClass() {
 	// CHECK: .loci:9:2: error: lifetime method '::TestClass::__alignmask' isn't marked 'noexcept'
-	// CHECK: .loci:9:2: error: function '::TestClass::__alignmask' is declared as 'noexcept' but can throw
+	// CHECK: .loci:9:30: error: function '::TestClass::__alignmask' is declared as 'noexcept' but can throw
 	static size_t __alignmask() {
 		throw TestError();
 	}
