@@ -1,0 +1,20 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+interface TestInterface {
+	void method();
+}
+
+template <typename T>
+using TestPredicate = T;
+
+// CHECK: .loci:12:11: error: alias 'TestPredicate' has non-boolean type 'staticref<T>(typename_t)' and therefore cannot be used in predicate
+template <TestPredicate T>
+class TestClass() {
+	void method(T& object) {
+		// CHECK: .loci:16:3: error: cannot find member 'method' in type 'T'
+		object.method();
+	}
+}
+
+// CHECK: 2 errors generated.

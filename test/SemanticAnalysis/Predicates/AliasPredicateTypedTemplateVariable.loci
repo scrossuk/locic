@@ -1,0 +1,11 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+interface TestInterface {
+	void method();
+}
+
+template <typename T>
+using TestPredicate = T : TestInterface;
+
+template <TestPredicate T>
+using Test = T;

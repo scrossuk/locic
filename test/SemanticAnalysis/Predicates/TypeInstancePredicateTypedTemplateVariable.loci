@@ -1,0 +1,15 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+interface TestInterface {
+	void method();
+}
+
+template <typename T>
+using TestPredicate = T : TestInterface;
+
+template <TestPredicate T>
+class TestClass() {
+	void method(T& object) {
+		object.method();
+	}
+}
