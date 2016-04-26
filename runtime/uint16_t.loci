@@ -35,12 +35,12 @@ __primitive uint16_t {
 	void decrement() noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __implicit_cast_from_uint16_t {
 	static T implicit_cast_uint16_t(uint16_t value) noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __cast_from_uint16_t {
 	static T cast_uint16_t(uint16_t value) noexcept;
 }

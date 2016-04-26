@@ -50,12 +50,12 @@ __primitive float_t {
 	void __moveto(void* ptr, size_t position) noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __implicit_cast_from_float_t {
 	static T implicit_cast_float_t(float_t value) noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __cast_from_float_t {
 	static T cast_float_t(float_t value) noexcept;
 }

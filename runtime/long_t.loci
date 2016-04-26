@@ -51,12 +51,12 @@ __primitive long_t {
 	void decrement() noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __implicit_cast_from_long_t {
 	static T implicit_cast_long_t(long_t value) noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __cast_from_long_t {
 	static T cast_long_t(long_t value) noexcept;
 }

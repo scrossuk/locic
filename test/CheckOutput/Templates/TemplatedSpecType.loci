@@ -13,7 +13,7 @@
 
 import void printf(const ubyte * str, ...);
 
-template <typename T : movable_t>
+template <movable T>
 interface Comparable {
 	T implicitCopy() const;
 	

@@ -9,7 +9,7 @@
 
 import void printf(const ubyte * str, ...);
 
-template <typename T: movable_t>
+template <movable T>
 interface TestCopyable {
 	T implicitCopy() const;
 	

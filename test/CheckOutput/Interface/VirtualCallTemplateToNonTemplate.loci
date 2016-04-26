@@ -10,7 +10,7 @@ interface Receiver {
 	void send(T object);
 }
 
-template <typename T : movable_t>
+template <movable T>
 void passToMethod(Receiver<T>& receiver, T object) {
 	receiver.send(move object);
 }

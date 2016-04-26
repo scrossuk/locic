@@ -25,5 +25,5 @@ __primitive reverse_range_incl_t {
 	void __moveto(void* ptr, size_t position) noexcept require(movable<T>);
 }
 
-template <typename T>
-__primitivefunction reverse_range_incl_t<T> reverse_range_incl(T begin, T end) noexcept require(movable<T>);
+template <movable T>
+__primitivefunction reverse_range_incl_t<T> reverse_range_incl(T begin, T end) noexcept;

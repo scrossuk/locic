@@ -1,47 +1,47 @@
 
 // TODO: implement variadic templates!
 
-template <bool IsNoExcept, typename ReturnType : movable_t>
+template <bool IsNoExcept, movable ReturnType>
 interface callable0_t {
 	ReturnType call() noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, typename ReturnType : movable_t, typename Arg0>
+template <bool IsNoExcept, movable ReturnType, typename Arg0>
 interface callable1_t {
 	ReturnType call(Arg0 arg0) noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, typename ReturnType : movable_t, typename Arg0, typename Arg1>
+template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1>
 interface callable2_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1) noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, typename ReturnType : movable_t, typename Arg0, typename Arg1, typename Arg2>
+template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2>
 interface callable3_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2) noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, typename ReturnType : movable_t, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
 interface callable4_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3) noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, typename ReturnType : movable_t, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
 interface callable5_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4) noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, typename ReturnType : movable_t, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
 interface callable6_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5) noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, typename ReturnType : movable_t, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
 interface callable7_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6) noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, typename ReturnType : movable_t, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
 interface callable8_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6, Arg7 arg7) noexcept(IsNoExcept);
 }

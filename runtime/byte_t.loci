@@ -46,12 +46,12 @@ __primitive byte_t {
 	void decrement() noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __implicit_cast_from_byte_t {
 	static T implicit_cast_byte_t(byte_t value) noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __cast_from_byte_t {
 	static T cast_byte_t(byte_t value) noexcept;
 }

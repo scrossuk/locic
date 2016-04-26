@@ -6,8 +6,8 @@ import std.container 0.1.0 {
 		/**
 		 * \brief Resizable array.
 		 */
-		template <typename T>
-		require(sized_type<T>) notag(T)
+		template <sized_type T>
+		notag(T)
 		class varray {
 			static varray<T> create() noexcept;
 			
@@ -39,8 +39,7 @@ import std.container 0.1.0 {
 			varray_range<T, IsConst> all() const(IsConst) noexcept;
 		}
 		
-		template <typename T, bool IsArrayConst>
-		require(sized_type<T>)
+		template <sized_type T, bool IsArrayConst>
 		class varray_range {
 			varray_range<T, IsArrayConst> implicitCopy() const noexcept;
 			

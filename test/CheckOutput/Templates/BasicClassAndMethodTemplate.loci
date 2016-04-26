@@ -6,11 +6,11 @@
 
 import void printf(const ubyte * str, ...);
 
-template <typename S : movable_t>
+template <movable S>
 class TestClass(S object) {
 	static create = default;
 	
-	template <typename T : movable_t>
+	template <movable T>
 	T passThrough(T object) {
 		return move object;
 	}

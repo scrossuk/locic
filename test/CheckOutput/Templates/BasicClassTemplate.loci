@@ -6,7 +6,7 @@
 
 import void printf(const ubyte * str, ...);
 
-template <typename T : movable_t>
+template <movable T>
 class TestClass(T value) {
 	static Create(T value) {
 		return @(move value);

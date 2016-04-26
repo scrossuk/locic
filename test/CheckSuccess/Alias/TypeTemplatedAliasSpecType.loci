@@ -9,11 +9,11 @@ interface CanDoTwoThings {
 	void doSecondThing();
 }
 
-template <typename T : movable_t>
+template <movable T>
 require(T : CanDoOneThing)
 class TestClass() { }
 
-template <typename T : movable_t>
+template <movable T>
 require(T : CanDoTwoThings)
 using TestClassAlias = TestClass<T>;
 

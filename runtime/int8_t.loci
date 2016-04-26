@@ -41,12 +41,12 @@ __primitive int8_t {
 	void decrement() noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __implicit_cast_from_int8_t {
 	static T implicit_cast_int8_t(int8_t value) noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __cast_from_int8_t {
 	static T cast_int8_t(int8_t value) noexcept;
 }

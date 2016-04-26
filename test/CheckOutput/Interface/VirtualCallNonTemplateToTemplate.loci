@@ -13,7 +13,7 @@ void passToMethod(IntReceiver& receiver, int value) {
 	receiver.send(value);
 }
 
-template <typename T : movable_t>
+template <movable T>
 class ValueReceiver(T object) {
 	static create(T object) {
 		return @(move object);

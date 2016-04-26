@@ -1,4 +1,4 @@
-template <typename T : movable_t>
+template <movable T>
 class UnitData(T data) {
 	static create = default;
 	

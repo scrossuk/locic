@@ -5,8 +5,7 @@ export std.container 0.1.0 {
 		/**
 		 * \brief Resizable array.
 		 */
-		template <typename T>
-		require(sized_type<T>)
+		template <sized_type T>
 		class varray(size_t size, size_t capacity, T* data) {
 			static create() noexcept {
 				return @(0u, 0u, null);
@@ -118,8 +117,7 @@ export std.container 0.1.0 {
 			
 		}
 		
-		template <typename T, bool IsArrayConst>
-		require(sized_type<T>)
+		template <sized_type T, bool IsArrayConst>
 		class varray_range(const<IsArrayConst>(varray<T>)& array, size_t begin, size_t end) {
 			static create(const<IsArrayConst>(varray<T>)& array) noexcept {
 				return @(array, 0u, array.size());

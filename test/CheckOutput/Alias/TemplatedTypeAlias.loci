@@ -6,7 +6,7 @@
 
 import void printf(const ubyte * str, ...);
 
-template <typename T : movable_t>
+template <movable T>
 class TestClass(T value) {
 	static Create = default;
 	
@@ -15,7 +15,7 @@ class TestClass(T value) {
 	}
 }
 
-template <typename T : movable_t>
+template <movable T>
 using TestClassAlias = TestClass<T>;
 
 export int main(unused int argc, unused ubyte ** argv) {

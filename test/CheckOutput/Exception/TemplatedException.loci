@@ -6,12 +6,12 @@
 
 import void printf(const ubyte * str, ...);
 
-template <typename T : movable_t>
+template <movable T>
 interface Copyable {
 	T implicitCopy() const;
 }
 
-template <typename T : movable_t>
+template <movable T>
 exception ParentError(T value);
 
 template <typename T>

@@ -9,7 +9,7 @@
 
 import void printf(const ubyte * str, ...);
 
-template <typename T : movable_t>
+template <movable T>
 class TestClass(T value) {
 	static Create = default;
 	
@@ -18,16 +18,16 @@ class TestClass(T value) {
 	}
 }
 
-template <typename T : movable_t>
+template <movable T>
 using TestClassAlias0 = TestClass<T>;
 
-template <typename T : movable_t>
+template <movable T>
 using TestClassAlias1 = TestClassAlias0<T>;
 
-template <typename T : movable_t>
+template <movable T>
 using TestClassAlias2 = TestClassAlias1<T>;
 
-template <typename T : movable_t>
+template <movable T>
 using TestClassAlias3 = TestClassAlias2<T>;
 
 export int main(unused int argc, unused ubyte ** argv) {

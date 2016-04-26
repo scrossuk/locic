@@ -13,12 +13,12 @@ __primitive null_t {
 	void __moveto(void* ptr, size_t position) noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __implicit_cast_from_null_t {
 	static T null() noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface nullable_t {
 	static T null() noexcept;
 }

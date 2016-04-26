@@ -1,49 +1,49 @@
 // RUN: %locic %s --emit-llvm -o %t
 
-template <typename T : movable_t>
+template <movable T>
 class TestClass() { }
 
-template <typename T : movable_t>
+template <movable T>
 using TestClassAlias0 = TestClass<T>;
 
-template <typename T : movable_t>
+template <movable T>
 using TestClassAlias1 = TestClassAlias0<T>;
 
-template <typename T : movable_t>
+template <movable T>
 using TestClassAlias2 = TestClassAlias1<T>;
 
-template <typename T : movable_t>
+template <movable T>
 using TestClassAlias3 = TestClassAlias2<T>;
 
-template <typename T : movable_t>
+template <movable T>
 using TestClassAlias = TestClassAlias3<T>;
 
-template <typename T : movable_t>
+template <movable T>
 export TestClass<T>* pointerCastFromAlias(TestClassAlias<T>* value) {
 	return value;
 }
 
-template <typename T : movable_t>
+template <movable T>
 export TestClassAlias<T>* pointerCastToAlias(TestClass<T>* value) {
 	return value;
 }
 
-template <typename T : movable_t>
+template <movable T>
 export TestClass<T>& refCastFromAlias(TestClassAlias<T>& value) {
 	return value;
 }
 
-template <typename T : movable_t>
+template <movable T>
 export TestClassAlias<T>& refCastToAlias(TestClass<T>& value) {
 	return value;
 }
 
-template <typename T : movable_t>
+template <movable T>
 export TestClass<T> moveFromAlias(TestClassAlias<T> value) {
 	return move value;
 }
 
-template <typename T : movable_t>
+template <movable T>
 export TestClassAlias<T> moveToAlias(TestClass<T> value) {
 	return move value;
 }
@@ -51,12 +51,12 @@ export TestClassAlias<T> moveToAlias(TestClass<T> value) {
 template <typename T>
 datatype TemplatedClass(T value);
 
-template <typename T : movable_t>
+template <movable T>
 export TemplatedClass<TestClass<T>> moveFromTemplatedAlias(TemplatedClass<TestClassAlias<T>> value) {
 	return move value;
 }
 
-template <typename T : movable_t>
+template <movable T>
 export TemplatedClass<TestClassAlias<T>> moveToTemplatedAlias(TemplatedClass<TestClass<T>> value) {
 	return move value;
 }

@@ -8,10 +8,10 @@
 
 import void printf(const ubyte * str, ...);
 
-template <typename T : movable_t>
+template <movable T>
 datatype TestBasicDatatype(T a, T b, T c);
 
-template <typename T : movable_t>
+template <movable T>
 datatype TestUnionDatatype =
 	TestUnionDatatype0(T a) |
 	TestUnionDatatype1(T a, T b) |

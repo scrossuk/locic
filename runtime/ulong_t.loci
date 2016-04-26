@@ -49,12 +49,12 @@ __primitive ulong_t {
 	void decrement() noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __implicit_cast_from_ulong_t {
 	static T implicit_cast_ulong_t(ulong_t value) noexcept;
 }
 
-template <typename T : movable_t>
+template <movable T>
 interface __cast_from_ulong_t {
 	static T cast_ulong_t(ulong_t value) noexcept;
 }
