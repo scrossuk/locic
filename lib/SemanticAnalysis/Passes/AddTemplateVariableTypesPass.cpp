@@ -34,7 +34,7 @@ namespace locic {
 				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
 				
 				const auto& astVarType = astTemplateVarNode->varType;
-				const auto semVarType = ConvertType(context, astVarType);
+				const auto semVarType = ConvertTemplateVarType(context, astVarType);
 				
 				if (!semVarType->isPrimitive()) {
 					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, semVarType),
@@ -54,7 +54,7 @@ namespace locic {
 				const auto semTemplateVar = typeInstance.namedTemplateVariables().at(templateVarName);
 				
 				const auto& astVarType = astTemplateVarNode->varType;
-				const auto semVarType = ConvertType(context, astVarType);
+				const auto semVarType = ConvertTemplateVarType(context, astVarType);
 				
 				if (!semVarType->isPrimitive()) {
 					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, semVarType),

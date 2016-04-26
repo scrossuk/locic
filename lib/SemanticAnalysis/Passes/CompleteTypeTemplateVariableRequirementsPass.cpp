@@ -23,6 +23,12 @@ namespace locic {
 				const auto& templateVarName = astTemplateVarNode->name;
 				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
 				
+				auto templateVarTypePredicate =
+					getTemplateVarTypePredicate(context, astTemplateVarNode->varType,
+					                            *semTemplateVar);
+				predicate = SEM::Predicate::And(std::move(predicate),
+				                                std::move(templateVarTypePredicate));
+				
 				const auto& astSpecType = astTemplateVarNode->specType;
 				
 				if (astSpecType->isVoid()) {
@@ -59,6 +65,12 @@ namespace locic {
 			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				const auto& templateVarName = astTemplateVarNode->name;
 				const auto semTemplateVar = typeInstance.namedTemplateVariables().at(templateVarName);
+				
+				auto templateVarTypePredicate =
+					getTemplateVarTypePredicate(context, astTemplateVarNode->varType,
+					                            *semTemplateVar);
+				requirePredicate = SEM::Predicate::And(std::move(requirePredicate),
+				                                       std::move(templateVarTypePredicate));
 				
 				const auto& astSpecType = astTemplateVarNode->specType;
 				

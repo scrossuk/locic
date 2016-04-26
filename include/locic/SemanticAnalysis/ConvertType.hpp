@@ -32,6 +32,12 @@ namespace locic {
 		 */
 		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type);
 		
+		SEM::Predicate
+		getTemplateVarTypePredicate(Context& context, const AST::Node<AST::Type>& type,
+		                            const SEM::TemplateVar& templateVar);
+		
+		const SEM::Type* ConvertTemplateVarType(Context& context, const AST::Node<AST::Type>& type);
+		
 	}
 	
 }

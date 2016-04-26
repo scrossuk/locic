@@ -6,6 +6,7 @@
 #include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/AliasTypeResolver.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
@@ -197,6 +198,77 @@ namespace locic {
 			}
 			
 			std::terminate();
+		}
+		
+		class PredicateAliasNotBoolDiag: public Error {
+		public:
+			PredicateAliasNotBoolDiag(const Name& name, const SEM::Type* const type)
+			: name_(name.copy()), typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("alias '%s' has non-boolean type '%s' and "
+				                  "therefore cannot be used in predicate",
+				                  name_.toString(/*addPrefix=*/false).c_str(),
+				                  typeString_.c_str());
+			}
+			
+		private:
+			Name name_;
+			std::string typeString_;
+			
+		};
+		
+		static SEM::Alias*
+		getTemplateVarTypeAlias(Context& context, const AST::Node<AST::Type>& type) {
+			if (!type->isObjectType()) return nullptr;
+			
+			const Name name = type->symbol()->createName();
+			const auto searchResult = performSearch(context, name);
+			if (!searchResult.isAlias()) return nullptr;
+			
+			auto& alias = searchResult.alias();
+			if (alias.templateVariables().size() != 1) return nullptr;
+			
+			for (size_t i = 0; i < type->symbol()->size(); i++) {
+				if (type->symbol()->at(i)->templateArguments()->size() != 0) return nullptr;
+			}
+			
+			return &alias;
+		}
+		
+		SEM::Predicate
+		getTemplateVarTypePredicate(Context& context, const AST::Node<AST::Type>& type,
+		                            const SEM::TemplateVar& templateVar) {
+			const auto alias = getTemplateVarTypeAlias(context, type);
+			if (alias == nullptr) {
+				return SEM::Predicate::True();
+			}
+			
+			(void) context.aliasTypeResolver().resolveAliasType(*alias);
+			assert(alias->templateVariables().size() == 1);
+			
+			SEM::ValueArray values;
+			values.push_back(templateVar.selfRefValue());
+			auto templateVarMap = GenerateTemplateVarMap(context, *alias,
+			                                             std::move(values),
+			                                             type.location());
+			const auto aliasValue = alias->value().substitute(templateVarMap);
+			if (!aliasValue.type()->isBuiltInBool()) {
+				context.issueDiag(PredicateAliasNotBoolDiag(type->symbol()->createName(),
+				                                            aliasValue.type()),
+				                  type.location());
+				return SEM::Predicate::True();
+			}
+			
+			return aliasValue.makePredicate();
+		}
+		
+		const SEM::Type* ConvertTemplateVarType(Context& context, const AST::Node<AST::Type>& type) {
+			if (getTemplateVarTypeAlias(context, type) != nullptr) {
+				return TypeBuilder(context).getTypenameType();
+			} else {
+				return ConvertType(context, type);
+			}
 		}
 		
 	}

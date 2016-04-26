@@ -172,7 +172,7 @@ namespace locic {
 				
 				// Also adding the function template variable type here.
 				const auto& astVarType = astTemplateVarNode->varType;
-				const auto semVarType = ConvertType(context, astVarType);
+				const auto semVarType = ConvertTemplateVarType(context, astVarType);
 				
 				if (!semVarType->isPrimitive()) {
 					context.issueDiag(FunctionTemplateHasNonPrimitiveTypeDiag(templateVarName,
