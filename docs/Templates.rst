@@ -63,8 +63,7 @@ Similarly, it's possible to use templates with methods:
 
 .. code-block:: c++
 
-	template <typename T>
-	require(movable<T>)
+	template <movable T>
 	interface CastFromTestClass {
 		static T castFromTestClass(const TestClass& object);
 	}
@@ -72,8 +71,8 @@ Similarly, it's possible to use templates with methods:
 	class TestClass() {
 		// Etc.
 		
-		template <typename T>
-		T cast() const require(movable<T> and T : CastFromTestClass<T>) {
+		template <movable T>
+		T cast() const require(T : CastFromTestClass<T>) {
 			return T.castFromTestClass(self);
 		}
 		

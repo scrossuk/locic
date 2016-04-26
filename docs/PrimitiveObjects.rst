@@ -54,7 +54,7 @@ Here's an example of using :doc:`Operator Overloading <OperatorOverloading>` and
 
 .. code-block:: c++
 
-	template <typename T: comparable<T>>
+	template <comparable T>
 	class PairSorter(T first, T second) {
 		static create = default;
 		

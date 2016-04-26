@@ -7,8 +7,7 @@ Here's a relevant example:
 
 .. code-block:: c++
 
-	template <typename T>
-	require(movable<T>)
+	template <movable T>
 	class TestClass(T value) {
 		// ...
 		
