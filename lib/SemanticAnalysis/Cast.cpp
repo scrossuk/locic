@@ -306,7 +306,8 @@ namespace locic {
 			// Use notag() to make destination type non-const so that it's movable.
 			const auto destDerefType = getDerefType(destType)->createNoTagType();
 			
-			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() && supportsImplicitCast(context, sourceDerefType)) {
+			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() &&
+			    TypeCapabilities(context).supportsImplicitCast(sourceDerefType)) {
 				if (destDerefType->isObject() && sourceDerefType->getObjectType() == destDerefType->getObjectType()) {
 					// Can't cast to same type.
 					return Optional<SEM::Value>();
@@ -511,7 +512,7 @@ namespace locic {
 			// reference into a basic value.
 			if (sourceType->isRef() && (!destType->isRef() || !isStructurallyEqual(sourceType->refTarget(), destType->refTarget()))) {
 				const auto sourceDerefType = getDerefType(sourceType);
-				if (supportsImplicitCopy(context, sourceDerefType)) {
+				if (TypeCapabilities(context).supportsImplicitCopy(sourceDerefType)) {
 					auto copyValue = CallValue(context, GetSpecialMethod(context, derefValue(value.copy()), context.getCString("implicitcopy"), location), {}, location);
 					
 					auto copyRefValue = sourceDerefType->isStaticRef() ?
@@ -538,8 +539,8 @@ namespace locic {
 			
 			// Try to use implicitCopy to make a value non-const.
 			if (getRefCount(sourceType) == getRefCount(destType) &&
-					!doesPredicateImplyPredicate(context, sourceType->constPredicate(), destType->constPredicate()) &&
-					sourceType->isObjectOrTemplateVar() && supportsImplicitCopy(context, sourceType)) {
+			    !doesPredicateImplyPredicate(context, sourceType->constPredicate(), destType->constPredicate()) &&
+			    sourceType->isObjectOrTemplateVar() && TypeCapabilities(context).supportsImplicitCopy(sourceType)) {
 				auto boundValue = bindReference(context, value.copy());
 				auto copyValue = CallValue(context, GetSpecialMethod(context, std::move(boundValue), context.getCString("implicitcopy"), location), {}, location);
 				assert(doesPredicateImplyPredicate(context, copyValue.type()->constPredicate(), destType->constPredicate()));

@@ -682,7 +682,7 @@ namespace locic {
 		};
 		
 		bool CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
-			if (!supportsImplicitCopy(context, typeInstance->selfType())) {
+			if (!TypeCapabilities(context).supportsImplicitCopy(typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
 					// Auto-generated, so ignore the problem.
 					return false;
@@ -704,7 +704,7 @@ namespace locic {
 		};
 		
 		bool CreateDefaultExplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
-			if (!supportsExplicitCopy(context, typeInstance->selfType())) {
+			if (!TypeCapabilities(context).supportsExplicitCopy(typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
 					// Auto-generated, so ignore the problem.
 					return false;
@@ -727,7 +727,7 @@ namespace locic {
 		
 		bool CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
 			assert(!typeInstance->isUnion());
-			if (!supportsCompare(context, typeInstance->selfType())) {
+			if (!TypeCapabilities(context).supportsCompare(typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
 					// Auto-generated, so ignore the problem.
 					return false;

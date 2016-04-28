@@ -326,7 +326,7 @@ namespace locic {
 			
 			const auto functionType = semFunction.type();
 			
-			if (!supportsMove(context, functionType.returnType())) {
+			if (!TypeCapabilities(context).supportsMove(functionType.returnType())) {
 				context.issueDiag(ReturnTypeNotMovableDiag(functionType.returnType(),
 				                                           semFunction.name()),
 				                  astFunctionNode->returnType().location());

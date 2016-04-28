@@ -50,7 +50,8 @@ namespace locic {
 		
 		bool canDissolveType(Context& context, const SEM::Type* const rawType) {
 			const auto type = getSingleDerefType(rawType);
-			return type->isLval() && type->isObjectOrTemplateVar() && supportsDissolve(context, type);
+			return type->isLval() && type->isObjectOrTemplateVar() &&
+			       TypeCapabilities(context).supportsDissolve(type);
 		}
 		
 		bool canDissolveValue(Context& context, const SEM::Value& value) {

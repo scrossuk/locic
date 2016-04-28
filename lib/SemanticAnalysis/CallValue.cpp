@@ -118,7 +118,7 @@ namespace locic {
 			
 			if (!value.type()->isCallable()) {
 				// Try to use 'call' method.
-				if (hasCallMethod(context, getDerefType(value.type()))) {
+				if (TypeCapabilities(context).hasCallMethod(getDerefType(value.type()))) {
 					return CallValue(context, GetMethod(context, std::move(value),
 					                                    context.getCString("call"), location),
 					                 std::move(args), location);
