@@ -15,10 +15,12 @@
 #include <locic/Frontend/DiagnosticArray.hpp>
 
 #include <locic/SemanticAnalysis/AliasTypeResolver.hpp>
+#include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
+#include <locic/SemanticAnalysis/GetMethod.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/Literal.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
@@ -29,7 +31,6 @@
 #include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>
-#include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
 

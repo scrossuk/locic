@@ -13,7 +13,7 @@
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
-#include <locic/SemanticAnalysis/TypeProperties.hpp>
+#include <locic/SemanticAnalysis/TypeCapabilities.hpp>
 
 namespace locic {
 

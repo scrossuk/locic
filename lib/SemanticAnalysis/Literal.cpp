@@ -12,6 +12,7 @@
 #include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Literal.hpp>
@@ -20,7 +21,6 @@
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>
-#include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
 

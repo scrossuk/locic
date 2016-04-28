@@ -3,10 +3,12 @@
 #include <locic/Debug.hpp>
 #include <locic/SEM.hpp>
 
+#include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
+#include <locic/SemanticAnalysis/GetMethod.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
-#include <locic/SemanticAnalysis/TypeProperties.hpp>
+#include <locic/SemanticAnalysis/TypeCapabilities.hpp>
 #include <locic/SemanticAnalysis/VarArgCast.hpp>
 
 namespace locic {

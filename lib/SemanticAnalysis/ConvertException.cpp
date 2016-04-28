@@ -2,17 +2,18 @@
 #include <locic/AST.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
+#include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertException.hpp>
 #include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/DefaultMethods.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
+#include <locic/SemanticAnalysis/GetMethod.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
-#include <locic/SemanticAnalysis/TypeProperties.hpp>
 
 namespace locic {
 
