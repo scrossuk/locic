@@ -24,11 +24,11 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		static const SEM::Type* ConvertIntegerType(Context& context, AST::Type::SignedModifier signedModifier,
+		static const SEM::Type* ConvertIntegerType(Context& context, AST::TypeDecl::SignedModifier signedModifier,
 		                                           const String& nameString) {
 			// Unsigned types have 'u' prefix and all integer types
 			// have '_t' suffix (e.g. uint_t, short_t etc.).
-			const auto fullNameString = (signedModifier == AST::Type::UNSIGNED) ? (context.getCString("u") + nameString + "_t") : (nameString + "_t");
+			const auto fullNameString = (signedModifier == AST::TypeDecl::UNSIGNED) ? (context.getCString("u") + nameString + "_t") : (nameString + "_t");
 			return getBuiltInType(context, fullNameString, {});
 		}
 		
@@ -98,69 +98,69 @@ namespace locic {
 			
 		};
 		
-		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type) {
+		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::TypeDecl>& type) {
 			TypeBuilder builder(context);
 			switch (type->typeEnum) {
-				case AST::Type::AUTO: {
+				case AST::TypeDecl::AUTO: {
 					return SEM::Type::Auto(context.semContext());
 				}
-				case AST::Type::CONST: {
+				case AST::TypeDecl::CONST: {
 					return ConvertType(context, type->getConstTarget())->createTransitiveConstType(SEM::Predicate::True());
 				}
-				case AST::Type::CONSTPREDICATE: {
+				case AST::TypeDecl::CONSTPREDICATE: {
 					auto constPredicate = ConvertPredicate(context, type->getConstPredicate());
 					const auto constTarget = ConvertType(context, type->getConstPredicateTarget());
 					return constTarget->createTransitiveConstType(std::move(constPredicate));
 				}
-				case AST::Type::NOTAG: {
+				case AST::TypeDecl::NOTAG: {
 					return ConvertType(context, type->getNoTagTarget())->createNoTagType();
 				}
-				case AST::Type::LVAL: {
+				case AST::TypeDecl::LVAL: {
 					auto targetType = ConvertType(context, type->getLvalTarget());
 					return ConvertType(context, type->getLvalType())->createLvalType(targetType);
 				}
-				case AST::Type::REF: {
+				case AST::TypeDecl::REF: {
 					auto targetType = ConvertType(context, type->getRefTarget());
 					return ConvertType(context, type->getRefType())->createRefType(targetType);
 				}
-				case AST::Type::STATICREF: {
+				case AST::TypeDecl::STATICREF: {
 					auto targetType = ConvertType(context, type->getStaticRefTarget());
 					return ConvertType(context, type->getStaticRefType())->createStaticRefType(targetType);
 				}
-				case AST::Type::VOID: {
+				case AST::TypeDecl::VOID: {
 					return context.typeBuilder().getVoidType();
 				}
-				case AST::Type::BOOL: {
+				case AST::TypeDecl::BOOL: {
 					return context.typeBuilder().getBoolType();
 				}
-				case AST::Type::PRIMITIVE: {
+				case AST::TypeDecl::PRIMITIVE: {
 					return context.typeBuilder().getPrimitiveType(type->primitiveID());
 				}
-				case AST::Type::INTEGER: {
+				case AST::TypeDecl::INTEGER: {
 					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);
 				}
-				case AST::Type::FLOAT: {
+				case AST::TypeDecl::FLOAT: {
 					return ConvertFloatType(context, type->floatType.name);
 				}
-				case AST::Type::OBJECT: {
+				case AST::TypeDecl::OBJECT: {
 					return ConvertObjectType(context, type->objectType.symbol);
 				}
-				case AST::Type::REFERENCE: {
+				case AST::TypeDecl::REFERENCE: {
 					const auto targetType = ConvertType(context, type->getReferenceTarget());
 					return createReferenceType(context, targetType);
 				}
-				case AST::Type::POINTER: {
+				case AST::TypeDecl::POINTER: {
 					const auto targetType = ConvertType(context, type->getPointerTarget());
 					return builder.getPointerType(targetType);
 				}
-				case AST::Type::STATICARRAY: {
+				case AST::TypeDecl::STATICARRAY: {
 					const auto targetType = ConvertType(context, type->getStaticArrayTarget());
 					auto arraySize = ConvertValue(context, type->getArraySize());
 					return builder.getStaticArrayType(targetType,
 					                                  std::move(arraySize),
 					                                  type.location());
 				}
-				case AST::Type::FUNCTION: {
+				case AST::TypeDecl::FUNCTION: {
 					const auto returnType = ConvertType(context, type->functionType.returnType);
 					
 					const auto& astParameterTypes = type->functionType.parameterTypes;
@@ -219,7 +219,7 @@ namespace locic {
 		};
 		
 		static SEM::Alias*
-		getTemplateVarTypeAlias(Context& context, const AST::Node<AST::Type>& type) {
+		getTemplateVarTypeAlias(Context& context, const AST::Node<AST::TypeDecl>& type) {
 			if (!type->isObjectType()) return nullptr;
 			
 			const Name name = type->symbol()->createName();
@@ -237,7 +237,7 @@ namespace locic {
 		}
 		
 		SEM::Predicate
-		getTemplateVarTypePredicate(Context& context, const AST::Node<AST::Type>& type,
+		getTemplateVarTypePredicate(Context& context, const AST::Node<AST::TypeDecl>& type,
 		                            const SEM::TemplateVar& templateVar) {
 			const auto alias = getTemplateVarTypeAlias(context, type);
 			if (alias == nullptr) {
@@ -263,7 +263,7 @@ namespace locic {
 			return aliasValue.makePredicate();
 		}
 		
-		const SEM::Type* ConvertTemplateVarType(Context& context, const AST::Node<AST::Type>& type) {
+		const SEM::Type* ConvertTemplateVarType(Context& context, const AST::Node<AST::TypeDecl>& type) {
 			if (getTemplateVarTypeAlias(context, type) != nullptr) {
 				return TypeBuilder(context).getTypenameType();
 			} else {

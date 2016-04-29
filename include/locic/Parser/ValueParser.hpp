@@ -120,7 +120,7 @@ namespace locic {
 			
 			bool canInterpretValueAsType(const AST::Node<AST::Value>& value);
 			
-			AST::Node<AST::Type> interpretValueAsType(AST::Node<AST::Value> value);
+			AST::Node<AST::TypeDecl> interpretValueAsType(AST::Node<AST::Value> value);
 			
 			AST::Node<AST::Value> parseAtomicValue();
 			

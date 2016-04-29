@@ -4,7 +4,7 @@
 #include <string>
 
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/TypeDecl.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
@@ -12,19 +12,19 @@ namespace locic {
 	namespace AST {
 	
 		struct TemplateTypeVar {
-			Node<Type> varType;
+			Node<TypeDecl> varType;
 			String name;
-			Node<Type> specType;
+			Node<TypeDecl> specType;
 			
-			static TemplateTypeVar* NoSpec(Node<Type> varType, const String& name) {
+			static TemplateTypeVar* NoSpec(Node<TypeDecl> varType, const String& name) {
 				TemplateTypeVar* typeVar = new TemplateTypeVar();
 				typeVar->varType = std::move(varType);
 				typeVar->name = name;
-				typeVar->specType = makeNode(Debug::SourceLocation::Null(), Type::Void());
+				typeVar->specType = makeNode(Debug::SourceLocation::Null(), TypeDecl::Void());
 				return typeVar;
 			}
 			
-			static TemplateTypeVar* WithSpec(Node<Type> varType, const String& name, Node<Type> specType) {
+			static TemplateTypeVar* WithSpec(Node<TypeDecl> varType, const String& name, Node<TypeDecl> specType) {
 				assert(!specType.isNull());
 				TemplateTypeVar* typeVar = new TemplateTypeVar();
 				typeVar->varType = std::move(varType);

@@ -1,5 +1,5 @@
-#ifndef LOCIC_AST_TYPE_HPP
-#define LOCIC_AST_TYPE_HPP
+#ifndef LOCIC_AST_TYPEDECL_HPP
+#define LOCIC_AST_TYPEDECL_HPP
 
 #include <string>
 #include <vector>
@@ -13,14 +13,14 @@ namespace locic {
 	
 	namespace AST {
 		
-		struct Type;
+		struct TypeDecl;
 		
-		typedef std::vector<Node<Type>> TypeList;
+		typedef std::vector<Node<TypeDecl>> TypeDeclList;
 		
 		class Symbol;
 		struct Value;
 		
-		struct Type {
+		struct TypeDecl {
 			enum SignedModifier {
 				NO_SIGNED,
 				SIGNED,
@@ -48,31 +48,31 @@ namespace locic {
 			} typeEnum;
 			
 			struct {
-				Node<Type> targetType;
+				Node<TypeDecl> targetType;
 			} constType;
 			
 			struct {
 				Node<Predicate> predicate;
-				Node<Type> targetType;
+				Node<TypeDecl> targetType;
 			} constPredicateType;
 			
 			struct {
-				Node<Type> targetType;
+				Node<TypeDecl> targetType;
 			} noTagType;
 			
 			struct {
-				Node<Type> targetType;
-				Node<Type> lvalType;
+				Node<TypeDecl> targetType;
+				Node<TypeDecl> lvalType;
 			} lvalType;
 			
 			struct {
-				Node<Type> targetType;
-				Node<Type> refType;
+				Node<TypeDecl> targetType;
+				Node<TypeDecl> refType;
 			} refType;
 			
 			struct {
-				Node<Type> targetType;
-				Node<Type> refType;
+				Node<TypeDecl> targetType;
+				Node<TypeDecl> refType;
 			} staticRefType;
 			
 			struct {
@@ -93,71 +93,71 @@ namespace locic {
 			} objectType;
 			
 			struct {
-				Node<Type> targetType;
+				Node<TypeDecl> targetType;
 			} referenceType;
 			
 			struct {
-				Node<Type> targetType;
+				Node<TypeDecl> targetType;
 			} pointerType;
 			
 			struct {
-				Node<Type> targetType;
+				Node<TypeDecl> targetType;
 				Node<Value> arraySize;
 			} staticArrayType;
 			
 			struct {
 				bool isVarArg;
-				Node<Type> returnType;
-				Node<TypeList> parameterTypes;
+				Node<TypeDecl> returnType;
+				Node<TypeDeclList> parameterTypes;
 			} functionType;
 			
-			Type();
+			TypeDecl();
 			
-			Type(TypeEnum e);
+			TypeDecl(TypeEnum e);
 			
-			static Type* Auto();
+			static TypeDecl* Auto();
 			
-			static Type* Void();
+			static TypeDecl* Void();
 			
-			static Type* Bool();
+			static TypeDecl* Bool();
 			
-			static Type* Const(Node<Type> targetType);
+			static TypeDecl* Const(Node<TypeDecl> targetType);
 			
-			static Type* ConstPredicate(Node<Predicate> predicate, Node<Type> targetType);
+			static TypeDecl* ConstPredicate(Node<Predicate> predicate, Node<TypeDecl> targetType);
 			
-			static Type* NoTag(Node<Type> targetType);
+			static TypeDecl* NoTag(Node<TypeDecl> targetType);
 			
-			static Type* Lval(Node<Type> targetType, Node<Type> lvalType);
+			static TypeDecl* Lval(Node<TypeDecl> targetType, Node<TypeDecl> lvalType);
 			
-			static Type* Ref(Node<Type> targetType, Node<Type> refType);
+			static TypeDecl* Ref(Node<TypeDecl> targetType, Node<TypeDecl> refType);
 			
-			static Type* StaticRef(Node<Type> targetType, Node<Type> refType);
+			static TypeDecl* StaticRef(Node<TypeDecl> targetType, Node<TypeDecl> refType);
 			
-			static Type* Integer(SignedModifier signedModifier, const String& name);
+			static TypeDecl* Integer(SignedModifier signedModifier, const String& name);
 			
-			static Type* Float(const String& name);
+			static TypeDecl* Float(const String& name);
 			
-			static Type* Primitive(PrimitiveID primitiveID);
+			static TypeDecl* Primitive(PrimitiveID primitiveID);
 			
-			static Type* Object(Node<Symbol> symbol);
+			static TypeDecl* Object(Node<Symbol> symbol);
 			
-			static Type* Reference(Node<Type> targetType);
+			static TypeDecl* Reference(Node<TypeDecl> targetType);
 			
-			static Type* Pointer(Node<Type> targetType);
+			static TypeDecl* Pointer(Node<TypeDecl> targetType);
 			
-			static Type* StaticArray(Node<Type> targetType, Node<Value> arraySize);
+			static TypeDecl* StaticArray(Node<TypeDecl> targetType, Node<Value> arraySize);
 			
-			static Type* Function(Node<Type> returnType, Node<TypeList> parameterTypes);
+			static TypeDecl* Function(Node<TypeDecl> returnType, Node<TypeDeclList> parameterTypes);
 			
-			static Type* VarArgFunction(Node<Type> returnType, Node<TypeList> parameterTypes);
+			static TypeDecl* VarArgFunction(Node<TypeDecl> returnType, Node<TypeDeclList> parameterTypes);
 			
-			~Type();
+			~TypeDecl();
 			
-			Type(Type&&) = default;
-			Type& operator=(Type&&) = default;
+			TypeDecl(TypeDecl&&) = default;
+			TypeDecl& operator=(TypeDecl&&) = default;
 			
-			Type copy() const {
-				return Type(*this);
+			TypeDecl copy() const {
+				return TypeDecl(*this);
 			}
 			
 			bool isAuto() const {
@@ -172,7 +172,7 @@ namespace locic {
 				return typeEnum == CONST;
 			}
 			
-			const Node<Type>& getConstTarget() const {
+			const Node<TypeDecl>& getConstTarget() const {
 				assert(isConst());
 				return constType.targetType;
 			}
@@ -186,7 +186,7 @@ namespace locic {
 				return constPredicateType.predicate;
 			}
 			
-			const Node<Type>& getConstPredicateTarget() const {
+			const Node<TypeDecl>& getConstPredicateTarget() const {
 				assert(isConstPredicate());
 				return constPredicateType.targetType;
 			}
@@ -195,7 +195,7 @@ namespace locic {
 				return typeEnum == NOTAG;
 			}
 			
-			const Node<Type>& getNoTagTarget() const {
+			const Node<TypeDecl>& getNoTagTarget() const {
 				assert(isNoTag());
 				return noTagType.targetType;
 			}
@@ -204,12 +204,12 @@ namespace locic {
 				return typeEnum == LVAL;
 			}
 			
-			const Node<Type>& getLvalTarget() const {
+			const Node<TypeDecl>& getLvalTarget() const {
 				assert(isLval());
 				return lvalType.targetType;
 			}
 			
-			const Node<Type>& getLvalType() const {
+			const Node<TypeDecl>& getLvalType() const {
 				assert(isLval());
 				return lvalType.lvalType;
 			}
@@ -218,12 +218,12 @@ namespace locic {
 				return typeEnum == REF;
 			}
 			
-			const Node<Type>& getRefTarget() const {
+			const Node<TypeDecl>& getRefTarget() const {
 				assert(isRef());
 				return refType.targetType;
 			}
 			
-			const Node<Type>& getRefType() const {
+			const Node<TypeDecl>& getRefType() const {
 				assert(isRef());
 				return refType.refType;
 			}
@@ -232,12 +232,12 @@ namespace locic {
 				return typeEnum == STATICREF;
 			}
 			
-			const Node<Type>& getStaticRefTarget() const {
+			const Node<TypeDecl>& getStaticRefTarget() const {
 				assert(isStaticRef());
 				return staticRefType.targetType;
 			}
 			
-			const Node<Type>& getStaticRefType() const {
+			const Node<TypeDecl>& getStaticRefType() const {
 				assert(isStaticRef());
 				return staticRefType.refType;
 			}
@@ -246,7 +246,7 @@ namespace locic {
 				return typeEnum == REFERENCE;
 			}
 			
-			const Node<Type>& getReferenceTarget() const {
+			const Node<TypeDecl>& getReferenceTarget() const {
 				assert(isReference());
 				return referenceType.targetType;
 			}
@@ -255,7 +255,7 @@ namespace locic {
 				return typeEnum == POINTER;
 			}
 			
-			const Node<Type>& getPointerTarget() const {
+			const Node<TypeDecl>& getPointerTarget() const {
 				assert(isPointer());
 				return pointerType.targetType;
 			}
@@ -264,7 +264,7 @@ namespace locic {
 				return typeEnum == STATICARRAY;
 			}
 			
-			const Node<Type>& getStaticArrayTarget() const {
+			const Node<TypeDecl>& getStaticArrayTarget() const {
 				assert(isStaticArray());
 				return staticArrayType.targetType;
 			}
@@ -283,12 +283,12 @@ namespace locic {
 				return functionType.isVarArg;
 			}
 			
-			const Node<Type>& functionReturnType() const {
+			const Node<TypeDecl>& functionReturnType() const {
 				assert(isFunction());
 				return functionType.returnType;
 			}
 			
-			const Node<TypeList>& functionParameterTypes() const {
+			const Node<TypeDeclList>& functionParameterTypes() const {
 				assert(isFunction());
 				return functionType.parameterTypes;
 			}
@@ -336,7 +336,7 @@ namespace locic {
 			std::string toString() const;
 			
 		private:
-			explicit Type(const Type&) = default;
+			explicit TypeDecl(const TypeDecl&) = default;
 			
 		};
 		

@@ -37,7 +37,7 @@ namespace locic {
 			AST::Node<AST::TypeVar> parseVarOrAny();
 			
 			AST::Node<AST::TypeVar>
-			parseTypeVarWithType(AST::Node<AST::Type> type,
+			parseTypeVarWithType(AST::Node<AST::TypeDecl> type,
 			                     const Debug::SourcePosition& start);
 			
 		private:

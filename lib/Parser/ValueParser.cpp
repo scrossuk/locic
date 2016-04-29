@@ -847,13 +847,13 @@ namespace locic {
 			locic_unreachable("Invalid value kind");
 		}
 		
-		AST::Node<AST::Type> ValueParser::interpretValueAsType(AST::Node<AST::Value> value) {
+		AST::Node<AST::TypeDecl> ValueParser::interpretValueAsType(AST::Node<AST::Value> value) {
 			switch (value->kind()) {
 				case AST::Value::BRACKET:
 					return interpretValueAsType(std::move(value->bracket.value));
 				case AST::Value::SYMBOLREF:
 					return AST::makeNode(value.location(),
-					                     AST::Type::Object(std::move(value->symbolRef.symbol)));
+					                     AST::TypeDecl::Object(std::move(value->symbolRef.symbol)));
 				case AST::Value::TYPEREF:
 					return std::move(value->typeRef.type);
 				case AST::Value::MERGE:
@@ -885,7 +885,7 @@ namespace locic {
 					reader_.issueDiagWithLoc(CannotInterpretValueAsType(),
 					                         value.location());
 					return AST::makeNode(value.location(),
-					                     AST::Type::Primitive(PrimitiveInt));
+					                     AST::TypeDecl::Primitive(PrimitiveInt));
 				}
 			}
 			

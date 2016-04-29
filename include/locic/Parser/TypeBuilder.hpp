@@ -23,50 +23,51 @@ namespace locic {
 			TypeBuilder(const TokenReader& reader);
 			~TypeBuilder();
 			
-			AST::Node<AST::Type> makeTypeNode(AST::Type* type,
-			                                  const Debug::SourcePosition& start);
+			AST::Node<AST::TypeDecl>
+			makeTypeNode(AST::TypeDecl* type,
+			             const Debug::SourcePosition& start);
 			
-			AST::Node<AST::TypeList> makeTypeList(AST::TypeList list,
+			AST::Node<AST::TypeDeclList> makeTypeList(AST::TypeDeclList list,
 			                                      const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type> makePrimitiveType(PrimitiveID primitiveID,
+			AST::Node<AST::TypeDecl> makePrimitiveType(PrimitiveID primitiveID,
 			                                       const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type> makeSymbolType(AST::Node<AST::Symbol> symbol,
+			AST::Node<AST::TypeDecl> makeSymbolType(AST::Node<AST::Symbol> symbol,
 			                                    const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type>
+			AST::Node<AST::TypeDecl>
 			makeConstPredicateType(AST::Node<AST::Predicate> predicate,
-			                       AST::Node<AST::Type> targetType,
+			                       AST::Node<AST::TypeDecl> targetType,
 			                       const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type> makeConstType(AST::Node<AST::Type> targetType,
+			AST::Node<AST::TypeDecl> makeConstType(AST::Node<AST::TypeDecl> targetType,
 			                                   const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type> makeNoTagType(AST::Node<AST::Type> targetType,
+			AST::Node<AST::TypeDecl> makeNoTagType(AST::Node<AST::TypeDecl> targetType,
 			                                   const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type> makeLvalType(AST::Node<AST::Type> targetType,
-			                                  AST::Node<AST::Type> type,
+			AST::Node<AST::TypeDecl> makeLvalType(AST::Node<AST::TypeDecl> targetType,
+			                                  AST::Node<AST::TypeDecl> type,
 			                                  const Debug::SourcePosition& start);
-			AST::Node<AST::Type> makeRefType(AST::Node<AST::Type> targetType,
-			                                 AST::Node<AST::Type> type,
+			AST::Node<AST::TypeDecl> makeRefType(AST::Node<AST::TypeDecl> targetType,
+			                                 AST::Node<AST::TypeDecl> type,
 			                                 const Debug::SourcePosition& start);
-			AST::Node<AST::Type> makeStaticRefType(AST::Node<AST::Type> targetType,
-			                                       AST::Node<AST::Type> type,
+			AST::Node<AST::TypeDecl> makeStaticRefType(AST::Node<AST::TypeDecl> targetType,
+			                                       AST::Node<AST::TypeDecl> type,
 			                                       const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type>
-			makeFunctionPointerType(AST::Node<AST::Type> returnType,
-			                        AST::Node<AST::TypeList> paramTypes,bool isVarArg,
+			AST::Node<AST::TypeDecl>
+			makeFunctionPointerType(AST::Node<AST::TypeDecl> returnType,
+			                        AST::Node<AST::TypeDeclList> paramTypes,bool isVarArg,
 			                        const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type> makeAutoType(const Debug::SourcePosition& start);
-			AST::Node<AST::Type> makeReferenceType(AST::Node<AST::Type> targetType,
+			AST::Node<AST::TypeDecl> makeAutoType(const Debug::SourcePosition& start);
+			AST::Node<AST::TypeDecl> makeReferenceType(AST::Node<AST::TypeDecl> targetType,
 			                                       const Debug::SourcePosition& start);
-			AST::Node<AST::Type> makePointerType(AST::Node<AST::Type> targetType,
+			AST::Node<AST::TypeDecl> makePointerType(AST::Node<AST::TypeDecl> targetType,
 			                                     const Debug::SourcePosition& start);
-			AST::Node<AST::Type> makeStaticArrayType(AST::Node<AST::Type> targetType,
+			AST::Node<AST::TypeDecl> makeStaticArrayType(AST::Node<AST::TypeDecl> targetType,
 			                                         AST::Node<AST::Value> sizeValue,
 			                                         const Debug::SourcePosition& start);
 			

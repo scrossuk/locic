@@ -7,7 +7,7 @@
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Scope.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/TypeVar.hpp>
 
 namespace locic {
@@ -15,7 +15,7 @@ namespace locic {
 	namespace AST {
 	
 		Function* Function::Decl(bool isVarArg, bool isStatic,
-				Node<Type> returnType, Node<Name> name,
+				Node<TypeDecl> returnType, Node<Name> name,
 				Node<TypeVarList> parameters,
 				Node<ConstSpecifier> constSpecifier,
 				Node<RequireSpecifier> noexceptSpecifier,
@@ -35,7 +35,7 @@ namespace locic {
 		}
 		
 		Function* Function::Def(bool isVarArg, bool isStatic,
-				Node<Type> returnType, Node<Name> name,
+				Node<TypeDecl> returnType, Node<Name> name,
 				Node<TypeVarList> parameters,
 				Node<Scope> scope,
 				Node<ConstSpecifier> constSpecifier,
@@ -55,7 +55,7 @@ namespace locic {
 			return function;
 		}
 		
-		Function* Function::StaticDecl(Node<Type> returnType,
+		Function* Function::StaticDecl(Node<TypeDecl> returnType,
 		                               Node<Name> name,
 		                               Node<TypeVarList> parameters,
 		                               Node<RequireSpecifier> noexceptSpecifier,
@@ -72,7 +72,7 @@ namespace locic {
 			return function;
 		}
 		
-		Function* Function::StaticDef(Node<Type> returnType,
+		Function* Function::StaticDef(Node<TypeDecl> returnType,
 		                              Node<Name> name,
 		                              Node<TypeVarList> parameters,
 		                              Node<Scope> scope,
@@ -98,7 +98,7 @@ namespace locic {
 			function->isDefaultDefinition_ = true;
 			function->isVarArg_ = false;
 			function->isStatic_ = true;
-			function->returnType_ = Node<Type>();
+			function->returnType_ = Node<TypeDecl>();
 			function->parameters_ = Node<TypeVarList>();
 			function->scope_ = Node<Scope>();
 			function->requireSpecifier_ = std::move(requireSpecifier);
@@ -112,7 +112,7 @@ namespace locic {
 			function->isDefaultDefinition_ = true;
 			function->isVarArg_ = false;
 			function->isStatic_ = false;
-			function->returnType_ = Node<Type>();
+			function->returnType_ = Node<TypeDecl>();
 			function->parameters_ = Node<TypeVarList>();
 			function->scope_ = Node<Scope>();
 			function->requireSpecifier_ = std::move(requireSpecifier);
@@ -125,7 +125,7 @@ namespace locic {
 			function->isDefaultDefinition_ = false;
 			function->isVarArg_ = false;
 			function->isStatic_ = false;
-			function->returnType_ = makeNode(scope.location(), Type::Void());
+			function->returnType_ = makeNode(scope.location(), TypeDecl::Void());
 			function->parameters_ = makeDefaultNode<TypeVarList>();
 			function->scope_ = std::move(scope);
 			return function;
@@ -179,7 +179,7 @@ namespace locic {
 			return templateVariables_;
 		}
 		
-		const Node<Type>& Function::returnType() const {
+		const Node<TypeDecl>& Function::returnType() const {
 			assert(!isDefaultDefinition());
 			return returnType_;
 		}

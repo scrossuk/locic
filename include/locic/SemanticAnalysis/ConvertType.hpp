@@ -20,7 +20,7 @@ namespace locic {
 		
 		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
 		
-		SEM::TemplateVarMap GenerateBasicTemplateVarMap(Context& context, const AST::Node<AST::TypeList>& astTypeListNode);
+		SEM::TemplateVarMap GenerateBasicTemplateVarMap(Context& context, const AST::Node<AST::TypeDeclList>& astTypeListNode);
 		
 		/**
 		 * \brief Convert symbol to semantic object type.
@@ -30,13 +30,13 @@ namespace locic {
 		/**
 		 * \brief Convert AST type annotation to a semantic type definition.
 		 */
-		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::Type>& type);
+		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::TypeDecl>& type);
 		
 		SEM::Predicate
-		getTemplateVarTypePredicate(Context& context, const AST::Node<AST::Type>& type,
+		getTemplateVarTypePredicate(Context& context, const AST::Node<AST::TypeDecl>& type,
 		                            const SEM::TemplateVar& templateVar);
 		
-		const SEM::Type* ConvertTemplateVarType(Context& context, const AST::Node<AST::Type>& type);
+		const SEM::Type* ConvertTemplateVarType(Context& context, const AST::Node<AST::TypeDecl>& type);
 		
 	}
 	

@@ -9,7 +9,7 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/ValueList.hpp>
 
 namespace locic {
@@ -92,7 +92,7 @@ namespace locic {
 			} symbolRef;
 			
 			struct {
-				Node<Type> type;
+				Node<TypeDecl> type;
 			} typeRef;
 			
 			struct {
@@ -100,11 +100,11 @@ namespace locic {
 			} memberRef;
 			
 			struct {
-				Node<Type> type;
+				Node<TypeDecl> type;
 			} alignOf;
 			
 			struct {
-				Node<Type> type;
+				Node<TypeDecl> type;
 			} sizeOf;
 			
 			struct {
@@ -129,13 +129,13 @@ namespace locic {
 			
 			struct {
 				CastKind castKind;
-				Node<Type> sourceType;
-				Node<Type> targetType;
+				Node<TypeDecl> sourceType;
+				Node<TypeDecl> targetType;
 				Node<Value> value;
 			} cast;
 			
 			struct {
-				Node<Type> targetType;
+				Node<TypeDecl> targetType;
 				Node<Value> value;
 			} makeLval;
 			
@@ -144,7 +144,7 @@ namespace locic {
 			} makeNoLval;
 			
 			struct {
-				Node<Type> targetType;
+				Node<TypeDecl> targetType;
 				Node<Value> value;
 			} makeRef;
 			
@@ -174,8 +174,8 @@ namespace locic {
 			} functionCall;
 			
 			struct {
-				Node<Type> checkType;
-				Node<Type> capabilityType;
+				Node<TypeDecl> checkType;
+				Node<TypeDecl> capabilityType;
 			} capabilityTest;
 			
 			struct {
@@ -218,7 +218,7 @@ namespace locic {
 				return value;
 			}
 			
-			static Value* TypeRef(Node<Type> type) {
+			static Value* TypeRef(Node<TypeDecl> type) {
 				Value* value = new Value(TYPEREF);
 				value->typeRef.type = std::move(type);
 				return value;
@@ -230,13 +230,13 @@ namespace locic {
 				return value;
 			}
 			
-			static Value* AlignOf(Node<Type> type) {
+			static Value* AlignOf(Node<TypeDecl> type) {
 				Value* value = new Value(ALIGNOF);
 				value->alignOf.type = std::move(type);
 				return value;
 			}
 			
-			static Value* SizeOf(Node<Type> type) {
+			static Value* SizeOf(Node<TypeDecl> type) {
 				Value* value = new Value(SIZEOF);
 				value->sizeOf.type = std::move(type);
 				return value;
@@ -265,7 +265,7 @@ namespace locic {
 				return value;
 			}
 			
-			static Value* Cast(CastKind castKind, Node<Type> sourceType, Node<Type> targetType, Node<Value> operand) {
+			static Value* Cast(CastKind castKind, Node<TypeDecl> sourceType, Node<TypeDecl> targetType, Node<Value> operand) {
 				Value* value = new Value(CAST);
 				value->cast.castKind = castKind;
 				value->cast.sourceType = std::move(sourceType);
@@ -274,7 +274,7 @@ namespace locic {
 				return value;
 			}
 			
-			static Value* Lval(Node<Type> targetType, Node<Value> operand) {
+			static Value* Lval(Node<TypeDecl> targetType, Node<Value> operand) {
 				Value* value = new Value(LVAL);
 				value->makeLval.targetType = std::move(targetType);
 				value->makeLval.value = std::move(operand);
@@ -287,7 +287,7 @@ namespace locic {
 				return value;
 			}
 			
-			static Value* Ref(Node<Type> targetType, Node<Value> operand) {
+			static Value* Ref(Node<TypeDecl> targetType, Node<Value> operand) {
 				Value* value = new Value(REF);
 				value->makeRef.targetType = std::move(targetType);
 				value->makeRef.value = std::move(operand);
@@ -329,8 +329,8 @@ namespace locic {
 				return value;
 			}
 			
-			static Value* CapabilityTest(Node<Type> checkType,
-			                             Node<Type> capabilityType) {
+			static Value* CapabilityTest(Node<TypeDecl> checkType,
+			                             Node<TypeDecl> capabilityType) {
 				Value* value = new Value(CAPABILITYTEST);
 				value->capabilityTest.checkType = std::move(checkType);
 				value->capabilityTest.capabilityType = std::move(capabilityType);

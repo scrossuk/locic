@@ -12,7 +12,7 @@
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Symbol.hpp>
 #include <locic/AST/TemplateTypeVar.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/TypeVar.hpp>
 
 namespace locic {
@@ -28,25 +28,25 @@ namespace locic {
 		struct Function {
 			public:
 				static Function* Decl(bool isVarArg, bool isStatic,
-						Node<Type> returnType, Node<Name> name, Node<TypeVarList> parameters,
+						Node<TypeDecl> returnType, Node<Name> name, Node<TypeVarList> parameters,
 						Node<ConstSpecifier> constSpecifier,
 						Node<RequireSpecifier> noexceptSpecifier,
 						Node<RequireSpecifier> requireSpecifier);
 				
 				static Function* Def(bool isVarArg, bool isStatic,
-						Node<Type> returnType, Node<Name> name, Node<TypeVarList> parameters,
+						Node<TypeDecl> returnType, Node<Name> name, Node<TypeVarList> parameters,
 						Node<Scope> scope,
 						Node<ConstSpecifier> constSpecifier,
 						Node<RequireSpecifier> noexceptSpecifier,
 						Node<RequireSpecifier> requireSpecifier);
 				
-				static Function* StaticDecl(Node<Type> returnType,
+				static Function* StaticDecl(Node<TypeDecl> returnType,
 				                            Node<Name> name,
 				                            Node<TypeVarList> parameters,
 				                            Node<RequireSpecifier> noexceptSpecifier,
 				                            Node<RequireSpecifier> requireSpecifier);
 				
-				static Function* StaticDef(Node<Type> returnType,
+				static Function* StaticDef(Node<TypeDecl> returnType,
 				                           Node<Name> name,
 				                           Node<TypeVarList> parameters,
 				                           Node<Scope> scope,
@@ -73,7 +73,7 @@ namespace locic {
 				const Node<Name>& name() const;
 				
 				const Node<TemplateTypeVarList>& templateVariables() const;
-				const Node<Type>& returnType() const;
+				const Node<TypeDecl>& returnType() const;
 				const Node<TypeVarList>& parameters() const;
 				const Node<Scope>& scope() const;
 				const Node<ConstSpecifier>& constSpecifier() const;
@@ -101,7 +101,7 @@ namespace locic {
 				
 				Node<Name> name_;
 				Node<TemplateTypeVarList> templateVariables_;
-				Node<Type> returnType_;
+				Node<TypeDecl> returnType_;
 				Node<TypeVarList> parameters_;
 				Node<Scope> scope_;
 				Node<ConstSpecifier> constSpecifier_;

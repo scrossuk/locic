@@ -8,7 +8,7 @@ add_library(locic-ast
 	RequireSpecifier.cpp
 	StaticAssert.cpp
 	Symbol.cpp
-	Type.cpp
+	TypeDecl.cpp
 	TypeInstance.cpp
 	TypeVar.cpp
 	Value.cpp

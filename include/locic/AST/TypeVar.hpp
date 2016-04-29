@@ -6,7 +6,7 @@
 
 #include <locic/Support/String.hpp>
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/TypeDecl.hpp>
 
 namespace locic {
 
@@ -24,16 +24,16 @@ namespace locic {
 				ANYVAR
 			};
 			
-			static TypeVar* NamedVar(Node<Type> type, String name);
+			static TypeVar* NamedVar(Node<TypeDecl> type, String name);
 			
-			static TypeVar* PatternVar(Node<Type> type, Node<TypeVarList> typeVarList);
+			static TypeVar* PatternVar(Node<TypeDecl> type, Node<TypeVarList> typeVarList);
 			
 			static TypeVar* Any();
 			
 			Kind kind() const;
 			
 			bool isNamed() const;
-			const Node<Type>& namedType() const;
+			const Node<TypeDecl>& namedType() const;
 			const String& name() const;
 			
 			bool isFinal() const;
@@ -46,7 +46,7 @@ namespace locic {
 			void setUnused();
 			
 			bool isPattern() const;
-			const Node<Type>& patternType() const;
+			const Node<TypeDecl>& patternType() const;
 			const Node<TypeVarList>& typeVarList() const;
 			
 			bool isAny() const;
@@ -62,12 +62,12 @@ namespace locic {
 				bool isFinal;
 				bool isOverrideConst;
 				bool isUnused;
-				Node<Type> type;
+				Node<TypeDecl> type;
 				String name;
 			} namedVar_;
 			
 			struct {
-				Node<Type> type;
+				Node<TypeDecl> type;
 				Node<TypeVarList> typeVarList;
 			} patternVar_;
 			

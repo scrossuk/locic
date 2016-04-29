@@ -11,7 +11,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		struct Type;
+		struct TypeDecl;
 		
 		class Predicate {
 			public:
@@ -31,7 +31,7 @@ namespace locic {
 				
 				static Predicate* Bracket(Node<Predicate> expr);
 				
-				static Predicate* TypeSpec(Node<Type> type, Node<Type> requireType);
+				static Predicate* TypeSpec(Node<TypeDecl> type, Node<TypeDecl> requireType);
 				
 				static Predicate* Symbol(Node<AST::Symbol> symbol);
 				
@@ -46,8 +46,8 @@ namespace locic {
 				
 				const Node<Predicate>& bracketExpr() const;
 				
-				const Node<Type>& typeSpecType() const;
-				const Node<Type>& typeSpecRequireType() const;
+				const Node<TypeDecl>& typeSpecType() const;
+				const Node<TypeDecl>& typeSpecRequireType() const;
 				
 				const Node<AST::Symbol>& symbol() const;
 				
@@ -69,8 +69,8 @@ namespace locic {
 				} bracket_;
 				
 				struct {
-					Node<Type> type;
-					Node<Type> requireType;
+					Node<TypeDecl> type;
+					Node<TypeDecl> requireType;
 				} typeSpec_;
 				
 				struct {

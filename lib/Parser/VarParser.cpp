@@ -158,7 +158,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::TypeVar> VarParser::parseTypeVarWithType(AST::Node<AST::Type> type,
+		AST::Node<AST::TypeVar> VarParser::parseTypeVarWithType(AST::Node<AST::TypeDecl> type,
 		                                                        const Debug::SourcePosition& start) {
 			const auto name = reader_.expectName();
 			return builder_.makeTypeVar(std::move(type), name, start);

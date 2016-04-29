@@ -188,7 +188,7 @@ namespace locic {
 			                                std::move(requireSpecifier), std::move(scope), start);
 		}
 		
-		AST::Node<AST::Type>
+		AST::Node<AST::TypeDecl>
 		FunctionParser::parseMethodReturnType() {
 			if (isValidMethodNameToken(reader_.peek().kind())) {
 				const auto nextToken = reader_.peek(/*offset=*/1);

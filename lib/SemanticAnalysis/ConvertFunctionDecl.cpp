@@ -524,7 +524,7 @@ namespace locic {
 			const auto& astReturnTypeNode = astFunctionNode->returnType();
 			const SEM::Type* semReturnType = NULL;
 			
-			if (astReturnTypeNode->typeEnum == AST::Type::AUTO) {
+			if (astReturnTypeNode->typeEnum == AST::TypeDecl::AUTO) {
 				// Undefined return type means this must be a class
 				// constructor, with no return type specified (i.e.
 				// the return type will be the parent class type).

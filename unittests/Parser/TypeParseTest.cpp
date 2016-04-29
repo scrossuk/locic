@@ -23,7 +23,7 @@ namespace locic {
 		}
 		
 		void testPrimitiveType(const Array<Token::Kind, 16>& tokenKinds, const PrimitiveID primitiveID) {
-			testParseType(tokenKinds, [=](const AST::Node<AST::Type>& type) {
+			testParseType(tokenKinds, [=](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isPrimitive());
 				EXPECT_EQ(type->primitiveID(), primitiveID);
 			});
@@ -77,7 +77,7 @@ namespace locic {
 		}
 		
 		TEST(TypeParseTest, SymbolOneComponent) {
-			testParseType({ Token::NAME }, [](const AST::Node<AST::Type>& type) {
+			testParseType({ Token::NAME }, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isObjectType());
 				EXPECT_EQ(type->objectType.symbol->size(), 1);
 				EXPECT_EQ(type->objectType.symbol->at(0)->templateArguments()->size(), 0);
@@ -90,7 +90,7 @@ namespace locic {
 				Token::DOUBLE_COLON,
 				Token::NAME
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isObjectType());
 				EXPECT_EQ(type->objectType.symbol->size(), 2);
 				EXPECT_EQ(type->objectType.symbol->at(0)->templateArguments()->size(), 0);
@@ -106,7 +106,7 @@ namespace locic {
 				Token::DOUBLE_COLON,
 				Token::NAME
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isObjectType());
 				EXPECT_EQ(type->objectType.symbol->size(), 3);
 				EXPECT_EQ(type->objectType.symbol->at(0)->templateArguments()->size(), 0);
@@ -122,7 +122,7 @@ namespace locic {
 				Token::NAME,
 				Token::RTRIBRACKET
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isObjectType());
 				EXPECT_EQ(type->objectType.symbol->size(), 1);
 				EXPECT_EQ(type->objectType.symbol->at(0)->templateArguments()->size(), 1);
@@ -138,7 +138,7 @@ namespace locic {
 				Token::NAME,
 				Token::RTRIBRACKET
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isObjectType());
 				EXPECT_EQ(type->objectType.symbol->size(), 2);
 				EXPECT_EQ(type->objectType.symbol->at(0)->templateArguments()->size(), 0);
@@ -155,7 +155,7 @@ namespace locic {
 				Token::DOUBLE_COLON,
 				Token::NAME
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isObjectType());
 				EXPECT_EQ(type->objectType.symbol->size(), 2);
 				EXPECT_EQ(type->objectType.symbol->at(0)->templateArguments()->size(), 1);
@@ -168,7 +168,7 @@ namespace locic {
 				Token::CONST,
 				Token::NAME
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isConst());
 				EXPECT_TRUE(type->getConstTarget()->isObjectType());
 			});
@@ -182,7 +182,7 @@ namespace locic {
 				Token::RTRIBRACKET,
 				Token::NAME
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isConstPredicate());
 				EXPECT_EQ(type->getConstPredicate()->kind(), AST::Predicate::TRUE);
 				EXPECT_TRUE(type->getConstPredicateTarget()->isObjectType());
@@ -197,7 +197,7 @@ namespace locic {
 				Token::RTRIBRACKET,
 				Token::NAME
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isConstPredicate());
 				EXPECT_EQ(type->getConstPredicate()->kind(), AST::Predicate::FALSE);
 				EXPECT_TRUE(type->getConstPredicateTarget()->isObjectType());
@@ -214,7 +214,7 @@ namespace locic {
 				Token::RTRIBRACKET,
 				Token::NAME
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isConstPredicate());
 				EXPECT_EQ(type->getConstPredicate()->kind(), AST::Predicate::AND);
 				EXPECT_TRUE(type->getConstPredicateTarget()->isObjectType());
@@ -226,7 +226,7 @@ namespace locic {
 				Token::NAME,
 				Token::STAR
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isPointer());
 				EXPECT_TRUE(type->getPointerTarget()->isObjectType());
 			});
@@ -238,7 +238,7 @@ namespace locic {
 				Token::NAME,
 				Token::STAR
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isPointer());
 				EXPECT_TRUE(type->getPointerTarget()->isConst());
 				EXPECT_TRUE(type->getPointerTarget()->getConstTarget()->isObjectType());
@@ -250,7 +250,7 @@ namespace locic {
 				Token::NAME,
 				Token::AMPERSAND
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isReference());
 				EXPECT_TRUE(type->getReferenceTarget()->isObjectType());
 			});
@@ -262,7 +262,7 @@ namespace locic {
 				Token::NAME,
 				Token::AMPERSAND
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				EXPECT_TRUE(type->isReference());
 				EXPECT_TRUE(type->getReferenceTarget()->isConst());
 				EXPECT_TRUE(type->getReferenceTarget()->getConstTarget()->isObjectType());
@@ -276,7 +276,7 @@ namespace locic {
 				Token::NAME,
 				Token::RSQUAREBRACKET
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isStaticArray());
 				EXPECT_TRUE(type->getStaticArrayTarget()->isObjectType());
 				EXPECT_TRUE(type->getArraySize()->isSymbol());
@@ -293,7 +293,7 @@ namespace locic {
 				Token::NAME,
 				Token::RSQUAREBRACKET
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isStaticArray());
 				ASSERT_TRUE(type->getStaticArrayTarget()->isStaticArray());
 				EXPECT_TRUE(type->getStaticArrayTarget()->getStaticArrayTarget()->isObjectType());
@@ -313,7 +313,7 @@ namespace locic {
 				Token::LROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isFunction());
 				EXPECT_FALSE(type->functionIsVarArg());
 				EXPECT_TRUE(type->functionReturnType()->isObjectType());
@@ -333,7 +333,7 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isFunction());
 				EXPECT_FALSE(type->functionIsVarArg());
 				EXPECT_TRUE(type->functionReturnType()->isObjectType());
@@ -356,7 +356,7 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isFunction());
 				EXPECT_FALSE(type->functionIsVarArg());
 				EXPECT_TRUE(type->functionReturnType()->isObjectType());
@@ -382,7 +382,7 @@ namespace locic {
 				Token::DOT,
 				Token::RROUNDBRACKET
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isFunction());
 				EXPECT_TRUE(type->functionIsVarArg());
 				EXPECT_TRUE(type->functionReturnType()->isObjectType());
@@ -409,7 +409,7 @@ namespace locic {
 				Token::DOT,
 				Token::RROUNDBRACKET
 			};
-			testParseType(tokens, [](const AST::Node<AST::Type>& type) {
+			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isFunction());
 				EXPECT_TRUE(type->functionIsVarArg());
 				EXPECT_TRUE(type->functionReturnType()->isObjectType());

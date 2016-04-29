@@ -25,12 +25,12 @@ namespace locic {
 			                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TemplateTypeVar>
-			makeTemplateVar(AST::Node<AST::Type> type, String name,
+			makeTemplateVar(AST::Node<AST::TypeDecl> type, String name,
 			                const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TemplateTypeVar>
-			makeCapabilityTemplateVar(AST::Node<AST::Type> type, String name,
-			                          AST::Node<AST::Type> capabilityType,
+			makeCapabilityTemplateVar(AST::Node<AST::TypeDecl> type, String name,
+			                          AST::Node<AST::TypeDecl> capabilityType,
 			                          const Debug::SourcePosition& start);
 			
 		private:

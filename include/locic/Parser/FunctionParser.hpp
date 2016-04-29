@@ -34,7 +34,7 @@ namespace locic {
 			AST::Node<AST::Function>
 			parseNonTemplatedMethod(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type>
+			AST::Node<AST::TypeDecl>
 			parseMethodReturnType();
 			
 			bool isValidMethodNameToken(Token::Kind kind) const;

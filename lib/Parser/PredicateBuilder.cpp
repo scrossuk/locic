@@ -36,8 +36,8 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Predicate>
-		PredicateBuilder::makeTypeSpecPredicate(AST::Node<AST::Type> type,
-		                                        AST::Node<AST::Type> capabilityType,
+		PredicateBuilder::makeTypeSpecPredicate(AST::Node<AST::TypeDecl> type,
+		                                        AST::Node<AST::TypeDecl> capabilityType,
 		                                        const Debug::SourcePosition& start) {
 			return makePredicateNode(AST::Predicate::TypeSpec(std::move(type),
 			                                                  std::move(capabilityType)), start);

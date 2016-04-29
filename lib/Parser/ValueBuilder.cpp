@@ -81,8 +81,8 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeCapabilityTest(AST::Node<AST::Type> leftType,
-		                                 AST::Node<AST::Type> rightType,
+		ValueBuilder::makeCapabilityTest(AST::Node<AST::TypeDecl> leftType,
+		                                 AST::Node<AST::TypeDecl> rightType,
 		                                 const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::CapabilityTest(std::move(leftType), std::move(rightType)),
 			                     start);
@@ -152,7 +152,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeTypeValue(AST::Node<AST::Type> type,
+		ValueBuilder::makeTypeValue(AST::Node<AST::TypeDecl> type,
 		                            const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::TypeRef(std::move(type)), start);
 		}
@@ -168,14 +168,14 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeRefValue(AST::Node<AST::Type> targetType,
+		ValueBuilder::makeRefValue(AST::Node<AST::TypeDecl> targetType,
 		                           AST::Node<AST::Value> value,
 		                           const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::Ref(std::move(targetType), std::move(value)), start);
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeLvalValue(AST::Node<AST::Type> targetType,
+		ValueBuilder::makeLvalValue(AST::Node<AST::TypeDecl> targetType,
 		                            AST::Node<AST::Value> value,
 		                            const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::Lval(std::move(targetType), std::move(value)), start);
@@ -210,13 +210,13 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeAlignOfValue(AST::Node<AST::Type> operand,
+		ValueBuilder::makeAlignOfValue(AST::Node<AST::TypeDecl> operand,
 		                               const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::AlignOf(std::move(operand)), start);
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeSizeOfValue(AST::Node<AST::Type> operand,
+		ValueBuilder::makeSizeOfValue(AST::Node<AST::TypeDecl> operand,
 		                              const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::SizeOf(std::move(operand)), start);
 		}
@@ -249,8 +249,8 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeCastValue(const AST::Value::CastKind kind, AST::Node<AST::Type> fromType,
-		                            AST::Node<AST::Type> toType, AST::Node<AST::Value> value,
+		ValueBuilder::makeCastValue(const AST::Value::CastKind kind, AST::Node<AST::TypeDecl> fromType,
+		                            AST::Node<AST::TypeDecl> toType, AST::Node<AST::Value> value,
 		                            const Debug::SourcePosition& start) {
 			return makeValueNode(AST::Value::Cast(kind, std::move(fromType), std::move(toType),
 			                                      std::move(value)), start);

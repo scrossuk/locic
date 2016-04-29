@@ -20,15 +20,15 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TemplateTypeVar>
-		TemplateBuilder::makeTemplateVar(AST::Node<AST::Type> type, const String name,
+		TemplateBuilder::makeTemplateVar(AST::Node<AST::TypeDecl> type, const String name,
 		                                 const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			return AST::makeNode(location, AST::TemplateTypeVar::NoSpec(std::move(type), name));
 		}
 		
 		AST::Node<AST::TemplateTypeVar>
-		TemplateBuilder::makeCapabilityTemplateVar(AST::Node<AST::Type> type, const String name,
-		                                           AST::Node<AST::Type> capabilityType,
+		TemplateBuilder::makeCapabilityTemplateVar(AST::Node<AST::TypeDecl> type, const String name,
+		                                           AST::Node<AST::TypeDecl> capabilityType,
 		                                           const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			return AST::makeNode(location, AST::TemplateTypeVar::WithSpec(std::move(type), name,

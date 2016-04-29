@@ -25,30 +25,30 @@ namespace locic {
 			TypeParser(TokenReader& reader);
 			~TypeParser();
 			
-			AST::Node<AST::Type> parseType();
+			AST::Node<AST::TypeDecl> parseType();
 			
-			AST::Node<AST::Type> parseIndirectTypeBasedOnType(AST::Node<AST::Type> type,
+			AST::Node<AST::TypeDecl> parseIndirectTypeBasedOnType(AST::Node<AST::TypeDecl> type,
 			                                                  const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type> parseQualifiedType();
+			AST::Node<AST::TypeDecl> parseQualifiedType();
 			
-			AST::Node<AST::Type> parseConstType();
+			AST::Node<AST::TypeDecl> parseConstType();
 			
-			AST::Node<AST::Type> parseTypeWithQualifier(const Debug::SourcePosition& start,
+			AST::Node<AST::TypeDecl> parseTypeWithQualifier(const Debug::SourcePosition& start,
 			                                            Token::Kind qualifier);
 			
-			AST::Node<AST::Type> parseFunctionPointerType();
+			AST::Node<AST::TypeDecl> parseFunctionPointerType();
 			
-			AST::Node<AST::TypeList> parseTypeList();
+			AST::Node<AST::TypeDeclList> parseTypeList();
 			
-			AST::Node<AST::Type> parseBasicType();
+			AST::Node<AST::TypeDecl> parseBasicType();
 			
-			AST::Node<AST::Type> parseLongIntOrFloatType(const Debug::SourcePosition& start);
+			AST::Node<AST::TypeDecl> parseLongIntOrFloatType(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Type> parseIntegerTypeWithSignedness(const Debug::SourcePosition& start,
+			AST::Node<AST::TypeDecl> parseIntegerTypeWithSignedness(const Debug::SourcePosition& start,
 			                                                    bool isSigned);
 			
-			AST::Node<AST::Type> parseLongIntegerType(const Debug::SourcePosition& start,
+			AST::Node<AST::TypeDecl> parseLongIntegerType(const Debug::SourcePosition& start,
 			                                          bool isSigned);
 			
 			bool isTypeStartToken(Token::Kind kind);

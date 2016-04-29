@@ -2,132 +2,132 @@
 #include <vector>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Symbol.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/Value.hpp>
 
 namespace locic {
 	
 	namespace AST {
 		
-		Type::Type() : typeEnum(static_cast<TypeEnum>(-1)) { }
+		TypeDecl::TypeDecl() : typeEnum(static_cast<TypeEnum>(-1)) { }
 		
-		Type::Type(TypeEnum e) : typeEnum(e) { }
+		TypeDecl::TypeDecl(TypeEnum e) : typeEnum(e) { }
 		
-		Type* Type::Auto() {
-			return new Type(AUTO);
+		TypeDecl* TypeDecl::Auto() {
+			return new TypeDecl(AUTO);
 		}
 		
-		Type* Type::Void() {
-			return new Type(VOID);
+		TypeDecl* TypeDecl::Void() {
+			return new TypeDecl(VOID);
 		}
 		
-		Type* Type::Bool() {
-			return new Type(BOOL);
+		TypeDecl* TypeDecl::Bool() {
+			return new TypeDecl(BOOL);
 		}
 		
-		Type* Type::Const(Node<Type> targetType) {
-			Type* type = new Type(CONST);
+		TypeDecl* TypeDecl::Const(Node<TypeDecl> targetType) {
+			TypeDecl* type = new TypeDecl(CONST);
 			type->constType.targetType = std::move(targetType);
 			return type;
 		}
 		
-		Type* Type::ConstPredicate(Node<Predicate> predicate, Node<Type> targetType) {
-			Type* type = new Type(CONSTPREDICATE);
+		TypeDecl* TypeDecl::ConstPredicate(Node<Predicate> predicate, Node<TypeDecl> targetType) {
+			TypeDecl* type = new TypeDecl(CONSTPREDICATE);
 			type->constPredicateType.predicate = std::move(predicate);
 			type->constPredicateType.targetType = std::move(targetType);
 			return type;
 		}
 		
-		Type* Type::NoTag(Node<Type> targetType) {
-			Type* type = new Type(NOTAG);
+		TypeDecl* TypeDecl::NoTag(Node<TypeDecl> targetType) {
+			TypeDecl* type = new TypeDecl(NOTAG);
 			type->noTagType.targetType = std::move(targetType);
 			return type;
 		}
 		
-		Type* Type::Lval(Node<Type> targetType, Node<Type> lvalType) {
-			Type* type = new Type(LVAL);
+		TypeDecl* TypeDecl::Lval(Node<TypeDecl> targetType, Node<TypeDecl> lvalType) {
+			TypeDecl* type = new TypeDecl(LVAL);
 			type->lvalType.targetType = std::move(targetType);
 			type->lvalType.lvalType = std::move(lvalType);
 			return type;
 		}
 		
-		Type* Type::Ref(Node<Type> targetType, Node<Type> refType) {
-			Type* type = new Type(REF);
+		TypeDecl* TypeDecl::Ref(Node<TypeDecl> targetType, Node<TypeDecl> refType) {
+			TypeDecl* type = new TypeDecl(REF);
 			type->refType.targetType = std::move(targetType);
 			type->refType.refType = std::move(refType);
 			return type;
 		}
 		
-		Type* Type::StaticRef(Node<Type> targetType, Node<Type> refType) {
-			Type* type = new Type(STATICREF);
+		TypeDecl* TypeDecl::StaticRef(Node<TypeDecl> targetType, Node<TypeDecl> refType) {
+			TypeDecl* type = new TypeDecl(STATICREF);
 			type->staticRefType.targetType = std::move(targetType);
 			type->staticRefType.refType = std::move(refType);
 			return type;
 		}
 		
-		Type* Type::Integer(SignedModifier signedModifier, const String& name) {
-			Type* type = new Type(INTEGER);
+		TypeDecl* TypeDecl::Integer(SignedModifier signedModifier, const String& name) {
+			TypeDecl* type = new TypeDecl(INTEGER);
 			type->integerType.signedModifier = signedModifier;
 			type->integerType.name = name;
 			return type;
 		}
 		
-		Type* Type::Float(const String& name) {
-			Type* type = new Type(FLOAT);
+		TypeDecl* TypeDecl::Float(const String& name) {
+			TypeDecl* type = new TypeDecl(FLOAT);
 			type->floatType.name = name;
 			return type;
 		}
 		
-		Type* Type::Primitive(const PrimitiveID primitiveID) {
-			Type* type = new Type(PRIMITIVE);
+		TypeDecl* TypeDecl::Primitive(const PrimitiveID primitiveID) {
+			TypeDecl* type = new TypeDecl(PRIMITIVE);
 			type->primitiveType.primitiveID = primitiveID;
 			return type;
 		}
 		
-		Type* Type::Object(Node<Symbol> symbol) {
-			Type* type = new Type(OBJECT);
+		TypeDecl* TypeDecl::Object(Node<Symbol> symbol) {
+			TypeDecl* type = new TypeDecl(OBJECT);
 			type->objectType.symbol = std::move(symbol);
 			return type;
 		}
 		
-		Type* Type::Reference(Node<Type> targetType) {
-			Type* type = new Type(REFERENCE);
+		TypeDecl* TypeDecl::Reference(Node<TypeDecl> targetType) {
+			TypeDecl* type = new TypeDecl(REFERENCE);
 			type->referenceType.targetType = std::move(targetType);
 			return type;
 		}
 		
-		Type* Type::Pointer(Node<Type> targetType) {
-			Type* type = new Type(POINTER);
+		TypeDecl* TypeDecl::Pointer(Node<TypeDecl> targetType) {
+			TypeDecl* type = new TypeDecl(POINTER);
 			type->pointerType.targetType = std::move(targetType);
 			return type;
 		}
 		
-		Type* Type::StaticArray(Node<Type> targetType, Node<Value> arraySize) {
-			Type* type = new Type(STATICARRAY);
+		TypeDecl* TypeDecl::StaticArray(Node<TypeDecl> targetType, Node<Value> arraySize) {
+			TypeDecl* type = new TypeDecl(STATICARRAY);
 			type->staticArrayType.targetType = std::move(targetType);
 			type->staticArrayType.arraySize = std::move(arraySize);
 			return type;
 		}
 		
-		Type* Type::Function(Node<Type> returnType, Node<TypeList> parameterTypes) {
-			Type* type = new Type(FUNCTION);
+		TypeDecl* TypeDecl::Function(Node<TypeDecl> returnType, Node<TypeDeclList> parameterTypes) {
+			TypeDecl* type = new TypeDecl(FUNCTION);
 			type->functionType.isVarArg = false;
 			type->functionType.returnType = std::move(returnType);
 			type->functionType.parameterTypes = std::move(parameterTypes);
 			return type;
 		}
 		
-		Type* Type::VarArgFunction(Node<Type> returnType, Node<TypeList> parameterTypes) {
-			Type* type = new Type(FUNCTION);
+		TypeDecl* TypeDecl::VarArgFunction(Node<TypeDecl> returnType, Node<TypeDeclList> parameterTypes) {
+			TypeDecl* type = new TypeDecl(FUNCTION);
 			type->functionType.isVarArg = true;
 			type->functionType.returnType = std::move(returnType);
 			type->functionType.parameterTypes = std::move(parameterTypes);
 			return type;
 		}
 		
-		Type::~Type() { }
+		TypeDecl::~TypeDecl() { }
 		
-		std::string Type::toString() const {
+		std::string TypeDecl::toString() const {
 			switch(typeEnum) {
 				case AUTO:
 					return "auto";

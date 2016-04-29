@@ -59,8 +59,8 @@ namespace locic {
 			                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
-			makeCapabilityTest(AST::Node<AST::Type> leftType,
-			                   AST::Node<AST::Type> rightType,
+			makeCapabilityTest(AST::Node<AST::TypeDecl> leftType,
+			                   AST::Node<AST::TypeDecl> rightType,
 			                   const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
@@ -107,7 +107,7 @@ namespace locic {
 			                   const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
-			makeTypeValue(AST::Node<AST::Type> type,
+			makeTypeValue(AST::Node<AST::TypeDecl> type,
 			              const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
@@ -115,12 +115,12 @@ namespace locic {
 			                 const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
-			makeRefValue(AST::Node<AST::Type> targetType,
+			makeRefValue(AST::Node<AST::TypeDecl> targetType,
 			             AST::Node<AST::Value> value,
 			             const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
-			makeLvalValue(AST::Node<AST::Type> targetType,
+			makeLvalValue(AST::Node<AST::TypeDecl> targetType,
 			              AST::Node<AST::Value> value,
 			              const Debug::SourcePosition& start);
 			
@@ -143,11 +143,11 @@ namespace locic {
 			makeThisValue(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
-			makeAlignOfValue(AST::Node<AST::Type> operand,
+			makeAlignOfValue(AST::Node<AST::TypeDecl> operand,
 			                 const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
-			makeSizeOfValue(AST::Node<AST::Type> operand,
+			makeSizeOfValue(AST::Node<AST::TypeDecl> operand,
 			                const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
@@ -168,8 +168,8 @@ namespace locic {
 			              const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
-			makeCastValue(AST::Value::CastKind kind, AST::Node<AST::Type> fromType,
-			              AST::Node<AST::Type> toType, AST::Node<AST::Value> value,
+			makeCastValue(AST::Value::CastKind kind, AST::Node<AST::TypeDecl> fromType,
+			              AST::Node<AST::TypeDecl> toType, AST::Node<AST::Value> value,
 			              const Debug::SourcePosition& start);
 			
 		private:

@@ -2,7 +2,7 @@
 
 #include <locic/Support/String.hpp>
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/TypeVar.hpp>
 #include <locic/AST/Value.hpp>
 
@@ -12,7 +12,7 @@ namespace locic {
 	
 		typedef std::vector<Node<TypeVar>> TypeVarList;
 		
-		TypeVar* TypeVar::NamedVar(Node<Type> type, const String name) {
+		TypeVar* TypeVar::NamedVar(Node<TypeDecl> type, const String name) {
 			TypeVar* typeVar = new TypeVar(NAMEDVAR);
 			typeVar->namedVar_.isFinal = false;
 			typeVar->namedVar_.isOverrideConst = false;
@@ -22,7 +22,7 @@ namespace locic {
 			return typeVar;
 		}
 			
-		TypeVar* TypeVar::PatternVar(Node<Type> type, Node<TypeVarList> typeVarList) {
+		TypeVar* TypeVar::PatternVar(Node<TypeDecl> type, Node<TypeVarList> typeVarList) {
 			TypeVar* typeVar = new TypeVar(PATTERNVAR);
 			typeVar->patternVar_.type = std::move(type);
 			typeVar->patternVar_.typeVarList = std::move(typeVarList);
@@ -44,7 +44,7 @@ namespace locic {
 			return kind() == NAMEDVAR;
 		}
 		
-		const Node<Type>& TypeVar::namedType() const {
+		const Node<TypeDecl>& TypeVar::namedType() const {
 			assert(isNamed());
 			return namedVar_.type;
 		}
@@ -88,7 +88,7 @@ namespace locic {
 			return kind() == PATTERNVAR;
 		}
 		
-		const Node<Type>& TypeVar::patternType() const {
+		const Node<TypeDecl>& TypeVar::patternType() const {
 			assert(isPattern());
 			return patternVar_.type;
 		}

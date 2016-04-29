@@ -55,13 +55,13 @@ namespace locic {
 		
 		TypeParser::~TypeParser() { }
 		
-		AST::Node<AST::Type> TypeParser::parseType() {
+		AST::Node<AST::TypeDecl> TypeParser::parseType() {
 			const auto start = reader_.position();
 			auto type = parseQualifiedType();
 			return parseIndirectTypeBasedOnType(std::move(type), start);
 		}
 		
-		AST::Node<AST::Type> TypeParser::parseIndirectTypeBasedOnType(AST::Node<AST::Type> type,
+		AST::Node<AST::TypeDecl> TypeParser::parseIndirectTypeBasedOnType(AST::Node<AST::TypeDecl> type,
 		                                                              const Debug::SourcePosition& start) {
 			while (true) {
 				const auto token = reader_.peek();
@@ -87,7 +87,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Type> TypeParser::parseQualifiedType() {
+		AST::Node<AST::TypeDecl> TypeParser::parseQualifiedType() {
 			const auto start = reader_.position();
 			
 			const auto token = reader_.peek();
@@ -118,7 +118,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Type> TypeParser::parseConstType() {
+		AST::Node<AST::TypeDecl> TypeParser::parseConstType() {
 			const auto start = reader_.position();
 			
 			reader_.expect(Token::CONST);
@@ -136,7 +136,7 @@ namespace locic {
 			return builder_.makeConstType(std::move(targetType), start);
 		}
 		
-		AST::Node<AST::Type> TypeParser::parseTypeWithQualifier(const Debug::SourcePosition& start,
+		AST::Node<AST::TypeDecl> TypeParser::parseTypeWithQualifier(const Debug::SourcePosition& start,
 		                                                        const Token::Kind qualifier) {
 			reader_.expect(Token::LTRIBRACKET);
 			
@@ -158,7 +158,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Type> TypeParser::parseFunctionPointerType() {
+		AST::Node<AST::TypeDecl> TypeParser::parseFunctionPointerType() {
 			const auto start = reader_.position();
 			
 			reader_.expect(Token::LROUNDBRACKET);
@@ -184,10 +184,10 @@ namespace locic {
 			                                        isVarArg, start);
 		}
 		
-		AST::Node<AST::TypeList> TypeParser::parseTypeList() {
+		AST::Node<AST::TypeDeclList> TypeParser::parseTypeList() {
 			const auto start = reader_.position();
 			
-			AST::TypeList list;
+			AST::TypeDeclList list;
 			list.reserve(8);
 			
 			if (reader_.peek().kind() != Token::RROUNDBRACKET) {
@@ -208,7 +208,7 @@ namespace locic {
 			return builder_.makeTypeList(std::move(list), start);
 		}
 		
-		AST::Node<AST::Type> TypeParser::parseBasicType() {
+		AST::Node<AST::TypeDecl> TypeParser::parseBasicType() {
 			const auto start = reader_.position();
 			
 			const auto token = reader_.peek();
@@ -279,7 +279,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Type> TypeParser::parseLongIntOrFloatType(const Debug::SourcePosition& start) {
+		AST::Node<AST::TypeDecl> TypeParser::parseLongIntOrFloatType(const Debug::SourcePosition& start) {
 			switch (reader_.peek().kind()) {
 				case Token::DOUBLE:
 					reader_.consume();
@@ -290,7 +290,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Type> TypeParser::parseIntegerTypeWithSignedness(const Debug::SourcePosition& start,
+		AST::Node<AST::TypeDecl> TypeParser::parseIntegerTypeWithSignedness(const Debug::SourcePosition& start,
 		                                                                const bool isSigned) {
 			// A loop allows us to scan in any repeated 'signed' qualifiers.
 			while (true) {
@@ -341,7 +341,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Type> TypeParser::parseLongIntegerType(const Debug::SourcePosition& start,
+		AST::Node<AST::TypeDecl> TypeParser::parseLongIntegerType(const Debug::SourcePosition& start,
 		                                                      const bool isSigned) {
 			auto primitiveKind = isSigned ? PrimitiveLong : PrimitiveULong;
 			

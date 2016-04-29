@@ -4,7 +4,7 @@
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Predicate.hpp>
 #include <locic/AST/Symbol.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/Value.hpp>
 #include <locic/Support/MakeString.hpp>
 
@@ -26,7 +26,7 @@ namespace locic {
 			return predicate;
 		}
 		
-		Predicate* Predicate::TypeSpec(Node<Type>type, Node<Type>requireType) {
+		Predicate* Predicate::TypeSpec(Node<TypeDecl>type, Node<TypeDecl>requireType) {
 			Predicate* predicate = new Predicate(TYPESPEC);
 			predicate->typeSpec_.type = std::move(type);
 			predicate->typeSpec_.requireType = std::move(requireType);
@@ -66,12 +66,12 @@ namespace locic {
 			return bracket_.expr;
 		}
 		
-		const Node<Type>& Predicate::typeSpecType() const {
+		const Node<TypeDecl>& Predicate::typeSpecType() const {
 			assert(kind() == TYPESPEC);
 			return typeSpec_.type;
 		}
 		
-		const Node<Type>& Predicate::typeSpecRequireType() const {
+		const Node<TypeDecl>& Predicate::typeSpecRequireType() const {
 			assert(kind() == TYPESPEC);
 			return typeSpec_.requireType;
 		}

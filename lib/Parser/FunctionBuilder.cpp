@@ -14,7 +14,7 @@ namespace locic {
 		
 		AST::Node<AST::Function>
 		FunctionBuilder::makeFunctionDecl(bool isVarArg, bool isStatic,
-		                                  AST::Node<AST::Type> returnType, AST::Node<Name> name,
+		                                  AST::Node<AST::TypeDecl> returnType, AST::Node<Name> name,
 		                                  AST::Node<AST::TypeVarList> parameters,
 		                                  AST::Node<AST::ConstSpecifier> constSpecifier,
 		                                  AST::Node<AST::RequireSpecifier> noexceptSpecifier,
@@ -32,7 +32,7 @@ namespace locic {
 		
 		AST::Node<AST::Function>
 		FunctionBuilder::makeFunctionDef(bool isVarArg, bool isStatic,
-		                                 AST::Node<AST::Type> returnType, AST::Node<Name> name,
+		                                 AST::Node<AST::TypeDecl> returnType, AST::Node<Name> name,
 		                                 AST::Node<AST::TypeVarList> parameters,
 		                                 AST::Node<AST::ConstSpecifier> constSpecifier,
 		                                 AST::Node<AST::RequireSpecifier> noexceptSpecifier,

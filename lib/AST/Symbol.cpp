@@ -4,7 +4,7 @@
 #include <locic/Support/Name.hpp>
 
 #include <locic/AST/Symbol.hpp>
-#include <locic/AST/Type.hpp>
+#include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/Value.hpp>
 
 namespace locic {

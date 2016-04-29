@@ -23,7 +23,7 @@ namespace locic {
 			~VarBuilder();
 			
 			AST::Node<AST::TypeVar>
-			makeTypeVar(AST::Node<AST::Type> type, String name,
+			makeTypeVar(AST::Node<AST::TypeDecl> type, String name,
 			            const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeVar>
