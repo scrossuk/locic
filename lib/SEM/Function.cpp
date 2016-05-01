@@ -19,12 +19,10 @@ namespace locic {
 			AST::Node<AST::Function> createNamedASTFunction(Name name) {
 				AST::Node<Name> nameNode(Debug::SourceLocation::Null(),
 				                         new Name(Name::Relative() + name.last()));
-				AST::Node<AST::RequireSpecifier> requireSpecifierNode(Debug::SourceLocation::Null(),
-				                                                      AST::RequireSpecifier::None());
-				const auto function = AST::Function::DefaultMethodDef(std::move(nameNode),
-				                                                      std::move(requireSpecifierNode));
+				std::unique_ptr<AST::Function> function(new AST::Function());
+				function->setName(std::move(nameNode));
 				return AST::Node<AST::Function>(Debug::SourceLocation::Null(),
-				                                function);
+				                                function.release());
 			}
 			
 		}

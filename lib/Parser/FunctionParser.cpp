@@ -59,13 +59,13 @@ namespace locic {
 			auto function = parseBasicFunction(start);
 			
 			if (isPrimitive) {
-				function->setPrimitive();
+				function->setIsPrimitive(true);
 			}
 			if (isImported) {
-				function->setImport();
+				function->setIsImported(true);
 			}
 			if (isExported) {
-				function->setExport();
+				function->setIsExported(true);
 			}
 			
 			return function;

@@ -25,66 +25,55 @@ namespace locic {
 	
 	namespace AST {
 		
-		struct Function {
+		class Function {
 			public:
-				static Function* Decl(bool isVarArg, bool isStatic,
-						Node<TypeDecl> returnType, Node<Name> name, Node<TypeVarList> parameters,
-						Node<ConstSpecifier> constSpecifier,
-						Node<RequireSpecifier> noexceptSpecifier,
-						Node<RequireSpecifier> requireSpecifier);
-				
-				static Function* Def(bool isVarArg, bool isStatic,
-						Node<TypeDecl> returnType, Node<Name> name, Node<TypeVarList> parameters,
-						Node<Scope> scope,
-						Node<ConstSpecifier> constSpecifier,
-						Node<RequireSpecifier> noexceptSpecifier,
-						Node<RequireSpecifier> requireSpecifier);
-				
-				static Function* StaticDecl(Node<TypeDecl> returnType,
-				                            Node<Name> name,
-				                            Node<TypeVarList> parameters,
-				                            Node<RequireSpecifier> noexceptSpecifier,
-				                            Node<RequireSpecifier> requireSpecifier);
-				
-				static Function* StaticDef(Node<TypeDecl> returnType,
-				                           Node<Name> name,
-				                           Node<TypeVarList> parameters,
-				                           Node<Scope> scope,
-				                           Node<RequireSpecifier> noexceptSpecifier,
-				                           Node<RequireSpecifier> requireSpecifier);
-				
-				static Function* DefaultStaticMethodDef(Node<Name> name, Node<RequireSpecifier> requireSpecifier);
-				
-				static Function* DefaultMethodDef(Node<Name> name, Node<RequireSpecifier> requireSpecifier);
-				
-				static Function* Destructor(Node<Name> name, Node<Scope> scope);
+				Function();
 				
 				bool isDeclaration() const;
 				bool isDefinition() const;
+				void setIsDefinition(bool value);
+				
 				bool isDefaultDefinition() const;
+				void setIsDefaultDefinition(bool value);
 				
 				bool isStatic() const;
+				void setIsStatic(bool value);
+				
 				bool isVarArg() const;
-				bool isNoExcept() const;
+				void setIsVarArg(bool value);
+				
 				bool isImported() const;
+				void setIsImported(bool value);
+				
 				bool isExported() const;
+				void setIsExported(bool value);
+				
 				bool isPrimitive() const;
+				void setIsPrimitive(bool value);
 				
 				const Node<Name>& name() const;
+				void setName(Node<Name> name);
+				
+				const Node<TypeDecl>& returnType() const;
+				void setReturnType(Node<TypeDecl> returnType);
+				
+				const Node<TypeVarList>& parameters() const;
+				void setParameters(Node<TypeVarList> parameters);
+				
+				const Node<Scope>& scope() const;
+				void setScope(Node<Scope> scope);
+				
+				const Node<ConstSpecifier>& constSpecifier() const;
+				void setConstSpecifier(Node<ConstSpecifier> constSpecifier);
+				
+				const Node<RequireSpecifier>& noexceptSpecifier() const;
+				void setNoexceptSpecifier(Node<RequireSpecifier> noexceptSpecifier);
+				
+				const Node<RequireSpecifier>& requireSpecifier() const;
+				void setRequireSpecifier(Node<RequireSpecifier> requireSpecifier);
 				
 				const Node<TemplateTypeVarList>& templateVariables() const;
-				const Node<TypeDecl>& returnType() const;
-				const Node<TypeVarList>& parameters() const;
-				const Node<Scope>& scope() const;
-				const Node<ConstSpecifier>& constSpecifier() const;
-				const Node<RequireSpecifier>& noexceptSpecifier() const;
-				const Node<RequireSpecifier>& requireSpecifier() const;
-				
 				void setTemplateVariables(Node<TemplateTypeVarList> templateVariables);
-				void setRequireSpecifier(Node<RequireSpecifier> requireSpecifier);
-				void setImport();
-				void setExport();
-				void setPrimitive();
 				
 				void setSEMFunction(SEM::Function& function);
 				SEM::Function& semFunction();
@@ -92,8 +81,6 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				explicit Function(Node<Name> pName);
-				
 				bool isDefinition_, isDefaultDefinition_;
 				bool isVarArg_, isStatic_;
 				bool isImported_, isExported_;

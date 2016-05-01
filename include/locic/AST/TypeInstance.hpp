@@ -15,7 +15,7 @@ namespace locic {
 	
 		struct ExceptionInitializer;
 		
-		struct Function;
+		class Function;
 		typedef std::vector<Node<Function>> FunctionList;
 		
 		struct TemplateTypeVar;

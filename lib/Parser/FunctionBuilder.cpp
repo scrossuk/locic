@@ -21,13 +21,16 @@ namespace locic {
 		                                  AST::Node<AST::RequireSpecifier> requireSpecifier,
 		                                  const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			const auto function = AST::Function::Decl(isVarArg, isStatic,
-			                                          std::move(returnType), std::move(name),
-			                                          std::move(parameters),
-			                                          std::move(constSpecifier),
-			                                          std::move(noexceptSpecifier),
-			                                          std::move(requireSpecifier));
-			return AST::makeNode(location, function);
+			std::unique_ptr<AST::Function> function(new AST::Function());
+			function->setIsVarArg(isVarArg);
+			function->setIsStatic(isStatic);
+			function->setName(std::move(name));
+			function->setReturnType(std::move(returnType));
+			function->setParameters(std::move(parameters));
+			function->setConstSpecifier(std::move(constSpecifier));
+			function->setNoexceptSpecifier(std::move(noexceptSpecifier));
+			function->setRequireSpecifier(std::move(requireSpecifier));
+			return AST::makeNode(location, function.release());
 		}
 		
 		AST::Node<AST::Function>
@@ -40,13 +43,18 @@ namespace locic {
 		                                 AST::Node<AST::Scope> scope,
 		                                 const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			const auto function = AST::Function::Def(isVarArg, isStatic,
-			                                         std::move(returnType), std::move(name),
-			                                         std::move(parameters), std::move(scope),
-			                                         std::move(constSpecifier),
-			                                         std::move(noexceptSpecifier),
-			                                         std::move(requireSpecifier));
-			return AST::makeNode(location, function);
+			std::unique_ptr<AST::Function> function(new AST::Function());
+			function->setIsVarArg(isVarArg);
+			function->setIsStatic(isStatic);
+			function->setIsDefinition(true);
+			function->setName(std::move(name));
+			function->setReturnType(std::move(returnType));
+			function->setParameters(std::move(parameters));
+			function->setConstSpecifier(std::move(constSpecifier));
+			function->setNoexceptSpecifier(std::move(noexceptSpecifier));
+			function->setRequireSpecifier(std::move(requireSpecifier));
+			function->setScope(std::move(scope));
+			return AST::makeNode(location, function.release());
 			
 		}
 		
@@ -55,23 +63,27 @@ namespace locic {
 		                                   AST::Node<AST::RequireSpecifier> requireSpecifier,
 		                                   const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			if (isStatic) {
-				const auto function =
-				    AST::Function::DefaultStaticMethodDef(std::move(name), std::move(requireSpecifier));
-				return AST::makeNode(location, function);
-			} else {
-				const auto function =
-				    AST::Function::DefaultMethodDef(std::move(name), std::move(requireSpecifier));
-				return AST::makeNode(location, function);
-			}
+			std::unique_ptr<AST::Function> function(new AST::Function());
+			function->setIsStatic(isStatic);
+			function->setIsDefinition(true);
+			function->setIsDefaultDefinition(true);
+			function->setName(std::move(name));
+			function->setRequireSpecifier(std::move(requireSpecifier));
+			return AST::makeNode(location, function.release());
 		}
 		
 		AST::Node<AST::Function>
 		FunctionBuilder::makeDestructor(AST::Node<Name> name, AST::Node<AST::Scope> scope,
 		                                const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			const auto function = AST::Function::Destructor(std::move(name), std::move(scope));
-			return AST::makeNode(location, function);
+			std::unique_ptr<AST::Function> function(new AST::Function());
+			function->setName(std::move(name));
+			function->setIsDefinition(true);
+			function->setReturnType(AST::makeNode(scope.location(),
+			                                      AST::TypeDecl::Void()));
+			function->setParameters(AST::makeDefaultNode<AST::TypeVarList>());
+			function->setScope(std::move(scope));
+			return AST::makeNode(location, function.release());
 		}
 		
 		AST::Node<Name>

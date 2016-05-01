@@ -18,7 +18,7 @@ namespace locic {
 	namespace AST {
 		
 		class AliasDecl;
-		struct Function;
+		class Function;
 		struct ModuleScope;
 		class NamespaceDecl;
 		class StaticAssert;

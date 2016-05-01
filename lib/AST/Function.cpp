@@ -13,131 +13,12 @@
 namespace locic {
 
 	namespace AST {
-	
-		Function* Function::Decl(bool isVarArg, bool isStatic,
-				Node<TypeDecl> returnType, Node<Name> name,
-				Node<TypeVarList> parameters,
-				Node<ConstSpecifier> constSpecifier,
-				Node<RequireSpecifier> noexceptSpecifier,
-				Node<RequireSpecifier> requireSpecifier) {
-			Function* function = new Function(std::move(name));
-			function->isDefinition_ = false;
-			function->isDefaultDefinition_ = false;
-			function->isVarArg_ = isVarArg;
-			function->isStatic_ = isStatic;
-			function->returnType_ = std::move(returnType);
-			function->parameters_ = std::move(parameters);
-			function->scope_ = Node<Scope>();
-			function->constSpecifier_ = std::move(constSpecifier);
-			function->noexceptSpecifier_ = std::move(noexceptSpecifier);
-			function->requireSpecifier_ = std::move(requireSpecifier);
-			return function;
-		}
 		
-		Function* Function::Def(bool isVarArg, bool isStatic,
-				Node<TypeDecl> returnType, Node<Name> name,
-				Node<TypeVarList> parameters,
-				Node<Scope> scope,
-				Node<ConstSpecifier> constSpecifier,
-				Node<RequireSpecifier> noexceptSpecifier,
-				Node<RequireSpecifier> requireSpecifier) {
-			Function* function = new Function(std::move(name));
-			function->isDefinition_ = true;
-			function->isDefaultDefinition_ = false;
-			function->isVarArg_ = isVarArg;
-			function->isStatic_ = isStatic;
-			function->returnType_ = std::move(returnType);
-			function->parameters_ = std::move(parameters);
-			function->scope_ = std::move(scope);
-			function->constSpecifier_ = std::move(constSpecifier);
-			function->noexceptSpecifier_ = std::move(noexceptSpecifier);
-			function->requireSpecifier_ = std::move(requireSpecifier);
-			return function;
-		}
-		
-		Function* Function::StaticDecl(Node<TypeDecl> returnType,
-		                               Node<Name> name,
-		                               Node<TypeVarList> parameters,
-		                               Node<RequireSpecifier> noexceptSpecifier,
-		                               Node<RequireSpecifier> requireSpecifier) {
-			Function* function = new Function(std::move(name));
-			function->isDefinition_ = false;
-			function->isDefaultDefinition_ = false;
-			function->isVarArg_ = false;
-			function->isStatic_ = true;
-			function->returnType_ = std::move(returnType);
-			function->parameters_ = std::move(parameters);
-			function->noexceptSpecifier_ = std::move(noexceptSpecifier);
-			function->requireSpecifier_ = std::move(requireSpecifier);
-			return function;
-		}
-		
-		Function* Function::StaticDef(Node<TypeDecl> returnType,
-		                              Node<Name> name,
-		                              Node<TypeVarList> parameters,
-		                              Node<Scope> scope,
-		                              Node<RequireSpecifier> noexceptSpecifier,
-		                              Node<RequireSpecifier> requireSpecifier) {
-			Function* function = new Function(std::move(name));
-			function->isDefinition_ = true;
-			function->isDefaultDefinition_ = false;
-			function->isVarArg_ = false;
-			function->isStatic_ = true;
-			function->returnType_ = std::move(returnType);
-			function->parameters_ = std::move(parameters);
-			function->scope_ = std::move(scope);
-			function->noexceptSpecifier_ = std::move(noexceptSpecifier);
-			function->requireSpecifier_ = std::move(requireSpecifier);
-			return function;
-		}
-		
-		Function* Function::DefaultStaticMethodDef(Node<Name> name,
-				Node<RequireSpecifier> requireSpecifier) {
-			Function* function = new Function(std::move(name));
-			function->isDefinition_ = true;
-			function->isDefaultDefinition_ = true;
-			function->isVarArg_ = false;
-			function->isStatic_ = true;
-			function->returnType_ = Node<TypeDecl>();
-			function->parameters_ = Node<TypeVarList>();
-			function->scope_ = Node<Scope>();
-			function->requireSpecifier_ = std::move(requireSpecifier);
-			return function;
-		}
-		
-		Function* Function::DefaultMethodDef(Node<Name> name,
-				Node<RequireSpecifier> requireSpecifier) {
-			Function* function = new Function(std::move(name));
-			function->isDefinition_ = true;
-			function->isDefaultDefinition_ = true;
-			function->isVarArg_ = false;
-			function->isStatic_ = false;
-			function->returnType_ = Node<TypeDecl>();
-			function->parameters_ = Node<TypeVarList>();
-			function->scope_ = Node<Scope>();
-			function->requireSpecifier_ = std::move(requireSpecifier);
-			return function;
-		}
-		
-		Function* Function::Destructor(Node<Name> name, Node<Scope> scope) {
-			Function* function = new Function(std::move(name));
-			function->isDefinition_ = true;
-			function->isDefaultDefinition_ = false;
-			function->isVarArg_ = false;
-			function->isStatic_ = false;
-			function->returnType_ = makeNode(scope.location(), TypeDecl::Void());
-			function->parameters_ = makeDefaultNode<TypeVarList>();
-			function->scope_ = std::move(scope);
-			return function;
-		}
-		
-		Function::Function(Node<Name> pName) :
-			isDefinition_(false), isDefaultDefinition_(false),
-			isVarArg_(false), isStatic_(false),
-			isImported_(false), isExported_(false),
-			isPrimitive_(false), name_(std::move(pName)),
-			templateVariables_(makeDefaultNode<TemplateTypeVarList>()),
-			semFunction_(nullptr) { }
+		Function::Function() :
+		isDefinition_(false), isDefaultDefinition_(false), isVarArg_(false),
+		isStatic_(false), isImported_(false), isExported_(false),
+		isPrimitive_(false), templateVariables_(makeDefaultNode<TemplateTypeVarList>()),
+		semFunction_(nullptr) { }
 		
 		bool Function::isDeclaration() const {
 			return !isDefinition_;
@@ -147,36 +28,65 @@ namespace locic {
 			return isDefinition_;
 		}
 		
+		void Function::setIsDefinition(const bool value) {
+			isDefinition_ = value;
+		}
+		
 		bool Function::isDefaultDefinition() const {
-			return isDefinition() && isDefaultDefinition_;
+			return isDefaultDefinition_;
+		}
+		
+		void Function::setIsDefaultDefinition(const bool value) {
+			assert(isDefinition());
+			isDefaultDefinition_ = value;
 		}
 		
 		bool Function::isStatic() const {
 			return isStatic_;
 		}
 		
+		void Function::setIsStatic(const bool value) {
+			isStatic_ = value;
+		}
+		
 		bool Function::isVarArg() const {
 			return isVarArg_;
+		}
+		
+		void Function::setIsVarArg(const bool value) {
+			isVarArg_ = value;
 		}
 		
 		bool Function::isImported() const {
 			return isImported_;
 		}
 		
+		void Function::setIsImported(const bool value) {
+			isImported_ = value;
+		}
+		
 		bool Function::isExported() const {
 			return isExported_;
+		}
+		
+		void Function::setIsExported(const bool value) {
+			isExported_ = value;
 		}
 		
 		bool Function::isPrimitive() const {
 			return isPrimitive_;
 		}
 		
+		void Function::setIsPrimitive(const bool value) {
+			isPrimitive_ = value;
+		}
+		
 		const Node<Name>& Function::name() const {
 			return name_;
 		}
 		
-		const Node<TemplateTypeVarList>& Function::templateVariables() const {
-			return templateVariables_;
+		void Function::setName(Node<Name> pName) {
+			name_ = std::move(pName);
 		}
 		
 		const Node<TypeDecl>& Function::returnType() const {
@@ -184,9 +94,17 @@ namespace locic {
 			return returnType_;
 		}
 		
+		void Function::setReturnType(Node<TypeDecl> pReturnType) {
+			returnType_ = std::move(pReturnType);
+		}
+		
 		const Node<TypeVarList>& Function::parameters() const {
 			assert(!isDefaultDefinition());
 			return parameters_;
+		}
+		
+		void Function::setParameters(Node<TypeVarList> pParameters) {
+			parameters_ = std::move(pParameters);
 		}
 		
 		const Node<Scope>& Function::scope() const {
@@ -194,39 +112,41 @@ namespace locic {
 			return scope_;
 		}
 		
+		void Function::setScope(Node<Scope> pScope) {
+			assert(isDefinition());
+			scope_ = std::move(pScope);
+		}
+		
 		const Node<ConstSpecifier>& Function::constSpecifier() const {
 			return constSpecifier_;
+		}
+		
+		void Function::setConstSpecifier(Node<ConstSpecifier> pConstSpecifier) {
+			constSpecifier_ = std::move(pConstSpecifier);
 		}
 		
 		const Node<RequireSpecifier>& Function::noexceptSpecifier() const {
 			return noexceptSpecifier_;
 		}
 		
+		void Function::setNoexceptSpecifier(Node<RequireSpecifier> pNoexceptSpecifier) {
+			noexceptSpecifier_ = std::move(pNoexceptSpecifier);
+		}
+		
 		const Node<RequireSpecifier>& Function::requireSpecifier() const {
 			return requireSpecifier_;
 		}
 		
-		void Function::setTemplateVariables(Node<TemplateTypeVarList> pTemplateVariables) {
-			templateVariables_ = std::move(pTemplateVariables);
-		}
-		
 		void Function::setRequireSpecifier(Node<RequireSpecifier> pRequireSpecifier) {
-			if (pRequireSpecifier->isNone()) {
-				return;
-			}
 			requireSpecifier_ = std::move(pRequireSpecifier);
 		}
 		
-		void Function::setImport() {
-			isImported_ = true;
+		const Node<TemplateTypeVarList>& Function::templateVariables() const {
+			return templateVariables_;
 		}
 		
-		void Function::setExport() {
-			isExported_ = true;
-		}
-		
-		void Function::setPrimitive() {
-			isPrimitive_ = true;
+		void Function::setTemplateVariables(Node<TemplateTypeVarList> pTemplateVariables) {
+			templateVariables_ = std::move(pTemplateVariables);
 		}
 		
 		void Function::setSEMFunction(SEM::Function& function) {
