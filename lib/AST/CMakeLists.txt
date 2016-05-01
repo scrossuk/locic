@@ -8,6 +8,7 @@ add_library(locic-ast
 	RequireSpecifier.cpp
 	StaticAssert.cpp
 	Symbol.cpp
+	TemplateTypeVar.cpp
 	TypeDecl.cpp
 	TypeInstance.cpp
 	TypeVar.cpp

@@ -30,10 +30,10 @@ namespace locic {
 			
 			// Add types of template variables.
 			for (const auto& astTemplateVarNode: *(astAliasNode->templateVariables())) {
-				const auto& templateVarName = astTemplateVarNode->name;
+				const auto& templateVarName = astTemplateVarNode->name();
 				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
 				
-				const auto& astVarType = astTemplateVarNode->varType;
+				const auto& astVarType = astTemplateVarNode->type();
 				const auto semVarType = ConvertTemplateVarType(context, astVarType);
 				
 				if (!semVarType->isPrimitive()) {
@@ -50,10 +50,10 @@ namespace locic {
 			
 			// Add types of template variables.
 			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
-				const auto& templateVarName = astTemplateVarNode->name;
+				const auto& templateVarName = astTemplateVarNode->name();
 				const auto semTemplateVar = typeInstance.namedTemplateVariables().at(templateVarName);
 				
-				const auto& astVarType = astTemplateVarNode->varType;
+				const auto& astVarType = astTemplateVarNode->type();
 				const auto semVarType = ConvertTemplateVarType(context, astVarType);
 				
 				if (!semVarType->isPrimitive()) {

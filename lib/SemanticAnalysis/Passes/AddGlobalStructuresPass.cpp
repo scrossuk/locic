@@ -215,7 +215,7 @@ namespace locic {
 			// Add template variables.
 			size_t templateVarIndex = 0;
 			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
-				const auto& templateVarName = astTemplateVarNode->name;
+				const auto& templateVarName = astTemplateVarNode->name();
 				// TODO!
 				const bool isVirtual = (typeInstanceName == "ref_t");
 				const auto semTemplateVar =
@@ -358,7 +358,7 @@ namespace locic {
 				// Add template variables.
 				size_t templateVarIndex = 0;
 				for (const auto& astTemplateVarNode: *(astAliasNode->templateVariables())) {
-					const auto& templateVarName = astTemplateVarNode->name;
+					const auto& templateVarName = astTemplateVarNode->name();
 					
 					// TODO!
 					const bool isVirtual = false;

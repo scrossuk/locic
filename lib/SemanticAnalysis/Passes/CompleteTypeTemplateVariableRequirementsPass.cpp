@@ -20,16 +20,16 @@ namespace locic {
 			
 			// Add requirements specified inline for template variables.
 			for (const auto& astTemplateVarNode: *(astAliasNode->templateVariables())) {
-				const auto& templateVarName = astTemplateVarNode->name;
+				const auto& templateVarName = astTemplateVarNode->name();
 				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
 				
 				auto templateVarTypePredicate =
-					getTemplateVarTypePredicate(context, astTemplateVarNode->varType,
+					getTemplateVarTypePredicate(context, astTemplateVarNode->type(),
 					                            *semTemplateVar);
 				predicate = SEM::Predicate::And(std::move(predicate),
 				                                std::move(templateVarTypePredicate));
 				
-				const auto& astSpecType = astTemplateVarNode->specType;
+				const auto& astSpecType = astTemplateVarNode->specType();
 				
 				if (astSpecType->isVoid()) {
 					// No requirement specified.
@@ -63,16 +63,16 @@ namespace locic {
 			
 			// Add requirements specified inline for template variables.
 			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
-				const auto& templateVarName = astTemplateVarNode->name;
+				const auto& templateVarName = astTemplateVarNode->name();
 				const auto semTemplateVar = typeInstance.namedTemplateVariables().at(templateVarName);
 				
 				auto templateVarTypePredicate =
-					getTemplateVarTypePredicate(context, astTemplateVarNode->varType,
+					getTemplateVarTypePredicate(context, astTemplateVarNode->type(),
 					                            *semTemplateVar);
 				requirePredicate = SEM::Predicate::And(std::move(requirePredicate),
 				                                       std::move(templateVarTypePredicate));
 				
-				const auto& astSpecType = astTemplateVarNode->specType;
+				const auto& astSpecType = astTemplateVarNode->specType();
 				
 				if (astSpecType->isVoid()) {
 					// No requirement specified.

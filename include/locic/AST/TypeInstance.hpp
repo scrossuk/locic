@@ -18,7 +18,7 @@ namespace locic {
 		class Function;
 		typedef std::vector<Node<Function>> FunctionList;
 		
-		struct TemplateTypeVar;
+		class TemplateTypeVar;
 		typedef std::vector<Node<TemplateTypeVar>> TemplateTypeVarList;
 		
 		class TypeVar;
