@@ -24,9 +24,9 @@ namespace locic {
 			
 			TemplateInfo parseTemplate();
 			
-			AST::Node<AST::TemplateTypeVarList> parseTemplateVarList();
+			AST::Node<AST::TemplateVarList> parseTemplateVarList();
 			
-			AST::Node<AST::TemplateTypeVar> parseTemplateVar();
+			AST::Node<AST::TemplateVar> parseTemplateVar();
 			
 		private:
 			TokenReader& reader_;

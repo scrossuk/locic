@@ -5,7 +5,7 @@
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
-#include <locic/AST/TemplateTypeVar.hpp>
+#include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/Value.hpp>
 #include <locic/Support/String.hpp>
 
@@ -25,12 +25,12 @@ namespace locic {
 			~AliasDecl();
 			
 			String name() const;
-			const Node<TemplateTypeVarList>& templateVariables() const;
+			const Node<TemplateVarList>& templateVariables() const;
 			const Node<RequireSpecifier>& requireSpecifier() const;
 			const AST::Node<AST::Value>& value() const;
 			
 			void setRequireSpecifier(Node<RequireSpecifier> pRequireSpecifier);
-			void setTemplateVariables(Node<TemplateTypeVarList> pTemplateVariables);
+			void setTemplateVariables(Node<TemplateVarList> pTemplateVariables);
 			
 			void setAlias(SEM::Alias& alias);
 			
@@ -41,7 +41,7 @@ namespace locic {
 			
 		private:
 			String name_;
-			Node<TemplateTypeVarList> templateVariables_;
+			Node<TemplateVarList> templateVariables_;
 			Node<RequireSpecifier> requireSpecifier_;
 			AST::Node<AST::Value> value_;
 			SEM::Alias* alias_;

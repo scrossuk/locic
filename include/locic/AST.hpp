@@ -17,7 +17,7 @@
 #include <locic/AST/StaticAssert.hpp>
 #include <locic/AST/StringList.hpp>
 #include <locic/AST/SwitchCase.hpp>
-#include <locic/AST/TemplateTypeVar.hpp>
+#include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/TypeVar.hpp>

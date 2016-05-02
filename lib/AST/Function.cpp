@@ -17,7 +17,7 @@ namespace locic {
 		Function::Function() :
 		isDefinition_(false), isDefaultDefinition_(false), isVarArg_(false),
 		isStatic_(false), isImported_(false), isExported_(false),
-		isPrimitive_(false), templateVariables_(makeDefaultNode<TemplateTypeVarList>()),
+		isPrimitive_(false), templateVariables_(makeDefaultNode<TemplateVarList>()),
 		semFunction_(nullptr) { }
 		
 		bool Function::isDeclaration() const {
@@ -141,11 +141,11 @@ namespace locic {
 			requireSpecifier_ = std::move(pRequireSpecifier);
 		}
 		
-		const Node<TemplateTypeVarList>& Function::templateVariables() const {
+		const Node<TemplateVarList>& Function::templateVariables() const {
 			return templateVariables_;
 		}
 		
-		void Function::setTemplateVariables(Node<TemplateTypeVarList> pTemplateVariables) {
+		void Function::setTemplateVariables(Node<TemplateVarList> pTemplateVariables) {
 			templateVariables_ = std::move(pTemplateVariables);
 		}
 		

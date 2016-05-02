@@ -49,11 +49,11 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::TemplateTypeVarList>
+		AST::Node<AST::TemplateVarList>
 		TemplateParser::parseTemplateVarList() {
 			const auto start = reader_.position();
 			
-			AST::TemplateTypeVarList varList;
+			AST::TemplateVarList varList;
 			varList.reserve(8);
 			
 			if (reader_.peek().kind() != Token::RTRIBRACKET) {
@@ -72,7 +72,7 @@ namespace locic {
 			return builder_.makeTemplateVarList(std::move(varList), start);
 		}
 		
-		AST::Node<AST::TemplateTypeVar>
+		AST::Node<AST::TemplateVar>
 		TemplateParser::parseTemplateVar() {
 			const auto start = reader_.position();
 			

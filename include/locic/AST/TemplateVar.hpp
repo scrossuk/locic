@@ -1,5 +1,5 @@
-#ifndef LOCIC_AST_TEMPLATETYPEVAR_HPP
-#define LOCIC_AST_TEMPLATETYPEVAR_HPP
+#ifndef LOCIC_AST_TEMPLATEVAR_HPP
+#define LOCIC_AST_TEMPLATEVAR_HPP
 
 #include <string>
 
@@ -11,16 +11,16 @@ namespace locic {
 
 	namespace AST {
 	
-		class TemplateTypeVar {
+		class TemplateVar {
 		public:
-			static TemplateTypeVar*
+			static TemplateVar*
 			NoSpec(Node<TypeDecl> varType, const String& name);
 			
-			static TemplateTypeVar*
+			static TemplateVar*
 			WithSpec(Node<TypeDecl> varType, const String& name,
 			         Node<TypeDecl> specType);
 			
-			TemplateTypeVar();
+			TemplateVar();
 			
 			String name() const;
 			
@@ -43,7 +43,7 @@ namespace locic {
 			
 		};
 		
-		typedef std::vector<Node<TemplateTypeVar>> TemplateTypeVarList;
+		typedef std::vector<Node<TemplateVar>> TemplateVarList;
 		
 	}
 	

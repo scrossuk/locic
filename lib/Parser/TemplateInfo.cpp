@@ -9,7 +9,7 @@ namespace locic {
 		TemplateInfo::TemplateInfo() { }
 		TemplateInfo::~TemplateInfo() { }
 		
-		const AST::Node<AST::TemplateTypeVarList>&
+		const AST::Node<AST::TemplateVarList>&
 		TemplateInfo::templateVariables() const {
 			return *templateVariables_;
 		}
@@ -29,7 +29,7 @@ namespace locic {
 			return *noTagSet_;
 		}
 		
-		AST::Node<AST::TemplateTypeVarList>
+		AST::Node<AST::TemplateVarList>
 		TemplateInfo::extractTemplateVariables() {
 			return std::move(*templateVariables_);
 		}
@@ -61,7 +61,7 @@ namespace locic {
 			return noTagSet_;
 		}
 		
-		void TemplateInfo::setTemplateVariables(AST::Node<AST::TemplateTypeVarList> newTemplateVariables) {
+		void TemplateInfo::setTemplateVariables(AST::Node<AST::TemplateVarList> newTemplateVariables) {
 			templateVariables_ = std::move(newTemplateVariables);
 		}
 		

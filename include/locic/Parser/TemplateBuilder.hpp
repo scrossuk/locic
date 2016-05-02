@@ -20,15 +20,15 @@ namespace locic {
 			TemplateBuilder(const TokenReader& reader);
 			~TemplateBuilder();
 			
-			AST::Node<AST::TemplateTypeVarList>
-			makeTemplateVarList(AST::TemplateTypeVarList templateVarList,
+			AST::Node<AST::TemplateVarList>
+			makeTemplateVarList(AST::TemplateVarList templateVarList,
 			                    const Debug::SourcePosition& start);
 			
-			AST::Node<AST::TemplateTypeVar>
+			AST::Node<AST::TemplateVar>
 			makeTemplateVar(AST::Node<AST::TypeDecl> type, String name,
 			                const Debug::SourcePosition& start);
 			
-			AST::Node<AST::TemplateTypeVar>
+			AST::Node<AST::TemplateVar>
 			makeCapabilityTemplateVar(AST::Node<AST::TypeDecl> type, String name,
 			                          AST::Node<AST::TypeDecl> capabilityType,
 			                          const Debug::SourcePosition& start);

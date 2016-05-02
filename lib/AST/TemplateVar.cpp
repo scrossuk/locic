@@ -2,7 +2,7 @@
 
 #include <locic/Support/String.hpp>
 #include <locic/AST/Node.hpp>
-#include <locic/AST/TemplateTypeVar.hpp>
+#include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/Value.hpp>
 
@@ -10,9 +10,9 @@ namespace locic {
 	
 	namespace AST {
 		
-		TemplateTypeVar*
-		TemplateTypeVar::NoSpec(Node<TypeDecl> pType, const String& pName) {
-			TemplateTypeVar* typeVar = new TemplateTypeVar();
+		TemplateVar*
+		TemplateVar::NoSpec(Node<TypeDecl> pType, const String& pName) {
+			TemplateVar* typeVar = new TemplateVar();
 			typeVar->type_ = std::move(pType);
 			typeVar->name_ = pName;
 			typeVar->specType_ = makeNode(Debug::SourceLocation::Null(),
@@ -20,51 +20,51 @@ namespace locic {
 			return typeVar;
 		}
 		
-		TemplateTypeVar*
-		TemplateTypeVar::WithSpec(Node<TypeDecl> pType, const String& pName,
+		TemplateVar*
+		TemplateVar::WithSpec(Node<TypeDecl> pType, const String& pName,
 		                          Node<TypeDecl> pSpecType) {
 			assert(!pSpecType.isNull());
-			TemplateTypeVar* typeVar = new TemplateTypeVar();
+			TemplateVar* typeVar = new TemplateVar();
 			typeVar->type_ = std::move(pType);
 			typeVar->name_ = pName;
 			typeVar->specType_ = std::move(pSpecType);
 			return typeVar;
 		}
 		
-		TemplateTypeVar::TemplateTypeVar()
+		TemplateVar::TemplateVar()
 		: index_(-1) { }
 		
-		String TemplateTypeVar::name() const {
+		String TemplateVar::name() const {
 			return name_;
 		}
 		
-		Node<TypeDecl>& TemplateTypeVar::type() {
+		Node<TypeDecl>& TemplateVar::type() {
 			return type_;
 		}
 		
-		const Node<TypeDecl>& TemplateTypeVar::type() const {
+		const Node<TypeDecl>& TemplateVar::type() const {
 			return type_;
 		}
 		
-		Node<TypeDecl>& TemplateTypeVar::specType() {
+		Node<TypeDecl>& TemplateVar::specType() {
 			return specType_;
 		}
 		
-		const Node<TypeDecl>& TemplateTypeVar::specType() const {
+		const Node<TypeDecl>& TemplateVar::specType() const {
 			return specType_;
 		}
 		
-		size_t TemplateTypeVar::index() const {
+		size_t TemplateVar::index() const {
 			return index_;
 		}
 		
-		void TemplateTypeVar::setIndex(const size_t pIndex) {
+		void TemplateVar::setIndex(const size_t pIndex) {
 			assert(index() == (size_t)-1);
 			index_ = pIndex;
 		}
 		
-		std::string TemplateTypeVar::toString() const {
-			return makeString("TemplateTypeVar(type = %s, name = %s, specType = %s)",
+		std::string TemplateVar::toString() const {
+			return makeString("TemplateVar(type = %s, name = %s, specType = %s)",
 			                  type().toString().c_str(), name().c_str(),
 			                  specType().toString().c_str());
 		}

@@ -11,7 +11,7 @@
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Symbol.hpp>
-#include <locic/AST/TemplateTypeVar.hpp>
+#include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/TypeVar.hpp>
 
@@ -72,8 +72,8 @@ namespace locic {
 				const Node<RequireSpecifier>& requireSpecifier() const;
 				void setRequireSpecifier(Node<RequireSpecifier> requireSpecifier);
 				
-				const Node<TemplateTypeVarList>& templateVariables() const;
-				void setTemplateVariables(Node<TemplateTypeVarList> templateVariables);
+				const Node<TemplateVarList>& templateVariables() const;
+				void setTemplateVariables(Node<TemplateVarList> templateVariables);
 				
 				void setSEMFunction(SEM::Function& function);
 				SEM::Function& semFunction();
@@ -87,7 +87,7 @@ namespace locic {
 				bool isPrimitive_;
 				
 				Node<Name> name_;
-				Node<TemplateTypeVarList> templateVariables_;
+				Node<TemplateVarList> templateVariables_;
 				Node<TypeDecl> returnType_;
 				Node<TypeVarList> parameters_;
 				Node<Scope> scope_;

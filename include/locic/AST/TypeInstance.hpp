@@ -18,8 +18,8 @@ namespace locic {
 		class Function;
 		typedef std::vector<Node<Function>> FunctionList;
 		
-		class TemplateTypeVar;
-		typedef std::vector<Node<TemplateTypeVar>> TemplateTypeVarList;
+		class TemplateVar;
+		typedef std::vector<Node<TemplateVar>> TemplateVarList;
 		
 		class TypeVar;
 		typedef std::vector<Node<TypeVar>> TypeVarList;
@@ -44,7 +44,7 @@ namespace locic {
 			
 			String name;
 			Node<StringList> constructors;
-			Node<TemplateTypeVarList> templateVariables;
+			Node<TemplateVarList> templateVariables;
 			Node<TypeInstanceList> variants;
 			Node<TypeVarList> variables;
 			Node<FunctionList> functions;
@@ -80,7 +80,7 @@ namespace locic {
 				
 				void setMoveSpecifier(Node<RequireSpecifier> pMoveSpecifier);
 				void setRequireSpecifier(Node<RequireSpecifier> pRequireSpecifier);
-				void setTemplateVariables(Node<TemplateTypeVarList> pTemplateVariables);
+				void setTemplateVariables(Node<TemplateVarList> pTemplateVariables);
 				void setNoTagSet(Node<StringList> pNoTagSet);
 				
 				std::string toString() const;

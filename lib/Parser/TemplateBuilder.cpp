@@ -12,26 +12,26 @@ namespace locic {
 		
 		TemplateBuilder::~TemplateBuilder() { }
 		
-		AST::Node<AST::TemplateTypeVarList>
-		TemplateBuilder::makeTemplateVarList(AST::TemplateTypeVarList templateVarList,
+		AST::Node<AST::TemplateVarList>
+		TemplateBuilder::makeTemplateVarList(AST::TemplateVarList templateVarList,
 		                                     const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::TemplateTypeVarList(std::move(templateVarList)));
+			return AST::makeNode(location, new AST::TemplateVarList(std::move(templateVarList)));
 		}
 		
-		AST::Node<AST::TemplateTypeVar>
+		AST::Node<AST::TemplateVar>
 		TemplateBuilder::makeTemplateVar(AST::Node<AST::TypeDecl> type, const String name,
 		                                 const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::TemplateTypeVar::NoSpec(std::move(type), name));
+			return AST::makeNode(location, AST::TemplateVar::NoSpec(std::move(type), name));
 		}
 		
-		AST::Node<AST::TemplateTypeVar>
+		AST::Node<AST::TemplateVar>
 		TemplateBuilder::makeCapabilityTemplateVar(AST::Node<AST::TypeDecl> type, const String name,
 		                                           AST::Node<AST::TypeDecl> capabilityType,
 		                                           const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::TemplateTypeVar::WithSpec(std::move(type), name,
+			return AST::makeNode(location, AST::TemplateVar::WithSpec(std::move(type), name,
 			                                                              std::move(capabilityType)));
 		}
 		

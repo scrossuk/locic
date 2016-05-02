@@ -8,7 +8,7 @@
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/StringList.hpp>
-#include <locic/AST/TemplateTypeVar.hpp>
+#include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/TypeVar.hpp>
 
@@ -17,7 +17,7 @@ namespace locic {
 	namespace AST {
 	
 		TypeInstance::TypeInstance(Kind k, const String& n, Node<TypeVarList> v, Node<FunctionList> f)
-		: kind(k), name(n), templateVariables(makeDefaultNode<TemplateTypeVarList>()),
+		: kind(k), name(n), templateVariables(makeDefaultNode<TemplateVarList>()),
 		  variants(makeDefaultNode<TypeInstanceList>()),
 		  variables(std::move(v)), functions(std::move(f)),
 		  moveSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
@@ -83,7 +83,7 @@ namespace locic {
 			requireSpecifier = std::move(pRequireSpecifier);
 		}
 		
-		void TypeInstance::setTemplateVariables(Node<TemplateTypeVarList> pTemplateVariables) {
+		void TypeInstance::setTemplateVariables(Node<TemplateVarList> pTemplateVariables) {
 			templateVariables = std::move(pTemplateVariables);
 		}
 		

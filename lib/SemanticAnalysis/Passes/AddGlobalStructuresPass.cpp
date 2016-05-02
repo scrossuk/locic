@@ -11,7 +11,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		Debug::TemplateVarInfo makeTemplateVarInfo(const AST::Node<AST::TemplateTypeVar>& astTemplateVarNode) {
+		Debug::TemplateVarInfo makeTemplateVarInfo(const AST::Node<AST::TemplateVar>& astTemplateVarNode) {
 			Debug::TemplateVarInfo templateVarInfo;
 			templateVarInfo.declLocation = astTemplateVarNode.location();
 			
