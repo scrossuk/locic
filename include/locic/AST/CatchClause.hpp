@@ -10,13 +10,13 @@ namespace locic {
 	namespace AST {
 	
 		struct Scope;
-		class TypeVar;
+		class Var;
 		
 		struct CatchClause {
-			Node<TypeVar> var;
+			Node<Var> var;
 			Node<Scope> scope;
 			
-			inline CatchClause(Node<TypeVar> pVar, Node<Scope> pScope)
+			inline CatchClause(Node<Var> pVar, Node<Scope> pScope)
 			: var(std::move(pVar)), scope(std::move(pScope)) { }
 		};
 		

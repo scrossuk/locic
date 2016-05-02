@@ -17,16 +17,16 @@ namespace locic {
 		
 		class Context;
 		
-		Debug::VarInfo makeVarInfo(Debug::VarInfo::Kind kind, const AST::Node<AST::TypeVar>& astTypeVarNode);
+		Debug::VarInfo makeVarInfo(Debug::VarInfo::Kind kind, const AST::Node<AST::Var>& astVarNode);
 		
-		void attachVar(Context& context, const String& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var& var, Debug::VarInfo::Kind varKind);
+		void attachVar(Context& context, const String& name, const AST::Node<AST::Var>& astVarNode, SEM::Var& var, Debug::VarInfo::Kind varKind);
 		
-		const SEM::Type* getVarType(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType);
+		const SEM::Type* getVarType(Context& context, const AST::Node<AST::Var>& astVarNode, const SEM::Type* initialiseType);
 		
-		std::unique_ptr<SEM::Var> ConvertVar(Context& context, Debug::VarInfo::Kind varKind, const AST::Node<AST::TypeVar>& typeVar);
+		std::unique_ptr<SEM::Var> ConvertVar(Context& context, Debug::VarInfo::Kind varKind, const AST::Node<AST::Var>& typeVar);
 		
 		// Note that this function assumes that the variable is a local variable.
-		std::unique_ptr<SEM::Var> ConvertInitialisedVar(Context& context, const AST::Node<AST::TypeVar>& typeVar, const SEM::Type* initialiseType);
+		std::unique_ptr<SEM::Var> ConvertInitialisedVar(Context& context, const AST::Node<AST::Var>& typeVar, const SEM::Type* initialiseType);
 		
 	}
 	

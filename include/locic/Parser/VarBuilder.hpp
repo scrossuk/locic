@@ -22,20 +22,20 @@ namespace locic {
 			VarBuilder(const TokenReader& reader);
 			~VarBuilder();
 			
-			AST::Node<AST::TypeVar>
-			makeTypeVar(AST::Node<AST::TypeDecl> type, String name,
+			AST::Node<AST::Var>
+			makeVar(AST::Node<AST::TypeDecl> type, String name,
 			            const Debug::SourcePosition& start);
 			
-			AST::Node<AST::TypeVar>
+			AST::Node<AST::Var>
 			makePatternVar(AST::Node<AST::Symbol> symbol,
-			               AST::Node<AST::TypeVarList> typeVarList,
+			               AST::Node<AST::VarList> typeVarList,
 			               const Debug::SourcePosition& start);
 			
-			AST::Node<AST::TypeVar>
+			AST::Node<AST::Var>
 			makeAnyVar(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::TypeVarList>
-			makeTypeVarList(AST::TypeVarList typeVarList,
+			AST::Node<AST::VarList>
+			makeVarList(AST::VarList typeVarList,
 			                const Debug::SourcePosition& start);
 			
 		private:

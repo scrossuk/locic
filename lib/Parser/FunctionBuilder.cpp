@@ -15,7 +15,7 @@ namespace locic {
 		AST::Node<AST::Function>
 		FunctionBuilder::makeFunctionDecl(bool isVarArg, bool isStatic,
 		                                  AST::Node<AST::TypeDecl> returnType, AST::Node<Name> name,
-		                                  AST::Node<AST::TypeVarList> parameters,
+		                                  AST::Node<AST::VarList> parameters,
 		                                  AST::Node<AST::ConstSpecifier> constSpecifier,
 		                                  AST::Node<AST::RequireSpecifier> noexceptSpecifier,
 		                                  AST::Node<AST::RequireSpecifier> requireSpecifier,
@@ -36,7 +36,7 @@ namespace locic {
 		AST::Node<AST::Function>
 		FunctionBuilder::makeFunctionDef(bool isVarArg, bool isStatic,
 		                                 AST::Node<AST::TypeDecl> returnType, AST::Node<Name> name,
-		                                 AST::Node<AST::TypeVarList> parameters,
+		                                 AST::Node<AST::VarList> parameters,
 		                                 AST::Node<AST::ConstSpecifier> constSpecifier,
 		                                 AST::Node<AST::RequireSpecifier> noexceptSpecifier,
 		                                 AST::Node<AST::RequireSpecifier> requireSpecifier,
@@ -81,7 +81,7 @@ namespace locic {
 			function->setIsDefinition(true);
 			function->setReturnType(AST::makeNode(scope.location(),
 			                                      AST::TypeDecl::Void()));
-			function->setParameters(AST::makeDefaultNode<AST::TypeVarList>());
+			function->setParameters(AST::makeDefaultNode<AST::VarList>());
 			function->setScope(std::move(scope));
 			return AST::makeNode(location, function.release());
 		}

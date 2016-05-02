@@ -27,7 +27,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeInstance>
-		TypeInstanceBuilder::makeClassDef(String name, AST::Node<AST::TypeVarList> variables,
+		TypeInstanceBuilder::makeClassDef(String name, AST::Node<AST::VarList> variables,
 		                                  AST::Node<AST::FunctionList> methods,
 		                                  const Debug::SourcePosition& start) {
 			return makeTypeInstanceNode(AST::TypeInstance::ClassDef(name, std::move(variables),
@@ -35,7 +35,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeInstance>
-		TypeInstanceBuilder::makeDatatype(String name, AST::Node<AST::TypeVarList> variables,
+		TypeInstanceBuilder::makeDatatype(String name, AST::Node<AST::VarList> variables,
 		                                  const Debug::SourcePosition& start) {
 			return makeTypeInstanceNode(AST::TypeInstance::Datatype(name, std::move(variables)), start);
 		}
@@ -67,7 +67,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeInstance>
-		TypeInstanceBuilder::makeException(String name, AST::Node<AST::TypeVarList> variables,
+		TypeInstanceBuilder::makeException(String name, AST::Node<AST::VarList> variables,
 		                                   AST::Node<AST::ExceptionInitializer> initializer,
 		                                   const Debug::SourcePosition& start) {
 			return makeTypeInstanceNode(AST::TypeInstance::Exception(name, std::move(variables),
@@ -106,13 +106,13 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeInstance>
-		TypeInstanceBuilder::makeStruct(String name, AST::Node<AST::TypeVarList> variables,
+		TypeInstanceBuilder::makeStruct(String name, AST::Node<AST::VarList> variables,
 		                                const Debug::SourcePosition& start) {
 			return makeTypeInstanceNode(AST::TypeInstance::Struct(name, std::move(variables)), start);
 		}
 		
 		AST::Node<AST::TypeInstance>
-		TypeInstanceBuilder::makeUnion(String name, AST::Node<AST::TypeVarList> variables,
+		TypeInstanceBuilder::makeUnion(String name, AST::Node<AST::VarList> variables,
 		                               const Debug::SourcePosition& start) {
 			return makeTypeInstanceNode(AST::TypeInstance::Union(name, std::move(variables)), start);
 		}

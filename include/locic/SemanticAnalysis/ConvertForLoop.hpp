@@ -11,7 +11,7 @@ namespace locic {
 	
 		std::unique_ptr<SEM::Scope> ConvertForLoop(
 			Context& context,
-			const AST::Node<AST::TypeVar>& astTypeVarNode,
+			const AST::Node<AST::Var>& astVarNode,
 			const AST::Node<AST::Value>& astInitValueNode,
 			const AST::Node<AST::Scope>& astScopeNode
 		);

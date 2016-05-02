@@ -10,13 +10,13 @@ namespace locic {
 	namespace AST {
 	
 		struct Scope;
-		class TypeVar;
+		class Var;
 		
 		struct SwitchCase {
-			Node<TypeVar> var;
+			Node<Var> var;
 			Node<Scope> scope;
 			
-			SwitchCase(Node<TypeVar> pVar, Node<Scope> pScope)
+			SwitchCase(Node<Var> pVar, Node<Scope> pScope)
 			: var(std::move(pVar)), scope(std::move(pScope)) { }
 		};
 		

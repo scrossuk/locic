@@ -291,7 +291,7 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
-				EXPECT_EQ(statement->varDeclVar()->typeVarList()->size(), 0);
+				EXPECT_EQ(statement->varDeclVar()->varList()->size(), 0);
 			});
 		}
 		
@@ -310,8 +310,8 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
-				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 1);
-				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isNamed());
+				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 1);
+				EXPECT_TRUE(statement->varDeclVar()->varList()->at(0)->isNamed());
 			});
 		}
 		
@@ -333,9 +333,9 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
-				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 2);
-				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isNamed());
-				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(1)->isNamed());
+				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 2);
+				EXPECT_TRUE(statement->varDeclVar()->varList()->at(0)->isNamed());
+				EXPECT_TRUE(statement->varDeclVar()->varList()->at(1)->isNamed());
 			});
 		}
 		
@@ -353,8 +353,8 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
-				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 1);
-				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isAny());
+				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 1);
+				EXPECT_TRUE(statement->varDeclVar()->varList()->at(0)->isAny());
 			});
 		}
 		
@@ -375,9 +375,9 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
-				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 2);
-				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isNamed());
-				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(1)->isAny());
+				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 2);
+				EXPECT_TRUE(statement->varDeclVar()->varList()->at(0)->isNamed());
+				EXPECT_TRUE(statement->varDeclVar()->varList()->at(1)->isAny());
 			});
 		}
 		
@@ -395,8 +395,8 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
-				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 1);
-				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isAny());
+				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 1);
+				EXPECT_TRUE(statement->varDeclVar()->varList()->at(0)->isAny());
 			});
 		}
 		
@@ -416,9 +416,9 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
-				ASSERT_EQ(statement->varDeclVar()->typeVarList()->size(), 2);
-				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(0)->isAny());
-				EXPECT_TRUE(statement->varDeclVar()->typeVarList()->at(1)->isAny());
+				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 2);
+				EXPECT_TRUE(statement->varDeclVar()->varList()->at(0)->isAny());
+				EXPECT_TRUE(statement->varDeclVar()->varList()->at(1)->isAny());
 			});
 		}
 		

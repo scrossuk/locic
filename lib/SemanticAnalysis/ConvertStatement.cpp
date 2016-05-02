@@ -629,19 +629,19 @@ namespace locic {
 					return SEM::Statement::ScopeExit(scopeExitState, std::move(scopeExitScope));
 				}
 				case AST::Statement::VARDECL: {
-					const auto& astTypeVarNode = statement->varDecl.typeVar;
+					const auto& astVarNode = statement->varDecl.typeVar;
 					const auto& astInitialValueNode = statement->varDecl.value;
 					
 					auto semValue = ConvertValue(context, astInitialValueNode);
 					
-					const auto varDeclType = getVarType(context, astTypeVarNode, semValue.type());
+					const auto varDeclType = getVarType(context, astVarNode, semValue.type());
 					
 					// Cast the initialise value to the variable's type.
 					auto semInitialiseValue = ImplicitCast(context, std::move(semValue), varDeclType, location);
 					
 					// Convert the AST type var.
 					const auto varType = semInitialiseValue.type();
-					auto semVar = ConvertInitialisedVar(context, astTypeVarNode, varType);
+					auto semVar = ConvertInitialisedVar(context, astVarNode, varType);
 					assert(!semVar->isAny());
 					
 					// Add the variable to the SEM scope.

@@ -45,16 +45,16 @@ namespace locic {
 				return parameters;
 			}
 			
-			void attachParameters(SEM::Function& function, const AST::Node<AST::TypeVarList>& astParametersNode,
+			void attachParameters(SEM::Function& function, const AST::Node<AST::VarList>& astParametersNode,
 			                      const std::vector<SEM::Var*>& semParameters) {
 				assert(astParametersNode->size() == semParameters.size());
 				
 				for (size_t i = 0; i < astParametersNode->size(); i++) {
-					const auto& astTypeVarNode = astParametersNode->at(i);
+					const auto& astVarNode = astParametersNode->at(i);
 					const auto& semVar = semParameters.at(i);
-					assert(astTypeVarNode->isNamed());
+					assert(astVarNode->isNamed());
 					
-					const auto& varName = astTypeVarNode->name();
+					const auto& varName = astVarNode->name();
 					
 					// It doesn't matter if this fails to insert the variable as we
 					// will have already issued an error to the user.

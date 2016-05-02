@@ -29,12 +29,12 @@ namespace locic {
 			              const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstance>
-			makeClassDef(String name, AST::Node<AST::TypeVarList> variables,
+			makeClassDef(String name, AST::Node<AST::VarList> variables,
 			             AST::Node<AST::FunctionList> methods,
 			             const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstance>
-			makeDatatype(String name, AST::Node<AST::TypeVarList> variables,
+			makeDatatype(String name, AST::Node<AST::VarList> variables,
 			             const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstance>
@@ -54,7 +54,7 @@ namespace locic {
 			               const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstance>
-			makeException(String name, AST::Node<AST::TypeVarList> variables,
+			makeException(String name, AST::Node<AST::VarList> variables,
 			              AST::Node<AST::ExceptionInitializer> initializer,
 			              const Debug::SourcePosition& start);
 			
@@ -78,11 +78,11 @@ namespace locic {
 			makeOpaqueStruct(String name, const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstance>
-			makeStruct(String name, AST::Node<AST::TypeVarList> variables,
+			makeStruct(String name, AST::Node<AST::VarList> variables,
 			           const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstance>
-			makeUnion(String name, AST::Node<AST::TypeVarList> variables,
+			makeUnion(String name, AST::Node<AST::VarList> variables,
 			          const Debug::SourcePosition& start);
 			
 			AST::Node<AST::FunctionList>

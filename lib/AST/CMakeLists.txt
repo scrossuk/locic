@@ -13,7 +13,7 @@ add_library(locic-ast
 	TemplateVar.cpp
 	TypeDecl.cpp
 	TypeInstance.cpp
-	TypeVar.cpp
 	Value.cpp
+	Var.cpp
 )
 

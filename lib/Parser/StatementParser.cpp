@@ -417,7 +417,7 @@ namespace locic {
 					// This is actually a var decl.
 					auto type = ValueParser(reader_).interpretValueAsType(std::move(value));
 					const auto name = reader_.expectName();
-					auto var = VarBuilder(reader_).makeTypeVar(std::move(type), name, start);
+					auto var = VarBuilder(reader_).makeVar(std::move(type), name, start);
 					reader_.expect(Token::SETEQUAL);
 					auto rvalue = ValueParser(reader_).parseValue();
 					reader_.expect(Token::SEMICOLON);

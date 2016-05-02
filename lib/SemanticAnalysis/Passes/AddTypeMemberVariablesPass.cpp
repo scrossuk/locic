@@ -119,13 +119,13 @@ namespace locic {
 				}
 			}
 			
-			for (const auto& astTypeVarNode: *(astTypeInstanceNode->variables)) {
-				if (!astTypeVarNode->isNamed()) {
+			for (const auto& astVarNode: *(astTypeInstanceNode->variables)) {
+				if (!astVarNode->isNamed()) {
 					context.issueDiag(PatternMemberVarsNotSupportedDiag(),
-					                  astTypeVarNode.location());
+					                  astVarNode.location());
 				}
 				
-				auto var = ConvertVar(context, Debug::VarInfo::VAR_MEMBER, astTypeVarNode);
+				auto var = ConvertVar(context, Debug::VarInfo::VAR_MEMBER, astVarNode);
 				semTypeInstance.attachVariable(std::move(var));
 			}
 			

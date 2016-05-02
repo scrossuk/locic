@@ -56,7 +56,7 @@ namespace locic {
 			                   const Debug::SourcePosition& start);
 			
 			AST::Node<AST::SwitchCase>
-			makeSwitchCase(AST::Node<AST::TypeVar> var,
+			makeSwitchCase(AST::Node<AST::Var> var,
 			               AST::Node<AST::Scope> scope,
 			               const Debug::SourcePosition& start);
 			
@@ -73,7 +73,7 @@ namespace locic {
 			                   const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeForStatement(AST::Node<AST::TypeVar> var,
+			makeForStatement(AST::Node<AST::Var> var,
 			                 AST::Node<AST::Value> value,
 			                 AST::Node<AST::Scope> scope,
 			                 const Debug::SourcePosition& start);
@@ -88,7 +88,7 @@ namespace locic {
 			                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::CatchClause>
-			makeCatchClause(AST::Node<AST::TypeVar> var,
+			makeCatchClause(AST::Node<AST::Var> var,
 			                AST::Node<AST::Scope> scope,
 			                const Debug::SourcePosition& start);
 			
@@ -105,7 +105,7 @@ namespace locic {
 			                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeVarDeclStatement(AST::Node<AST::TypeVar> var,
+			makeVarDeclStatement(AST::Node<AST::Var> var,
 			                     AST::Node<AST::Value> value,
 			                     const Debug::SourcePosition& start);
 			

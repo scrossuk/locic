@@ -15,10 +15,10 @@ namespace locic {
 		
 		VarParser::~VarParser() { }
 		
-		AST::Node<AST::TypeVarList> VarParser::parseVarList() {
+		AST::Node<AST::VarList> VarParser::parseVarList() {
 			const auto start = reader_.position();
 			
-			AST::TypeVarList typeVarList;
+			AST::VarList typeVarList;
 			typeVarList.reserve(8);
 			
 			if (reader_.peek().kind() != Token::RROUNDBRACKET) {
@@ -41,13 +41,13 @@ namespace locic {
 				}
 			}
 			
-			return builder_.makeTypeVarList(std::move(typeVarList), start);
+			return builder_.makeVarList(std::move(typeVarList), start);
 		}
 		
-		AST::Node<AST::TypeVarList> VarParser::parseCStyleVarList() {
+		AST::Node<AST::VarList> VarParser::parseCStyleVarList() {
 			const auto start = reader_.position();
 			
-			AST::TypeVarList typeVarList;
+			AST::VarList typeVarList;
 			typeVarList.reserve(8);
 			
 			while (!reader_.isEnd()) {
@@ -64,10 +64,10 @@ namespace locic {
 				typeVarList.push_back(std::move(var));
 			}
 			
-			return builder_.makeTypeVarList(std::move(typeVarList), start);
+			return builder_.makeVarList(std::move(typeVarList), start);
 		}
 		
-		AST::Node<AST::TypeVar> VarParser::parseVar() {
+		AST::Node<AST::Var> VarParser::parseVar() {
 			const auto start = reader_.position();
 			
 			const bool isUnused = scanOptionalToken(Token::UNUSED);
@@ -106,7 +106,7 @@ namespace locic {
 				// This is a normal type variable.
 				auto symbolType = TypeBuilder(reader_).makeSymbolType(std::move(symbol), start);
 				auto type = TypeParser(reader_).parseIndirectTypeBasedOnType(std::move(symbolType), start);
-				return parseTypeVarWithType(std::move(type), start);
+				return parseVarWithType(std::move(type), start);
 			}
 		}
 		
@@ -119,16 +119,16 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::TypeVar> VarParser::parseTypeVar() {
+		AST::Node<AST::Var> VarParser::parseTypeVar() {
 			const auto start = reader_.position();
 			auto type = TypeParser(reader_).parseType();
-			return parseTypeVarWithType(std::move(type), start);
+			return parseVarWithType(std::move(type), start);
 		}
 		
-		AST::Node<AST::TypeVarList> VarParser::parseVarOrAnyList() {
+		AST::Node<AST::VarList> VarParser::parseVarOrAnyList() {
 			const auto start = reader_.position();
 			
-			AST::TypeVarList typeVarList;
+			AST::VarList typeVarList;
 			typeVarList.reserve(8);
 			
 			if (reader_.peek().kind() != Token::RROUNDBRACKET) {
@@ -145,10 +145,10 @@ namespace locic {
 				}
 			}
 			
-			return builder_.makeTypeVarList(std::move(typeVarList), start);
+			return builder_.makeVarList(std::move(typeVarList), start);
 		}
 		
-		AST::Node<AST::TypeVar> VarParser::parseVarOrAny() {
+		AST::Node<AST::Var> VarParser::parseVarOrAny() {
 			if (reader_.peek().kind() == Token::UNDERSCORE) {
 				const auto start = reader_.position();
 				reader_.consume();
@@ -158,10 +158,11 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::TypeVar> VarParser::parseTypeVarWithType(AST::Node<AST::TypeDecl> type,
-		                                                        const Debug::SourcePosition& start) {
+		AST::Node<AST::Var>
+		VarParser::parseVarWithType(AST::Node<AST::TypeDecl> type,
+		                            const Debug::SourcePosition& start) {
 			const auto name = reader_.expectName();
-			return builder_.makeTypeVar(std::move(type), name, start);
+			return builder_.makeVar(std::move(type), name, start);
 		}
 		
 	}

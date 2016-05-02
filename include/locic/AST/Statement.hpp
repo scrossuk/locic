@@ -5,8 +5,8 @@
 #include <locic/AST/IfClause.hpp>
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/TypeDecl.hpp>
-#include <locic/AST/TypeVar.hpp>
 #include <locic/AST/Value.hpp>
+#include <locic/AST/Var.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
@@ -75,7 +75,7 @@ namespace locic {
 			} whileStmt;
 			
 			struct {
-				Node<TypeVar> typeVar;
+				Node<Var> typeVar;
 				Node<Value> initValue;
 				Node<Scope> scope;
 			} forStmt;
@@ -91,7 +91,7 @@ namespace locic {
 			} scopeExitStmt;
 			
 			struct {
-				Node<TypeVar> typeVar;
+				Node<Var> typeVar;
 				Node<Value> value;
 			} varDecl;
 			
@@ -171,7 +171,7 @@ namespace locic {
 				return statement;
 			}
 			
-			inline static Statement* For(Node<TypeVar> typeVar, Node<Value> initValue, Node<Scope> scope) {
+			inline static Statement* For(Node<Var> typeVar, Node<Value> initValue, Node<Scope> scope) {
 				Statement* statement = new Statement(FOR);
 				statement->forStmt.typeVar = std::move(typeVar);
 				statement->forStmt.initValue = std::move(initValue);
@@ -193,7 +193,7 @@ namespace locic {
 				return statement;
 			}
 			
-			inline static Statement* VarDecl(Node<TypeVar> typeVar, Node<Value> value) {
+			inline static Statement* VarDecl(Node<Var> typeVar, Node<Value> value) {
 				Statement* statement = new Statement(VARDECL);
 				statement->varDecl.typeVar = std::move(typeVar);
 				statement->varDecl.value = std::move(value);
@@ -334,7 +334,7 @@ namespace locic {
 				return kind() == FOR;
 			}
 			
-			const Node<TypeVar>& forTypeVar() const {
+			const Node<Var>& forVar() const {
 				return forStmt.typeVar;
 			}
 			
@@ -378,7 +378,7 @@ namespace locic {
 				return kind() == VARDECL;
 			}
 			
-			const Node<TypeVar>& varDeclVar() const {
+			const Node<Var>& varDeclVar() const {
 				assert(isVarDecl());
 				return varDecl.typeVar;
 			}

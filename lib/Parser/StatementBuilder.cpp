@@ -70,7 +70,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::SwitchCase>
-		StatementBuilder::makeSwitchCase(AST::Node<AST::TypeVar> var,
+		StatementBuilder::makeSwitchCase(AST::Node<AST::Var> var,
 		                                 AST::Node<AST::Scope> scope,
 		                                 const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
@@ -99,7 +99,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Statement>
-		StatementBuilder::makeForStatement(AST::Node<AST::TypeVar> var,
+		StatementBuilder::makeForStatement(AST::Node<AST::Var> var,
 		                                   AST::Node<AST::Value> value,
 		                                   AST::Node<AST::Scope> scope,
 		                                   const Debug::SourcePosition& start) {
@@ -121,7 +121,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::CatchClause>
-		StatementBuilder::makeCatchClause(AST::Node<AST::TypeVar> var,
+		StatementBuilder::makeCatchClause(AST::Node<AST::Var> var,
 		                                  AST::Node<AST::Scope> scope,
 		                                  const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
@@ -147,7 +147,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Statement>
-		StatementBuilder::makeVarDeclStatement(AST::Node<AST::TypeVar> var,
+		StatementBuilder::makeVarDeclStatement(AST::Node<AST::Var> var,
 		                                       AST::Node<AST::Value> value,
 		                                       const Debug::SourcePosition& start) {
 			return makeStatementNode(AST::Statement::VarDecl(std::move(var), std::move(value)), start);

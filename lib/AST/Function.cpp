@@ -8,7 +8,7 @@
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/TypeDecl.hpp>
-#include <locic/AST/TypeVar.hpp>
+#include <locic/AST/Var.hpp>
 
 namespace locic {
 
@@ -98,12 +98,12 @@ namespace locic {
 			returnType_ = std::move(pReturnType);
 		}
 		
-		const Node<TypeVarList>& Function::parameters() const {
+		const Node<VarList>& Function::parameters() const {
 			assert(!isDefaultDefinition());
 			return parameters_;
 		}
 		
-		void Function::setParameters(Node<TypeVarList> pParameters) {
+		void Function::setParameters(Node<VarList> pParameters) {
 			parameters_ = std::move(pParameters);
 		}
 		

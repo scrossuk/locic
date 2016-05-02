@@ -17,13 +17,13 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		Debug::VarInfo makeVarInfo(const Debug::VarInfo::Kind kind, const AST::Node<AST::TypeVar>& astTypeVarNode) {
-			assert(astTypeVarNode->isNamed());
+		Debug::VarInfo makeVarInfo(const Debug::VarInfo::Kind kind, const AST::Node<AST::Var>& astVarNode) {
+			assert(astVarNode->isNamed());
 			
 			Debug::VarInfo varInfo;
 			varInfo.kind = kind;
-			varInfo.name = astTypeVarNode->name();
-			varInfo.declLocation = astTypeVarNode.location();
+			varInfo.name = astVarNode->name();
+			varInfo.declLocation = astVarNode.location();
 			
 			// TODO
 			varInfo.scopeLocation = Debug::SourceLocation::Null();
@@ -76,7 +76,7 @@ namespace locic {
 		};
 		
 		// Attach the variable to the SemanticAnalysis node tree.
-		void attachVar(Context& context, const String& name, const AST::Node<AST::TypeVar>& astTypeVarNode, SEM::Var& var, const Debug::VarInfo::Kind varKind) {
+		void attachVar(Context& context, const String& name, const AST::Node<AST::Var>& astVarNode, SEM::Var& var, const Debug::VarInfo::Kind varKind) {
 			assert(var.isBasic());
 			
 			const auto insertResult = insertVar(context.scopeStack().back(), name, &var);
@@ -85,24 +85,24 @@ namespace locic {
 				OptionalDiag previousVarDiag(PreviousVariableDiag(),
 				                             existingVar->debugInfo()->declLocation);
 				context.issueDiag(VariableDuplicatesExistingVariableDiag(name),
-				                  astTypeVarNode.location(), std::move(previousVarDiag));
+				                  astVarNode.location(), std::move(previousVarDiag));
 			}
 			
-			var.setDebugInfo(makeVarInfo(varKind, astTypeVarNode));
+			var.setDebugInfo(makeVarInfo(varKind, astVarNode));
 		}
 		
-		const SEM::Type* getVarType(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const SEM::Type* initialiseType) {
-			switch (astTypeVarNode->kind()) {
-				case AST::TypeVar::ANYVAR: {
+		const SEM::Type* getVarType(Context& context, const AST::Node<AST::Var>& astVarNode, const SEM::Type* initialiseType) {
+			switch (astVarNode->kind()) {
+				case AST::Var::ANYVAR: {
 					return initialiseType;
 				}
 				
-				case AST::TypeVar::NAMEDVAR: {
-					return ConvertType(context, astTypeVarNode->namedType())->resolveAliases();
+				case AST::Var::NAMEDVAR: {
+					return ConvertType(context, astVarNode->namedType())->resolveAliases();
 				}
 				
-				case AST::TypeVar::PATTERNVAR: {
-					return ConvertType(context, astTypeVarNode->patternType())->resolveAliases();
+				case AST::Var::PATTERNVAR: {
+					return ConvertType(context, astVarNode->patternType())->resolveAliases();
 				}
 			}
 			
@@ -187,17 +187,17 @@ namespace locic {
 			}
 			
 			std::unique_ptr<SEM::Var> ConvertInitialisedVarRecurse(Context& context,
-			                                                       const AST::Node<AST::TypeVar>& astTypeVarNode,
+			                                                       const AST::Node<AST::Var>& astVarNode,
 			                                                       const SEM::Type* initialiseType, bool isTopLevel) {
-				const auto& location = astTypeVarNode.location();
+				const auto& location = astVarNode.location();
 				
-				switch (astTypeVarNode->kind()) {
-					case AST::TypeVar::ANYVAR: {
+				switch (astVarNode->kind()) {
+					case AST::Var::ANYVAR: {
 						return SEM::Var::Any(initialiseType);
 					}
 					
-					case AST::TypeVar::NAMEDVAR: {
-						const auto& varName = astTypeVarNode->name();
+					case AST::Var::NAMEDVAR: {
+						const auto& varName = astVarNode->name();
 						
 						// Search all scopes outside of the current scope.
 						const auto searchStartPosition = 1;
@@ -210,7 +210,7 @@ namespace locic {
 							                  location, std::move(previousVarDiag));
 						}
 						
-						const auto varDeclType = ConvertType(context, astTypeVarNode->namedType())->resolveAliases();
+						const auto varDeclType = ConvertType(context, astVarNode->namedType())->resolveAliases();
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
@@ -223,34 +223,34 @@ namespace locic {
 						
 						// 'final' keyword uses a different lval type (which doesn't support
 						// moving or re-assignment).
-						const bool isFinalLval = astTypeVarNode->isFinal();
+						const bool isFinalLval = astVarNode->isFinal();
 						
 						const auto lvalType = makeLvalType(context, isFinalLval, varType);
 						
 						auto var = SEM::Var::Basic(varType, lvalType);
-						var->setMarkedUnused(astTypeVarNode->isUnused());
-						var->setOverrideConst(astTypeVarNode->isOverrideConst());
-						attachVar(context, varName, astTypeVarNode, *var, Debug::VarInfo::VAR_LOCAL);
+						var->setMarkedUnused(astVarNode->isUnused());
+						var->setOverrideConst(astVarNode->isOverrideConst());
+						attachVar(context, varName, astVarNode, *var, Debug::VarInfo::VAR_LOCAL);
 						return var;
 					}
 					
-					case AST::TypeVar::PATTERNVAR: {
-						const auto varDeclType = ConvertType(context, astTypeVarNode->patternType())->resolveAliases();
+					case AST::Var::PATTERNVAR: {
+						const auto varDeclType = ConvertType(context, astVarNode->patternType())->resolveAliases();
 						
 						if (!varDeclType->isDatatype()) {
 							context.issueDiag(CannotPatternMatchNonDatatypeDiag(varDeclType),
-							                  astTypeVarNode->patternType().location());
+							                  astVarNode->patternType().location());
 						}
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
 						const auto varType = CastType(context, initialiseType, varDeclType, location, isTopLevel);
 						
-						const auto& astChildTypeVars = astTypeVarNode->typeVarList();
+						const auto& astChildVars = astVarNode->varList();
 						const auto& typeChildVars = varType->getObjectType()->variables();
 						
-						if (astChildTypeVars->size() != typeChildVars.size()) {
-							context.issueDiag(PatternMatchIncorrectVarCountDiag(astChildTypeVars->size(),
+						if (astChildVars->size() != typeChildVars.size()) {
+							context.issueDiag(PatternMatchIncorrectVarCountDiag(astChildVars->size(),
 							                                                    varType, typeChildVars.size()),
 							                  location);
 						}
@@ -259,9 +259,9 @@ namespace locic {
 						
 						std::vector<std::unique_ptr<SEM::Var>> children;
 						
-						const size_t numUsableVars = std::min(astChildTypeVars->size(), typeChildVars.size());
+						const size_t numUsableVars = std::min(astChildVars->size(), typeChildVars.size());
 						for (size_t i = 0; i < numUsableVars; i++) {
-							const auto& astVar = astChildTypeVars->at(i);
+							const auto& astVar = astChildVars->at(i);
 							const auto& semVar = typeChildVars.at(i);
 							
 							const auto childInitialiseType = semVar->constructType()->substitute(templateVarMap);
@@ -288,18 +288,18 @@ namespace locic {
 			
 		};
 		
-		std::unique_ptr<SEM::Var> ConvertVar(Context& context, const Debug::VarInfo::Kind varKind, const AST::Node<AST::TypeVar>& astTypeVarNode) {
-			const auto& location = astTypeVarNode.location();
+		std::unique_ptr<SEM::Var> ConvertVar(Context& context, const Debug::VarInfo::Kind varKind, const AST::Node<AST::Var>& astVarNode) {
+			const auto& location = astVarNode.location();
 			
-			switch (astTypeVarNode->kind()) {
-				case AST::TypeVar::ANYVAR: {
+			switch (astVarNode->kind()) {
+				case AST::Var::ANYVAR: {
 					context.issueDiag(AnyVarsNotImplementedForUninitialisedVariablesDiag(),
 					                  location);
 					return nullptr;
 				}
 				
-				case AST::TypeVar::NAMEDVAR: {
-					const auto& varName = astTypeVarNode->name();
+				case AST::Var::NAMEDVAR: {
+					const auto& varName = astVarNode->name();
 					
 					// Search all scopes outside of the current scope.
 					const auto searchStartPosition = 1;
@@ -314,36 +314,36 @@ namespace locic {
 						}
 					}
 					
-					const auto varType = ConvertType(context, astTypeVarNode->namedType());
+					const auto varType = ConvertType(context, astVarNode->namedType());
 					
 					// 'final' keyword uses a different lval type (which doesn't support
 					// moving or re-assignment).
-					const bool isFinalLval = astTypeVarNode->isFinal();
+					const bool isFinalLval = astVarNode->isFinal();
 					
 					// Variables in catch clauses don't use lvalues.
 					const auto lvalType = (varKind != Debug::VarInfo::VAR_EXCEPTION_CATCH) ?
 						makeLvalType(context, isFinalLval, varType) : varType;
 					
 					auto var = SEM::Var::Basic(varType, lvalType);
-					var->setMarkedUnused(astTypeVarNode->isUnused());
-					var->setOverrideConst(astTypeVarNode->isOverrideConst());
-					attachVar(context, varName, astTypeVarNode, *var, varKind);
+					var->setMarkedUnused(astVarNode->isUnused());
+					var->setOverrideConst(astVarNode->isOverrideConst());
+					attachVar(context, varName, astVarNode, *var, varKind);
 					return var;
 				}
 				
-				case AST::TypeVar::PATTERNVAR: {
-					const auto varType = ConvertType(context, astTypeVarNode->patternType())->resolveAliases();
+				case AST::Var::PATTERNVAR: {
+					const auto varType = ConvertType(context, astVarNode->patternType())->resolveAliases();
 					
 					if (!varType->isDatatype()) {
 						context.issueDiag(CannotPatternMatchNonDatatypeDiag(varType),
-						                  astTypeVarNode->patternType().location());
+						                  astVarNode->patternType().location());
 					}
 					
-					const auto& astChildTypeVars = astTypeVarNode->typeVarList();
+					const auto& astChildVars = astVarNode->varList();
 					const auto& typeChildVars = varType->getObjectType()->variables();
 					
-					if (astChildTypeVars->size() != typeChildVars.size()) {
-						context.issueDiag(PatternMatchIncorrectVarCountDiag(astChildTypeVars->size(),
+					if (astChildVars->size() != typeChildVars.size()) {
+						context.issueDiag(PatternMatchIncorrectVarCountDiag(astChildVars->size(),
 						                                                    varType, typeChildVars.size()),
 						                  location);
 					}
@@ -352,9 +352,9 @@ namespace locic {
 					
 					std::vector<std::unique_ptr<SEM::Var>> children;
 					
-					const size_t numUsableVars = std::min(astChildTypeVars->size(), typeChildVars.size());
+					const size_t numUsableVars = std::min(astChildVars->size(), typeChildVars.size());
 					for (size_t i = 0; i < numUsableVars; i++) {
-						const auto& astVar = astChildTypeVars->at(i);
+						const auto& astVar = astChildVars->at(i);
 						children.push_back(ConvertVar(context, varKind, astVar));
 					}
 					
@@ -365,10 +365,10 @@ namespace locic {
 			std::terminate();
 		}
 		
-		std::unique_ptr<SEM::Var> ConvertInitialisedVar(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode,
+		std::unique_ptr<SEM::Var> ConvertInitialisedVar(Context& context, const AST::Node<AST::Var>& astVarNode,
 		                                                const SEM::Type* const initialiseType) {
 			const bool isTopLevel = true;
-			return ConvertInitialisedVarRecurse(context, astTypeVarNode, initialiseType, isTopLevel);
+			return ConvertInitialisedVarRecurse(context, astVarNode, initialiseType, isTopLevel);
 		}
 		
 	}

@@ -44,7 +44,7 @@ namespace locic {
 		 * }
 		 */
 		
-		std::unique_ptr<SEM::Scope> ConvertForLoop(Context& context, const AST::Node<AST::TypeVar>& astTypeVarNode, const AST::Node<AST::Value>& astInitValueNode, const AST::Node<AST::Scope>& astScopeNode) {
+		std::unique_ptr<SEM::Scope> ConvertForLoop(Context& context, const AST::Node<AST::Var>& astVarNode, const AST::Node<AST::Value>& astInitValueNode, const AST::Node<AST::Scope>& astScopeNode) {
 			// TODO: fix this to be the correct location.
 			const auto& location = astScopeNode.location();
 			
@@ -79,7 +79,7 @@ namespace locic {
 						
 						auto currentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, *initVarPtr), context.getCString("front"), location), {}, location);
 						
-						auto loopVar = ConvertInitialisedVar(context, astTypeVarNode, currentValue.type());
+						auto loopVar = ConvertInitialisedVar(context, astVarNode, currentValue.type());
 						const auto loopVarPtr = loopVar.get();
 						iterationScope->variables().push_back(loopVar.release());
 						

@@ -21,70 +21,70 @@ namespace locic {
 			fn(var);
 		}
 		
-		TEST(VarParseTest, TypeVarNamedType) {
+		TEST(VarParseTest, VarNamedType) {
 			auto tokens = {
 				Token::NAME,
 				Token::NAME
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isNamed());
 				EXPECT_TRUE(var->namedType()->isObjectType());
 			});
 		}
 		
-		TEST(VarParseTest, TypeVarConstType) {
+		TEST(VarParseTest, VarConstType) {
 			auto tokens = {
 				Token::CONST,
 				Token::NAME,
 				Token::NAME
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isNamed());
 				EXPECT_TRUE(var->namedType()->isConst());
 				EXPECT_TRUE(var->namedType()->getConstTarget()->isObjectType());
 			});
 		}
 		
-		TEST(VarParseTest, TypeVarPointerType) {
+		TEST(VarParseTest, VarPointerType) {
 			auto tokens = {
 				Token::NAME,
 				Token::STAR,
 				Token::NAME
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isNamed());
 				EXPECT_TRUE(var->namedType()->isPointer());
 				EXPECT_TRUE(var->namedType()->getPointerTarget()->isObjectType());
 			});
 		}
 		
-		TEST(VarParseTest, TypeVarReferenceType) {
+		TEST(VarParseTest, VarReferenceType) {
 			auto tokens = {
 				Token::NAME,
 				Token::AMPERSAND,
 				Token::NAME
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isNamed());
 				EXPECT_TRUE(var->namedType()->isReference());
 				EXPECT_TRUE(var->namedType()->getReferenceTarget()->isObjectType());
 			});
 		}
 		
-		TEST(VarParseTest, TypeVarEmptyPatternType) {
+		TEST(VarParseTest, VarEmptyPatternType) {
 			auto tokens = {
 				Token::NAME,
 				Token::LROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
 				EXPECT_TRUE(var->patternType()->isObjectType());
-				EXPECT_EQ(var->typeVarList()->size(), 0);
+				EXPECT_EQ(var->varList()->size(), 0);
 			});
 		}
 		
-		TEST(VarParseTest, TypeVarNestedEmptyPatternType) {
+		TEST(VarParseTest, VarNestedEmptyPatternType) {
 			auto tokens = {
 				Token::NAME,
 				Token::LROUNDBRACKET,
@@ -93,32 +93,32 @@ namespace locic {
 				Token::RROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
 				EXPECT_TRUE(var->patternType()->isObjectType());
-				EXPECT_EQ(var->typeVarList()->size(), 1);
-				EXPECT_TRUE(var->typeVarList()->at(0)->isPattern());
-				EXPECT_TRUE(var->typeVarList()->at(0)->patternType()->isObjectType());
-				EXPECT_EQ(var->typeVarList()->at(0)->typeVarList()->size(), 0);
+				EXPECT_EQ(var->varList()->size(), 1);
+				EXPECT_TRUE(var->varList()->at(0)->isPattern());
+				EXPECT_TRUE(var->varList()->at(0)->patternType()->isObjectType());
+				EXPECT_EQ(var->varList()->at(0)->varList()->size(), 0);
 			});
 		}
 		
-		TEST(VarParseTest, TypeVarPatternTypeWithAny) {
+		TEST(VarParseTest, VarPatternTypeWithAny) {
 			auto tokens = {
 				Token::NAME,
 				Token::LROUNDBRACKET,
 				Token::UNDERSCORE,
 				Token::RROUNDBRACKET
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
 				EXPECT_TRUE(var->patternType()->isObjectType());
-				EXPECT_EQ(var->typeVarList()->size(), 1);
-				EXPECT_TRUE(var->typeVarList()->at(0)->isAny());
+				EXPECT_EQ(var->varList()->size(), 1);
+				EXPECT_TRUE(var->varList()->at(0)->isAny());
 			});
 		}
 		
-		TEST(VarParseTest, TypeVarPatternTypeWithMultipleAny) {
+		TEST(VarParseTest, VarPatternTypeWithMultipleAny) {
 			auto tokens = {
 				Token::NAME,
 				Token::LROUNDBRACKET,
@@ -127,16 +127,16 @@ namespace locic {
 				Token::UNDERSCORE,
 				Token::RROUNDBRACKET
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
 				EXPECT_TRUE(var->patternType()->isObjectType());
-				EXPECT_EQ(var->typeVarList()->size(), 2);
-				EXPECT_TRUE(var->typeVarList()->at(0)->isAny());
-				EXPECT_TRUE(var->typeVarList()->at(1)->isAny());
+				EXPECT_EQ(var->varList()->size(), 2);
+				EXPECT_TRUE(var->varList()->at(0)->isAny());
+				EXPECT_TRUE(var->varList()->at(1)->isAny());
 			});
 		}
 		
-		TEST(VarParseTest, TypeVarPatternTypeWithNamedType) {
+		TEST(VarParseTest, VarPatternTypeWithNamedType) {
 			auto tokens = {
 				Token::NAME,
 				Token::LROUNDBRACKET,
@@ -144,15 +144,15 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
 				EXPECT_TRUE(var->patternType()->isObjectType());
-				EXPECT_EQ(var->typeVarList()->size(), 1);
-				EXPECT_TRUE(var->typeVarList()->at(0)->isNamed());
+				EXPECT_EQ(var->varList()->size(), 1);
+				EXPECT_TRUE(var->varList()->at(0)->isNamed());
 			});
 		}
 		
-		TEST(VarParseTest, TypeVarPatternTypeWithMultipleNamedType) {
+		TEST(VarParseTest, VarPatternTypeWithMultipleNamedType) {
 			auto tokens = {
 				Token::NAME,
 				Token::LROUNDBRACKET,
@@ -163,16 +163,16 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
 				EXPECT_TRUE(var->patternType()->isObjectType());
-				EXPECT_EQ(var->typeVarList()->size(), 2);
-				EXPECT_TRUE(var->typeVarList()->at(0)->isNamed());
-				EXPECT_TRUE(var->typeVarList()->at(1)->isNamed());
+				EXPECT_EQ(var->varList()->size(), 2);
+				EXPECT_TRUE(var->varList()->at(0)->isNamed());
+				EXPECT_TRUE(var->varList()->at(1)->isNamed());
 			});
 		}
 		
-		TEST(VarParseTest, TypeVarPatternTypeWithNamedTypeAndAny) {
+		TEST(VarParseTest, VarPatternTypeWithNamedTypeAndAny) {
 			auto tokens = {
 				Token::NAME,
 				Token::LROUNDBRACKET,
@@ -182,12 +182,12 @@ namespace locic {
 				Token::UNDERSCORE,
 				Token::RROUNDBRACKET
 			};
-			testParseVar(tokens, [](const AST::Node<AST::TypeVar>& var) {
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
 				EXPECT_TRUE(var->patternType()->isObjectType());
-				EXPECT_EQ(var->typeVarList()->size(), 2);
-				EXPECT_TRUE(var->typeVarList()->at(0)->isNamed());
-				EXPECT_TRUE(var->typeVarList()->at(1)->isAny());
+				EXPECT_EQ(var->varList()->size(), 2);
+				EXPECT_TRUE(var->varList()->at(0)->isNamed());
+				EXPECT_TRUE(var->varList()->at(1)->isAny());
 			});
 		}
 		

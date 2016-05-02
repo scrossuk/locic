@@ -1,5 +1,5 @@
-#ifndef LOCIC_AST_TYPEVAR_HPP
-#define LOCIC_AST_TYPEVAR_HPP
+#ifndef LOCIC_AST_VAR_HPP
+#define LOCIC_AST_VAR_HPP
 
 #include <string>
 #include <vector>
@@ -12,11 +12,11 @@ namespace locic {
 
 	namespace AST {
 	
-		class TypeVar;
+		class Var;
 		
-		typedef std::vector<Node<TypeVar>> TypeVarList;
+		typedef std::vector<Node<Var>> VarList;
 		
-		class TypeVar {
+		class Var {
 		public:
 			enum Kind {
 				NAMEDVAR,
@@ -24,11 +24,12 @@ namespace locic {
 				ANYVAR
 			};
 			
-			static TypeVar* NamedVar(Node<TypeDecl> type, String name);
+			static Var* NamedVar(Node<TypeDecl> type, String name);
 			
-			static TypeVar* PatternVar(Node<TypeDecl> type, Node<TypeVarList> typeVarList);
+			static Var* PatternVar(Node<TypeDecl> type,
+			                       Node<VarList> varList);
 			
-			static TypeVar* Any();
+			static Var* Any();
 			
 			Kind kind() const;
 			
@@ -47,14 +48,14 @@ namespace locic {
 			
 			bool isPattern() const;
 			const Node<TypeDecl>& patternType() const;
-			const Node<TypeVarList>& typeVarList() const;
+			const Node<VarList>& varList() const;
 			
 			bool isAny() const;
 			
 			std::string toString() const;
 			
 		private:
-			TypeVar(Kind pKind);
+			Var(Kind pKind);
 			
 			Kind kind_;
 			
@@ -68,7 +69,7 @@ namespace locic {
 			
 			struct {
 				Node<TypeDecl> type;
-				Node<TypeVarList> typeVarList;
+				Node<VarList> varList;
 			} patternVar_;
 			
 		};

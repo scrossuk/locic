@@ -13,7 +13,7 @@
 #include <locic/AST/Symbol.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TypeDecl.hpp>
-#include <locic/AST/TypeVar.hpp>
+#include <locic/AST/Var.hpp>
 
 namespace locic {
 	
@@ -57,8 +57,8 @@ namespace locic {
 				const Node<TypeDecl>& returnType() const;
 				void setReturnType(Node<TypeDecl> returnType);
 				
-				const Node<TypeVarList>& parameters() const;
-				void setParameters(Node<TypeVarList> parameters);
+				const Node<VarList>& parameters() const;
+				void setParameters(Node<VarList> parameters);
 				
 				const Node<Scope>& scope() const;
 				void setScope(Node<Scope> scope);
@@ -89,7 +89,7 @@ namespace locic {
 				Node<Name> name_;
 				Node<TemplateVarList> templateVariables_;
 				Node<TypeDecl> returnType_;
-				Node<TypeVarList> parameters_;
+				Node<VarList> parameters_;
 				Node<Scope> scope_;
 				Node<ConstSpecifier> constSpecifier_;
 				Node<RequireSpecifier> noexceptSpecifier_;
