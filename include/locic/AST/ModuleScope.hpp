@@ -2,7 +2,6 @@
 #define LOCIC_AST_MODULESCOPE_HPP
 
 #include <string>
-#include <vector>
 
 #include <locic/Support/String.hpp>
 #include <locic/Support/Version.hpp>
@@ -12,57 +11,54 @@
 #include <locic/AST/StringList.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
-		struct ModuleScope {
+	namespace AST {
+		
+		class ModuleScope {
+		public:
 			enum Kind {
 				IMPORT,
 				EXPORT
-			} kind;
+			};
 			
-			bool isNamed;
-			AST::Node<StringList> moduleName;
-			AST::Node<Version> version;
-			AST::Node<NamespaceData> data;
+			static ModuleScope*
+			Import(AST::Node<NamespaceData> data);
 			
-			inline static ModuleScope* Import(AST::Node<NamespaceData> pData) {
-				return new ModuleScope(IMPORT, false, std::move(pData));
-			}
+			static ModuleScope*
+			Export(AST::Node<NamespaceData> data);
 			
-			inline static ModuleScope* Export(AST::Node<NamespaceData> pData) {
-				return new ModuleScope(EXPORT, false, std::move(pData));
-			}
+			static ModuleScope*
+			NamedImport(AST::Node<StringList> moduleName,
+			            AST::Node<Version> version,
+			            AST::Node<NamespaceData> data);
 			
-			inline static ModuleScope* NamedImport(AST::Node<StringList> moduleName, AST::Node<Version> version, AST::Node<NamespaceData> pData) {
-				const auto moduleScope = new ModuleScope(IMPORT, true, std::move(pData));
-				moduleScope->moduleName = std::move(moduleName);
-				moduleScope->version = std::move(version);
-				return moduleScope;
-			}
+			static ModuleScope*
+			NamedExport(AST::Node<StringList> moduleName,
+			            AST::Node<Version> version,
+			            AST::Node<NamespaceData> data);
 			
-			inline static ModuleScope* NamedExport(AST::Node<StringList> moduleName, AST::Node<Version> version, AST::Node<NamespaceData> pData) {
-				const auto moduleScope = new ModuleScope(EXPORT, true, std::move(pData));
-				moduleScope->moduleName =std::move( moduleName);
-				moduleScope->version = std::move(version);
-				return moduleScope;
-			}
+			ModuleScope(Kind kind, bool isNamed,
+			            AST::Node<NamespaceData> data);
 			
-			inline ModuleScope(Kind pKind, bool pIsNamed, AST::Node<NamespaceData> pData)
-			: kind(pKind), isNamed(pIsNamed), data(std::move(pData)) { }
+			Kind kind() const;
+			bool isNamed() const;
+			bool isImport() const;
+			bool isExport() const;
 			
-			inline std::string toString() const {
-				if (isNamed) {
-					return makeString("ModuleScope[kind = %s, name = ..., version = %s](",
-							(kind == IMPORT ? "IMPORT" : "EXPORT"),
-							version.toString().c_str()) +
-						data->toString() + ")";
-				} else {
-					return makeString("ModuleScope[kind = %s](",
-							(kind == IMPORT ? "IMPORT" : "EXPORT")) +
-						data->toString() + ")";
-				}
-			}
+			const AST::Node<StringList>& moduleName() const;
+			const AST::Node<Version>& moduleVersion() const;
+			const AST::Node<NamespaceData>& data() const;
+			
+			std::string kindString() const;
+			std::string toString() const;
+			
+		private:
+			Kind kind_;
+			bool isNamed_;
+			AST::Node<StringList> moduleName_;
+			AST::Node<Version> moduleVersion_;
+			AST::Node<NamespaceData> data_;
+			
 		};
 		
 	}

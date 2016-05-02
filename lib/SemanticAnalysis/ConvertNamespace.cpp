@@ -48,7 +48,7 @@ namespace locic {
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				ConvertNamespaceData(context, astModuleScopeNode->data);
+				ConvertNamespaceData(context, astModuleScopeNode->data());
 			}
 			
 			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {

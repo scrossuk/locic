@@ -22,7 +22,7 @@ namespace locic {
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				AddNamespaceDataAliasValues(context, astModuleScopeNode->data);
+				AddNamespaceDataAliasValues(context, astModuleScopeNode->data());
 			}
 		}
 		

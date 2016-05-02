@@ -3,6 +3,7 @@ add_library(locic-ast
 	ConstSpecifier.cpp
 	ExceptionInitializer.cpp
 	Function.cpp
+	ModuleScope.cpp
 	NamespaceDecl.cpp
 	Predicate.cpp
 	RequireSpecifier.cpp

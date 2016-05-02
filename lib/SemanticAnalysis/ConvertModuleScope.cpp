@@ -16,15 +16,17 @@ namespace locic {
 		}
 		
 		SEM::ModuleScope ConvertModuleScope(const AST::Node<AST::ModuleScope>& astModuleScopeNode) {
-			if (astModuleScopeNode->kind == AST::ModuleScope::IMPORT) {
-				if (astModuleScopeNode->isNamed) {
-					return SEM::ModuleScope::Import(stringListToName(astModuleScopeNode->moduleName), *(astModuleScopeNode->version));
+			if (astModuleScopeNode->kind() == AST::ModuleScope::IMPORT) {
+				if (astModuleScopeNode->isNamed()) {
+					return SEM::ModuleScope::Import(stringListToName(astModuleScopeNode->moduleName()),
+					                                *(astModuleScopeNode->moduleVersion()));
 				} else {
 					return SEM::ModuleScope::Import(Name::Absolute(), Version(0, 0, 0));
 				}
 			} else {
-				if (astModuleScopeNode->isNamed) {
-					return SEM::ModuleScope::Export(stringListToName(astModuleScopeNode->moduleName), *(astModuleScopeNode->version));
+				if (astModuleScopeNode->isNamed()) {
+					return SEM::ModuleScope::Export(stringListToName(astModuleScopeNode->moduleName()),
+					                                *(astModuleScopeNode->moduleVersion()));
 				} else {
 					return SEM::ModuleScope::Export(Name::Absolute(), Version(0, 0, 0));
 				}

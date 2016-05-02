@@ -338,7 +338,8 @@ namespace locic {
 					context.issueDiag(CannotNestModuleScopesDiag(),
 					                  astModuleScopeNode.location());
 				}
-				AddNamespaceData(context, astModuleScopeNode->data, ConvertModuleScope(astModuleScopeNode));
+				AddNamespaceData(context, astModuleScopeNode->data(),
+				                 ConvertModuleScope(astModuleScopeNode));
 			}
 			
 			for (const auto& astAliasNode: astNamespaceDataNode->aliases) {

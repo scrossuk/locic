@@ -389,7 +389,8 @@ namespace locic {
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				AddNamespaceDataFunctionDecls(context, astModuleScopeNode->data, ConvertModuleScope(astModuleScopeNode));
+				AddNamespaceDataFunctionDecls(context, astModuleScopeNode->data(),
+				                              ConvertModuleScope(astModuleScopeNode));
 			}
 			
 			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {

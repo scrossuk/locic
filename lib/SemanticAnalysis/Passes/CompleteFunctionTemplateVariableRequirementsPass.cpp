@@ -84,7 +84,8 @@ namespace locic {
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				CompleteNamespaceDataFunctionTemplateVariableRequirements(context, astModuleScopeNode->data);
+				CompleteNamespaceDataFunctionTemplateVariableRequirements(context,
+				                                                          astModuleScopeNode->data());
 			}
 			
 			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {

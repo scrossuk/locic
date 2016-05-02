@@ -147,7 +147,8 @@ namespace locic {
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				AddNamespaceDataTypeMemberVariables(context, astModuleScopeNode->data, typeInstancesToGenerateNoTagSets);
+				AddNamespaceDataTypeMemberVariables(context, astModuleScopeNode->data(),
+				                                    typeInstancesToGenerateNoTagSets);
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {

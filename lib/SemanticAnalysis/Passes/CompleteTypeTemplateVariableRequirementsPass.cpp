@@ -104,7 +104,8 @@ namespace locic {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				CompleteNamespaceDataTypeTemplateVariableRequirements(context, astModuleScopeNode->data);
+				CompleteNamespaceDataTypeTemplateVariableRequirements(context,
+				                                                      astModuleScopeNode->data());
 			}
 			
 			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
