@@ -7,7 +7,6 @@ add_library(locic-sem
 	GlobalStructure.cpp
 	IfClause.cpp
 	Module.cpp
-	ModuleScope.cpp
 	Namespace.cpp
 	Predicate.cpp
 	Scope.cpp

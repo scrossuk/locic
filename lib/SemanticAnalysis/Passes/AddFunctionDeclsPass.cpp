@@ -53,19 +53,21 @@ namespace locic {
 			
 		};
 		
-		SEM::ModuleScope getFunctionScope(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
+		AST::ModuleScope
+		getFunctionScope(Context& context, const AST::Node<AST::Function>& astFunctionNode,
+		                 const AST::ModuleScope& moduleScope) {
 			if (astFunctionNode->isImported()) {
 				if (!moduleScope.isInternal()) {
 					context.issueDiag(CannotNestImportedFunctionInModuleScopeDiag(astFunctionNode->name()->copy()),
 					                  astFunctionNode.location());
 				}
-				return SEM::ModuleScope::Import(Name::Absolute(), Version(0,0,0));
+				return AST::ModuleScope::Import(Name::Absolute(), Version(0,0,0));
 			} else if (astFunctionNode->isExported()) {
 				if (!moduleScope.isInternal()) {
 					context.issueDiag(CannotNestExportedFunctionInModuleScopeDiag(astFunctionNode->name()->copy()),
 					                  astFunctionNode.location());
 				}
-				return SEM::ModuleScope::Export(Name::Absolute(), Version(0,0,0));
+				return AST::ModuleScope::Export(Name::Absolute(), Version(0,0,0));
 			} else {
 				return moduleScope.copy();
 			}
@@ -116,7 +118,9 @@ namespace locic {
 			
 		};
 		
-		std::unique_ptr<SEM::Function> AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const Name& fullName, const SEM::ModuleScope& parentModuleScope) {
+		std::unique_ptr<SEM::Function>
+		AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode,
+		                const Name& fullName, const AST::ModuleScope& parentModuleScope) {
 			const auto& topElement = context.scopeStack().back();
 			
 			const auto moduleScope = getFunctionScope(context, astFunctionNode, parentModuleScope);
@@ -125,7 +129,7 @@ namespace locic {
 			const bool isParentPrimitive = topElement.isTypeInstance() && topElement.typeInstance().isPrimitive();
 			
 			switch (moduleScope.kind()) {
-				case SEM::ModuleScope::INTERNAL: {
+				case AST::ModuleScope::INTERNAL: {
 					const bool isPrimitive = isParentPrimitive || astFunctionNode->isPrimitive();
 					if (!isParentInterface && !isPrimitive && astFunctionNode->isDeclaration()) {
 						context.issueDiag(DefinitionRequiredForInternalFunctionDiag(fullName.copy()),
@@ -133,14 +137,14 @@ namespace locic {
 					}
 					break;
 				}
-				case SEM::ModuleScope::IMPORT: {
+				case AST::ModuleScope::IMPORT: {
 					if (!isParentInterface && !astFunctionNode->isDeclaration()) {
 						context.issueDiag(CannotDefineImportedFunctionDiag(fullName.copy()),
 						                  astFunctionNode.location());
 					}
 					break;
 				}
-				case SEM::ModuleScope::EXPORT: {
+				case AST::ModuleScope::EXPORT: {
 					if (!isParentInterface && astFunctionNode->isDeclaration()) {
 						context.issueDiag(DefinitionRequiredForExportedFunctionDiag(fullName.copy()),
 						                  astFunctionNode.location());
@@ -215,7 +219,8 @@ namespace locic {
 			
 		};
 		
-		void AddNamespaceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
+		void AddNamespaceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode,
+		                              const AST::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
 			const auto& name = astFunctionNode->name();
@@ -307,7 +312,8 @@ namespace locic {
 			
 		};
 		
-		void AddTypeInstanceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::ModuleScope& moduleScope) {
+		void AddTypeInstanceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode,
+		                                 const AST::ModuleScope& moduleScope) {
 			auto& parentTypeInstance = context.scopeStack().back().typeInstance();
 			
 			const auto& name = astFunctionNode->name()->last();
@@ -381,7 +387,8 @@ namespace locic {
 			}
 		}
 		
-		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
+		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode,
+		                                   const AST::ModuleScope& moduleScope) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
@@ -416,7 +423,8 @@ namespace locic {
 		
 		void AddFunctionDeclsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			for (const auto& astNamespaceNode: rootASTNamespaces) {
-				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data(), SEM::ModuleScope::Internal());
+				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data(),
+				                              AST::ModuleScope::Internal());
 			}
 		}
 		

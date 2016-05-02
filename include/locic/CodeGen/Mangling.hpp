@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/ModuleScope.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
 #include <locic/Support/String.hpp>
@@ -31,7 +32,7 @@ namespace locic {
 		
 		String mangleModuleScopeFields(Module& module, const Name& name, const Version& version);
 		
-		String mangleModuleScope(Module& module, const SEM::ModuleScope& moduleScope);
+		String mangleModuleScope(Module& module, const AST::ModuleScope& moduleScope);
 		
 		String mangleTemplateGenerator(Module& module, TemplatedObject templatedObject);
 		

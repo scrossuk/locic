@@ -155,7 +155,8 @@ namespace locic {
 			
 		};
 		
-		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, const SEM::ModuleScope& moduleScope) {
+		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
+		                                   const AST::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
 			const auto& typeInstanceName = astTypeInstanceNode->name;
@@ -187,21 +188,21 @@ namespace locic {
 			}
 			
 			switch (moduleScope.kind()) {
-				case SEM::ModuleScope::INTERNAL: {
+				case AST::ModuleScope::INTERNAL: {
 					if (semTypeInstance->isClassDecl()) {
 						context.issueDiag(DefinitionRequiredForInternalClassDiag(fullTypeName.copy()),
 						                  astTypeInstanceNode.location());
 					}
 					break;
 				}
-				case SEM::ModuleScope::IMPORT: {
+				case AST::ModuleScope::IMPORT: {
 					if (semTypeInstance->isClassDef()) {
 						context.issueDiag(CannotDefineImportedClassDiag(fullTypeName.copy()),
 						                  astTypeInstanceNode.location());
 					}
 					break;
 				}
-				case SEM::ModuleScope::EXPORT: {
+				case AST::ModuleScope::EXPORT: {
 					if (semTypeInstance->isClassDecl()) {
 						context.issueDiag(DefinitionRequiredForExportedClassDiag(fullTypeName.copy()),
 						                  astTypeInstanceNode.location());
@@ -309,7 +310,8 @@ namespace locic {
 			
 		};
 		
-		void AddNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode, const SEM::ModuleScope& moduleScope) {
+		void AddNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode,
+		                      const AST::ModuleScope& moduleScope) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
@@ -394,7 +396,8 @@ namespace locic {
 		// Get all namespaces and type names, and build initial type instance structures.
 		void AddGlobalStructuresPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
 			for (const auto& astNamespaceNode: rootASTNamespaces) {
-				AddNamespaceData(context, astNamespaceNode->data(), SEM::ModuleScope::Internal());
+				AddNamespaceData(context, astNamespaceNode->data(),
+				                 AST::ModuleScope::Internal());
 			}
 		}
 		

@@ -1,6 +1,7 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 
@@ -29,7 +30,7 @@ namespace locic {
 		
 		Function::Function(GlobalStructure pParent,
 		                   Name pName,
-		                   ModuleScope pModuleScope)
+		                   AST::ModuleScope pModuleScope)
 			: parent_(std::move(pParent)),
 			  fakeASTFunction_(createNamedASTFunction(std::move(pName))),
 			  function_(&fakeASTFunction_),
@@ -44,7 +45,7 @@ namespace locic {
 		
 		Function::Function(GlobalStructure pParent,
 		                   const AST::Node<AST::Function>& argFunction,
-		                   ModuleScope pModuleScope)
+		                   AST::ModuleScope pModuleScope)
 			: parent_(std::move(pParent)),
 			  function_(&argFunction),
 			  isDefault_(false),
@@ -92,7 +93,7 @@ namespace locic {
 			return type_;
 		}
 		
-		const ModuleScope& Function::moduleScope() const {
+		const AST::ModuleScope& Function::moduleScope() const {
 			return moduleScope_;
 		}
 		

@@ -1,5 +1,7 @@
 #include <string>
 
+#include <locic/AST/ModuleScope.hpp>
+
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Map.hpp>
@@ -8,7 +10,6 @@
 
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Function.hpp>
-#include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/TemplateVar.hpp>
@@ -21,7 +22,7 @@ namespace locic {
 	namespace SEM {
 	
 		TypeInstance::TypeInstance(Context& c, GlobalStructure p,
-		                           Name n, Kind k, ModuleScope m)
+		                           Name n, Kind k, AST::ModuleScope m)
 			: context_(c),
 			parent_(std::move(p)),
 			name_(std::move(n)),
@@ -61,7 +62,7 @@ namespace locic {
 			return kind_;
 		}
 		
-		const SEM::ModuleScope& TypeInstance::moduleScope() const {
+		const AST::ModuleScope& TypeInstance::moduleScope() const {
 			return moduleScope_;
 		}
 		

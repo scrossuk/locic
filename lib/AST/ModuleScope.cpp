@@ -6,12 +6,12 @@
 #include <locic/Support/String.hpp>
 #include <locic/Support/Version.hpp>
 
-#include <locic/SEM/ModuleScope.hpp>
+#include <locic/AST/ModuleScope.hpp>
 
 namespace locic {
-
-	namespace SEM {
 	
+	namespace AST {
+		
 		ModuleScope ModuleScope::Internal() {
 			return ModuleScope(INTERNAL, Name::Absolute(), Version(0,0,0));
 		}
@@ -64,7 +64,7 @@ namespace locic {
 					return "Export";
 			}
 			
-			locic_unreachable("Unknown SEM::ModuleScope kind.");
+			locic_unreachable("Unknown AST::ModuleScope kind.");
 		}
 		
 		std::string ModuleScope::toString() const {

@@ -115,7 +115,9 @@ namespace locic {
 			
 		};
 		
-		std::unique_ptr<SEM::Function> ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode, SEM::ModuleScope moduleScope) {
+		std::unique_ptr<SEM::Function>
+		ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode,
+		                    AST::ModuleScope moduleScope) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
 			const auto& name = astFunctionNode->name()->last();

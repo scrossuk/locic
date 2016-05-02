@@ -1,5 +1,6 @@
 #include <string>
 
+#include <locic/AST/ModuleScope.hpp>
 #include <locic/SEM.hpp>
 #include <locic/Support/String.hpp>
 
@@ -117,7 +118,7 @@ namespace locic {
 			return mangleName(module, module.getCString("P"), name) + "V" + versionString;
 		}
 		
-		String mangleModuleScope(Module& module, const SEM::ModuleScope& moduleScope) {
+		String mangleModuleScope(Module& module, const AST::ModuleScope& moduleScope) {
 			if (moduleScope.isInternal()) {
 				return module.getCString("");
 			}

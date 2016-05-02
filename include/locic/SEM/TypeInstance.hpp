@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/ModuleScope.hpp>
 #include <locic/Debug/TypeInstanceInfo.hpp>
 #include <locic/SEM/GlobalStructure.hpp>
-#include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVarArray.hpp>
@@ -64,7 +64,7 @@ namespace locic {
 				
 				TypeInstance(Context& c, GlobalStructure parent,
 				             Name name, Kind kind,
-				             ModuleScope moduleScope);
+				             AST::ModuleScope moduleScope);
 				
 				/**
 				 * \brief Get context.
@@ -102,7 +102,7 @@ namespace locic {
 				 * 
 				 * \return The type instance's module scope.
 				 */
-				const ModuleScope& moduleScope() const;
+				const AST::ModuleScope& moduleScope() const;
 				
 				bool isPrimitive() const;
 				
@@ -368,7 +368,7 @@ namespace locic {
 				GlobalStructure parent_;
 				Name name_;
 				Kind kind_;
-				ModuleScope moduleScope_;
+				AST::ModuleScope moduleScope_;
 				Optional<PrimitiveID> primitiveID_;
 				Optional<Debug::TypeInstanceInfo> debugInfo_;
 				

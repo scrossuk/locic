@@ -1,5 +1,5 @@
-#ifndef LOCIC_SEM_MODULESCOPE_HPP
-#define LOCIC_SEM_MODULESCOPE_HPP
+#ifndef LOCIC_AST_MODULESCOPE_HPP
+#define LOCIC_AST_MODULESCOPE_HPP
 
 #include <string>
 
@@ -8,7 +8,7 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 	
 		class ModuleScope {
 			public:

@@ -5,15 +5,9 @@
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class ModuleScope;
-		
-	}
-	
 	namespace SemanticAnalysis {
 		
-		SEM::ModuleScope
+		AST::ModuleScope
 		ConvertModuleScope(const AST::Node<AST::ModuleScopeDecl>& astModuleScopeNode);
 		
 	}

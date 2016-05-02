@@ -7,13 +7,13 @@
 #include <vector>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/Node.hpp>
 
 #include <locic/Debug/FunctionInfo.hpp>
 
 #include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/GlobalStructure.hpp>
-#include <locic/SEM/ModuleScope.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TemplateVar.hpp>
@@ -52,11 +52,12 @@ namespace locic {
 		class Function final: public TemplatedObject {
 			public:
 				Function(GlobalStructure parent,
-				         Name name, ModuleScope moduleScope);
+				         Name name,
+				         AST::ModuleScope moduleScope);
 				
 				Function(GlobalStructure parent,
 				         const AST::Node<AST::Function>& function,
-				         ModuleScope moduleScope);
+				         AST::ModuleScope moduleScope);
 				
 				GlobalStructure& parent();
 				const GlobalStructure& parent() const;
@@ -72,7 +73,7 @@ namespace locic {
 				void setType(FunctionType type);
 				const FunctionType& type() const;
 				
-				const ModuleScope& moduleScope() const;
+				const AST::ModuleScope& moduleScope() const;
 				
 				bool isDeclaration() const;
 				
@@ -149,7 +150,7 @@ namespace locic {
 				std::vector<Var*> parameters_;
 				FastMap<String, Var*> namedVariables_;
 				
-				ModuleScope moduleScope_;
+				AST::ModuleScope moduleScope_;
 				std::unique_ptr<Scope> scope_;
 				
 		};
