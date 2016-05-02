@@ -8,9 +8,9 @@ namespace locic {
 	
 	namespace Lex {
 		
-		FileCharacterSource::FileCharacterSource(const String fileName,
+		FileCharacterSource::FileCharacterSource(const String pFileName,
 		                                         FILE* const file)
-		: fileName_(fileName), file_(file), position_(0) { }
+		: fileName_(pFileName), file_(file), position_(0) { }
 		
 		FileCharacterSource::~FileCharacterSource() { }
 		

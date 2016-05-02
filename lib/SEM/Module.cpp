@@ -10,8 +10,8 @@ namespace locic {
 	
 	namespace SEM {
 		
-		Module::Module(Context& context)
-		: context_(context), rootNamespace_(new Namespace()) { }
+		Module::Module(Context& pContext)
+		: context_(pContext), rootNamespace_(new Namespace()) { }
 		
 		Module::~Module() { }
 		
