@@ -50,7 +50,7 @@ namespace locic {
 			
 			bool isNextObjectModuleScope();
 			
-			AST::Node<AST::ModuleScope> parseModuleScope();
+			AST::Node<AST::ModuleScopeDecl> parseModuleScope();
 			
 			AST::Node<AST::StringList> parseModuleName();
 			

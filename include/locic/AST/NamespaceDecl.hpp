@@ -19,7 +19,7 @@ namespace locic {
 		
 		class AliasDecl;
 		class Function;
-		struct ModuleScope;
+		class ModuleScopeDecl;
 		class NamespaceDecl;
 		class StaticAssert;
 		struct TypeInstance;
@@ -27,7 +27,7 @@ namespace locic {
 		struct NamespaceData {
 			std::vector< AST::Node<AliasDecl> > aliases;
 			std::vector< AST::Node<Function> > functions;
-			std::vector< AST::Node<ModuleScope> > moduleScopes;
+			std::vector< AST::Node<ModuleScopeDecl> > moduleScopes;
 			std::vector< AST::Node<NamespaceDecl> > namespaces;
 			std::vector< AST::Node<StaticAssert> > staticAsserts;
 			std::vector< AST::Node<TypeInstance> > typeInstances;

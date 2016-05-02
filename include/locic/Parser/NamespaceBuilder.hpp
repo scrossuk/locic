@@ -38,21 +38,21 @@ namespace locic {
 			makeStaticAssert(AST::Node<AST::Predicate> predicate,
 			                 const Debug::SourcePosition& start);
 			
-			AST::Node<AST::ModuleScope>
+			AST::Node<AST::ModuleScopeDecl>
 			makeUnnamedExport(AST::Node<AST::NamespaceData> data,
 			                  const Debug::SourcePosition& start);
 			
-			AST::Node<AST::ModuleScope>
+			AST::Node<AST::ModuleScopeDecl>
 			makeUnnamedImport(AST::Node<AST::NamespaceData> data,
 			                  const Debug::SourcePosition& start);
 			
-			AST::Node<AST::ModuleScope>
+			AST::Node<AST::ModuleScopeDecl>
 			makeNamedExport(AST::Node<AST::StringList> name,
 			                AST::Node<Version> version,
 			                AST::Node<AST::NamespaceData> data,
 			                const Debug::SourcePosition& start);
 			
-			AST::Node<AST::ModuleScope>
+			AST::Node<AST::ModuleScopeDecl>
 			makeNamedImport(AST::Node<AST::StringList> name,
 			                AST::Node<Version> version,
 			                AST::Node<AST::NamespaceData> data,

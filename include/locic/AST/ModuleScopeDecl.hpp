@@ -1,5 +1,5 @@
-#ifndef LOCIC_AST_MODULESCOPE_HPP
-#define LOCIC_AST_MODULESCOPE_HPP
+#ifndef LOCIC_AST_MODULESCOPEDECL_HPP
+#define LOCIC_AST_MODULESCOPEDECL_HPP
 
 #include <string>
 
@@ -14,30 +14,30 @@ namespace locic {
 	
 	namespace AST {
 		
-		class ModuleScope {
+		class ModuleScopeDecl {
 		public:
 			enum Kind {
 				IMPORT,
 				EXPORT
 			};
 			
-			static ModuleScope*
+			static ModuleScopeDecl*
 			Import(AST::Node<NamespaceData> data);
 			
-			static ModuleScope*
+			static ModuleScopeDecl*
 			Export(AST::Node<NamespaceData> data);
 			
-			static ModuleScope*
+			static ModuleScopeDecl*
 			NamedImport(AST::Node<StringList> moduleName,
 			            AST::Node<Version> version,
 			            AST::Node<NamespaceData> data);
 			
-			static ModuleScope*
+			static ModuleScopeDecl*
 			NamedExport(AST::Node<StringList> moduleName,
 			            AST::Node<Version> version,
 			            AST::Node<NamespaceData> data);
 			
-			ModuleScope(Kind kind, bool isNamed,
+			ModuleScopeDecl(Kind kind, bool isNamed,
 			            AST::Node<NamespaceData> data);
 			
 			Kind kind() const;

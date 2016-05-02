@@ -5,7 +5,7 @@
 
 #include <locic/AST/AliasDecl.hpp>
 #include <locic/AST/Function.hpp>
-#include <locic/AST/ModuleScope.hpp>
+#include <locic/AST/ModuleScopeDecl.hpp>
 #include <locic/AST/NamespaceDecl.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/StaticAssert.hpp>

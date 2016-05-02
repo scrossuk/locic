@@ -245,7 +245,8 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::ModuleScope> NamespaceParser::parseModuleScope() {
+		AST::Node<AST::ModuleScopeDecl>
+		NamespaceParser::parseModuleScope() {
 			const auto start = reader_.position();
 			
 			const auto token = reader_.expectOneOf({ Token::EXPORT, Token::IMPORT });

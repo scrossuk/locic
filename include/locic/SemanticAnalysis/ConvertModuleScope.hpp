@@ -13,7 +13,8 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		SEM::ModuleScope ConvertModuleScope(const AST::Node<AST::ModuleScope>& astModuleScopeNode);
+		SEM::ModuleScope
+		ConvertModuleScope(const AST::Node<AST::ModuleScopeDecl>& astModuleScopeNode);
 		
 	}
 	

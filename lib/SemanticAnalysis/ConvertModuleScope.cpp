@@ -1,4 +1,4 @@
-#include <locic/AST/ModuleScope.hpp>
+#include <locic/AST/ModuleScopeDecl.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/SEM/ModuleScope.hpp>
 #include <locic/Support/Name.hpp>
@@ -15,8 +15,9 @@ namespace locic {
 			return name;
 		}
 		
-		SEM::ModuleScope ConvertModuleScope(const AST::Node<AST::ModuleScope>& astModuleScopeNode) {
-			if (astModuleScopeNode->kind() == AST::ModuleScope::IMPORT) {
+		SEM::ModuleScope
+		ConvertModuleScope(const AST::Node<AST::ModuleScopeDecl>& astModuleScopeNode) {
+			if (astModuleScopeNode->isImport()) {
 				if (astModuleScopeNode->isNamed()) {
 					return SEM::ModuleScope::Import(stringListToName(astModuleScopeNode->moduleName()),
 					                                *(astModuleScopeNode->moduleVersion()));
