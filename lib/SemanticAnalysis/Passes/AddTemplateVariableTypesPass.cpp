@@ -33,7 +33,7 @@ namespace locic {
 				const auto& templateVarName = astTemplateVarNode->name();
 				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
 				
-				const auto& astVarType = astTemplateVarNode->type();
+				auto& astVarType = astTemplateVarNode->type();
 				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
 				
 				if (!semVarType->isPrimitive()) {
@@ -53,7 +53,7 @@ namespace locic {
 				const auto& templateVarName = astTemplateVarNode->name();
 				const auto semTemplateVar = typeInstance.namedTemplateVariables().at(templateVarName);
 				
-				const auto& astVarType = astTemplateVarNode->type();
+				auto& astVarType = astTemplateVarNode->type();
 				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
 				
 				if (!semVarType->isPrimitive()) {

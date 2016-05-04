@@ -107,7 +107,7 @@ namespace locic {
 		};
 		
 		const SEM::Type*
-		TypeResolver::resolveType(const AST::Node<AST::TypeDecl>& type) {
+		TypeResolver::convertType(AST::Node<AST::TypeDecl>& type) {
 			TypeBuilder builder(context_);
 			switch (type->typeEnum) {
 				case AST::TypeDecl::AUTO: {
@@ -178,7 +178,7 @@ namespace locic {
 					SEM::TypeArray parameterTypes;
 					parameterTypes.reserve(astParameterTypes->size());
 					
-					for (const auto& astParamType: *astParameterTypes) {
+					for (auto& astParamType: *astParameterTypes) {
 						const auto paramType = resolveType(astParamType);
 						
 						if (paramType->isBuiltInVoid()) {
@@ -208,6 +208,15 @@ namespace locic {
 			}
 			
 			locic_unreachable("Unknown AST::TypeDecl kind.");
+		}
+		
+		const SEM::Type*
+		TypeResolver::resolveType(AST::Node<AST::TypeDecl>& type) {
+			assert(type->resolvedType() == nullptr);
+			const auto resolvedType = convertType(type);
+			assert(resolvedType == nullptr);
+			type->setResolvedType(resolvedType);
+			return resolvedType;
 		}
 		
 		class PredicateAliasNotBoolDiag: public Error {
@@ -274,7 +283,7 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeResolver::resolveTemplateVarType(const AST::Node<AST::TypeDecl>& type) {
+		TypeResolver::resolveTemplateVarType(AST::Node<AST::TypeDecl>& type) {
 			if (getTemplateVarTypeAlias(type) != nullptr) {
 				return TypeBuilder(context_).getTypenameType();
 			} else {

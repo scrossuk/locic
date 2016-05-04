@@ -11,7 +11,8 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void CompleteFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::Function>& astFunctionNode, const SEM::Predicate& parentRequiresPredicate) {
+		void CompleteFunctionTemplateVariableRequirements(Context& context, AST::Node<AST::Function>& astFunctionNode,
+		                                                  const SEM::Predicate& parentRequiresPredicate) {
 			auto& function = context.scopeStack().back().function();
 			
 			// Add any requirements specified by parent.
@@ -39,7 +40,7 @@ namespace locic {
 				predicate = SEM::Predicate::And(std::move(predicate),
 				                                std::move(templateVarTypePredicate));
 				
-				const auto& astSpecType = astTemplateVarNode->specType();
+				auto& astSpecType = astTemplateVarNode->specType();
 				
 				if (astSpecType->isVoid()) {
 					// No requirement specified.
@@ -59,7 +60,7 @@ namespace locic {
 		void CompleteNamespaceDataFunctionTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
-			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
+			for (auto& astFunctionNode: astNamespaceDataNode->functions) {
 				const auto& name = astFunctionNode->name();
 				assert(!name->empty());
 				
@@ -101,7 +102,7 @@ namespace locic {
 				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
 				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
+				for (auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
 					auto& semChildFunction = astFunctionNode->semFunction();
 					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
 					CompleteFunctionTemplateVariableRequirements(context, astFunctionNode, semChildTypeInstance.requiresPredicate());

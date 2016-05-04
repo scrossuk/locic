@@ -33,7 +33,7 @@ namespace locic {
 			resolveFloatType(const String& nameString);
 			
 			const SEM::Type*
-			resolveType(const AST::Node<AST::TypeDecl>& typeDecl);
+			resolveType(AST::Node<AST::TypeDecl>& typeDecl);
 			
 			SEM::Alias*
 			getTemplateVarTypeAlias(const AST::Node<AST::TypeDecl>& type);
@@ -43,9 +43,12 @@ namespace locic {
 			                            const SEM::TemplateVar& templateVar);
 			
 			const SEM::Type*
-			resolveTemplateVarType(const AST::Node<AST::TypeDecl>& typeDecl);
+			resolveTemplateVarType(AST::Node<AST::TypeDecl>& typeDecl);
 			
 		private:
+			const SEM::Type*
+			convertType(AST::Node<AST::TypeDecl>& type);
+			
 			Context& context_;
 			
 		};

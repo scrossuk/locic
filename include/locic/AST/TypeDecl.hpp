@@ -11,6 +11,12 @@
 
 namespace locic {
 	
+	namespace SEM {
+		
+		class Type;
+		
+	}
+	
 	namespace AST {
 		
 		struct TypeDecl;
@@ -172,6 +178,11 @@ namespace locic {
 				return typeEnum == CONST;
 			}
 			
+			Node<TypeDecl>& getConstTarget() {
+				assert(isConst());
+				return constType.targetType;
+			}
+			
 			const Node<TypeDecl>& getConstTarget() const {
 				assert(isConst());
 				return constType.targetType;
@@ -186,6 +197,11 @@ namespace locic {
 				return constPredicateType.predicate;
 			}
 			
+			Node<TypeDecl>& getConstPredicateTarget() {
+				assert(isConstPredicate());
+				return constPredicateType.targetType;
+			}
+			
 			const Node<TypeDecl>& getConstPredicateTarget() const {
 				assert(isConstPredicate());
 				return constPredicateType.targetType;
@@ -193,6 +209,11 @@ namespace locic {
 			
 			bool isNoTag() const {
 				return typeEnum == NOTAG;
+			}
+			
+			Node<TypeDecl>& getNoTagTarget() {
+				assert(isNoTag());
+				return noTagType.targetType;
 			}
 			
 			const Node<TypeDecl>& getNoTagTarget() const {
@@ -204,9 +225,19 @@ namespace locic {
 				return typeEnum == LVAL;
 			}
 			
+			Node<TypeDecl>& getLvalTarget() {
+				assert(isLval());
+				return lvalType.targetType;
+			}
+			
 			const Node<TypeDecl>& getLvalTarget() const {
 				assert(isLval());
 				return lvalType.targetType;
+			}
+			
+			Node<TypeDecl>& getLvalType() {
+				assert(isLval());
+				return lvalType.lvalType;
 			}
 			
 			const Node<TypeDecl>& getLvalType() const {
@@ -218,9 +249,19 @@ namespace locic {
 				return typeEnum == REF;
 			}
 			
+			Node<TypeDecl>& getRefTarget() {
+				assert(isRef());
+				return refType.targetType;
+			}
+			
 			const Node<TypeDecl>& getRefTarget() const {
 				assert(isRef());
 				return refType.targetType;
+			}
+			
+			Node<TypeDecl>& getRefType() {
+				assert(isRef());
+				return refType.refType;
 			}
 			
 			const Node<TypeDecl>& getRefType() const {
@@ -232,9 +273,19 @@ namespace locic {
 				return typeEnum == STATICREF;
 			}
 			
+			Node<TypeDecl>& getStaticRefTarget() {
+				assert(isStaticRef());
+				return staticRefType.targetType;
+			}
+			
 			const Node<TypeDecl>& getStaticRefTarget() const {
 				assert(isStaticRef());
 				return staticRefType.targetType;
+			}
+			
+			Node<TypeDecl>& getStaticRefType() {
+				assert(isStaticRef());
+				return staticRefType.refType;
 			}
 			
 			const Node<TypeDecl>& getStaticRefType() const {
@@ -246,6 +297,11 @@ namespace locic {
 				return typeEnum == REFERENCE;
 			}
 			
+			Node<TypeDecl>& getReferenceTarget() {
+				assert(isReference());
+				return referenceType.targetType;
+			}
+			
 			const Node<TypeDecl>& getReferenceTarget() const {
 				assert(isReference());
 				return referenceType.targetType;
@@ -255,6 +311,11 @@ namespace locic {
 				return typeEnum == POINTER;
 			}
 			
+			Node<TypeDecl>& getPointerTarget() {
+				assert(isPointer());
+				return pointerType.targetType;
+			}
+			
 			const Node<TypeDecl>& getPointerTarget() const {
 				assert(isPointer());
 				return pointerType.targetType;
@@ -262,6 +323,11 @@ namespace locic {
 			
 			bool isStaticArray() const {
 				return typeEnum == STATICARRAY;
+			}
+			
+			Node<TypeDecl>& getStaticArrayTarget() {
+				assert(isStaticArray());
+				return staticArrayType.targetType;
 			}
 			
 			const Node<TypeDecl>& getStaticArrayTarget() const {
@@ -283,9 +349,19 @@ namespace locic {
 				return functionType.isVarArg;
 			}
 			
+			Node<TypeDecl>& functionReturnType() {
+				assert(isFunction());
+				return functionType.returnType;
+			}
+			
 			const Node<TypeDecl>& functionReturnType() const {
 				assert(isFunction());
 				return functionType.returnType;
+			}
+			
+			Node<TypeDeclList>& functionParameterTypes() {
+				assert(isFunction());
+				return functionType.parameterTypes;
 			}
 			
 			const Node<TypeDeclList>& functionParameterTypes() const {
@@ -333,10 +409,15 @@ namespace locic {
 				return objectType.symbol;
 			}
 			
+			const SEM::Type* resolvedType() const;
+			void setResolvedType(const SEM::Type* type);
+			
 			std::string toString() const;
 			
 		private:
 			explicit TypeDecl(const TypeDecl&) = default;
+			
+			const SEM::Type* resolvedType_;
 			
 		};
 		

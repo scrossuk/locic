@@ -23,10 +23,14 @@ namespace locic {
 		
 		const SEM::Type* getVarType(Context& context, const AST::Node<AST::Var>& astVarNode, const SEM::Type* initialiseType);
 		
-		std::unique_ptr<SEM::Var> ConvertVar(Context& context, Debug::VarInfo::Kind varKind, const AST::Node<AST::Var>& typeVar);
+		std::unique_ptr<SEM::Var>
+		ConvertVar(Context& context, Debug::VarInfo::Kind varKind,
+		           AST::Node<AST::Var>& typeVar);
 		
 		// Note that this function assumes that the variable is a local variable.
-		std::unique_ptr<SEM::Var> ConvertInitialisedVar(Context& context, const AST::Node<AST::Var>& typeVar, const SEM::Type* initialiseType);
+		std::unique_ptr<SEM::Var>
+		ConvertInitialisedVar(Context& context, AST::Node<AST::Var>& typeVar,
+		                      const SEM::Type* initialiseType);
 		
 	}
 	

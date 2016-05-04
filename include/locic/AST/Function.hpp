@@ -54,6 +54,7 @@ namespace locic {
 				const Node<Name>& name() const;
 				void setName(Node<Name> name);
 				
+				Node<TypeDecl>& returnType();
 				const Node<TypeDecl>& returnType() const;
 				void setReturnType(Node<TypeDecl> returnType);
 				

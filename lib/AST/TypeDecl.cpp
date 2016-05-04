@@ -9,7 +9,8 @@ namespace locic {
 	
 	namespace AST {
 		
-		TypeDecl::TypeDecl() : typeEnum(static_cast<TypeEnum>(-1)) { }
+		TypeDecl::TypeDecl() : typeEnum(static_cast<TypeEnum>(-1)),
+		resolvedType_(nullptr) { }
 		
 		TypeDecl::TypeDecl(TypeEnum e) : typeEnum(e) { }
 		
@@ -126,6 +127,15 @@ namespace locic {
 		}
 		
 		TypeDecl::~TypeDecl() { }
+		
+		const SEM::Type*
+		TypeDecl::resolvedType() const {
+			return resolvedType_;
+		}
+		
+		void TypeDecl::setResolvedType(const SEM::Type* type) {
+			resolvedType_ = type;
+		}
 		
 		std::string TypeDecl::toString() const {
 			switch(typeEnum) {

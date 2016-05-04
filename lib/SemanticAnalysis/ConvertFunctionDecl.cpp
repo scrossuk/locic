@@ -116,7 +116,7 @@ namespace locic {
 		};
 		
 		std::unique_ptr<SEM::Function>
-		ConvertFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode,
+		ConvertFunctionDecl(Context& context, AST::Node<AST::Function>& astFunctionNode,
 		                    AST::ModuleScope moduleScope) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
@@ -173,7 +173,7 @@ namespace locic {
 				}
 				
 				// Also adding the function template variable type here.
-				const auto& astVarType = astTemplateVarNode->type();
+				auto& astVarType = astTemplateVarNode->type();
 				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
 				
 				if (!semVarType->isPrimitive()) {
@@ -512,7 +512,7 @@ namespace locic {
 				return;
 			}
 			
-			const auto& astFunctionNode = function.astFunction();
+			auto& astFunctionNode = function.astFunction();
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
 			// Enable lookups for function template variables.
@@ -523,7 +523,7 @@ namespace locic {
 				function.setConstPredicate(ConvertConstSpecifier(context, astFunctionNode->constSpecifier()));
 			}
 			
-			const auto& astReturnTypeNode = astFunctionNode->returnType();
+			auto& astReturnTypeNode = astFunctionNode->returnType();
 			const SEM::Type* semReturnType = NULL;
 			
 			if (astReturnTypeNode->typeEnum == AST::TypeDecl::AUTO) {
@@ -545,7 +545,7 @@ namespace locic {
 			SEM::TypeArray parameterTypes;
 			parameterTypes.reserve(astFunctionNode->parameters()->size());
 			
-			for (const auto& astVarNode: *(astFunctionNode->parameters())) {
+			for (auto& astVarNode: *(astFunctionNode->parameters())) {
 				if (!astVarNode->isNamed()) {
 					context.issueDiag(PatternMatchingNotSupportedForParameterVariablesDiag(),
 					                  astVarNode.location());

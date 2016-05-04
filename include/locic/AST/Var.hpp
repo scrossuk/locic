@@ -34,6 +34,7 @@ namespace locic {
 			Kind kind() const;
 			
 			bool isNamed() const;
+			Node<TypeDecl>& namedType();
 			const Node<TypeDecl>& namedType() const;
 			const String& name() const;
 			
@@ -47,7 +48,9 @@ namespace locic {
 			void setUnused();
 			
 			bool isPattern() const;
+			Node<TypeDecl>& patternType();
 			const Node<TypeDecl>& patternType() const;
+			Node<VarList>& varList();
 			const Node<VarList>& varList() const;
 			
 			bool isAny() const;

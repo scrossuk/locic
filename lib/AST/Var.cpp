@@ -44,6 +44,11 @@ namespace locic {
 			return kind() == NAMEDVAR;
 		}
 		
+		Node<TypeDecl>& Var::namedType() {
+			assert(isNamed());
+			return namedVar_.type;
+		}
+		
 		const Node<TypeDecl>& Var::namedType() const {
 			assert(isNamed());
 			return namedVar_.type;
@@ -88,9 +93,19 @@ namespace locic {
 			return kind() == PATTERNVAR;
 		}
 		
+		Node<TypeDecl>& Var::patternType() {
+			assert(isPattern());
+			return patternVar_.type;
+		}
+		
 		const Node<TypeDecl>& Var::patternType() const {
 			assert(isPattern());
 			return patternVar_.type;
+		}
+		
+		Node<VarList>& Var::varList() {
+			assert(isPattern());
+			return patternVar_.varList;
 		}
 		
 		const Node<VarList>& Var::varList() const {

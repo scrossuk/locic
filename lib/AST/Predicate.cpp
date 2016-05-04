@@ -66,9 +66,19 @@ namespace locic {
 			return bracket_.expr;
 		}
 		
+		Node<TypeDecl>& Predicate::typeSpecType() {
+			assert(kind() == TYPESPEC);
+			return typeSpec_.type;
+		}
+		
 		const Node<TypeDecl>& Predicate::typeSpecType() const {
 			assert(kind() == TYPESPEC);
 			return typeSpec_.type;
+		}
+		
+		Node<TypeDecl>& Predicate::typeSpecRequireType() {
+			assert(kind() == TYPESPEC);
+			return typeSpec_.requireType;
 		}
 		
 		const Node<TypeDecl>& Predicate::typeSpecRequireType() const {

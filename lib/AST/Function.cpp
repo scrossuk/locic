@@ -89,6 +89,11 @@ namespace locic {
 			name_ = std::move(pName);
 		}
 		
+		Node<TypeDecl>& Function::returnType() {
+			assert(!isDefaultDefinition());
+			return returnType_;
+		}
+		
 		const Node<TypeDecl>& Function::returnType() const {
 			assert(!isDefaultDefinition());
 			return returnType_;

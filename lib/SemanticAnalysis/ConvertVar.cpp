@@ -186,9 +186,11 @@ namespace locic {
 				return value.type();
 			}
 			
-			std::unique_ptr<SEM::Var> ConvertInitialisedVarRecurse(Context& context,
-			                                                       const AST::Node<AST::Var>& astVarNode,
-			                                                       const SEM::Type* initialiseType, bool isTopLevel) {
+			std::unique_ptr<SEM::Var>
+			ConvertInitialisedVarRecurse(Context& context,
+			                             AST::Node<AST::Var>& astVarNode,
+			                             const SEM::Type* initialiseType,
+			                             bool isTopLevel) {
 				const auto& location = astVarNode.location();
 				
 				switch (astVarNode->kind()) {
@@ -261,7 +263,7 @@ namespace locic {
 						
 						const size_t numUsableVars = std::min(astChildVars->size(), typeChildVars.size());
 						for (size_t i = 0; i < numUsableVars; i++) {
-							const auto& astVar = astChildVars->at(i);
+							auto& astVar = astChildVars->at(i);
 							const auto& semVar = typeChildVars.at(i);
 							
 							const auto childInitialiseType = semVar->constructType()->substitute(templateVarMap);
@@ -288,7 +290,9 @@ namespace locic {
 			
 		};
 		
-		std::unique_ptr<SEM::Var> ConvertVar(Context& context, const Debug::VarInfo::Kind varKind, const AST::Node<AST::Var>& astVarNode) {
+		std::unique_ptr<SEM::Var>
+		ConvertVar(Context& context, const Debug::VarInfo::Kind varKind,
+		           AST::Node<AST::Var>& astVarNode) {
 			const auto& location = astVarNode.location();
 			
 			switch (astVarNode->kind()) {
@@ -354,7 +358,7 @@ namespace locic {
 					
 					const size_t numUsableVars = std::min(astChildVars->size(), typeChildVars.size());
 					for (size_t i = 0; i < numUsableVars; i++) {
-						const auto& astVar = astChildVars->at(i);
+						auto& astVar = astChildVars->at(i);
 						children.push_back(ConvertVar(context, varKind, astVar));
 					}
 					
@@ -365,7 +369,7 @@ namespace locic {
 			std::terminate();
 		}
 		
-		std::unique_ptr<SEM::Var> ConvertInitialisedVar(Context& context, const AST::Node<AST::Var>& astVarNode,
+		std::unique_ptr<SEM::Var> ConvertInitialisedVar(Context& context, AST::Node<AST::Var>& astVarNode,
 		                                                const SEM::Type* const initialiseType) {
 			const bool isTopLevel = true;
 			return ConvertInitialisedVarRecurse(context, astVarNode, initialiseType, isTopLevel);

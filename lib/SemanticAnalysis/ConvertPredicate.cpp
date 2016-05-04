@@ -105,8 +105,8 @@ namespace locic {
 					return ConvertPredicate(context, astPredicateNode->bracketExpr());
 				}
 				case AST::Predicate::TYPESPEC: {
-					const auto& typeSpecType = astPredicateNode->typeSpecType();
-					const auto& typeSpecRequireType = astPredicateNode->typeSpecRequireType();
+					auto& typeSpecType = astPredicateNode->typeSpecType();
+					auto& typeSpecRequireType = astPredicateNode->typeSpecRequireType();
 					
 					TypeResolver typeResolver(context);
 					const auto semType = typeResolver.resolveType(typeSpecType);

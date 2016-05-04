@@ -44,7 +44,7 @@ namespace locic {
 			  moduleScope_(std::move(pModuleScope)) { }
 		
 		Function::Function(GlobalStructure pParent,
-		                   const AST::Node<AST::Function>& argFunction,
+		                   AST::Node<AST::Function>& argFunction,
 		                   AST::ModuleScope pModuleScope)
 			: parent_(std::move(pParent)),
 			  function_(&argFunction),
@@ -71,6 +71,10 @@ namespace locic {
 		
 		const Namespace& Function::nameSpace() const {
 			return parent().nextNamespace();
+		}
+		
+		AST::Node<AST::Function>& Function::astFunction() {
+			return *function_;
 		}
 		
 		const AST::Node<AST::Function>& Function::astFunction() const {

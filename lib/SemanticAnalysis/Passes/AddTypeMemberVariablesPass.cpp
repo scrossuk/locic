@@ -119,7 +119,7 @@ namespace locic {
 				}
 			}
 			
-			for (const auto& astVarNode: *(astTypeInstanceNode->variables)) {
+			for (auto& astVarNode: *(astTypeInstanceNode->variables)) {
 				if (!astVarNode->isNamed()) {
 					context.issueDiag(PatternMemberVarsNotSupportedDiag(),
 					                  astVarNode.location());

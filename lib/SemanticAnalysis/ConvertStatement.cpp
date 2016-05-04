@@ -558,7 +558,7 @@ namespace locic {
 					return SEM::Statement::Loop(std::move(loopCondition), std::move(iterationScope), std::move(advanceScope));
 				}
 				case AST::Statement::FOR: {
-					const auto& forStmt = statement->forStmt;
+					auto& forStmt = statement->forStmt;
 					auto loopScope = ConvertForLoop(context, forStmt.typeVar, forStmt.initValue, forStmt.scope);
 					return SEM::Statement::ScopeStmt(std::move(loopScope));
 				}
@@ -583,7 +583,7 @@ namespace locic {
 						
 						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::CatchClause(*semCatch));
 						
-						const auto& astVar = astCatch->var;
+						auto& astVar = astCatch->var;
 						
 						if (!astVar->isNamed()) {
 							context.issueDiag(CatchClauseCannotUsePatternMatchingDiag(),
@@ -628,7 +628,7 @@ namespace locic {
 					return SEM::Statement::ScopeExit(scopeExitState, std::move(scopeExitScope));
 				}
 				case AST::Statement::VARDECL: {
-					const auto& astVarNode = statement->varDecl.typeVar;
+					auto& astVarNode = statement->varDecl.typeVar;
 					const auto& astInitialValueNode = statement->varDecl.value;
 					
 					auto semValue = ConvertValue(context, astInitialValueNode);

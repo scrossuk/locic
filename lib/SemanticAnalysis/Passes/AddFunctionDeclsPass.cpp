@@ -119,7 +119,7 @@ namespace locic {
 		};
 		
 		std::unique_ptr<SEM::Function>
-		AddFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode,
+		AddFunctionDecl(Context& context, AST::Node<AST::Function>& astFunctionNode,
 		                const Name& fullName, const AST::ModuleScope& parentModuleScope) {
 			const auto& topElement = context.scopeStack().back();
 			
@@ -219,7 +219,7 @@ namespace locic {
 			
 		};
 		
-		void AddNamespaceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode,
+		void AddNamespaceFunctionDecl(Context& context, AST::Node<AST::Function>& astFunctionNode,
 		                              const AST::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
@@ -312,7 +312,7 @@ namespace locic {
 			
 		};
 		
-		void AddTypeInstanceFunctionDecl(Context& context, const AST::Node<AST::Function>& astFunctionNode,
+		void AddTypeInstanceFunctionDecl(Context& context, AST::Node<AST::Function>& astFunctionNode,
 		                                 const AST::ModuleScope& moduleScope) {
 			auto& parentTypeInstance = context.scopeStack().back().typeInstance();
 			
@@ -391,7 +391,7 @@ namespace locic {
 		                                   const AST::ModuleScope& moduleScope) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
-			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
+			for (auto& astFunctionNode: astNamespaceDataNode->functions) {
 				AddNamespaceFunctionDecl(context, astFunctionNode, moduleScope);
 			}
 			
@@ -411,7 +411,7 @@ namespace locic {
 				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
+				for (auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
 					AddTypeInstanceFunctionDecl(context, astFunctionNode, moduleScope);
 				}
 				

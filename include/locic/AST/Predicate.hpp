@@ -46,7 +46,9 @@ namespace locic {
 				
 				const Node<Predicate>& bracketExpr() const;
 				
+				Node<TypeDecl>& typeSpecType();
 				const Node<TypeDecl>& typeSpecType() const;
+				Node<TypeDecl>& typeSpecRequireType();
 				const Node<TypeDecl>& typeSpecRequireType() const;
 				
 				const Node<AST::Symbol>& symbol() const;

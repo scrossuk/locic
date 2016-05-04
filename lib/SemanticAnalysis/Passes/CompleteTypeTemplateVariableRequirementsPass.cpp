@@ -30,7 +30,7 @@ namespace locic {
 				predicate = SEM::Predicate::And(std::move(predicate),
 				                                std::move(templateVarTypePredicate));
 				
-				const auto& astSpecType = astTemplateVarNode->specType();
+				auto& astSpecType = astTemplateVarNode->specType();
 				
 				if (astSpecType->isVoid()) {
 					// No requirement specified.
@@ -74,7 +74,7 @@ namespace locic {
 				requirePredicate = SEM::Predicate::And(std::move(requirePredicate),
 				                                       std::move(templateVarTypePredicate));
 				
-				const auto& astSpecType = astTemplateVarNode->specType();
+				auto& astSpecType = astTemplateVarNode->specType();
 				
 				if (astSpecType->isVoid()) {
 					// No requirement specified.

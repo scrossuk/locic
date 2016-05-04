@@ -56,7 +56,7 @@ namespace locic {
 				         AST::ModuleScope moduleScope);
 				
 				Function(GlobalStructure parent,
-				         const AST::Node<AST::Function>& function,
+				         AST::Node<AST::Function>& function,
 				         AST::ModuleScope moduleScope);
 				
 				GlobalStructure& parent();
@@ -65,6 +65,7 @@ namespace locic {
 				Namespace& nameSpace();
 				const Namespace& nameSpace() const;
 				
+				AST::Node<AST::Function>& astFunction();
 				const AST::Node<AST::Function>& astFunction() const;
 				
 				const Name& name() const;
@@ -136,7 +137,7 @@ namespace locic {
 			private:
 				GlobalStructure parent_;
 				AST::Node<AST::Function> fakeASTFunction_;
-				const AST::Node<AST::Function>* function_;
+				AST::Node<AST::Function>* function_;
 				bool isDefault_, isPrimitive_;
 				bool isMethod_, isStaticMethod_;
 				FunctionType type_;
