@@ -2,10 +2,10 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/SearchResult.hpp>
+#include <locic/SemanticAnalysis/TypeResolver.hpp>
 
 namespace locic {
 	
@@ -31,9 +31,11 @@ namespace locic {
 				const auto& templateVarName = astTemplateVarNode->name();
 				const auto semTemplateVar = function.namedTemplateVariables().at(templateVarName);
 				
+				TypeResolver typeResolver(context);
+				
 				auto templateVarTypePredicate =
-					getTemplateVarTypePredicate(context, astTemplateVarNode->type(),
-					                            *semTemplateVar);
+					typeResolver.getTemplateVarTypePredicate(astTemplateVarNode->type(),
+					                                         *semTemplateVar);
 				predicate = SEM::Predicate::And(std::move(predicate),
 				                                std::move(templateVarTypePredicate));
 				
@@ -44,7 +46,7 @@ namespace locic {
 					continue;
 				}
 				
-				const auto semSpecType = ConvertType(context, astSpecType);
+				const auto semSpecType = typeResolver.resolveType(astSpecType);
 				
 				// Add the satisfies requirement to the predicate.
 				auto inlinePredicate = SEM::Predicate::Satisfies(semTemplateVar->selfRefType(), semSpecType);

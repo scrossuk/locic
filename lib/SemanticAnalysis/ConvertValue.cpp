@@ -18,7 +18,6 @@
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/GetMethod.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
@@ -31,6 +30,7 @@
 #include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>
+#include <locic/SemanticAnalysis/TypeResolver.hpp>
 
 namespace locic {
 
@@ -544,7 +544,7 @@ namespace locic {
 					std::terminate();
 				}
 				case AST::Value::TYPEREF: {
-					const auto type = ConvertType(context, astValueNode->typeRef.type);
+					const auto type = TypeResolver(context).resolveType(astValueNode->typeRef.type);
 					const auto typenameType = context.typeBuilder().getTypenameType();
 					return SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
 				}
@@ -567,7 +567,7 @@ namespace locic {
 					return createMemberVarRef(context, std::move(selfValue), *(variableIterator->second));
 				}
 				case AST::Value::ALIGNOF: {
-					const auto type = ConvertType(context, astValueNode->alignOf.type);
+					const auto type = TypeResolver(context).resolveType(astValueNode->alignOf.type);
 					const auto typenameType = context.typeBuilder().getTypenameType();
 					auto typeRefValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
 					
@@ -581,7 +581,7 @@ namespace locic {
 					return CallValue(context, std::move(alignMaskValueAddMethod), makeHeapArray( std::move(oneValue) ), location);
 				}
 				case AST::Value::SIZEOF: {
-					const auto type = ConvertType(context, astValueNode->sizeOf.type);
+					const auto type = TypeResolver(context).resolveType(astValueNode->sizeOf.type);
 					const auto typenameType = context.typeBuilder().getTypenameType();
 					auto typeRefValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
 					
@@ -787,8 +787,8 @@ namespace locic {
 				}
 				case AST::Value::CAST: {
 					auto sourceValue = ConvertValue(context, astValueNode->cast.value);
-					const auto sourceType = ConvertType(context, astValueNode->cast.sourceType);
-					const auto targetType = ConvertType(context, astValueNode->cast.targetType);
+					const auto sourceType = TypeResolver(context).resolveType(astValueNode->cast.sourceType);
+					const auto targetType = TypeResolver(context).resolveType(astValueNode->cast.targetType);
 					
 					switch(astValueNode->cast.castKind) {
 						case AST::Value::CAST_CONST:
@@ -822,7 +822,7 @@ namespace locic {
 						return sourceValue;
 					}
 					
-					const auto targetType = ConvertType(context, astValueNode->makeLval.targetType);
+					const auto targetType = TypeResolver(context).resolveType(astValueNode->makeLval.targetType);
 					return SEM::Value::Lval(targetType, std::move(sourceValue));
 				}
 				case AST::Value::NOLVAL: {
@@ -848,7 +848,7 @@ namespace locic {
 						return sourceValue;
 					}
 					
-					const auto targetType = ConvertType(context, astValueNode->makeRef.targetType);
+					const auto targetType = TypeResolver(context).resolveType(astValueNode->makeRef.targetType);
 					return SEM::Value::Ref(targetType, std::move(sourceValue));
 				}
 				case AST::Value::NOREF: {
@@ -958,10 +958,8 @@ namespace locic {
 					return CallValue(context, std::move(functionValue), std::move(argumentValues), location);
 				}
 				case AST::Value::CAPABILITYTEST: {
-					const auto checkType = ConvertType(context,
-					                                   astValueNode->capabilityTest.checkType);
-					const auto capabilityType = ConvertType(context,
-					                                        astValueNode->capabilityTest.capabilityType);
+					const auto checkType = TypeResolver(context).resolveType(astValueNode->capabilityTest.checkType);
+					const auto capabilityType = TypeResolver(context).resolveType(astValueNode->capabilityTest.capabilityType);
 					const auto boolType = context.typeBuilder().getBoolType();
 					return SEM::Value::CapabilityTest(checkType,
 					                                  capabilityType,

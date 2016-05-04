@@ -4,7 +4,6 @@
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
@@ -12,6 +11,7 @@
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/SearchResult.hpp>
+#include <locic/SemanticAnalysis/TypeResolver.hpp>
 
 namespace locic {
 
@@ -98,11 +98,11 @@ namespace locic {
 				}
 				
 				case AST::Var::NAMEDVAR: {
-					return ConvertType(context, astVarNode->namedType())->resolveAliases();
+					return TypeResolver(context).resolveType(astVarNode->namedType())->resolveAliases();
 				}
 				
 				case AST::Var::PATTERNVAR: {
-					return ConvertType(context, astVarNode->patternType())->resolveAliases();
+					return TypeResolver(context).resolveType(astVarNode->patternType())->resolveAliases();
 				}
 			}
 			
@@ -210,7 +210,7 @@ namespace locic {
 							                  location, std::move(previousVarDiag));
 						}
 						
-						const auto varDeclType = ConvertType(context, astVarNode->namedType())->resolveAliases();
+						const auto varDeclType = TypeResolver(context).resolveType(astVarNode->namedType())->resolveAliases();
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
@@ -235,7 +235,7 @@ namespace locic {
 					}
 					
 					case AST::Var::PATTERNVAR: {
-						const auto varDeclType = ConvertType(context, astVarNode->patternType())->resolveAliases();
+						const auto varDeclType = TypeResolver(context).resolveType(astVarNode->patternType())->resolveAliases();
 						
 						if (!varDeclType->isDatatype()) {
 							context.issueDiag(CannotPatternMatchNonDatatypeDiag(varDeclType),
@@ -314,7 +314,7 @@ namespace locic {
 						}
 					}
 					
-					const auto varType = ConvertType(context, astVarNode->namedType());
+					const auto varType = TypeResolver(context).resolveType(astVarNode->namedType());
 					
 					// 'final' keyword uses a different lval type (which doesn't support
 					// moving or re-assignment).
@@ -332,7 +332,7 @@ namespace locic {
 				}
 				
 				case AST::Var::PATTERNVAR: {
-					const auto varType = ConvertType(context, astVarNode->patternType())->resolveAliases();
+					const auto varType = TypeResolver(context).resolveType(astVarNode->patternType())->resolveAliases();
 					
 					if (!varType->isDatatype()) {
 						context.issueDiag(CannotPatternMatchNonDatatypeDiag(varType),

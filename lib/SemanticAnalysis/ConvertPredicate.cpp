@@ -11,7 +11,6 @@
 #include <locic/SemanticAnalysis/AliasTypeResolver.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>
@@ -19,6 +18,7 @@
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
+#include <locic/SemanticAnalysis/TypeResolver.hpp>
 #include <locic/Support/Optional.hpp>
 
 namespace locic {
@@ -108,8 +108,9 @@ namespace locic {
 					const auto& typeSpecType = astPredicateNode->typeSpecType();
 					const auto& typeSpecRequireType = astPredicateNode->typeSpecRequireType();
 					
-					const auto semType = ConvertType(context, typeSpecType);
-					const auto semRequireType = ConvertType(context, typeSpecRequireType);
+					TypeResolver typeResolver(context);
+					const auto semType = typeResolver.resolveType(typeSpecType);
+					const auto semRequireType = typeResolver.resolveType(typeSpecRequireType);
 					
 					return SEM::Predicate::Satisfies(semType, semRequireType);
 				}

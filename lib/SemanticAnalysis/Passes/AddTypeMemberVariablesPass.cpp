@@ -1,9 +1,9 @@
 #include <locic/AST.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TypeResolver.hpp>
 
 namespace locic {
 	
@@ -103,7 +103,7 @@ namespace locic {
 				// Add exception type parent using initializer.
 				const auto& astInitializerNode = astTypeInstanceNode->initializer;
 				if (astInitializerNode->kind == AST::ExceptionInitializer::INITIALIZE) {
-					const auto semType = ConvertObjectType(context, astInitializerNode->symbol);
+					const auto semType = TypeResolver(context).resolveObjectType(astInitializerNode->symbol);
 					
 					if (!semType->isException()) {
 						context.issueDiag(ExceptionCannotInheritNonExceptionTypeDiag(semTypeInstance, semType),

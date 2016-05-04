@@ -13,7 +13,6 @@ add_library(locic-semanalysis
 	ConvertPredicate.cpp
 	ConvertScope.cpp
 	ConvertStatement.cpp
-	ConvertType.cpp
 	ConvertTypeInstance.cpp
 	ConvertValue.cpp
 	ConvertVar.cpp
@@ -44,5 +43,6 @@ add_library(locic-semanalysis
 	Template.cpp
 	TypeBuilder.cpp
 	TypeCapabilities.cpp
+	TypeResolver.cpp
 	VarArgCast.cpp
 )

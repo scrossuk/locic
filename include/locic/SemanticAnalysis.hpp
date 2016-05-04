@@ -9,7 +9,6 @@
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
 #include <locic/SemanticAnalysis/ConvertScope.hpp>
 #include <locic/SemanticAnalysis/ConvertStatement.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertTypeInstance.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 

@@ -3,7 +3,6 @@
 #include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/GetMethod.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>

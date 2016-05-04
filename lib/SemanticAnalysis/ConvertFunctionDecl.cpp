@@ -6,13 +6,13 @@
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
+#include <locic/SemanticAnalysis/TypeResolver.hpp>
 #include <locic/Support/MethodID.hpp>
 #include <locic/Support/MethodIDMap.hpp>
 #include <locic/Support/SharedMaps.hpp>
@@ -174,7 +174,7 @@ namespace locic {
 				
 				// Also adding the function template variable type here.
 				const auto& astVarType = astTemplateVarNode->type();
-				const auto semVarType = ConvertTemplateVarType(context, astVarType);
+				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
 				
 				if (!semVarType->isPrimitive()) {
 					context.issueDiag(FunctionTemplateHasNonPrimitiveTypeDiag(templateVarName,
@@ -536,7 +536,7 @@ namespace locic {
 				
 				semReturnType = thisTypeInstance->selfType();
 			} else {
-				semReturnType = ConvertType(context, astReturnTypeNode);
+				semReturnType = TypeResolver(context).resolveType(astReturnTypeNode);
 			}
 			
 			std::vector<SEM::Var*> parameterVars;

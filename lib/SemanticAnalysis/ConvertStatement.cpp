@@ -13,7 +13,6 @@
 #include <locic/SemanticAnalysis/ConvertForLoop.hpp>
 #include <locic/SemanticAnalysis/ConvertScope.hpp>
 #include <locic/SemanticAnalysis/ConvertStatement.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/GetMethod.hpp>

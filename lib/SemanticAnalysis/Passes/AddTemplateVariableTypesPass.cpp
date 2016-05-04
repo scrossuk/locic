@@ -1,8 +1,8 @@
 #include <locic/AST.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/TypeResolver.hpp>
 
 namespace locic {
 	
@@ -34,7 +34,7 @@ namespace locic {
 				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
 				
 				const auto& astVarType = astTemplateVarNode->type();
-				const auto semVarType = ConvertTemplateVarType(context, astVarType);
+				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
 				
 				if (!semVarType->isPrimitive()) {
 					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, semVarType),
@@ -54,7 +54,7 @@ namespace locic {
 				const auto semTemplateVar = typeInstance.namedTemplateVariables().at(templateVarName);
 				
 				const auto& astVarType = astTemplateVarNode->type();
-				const auto semVarType = ConvertTemplateVarType(context, astVarType);
+				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
 				
 				if (!semVarType->isPrimitive()) {
 					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, semVarType),

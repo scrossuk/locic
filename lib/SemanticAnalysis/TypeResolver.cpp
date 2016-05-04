@@ -10,7 +10,6 @@
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
-#include <locic/SemanticAnalysis/ConvertType.hpp>
 #include <locic/SemanticAnalysis/ConvertValue.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
@@ -19,24 +18,14 @@
 #include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>
+#include <locic/SemanticAnalysis/TypeResolver.hpp>
 
 namespace locic {
 
 	namespace SemanticAnalysis {
-	
-		static const SEM::Type* ConvertIntegerType(Context& context, AST::TypeDecl::SignedModifier signedModifier,
-		                                           const String& nameString) {
-			// Unsigned types have 'u' prefix and all integer types
-			// have '_t' suffix (e.g. uint_t, short_t etc.).
-			const auto fullNameString = (signedModifier == AST::TypeDecl::UNSIGNED) ? (context.getCString("u") + nameString + "_t") : (nameString + "_t");
-			return getBuiltInType(context, fullNameString, {});
-		}
 		
-		static const SEM::Type* ConvertFloatType(Context& context, const String& nameString) {
-			// All floating point types have '_t' suffix (e.g. float_t, double_t etc.).
-			const auto fullNameString = nameString + "_t";
-			return getBuiltInType(context, fullNameString, {});
-		}
+		TypeResolver::TypeResolver(Context& context)
+		: context_(context) { }
 		
 		class UnknownTypeNameDiag: public Error {
 		public:
@@ -53,14 +42,15 @@ namespace locic {
 			
 		};
 		
-		const SEM::Type* ConvertObjectType(Context& context, const AST::Node<AST::Symbol>& symbol) {
+		const SEM::Type*
+		TypeResolver::resolveObjectType(const AST::Node<AST::Symbol>& symbol) {
 			assert(!symbol->empty());
 			
 			const Name name = symbol->createName();
 			
-			const auto searchResult = performSearch(context, name);
+			const auto searchResult = performSearch(context_, name);
 			
-			const auto templateVarMap = GenerateSymbolTemplateVarMap(context, symbol);
+			const auto templateVarMap = GenerateSymbolTemplateVarMap(context_, symbol);
 			
 			if (searchResult.isTypeInstance()) {
 				auto& typeInstance = searchResult.typeInstance();
@@ -82,10 +72,28 @@ namespace locic {
 				
 				return SEM::Type::Alias(alias, std::move(templateValues));
 			} else {
-				context.issueDiag(UnknownTypeNameDiag(name.copy()),
-				                  symbol.location());
-				return context.typeBuilder().getIntType();
+				context_.issueDiag(UnknownTypeNameDiag(name.copy()),
+				                   symbol.location());
+				return context_.typeBuilder().getIntType();
 			}
+		}
+		
+		const SEM::Type*
+		TypeResolver::resolveIntegerType(AST::TypeDecl::SignedModifier signedModifier,
+		                                 const String& nameString) {
+			// Unsigned types have 'u' prefix and all integer types
+			// have '_t' suffix (e.g. uint_t, short_t etc.).
+			const auto fullNameString = (signedModifier == AST::TypeDecl::UNSIGNED) ?
+				(context_.getCString("u") + nameString + "_t") :
+				(nameString + "_t");
+			return getBuiltInType(context_, fullNameString, {});
+		}
+		
+		const SEM::Type*
+		TypeResolver::resolveFloatType(const String& nameString) {
+			// All floating point types have '_t' suffix (e.g. float_t, double_t etc.).
+			const auto fullNameString = nameString + "_t";
+			return getBuiltInType(context_, fullNameString, {});
 		}
 		
 		class FunctionTypeParameterCannotBeVoidDiag: public Error {
@@ -98,70 +106,72 @@ namespace locic {
 			
 		};
 		
-		const SEM::Type* ConvertType(Context& context, const AST::Node<AST::TypeDecl>& type) {
-			TypeBuilder builder(context);
+		const SEM::Type*
+		TypeResolver::resolveType(const AST::Node<AST::TypeDecl>& type) {
+			TypeBuilder builder(context_);
 			switch (type->typeEnum) {
 				case AST::TypeDecl::AUTO: {
-					return SEM::Type::Auto(context.semContext());
+					return SEM::Type::Auto(context_.semContext());
 				}
 				case AST::TypeDecl::CONST: {
-					return ConvertType(context, type->getConstTarget())->createTransitiveConstType(SEM::Predicate::True());
+					return resolveType(type->getConstTarget())->createTransitiveConstType(SEM::Predicate::True());
 				}
 				case AST::TypeDecl::CONSTPREDICATE: {
-					auto constPredicate = ConvertPredicate(context, type->getConstPredicate());
-					const auto constTarget = ConvertType(context, type->getConstPredicateTarget());
+					auto constPredicate = ConvertPredicate(context_, type->getConstPredicate());
+					const auto constTarget = resolveType(type->getConstPredicateTarget());
 					return constTarget->createTransitiveConstType(std::move(constPredicate));
 				}
 				case AST::TypeDecl::NOTAG: {
-					return ConvertType(context, type->getNoTagTarget())->createNoTagType();
+					return resolveType(type->getNoTagTarget())->createNoTagType();
 				}
 				case AST::TypeDecl::LVAL: {
-					auto targetType = ConvertType(context, type->getLvalTarget());
-					return ConvertType(context, type->getLvalType())->createLvalType(targetType);
+					auto targetType = resolveType(type->getLvalTarget());
+					return resolveType(type->getLvalType())->createLvalType(targetType);
 				}
 				case AST::TypeDecl::REF: {
-					auto targetType = ConvertType(context, type->getRefTarget());
-					return ConvertType(context, type->getRefType())->createRefType(targetType);
+					auto targetType = resolveType(type->getRefTarget());
+					return resolveType(type->getRefType())->createRefType(targetType);
 				}
 				case AST::TypeDecl::STATICREF: {
-					auto targetType = ConvertType(context, type->getStaticRefTarget());
-					return ConvertType(context, type->getStaticRefType())->createStaticRefType(targetType);
+					auto targetType = resolveType(type->getStaticRefTarget());
+					return resolveType(type->getStaticRefType())->createStaticRefType(targetType);
 				}
 				case AST::TypeDecl::VOID: {
-					return context.typeBuilder().getVoidType();
+					return context_.typeBuilder().getVoidType();
 				}
 				case AST::TypeDecl::BOOL: {
-					return context.typeBuilder().getBoolType();
+					return context_.typeBuilder().getBoolType();
 				}
 				case AST::TypeDecl::PRIMITIVE: {
-					return context.typeBuilder().getPrimitiveType(type->primitiveID());
+					return context_.typeBuilder().getPrimitiveType(type->primitiveID());
 				}
 				case AST::TypeDecl::INTEGER: {
-					return ConvertIntegerType(context, type->integerType.signedModifier, type->integerType.name);
+					return resolveIntegerType(type->integerType.signedModifier,
+					                          type->integerType.name);
 				}
 				case AST::TypeDecl::FLOAT: {
-					return ConvertFloatType(context, type->floatType.name);
+					return resolveFloatType(type->floatType.name);
 				}
 				case AST::TypeDecl::OBJECT: {
-					return ConvertObjectType(context, type->objectType.symbol);
+					return resolveObjectType(type->objectType.symbol);
 				}
 				case AST::TypeDecl::REFERENCE: {
-					const auto targetType = ConvertType(context, type->getReferenceTarget());
-					return createReferenceType(context, targetType);
+					const auto targetType = resolveType(type->getReferenceTarget());
+					return createReferenceType(context_, targetType);
 				}
 				case AST::TypeDecl::POINTER: {
-					const auto targetType = ConvertType(context, type->getPointerTarget());
+					const auto targetType = resolveType(type->getPointerTarget());
 					return builder.getPointerType(targetType);
 				}
 				case AST::TypeDecl::STATICARRAY: {
-					const auto targetType = ConvertType(context, type->getStaticArrayTarget());
-					auto arraySize = ConvertValue(context, type->getArraySize());
+					const auto targetType = resolveType(type->getStaticArrayTarget());
+					auto arraySize = ConvertValue(context_, type->getArraySize());
 					return builder.getStaticArrayType(targetType,
 					                                  std::move(arraySize),
 					                                  type.location());
 				}
 				case AST::TypeDecl::FUNCTION: {
-					const auto returnType = ConvertType(context, type->functionType.returnType);
+					const auto returnType = resolveType(type->functionType.returnType);
 					
 					const auto& astParameterTypes = type->functionType.parameterTypes;
 					
@@ -169,11 +179,11 @@ namespace locic {
 					parameterTypes.reserve(astParameterTypes->size());
 					
 					for (const auto& astParamType: *astParameterTypes) {
-						const auto paramType = ConvertType(context, astParamType);
+						const auto paramType = resolveType(astParamType);
 						
 						if (paramType->isBuiltInVoid()) {
-							context.issueDiag(FunctionTypeParameterCannotBeVoidDiag(),
-							                  astParamType.location());
+							context_.issueDiag(FunctionTypeParameterCannotBeVoidDiag(),
+							                   astParamType.location());
 						}
 						
 						parameterTypes.push_back(paramType);
@@ -197,7 +207,7 @@ namespace locic {
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown AST::TypeDecl kind.");
 		}
 		
 		class PredicateAliasNotBoolDiag: public Error {
@@ -218,12 +228,12 @@ namespace locic {
 			
 		};
 		
-		static SEM::Alias*
-		getTemplateVarTypeAlias(Context& context, const AST::Node<AST::TypeDecl>& type) {
+		SEM::Alias*
+		TypeResolver::getTemplateVarTypeAlias(const AST::Node<AST::TypeDecl>& type) {
 			if (!type->isObjectType()) return nullptr;
 			
 			const Name name = type->symbol()->createName();
-			const auto searchResult = performSearch(context, name);
+			const auto searchResult = performSearch(context_, name);
 			if (!searchResult.isAlias()) return nullptr;
 			
 			auto& alias = searchResult.alias();
@@ -237,37 +247,38 @@ namespace locic {
 		}
 		
 		SEM::Predicate
-		getTemplateVarTypePredicate(Context& context, const AST::Node<AST::TypeDecl>& type,
-		                            const SEM::TemplateVar& templateVar) {
-			const auto alias = getTemplateVarTypeAlias(context, type);
+		TypeResolver::getTemplateVarTypePredicate(const AST::Node<AST::TypeDecl>& type,
+		                                          const SEM::TemplateVar& templateVar) {
+			const auto alias = getTemplateVarTypeAlias(type);
 			if (alias == nullptr) {
 				return SEM::Predicate::True();
 			}
 			
-			(void) context.aliasTypeResolver().resolveAliasType(*alias);
+			(void) context_.aliasTypeResolver().resolveAliasType(*alias);
 			assert(alias->templateVariables().size() == 1);
 			
 			SEM::ValueArray values;
 			values.push_back(templateVar.selfRefValue());
-			auto templateVarMap = GenerateTemplateVarMap(context, *alias,
+			auto templateVarMap = GenerateTemplateVarMap(context_, *alias,
 			                                             std::move(values),
 			                                             type.location());
 			const auto aliasValue = alias->value().substitute(templateVarMap);
 			if (!aliasValue.type()->isBuiltInBool()) {
-				context.issueDiag(PredicateAliasNotBoolDiag(type->symbol()->createName(),
-				                                            aliasValue.type()),
-				                  type.location());
+				context_.issueDiag(PredicateAliasNotBoolDiag(type->symbol()->createName(),
+				                                             aliasValue.type()),
+				                   type.location());
 				return SEM::Predicate::True();
 			}
 			
 			return aliasValue.makePredicate();
 		}
 		
-		const SEM::Type* ConvertTemplateVarType(Context& context, const AST::Node<AST::TypeDecl>& type) {
-			if (getTemplateVarTypeAlias(context, type) != nullptr) {
-				return TypeBuilder(context).getTypenameType();
+		const SEM::Type*
+		TypeResolver::resolveTemplateVarType(const AST::Node<AST::TypeDecl>& type) {
+			if (getTemplateVarTypeAlias(type) != nullptr) {
+				return TypeBuilder(context_).getTypenameType();
 			} else {
-				return ConvertType(context, type);
+				return resolveType(type);
 			}
 		}
 		
