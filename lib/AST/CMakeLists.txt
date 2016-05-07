@@ -9,6 +9,7 @@ add_library(locic-ast
 	Predicate.cpp
 	RequireSpecifier.cpp
 	Scope.cpp
+	Statement.cpp
 	StaticAssert.cpp
 	Symbol.cpp
 	TemplateVar.cpp
