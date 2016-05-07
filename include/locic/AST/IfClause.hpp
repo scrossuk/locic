@@ -9,7 +9,7 @@ namespace locic {
 
 	namespace AST {
 	
-		struct Scope;
+		class Scope;
 		struct Value;
 		
 		struct IfClause {

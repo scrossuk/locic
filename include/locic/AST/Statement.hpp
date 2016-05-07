@@ -13,7 +13,7 @@ namespace locic {
 
 	namespace AST {
 	
-		struct Scope;
+		class Scope;
 		
 		enum AssignKind {
 			ASSIGN_DIRECT,

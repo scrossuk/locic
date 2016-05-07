@@ -48,12 +48,12 @@ namespace locic {
 			assert(astScope.get() != nullptr);
 			
 			auto semScope = SEM::Scope::Create();
-			semScope->statements().reserve(astScope->statements->size());
+			semScope->statements().reserve(astScope->statements()->size());
 			
 			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Scope(*semScope));
 			
 			// Go through each syntactic statement, and create a corresponding semantic statement.
-			for (const auto& astStatementNode: *(astScope->statements)) {
+			for (const auto& astStatementNode: *(astScope->statements())) {
 				semScope->statements().push_back(ConvertStatement(context, astStatementNode));
 			}
 			

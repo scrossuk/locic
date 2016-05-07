@@ -9,7 +9,7 @@ namespace locic {
 
 	namespace AST {
 	
-		struct Scope;
+		class Scope;
 		class Var;
 		
 		struct CatchClause {
