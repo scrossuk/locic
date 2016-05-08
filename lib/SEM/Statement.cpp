@@ -111,6 +111,36 @@ namespace locic {
 			return statement;
 		}
 		
+		Statement Statement::For(Var* var, Value initValue,
+		                         std::unique_ptr<Scope> scope) {
+			// TODO: get exit states of skip_front() method.
+			auto exitStates = initValue.exitStates();
+			assert(!exitStates.hasBreakExit() && !exitStates.hasContinueExit() &&
+			       !exitStates.hasReturnExit());
+			
+			// Normal exit from the init value means executing the loop.
+			exitStates.remove(ExitStates::Normal());
+			
+			auto scopeExitStates = scope->exitStates();
+			
+			// Block any 'continue' exit state.
+			scopeExitStates.remove(ExitStates::Continue());
+			
+			// A 'break' exit state means a normal return from the loop.
+			if (scopeExitStates.hasBreakExit()) {
+				exitStates.add(ExitStates::Normal());
+				scopeExitStates.remove(ExitStates::Break());
+			}
+			
+			exitStates.add(scopeExitStates);
+			
+			Statement statement(FOR, exitStates);
+			statement.forStmt_.var = var;
+			statement.forStmt_.initValue = std::move(initValue);
+			statement.forStmt_.scope = std::move(scope);
+			return statement;
+		}
+		
 		Statement Statement::Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList) {
 			ExitStates exitStates = ExitStates::None();
 			
@@ -292,6 +322,25 @@ namespace locic {
 			return *(loopStmt_.advanceScope);
 		}
 		
+		bool Statement::isFor() const {
+			return kind() == FOR;
+		}
+		
+		Var* Statement::getForVar() const {
+			assert(isFor());
+			return forStmt_.var;
+		}
+		
+		const Value& Statement::getForInitValue() const {
+			assert(isFor());
+			return forStmt_.initValue;
+		}
+		
+		Scope& Statement::getForScope() const {
+			assert(isFor());
+			return *(forStmt_.scope);
+		}
+		
 		bool Statement::isTryStatement() const {
 			return kind() == TRY;
 		}
@@ -423,6 +472,13 @@ namespace locic {
 						loopStmt_.condition.toString().c_str(),
 						loopStmt_.iterationScope->toString().c_str(),
 						loopStmt_.advanceScope->toString().c_str());
+				}
+				
+				case FOR: {
+					return makeString("ForStatement(var: %s, initValue: %s, scope: %s)",
+						getForVar()->toString().c_str(),
+						getForInitValue().toString().c_str(),
+						getForScope().toString().c_str());
 				}
 				
 				case TRY: {

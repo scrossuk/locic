@@ -31,6 +31,7 @@ namespace locic {
 					IF,
 					SWITCH,
 					LOOP,
+					FOR,
 					TRY,
 					SCOPEEXIT,
 					RETURN,
@@ -55,6 +56,9 @@ namespace locic {
 				static Statement Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope);
 				
 				static Statement Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope);
+				
+				static Statement For(Var* var, Value initValue,
+				                     std::unique_ptr<Scope> scope);
 				
 				static Statement Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList);
 				
@@ -120,6 +124,14 @@ namespace locic {
 				Scope& getLoopIterationScope() const;
 				
 				Scope& getLoopAdvanceScope() const;
+				
+				bool isFor() const;
+				
+				Var* getForVar() const;
+				
+				const Value& getForInitValue() const;
+				
+				Scope& getForScope() const;
 				
 				bool isTryStatement() const;
 				
@@ -203,6 +215,12 @@ namespace locic {
 					std::unique_ptr<Scope> iterationScope;
 					std::unique_ptr<Scope> advanceScope;
 				} loopStmt_;
+				
+				struct {
+					Var* var;
+					Value initValue;
+					std::unique_ptr<Scope> scope;
+				} forStmt_;
 				
 				struct {
 					std::unique_ptr<Scope> scope;

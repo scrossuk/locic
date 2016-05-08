@@ -57,6 +57,10 @@ namespace locic {
 					DeadCodeSearchScope(context, statement.getLoopAdvanceScope());
 					return;
 				}
+				case SEM::Statement::FOR: {
+					DeadCodeSearchScope(context, statement.getForScope());
+					return;
+				}
 				case SEM::Statement::TRY: {
 					DeadCodeSearchScope(context, statement.getTryScope());
 					for (auto catchClause: statement.getTryCatchList()) {
