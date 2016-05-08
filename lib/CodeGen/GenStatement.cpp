@@ -9,6 +9,7 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/ControlFlow.hpp>
 #include <locic/CodeGen/Debug.hpp>
+#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
@@ -373,6 +374,100 @@ namespace locic {
 					
 					// Create after loop basic block (which is where execution continues).
 					function.selectBasicBlock(loopEndBB);
+					return;
+				}
+				
+				case SEM::Statement::FOR: {
+					/**
+					 * This code converts:
+					 * for (type value_var: initValue) {
+					 *     [for scope]
+					 * }
+					 * 
+					 * ...to (roughly):
+					 * 
+					 * {
+					 *     var iterator = [initValue];
+					 *     forCondition:
+					 *         if iterator.empty():
+					 *             goto forEnd
+					 *         else:
+					 *             goto forIteration
+					 *     forIteration:
+					 *     {
+					 *         var value_var = iterator.front();
+					 *         [for scope]
+					 *         goto forAdvance
+					 *     }
+					 *     forAdvance:
+					 *         iterator.skip_front();
+					 *         goto forCondition
+					 *     forEnd:
+					 * }
+					 */
+					const auto valueType = statement.getForVar()->type();
+					const auto iteratorType = statement.getForInitValue().type();
+					
+					ScopeLifetime forScopeLifetime(function);
+					
+					// Create a variable for the iterator/range object.
+					const auto iteratorVar = irEmitter.emitAlloca(iteratorType);
+					const auto initValue = genValue(function, statement.getForInitValue(),
+					                                iteratorVar);
+					irEmitter.emitMoveStore(initValue, iteratorVar, iteratorType);
+					scheduleDestructorCall(function, iteratorType, iteratorVar);
+					
+					const auto forConditionBB = function.createBasicBlock("forCondition");
+					const auto forIterationBB = function.createBasicBlock("forIteration");
+					const auto forAdvanceBB = function.createBasicBlock("forAdvance");
+					const auto forEndBB = function.createBasicBlock("forEnd");
+					
+					// Execution starts in the condition block.
+					function.getBuilder().CreateBr(forConditionBB);
+					function.selectBasicBlock(forConditionBB);
+					
+					const auto isEmptyBool = irEmitter.emitIsEmptyCall(iteratorVar,
+					                                                   iteratorType);
+					const auto isEmptyI1 = irEmitter.emitBoolToI1(isEmptyBool);
+					
+					function.getBuilder().CreateCondBr(isEmptyI1, forEndBB,
+					                                   forIterationBB);
+					
+					// Create loop contents.
+					function.selectBasicBlock(forIterationBB);
+					
+					{
+						ScopeLifetime valueScope(function);
+						
+						// Initialise the loop value.
+						const auto varAllocaOptional = function.getLocalVarMap().tryGet(statement.getForVar());
+						const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
+						const auto value = irEmitter.emitFrontCall(iteratorVar, iteratorType,
+						                                           valueType, varAlloca);
+						genVarInitialise(function, statement.getForVar(), value);
+						
+						ControlFlowScope controlFlowScope(function, forEndBB, forAdvanceBB);
+						genScope(function, statement.getForScope());
+					}
+					
+					// At the end of a loop iteration, branch to
+					// the advance block to update any data for
+					// the next iteration.
+					if (!function.lastInstructionTerminates()) {
+						function.getBuilder().CreateBr(forAdvanceBB);
+					}
+					
+					function.selectBasicBlock(forAdvanceBB);
+					
+					irEmitter.emitSkipFrontCall(iteratorVar, iteratorType);
+					
+					// Now branch back to the start to re-check the condition.
+					if (!function.lastInstructionTerminates()) {
+						function.getBuilder().CreateBr(forConditionBB);
+					}
+					
+					// Create after loop basic block (which is where execution continues).
+					function.selectBasicBlock(forEndBB);
 					return;
 				}
 				
