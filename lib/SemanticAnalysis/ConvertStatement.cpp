@@ -708,7 +708,7 @@ namespace locic {
 					return SEM::Statement::ReturnVoid();
 				}
 				case AST::Statement::RETURN: {
-					assert(statement->returnStmt.value.get() != nullptr);
+					assert(statement->returnValue().get() != nullptr);
 					
 					// Check this is not being used inside a scope action.
 					for (size_t i = 0; i < context.scopeStack().size(); i++) {
@@ -856,7 +856,7 @@ namespace locic {
 					return SEM::Statement::Continue();
 				}
 				case AST::Statement::ASSERT: {
-					assert(statement->assertStmt.value.get() != nullptr);
+					assert(statement->assertValue().get() != nullptr);
 					
 					const auto boolType = context.typeBuilder().getBoolType();
 					auto condition = ConvertValue(context, statement->assertValue());

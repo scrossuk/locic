@@ -212,9 +212,11 @@ namespace locic {
 		
 		const SEM::Type*
 		TypeResolver::resolveType(AST::Node<AST::TypeDecl>& type) {
-			assert(type->resolvedType() == nullptr);
+			if (type->resolvedType() != nullptr) {
+				return type->resolvedType();
+			}
 			const auto resolvedType = convertType(type);
-			assert(resolvedType == nullptr);
+			assert(resolvedType != nullptr);
 			type->setResolvedType(resolvedType);
 			return resolvedType;
 		}

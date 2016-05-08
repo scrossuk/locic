@@ -12,7 +12,8 @@ namespace locic {
 		TypeDecl::TypeDecl() : typeEnum(static_cast<TypeEnum>(-1)),
 		resolvedType_(nullptr) { }
 		
-		TypeDecl::TypeDecl(TypeEnum e) : typeEnum(e) { }
+		TypeDecl::TypeDecl(TypeEnum e) : typeEnum(e),
+		resolvedType_(nullptr) { }
 		
 		TypeDecl* TypeDecl::Auto() {
 			return new TypeDecl(AUTO);
