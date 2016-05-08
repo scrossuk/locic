@@ -264,6 +264,28 @@ namespace locic {
 			                      llvm::Value* value,
 			                      const SEM::Type* type);
 			
+			/**
+			 * \brief Emit call to empty() method.
+			 */
+			llvm::Value*
+			emitIsEmptyCall(llvm::Value* valueRef,
+			                const SEM::Type* type);
+			
+			/**
+			 * \brief Emit call to front() method.
+			 */
+			llvm::Value*
+			emitFrontCall(llvm::Value* valueRef, const SEM::Type* type,
+			              const SEM::Type* resultType,
+			              llvm::Value* hintResultValue = nullptr);
+			
+			/**
+			 * \brief Emit call to skip_front() method.
+			 */
+			void
+			emitSkipFrontCall(llvm::Value* valueRef,
+			                  const SEM::Type* type);
+			
 			// Needed to support existing code.
 			// FIXME: Remove these.
  			llvm::IRBuilder<>& builder();

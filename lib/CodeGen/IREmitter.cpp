@@ -682,6 +682,91 @@ namespace locic {
 			                     /*args=*/{});
 		}
 		
+		llvm::Value*
+		IREmitter::emitIsEmptyCall(llvm::Value* const value,
+		                           const SEM::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
+			
+			const bool isTemplated = type->isObject() &&
+			                         !type->templateArguments().empty();
+			
+			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			                                   /*isMethod=*/true,
+			                                   isTemplated,
+			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			
+			const auto boolType = module().context().semContext().getPrimitive(PrimitiveBool).selfType();
+			
+			SEM::FunctionType functionType(std::move(attributes),
+			                               boolType, {});
+			
+			MethodInfo methodInfo(type, module().getCString("empty"),
+			                      functionType, {});
+			
+			RefPendingResult objectPendingResult(value, type);
+			
+			return genMethodCall(functionGenerator_, methodInfo,
+			                     Optional<PendingResult>(objectPendingResult),
+			                     /*args=*/{});
+		}
+		
+		llvm::Value*
+		IREmitter::emitFrontCall(llvm::Value* const value,
+		                         const SEM::Type* const rawType,
+		                         const SEM::Type* const rawResultType,
+		                         llvm::Value* const hintResultValue) {
+			const auto type = rawType->resolveAliases();
+			const auto resultType = rawResultType->resolveAliases();
+			
+			const bool isTemplated = type->isObject() &&
+			                         !type->templateArguments().empty();
+			
+			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			                                   /*isMethod=*/true,
+			                                   isTemplated,
+			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			
+			SEM::FunctionType functionType(std::move(attributes),
+			                               resultType, {});
+			
+			MethodInfo methodInfo(type, module().getCString("front"),
+			                      functionType, {});
+			
+			RefPendingResult objectPendingResult(value, type);
+			
+			return genMethodCall(functionGenerator_, methodInfo,
+			                     Optional<PendingResult>(objectPendingResult),
+			                     /*args=*/{}, hintResultValue);
+		}
+		
+		void
+		IREmitter::emitSkipFrontCall(llvm::Value* const value,
+		                             const SEM::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
+			
+			const bool isTemplated = type->isObject() &&
+			                         !type->templateArguments().empty();
+			
+			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			                                   /*isMethod=*/true,
+			                                   isTemplated,
+			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			
+			const auto voidType = module().context().semContext().getPrimitive(PrimitiveVoid).selfType();
+			
+			SEM::FunctionType functionType(std::move(attributes),
+			                               voidType, {});
+			
+			MethodInfo methodInfo(type, module().getCString("skipfront"),
+			                      functionType, {});
+			
+			RefPendingResult objectPendingResult(value, type);
+			
+			(void) genMethodCall(functionGenerator_, methodInfo,
+			                     Optional<PendingResult>(objectPendingResult),
+			                     /*args=*/{});
+		}
+		
 		llvm::IRBuilder<>& IREmitter::builder() {
 			return functionGenerator_.getBuilder();
 		}
