@@ -264,6 +264,9 @@ namespace locic {
 					// Default to 'signed'.
 					return parseIntegerTypeWithSignedness(start,
 					                                      /*isSigned=*/true);
+				case Token::UNICHAR:
+					reader_.consume();
+					return builder_.makePrimitiveType(PrimitiveUnichar, start);
 				case Token::NAME: {
 					auto symbol = SymbolParser(reader_).parseSymbol(SymbolParser::IN_TYPE);
 					return builder_.makeSymbolType(std::move(symbol), start);
@@ -377,6 +380,7 @@ namespace locic {
 				case Token::UNSIGNED:
 				case Token::FLOAT:
 				case Token::DOUBLE:
+				case Token::UNICHAR:
 				case Token::CONST:
 				case Token::LVAL:
 				case Token::REF:

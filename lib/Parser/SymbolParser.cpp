@@ -270,6 +270,7 @@ namespace locic {
 				case Token::ULONGLONG:
 				case Token::FLOAT:
 				case Token::DOUBLE:
+				case Token::UNICHAR:
 				case Token::FINAL:
 				case Token::CONST:
 				case Token::MUTABLE:

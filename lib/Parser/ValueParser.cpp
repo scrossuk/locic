@@ -109,6 +109,7 @@ namespace locic {
 				case Token::ULONGLONG:
 				case Token::FLOAT:
 				case Token::DOUBLE:
+				case Token::UNICHAR:
 				case Token::CONST:
 				case Token::SIGNED:
 				case Token::UNSIGNED:

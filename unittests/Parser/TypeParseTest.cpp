@@ -33,6 +33,7 @@ namespace locic {
 			testPrimitiveType({ Token::VOID }, PrimitiveVoid);
 			testPrimitiveType({ Token::BOOL }, PrimitiveBool);
 			testPrimitiveType({ Token::TYPENAME }, PrimitiveTypename);
+			testPrimitiveType({ Token::UNICHAR }, PrimitiveUnichar);
 		}
 		
 		TEST(TypeParseTest, IntegerTypes) {
