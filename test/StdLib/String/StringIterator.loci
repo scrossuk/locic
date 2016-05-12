@@ -40,7 +40,7 @@ export int main(unused int argc, unused ubyte ** argv) {
 		for (auto i: std::counter<size_t>(0u, string.length(), 1u)) {
 			printf(C"string[%llu] = %llu\n",
 				  i.cast<ulonglong>(),
-				  (*iterator).raw_value().cast<ulonglong>());
+				  (*iterator).cast<ulonglong>());
 			iterator++;
 		}
 		
@@ -56,7 +56,7 @@ export int main(unused int argc, unused ubyte ** argv) {
 			iterator--;
 			printf(C"string[%llu] = %llu\n",
 				  (string.length() - i - 1u).cast<ulonglong>(),
-				  (*iterator).raw_value().cast<ulonglong>());
+				  (*iterator).cast<ulonglong>());
 		}
 		
 		assert iterator.is_begin();

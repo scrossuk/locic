@@ -294,7 +294,6 @@ set (STD_STRING_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string_builder.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string_iterator.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/string_range.loci"
-	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/unichar.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/utf8.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/string/api/utf8_buffer.loci"
 )

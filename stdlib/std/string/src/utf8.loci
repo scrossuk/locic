@@ -47,21 +47,21 @@ export std.string 0.1.0 {
 		void utf8_encode_character(unichar character, output_range<ubyte>& dest) {
 			if (character.in_range(0x00u, 0x7Fu)) {
 				// ASCII character range.
-				dest.push_back(character.raw_value().cast<ubyte>());
+				dest.push_back(character.ascii_value());
 			} else if (character.in_range(0x80u, 0x7FFu)) {
-				dest.push_back(ubyte_t.leading_ones(2u) | ((character.raw_value() & uint32_t.trailing_ones(11u)) >> 6u).cast<ubyte>());
-				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(6u)) >> 0u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(2u) | ((uint32_t.trailing_ones(11u) & character) >> 6u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((uint32_t.trailing_ones(6u) & character) >> 0u).cast<ubyte>());
 			} else if (character.in_range(0x800u, 0xFFFFu)) {
-				dest.push_back(ubyte_t.leading_ones(3u) | ((character.raw_value() & uint32_t.trailing_ones(16u)) >> 12u).cast<ubyte>());
-				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(12u)) >> 6u).cast<ubyte>());
-				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(6u)) >> 0u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(3u) | ((uint32_t.trailing_ones(16u) & character) >> 12u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((uint32_t.trailing_ones(12u) & character) >> 6u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((uint32_t.trailing_ones(6u) & character) >> 0u).cast<ubyte>());
 			} else {
 				assert character.in_range(0x10000u, 0x10FFFFu);
 				
-				dest.push_back(ubyte_t.leading_ones(4u) | ((character.raw_value() & uint32_t.trailing_ones(21u)) >> 18u).cast<ubyte>());
-				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(18u)) >> 12u).cast<ubyte>());
-				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(12u)) >> 6u).cast<ubyte>());
-				dest.push_back(ubyte_t.leading_ones(1u) | ((character.raw_value() & uint32_t.trailing_ones(6u)) >> 0u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(4u) | ((uint32_t.trailing_ones(21u) & character) >> 18u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((uint32_t.trailing_ones(18u) & character) >> 12u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((uint32_t.trailing_ones(12u) & character) >> 6u).cast<ubyte>());
+				dest.push_back(ubyte_t.leading_ones(1u) | ((uint32_t.trailing_ones(6u) & character) >> 0u).cast<ubyte>());
 			}
 		}
 		
