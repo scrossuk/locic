@@ -6,6 +6,7 @@ __primitive ulonglong_t {
 	static ulonglong_t implicit_cast_ushort_t(ushort_t value) noexcept;
 	static ulonglong_t implicit_cast_uint_t(uint_t value) noexcept;
 	static ulonglong_t implicit_cast_ulong_t(ulong_t value) noexcept;
+	static ulonglong_t implicit_cast_unichar_t(unichar_t value) noexcept;
 	
 	static ulonglong_t cast_uint8_t(uint8_t value) noexcept;
 	static ulonglong_t cast_uint16_t(uint16_t value) noexcept;
@@ -15,6 +16,7 @@ __primitive ulonglong_t {
 	static ulonglong_t cast_uint_t(uint_t value) noexcept;
 	static ulonglong_t cast_ulong_t(ulong_t value) noexcept;
 	static ulonglong_t cast_size_t(size_t value) noexcept;
+	static ulonglong_t cast_unichar_t(unichar_t value) noexcept;
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;

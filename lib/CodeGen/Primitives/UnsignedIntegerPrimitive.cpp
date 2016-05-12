@@ -196,7 +196,8 @@ namespace locic {
 					const auto operand = args[0].resolve(function);
 					if (argPrimitiveID.isFloat()) {
 						return builder.CreateFPToUI(operand, selfType);
-					} else if (argPrimitiveID.isInteger()) {
+					} else if (argPrimitiveID.isInteger() ||
+					           argPrimitiveID == PrimitiveUnichar) {
 						return builder.CreateZExtOrTrunc(operand, selfType);
 					} else {
 						llvm_unreachable("Unknown unsigned integer cast source type.");
