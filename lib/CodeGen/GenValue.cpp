@@ -184,6 +184,8 @@ namespace locic {
 						
 						if (primitiveID == PrimitiveUInt8) {
 							return irEmitter_.constantGenerator().getI8(characterValue);
+						} else if (primitiveID == PrimitiveUnichar) {
+							return irEmitter_.constantGenerator().getI32(characterValue);
 						} else {
 							llvm_unreachable("Unknown character literal type.");
 						}

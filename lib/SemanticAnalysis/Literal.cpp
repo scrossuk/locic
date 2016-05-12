@@ -213,7 +213,7 @@ namespace locic {
 				}
 				case Constant::CHARACTER: {
 					if (specifier == "") {
-						return context.getCString("unichar");
+						return context.getCString("unichar_t");
 					} else if (specifier == "C") {
 						return context.getCString("ubyte_t");
 					} else {
