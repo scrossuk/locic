@@ -101,6 +101,7 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("uint", locic::Lex::Token::Kind::UINT);
 	testKeyword("ulong", locic::Lex::Token::Kind::ULONG);
 	testKeyword("ulonglong", locic::Lex::Token::Kind::ULONGLONG);
+	testKeyword("unichar", locic::Lex::Token::Kind::UNICHAR);
 	testKeyword("union", locic::Lex::Token::Kind::UNION);
 	testKeyword("unreachable", locic::Lex::Token::Kind::UNREACHABLE);
 	testKeyword("unsigned", locic::Lex::Token::Kind::UNSIGNED);

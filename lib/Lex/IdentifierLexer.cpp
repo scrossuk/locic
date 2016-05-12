@@ -632,13 +632,24 @@ namespace locic {
 		Token IdentifierLexer::lexPrefixUn() {
 			switch (get().value()) {
 				case 'i':
-					return lexPossibleKeyword("union", Token::UNION);
+					return lexPrefixUni();
 				case 'r':
 					return lexPossibleKeyword("unreachable", Token::UNREACHABLE);
 				case 's':
 					return lexPossibleKeyword("unsigned", Token::UNSIGNED);
 				case 'u':
 					return lexPrefixUnu();
+				default:
+					return lexGeneralIdentifier();
+			}
+		}
+		
+		Token IdentifierLexer::lexPrefixUni() {
+			switch (get().value()) {
+				case 'c':
+					return lexPossibleKeyword("unichar", Token::UNICHAR);
+				case 'o':
+					return lexPossibleKeyword("union", Token::UNION);
 				default:
 					return lexGeneralIdentifier();
 			}

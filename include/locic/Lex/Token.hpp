@@ -104,6 +104,7 @@ namespace locic {
 				ULONGLONG,
 				FLOAT,
 				DOUBLE,
+				UNICHAR,
 
 				COLON,
 				DOUBLE_COLON,
@@ -338,6 +339,7 @@ namespace locic {
 					case ULONGLONG: return "ULONGLONG";
 					case FLOAT: return "FLOAT";
 					case DOUBLE: return "DOUBLE";
+					case UNICHAR: return "UNICHAR";
 					case COLON: return "COLON";
 					case DOUBLE_COLON: return "DOUBLE_COLON";
 					case VOID: return "VOID";

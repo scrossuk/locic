@@ -92,6 +92,7 @@ namespace locic {
 			Token lexPrefixUl();
 			Token lexPrefixUlong();
 			Token lexPrefixUn();
+			Token lexPrefixUni();
 			Token lexPrefixUnu();
 			Token lexPrefixUnused();
 			Token lexPrefixUs();
