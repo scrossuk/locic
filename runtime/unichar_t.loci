@@ -1,0 +1,50 @@
+/**
+ * \brief Unicode character (or 'code point').
+ */
+__primitive unichar_t {
+	static unichar_t implicit_cast_ubyte_t(ubyte_t value) noexcept;
+	static unichar_t implicit_cast_uint8_t(uint8_t value) noexcept;
+	static unichar_t implicit_cast_uint16_t(uint16_t value) noexcept;
+	static unichar_t implicit_cast_uint32_t(uint32_t value) noexcept;
+	
+	static size_t __alignmask() noexcept;
+	static size_t __sizeof() noexcept;
+	
+	void __setdead() noexcept;
+	bool __islive() const noexcept;
+	
+	void __moveto(void* ptr, size_t position) noexcept;
+	
+	template <typename T>
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_unichar_t<T> and movable<T>);
+	
+	template <typename T>
+	T cast() const noexcept require(T : __cast_from_unichar_t<T> and movable<T>);
+	
+	unichar_t implicit_copy() const noexcept;
+	unichar_t copy() const noexcept;
+	
+	ubyte_t ascii_value() const noexcept;
+	
+	bool in_range(unichar_t least, unichar_t most) const noexcept;
+	
+	bool equal(const unichar_t& v) const noexcept;
+	bool not_equal(const unichar_t& v) const noexcept;
+	bool less_than(const unichar_t& v) const noexcept;
+	bool less_than_or_equal(const unichar_t& v) const noexcept;
+	bool greater_than(const unichar_t& v) const noexcept;
+	bool greater_than_or_equal(const unichar_t& v) const noexcept;
+	
+	compare_result_t compare(const unichar_t& v) const noexcept;
+}
+
+template <movable T>
+interface __implicit_cast_from_unichar_t {
+	static T implicit_cast_unichar_t(unichar_t value) noexcept;
+}
+
+template <movable T>
+interface __cast_from_unichar_t {
+	static T cast_unichar_t(unichar_t value) noexcept;
+}
+

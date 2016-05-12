@@ -15,6 +15,7 @@
 #include <locic/CodeGen/Primitives/SignedIntegerPrimitive.hpp>
 #include <locic/CodeGen/Primitives/StaticArrayPrimitive.hpp>
 #include <locic/CodeGen/Primitives/TypenamePrimitive.hpp>
+#include <locic/CodeGen/Primitives/UnicharPrimitive.hpp>
 #include <locic/CodeGen/Primitives/UnsignedIntegerPrimitive.hpp>
 #include <locic/CodeGen/Primitives/ValueLvalPrimitive.hpp>
 #include <locic/CodeGen/Primitives/VoidPrimitive.hpp>
@@ -41,6 +42,9 @@ namespace locic {
 				}
 				case PrimitiveCompareResult: {
 					return new CompareResultPrimitive(typeInstance);
+				}
+				case PrimitiveUnichar: {
+					return new UnicharPrimitive(typeInstance);
 				}
 				CASE_CALLABLE_ID(PrimitiveFunctionPtr):
 				CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):

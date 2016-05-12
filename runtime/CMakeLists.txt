@@ -62,6 +62,7 @@ set(RUNTIME_FILES
 	ulonglong_t.loci
 	ulong_t.loci
 	ushort_t.loci
+	unichar_t.loci
 	value_lval_t.loci
 	varargfunction_ptr_t.loci
 	void_t.loci
