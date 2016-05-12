@@ -63,6 +63,7 @@ namespace locic {
 			case METHOD_ISLESSTHANOREQUAL:
 			case METHOD_ISGREATERTHAN:
 			case METHOD_ISGREATERTHANOREQUAL:
+			case METHOD_ASCIIVALUE:
 				return UNARY;
 			
 			case METHOD_ADD:

@@ -67,6 +67,7 @@ namespace locic {
 		METHOD_ISLESSTHANOREQUAL,
 		METHOD_ISGREATERTHAN,
 		METHOD_ISGREATERTHANOREQUAL,
+		METHOD_ASCIIVALUE,
 		
 		// Binary methods.
 		METHOD_ADD,
@@ -280,6 +281,8 @@ namespace locic {
 					return "isgreaterthan";
 				case METHOD_ISGREATERTHANOREQUAL:
 					return "isgreaterthanorequal";
+				case METHOD_ASCIIVALUE:
+					return "asciivalue";
 				
 				case METHOD_ADD:
 					return "add";

@@ -86,6 +86,7 @@ namespace locic {
 		impl_->add(METHOD_ISLESSTHANOREQUAL);
 		impl_->add(METHOD_ISGREATERTHAN);
 		impl_->add(METHOD_ISGREATERTHANOREQUAL);
+		impl_->add(METHOD_ASCIIVALUE);
 		
 		impl_->add(METHOD_ADD);
 		impl_->add(METHOD_SUBTRACT);
