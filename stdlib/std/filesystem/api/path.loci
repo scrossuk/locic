@@ -1,0 +1,83 @@
+
+import std.filesystem 0.1.0 {
+	
+	namespace std {
+		
+		/**
+		 * \brief Path
+		 */
+		class path {
+			static path root();
+			static path working_dir();
+			static path parse(const std::string& path_string);
+			static path implicit_cast_string(const std::string& path_string);
+			
+			bool is_root() const noexcept;
+			bool is_absolute() const noexcept;
+			bool is_relative() const noexcept;
+			
+			/**
+			 * \brief Add paths.
+			 */
+			path add(const path& other) const;
+			
+			/**
+			 * \brief Get parent path.
+			 */
+			path parent() const;
+			
+			/**
+			 * \brief Get relative path from this path to given path.
+			 *
+			 * If this path is "/a/b":
+			 *
+			 * "/a/c" -> "../c"
+			 * "/a/b" -> "."
+			 * "./a/b" -> "../../<current_dir>/a/b"
+			 */
+			path
+			relative_path_to(const path& target_path,
+			                 const path& current_dir = std::path::working_dir()) const;
+			
+			/**
+			 * \brief Get directory name.
+			 *
+			 * "/foo/bar" -> "/foo"
+			 * "/foo/bar/" -> "/foo/bar"
+			 * "/foo/bar/file.txt" -> "/foo/bar"
+			 */
+			std::string dirname() const;
+			
+			/**
+			 * \brief Get file name.
+			 *
+			 * "/foo/bar" -> "bar"
+			 * "/foo/bar/" -> ""
+			 * "/foo/bar/file.txt" -> "file.txt"
+			 */
+			std::string filename() const;
+			
+			/**
+			 * \brief Get file stem.
+			 *
+			 * "/foo/bar" -> "bar"
+			 * "/foo/bar/" -> ""
+			 * "/foo/bar/file.txt" -> "file"
+			 */
+			std::string stem() const;
+			
+			/**
+			 * \brief Get file extension.
+			 *
+			 * "/foo/bar" -> ""
+			 * "/foo/bar/" -> ""
+			 * "/foo/bar/file.txt" -> ".txt"
+			 */
+			std::string extension() const;
+			
+			std::string to_string() const;
+		}
+	}
+	
+}
+

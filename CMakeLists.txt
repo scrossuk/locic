@@ -257,6 +257,20 @@ set (STD_EVENT_DEPENDENCIES
 	"std.memory"
 )
 
+set (STD_FILESYSTEM_API_FILES
+	"${CMAKE_SOURCE_DIR}/stdlib/std/filesystem/api/path.loci"
+)
+
+set (STD_FILESYSTEM_BINARY_FILES
+	"${CMAKE_BINARY_DIR}/stdlib/std/filesystem/std_filesystem.bc"
+)
+
+set (STD_FILESYSTEM_DEPENDENCIES
+	"std.container"
+	"std.memory"
+	"std.string"
+)
+
 set (STD_MEMORY_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/memory/api/alloc.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/memory/api/raw.loci"
@@ -311,6 +325,7 @@ set(STD_MODULES
 	"concurrency"
 	"container"
 	"event"
+	"filesystem"
 	"memory"
 	"network"
 	"string"

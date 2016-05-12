@@ -1,0 +1,105 @@
+
+export std.filesystem 0.1.0 {
+	
+	namespace std {
+		
+		class path(bool is_absolute, varray<string> components) {
+			static root() {
+				return @(true, varray<string>());
+			}
+			
+			static working_dir() {
+				// TODO!
+				unreachable;
+			}
+			
+			static parse(const string& path_string) {
+				auto components = varray<string>();
+				auto builder = string_builder();
+				bool is_absolute = false;
+				for (auto c: path_string.all()) {
+					if (c == '/') {
+						if (!builder.empty()) {
+							components.push_back(builder.str());
+							builder = string_builder();
+						}
+						if (components.empty()) {
+							is_absolute = true;
+						}
+					} else {
+						builder.append_char(c);
+					}
+				}
+				
+				if (!builder.empty()) {
+					components.push_back(builder.str());
+				}
+				
+				return @(is_absolute, move components);
+			}
+			
+			static implicit_cast_string(const std::string& path_string) {
+				return path.parse(path_string);
+			}
+			
+			bool is_root() const noexcept {
+				return self.is_absolute() && @components.empty();
+			}
+			
+			bool is_absolute() const noexcept {
+				return @is_absolute;
+			}
+			
+			bool is_relative() const noexcept {
+				return !@is_absolute;
+			}
+			
+			path add(const path& other) const {
+				assert !other.is_absolute();
+				// TODO!
+				unreachable;
+			}
+			
+			path parent() const {
+				// TODO: this should add '..' for relative paths.
+				assert !@components.empty();
+				auto components = @components.copy();
+				components.pop_back();
+				return @(@is_absolute, move components);
+			}
+			
+			path relative_path_to(unused const path& target_path,
+			                      unused const path& current_dir) const {
+				// TODO!
+				unreachable;
+			}
+			
+			std::string dirname() const {
+				// TODO!
+				unreachable;
+			}
+			
+			std::string filename() const {
+				// TODO!
+				unreachable;
+			}
+			
+			std::string stem() const {
+				// TODO!
+				unreachable;
+			}
+			
+			std::string extension() const {
+				// TODO!
+				unreachable;
+			}
+			
+			std::string to_string() const {
+				// TODO!
+				unreachable;
+			}
+		}
+	}
+	
+}
+
