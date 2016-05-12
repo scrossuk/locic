@@ -34,6 +34,7 @@ namespace locic {
 		PrimitiveNull,
 		PrimitiveBool,
 		PrimitiveCompareResult,
+		PrimitiveUnichar,
 		
 		REPEAT_CALLABLE_ID(PrimitiveFunctionPtr),
 		REPEAT_CALLABLE_ID(PrimitiveMethodFunctionPtr),

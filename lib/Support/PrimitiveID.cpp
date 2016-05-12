@@ -339,6 +339,8 @@ namespace locic {
 				return "bool_t";
 			case PrimitiveCompareResult:
 				return "compare_result_t";
+			case PrimitiveUnichar:
+				return "unichar_t";
 			NAME_CASE(PrimitiveFunctionPtr, "function", "ptr_t");
 			NAME_CASE(PrimitiveMethodFunctionPtr, "methodfunction", "ptr_t");
 			NAME_CASE(PrimitiveTemplatedFunctionPtr, "templatedfunction", "ptr_t");

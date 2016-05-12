@@ -40,6 +40,7 @@ namespace locic {
 		impl_->add(PrimitiveNull);
 		impl_->add(PrimitiveBool);
 		impl_->add(PrimitiveCompareResult);
+		impl_->add(PrimitiveUnichar);
 		
 #define ADD_CALLABLE_ID(id) \
 	impl_->add(id ## 0); \
