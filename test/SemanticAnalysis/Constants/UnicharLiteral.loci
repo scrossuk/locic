@@ -1,0 +1,6 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+export void f() {
+	// Test that character literal has the correct type.
+	unused unichar a = 'a';
+}
