@@ -31,3 +31,5 @@ static assert noexcept_comparable<double>;
 static assert noexcept_comparable<long double>;
 
 static assert noexcept_comparable<int*>;
+
+static assert noexcept_comparable<unichar>;

@@ -36,3 +36,5 @@ static assert noexcept_copyable<int[10u]>;
 static assert noexcept_copyable<int*[10u]>;
 static assert noexcept_copyable<int&[10u]>;
 static assert noexcept_copyable<int[10u][10u]>;
+
+static assert noexcept_copyable<unichar>;

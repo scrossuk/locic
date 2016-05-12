@@ -36,3 +36,5 @@ static assert implicit_copyable<int[10u]>;
 static assert implicit_copyable<int*[10u]>;
 static assert implicit_copyable<int&[10u]>;
 static assert implicit_copyable<int[10u][10u]>;
+
+static assert implicit_copyable<unichar>;

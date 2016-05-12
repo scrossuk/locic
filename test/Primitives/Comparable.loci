@@ -31,3 +31,5 @@ static assert comparable<double>;
 static assert comparable<long double>;
 
 static assert comparable<int*>;
+
+static assert comparable<unichar>;

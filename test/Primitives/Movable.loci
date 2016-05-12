@@ -36,3 +36,5 @@ static assert movable<int[10u]>;
 static assert movable<int*[10u]>;
 static assert movable<int&[10u]>;
 static assert movable<int[10u][10u]>;
+
+static assert movable<unichar>;
