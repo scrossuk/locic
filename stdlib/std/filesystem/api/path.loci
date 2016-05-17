@@ -37,7 +37,7 @@ import std.filesystem 0.1.0 {
 			 */
 			path
 			relative_path_to(const path& target_path,
-			                 const path& current_dir = std::path::working_dir()) const;
+			                 const path& current_dir/* = std::path::working_dir()*/) const;
 			
 			/**
 			 * \brief Get directory name.
