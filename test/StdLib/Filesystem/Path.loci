@@ -1,0 +1,128 @@
+// RUN: %locic %s std.filesystem:0.1.0 --interpret > %t
+
+import void printf(const ubyte * str, ...) noexcept;
+
+void testRootPath() {
+	auto path = std::path.root();
+	assert path.is_root();
+	assert path.is_absolute();
+	assert path.dirname() == "/";
+	assert path.filename() == ".";
+	assert path.stem() == ".";
+	assert path.extension() == "";
+	assert path.to_string() == "/";
+}
+
+void testParse(const std::string& path_string, const bool is_absolute,
+               const bool is_root, const std::string& dirname,
+               const std::string& filename, const std::string& stem,
+               const std::string& ext, const std::string& str) {
+	auto path = std::path.parse(path_string);
+	assert path.is_absolute() == is_absolute;
+	assert path.is_root() == is_root;
+	assert path.dirname() == dirname;
+	assert path.filename() == filename;
+	assert path.stem() == stem;
+	assert path.extension() == ext;
+	assert path.to_string() == str;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	testRootPath();
+	
+	testParse("/", /*is_absolute=*/true, /*is_root=*/true, /*dirname=*/"/",
+	          /*filename=*/".", /*stem=*/".", /*ext=*/"", /*str=*/"/");
+	
+	testParse("/a", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/", /*filename=*/"a", /*stem=*/"a", /*ext=*/"",
+	          /*str=*/"/a");
+	testParse("//a", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/", /*filename=*/"a", /*stem=*/"a", /*ext=*/"",
+	          /*str=*/"/a");
+	testParse("/a/", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a", /*filename=*/".", /*stem=*/".", /*ext=*/"",
+	          /*str=*/"/a/");
+	testParse("//a/", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a", /*filename=*/".", /*stem=*/".", /*ext=*/"",
+	          /*str=*/"/a/");
+	testParse("//a//", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a", /*filename=*/".", /*stem=*/".", /*ext=*/"",
+	          /*str=*/"/a/");
+	
+	testParse("/a/b", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a", /*filename=*/"b", /*stem=*/"b", /*ext=*/"",
+	          /*str=*/"/a/b");
+	testParse("//a/b", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a", /*filename=*/"b", /*stem=*/"b", /*ext=*/"",
+	          /*str=*/"/a/b");
+	testParse("/a//b", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a", /*filename=*/"b", /*stem=*/"b", /*ext=*/"",
+	          /*str=*/"/a/b");
+	testParse("/a/b/", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a/b", /*filename=*/".", /*stem=*/".",
+	          /*ext=*/"", /*str=*/"/a/b/");
+	testParse("/a/b//", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a/b", /*filename=*/".", /*stem=*/".",
+	          /*ext=*/"", /*str=*/"/a/b/");
+	
+	testParse("/a/b/c.d", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a/b", /*filename=*/"c.d", /*stem=*/"c",
+	          /*ext=*/"d", /*str=*/"/a/b/c.d");
+	testParse("/a//b/c.d", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a/b", /*filename=*/"c.d", /*stem=*/"c",
+	          /*ext=*/"d", /*str=*/"/a/b/c.d");
+	testParse("/a/b//c.d", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a/b", /*filename=*/"c.d", /*stem=*/"c",
+	          /*ext=*/"d", /*str=*/"/a/b/c.d");
+	
+	testParse("/a/b/c.d/", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/a/b/c.d", /*filename=*/".", /*stem=*/".",
+	          /*ext=*/"", /*str=*/"/a/b/c.d/");
+	
+	testParse("", /*is_absolute=*/false, /*is_root=*/false, /*dirname=*/"",
+	          /*filename=*/".", /*stem=*/".", /*ext=*/"", /*str=*/".");
+	testParse(".", /*is_absolute=*/false, /*is_root=*/false, /*dirname=*/"",
+	          /*filename=*/".", /*stem=*/".", /*ext=*/"", /*str=*/".");
+	testParse(".//.//.", /*is_absolute=*/false, /*is_root=*/false,
+	          /*dirname=*/"", /*filename=*/".", /*stem=*/".", /*ext=*/"",
+	          /*str=*/".");
+	
+	testParse("..", /*is_absolute=*/false, /*is_root=*/false,
+	          /*dirname=*/"..", /*filename=*/".", /*stem=*/".", /*ext=*/"",
+	          /*str=*/"../");
+	testParse("../..", /*is_absolute=*/false, /*is_root=*/false,
+	          /*dirname=*/"../..", /*filename=*/".", /*stem=*/".",
+	          /*ext=*/"", /*str=*/"../../");
+	testParse("../../", /*is_absolute=*/false, /*is_root=*/false,
+	          /*dirname=*/"../..", /*filename=*/".", /*stem=*/".",
+	          /*ext=*/"", /*str=*/"../../");
+	
+	testParse("../a", /*is_absolute=*/false, /*is_root=*/false,
+	          /*dirname=*/"..", /*filename=*/"a", /*stem=*/"a", /*ext=*/"",
+	          /*str=*/"../a");
+	testParse("../../a", /*is_absolute=*/false, /*is_root=*/false,
+	          /*dirname=*/"../..", /*filename=*/"a", /*stem=*/"a",
+	          /*ext=*/"", /*str=*/"../../a");
+	testParse("../../a/b", /*is_absolute=*/false, /*is_root=*/false,
+	          /*dirname=*/"../../a", /*filename=*/"b", /*stem=*/"b",
+	          /*ext=*/"", /*str=*/"../../a/b");
+	testParse("../../a/b/c.d", /*is_absolute=*/false, /*is_root=*/false,
+	          /*dirname=*/"../../a/b", /*filename=*/"c.d", /*stem=*/"c",
+	          /*ext=*/"d", /*str=*/"../../a/b/c.d");
+	
+	testParse("/a/b/../..", /*is_absolute=*/true, /*is_root=*/true,
+	          /*dirname=*/"/", /*filename=*/".", /*stem=*/".", /*ext=*/"",
+	          /*str=*/"/");
+	testParse("/a/b/../../", /*is_absolute=*/true, /*is_root=*/true,
+	          /*dirname=*/"/", /*filename=*/".", /*stem=*/".", /*ext=*/"",
+	          /*str=*/"/");
+	
+	testParse("/a/b/../../c.d", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/", /*filename=*/"c.d", /*stem=*/"c",
+	          /*ext=*/"d", /*str=*/"/c.d");
+	testParse("/a/b/../../c.d/", /*is_absolute=*/true, /*is_root=*/false,
+	          /*dirname=*/"/c.d", /*filename=*/".", /*stem=*/".",
+	          /*ext=*/"", /*str=*/"/c.d/");
+	return 0;
+}
+
