@@ -1,0 +1,20 @@
+// RUN: %locic %s --target x86_64 --emit-llvm -o %t
+// RUN: FileCheck < %t %s
+// XFAIL: *
+
+// CHECK-LABEL: define void @g()
+void g() { }
+
+// CHECK-LABEL: define void @f
+export void f() {
+	// CHECK: br i1 true, label %[[TRUE:[0-9]+]], label %[[FALSE:[0-9]+]]
+	// CHECK: <label>:[[TRUE]]
+	// CHECK-NEXT: call void @g()
+	// CHECK-NEXT: br label %[[MERGE:[0-9]+]]
+	// CHECK: <label>:[[FALSE]]
+	// CHECK-NEXT: call void @g()
+	// CHECK-NEXT: br label %[[MERGE]]
+	// CHECK: <label>:[[MERGE]]
+	// CHECK-NEXT: ret void
+	true ? g() : g();
+}
