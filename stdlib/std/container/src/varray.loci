@@ -12,8 +12,8 @@ export std.container 0.1.0 {
 			}
 			
 			~ {
-				for (auto i: reverse_counter<size_t>(@size, 0u, 1u)) {
-					nolval(@data[i]).destroyvalue();
+				for (auto i: reverse_range<size_t>(@size, 0)) {
+					nolval(@data[i - 1u]).destroyvalue();
 				}
 				
 				release(reinterpret_cast<T*, void*>(@data));
