@@ -23,6 +23,12 @@ import std.filesystem 0.1.0 {
 			
 			/**
 			 * \brief Get parent path.
+			 *
+			 * "/" -> [ERROR]
+			 * "/foo" -> "/"
+			 * "/foo/bar" -> "/foo"
+			 * "/foo/bar/" -> "/foo/bar"
+			 * "/foo/bar/file.txt" -> "/foo/bar"
 			 */
 			path parent() const;
 			
@@ -42,6 +48,8 @@ import std.filesystem 0.1.0 {
 			/**
 			 * \brief Get directory name.
 			 *
+			 * "/" -> "/"
+			 * "/foo" -> "/"
 			 * "/foo/bar" -> "/foo"
 			 * "/foo/bar/" -> "/foo/bar"
 			 * "/foo/bar/file.txt" -> "/foo/bar"
@@ -51,8 +59,10 @@ import std.filesystem 0.1.0 {
 			/**
 			 * \brief Get file name.
 			 *
+			 * "/" -> "."
+			 * "/foo" -> "foo"
 			 * "/foo/bar" -> "bar"
-			 * "/foo/bar/" -> ""
+			 * "/foo/bar/" -> "."
 			 * "/foo/bar/file.txt" -> "file.txt"
 			 */
 			std::string filename() const;
@@ -60,8 +70,10 @@ import std.filesystem 0.1.0 {
 			/**
 			 * \brief Get file stem.
 			 *
+			 * "/" -> "."
+			 * "/foo" -> "foo"
 			 * "/foo/bar" -> "bar"
-			 * "/foo/bar/" -> ""
+			 * "/foo/bar/" -> "."
 			 * "/foo/bar/file.txt" -> "file"
 			 */
 			std::string stem() const;
@@ -69,6 +81,8 @@ import std.filesystem 0.1.0 {
 			/**
 			 * \brief Get file extension.
 			 *
+			 * "/" -> ""
+			 * "/foo" -> ""
 			 * "/foo/bar" -> ""
 			 * "/foo/bar/" -> ""
 			 * "/foo/bar/file.txt" -> ".txt"

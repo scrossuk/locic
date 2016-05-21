@@ -3,9 +3,10 @@ export std.filesystem 0.1.0 {
 	
 	namespace std {
 		
-		class path(bool is_absolute, varray<string> components) {
+		class path(bool is_absolute, size_t levels_up,
+		           varray<string> components, string filename) {
 			static root() {
-				return @(true, varray<string>());
+				return @(true, 0, varray<string>(), "");
 			}
 			
 			static working_dir() {
@@ -16,26 +17,51 @@ export std.filesystem 0.1.0 {
 			static parse(const string& path_string) {
 				auto components = varray<string>();
 				auto builder = string_builder();
-				bool is_absolute = false;
+				const bool is_absolute = (path_string.length() > 0u &&
+				                          *(path_string.begin()) == '/');
+				size_t levels_up = 0;
+				
 				for (auto c: path_string.all()) {
-					if (c == '/') {
-						if (!builder.empty()) {
-							components.push_back(builder.str());
-							builder = string_builder();
-						}
-						if (components.empty()) {
-							is_absolute = true;
-						}
-					} else {
+					if (c != '/') {
 						builder.append_char(c);
+						continue;
 					}
+					
+					auto component = builder.str();
+					builder = string_builder();
+					if (component == "") {
+						continue;
+					} else if (component == ".") {
+						continue;
+					} else if (component == "..") {
+						if (!components.empty()) {
+							components.pop_back();
+						} else {
+							assert !is_absolute;
+							levels_up++;
+						}
+						continue;
+					}
+					
+					components.push_back(move component);
 				}
 				
-				if (!builder.empty()) {
-					components.push_back(builder.str());
+				auto filename = builder.str();
+				if (filename == ".") {
+					filename = "";
+				} else if (filename == "..") {
+					if (!components.empty()) {
+						components.pop_back();
+					} else {
+						assert !is_absolute;
+						levels_up++;
+					}
+					filename = "";
 				}
 				
-				return @(is_absolute, move components);
+				assert levels_up == 0u || !is_absolute;
+				return @(is_absolute, levels_up, move components,
+				         move filename);
 			}
 			
 			static implicit_cast_string(const std::string& path_string) {
@@ -43,7 +69,8 @@ export std.filesystem 0.1.0 {
 			}
 			
 			bool is_root() const noexcept {
-				return self.is_absolute() && @components.empty();
+				return self.is_absolute() && @components.empty() &&
+				       @filename.length() == 0u;
 			}
 			
 			bool is_absolute() const noexcept {
@@ -51,7 +78,7 @@ export std.filesystem 0.1.0 {
 			}
 			
 			bool is_relative() const noexcept {
-				return !@is_absolute;
+				return !self.is_absolute();
 			}
 			
 			path add(const path& other) const {
@@ -61,11 +88,19 @@ export std.filesystem 0.1.0 {
 			}
 			
 			path parent() const {
-				// TODO: this should add '..' for relative paths.
-				assert !@components.empty();
-				auto components = @components.copy();
-				components.pop_back();
-				return @(@is_absolute, move components);
+				if (!@components.empty()) {
+					auto components = @components.copy();
+					auto filename = components[components.size() - 1u];
+					components.pop_back();
+					return @(self.is_absolute(), @levels_up,
+					         move components, move filename);
+				} else if (@filename.length() != 0u) {
+					return @(self.is_absolute(), @levels_up,
+					         varray<string>(), "");
+				} else {
+					assert !self.is_absolute();
+					return @(false, @levels_up + 1u, varray<string>(), "");
+				}
 			}
 			
 			path relative_path_to(unused const path& target_path,
@@ -75,28 +110,89 @@ export std.filesystem 0.1.0 {
 			}
 			
 			std::string dirname() const {
-				// TODO!
-				unreachable;
+				auto builder = string_builder();
+				if (self.is_absolute()) {
+					builder.append_char('/');
+				}
+				
+				bool add_separator = false;
+				
+				for (auto i: range<size_t>(0, @levels_up)) {
+					if (add_separator) {
+						builder.append_char('/');
+					}
+					builder.append<string>("..");
+					add_separator = true;
+				}
+				
+				for (auto i: range<size_t>(0, @components.size())) {
+					if (add_separator) {
+						builder.append_char('/');
+					}
+					builder.append<string>(@components[i]);
+					add_separator = true;
+				}
+				return builder.str();
 			}
 			
 			std::string filename() const {
-				// TODO!
-				unreachable;
+				return @filename.length() > 0u ? @filename : ".";
 			}
 			
 			std::string stem() const {
-				// TODO!
-				unreachable;
+				if (@filename.length() == 0u) {
+					return ".";
+				}
+				
+				auto builder = string_builder();
+				
+				for (auto c: @filename.all()) {
+					if (c == '.') {
+						break;
+					}
+					
+					builder.append_char(c);
+				}
+				
+				return builder.str();
 			}
 			
 			std::string extension() const {
-				// TODO!
-				unreachable;
+				auto builder = string_builder();
+				
+				bool add_chars = false;
+				
+				for (auto c: @filename.all()) {
+					if (c == '.') {
+						add_chars = true;
+						continue;
+					}
+					
+					if (add_chars) {
+						builder.append_char(c);
+					}
+				}
+				
+				return builder.str();
 			}
 			
 			std::string to_string() const {
-				// TODO!
-				unreachable;
+				auto dirname_prefix = self.dirname();
+				if (dirname_prefix != "/" &&
+				    dirname_prefix.length() > 0u)
+				{
+					dirname_prefix += "/";
+				}
+				
+				if (@filename.length() == 0u) {
+					if (dirname_prefix.length() == 0u) {
+						return ".";
+					} else {
+						return move dirname_prefix;
+					}
+				}
+				
+				return dirname_prefix + @filename;
 			}
 		}
 	}
