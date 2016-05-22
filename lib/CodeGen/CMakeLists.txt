@@ -17,7 +17,6 @@ add_library(locic-codegen
 	GenFunctionCall.cpp
 	GenStatement.cpp
 	GenType.cpp
-	GenValue.cpp
 	GenVar.cpp
 	GenVTable.cpp
 	Interface.cpp
@@ -72,6 +71,7 @@ add_library(locic-codegen
 	TypeGenerator.cpp
 	TypeInfo.cpp
 	UnwindAction.cpp
+	ValueEmitter.cpp
 	VTable.cpp
 	VirtualCall/GenericVirtualCallABI.cpp
 	VirtualCall/NestVirtualCallABI.cpp
