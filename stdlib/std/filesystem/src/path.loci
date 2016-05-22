@@ -17,7 +17,7 @@ export std.filesystem 0.1.0 {
 			static parse(const string& path_string) {
 				auto components = varray<string>();
 				auto builder = string_builder();
-				const bool is_absolute = (path_string.length() > 0u &&
+				const bool is_absolute = (!path_string.empty() &&
 				                          *(path_string.begin()) == '/');
 				size_t levels_up = 0;
 				
@@ -70,7 +70,7 @@ export std.filesystem 0.1.0 {
 			
 			bool is_root() const noexcept {
 				return self.is_absolute() && @components.empty() &&
-				       @filename.length() == 0u;
+				       @filename.empty();
 			}
 			
 			bool is_absolute() const noexcept {
@@ -94,7 +94,7 @@ export std.filesystem 0.1.0 {
 					components.pop_back();
 					return @(self.is_absolute(), @levels_up,
 					         move components, move filename);
-				} else if (@filename.length() != 0u) {
+				} else if (!@filename.empty()) {
 					return @(self.is_absolute(), @levels_up,
 					         varray<string>(), "");
 				} else {
@@ -136,11 +136,11 @@ export std.filesystem 0.1.0 {
 			}
 			
 			std::string filename() const {
-				return @filename.length() > 0u ? @filename : ".";
+				return !@filename.empty() ? @filename : ".";
 			}
 			
 			std::string stem() const {
-				if (@filename.length() == 0u) {
+				if (@filename.empty()) {
 					return ".";
 				}
 				
@@ -179,13 +179,13 @@ export std.filesystem 0.1.0 {
 			std::string to_string() const {
 				auto dirname_prefix = self.dirname();
 				if (dirname_prefix != "/" &&
-				    dirname_prefix.length() > 0u)
+				    !dirname_prefix.empty())
 				{
 					dirname_prefix += "/";
 				}
 				
-				if (@filename.length() == 0u) {
-					if (dirname_prefix.length() == 0u) {
+				if (@filename.empty()) {
+					if (dirname_prefix.empty()) {
 						return ".";
 					} else {
 						return move dirname_prefix;
