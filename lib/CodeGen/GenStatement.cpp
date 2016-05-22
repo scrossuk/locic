@@ -27,10 +27,12 @@
 #include <locic/CodeGen/ValueEmitter.hpp>
 
 namespace locic {
-
-	namespace CodeGen {
 	
+	namespace CodeGen {
+		
 		void genScope(Function& function, const SEM::Scope& scope) {
+			IREmitter irEmitter(function);
+			StatementEmitter statementEmitter(irEmitter);
 			{
 				ScopeLifetime scopeLifetime(function);
 				
@@ -39,7 +41,7 @@ namespace locic {
 				}
 				
 				for (const auto& statement : scope.statements()) {
-					genStatement(function, statement);
+					statementEmitter.emitStatement(statement);
 				}
 			}
 			
@@ -929,11 +931,6 @@ namespace locic {
 				callInst->setDoesNotReturn();
 			}
 			function.getBuilder().CreateUnreachable();
-		}
-		
-		void genStatement(Function& function, const SEM::Statement& statement) {
-			IREmitter irEmitter(function);
-			StatementEmitter(irEmitter).emitStatement(statement);
 		}
 		
 	}
