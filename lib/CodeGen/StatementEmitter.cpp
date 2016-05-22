@@ -13,13 +13,13 @@
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
+#include <locic/CodeGen/ScopeEmitter.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/StatementEmitter.hpp>
@@ -29,31 +29,6 @@
 namespace locic {
 	
 	namespace CodeGen {
-		
-		void genScope(Function& function, const SEM::Scope& scope) {
-			IREmitter irEmitter(function);
-			StatementEmitter statementEmitter(irEmitter);
-			{
-				ScopeLifetime scopeLifetime(function);
-				
-				for (const auto localVar : scope.variables()) {
-					genVarAlloca(function, localVar);
-				}
-				
-				for (const auto& statement : scope.statements()) {
-					statementEmitter.emitStatement(statement);
-				}
-			}
-			
-			if (!scope.exitStates().hasNormalExit() &&
-			    !function.lastInstructionTerminates()) {
-				// We can't exit this scope normally at run-time
-				// but the generated code doesn't end with a
-				// terminator; just create a loop to keep the
-				// control flow graph correct.
-				function.getBuilder().CreateBr(function.getBuilder().GetInsertBlock());
-			}
-		}
 		
 		ArgInfo assertFailedArgInfo(Module& module) {
 			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
@@ -202,7 +177,7 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitScope(const SEM::Scope& scope) {
-			genScope(irEmitter_.function(), scope);
+			ScopeEmitter(irEmitter_).emitScope(scope);
 		}
 		
 		void StatementEmitter::emitInitialise(SEM::Var* const var,
@@ -268,7 +243,7 @@ namespace locic {
 					
 					// Create 'then'.
 					function.selectBasicBlock(thenBB);
-					genScope(function, ifClause->scope());
+					ScopeEmitter(irEmitter_).emitScope(ifClause->scope());
 					
 					if (function.lastInstructionTerminates()) {
 						thenClauseTerminated = true;
@@ -311,7 +286,7 @@ namespace locic {
 			// Only generate the else basic block if there is
 			// an else scope, otherwise erase it.
 			if (hasElseScope) {
-				genScope(function, elseScope);
+				ScopeEmitter(irEmitter_).emitScope(elseScope);
 				
 				if (!function.lastInstructionTerminates()) {
 					allTerminate = false;
@@ -400,7 +375,7 @@ namespace locic {
 					genVarInitialise(function, &(switchCase->var()),
 						irEmitter_.emitMoveLoad(unionDatatypePointers.second,
 						                        switchCase->var().constructType()));
-					genScope(function, switchCase->scope());
+					ScopeEmitter(irEmitter_).emitScope(switchCase->scope());
 				}
 				
 				if (!function.lastInstructionTerminates()) {
@@ -412,7 +387,7 @@ namespace locic {
 			function.selectBasicBlock(defaultBB);
 			
 			if (defaultScope != nullptr) {
-				genScope(function, *defaultScope);
+				ScopeEmitter(irEmitter_).emitScope(*defaultScope);
 				
 				if (!function.lastInstructionTerminates()) {
 					allTerminate = false;
@@ -462,7 +437,7 @@ namespace locic {
 			
 			{
 				ControlFlowScope controlFlowScope(function, loopEndBB, loopAdvanceBB);
-				genScope(function, iterationScope);
+				ScopeEmitter(irEmitter_).emitScope(iterationScope);
 			}
 			
 			// At the end of a loop iteration, branch to
@@ -474,7 +449,7 @@ namespace locic {
 			
 			function.selectBasicBlock(loopAdvanceBB);
 			
-			genScope(function, advanceScope);
+			ScopeEmitter(irEmitter_).emitScope(advanceScope);
 			
 			// Now branch back to the start to re-check the condition.
 			if (!function.lastInstructionTerminates()) {
@@ -560,7 +535,7 @@ namespace locic {
 				genVarInitialise(function, var, value);
 				
 				ControlFlowScope controlFlowScope(function, forEndBB, forAdvanceBB);
-				genScope(function, scope);
+				ScopeEmitter(irEmitter_).emitScope(scope);
 			}
 			
 			// At the end of a loop iteration, branch to
@@ -658,7 +633,7 @@ namespace locic {
 			// handlers onto the unwind stack.
 			{
 				TryScope tryScope(function, catchBB, catchTypeList);
-				genScope(function, scope);
+				ScopeEmitter(irEmitter_).emitScope(scope);
 			}
 			
 			bool allTerminate = true;
@@ -725,7 +700,7 @@ namespace locic {
 						// will turn the state to 'throw').
 						function.pushUnwindAction(UnwindAction::DestroyException(exceptionPtrValue));
 						
-						genScope(function, catchClause->scope());
+						ScopeEmitter(irEmitter_).emitScope(catchClause->scope());
 					}
 					
 					// Exception was handled, so re-commence normal execution.
@@ -915,7 +890,7 @@ namespace locic {
 		
 		void StatementEmitter::emitAssertNoExcept(const SEM::Scope& scope) {
 			// Basically a no-op.
-			genScope(irEmitter_.function(), scope);
+			ScopeEmitter(irEmitter_).emitScope(scope);
 		}
 		
 		void StatementEmitter::emitUnreachable() {

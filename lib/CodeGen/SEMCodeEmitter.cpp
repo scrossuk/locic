@@ -2,7 +2,6 @@
 #include <locic/CodeGen/DefaultMethodEmitter.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -10,6 +9,7 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/PrimitiveFunctionEmitter.hpp>
+#include <locic/CodeGen/ScopeEmitter.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/SEMCodeEmitter.hpp>
 #include <locic/CodeGen/Support.hpp>
@@ -191,7 +191,8 @@ namespace locic {
 				                       stackObject);
 			}
 			
-			genScope(functionGenerator_, function.scope());
+			IREmitter irEmitter(functionGenerator_);
+			ScopeEmitter(irEmitter).emitScope(function.scope());
 		}
 		
 	}

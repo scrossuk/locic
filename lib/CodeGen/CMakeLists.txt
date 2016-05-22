@@ -15,7 +15,6 @@ add_library(locic-codegen
 	FunctionTranslationStub.cpp
 	GenABIType.cpp
 	GenFunctionCall.cpp
-	GenStatement.cpp
 	GenType.cpp
 	GenVar.cpp
 	GenVTable.cpp
@@ -60,10 +59,12 @@ add_library(locic-codegen
 	Primitives/ValueLvalPrimitive.cpp
 	Primitives/VoidPrimitive.cpp
 	Routines.cpp
+	ScopeEmitter.cpp
 	ScopeExitActions.cpp
 	SEMCodeEmitter.cpp
 	SEMFunctionGenerator.cpp
 	SizeOf.cpp
+	StatementEmitter.cpp
 	Support.cpp
 	Template.cpp
 	TemplateBuilder.cpp

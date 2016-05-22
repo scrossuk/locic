@@ -8,8 +8,8 @@
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
+#include <locic/CodeGen/ScopeEmitter.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
@@ -120,7 +120,7 @@ namespace locic {
 				}
 				case UnwindAction::SCOPEEXIT: {
 					function.pushUnwindStack(position);
-					genScope(function, *(unwindAction.scopeExitScope()));
+					ScopeEmitter(irEmitter).emitScope(*(unwindAction.scopeExitScope()));
 					function.popUnwindStack();
 					return;
 				}

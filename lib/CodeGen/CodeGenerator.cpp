@@ -17,7 +17,6 @@
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/Mangling.hpp>
