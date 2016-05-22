@@ -1,0 +1,19 @@
+// RUN: %locic %s std.string:0.1.0 --interpret > %t
+
+void testString(const std::string& string, const bool is_empty,
+                const size_t length) {
+	assert string.empty() == is_empty;
+	assert string.length() == length;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	testString("", /*is_empty=*/true, /*length=*/0);
+	testString("a", /*is_empty=*/false, /*length=*/1);
+	testString("ab", /*is_empty=*/false, /*length=*/2);
+	testString("abc", /*is_empty=*/false, /*length=*/3);
+	testString("abcd", /*is_empty=*/false, /*length=*/4);
+	testString("abcde", /*is_empty=*/false, /*length=*/5);
+	testString("abcdef", /*is_empty=*/false, /*length=*/6);
+	return 0;
+}
+
