@@ -42,24 +42,6 @@ namespace locic {
 			return ConstantGenerator(module).getI8(state);
 		}
 		
-		namespace {
-		
-			void popScope(Function& function) {
-				const auto& unwindStack = function.unwindStack();
-				while (!unwindStack.empty()) {
-					const bool isMarker = unwindStack.back().isScopeMarker();
-					function.popUnwindAction();
-					
-					if (isMarker) {
-						return;
-					}
-				}
-				
-				llvm_unreachable("Scope marker not found.");
-			}
-			
-		}
-		
 		void performScopeExitAction(Function& function, const size_t position, const UnwindState unwindState) {
 			const auto& unwindAction = function.unwindStack().at(position);
 			
@@ -365,7 +347,18 @@ namespace locic {
 			} else {
 				scopeEndBB_->eraseFromParent();
 			}
-			popScope(function_);
+			
+			const auto& unwindStack = function_.unwindStack();
+			while (!unwindStack.empty()) {
+				const bool isMarker = unwindStack.back().isScopeMarker();
+				function_.popUnwindAction();
+				
+				if (isMarker) {
+					return;
+				}
+			}
+			
+			llvm_unreachable("Scope marker not found.");
 		}
 		
 	}
