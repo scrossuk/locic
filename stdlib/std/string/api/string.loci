@@ -89,6 +89,13 @@ import std.string 0.1.0 {
 			size_t length() const noexcept;
 			
 			/**
+			 * \brief Query if string is empty.
+			 * 
+			 * \return Whether string is empty.
+			 */
+			bool empty() const noexcept;
+			
+			/**
 			 * \brief Compare this string with the given string.
 			 * 
 			 * \param other The other string to compare against.
