@@ -15,7 +15,6 @@
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenStatement.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
@@ -24,6 +23,7 @@
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/ValueEmitter.hpp>
 
 namespace locic {
 
@@ -99,11 +99,12 @@ namespace locic {
 			}
 			
 			IREmitter irEmitter(function);
+			ValueEmitter valueEmitter(irEmitter);
 			
 			switch (statement.kind()) {
 				case SEM::Statement::VALUE: {
 					assert(statement.getValue().type()->isBuiltInVoid());
-					(void) genValue(function, statement.getValue());
+					(void) valueEmitter.emitValue(statement.getValue());
 					return;
 				}
 				
@@ -116,7 +117,8 @@ namespace locic {
 					const auto var = statement.getInitialiseVar();
 					const auto varAllocaOptional = function.getLocalVarMap().tryGet(var);
 					const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
-					const auto value = genValue(function, statement.getInitialiseValue(), varAlloca);
+					const auto value = valueEmitter.emitValue(statement.getInitialiseValue(),
+					                                          varAlloca);
 					genVarInitialise(function, var, value);
 					return;
 				}
@@ -156,7 +158,7 @@ namespace locic {
 						{
 							ScopeLifetime ifScopeLifetime(function);
 							
-							const auto boolCondition = genValue(function, ifClause->condition());
+							const auto boolCondition = valueEmitter.emitValue(ifClause->condition());
 							conditionValue = irEmitter.emitBoolToI1(boolCondition);
 							conditionHasUnwindActions = anyUnwindCleanupActions(function, UnwindStateNormal);
 							
@@ -247,7 +249,7 @@ namespace locic {
 					const auto switchType = isSwitchValueRef ? switchValue.type()->refTarget() : switchValue.type();
 					assert(switchType->isUnionDatatype());
 					
-					const auto llvmSwitchValue = genValue(function, switchValue);
+					const auto llvmSwitchValue = valueEmitter.emitValue(switchValue);
 					
 					llvm::Value* switchValuePtr = nullptr;
 					
@@ -342,7 +344,7 @@ namespace locic {
 					// before the branch instruction.
 					{
 						ScopeLifetime conditionScopeLifetime(function);
-						const auto boolCondition = genValue(function, statement.getLoopCondition());
+						const auto boolCondition = valueEmitter.emitValue(statement.getLoopCondition());
 						condition = irEmitter.emitBoolToI1(boolCondition);
 					}
 					
@@ -412,8 +414,8 @@ namespace locic {
 					
 					// Create a variable for the iterator/range object.
 					const auto iteratorVar = irEmitter.emitAlloca(iteratorType);
-					const auto initValue = genValue(function, statement.getForInitValue(),
-					                                iteratorVar);
+					const auto initValue = valueEmitter.emitValue(statement.getForInitValue(),
+					                                              iteratorVar);
 					irEmitter.emitMoveStore(initValue, iteratorVar, iteratorType);
 					scheduleDestructorCall(function, iteratorType, iteratorVar);
 					
@@ -484,12 +486,13 @@ namespace locic {
 					if (anyUnwindActions(function, UnwindStateReturn)) {
 						if (!statement.getReturnValue().type()->isBuiltInVoid()) {
 							if (function.getArgInfo().hasReturnVarArgument()) {
-								const auto returnValue = genValue(function, statement.getReturnValue(), function.getReturnVar());
+								const auto returnValue = valueEmitter.emitValue(statement.getReturnValue(),
+								                                                function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
 								irEmitter.emitMoveStore(returnValue, function.getReturnVar(), statement.getReturnValue().type());
 							} else {
-								const auto returnValue = genValue(function, statement.getReturnValue());
+								const auto returnValue = valueEmitter.emitValue(statement.getReturnValue());
 								
 								// Set the return value to be returned directly later
 								// (after executing unwind actions).
@@ -501,14 +504,15 @@ namespace locic {
 					} else {
 						if (!statement.getReturnValue().type()->isBuiltInVoid()) {
 							if (function.getArgInfo().hasReturnVarArgument()) {
-								const auto returnValue = genValue(function, statement.getReturnValue(), function.getReturnVar());
+								const auto returnValue = valueEmitter.emitValue(statement.getReturnValue(),
+								                                                function.getReturnVar());
 								
 								// Store the return value into the return value pointer.
 								irEmitter.emitMoveStore(returnValue, function.getReturnVar(), statement.getReturnValue().type());
 								
 								irEmitter.emitReturnVoid();
 							} else {
-								const auto returnValue = genValue(function, statement.getReturnValue());
+								const auto returnValue = valueEmitter.emitValue(statement.getReturnValue());
 								function.returnValue(returnValue);
 							}
 						} else {
@@ -630,7 +634,7 @@ namespace locic {
 				case SEM::Statement::THROW: {
 					const auto throwType = statement.getThrowValue().type();
 					
-					const auto exceptionValue = genValue(function, statement.getThrowValue());
+					const auto exceptionValue = valueEmitter.emitValue(statement.getThrowValue());
 					
 					// Allocate space for exception.
 					const auto allocateFunction = getExceptionAllocateFunction(module);
@@ -749,7 +753,7 @@ namespace locic {
 					const auto failBB = function.createBasicBlock("assertFail");
 					const auto successBB = function.createBasicBlock("assertSuccess");
 					
-					const auto boolCondition = genValue(function, statement.getAssertValue());
+					const auto boolCondition = valueEmitter.emitValue(statement.getAssertValue());
 					const auto conditionValue = irEmitter.emitBoolToI1(boolCondition);
 					function.getBuilder().CreateCondBr(conditionValue, successBB, failBB);
 					

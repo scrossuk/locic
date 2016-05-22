@@ -26,7 +26,7 @@ namespace locic {
 			
 			llvm::Value*
 			emitValue(const SEM::Value& value,
-			          llvm::Value* hintResultValue);
+			          llvm::Value* hintResultValue = nullptr);
 			
 			llvm::Value* emitSelf();
 			

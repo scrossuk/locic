@@ -14,7 +14,6 @@
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
@@ -24,6 +23,7 @@
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/ValueEmitter.hpp>
 #include <locic/CodeGen/VirtualCallABI.hpp>
 #include <locic/CodeGen/VTable.hpp>
 #include <locic/Support/Optional.hpp>
@@ -39,6 +39,7 @@ namespace locic {
 			auto& module = function.module();
 			
 			IREmitter irEmitter(function);
+			ValueEmitter valueEmitter(irEmitter);
 			
 			const auto functionType = semCallValue.type()->asFunctionType();
 			
@@ -49,7 +50,7 @@ namespace locic {
 			for (const auto& param: args) {
 				const auto paramType = param.type();
 				const auto abiType = genABIArgType(module, paramType);
-				const auto irValue = genValue(function, param);
+				const auto irValue = valueEmitter.emitValue(param);
 				parameters.push_back(llvm_abi::TypedValue(irValue,
 				                                          abiType));
 			}

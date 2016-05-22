@@ -15,7 +15,6 @@
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -737,11 +736,6 @@ namespace locic {
 			
 			return irEmitter_.emitMoveLoad(arrayPtr,
 			                               value.type());
-		}
-		
-		llvm::Value* genValue(Function& function, const SEM::Value& value, llvm::Value* const hintResultValue) {
-			IREmitter irEmitter(function);
-			return ValueEmitter(irEmitter).emitValue(value, hintResultValue);
 		}
 		
 	}

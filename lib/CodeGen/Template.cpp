@@ -13,7 +13,6 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -25,6 +24,7 @@
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
+#include <locic/CodeGen/ValueEmitter.hpp>
 
 namespace locic {
 
@@ -280,11 +280,11 @@ namespace locic {
 				functionGenerator.setDebugPosition(value.debugInfo()->location.range().start());
 			}
 			
-			const auto result = genValue(functionGenerator,
-			                             value,
-			                             functionGenerator.getReturnVarOrNull());
-			
 			IREmitter irEmitter(functionGenerator);
+			ValueEmitter valueEmitter(irEmitter);
+			
+			const auto result = valueEmitter.emitValue(value,
+			                                           functionGenerator.getReturnVarOrNull());
 			
 			if (argInfo.hasReturnVarArgument()) {
 				irEmitter.emitMoveStore(result,

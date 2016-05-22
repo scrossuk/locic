@@ -7,7 +7,6 @@
 #include <locic/CodeGen/FunctionTranslationStub.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -21,6 +20,7 @@
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
+#include <locic/CodeGen/ValueEmitter.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
 #include <locic/SEM/Function.hpp>
@@ -65,7 +65,9 @@ namespace locic {
 			: value_(value) { }
 			
 			llvm::Value* generateValue(Function& function, llvm::Value* const hintResultValue) const {
-				return genValue(function, value_, hintResultValue);
+				IREmitter irEmitter(function);
+				ValueEmitter valueEmitter(irEmitter);
+				return valueEmitter.emitValue(value_, hintResultValue);
 			}
 			
 			llvm::Value* generateLoadedValue(Function& function) const {
@@ -76,15 +78,17 @@ namespace locic {
 					return CallValuePendingResult(value_.castOperand()).generateLoadedValue(function);
 				}
 				
+				IREmitter irEmitter(function);
+				ValueEmitter valueEmitter(irEmitter);
+				
 				if (value_.isBindReference()) {
 					// Just don't perform 'bind' operation and hence
 					// avoid an unnecessary store-load pair.
-					return genValue(function, value_.bindReferenceOperand());
+					return valueEmitter.emitValue(value_.bindReferenceOperand());
 				}
 				
-				const auto result = genValue(function, value_);
+				const auto result = valueEmitter.emitValue(value_);
 				
-				IREmitter irEmitter(function);
 				return irEmitter.emitMoveLoad(result, value_.type()->refTarget());
 			}
 			
@@ -171,6 +175,9 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
 			
+			IREmitter irEmitter(function);
+			ValueEmitter valueEmitter(irEmitter);
+			
 			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
 					FunctionCallInfo callInfo;
@@ -235,7 +242,7 @@ namespace locic {
 					const auto& dataRefValue = value.methodOwner();
 					assert(dataRefValue.type()->isRef() && dataRefValue.type()->isBuiltInReference());
 					
-					const auto llvmDataRefValue = genValue(function, dataRefValue);
+					const auto llvmDataRefValue = valueEmitter.emitValue(dataRefValue);
 					
 					assert(llvmDataRefValue != nullptr && "MethodObject requires a valid data pointer");
 					
@@ -247,7 +254,7 @@ namespace locic {
 				default: {
 					assert(value.type()->isCallable());
 					
-					const auto llvmValue = genValue(function, value);
+					const auto llvmValue = valueEmitter.emitValue(value);
 					
 					FunctionCallInfo callInfo;
 					
@@ -271,6 +278,9 @@ namespace locic {
 		TypeInfoComponents genTypeInfoComponents(Function& function, const SEM::Value& value) {
 			auto& module = function.module();
 			
+			IREmitter irEmitter(function);
+			ValueEmitter valueEmitter(irEmitter);
+			
 			switch (value.kind()) {
 				case SEM::Value::TYPEREF: {
 					const auto targetType = value.typeRefType();
@@ -280,12 +290,15 @@ namespace locic {
 				}
 				
 				default: {
-					return getTypeInfoComponents(function, genValue(function, value));
+					return getTypeInfoComponents(function, valueEmitter.emitValue(value));
 				}
 			}
 		}
 		
 		TypeInfoComponents genBoundTypeInfoComponents(Function& function, const SEM::Value& value) {
+			IREmitter irEmitter(function);
+			ValueEmitter valueEmitter(irEmitter);
+			
 			switch (value.kind()) {
 				case SEM::Value::BIND_REFERENCE: {
 					return genTypeInfoComponents(function, value.bindReferenceOperand());
@@ -293,8 +306,7 @@ namespace locic {
 				
 				default: {
 					const auto typeInfoIRType = typeInfoType(function.module()).second;
-					IREmitter irEmitter(function);
-					const auto typeInfoValue = irEmitter.emitRawLoad(genValue(function, value),
+					const auto typeInfoValue = irEmitter.emitRawLoad(valueEmitter.emitValue(value),
 					                                                 typeInfoIRType);
 					return getTypeInfoComponents(function,
 					                             typeInfoValue);
@@ -306,10 +318,13 @@ namespace locic {
 			assert(value.type()->isBuiltInInterfaceMethod() || value.type()->isBuiltInStaticInterfaceMethod());
 			auto& module = function.module();
 			
+			IREmitter irEmitter(function);
+			ValueEmitter valueEmitter(irEmitter);
+			
 			switch (value.kind()) {
 				case SEM::Value::INTERFACEMETHODOBJECT: {
 					const auto& method = value.interfaceMethodObject();
-					const auto methodOwner = genValue(function, value.interfaceMethodOwner());
+					const auto methodOwner = valueEmitter.emitValue(value.interfaceMethodOwner());
 					
 					assert(method.kind() == SEM::Value::FUNCTIONREF);
 					
@@ -338,7 +353,8 @@ namespace locic {
 				
 				default: {
 					const bool isStatic = value.type()->isBuiltInStaticInterfaceMethod();
-					return getVirtualMethodComponents(function, isStatic, genValue(function, value));
+					return getVirtualMethodComponents(function, isStatic,
+					                                  valueEmitter.emitValue(value));
 				}
 			}
 		}

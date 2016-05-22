@@ -18,7 +18,6 @@
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenValue.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
@@ -37,6 +36,7 @@
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
+#include <locic/CodeGen/ValueEmitter.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
 #include <locic/Support/MethodID.hpp>
@@ -140,6 +140,8 @@ namespace locic {
 			const auto elementType = typeTemplateArguments.front().typeRefType();
 			const auto& elementCount = typeTemplateArguments.back();
 			
+			ValueEmitter valueEmitter(irEmitter);
+			
 			switch (methodID) {
 				case METHOD_ALIGNMASK: {
 					// Alignment of array is the same as alignment
@@ -148,7 +150,7 @@ namespace locic {
 				}
 				case METHOD_SIZEOF: {
 					return builder.CreateMul(genSizeOf(function, elementType),
-					                         genValue(function, elementCount));
+					                         valueEmitter.emitValue(elementCount));
 				}
 				case METHOD_UNINITIALIZED: {
 					// TODO: set elements to dead state.
@@ -162,7 +164,7 @@ namespace locic {
 					}
 				}
 				case METHOD_DESTROY: {
-					const auto arraySize = genValue(function, elementCount);
+					const auto arraySize = valueEmitter.emitValue(elementCount);
 					const auto arrayPtr = args[0].resolve(function);
 					
 					const auto beforeLoopBB = builder.GetInsertBlock();
@@ -210,7 +212,7 @@ namespace locic {
 				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY: {
-					const auto arraySize = genValue(function, elementCount);
+					const auto arraySize = valueEmitter.emitValue(elementCount);
 					const auto arrayPtr = args[0].resolve(function);
 					
 					const auto result = irEmitter.emitAlloca(type, hintResultValue);
@@ -275,7 +277,7 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_MOVETO: {
-					const auto arraySize = genValue(function, elementCount);
+					const auto arraySize = valueEmitter.emitValue(elementCount);
 					const auto arrayPtr = args[0].resolve(function);
 					const auto moveToPtr = args[1].resolve(function);
 					const auto moveToPosition = args[2].resolve(function);
