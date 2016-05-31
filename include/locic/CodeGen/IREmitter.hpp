@@ -39,6 +39,11 @@ namespace locic {
 			 */
  			TypeGenerator typeGenerator();
 			
+			llvm::BasicBlock*
+			createBasicBlock(const char* name = "");
+			
+			void selectBasicBlock(llvm::BasicBlock* basicBlock);
+			
 			llvm::Value*
 			emitI1ToBool(llvm::Value* value);
 			

@@ -35,6 +35,16 @@ namespace locic {
 			return TypeGenerator(module());
 		}
 		
+		llvm::BasicBlock*
+		IREmitter::createBasicBlock(const char* name) {
+			return functionGenerator_.createBasicBlock(name);
+		}
+		
+		void
+		IREmitter::selectBasicBlock(llvm::BasicBlock* basicBlock) {
+			functionGenerator_.selectBasicBlock(basicBlock);
+		}
+		
 		llvm::Value*
 		IREmitter::emitI1ToBool(llvm::Value* const value) {
 			assert(value->getType()->isIntegerTy(1));
