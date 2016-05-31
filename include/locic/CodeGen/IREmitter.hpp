@@ -46,6 +46,14 @@ namespace locic {
 			
 			bool lastInstructionTerminates() const;
 			
+			void
+			emitBranch(llvm::BasicBlock* basicBlock);
+			
+			void
+			emitCondBranch(llvm::Value* condition,
+			               llvm::BasicBlock* ifTrue,
+			               llvm::BasicBlock* ifFalse);
+			
 			llvm::Value*
 			emitI1ToBool(llvm::Value* value);
 			

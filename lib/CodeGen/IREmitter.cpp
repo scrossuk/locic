@@ -50,6 +50,20 @@ namespace locic {
 			functionGenerator_.selectBasicBlock(basicBlock);
 		}
 		
+		void
+		IREmitter::emitBranch(llvm::BasicBlock* basicBlock) {
+			functionGenerator_.getBuilder().CreateBr(basicBlock);
+		}
+		
+		void
+		IREmitter::emitCondBranch(llvm::Value* condition,
+		                          llvm::BasicBlock* ifTrue,
+		                          llvm::BasicBlock* ifFalse) {
+			functionGenerator_.getBuilder().CreateCondBr(condition,
+			                                             ifTrue,
+			                                             ifFalse);
+		}
+		
 		llvm::Value*
 		IREmitter::emitI1ToBool(llvm::Value* const value) {
 			assert(value->getType()->isIntegerTy(1));
