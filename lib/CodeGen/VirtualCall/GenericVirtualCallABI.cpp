@@ -148,15 +148,16 @@ namespace locic {
 			auto& builder = function.getBuilder();
 			
 			for (const auto semMethod : methods) {
-				const auto callMethodBasicBlock = function.createBasicBlock("callMethod");
-				const auto tryNextMethodBasicBlock = function.createBasicBlock("tryNextMethod");
+				const auto callMethodBasicBlock = irEmitter.createBasicBlock("callMethod");
+				const auto tryNextMethodBasicBlock = irEmitter.createBasicBlock("tryNextMethod");
 				
 				const auto methodHash = CreateMethodNameHash(semMethod->name().last());
 				
 				const auto cmpValue = builder.CreateICmpEQ(llvmHashValue, constGen.getI64(methodHash));
-				builder.CreateCondBr(cmpValue, callMethodBasicBlock, tryNextMethodBasicBlock);
+				irEmitter.emitCondBranch(cmpValue, callMethodBasicBlock,
+				                         tryNextMethodBasicBlock);
 				
-				function.selectBasicBlock(callMethodBasicBlock);
+				irEmitter.selectBasicBlock(callMethodBasicBlock);
 				
 				const auto argInfo = getFunctionArgInfo(module_, semMethod->type());
 				
@@ -227,13 +228,13 @@ namespace locic {
 				
 				irEmitter.emitReturnVoid();
 				
-				function.selectBasicBlock(tryNextMethodBasicBlock);
+				irEmitter.selectBasicBlock(tryNextMethodBasicBlock);
 			}
 			
 			// Terminate function with unreachable
 			// (notifies optimiser that this should
 			// never be reached...).
-			builder.CreateUnreachable();
+			irEmitter.emitUnreachable();
 			
 			return llvmFunction;
 		}
