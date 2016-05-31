@@ -31,12 +31,12 @@ namespace locic {
 			}
 			
 			if (!scope.exitStates().hasNormalExit() &&
-			    !function.lastInstructionTerminates()) {
+			    !irEmitter_.lastInstructionTerminates()) {
 				// We can't exit this scope normally at run-time
 				// but the generated code doesn't end with a
 				// terminator; just create a loop to keep the
 				// control flow graph correct.
-				function.getBuilder().CreateBr(function.getBuilder().GetInsertBlock());
+				irEmitter_.emitBranch(function.getBuilder().GetInsertBlock());
 			}
 		}
 		
