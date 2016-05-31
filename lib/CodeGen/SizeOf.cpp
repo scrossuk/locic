@@ -239,25 +239,25 @@ namespace locic {
 				
 				offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->type()));
 				
-				const auto exitBB = function.createBasicBlock("exit");
-				const auto nextBB = function.createBasicBlock("next");
+				const auto exitBB = irEmitter.createBasicBlock("exit");
+				const auto nextBB = irEmitter.createBasicBlock("next");
 				
 				const auto varIndexValue = ConstantGenerator(module).getSizeTValue(i);
 				const auto compareResult = function.getBuilder().CreateICmpEQ(memberIndexValue, varIndexValue);
-				function.getBuilder().CreateCondBr(compareResult, exitBB, nextBB);
+				irEmitter.emitCondBranch(compareResult, exitBB, nextBB);
 				
-				function.selectBasicBlock(exitBB);
+				irEmitter.selectBasicBlock(exitBB);
 				irEmitter.emitReturn(offsetValue->getType(),
 				                     offsetValue);
 				
-				function.selectBasicBlock(nextBB);
+				irEmitter.selectBasicBlock(nextBB);
 				
 				if (i != typeVars.size() - 1) {
 					offsetValue = function.getBuilder().CreateAdd(offsetValue, genSizeOf(function, var->type()));
 				}
 			}
 			
-			function.getBuilder().CreateUnreachable();
+			irEmitter.emitUnreachable();
 			
 			function.verify();
 			
