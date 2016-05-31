@@ -40,6 +40,11 @@ namespace locic {
 			return functionGenerator_.createBasicBlock(name);
 		}
 		
+		bool
+		IREmitter::lastInstructionTerminates() const {
+			return functionGenerator_.lastInstructionTerminates();
+		}
+		
 		void
 		IREmitter::selectBasicBlock(llvm::BasicBlock* basicBlock) {
 			functionGenerator_.selectBasicBlock(basicBlock);
