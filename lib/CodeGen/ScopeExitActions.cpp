@@ -60,7 +60,7 @@ namespace locic {
 				case UnwindAction::CATCH: {
 					switch (unwindState) {
 						case UnwindStateThrow: {
-							function.getBuilder().CreateBr(unwindAction.catchBlock());
+							irEmitter.emitBranch(unwindAction.catchBlock());
 							break;
 						}
 						default:
@@ -71,7 +71,7 @@ namespace locic {
 				case UnwindAction::SCOPEMARKER: {
 					switch (unwindState) {
 						case UnwindStateNormal: {
-							function.getBuilder().CreateBr(unwindAction.scopeEndBlock());
+							irEmitter.emitBranch(unwindAction.scopeEndBlock());
 							break;
 						}
 						default:
@@ -107,11 +107,11 @@ namespace locic {
 					switch (unwindState) {
 						case UnwindStateBreak:
 							setCurrentUnwindState(function, UnwindStateNormal);
-							function.getBuilder().CreateBr(unwindAction.breakBlock());
+							irEmitter.emitBranch(unwindAction.breakBlock());
 							break;
 						case UnwindStateContinue:
 							setCurrentUnwindState(function, UnwindStateNormal);
-							function.getBuilder().CreateBr(unwindAction.continueBlock());
+							irEmitter.emitBranch(unwindAction.continueBlock());
 							break;
 						default:
 							llvm_unreachable("Invalid unwind state for control flow action.");
@@ -240,16 +240,18 @@ namespace locic {
 			auto& topUnwindAction = unwindStack.at(position);
 			assert(topUnwindAction.isTerminator());
 			
+			IREmitter irEmitter(function);
+			
 			const auto existingTopBB = topUnwindAction.actionBlock(unwindState);
 			assert(existingTopBB.end == nullptr);
 			if (existingTopBB.start != nullptr) {
 				return existingTopBB.start;
 			}
 			
-			const auto actionBB = function.createBasicBlock("");
-			function.selectBasicBlock(actionBB);
+			const auto actionBB = irEmitter.createBasicBlock("");
+			irEmitter.selectBasicBlock(actionBB);
 			performScopeExitAction(function, position, unwindState);
-			assert(function.lastInstructionTerminates());
+			assert(irEmitter.lastInstructionTerminates());
 			topUnwindAction.setActionBlock(unwindState, BasicBlockRange(actionBB, nullptr));
 			return actionBB;
 		}
@@ -257,6 +259,8 @@ namespace locic {
 		llvm::BasicBlock* genUnwindBlock(Function& function, const UnwindState unwindState) {
 			auto& module = function.module();
 			auto& unwindStack = function.unwindStack();
+			
+			IREmitter irEmitter(function);
 			
 			const auto currentBB = function.getBuilder().GetInsertBlock();
 			
@@ -287,8 +291,7 @@ namespace locic {
 						// pointing to the right place.
 						if (branchInst->getSuccessor(0) != nextBB) {
 							// Replace the existing branch with a switch.
-							function.selectBasicBlock(branchInst->getParent());
-							IREmitter irEmitter(function);
+							irEmitter.selectBasicBlock(branchInst->getParent());
 							const auto currentUnwindStateValue = irEmitter.emitRawLoad(function.unwindState(),
 							                                                           TypeGenerator(module).getI8Type());
 							const auto switchInst = function.getBuilder().CreateSwitch(currentUnwindStateValue, branchInst->getSuccessor(0));
@@ -304,15 +307,15 @@ namespace locic {
 					
 					nextBB = existingBBRange.start;
 				} else {
-					const auto actionStartBB = function.createBasicBlock("");
-					function.selectBasicBlock(actionStartBB);
+					const auto actionStartBB = irEmitter.createBasicBlock("");
+					irEmitter.selectBasicBlock(actionStartBB);
 					
 					performScopeExitAction(function, i, unwindState);
 					
 					const auto actionEndBB = function.getBuilder().GetInsertBlock();
 					
-					if (!function.lastInstructionTerminates()) {
-						function.getBuilder().CreateBr(nextBB);
+					if (!irEmitter.lastInstructionTerminates()) {
+						irEmitter.emitBranch(nextBB);
 					}
 					
 					unwindAction.setActionBlock(unwindState, BasicBlockRange(actionStartBB, actionEndBB));
@@ -321,7 +324,7 @@ namespace locic {
 				}
 			}
 			
-			function.selectBasicBlock(currentBB);
+			irEmitter.selectBasicBlock(currentBB);
 			
 			return nextBB;
 		}
