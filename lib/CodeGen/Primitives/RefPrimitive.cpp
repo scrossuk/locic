@@ -146,6 +146,8 @@ namespace locic {
 			llvm::Value* genRefPrimitiveMethodForVirtualCases(Function& function, const SEM::Type* const type, Fn f) {
 				auto& module = function.module();
 				
+				IREmitter irEmitter(function);
+				
 				if (isRefVirtualnessKnown(type)) {
 					// If the reference target type is not a virtual template variable,
 					// we already know whether it's a simple pointer or a 'fat'
@@ -170,23 +172,24 @@ namespace locic {
 				const auto nullVtablePtr = ConstantGenerator(module).getNullPointer();
 				const auto isVirtualCondition = function.getBuilder().CreateICmpEQ(argVTablePointer, nullVtablePtr, "isVirtual");
 				
-				const auto ifVirtualBlock = function.createBasicBlock("ifRefVirtual");
-				const auto ifNotVirtualBlock = function.createBasicBlock("ifRefNotVirtual");
-				const auto mergeBlock = function.createBasicBlock("mergeRefVirtual");
+				const auto ifVirtualBlock = irEmitter.createBasicBlock("ifRefVirtual");
+				const auto ifNotVirtualBlock = irEmitter.createBasicBlock("ifRefNotVirtual");
+				const auto mergeBlock = irEmitter.createBasicBlock("mergeRefVirtual");
 				
-				function.getBuilder().CreateCondBr(isVirtualCondition, ifVirtualBlock, ifNotVirtualBlock);
+				irEmitter.emitCondBranch(isVirtualCondition, ifVirtualBlock,
+				                         ifNotVirtualBlock);
 				
-				function.selectBasicBlock(ifVirtualBlock);
+				irEmitter.selectBasicBlock(ifVirtualBlock);
 				const auto virtualType = getVirtualRefLLVMType(module);
 				const auto virtualResult = f(virtualType);
-				function.getBuilder().CreateBr(mergeBlock);
+				irEmitter.emitBranch(mergeBlock);
 				
-				function.selectBasicBlock(ifNotVirtualBlock);
+				irEmitter.selectBasicBlock(ifNotVirtualBlock);
 				const auto notVirtualType = getNotVirtualLLVMType(module);
 				const auto notVirtualResult = f(notVirtualType);
-				function.getBuilder().CreateBr(mergeBlock);
+				irEmitter.emitBranch(mergeBlock);
 				
-				function.selectBasicBlock(mergeBlock);
+				irEmitter.selectBasicBlock(mergeBlock);
 				
 				if (!virtualResult->getType()->isVoidTy()) {
 					assert(!notVirtualResult->getType()->isVoidTy());

@@ -168,12 +168,12 @@ namespace locic {
 					const auto arrayPtr = args[0].resolve(function);
 					
 					const auto beforeLoopBB = builder.GetInsertBlock();
-					const auto loopBB = function.createBasicBlock("");
-					const auto afterLoopBB = function.createBasicBlock("");
+					const auto loopBB = irEmitter.createBasicBlock("");
+					const auto afterLoopBB = irEmitter.createBasicBlock("");
 					
-					builder.CreateBr(loopBB);
+					irEmitter.emitBranch(loopBB);
 					
-					function.selectBasicBlock(loopBB);
+					irEmitter.selectBasicBlock(loopBB);
 					
 					const auto sizeTType = TypeGenerator(module).getSizeTType();
 					
@@ -202,11 +202,10 @@ namespace locic {
 					const auto isEnd = builder.CreateICmpEQ(indexIncremented,
 					                                        arraySize);
 					
-					builder.CreateCondBr(isEnd,
-					                     afterLoopBB,
-					                     loopBB);
+					irEmitter.emitCondBranch(isEnd, afterLoopBB,
+					                         loopBB);
 					
-					function.selectBasicBlock(afterLoopBB);
+					irEmitter.selectBasicBlock(afterLoopBB);
 					
 					return ConstantGenerator(module).getVoidUndef();
 				}
@@ -218,12 +217,12 @@ namespace locic {
 					const auto result = irEmitter.emitAlloca(type, hintResultValue);
 					
 					const auto beforeLoopBB = builder.GetInsertBlock();
-					const auto loopBB = function.createBasicBlock("");
-					const auto afterLoopBB = function.createBasicBlock("");
+					const auto loopBB = irEmitter.createBasicBlock("");
+					const auto afterLoopBB = irEmitter.createBasicBlock("");
 					
-					builder.CreateBr(loopBB);
+					irEmitter.emitBranch(loopBB);
 					
-					function.selectBasicBlock(loopBB);
+					irEmitter.selectBasicBlock(loopBB);
 					
 					const auto sizeTType = TypeGenerator(module).getSizeTType();
 					
@@ -259,11 +258,10 @@ namespace locic {
 					const auto isEnd = builder.CreateICmpEQ(indexIncremented,
 					                                        arraySize);
 					
-					builder.CreateCondBr(isEnd,
-					                     afterLoopBB,
-					                     loopBB);
+					irEmitter.emitCondBranch(isEnd, afterLoopBB,
+					                         loopBB);
 					
-					function.selectBasicBlock(afterLoopBB);
+					irEmitter.selectBasicBlock(afterLoopBB);
 					
 					return irEmitter.emitMoveLoad(result,
 					                              type);
@@ -287,12 +285,12 @@ namespace locic {
 					                                              moveToPosition);
 					
 					const auto beforeLoopBB = builder.GetInsertBlock();
-					const auto loopBB = function.createBasicBlock("");
-					const auto afterLoopBB = function.createBasicBlock("");
+					const auto loopBB = irEmitter.createBasicBlock("");
+					const auto afterLoopBB = irEmitter.createBasicBlock("");
 					
-					builder.CreateBr(loopBB);
+					irEmitter.emitBranch(loopBB);
 					
-					function.selectBasicBlock(loopBB);
+					irEmitter.selectBasicBlock(loopBB);
 					
 					const auto sizeTType = TypeGenerator(module).getSizeTType();
 					
@@ -326,11 +324,10 @@ namespace locic {
 					const auto isEnd = builder.CreateICmpEQ(indexIncremented,
 					                                        arraySize);
 					
-					builder.CreateCondBr(isEnd,
-					                     afterLoopBB,
-					                     loopBB);
+					irEmitter.emitCondBranch(isEnd, afterLoopBB,
+					                         loopBB);
 					
-					function.selectBasicBlock(afterLoopBB);
+					irEmitter.selectBasicBlock(afterLoopBB);
 					
 					return ConstantGenerator(module).getVoidUndef();
 				}

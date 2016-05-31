@@ -146,12 +146,13 @@ namespace locic {
 						// Check that operand <= sizeof(type) * 8.
 						const auto maxValue = constantGenerator.getSizeTValue(selfWidth);
 						const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
-						const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
-						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
-						builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
-						function.selectBasicBlock(exceedsMaxBB);
+						const auto exceedsMaxBB = irEmitter.createBasicBlock("exceedsMax");
+						const auto doesNotExceedMaxBB = irEmitter.createBasicBlock("doesNotExceedMax");
+						irEmitter.emitCondBranch(exceedsMax, exceedsMaxBB,
+						                         doesNotExceedMaxBB);
+						irEmitter.selectBasicBlock(exceedsMaxBB);
 						callTrapIntrinsic(function);
-						function.selectBasicBlock(doesNotExceedMaxBB);
+						irEmitter.selectBasicBlock(doesNotExceedMaxBB);
 					}
 					
 					const bool isSigned = false;
@@ -174,12 +175,13 @@ namespace locic {
 						// Check that operand <= sizeof(type) * 8.
 						const auto maxValue = constantGenerator.getSizeTValue(selfWidth);
 						const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
-						const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
-						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
-						builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
-						function.selectBasicBlock(exceedsMaxBB);
+						const auto exceedsMaxBB = irEmitter.createBasicBlock("exceedsMax");
+						const auto doesNotExceedMaxBB = irEmitter.createBasicBlock("doesNotExceedMax");
+						irEmitter.emitCondBranch(exceedsMax, exceedsMaxBB,
+						                         doesNotExceedMaxBB);
+						irEmitter.selectBasicBlock(exceedsMaxBB);
 						callTrapIntrinsic(function);
-						function.selectBasicBlock(doesNotExceedMaxBB);
+						irEmitter.selectBasicBlock(doesNotExceedMaxBB);
 					}
 					
 					// Use a 128-bit integer type to avoid overflow.
@@ -314,9 +316,9 @@ namespace locic {
 						                         /*name=*/"",
 						                         /*hasNUW=*/true);
 					} else {
-						const auto checkDivBB = function.createBasicBlock("");
-						const auto trapBB = function.createBasicBlock("");
-						const auto endBB = function.createBasicBlock("");
+						const auto checkDivBB = irEmitter.createBasicBlock("");
+						const auto trapBB = irEmitter.createBasicBlock("");
+						const auto endBB = irEmitter.createBasicBlock("");
 						
 						const auto mulResult = builder.CreateMul(methodOwner,
 						                                         operand);
@@ -324,25 +326,23 @@ namespace locic {
 						// Check if methodOwner == 0.
 						const auto methodOwnerIsZero = builder.CreateICmpEQ(methodOwner,
 						                                                    zero);
-						builder.CreateCondBr(methodOwnerIsZero,
-						                     endBB,
-						                     checkDivBB);
+						irEmitter.emitCondBranch(methodOwnerIsZero,
+						                         endBB, checkDivBB);
 						
 						// If methodOwner != 0, check (mulResult / methodOwner) == operand.
-						function.selectBasicBlock(checkDivBB);
+						irEmitter.selectBasicBlock(checkDivBB);
 						const auto divResult = builder.CreateUDiv(mulResult,
 						                                          methodOwner);
 						const auto divResultIsOperand = builder.CreateICmpEQ(divResult,
 						                                                     operand);
-						builder.CreateCondBr(divResultIsOperand,
-						                     endBB,
-						                     trapBB);
+						irEmitter.emitCondBranch(divResultIsOperand,
+						                         endBB, trapBB);
 						
 						// (mulResult / methodOwner) != operand -> trap.
-						function.selectBasicBlock(trapBB);
+						irEmitter.selectBasicBlock(trapBB);
 						callTrapIntrinsic(function);
 						
-						function.selectBasicBlock(endBB);
+						irEmitter.selectBasicBlock(endBB);
 						return mulResult;
 					}
 				}
@@ -350,12 +350,13 @@ namespace locic {
 					const auto operand = args[1].resolveWithoutBind(function);
 					if (!unsafe) {
 						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
-						const auto isZeroBB = function.createBasicBlock("isZero");
-						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
-						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
-						function.selectBasicBlock(isZeroBB);
+						const auto isZeroBB = irEmitter.createBasicBlock("isZero");
+						const auto isNotZeroBB = irEmitter.createBasicBlock("isNotZero");
+						irEmitter.emitCondBranch(divisorIsZero, isZeroBB,
+						                         isNotZeroBB);
+						irEmitter.selectBasicBlock(isZeroBB);
 						callTrapIntrinsic(function);
-						function.selectBasicBlock(isNotZeroBB);
+						irEmitter.selectBasicBlock(isNotZeroBB);
 					}
 					return builder.CreateUDiv(methodOwner, operand);
 				}
@@ -363,12 +364,13 @@ namespace locic {
 					const auto operand = args[1].resolveWithoutBind(function);
 					if (!unsafe) {
 						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
-						const auto isZeroBB = function.createBasicBlock("isZero");
-						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
-						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
-						function.selectBasicBlock(isZeroBB);
+						const auto isZeroBB = irEmitter.createBasicBlock("isZero");
+						const auto isNotZeroBB = irEmitter.createBasicBlock("isNotZero");
+						irEmitter.emitCondBranch(divisorIsZero, isZeroBB,
+						                         isNotZeroBB);
+						irEmitter.selectBasicBlock(isZeroBB);
 						callTrapIntrinsic(function);
-						function.selectBasicBlock(isNotZeroBB);
+						irEmitter.selectBasicBlock(isNotZeroBB);
 					}
 					return builder.CreateURem(methodOwner, operand);
 				}
@@ -428,12 +430,14 @@ namespace locic {
 						const auto leadingZeroesSizeT = builder.CreateIntCast(leadingZeroes, operand->getType(), isSigned);
 						
 						const auto exceedsLeadingZeroes = builder.CreateICmpUGT(operand, leadingZeroesSizeT);
-						const auto exceedsLeadingZeroesBB = function.createBasicBlock("exceedsLeadingZeroes");
-						const auto doesNotExceedLeadingZeroesBB = function.createBasicBlock("doesNotExceedLeadingZeroes");
-						builder.CreateCondBr(exceedsLeadingZeroes, exceedsLeadingZeroesBB, doesNotExceedLeadingZeroesBB);
-						function.selectBasicBlock(exceedsLeadingZeroesBB);
+						const auto exceedsLeadingZeroesBB = irEmitter.createBasicBlock("exceedsLeadingZeroes");
+						const auto doesNotExceedLeadingZeroesBB = irEmitter.createBasicBlock("doesNotExceedLeadingZeroes");
+						irEmitter.emitCondBranch(exceedsLeadingZeroes,
+						                         exceedsLeadingZeroesBB,
+						                         doesNotExceedLeadingZeroesBB);
+						irEmitter.selectBasicBlock(exceedsLeadingZeroesBB);
 						callTrapIntrinsic(function);
-						function.selectBasicBlock(doesNotExceedLeadingZeroesBB);
+						irEmitter.selectBasicBlock(doesNotExceedLeadingZeroesBB);
 					}
 					
 					const bool isSigned = false;
@@ -448,12 +452,13 @@ namespace locic {
 						// Check that operand < sizeof(type) * 8.
 						const auto maxValue = constantGenerator.getSizeTValue(selfWidth - 1);
 						const auto exceedsMax = builder.CreateICmpUGT(operand, maxValue);
-						const auto exceedsMaxBB = function.createBasicBlock("exceedsMax");
-						const auto doesNotExceedMaxBB = function.createBasicBlock("doesNotExceedMax");
-						builder.CreateCondBr(exceedsMax, exceedsMaxBB, doesNotExceedMaxBB);
-						function.selectBasicBlock(exceedsMaxBB);
+						const auto exceedsMaxBB = irEmitter.createBasicBlock("exceedsMax");
+						const auto doesNotExceedMaxBB = irEmitter.createBasicBlock("doesNotExceedMax");
+						irEmitter.emitCondBranch(exceedsMax, exceedsMaxBB,
+						                         doesNotExceedMaxBB);
+						irEmitter.selectBasicBlock(exceedsMaxBB);
 						callTrapIntrinsic(function);
-						function.selectBasicBlock(doesNotExceedMaxBB);
+						irEmitter.selectBasicBlock(doesNotExceedMaxBB);
 					}
 					
 					const bool isSigned = false;

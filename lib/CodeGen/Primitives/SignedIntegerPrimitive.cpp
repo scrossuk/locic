@@ -244,9 +244,9 @@ namespace locic {
 						                         /*hasNUW=*/false,
 						                         /*hasNSW=*/true);
 					} else {
-						const auto checkDivBB = function.createBasicBlock("");
-						const auto trapBB = function.createBasicBlock("");
-						const auto endBB = function.createBasicBlock("");
+						const auto checkDivBB = irEmitter.createBasicBlock("");
+						const auto trapBB = irEmitter.createBasicBlock("");
+						const auto endBB = irEmitter.createBasicBlock("");
 						
 						const auto mulResult = builder.CreateMul(methodOwner,
 						                                         operand);
@@ -254,25 +254,23 @@ namespace locic {
 						// Check if methodOwner == 0.
 						const auto methodOwnerIsZero = builder.CreateICmpEQ(methodOwner,
 						                                                    zero);
-						builder.CreateCondBr(methodOwnerIsZero,
-						                     endBB,
-						                     checkDivBB);
+						irEmitter.emitCondBranch(methodOwnerIsZero,
+						                         endBB, checkDivBB);
 						
 						// If methodOwner != 0, check (mulResult / methodOwner) == operand.
-						function.selectBasicBlock(checkDivBB);
+						irEmitter.selectBasicBlock(checkDivBB);
 						const auto divResult = builder.CreateSDiv(mulResult,
 						                                          methodOwner);
 						const auto divResultIsOperand = builder.CreateICmpEQ(divResult,
 						                                                     operand);
-						builder.CreateCondBr(divResultIsOperand,
-						                     endBB,
-						                     trapBB);
+						irEmitter.emitCondBranch(divResultIsOperand,
+						                         endBB, trapBB);
 						
 						// (mulResult / methodOwner) != operand -> trap.
-						function.selectBasicBlock(trapBB);
+						irEmitter.selectBasicBlock(trapBB);
 						callTrapIntrinsic(function);
 						
-						function.selectBasicBlock(endBB);
+						irEmitter.selectBasicBlock(endBB);
 						return mulResult;
 					}
 				}
@@ -281,12 +279,13 @@ namespace locic {
 					if (!unsafe) {
 						// TODO: also check for case of MIN_INT / -1 leading to overflow.
 						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
-						const auto isZeroBB = function.createBasicBlock("isZero");
-						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
-						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
-						function.selectBasicBlock(isZeroBB);
+						const auto isZeroBB = irEmitter.createBasicBlock("isZero");
+						const auto isNotZeroBB = irEmitter.createBasicBlock("isNotZero");
+						irEmitter.emitCondBranch(divisorIsZero, isZeroBB,
+						                         isNotZeroBB);
+						irEmitter.selectBasicBlock(isZeroBB);
 						callTrapIntrinsic(function);
-						function.selectBasicBlock(isNotZeroBB);
+						irEmitter.selectBasicBlock(isNotZeroBB);
 					}
 					return builder.CreateSDiv(methodOwner, operand);
 				}
@@ -294,12 +293,13 @@ namespace locic {
 					const auto operand = args[1].resolveWithoutBind(function);
 					if (!unsafe) {
 						const auto divisorIsZero = builder.CreateICmpEQ(operand, zero);
-						const auto isZeroBB = function.createBasicBlock("isZero");
-						const auto isNotZeroBB = function.createBasicBlock("isNotZero");
-						builder.CreateCondBr(divisorIsZero, isZeroBB, isNotZeroBB);
-						function.selectBasicBlock(isZeroBB);
+						const auto isZeroBB = irEmitter.createBasicBlock("isZero");
+						const auto isNotZeroBB = irEmitter.createBasicBlock("isNotZero");
+						irEmitter.emitCondBranch(divisorIsZero, isZeroBB,
+						                         isNotZeroBB);
+						irEmitter.selectBasicBlock(isZeroBB);
 						callTrapIntrinsic(function);
-						function.selectBasicBlock(isNotZeroBB);
+						irEmitter.selectBasicBlock(isNotZeroBB);
 					}
 					return builder.CreateSRem(methodOwner, operand);
 				}
