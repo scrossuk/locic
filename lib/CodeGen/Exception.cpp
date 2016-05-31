@@ -203,9 +203,9 @@ namespace locic {
 			
 			const auto currentBB = function.getBuilder().GetInsertBlock();
 			
-			const auto landingPadBB = function.createBasicBlock("");
+			const auto landingPadBB = irEmitter.createBasicBlock("");
 			
-			function.selectBasicBlock(landingPadBB);
+			irEmitter.selectBasicBlock(landingPadBB);
 			
 			const auto landingPad = irEmitter.emitLandingPad(landingPadType,
 			                                                 catchTypes.size());
@@ -223,7 +223,7 @@ namespace locic {
 			// Save the landing pad so it can be re-used.
 			setLatestLandingPadBlock(function, unwindState, landingPadBB);
 			
-			function.selectBasicBlock(currentBB);
+			irEmitter.selectBasicBlock(currentBB);
 			
 			return landingPadBB;
 		}
