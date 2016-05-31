@@ -277,26 +277,25 @@ namespace locic {
 			                                     /*hintResultValue=*/nullptr);
 			const auto condValue = irEmitter_.emitBoolToI1(boolCondition);
 			
-			auto& function = irEmitter_.function();
-			const auto ifTrueBB = function.createBasicBlock("");
-			const auto ifFalseBB = function.createBasicBlock("");
-			const auto afterCondBB = function.createBasicBlock("");
+			const auto ifTrueBB = irEmitter_.createBasicBlock("");
+			const auto ifFalseBB = irEmitter_.createBasicBlock("");
+			const auto afterCondBB = irEmitter_.createBasicBlock("");
 			
 			const auto currentBB = irEmitter_.builder().GetInsertBlock();
 			
-			function.selectBasicBlock(ifTrueBB);
+			irEmitter_.selectBasicBlock(ifTrueBB);
 			const auto ifTrueValue = emitValue(value.ternaryIfTrue(), hintResultValue);
 			const auto ifTrueTermBlock = irEmitter_.builder().GetInsertBlock();
 			const auto ifTrueIsEmpty = ifTrueBB->empty();
-			irEmitter_.builder().CreateBr(afterCondBB);
+			irEmitter_.emitBranch(afterCondBB);
 			
-			function.selectBasicBlock(ifFalseBB);
+			irEmitter_.selectBasicBlock(ifFalseBB);
 			const auto ifFalseValue = emitValue(value.ternaryIfFalse(), hintResultValue);
 			const auto ifFalseTermBlock = irEmitter_.builder().GetInsertBlock();
 			const auto ifFalseIsEmpty = ifFalseBB->empty();
-			irEmitter_.builder().CreateBr(afterCondBB);
+			irEmitter_.emitBranch(afterCondBB);
 			
-			function.selectBasicBlock(currentBB);
+			irEmitter_.selectBasicBlock(currentBB);
 			
 			if (ifTrueIsEmpty && ifFalseIsEmpty) {
 				// If possible, create a select instruction.
@@ -319,9 +318,9 @@ namespace locic {
 				ifFalseBB->eraseFromParent();
 			}
 			
-			irEmitter_.builder().CreateCondBr(condValue, ifTrueBranchBB, ifFalseBranchBB);
+			irEmitter_.emitCondBranch(condValue, ifTrueBranchBB, ifFalseBranchBB);
 			
-			function.selectBasicBlock(afterCondBB);
+			irEmitter_.selectBasicBlock(afterCondBB);
 			
 			if (ifTrueValue->stripPointerCasts() == ifFalseValue->stripPointerCasts()) {
 				assert(ifTrueValue->getType()->isPointerTy() && ifFalseValue->getType()->isPointerTy());
