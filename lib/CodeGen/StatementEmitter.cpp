@@ -200,10 +200,10 @@ namespace locic {
 			// Create basic blocks in program order.
 			llvm::SmallVector<llvm::BasicBlock*, 5> basicBlocks;
 			for (size_t i = 0; i < ifClauseList.size(); i++) {
-				basicBlocks.push_back(function.createBasicBlock("ifThen"));
-				basicBlocks.push_back(function.createBasicBlock("ifElse"));
+				basicBlocks.push_back(irEmitter_.createBasicBlock("ifThen"));
+				basicBlocks.push_back(irEmitter_.createBasicBlock("ifElse"));
 			}
-			const auto mergeBB = function.createBasicBlock("ifMerge");
+			const auto mergeBB = irEmitter_.createBasicBlock("ifMerge");
 			
 			const bool hasElseScope = !elseScope.statements().empty();
 			
@@ -236,23 +236,23 @@ namespace locic {
 					// condition was false. Once unwinding is complete then we may
 					// need to re-check the condition to determine where to proceed.
 					if (conditionHasUnwindActions) {
-						function.getBuilder().CreateCondBr(conditionValue, thenBB, genUnwindBlock(function, UnwindStateNormal));
+						irEmitter_.emitCondBranch(conditionValue, thenBB, genUnwindBlock(function, UnwindStateNormal));
 					} else {
-						function.getBuilder().CreateCondBr(conditionValue, thenBB, nextBB);
+						irEmitter_.emitCondBranch(conditionValue, thenBB, nextBB);
 					}
 					
 					// Create 'then'.
-					function.selectBasicBlock(thenBB);
+					irEmitter_.selectBasicBlock(thenBB);
 					ScopeEmitter(irEmitter_).emitScope(ifClause->scope());
 					
-					if (function.lastInstructionTerminates()) {
+					if (irEmitter_.lastInstructionTerminates()) {
 						thenClauseTerminated = true;
 						// The 'then' clause finished with a terminator (e.g. a 'return'),
 						// but we need a new basic block for the unwinding operations
 						// from the if condition (in case the condition was false).
 						if (conditionHasUnwindActions) {
-							const auto ifUnwindBB = function.createBasicBlock("ifUnwind");
-							function.selectBasicBlock(ifUnwindBB);
+							const auto ifUnwindBB = irEmitter_.createBasicBlock("ifUnwind");
+							irEmitter_.selectBasicBlock(ifUnwindBB);
 						}
 					} else {
 						// The 'then' clause did not end with a terminator, so
@@ -261,26 +261,26 @@ namespace locic {
 					}
 				}
 				
-				if (!function.lastInstructionTerminates()) {
+				if (!irEmitter_.lastInstructionTerminates()) {
 					if (conditionHasUnwindActions) {
 						if (thenClauseTerminated) {
 							// The 'then' clause terminated, so we can just jump straight
 							// to the next clause.
-							function.getBuilder().CreateBr(nextBB);
+							irEmitter_.emitBranch(nextBB);
 						} else if (nextBB == mergeBB) {
 							// The merge block is the next block, so just jump there.
-							function.getBuilder().CreateBr(mergeBB);
+							irEmitter_.emitBranch(mergeBB);
 						} else {
 							// Need to discern between success/failure cases.
-							function.getBuilder().CreateCondBr(conditionValue, mergeBB, nextBB);
+							irEmitter_.emitCondBranch(conditionValue, mergeBB, nextBB);
 						}
 					} else {
-						function.getBuilder().CreateBr(mergeBB);
+						irEmitter_.emitBranch(mergeBB);
 					}
 				}
 				
 				// Create 'else'.
-				function.selectBasicBlock(elseBB);
+				irEmitter_.selectBasicBlock(elseBB);
 			}
 			
 			// Only generate the else basic block if there is
@@ -288,15 +288,15 @@ namespace locic {
 			if (hasElseScope) {
 				ScopeEmitter(irEmitter_).emitScope(elseScope);
 				
-				if (!function.lastInstructionTerminates()) {
+				if (!irEmitter_.lastInstructionTerminates()) {
 					allTerminate = false;
-					function.getBuilder().CreateBr(mergeBB);
+					irEmitter_.emitBranch(mergeBB);
 				}
 			} else {
 				allTerminate = false;
 				basicBlocks.back()->eraseFromParent();
 				basicBlocks.pop_back();
-				function.selectBasicBlock(basicBlocks.back());
+				irEmitter_.selectBasicBlock(basicBlocks.back());
 			}
 			
 			if (allTerminate) {
@@ -305,7 +305,7 @@ namespace locic {
 				mergeBB->eraseFromParent();
 			} else {
 				// Select merge block (which is where execution continues).
-				function.selectBasicBlock(mergeBB);
+				irEmitter_.selectBasicBlock(mergeBB);
 			}
 		}
 		
@@ -340,8 +340,8 @@ namespace locic {
 			const auto loadedTag = irEmitter_.emitRawLoad(unionDatatypePointers.first,
 			                                              TypeGenerator(module).getI8Type());
 			
-			const auto defaultBB = function.createBasicBlock("");
-			const auto endBB = function.createBasicBlock("switchEnd");
+			const auto defaultBB = irEmitter_.createBasicBlock("");
+			const auto endBB = irEmitter_.createBasicBlock("switchEnd");
 			
 			const auto switchInstruction = function.getBuilder().CreateSwitch(loadedTag, defaultBB,
 			                                                                  switchCases.size());
@@ -363,11 +363,11 @@ namespace locic {
 				}
 				
 				const auto tagValue = ConstantGenerator(function.module()).getI8(tag);
-				const auto caseBB = function.createBasicBlock("switchCase");
+				const auto caseBB = irEmitter_.createBasicBlock("switchCase");
 				
 				switchInstruction->addCase(tagValue, caseBB);
 				
-				function.selectBasicBlock(caseBB);
+				irEmitter_.selectBasicBlock(caseBB);
 				
 				{
 					ScopeLifetime switchCaseLifetime(function);
@@ -378,29 +378,29 @@ namespace locic {
 					ScopeEmitter(irEmitter_).emitScope(switchCase->scope());
 				}
 				
-				if (!function.lastInstructionTerminates()) {
+				if (!irEmitter_.lastInstructionTerminates()) {
 					allTerminate = false;
-					function.getBuilder().CreateBr(endBB);
+					irEmitter_.emitBranch(endBB);
 				}
 			}
 			
-			function.selectBasicBlock(defaultBB);
+			irEmitter_.selectBasicBlock(defaultBB);
 			
 			if (defaultScope != nullptr) {
 				ScopeEmitter(irEmitter_).emitScope(*defaultScope);
 				
-				if (!function.lastInstructionTerminates()) {
+				if (!irEmitter_.lastInstructionTerminates()) {
 					allTerminate = false;
-					function.getBuilder().CreateBr(endBB);
+					irEmitter_.emitBranch(endBB);
 				}
 			} else {
-				function.getBuilder().CreateUnreachable();
+				irEmitter_.emitUnreachable();
 			}
 			
 			if (allTerminate) {
 				endBB->eraseFromParent();
 			} else {
-				function.selectBasicBlock(endBB);
+				irEmitter_.selectBasicBlock(endBB);
 			}
 		}
 		
@@ -410,14 +410,14 @@ namespace locic {
 			auto& function = irEmitter_.function();
 			ValueEmitter valueEmitter(irEmitter_);
 			
-			const auto loopConditionBB = function.createBasicBlock("loopCondition");
-			const auto loopIterationBB = function.createBasicBlock("loopIteration");
-			const auto loopAdvanceBB = function.createBasicBlock("loopAdvance");
-			const auto loopEndBB = function.createBasicBlock("loopEnd");
+			const auto loopConditionBB = irEmitter_.createBasicBlock("loopCondition");
+			const auto loopIterationBB = irEmitter_.createBasicBlock("loopIteration");
+			const auto loopAdvanceBB = irEmitter_.createBasicBlock("loopAdvance");
+			const auto loopEndBB = irEmitter_.createBasicBlock("loopEnd");
 			
 			// Execution starts in the condition block.
-			function.getBuilder().CreateBr(loopConditionBB);
-			function.selectBasicBlock(loopConditionBB);
+			irEmitter_.emitBranch(loopConditionBB);
+			irEmitter_.selectBasicBlock(loopConditionBB);
 			
 			llvm::Value* conditionIR = nullptr;
 			
@@ -429,11 +429,11 @@ namespace locic {
 				conditionIR = irEmitter_.emitBoolToI1(boolCondition);
 			}
 			
-			function.getBuilder().CreateCondBr(conditionIR, loopIterationBB,
-			                                   loopEndBB);
+			irEmitter_.emitCondBranch(conditionIR, loopIterationBB,
+			                          loopEndBB);
 			
 			// Create loop contents.
-			function.selectBasicBlock(loopIterationBB);
+			irEmitter_.selectBasicBlock(loopIterationBB);
 			
 			{
 				ControlFlowScope controlFlowScope(function, loopEndBB, loopAdvanceBB);
@@ -443,21 +443,21 @@ namespace locic {
 			// At the end of a loop iteration, branch to
 			// the advance block to update any data for
 			// the next iteration.
-			if (!function.lastInstructionTerminates()) {
-				function.getBuilder().CreateBr(loopAdvanceBB);
+			if (!irEmitter_.lastInstructionTerminates()) {
+				irEmitter_.emitBranch(loopAdvanceBB);
 			}
 			
-			function.selectBasicBlock(loopAdvanceBB);
+			irEmitter_.selectBasicBlock(loopAdvanceBB);
 			
 			ScopeEmitter(irEmitter_).emitScope(advanceScope);
 			
 			// Now branch back to the start to re-check the condition.
-			if (!function.lastInstructionTerminates()) {
-				function.getBuilder().CreateBr(loopConditionBB);
+			if (!irEmitter_.lastInstructionTerminates()) {
+				irEmitter_.emitBranch(loopConditionBB);
 			}
 			
 			// Create after loop basic block (which is where execution continues).
-			function.selectBasicBlock(loopEndBB);
+			irEmitter_.selectBasicBlock(loopEndBB);
 		}
 		
 		void StatementEmitter::emitFor(SEM::Var* const var,
@@ -505,24 +505,24 @@ namespace locic {
 			irEmitter_.emitMoveStore(initValueIR, iteratorVar, iteratorType);
 			scheduleDestructorCall(function, iteratorType, iteratorVar);
 			
-			const auto forConditionBB = function.createBasicBlock("forCondition");
-			const auto forIterationBB = function.createBasicBlock("forIteration");
-			const auto forAdvanceBB = function.createBasicBlock("forAdvance");
-			const auto forEndBB = function.createBasicBlock("forEnd");
+			const auto forConditionBB = irEmitter_.createBasicBlock("forCondition");
+			const auto forIterationBB = irEmitter_.createBasicBlock("forIteration");
+			const auto forAdvanceBB = irEmitter_.createBasicBlock("forAdvance");
+			const auto forEndBB = irEmitter_.createBasicBlock("forEnd");
 			
 			// Execution starts in the condition block.
-			function.getBuilder().CreateBr(forConditionBB);
-			function.selectBasicBlock(forConditionBB);
+			irEmitter_.emitBranch(forConditionBB);
+			irEmitter_.selectBasicBlock(forConditionBB);
 			
 			const auto isEmptyBool = irEmitter_.emitIsEmptyCall(iteratorVar,
 			                                                    iteratorType);
 			const auto isEmptyI1 = irEmitter_.emitBoolToI1(isEmptyBool);
 			
-			function.getBuilder().CreateCondBr(isEmptyI1, forEndBB,
-			                                   forIterationBB);
+			irEmitter_.emitCondBranch(isEmptyI1, forEndBB,
+			                          forIterationBB);
 			
 			// Create loop contents.
-			function.selectBasicBlock(forIterationBB);
+			irEmitter_.selectBasicBlock(forIterationBB);
 			
 			{
 				ScopeLifetime valueScope(function);
@@ -541,21 +541,21 @@ namespace locic {
 			// At the end of a loop iteration, branch to
 			// the advance block to update any data for
 			// the next iteration.
-			if (!function.lastInstructionTerminates()) {
-				function.getBuilder().CreateBr(forAdvanceBB);
+			if (!irEmitter_.lastInstructionTerminates()) {
+				irEmitter_.emitBranch(forAdvanceBB);
 			}
 			
-			function.selectBasicBlock(forAdvanceBB);
+			irEmitter_.selectBasicBlock(forAdvanceBB);
 			
 			irEmitter_.emitSkipFrontCall(iteratorVar, iteratorType);
 			
 			// Now branch back to the start to re-check the condition.
-			if (!function.lastInstructionTerminates()) {
-				function.getBuilder().CreateBr(forConditionBB);
+			if (!irEmitter_.lastInstructionTerminates()) {
+				irEmitter_.emitBranch(forConditionBB);
 			}
 			
 			// Create after loop basic block (which is where execution continues).
-			function.selectBasicBlock(forEndBB);
+			irEmitter_.selectBasicBlock(forEndBB);
 		}
 		
 		void StatementEmitter::emitReturnVoid() {
@@ -626,8 +626,8 @@ namespace locic {
 			
 			assert(catchTypeList.size() == catchClauses.size());
 			
-			const auto catchBB = function.createBasicBlock("catch");
-			const auto afterCatchBB = function.createBasicBlock("");
+			const auto catchBB = irEmitter_.createBasicBlock("catch");
+			const auto afterCatchBB = irEmitter_.createBasicBlock("");
 			
 			// Execute the 'try' scope, pushing the exception
 			// handlers onto the unwind stack.
@@ -638,13 +638,13 @@ namespace locic {
 			
 			bool allTerminate = true;
 			
-			if (!function.lastInstructionTerminates()) {
+			if (!irEmitter_.lastInstructionTerminates()) {
 				// No exception thrown; continue normal execution.
 				allTerminate = false;
-				function.getBuilder().CreateBr(afterCatchBB);
+				irEmitter_.emitBranch(afterCatchBB);
 			}
 			
-			function.selectBasicBlock(catchBB);
+			irEmitter_.selectBasicBlock(catchBB);
 			
 			// Load selector of exception thrown.
 			TypeGenerator typeGen(module);
@@ -656,8 +656,8 @@ namespace locic {
 			
 			for (size_t i = 0; i < catchClauses.size(); i++) {
 				const auto catchClause = catchClauses[i];
-				const auto executeCatchBB = function.createBasicBlock("executeCatch");
-				const auto tryNextCatchBB = function.createBasicBlock("tryNextCatch");
+				const auto executeCatchBB = irEmitter_.createBasicBlock("executeCatch");
+				const auto tryNextCatchBB = irEmitter_.createBasicBlock("tryNextCatch");
 				
 				// Call llvm.eh.typeid.for intrinsic to get
 				// the selector for the catch type.
@@ -671,11 +671,11 @@ namespace locic {
 				
 				// Check thrown selector against catch selector.
 				const auto compareResult = function.getBuilder().CreateICmpEQ(catchSelectorValue, throwSelectorValue);
-				function.getBuilder().CreateCondBr(compareResult, executeCatchBB, tryNextCatchBB);
+				irEmitter_.emitCondBranch(compareResult, executeCatchBB, tryNextCatchBB);
 				
 				// If matched, execute catch block and then continue normal execution.
 				{
-					function.selectBasicBlock(executeCatchBB);
+					irEmitter_.selectBasicBlock(executeCatchBB);
 					llvm::Value* const getPtrArgs[] = { thrownExceptionValue };
 					const auto exceptionPtrFunction = getExceptionPtrFunction(module);
 					const auto exceptionPtrValue = irEmitter_.emitCall(exceptionPtrFunction->getFunctionType(),
@@ -704,20 +704,20 @@ namespace locic {
 					}
 					
 					// Exception was handled, so re-commence normal execution.
-					if (!function.lastInstructionTerminates()) {
+					if (!irEmitter_.lastInstructionTerminates()) {
 						allTerminate = false;
-						function.getBuilder().CreateBr(afterCatchBB);
+						irEmitter_.emitBranch(afterCatchBB);
 					}
 				}
 				
-				function.selectBasicBlock(tryNextCatchBB);
+				irEmitter_.selectBasicBlock(tryNextCatchBB);
 			}
 			
 			// If not matched, keep unwinding.
 			genUnwind(function, UnwindStateThrow);
 			
 			if (!allTerminate) {
-				function.selectBasicBlock(afterCatchBB);
+				irEmitter_.selectBasicBlock(afterCatchBB);
 			} else {
 				afterCatchBB->eraseFromParent();
 			}
@@ -750,7 +750,7 @@ namespace locic {
 			
 			if (anyUnwindActions(function, UnwindStateThrow)) {
 				// Create throw and nothrow paths.
-				const auto noThrowPath = function.createBasicBlock("");
+				const auto noThrowPath = irEmitter_.createBasicBlock("");
 				const auto throwPath = genLandingPad(function, UnwindStateThrow);
 				const auto throwInvoke = irEmitter_.emitInvoke(throwFunction->getFunctionType(),
 				                                               throwFunction,
@@ -760,8 +760,8 @@ namespace locic {
 				throwInvoke->setDoesNotReturn();
 				
 				// 'throw' function should never return normally.
-				function.selectBasicBlock(noThrowPath);
-				function.getBuilder().CreateUnreachable();
+				irEmitter_.selectBasicBlock(noThrowPath);
+				irEmitter_.emitUnreachable();
 			} else {
 				const auto callInst = irEmitter_.emitCall(throwFunction->getFunctionType(),
 				                                          throwFunction,
@@ -769,7 +769,7 @@ namespace locic {
 				callInst->setDoesNotReturn();
 				
 				// 'throw' function should never return normally.
-				function.getBuilder().CreateUnreachable();
+				irEmitter_.emitUnreachable();
 			}
 		}
 		
@@ -800,7 +800,7 @@ namespace locic {
 			// Only generate landing pad where necessary.
 			if (anyUnwindRethrowActions(function)) {
 				// Create throw and nothrow paths.
-				const auto noThrowPath = function.createBasicBlock("");
+				const auto noThrowPath = irEmitter_.createBasicBlock("");
 				const auto throwPath = genLandingPad(function, UnwindStateRethrow);
 				const auto throwInvoke = irEmitter_.emitInvoke(rethrowFunction->getFunctionType(),
 				                                               rethrowFunction,
@@ -809,15 +809,15 @@ namespace locic {
 				throwInvoke->setDoesNotReturn();
 				
 				// 'rethrow' function should never return normally.
-				function.selectBasicBlock(noThrowPath);
-				function.getBuilder().CreateUnreachable();
+				irEmitter_.selectBasicBlock(noThrowPath);
+				irEmitter_.emitUnreachable();
 			} else {
 				const auto callInst = irEmitter_.emitCall(rethrowFunction->getFunctionType(),
 				                                          rethrowFunction, args);
 				callInst->setDoesNotReturn();
 				
 				// 'rethrow' function should never return normally.
-				function.getBuilder().CreateUnreachable();
+				irEmitter_.emitUnreachable();
 			}
 		}
 		
@@ -848,18 +848,17 @@ namespace locic {
 		
 		void StatementEmitter::emitAssert(const SEM::Value& value,
 		                                  const String& assertName) {
-			auto& function = irEmitter_.function();
 			auto& module = irEmitter_.module();
 			ValueEmitter valueEmitter(irEmitter_);
 			
-			const auto failBB = function.createBasicBlock("assertFail");
-			const auto successBB = function.createBasicBlock("assertSuccess");
+			const auto failBB = irEmitter_.createBasicBlock("assertFail");
+			const auto successBB = irEmitter_.createBasicBlock("assertSuccess");
 			
 			const auto boolCondition = valueEmitter.emitValue(value);
 			const auto conditionValue = irEmitter_.emitBoolToI1(boolCondition);
-			function.getBuilder().CreateCondBr(conditionValue, successBB, failBB);
+			irEmitter_.emitCondBranch(conditionValue, successBB, failBB);
 			
-			function.selectBasicBlock(failBB);
+			irEmitter_.selectBasicBlock(failBB);
 			
 			if (!module.buildOptions().unsafe) {
 				const auto arrayType = TypeGenerator(module).getArrayType(TypeGenerator(module).getI8Type(),
@@ -883,9 +882,9 @@ namespace locic {
 			
 			// Still want to create the conditional branch and unreachable
 			// in 'unsafe' mode, since this is a hint to the optimiser.
-			function.getBuilder().CreateUnreachable();
+			irEmitter_.emitUnreachable();
 			
-			function.selectBasicBlock(successBB);
+			irEmitter_.selectBasicBlock(successBB);
 		}
 		
 		void StatementEmitter::emitAssertNoExcept(const SEM::Scope& scope) {
@@ -894,7 +893,6 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitUnreachable() {
-			auto& function = irEmitter_.function();
 			auto& module = irEmitter_.module();
 			
 			if (!module.buildOptions().unsafe) {
@@ -905,7 +903,7 @@ namespace locic {
 				callInst->setDoesNotThrow();
 				callInst->setDoesNotReturn();
 			}
-			function.getBuilder().CreateUnreachable();
+			irEmitter_.emitUnreachable();
 		}
 		
 	}
