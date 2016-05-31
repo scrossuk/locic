@@ -146,19 +146,19 @@ namespace locic {
 			if (typeInstance.isUnionDatatype()) {
 				const auto loadedTag = irEmitter.emitLoadDatatypeTag(thisValue);
 				
-				const auto endBB = functionGenerator_.createBasicBlock("end");
+				const auto endBB = irEmitter.createBasicBlock("end");
 				const auto switchInstruction = builder.CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
 				
 				// Start from 1 so that 0 can represent 'empty'.
 				uint8_t tag = 1;
 				
 				for (const auto variantTypeInstance: typeInstance.variants()) {
-					const auto matchBB = functionGenerator_.createBasicBlock("tagMatch");
+					const auto matchBB = irEmitter.createBasicBlock("tagMatch");
 					const auto tagValue = ConstantGenerator(module).getI8(tag++);
 					
 					switchInstruction->addCase(tagValue, matchBB);
 					
-					functionGenerator_.selectBasicBlock(matchBB);
+					irEmitter.selectBasicBlock(matchBB);
 					
 					const auto variantType = variantTypeInstance->selfType();
 					
@@ -168,21 +168,21 @@ namespace locic {
 					
 					irEmitter.emitDestructorCall(unionValuePtr, variantType);
 					
-					builder.CreateBr(endBB);
+					irEmitter.emitBranch(endBB);
 				}
 				
-				functionGenerator_.selectBasicBlock(endBB);
+				irEmitter.selectBasicBlock(endBB);
 			} else {
-				const auto isLiveBB = functionGenerator_.createBasicBlock("is_live");
-				const auto endBB = functionGenerator_.createBasicBlock("");
+				const auto isLiveBB = irEmitter.createBasicBlock("is_live");
+				const auto endBB = irEmitter.createBasicBlock("");
 				
 				// Check whether this object is in a 'live' state and only
 				// run the destructor if it is.
 				const auto isLiveBool = genIsLive(functionGenerator_, typeInstance.selfType(), thisValue);
 				const auto isLive = irEmitter.emitBoolToI1(isLiveBool);
-				builder.CreateCondBr(isLive, isLiveBB, endBB);
+				irEmitter.emitCondBranch(isLive, isLiveBB, endBB);
 				
-				functionGenerator_.selectBasicBlock(isLiveBB);
+				irEmitter.selectBasicBlock(isLiveBB);
 				
 				// Call the custom destructor function, if one exists.
 				const auto& function = typeInstance.getFunction(module.getCString("__destroy"));
@@ -216,9 +216,9 @@ namespace locic {
 				// Put the object into a dead state.
 				genSetDeadState(functionGenerator_, typeInstance.selfType(), thisValue);
 				
-				builder.CreateBr(endBB);
+				irEmitter.emitBranch(endBB);
 				
-				functionGenerator_.selectBasicBlock(endBB);
+				irEmitter.selectBasicBlock(endBB);
 			}
 			
 			return ConstantGenerator(module).getVoidUndef();
@@ -258,16 +258,14 @@ namespace locic {
 				                        destValue,
 				                        positionValue);
 			} else {
-				auto& builder = functionGenerator_.getBuilder();
-				
 				const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 				                                               destValue,
 				                                               positionValue);
 				TypeGenerator typeGenerator(module);
 				
-				const auto isLiveBB = functionGenerator_.createBasicBlock("is_live");
-				const auto isNotLiveBB = functionGenerator_.createBasicBlock("is_not_live");
-				const auto mergeBB = functionGenerator_.createBasicBlock("");
+				const auto isLiveBB = irEmitter.createBasicBlock("is_live");
+				const auto isNotLiveBB = irEmitter.createBasicBlock("is_not_live");
+				const auto mergeBB = irEmitter.createBasicBlock("");
 				
 				// Check whether the source object is in a 'live' state and
 				// only perform the move if it is.
@@ -275,11 +273,10 @@ namespace locic {
 				                              type,
 				                              sourceValue);
 				const auto isLive = irEmitter.emitBoolToI1(isLiveBool);
-				builder.CreateCondBr(isLive,
-				                     isLiveBB,
-				                     isNotLiveBB);
+				irEmitter.emitCondBranch(isLive, isLiveBB,
+				                         isNotLiveBB);
 				
-				functionGenerator_.selectBasicBlock(isLiveBB);
+				irEmitter.selectBasicBlock(isLiveBB);
 				
 				// Move member values.
 				genCallUserMoveFunction(functionGenerator_,
@@ -298,18 +295,18 @@ namespace locic {
 				                type,
 				                sourceValue);
 				
-				builder.CreateBr(mergeBB);
+				irEmitter.emitBranch(mergeBB);
 				
-				functionGenerator_.selectBasicBlock(isNotLiveBB);
+				irEmitter.selectBasicBlock(isNotLiveBB);
 				
 				// If the source object is dead, set destination to be dead.
 				genSetDeadState(functionGenerator_,
 				                type,
 				                destPtr);
 				
-				builder.CreateBr(mergeBB);
+				irEmitter.emitBranch(mergeBB);
 				
-				functionGenerator_.selectBasicBlock(mergeBB);
+				irEmitter.selectBasicBlock(mergeBB);
 			}
 			
 			return ConstantGenerator(module).getVoidUndef();
@@ -352,19 +349,19 @@ namespace locic {
 				const auto unionDataOffset = genAlignOf(functionGenerator_, type);
 				const auto adjustedPositionValue = builder.CreateAdd(positionValue, unionDataOffset);
 				
-				const auto endBB = functionGenerator_.createBasicBlock("end");
+				const auto endBB = irEmitter.createBasicBlock("end");
 				const auto switchInstruction = builder.CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
 				
 				// Start from 1 so that 0 can represent 'empty'.
 				uint8_t tag = 1;
 				
 				for (const auto& variantTypeInstance: typeInstance.variants()) {
-					const auto matchBB = functionGenerator_.createBasicBlock("tagMatch");
+					const auto matchBB = irEmitter.createBasicBlock("tagMatch");
 					const auto tagValue = ConstantGenerator(module).getI8(tag++);
 					
 					switchInstruction->addCase(tagValue, matchBB);
 					
-					functionGenerator_.selectBasicBlock(matchBB);
+					irEmitter.selectBasicBlock(matchBB);
 					
 					const auto variantType = variantTypeInstance->selfType();
 					
@@ -374,10 +371,10 @@ namespace locic {
 					            destValue,
 					            adjustedPositionValue);
 					
-					builder.CreateBr(endBB);
+					irEmitter.emitBranch(endBB);
 				}
 				
-				functionGenerator_.selectBasicBlock(endBB);
+				irEmitter.selectBasicBlock(endBB);
 			} else {
 				// Move member variables.
 				for (const auto& memberVar: typeInstance.variables()) {
@@ -696,7 +693,7 @@ namespace locic {
 				const auto loadedTag = irEmitter.emitLoadDatatypeTag(thisPointer);
 				irEmitter.emitStoreDatatypeTag(loadedTag, resultValue);
 				
-				const auto endBB = functionGenerator_.createBasicBlock("end");
+				const auto endBB = irEmitter.createBasicBlock("end");
 				const auto switchInstruction = functionGenerator_.getBuilder().CreateSwitch(loadedTag,
 				                                                                            endBB,
 				                                                                            typeInstance.variants().size());
@@ -705,12 +702,12 @@ namespace locic {
 				uint8_t tag = 1;
 				
 				for (const auto variantTypeInstance : typeInstance.variants()) {
-					const auto matchBB = functionGenerator_.createBasicBlock("tagMatch");
+					const auto matchBB = irEmitter.createBasicBlock("tagMatch");
 					const auto tagValue = ConstantGenerator(module).getI8(tag++);
 					
 					switchInstruction->addCase(tagValue, matchBB);
 					
-					functionGenerator_.selectBasicBlock(matchBB);
+					irEmitter.selectBasicBlock(matchBB);
 					
 					const auto variantType = SEM::Type::Object(variantTypeInstance, type->templateArguments().copy());
 					
@@ -731,10 +728,10 @@ namespace locic {
 					                        unionValueDestPtr,
 					                        variantType);
 					
-					functionGenerator_.getBuilder().CreateBr(endBB);
+					irEmitter.emitBranch(endBB);
 				}
 				
-				functionGenerator_.selectBasicBlock(endBB);
+				irEmitter.selectBasicBlock(endBB);
 			} else {
 				for (const auto& memberVar: typeInstance.variables()) {
 					const auto memberIndex = memberVar->index();
@@ -796,9 +793,9 @@ namespace locic {
 				                                                                           ConstantGenerator(module).getI8(-1),
 				                                                                           ConstantGenerator(module).getI8(1));
 				
-				const auto startCompareBB = functionGenerator_.createBasicBlock("startCompare");
+				const auto startCompareBB = irEmitter.createBasicBlock("startCompare");
 				
-				const auto endBB = functionGenerator_.createBasicBlock("end");
+				const auto endBB = irEmitter.createBasicBlock("end");
 				
 				const auto phiNode = llvm::PHINode::Create(i8Type,
 				                                           typeInstance.variants().size(),
@@ -808,32 +805,30 @@ namespace locic {
 				phiNode->addIncoming(tagCompareResult,
 				                     functionGenerator_.getBuilder().GetInsertBlock());
 				
-				functionGenerator_.getBuilder().CreateCondBr(isTagNotEqual,
-				                                             endBB,
-				                                             startCompareBB);
+				irEmitter.emitCondBranch(isTagNotEqual, endBB,
+				                         startCompareBB);
 				
-				functionGenerator_.selectBasicBlock(startCompareBB);
+				irEmitter.selectBasicBlock(startCompareBB);
 				
-				const auto unreachableBB = functionGenerator_.createBasicBlock("");
+				const auto unreachableBB = irEmitter.createBasicBlock("");
 				
 				const auto switchInstruction = functionGenerator_.getBuilder().CreateSwitch(thisTag,
 				                                                                            unreachableBB,
 				                                                                            typeInstance.variants().size());
 				
-				functionGenerator_.selectBasicBlock(unreachableBB);
-				
-				functionGenerator_.getBuilder().CreateUnreachable();
+				irEmitter.selectBasicBlock(unreachableBB);
+				irEmitter.emitUnreachable();
 				
 				// Start from 1 so that 0 can represent 'empty'.
 				uint8_t tag = 1;
 				
 				for (const auto variantTypeInstance : typeInstance.variants()) {
-					const auto matchBB = functionGenerator_.createBasicBlock("tagMatch");
+					const auto matchBB = irEmitter.createBasicBlock("tagMatch");
 					const auto tagValue = ConstantGenerator(module).getI8(tag++);
 					
 					switchInstruction->addCase(tagValue, matchBB);
 					
-					functionGenerator_.selectBasicBlock(matchBB);
+					irEmitter.selectBasicBlock(matchBB);
 					
 					const auto variantType = SEM::Type::Object(variantTypeInstance, type->templateArguments().copy());
 					
@@ -852,10 +847,10 @@ namespace locic {
 					phiNode->addIncoming(compareResult,
 					                     matchBB);
 					
-					functionGenerator_.getBuilder().CreateBr(endBB);
+					irEmitter.emitBranch(endBB);
 				}
 				
-				functionGenerator_.selectBasicBlock(endBB);
+				irEmitter.selectBasicBlock(endBB);
 				return phiNode;
 			} else {
 				if (typeInstance.variables().empty()) {
@@ -867,7 +862,7 @@ namespace locic {
 				llvm::PHINode* phiNode = nullptr;
 				
 				if (typeInstance.variables().size() > 1) {
-					endBB = functionGenerator_.createBasicBlock("end");
+					endBB = irEmitter.createBasicBlock("end");
 					
 					phiNode = llvm::PHINode::Create(i8Type,
 					                                typeInstance.variables().size(),
@@ -900,24 +895,23 @@ namespace locic {
 					                     functionGenerator_.getBuilder().GetInsertBlock());
 					
 					if (i != (typeInstance.variables().size() - 1)) {
-						const auto nextCompareBB = functionGenerator_.createBasicBlock("nextCompare");
+						const auto nextCompareBB = irEmitter.createBasicBlock("nextCompare");
 						
 						const auto zeroValue = ConstantGenerator(module).getI8(0);
 						
 						const auto isEqualResult = functionGenerator_.getBuilder().CreateICmpEQ(compareResult,
 						                                                                        zeroValue);
 						
-						functionGenerator_.getBuilder().CreateCondBr(isEqualResult,
-						                                             nextCompareBB,
-						                                             endBB);
+						irEmitter.emitCondBranch(isEqualResult,
+						                         nextCompareBB, endBB);
 						
-						functionGenerator_.selectBasicBlock(nextCompareBB);
+						irEmitter.selectBasicBlock(nextCompareBB);
 					} else {
-						functionGenerator_.getBuilder().CreateBr(endBB);
+						irEmitter.emitBranch(endBB);
 					}
 				}
 				
-				functionGenerator_.selectBasicBlock(endBB);
+				irEmitter.selectBasicBlock(endBB);
 				return phiNode;
 			}
 		}
