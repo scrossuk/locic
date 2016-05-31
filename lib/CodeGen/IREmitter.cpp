@@ -64,6 +64,11 @@ namespace locic {
 			                                             ifFalse);
 		}
 		
+		void
+		IREmitter::emitUnreachable() {
+			functionGenerator_.getBuilder().CreateUnreachable();
+		}
+		
 		llvm::Value*
 		IREmitter::emitI1ToBool(llvm::Value* const value) {
 			assert(value->getType()->isIntegerTy(1));

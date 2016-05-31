@@ -54,6 +54,9 @@ namespace locic {
 			               llvm::BasicBlock* ifTrue,
 			               llvm::BasicBlock* ifFalse);
 			
+			void
+			emitUnreachable();
+			
 			llvm::Value*
 			emitI1ToBool(llvm::Value* value);
 			
