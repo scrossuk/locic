@@ -1,5 +1,6 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Routines.hpp>
 
@@ -66,13 +67,16 @@ namespace locic {
 		}
 		
 		void callTrapIntrinsic(Function& function) {
+			IREmitter irEmitter(function);
 			const auto intrinsicDeclaration = llvm::Intrinsic::getDeclaration(function.module().getLLVMModulePtr(), llvm::Intrinsic::trap);
 			function.getBuilder().CreateCall(intrinsicDeclaration, std::vector<llvm::Value*>{});
-			function.getBuilder().CreateUnreachable();
+			irEmitter.emitUnreachable();
 		}
 		
 		llvm::Value* callArithmeticNoOverflowIntrinsic(Function& function, llvm::Intrinsic::ID id, llvm::ArrayRef<llvm::Value*> args) {
 			assert(args.size() == 2);
+			
+			IREmitter irEmitter(function);
 			
 			auto& builder = function.getBuilder();
 			
@@ -81,13 +85,13 @@ namespace locic {
 			const auto arithmeticResult = builder.CreateCall(arithmeticIntrinsic, args);
 			const unsigned overflowPosition[] = { 1 };
 			const auto arithmeticDidOverflow = builder.CreateExtractValue(arithmeticResult, overflowPosition);
-			const auto overflowBB = function.createBasicBlock("overflow");
-			const auto normalBB = function.createBasicBlock("normal");
+			const auto overflowBB = irEmitter.createBasicBlock("overflow");
+			const auto normalBB = irEmitter.createBasicBlock("normal");
 			
-			builder.CreateCondBr(arithmeticDidOverflow, overflowBB, normalBB);
-			function.selectBasicBlock(overflowBB);
+			irEmitter.emitCondBranch(arithmeticDidOverflow, overflowBB, normalBB);
+			irEmitter.selectBasicBlock(overflowBB);
 			callTrapIntrinsic(function);
-			function.selectBasicBlock(normalBB);
+			irEmitter.selectBasicBlock(normalBB);
 			const unsigned resultPosition[] = { 0 };
 			return builder.CreateExtractValue(arithmeticResult, resultPosition);
 		}
