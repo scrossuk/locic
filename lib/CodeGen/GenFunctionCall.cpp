@@ -104,7 +104,7 @@ namespace locic {
 				if (!argInfo.noExcept() && anyUnwindActions(function, UnwindStateThrow)) {
 					assert(!musttail);
 					
-					const auto successPath = function.createBasicBlock("");
+					const auto successPath = irEmitter.createBasicBlock("");
 					const auto failPath = genLandingPad(function, UnwindStateThrow);
 					
 					const auto invokeInst = irEmitter.emitInvoke(functionIRType,
@@ -130,7 +130,7 @@ namespace locic {
 					                                                   invokeInst->getAttributes());
 					invokeInst->setAttributes(attributes);
 					
-					function.selectBasicBlock(successPath);
+					irEmitter.selectBasicBlock(successPath);
 					return invokeInst;
 				} else {
 					const auto callInst = irEmitter.emitCall(functionIRType,
