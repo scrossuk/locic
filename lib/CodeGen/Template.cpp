@@ -538,16 +538,16 @@ namespace locic {
 			// If the position is 0 that means that the path terminates
 			// here so just return the types array.
 			// Otherwise continue to the next intermediate template generator.
-			const auto pathEndBB = function.createBasicBlock("pathEnd");
-			const auto callNextGeneratorBB = function.createBasicBlock("callNextGenerator");
+			const auto pathEndBB = irEmitter.createBasicBlock("pathEnd");
+			const auto callNextGeneratorBB = irEmitter.createBasicBlock("callNextGenerator");
 			
 			const auto compareValue = builder.CreateICmpEQ(parentPositionArg, constGen.getSizeTValue(0));
-			builder.CreateCondBr(compareValue, pathEndBB, callNextGeneratorBB);
+			irEmitter.emitCondBranch(compareValue, pathEndBB, callNextGeneratorBB);
 			
-			function.selectBasicBlock(pathEndBB);
+			irEmitter.selectBasicBlock(pathEndBB);
 			irEmitter.emitReturnVoid();
 			
-			function.selectBasicBlock(callNextGeneratorBB);
+			irEmitter.selectBasicBlock(callNextGeneratorBB);
 			
 			const auto bitsRequiredValue = constGen.getSizeTValue(templateBuilder.bitsRequired());
 			const auto position = builder.CreateSub(parentPositionArg, bitsRequiredValue);
@@ -556,7 +556,7 @@ namespace locic {
 			const auto mask = constGen.getI64((1 << templateBuilder.bitsRequired()) - 1);
 			const auto component = builder.CreateAnd(subPath, mask);
 			
-			const auto endBB = function.createBasicBlock("");
+			const auto endBB = irEmitter.createBasicBlock("");
 			const auto switchInstruction = builder.CreateSwitch(component, endBB);
 			
 			// Generate the component entry for each template use.
@@ -564,10 +564,10 @@ namespace locic {
 				const auto& templateUseInst = templateUsePair.first;
 				const auto templateUseComponent = templateUsePair.second;
 				
-				const auto caseBB = function.createBasicBlock("");
+				const auto caseBB = irEmitter.createBasicBlock("");
 				switchInstruction->addCase(constGen.getI64(templateUseComponent), caseBB);
 				
-				function.selectBasicBlock(caseBB);
+				irEmitter.selectBasicBlock(caseBB);
 				
 				TypeArrayMapper typeArrayMapper;
 				
@@ -655,10 +655,10 @@ namespace locic {
 				}
 			}
 			
-			function.selectBasicBlock(endBB);
+			irEmitter.selectBasicBlock(endBB);
 			
 			// Path is not valid...
-			builder.CreateUnreachable();
+			irEmitter.emitUnreachable();
 			
 			return llvmFunction;
 		}
