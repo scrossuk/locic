@@ -93,23 +93,11 @@ These build with the project and so after building LOCIC you should be able to r
 Testing
 -------
 
-Various tests are include in the /test/ subdirectory. These tests are not run as part of building the project; they can be run after a successful build with one of the following commands:
+Various tests are include in the ``/test`` subdirectory and unittests are included in the ``/unittests`` subdirectory. These tests are not run as part of building the project; they can be run with the following command (which will also re-build the project if necessary):
 
 .. code-block:: bash
 
-	make test
-
-...or:
-
-.. code-block:: bash
-
-	ctest
-
-If one of the tests fail, run the following command to see the output of all failing tests.
-
-.. code-block:: bash
-
-	ctest --output-on-failure
+	make check
 
 Building LLVM
 ~~~~~~~~~~~~~

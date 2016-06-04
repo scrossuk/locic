@@ -331,6 +331,12 @@ set(STD_MODULES
 	"string"
 )
 
+# Compute list of standard library modules as build target dependencies.
+set(STD_MODULE_DEPENDS "")
+foreach(std_module ${STD_MODULES})
+	set(STD_MODULE_DEPENDS ${STD_MODULE_DEPENDS} "std.${std_module}")
+endforeach()
+
 # 3rd-party library Loci bindings.
 add_subdirectory(3rdparty)
 
@@ -362,4 +368,13 @@ add_subdirectory(unittests)
 
 # Utilities.
 add_subdirectory(utils)
+
+# Add a 'check' target that builds and tests the compiler.
+add_custom_target(check
+	lit -sv "${CMAKE_SOURCE_DIR}/test"
+	COMMAND "${CMAKE_BINARY_DIR}/unittests/Lex/locic-unittest-Lex"
+	COMMAND "${CMAKE_BINARY_DIR}/unittests/Parser/locic-unittest-Parser"
+	DEPENDS locic locic-unittest-Lex locic-unittest-Parser ${STD_MODULE_DEPENDS}
+	WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
 
