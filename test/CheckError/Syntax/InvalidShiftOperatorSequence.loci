@@ -1,10 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: {{.*}}/InvalidShiftOperatorSequence.loci:13:10: warning: Operand of shift depends on subtle precedence; add parentheses.
-// CHECK: {{.*}}/InvalidShiftOperatorSequence.loci:14:10: warning: Operand of shift depends on subtle precedence; add parentheses.
-// CHECK: {{.*}}/InvalidShiftOperatorSequence.loci:15:10: warning: Operand of shift depends on subtle precedence; add parentheses.
-// CHECK: {{.*}}/InvalidShiftOperatorSequence.loci:16:10: warning: Operand of shift depends on subtle precedence; add parentheses.
+// CHECK: {{.*}}/InvalidShiftOperatorSequence.loci:13:10: warning: operand of shift depends on subtle precedence; add parentheses
+// CHECK: {{.*}}/InvalidShiftOperatorSequence.loci:14:10: warning: operand of shift depends on subtle precedence; add parentheses
+// CHECK: {{.*}}/InvalidShiftOperatorSequence.loci:15:10: warning: operand of shift depends on subtle precedence; add parentheses
+// CHECK: {{.*}}/InvalidShiftOperatorSequence.loci:16:10: warning: operand of shift depends on subtle precedence; add parentheses
 
 
 // Don't allow sequences of shifts without parentheses.

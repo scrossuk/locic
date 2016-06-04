@@ -1,7 +1,7 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: .loci:5:1: error: Expected 'END'; got 'RCURLYBRACKET'.
+// CHECK: .loci:5:1: error: expected 'END'; got 'RCURLYBRACKET'
 }
 
 // CHECK: 1 error generated.

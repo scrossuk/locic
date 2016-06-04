@@ -1,11 +1,11 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: .loci:12:1: error: Unexpected type token: END
-// CHECK: .loci:12:1: error: Expected 'NAME'; got 'END'.
-// CHECK: .loci:12:1: error: Expected 'RROUNDBRACKET'; got 'END'.
-// CHECK: .loci:12:1: error: Expected 'LCURLYBRACKET'; got 'END'.
-// CHECK: .loci:12:1: error: Expected 'RCURLYBRACKET'; got 'END'.
+// CHECK: .loci:12:1: error: unexpected type token: END
+// CHECK: .loci:12:1: error: expected 'NAME'; got 'END'
+// CHECK: .loci:12:1: error: expected 'RROUNDBRACKET'; got 'END'
+// CHECK: .loci:12:1: error: expected 'LCURLYBRACKET'; got 'END'
+// CHECK: .loci:12:1: error: expected 'RCURLYBRACKET'; got 'END'
 class TestClass(
 
 // CHECK: 5 errors generated.

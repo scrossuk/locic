@@ -1,10 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:13:12: error: Expected 'RTRIBRACKET'; got 'LTRIBRACKET'.
-// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:16:15: error: Expected 'LROUNDBRACKET'; got 'RTRIBRACKET'.
-// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:24:63: error: Expected 'RTRIBRACKET'; got 'LTRIBRACKET'.
-// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:26:66: error: Expected 'RROUNDBRACKET'; got 'RTRIBRACKET'.
+// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:13:12: error: expected 'RTRIBRACKET'; got 'LTRIBRACKET'
+// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:16:15: error: expected 'LROUNDBRACKET'; got 'RTRIBRACKET'
+// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:24:63: error: expected 'RTRIBRACKET'; got 'LTRIBRACKET'
+// CHECK: {{.*}}/InvalidComparisonInTemplateArgument.loci:26:66: error: expected 'RROUNDBRACKET'; got 'RTRIBRACKET'
 
 template <bool V>
 class C () { }

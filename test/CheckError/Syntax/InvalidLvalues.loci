@@ -1,22 +1,22 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: {{.*}}/InvalidLvalues.loci:22:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:23:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:24:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:25:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:26:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:27:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:28:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:29:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:30:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:31:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:32:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:33:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:34:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:35:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:36:2: warning: Invalid lvalue; add parentheses.
-// CHECK: {{.*}}/InvalidLvalues.loci:37:2: warning: Invalid lvalue; add parentheses.
+// CHECK: {{.*}}/InvalidLvalues.loci:22:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:23:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:24:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:25:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:26:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:27:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:28:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:29:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:30:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:31:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:32:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:33:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:34:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:35:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:36:2: warning: invalid lvalue; add parentheses
+// CHECK: {{.*}}/InvalidLvalues.loci:37:2: warning: invalid lvalue; add parentheses
 
 void f() {
 	value + value = value;

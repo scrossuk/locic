@@ -23,7 +23,7 @@ namespace locic {
 			: actual_(actual) { }
 			
 			std::string toString() const {
-				return makeString("Unexpected value token: %s",
+				return makeString("unexpected value token: %s",
 				                  Token::kindToString(actual_).c_str());
 			}
 			
@@ -38,7 +38,7 @@ namespace locic {
 			: opName_(opName) { }
 			
 			std::string toString() const {
-				return makeString("Operand of %s depends on subtle precedence; add parentheses.",
+				return makeString("operand of %s depends on subtle precedence; add parentheses",
 				                  opName_.c_str());
 			}
 			

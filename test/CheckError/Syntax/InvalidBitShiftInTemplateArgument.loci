@@ -1,10 +1,10 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: {{.*}}/InvalidBitShiftInTemplateArgument.loci:16:13: error: Expected 'NAME'; got 'RTRIBRACKET'.
-// CHECK: {{.*}}/InvalidBitShiftInTemplateArgument.loci:16:16: error: Expected 'LROUNDBRACKET'; got 'RTRIBRACKET'.
-// CHECK: {{.*}}/InvalidBitShiftInTemplateArgument.loci:20:58: error: Expected 'NAME'; got 'RTRIBRACKET'.
-// CHECK: {{.*}}/InvalidBitShiftInTemplateArgument.loci:20:61: error: Expected 'RROUNDBRACKET'; got 'RTRIBRACKET'.
+// CHECK: {{.*}}/InvalidBitShiftInTemplateArgument.loci:16:13: error: expected 'NAME'; got 'RTRIBRACKET'
+// CHECK: {{.*}}/InvalidBitShiftInTemplateArgument.loci:16:16: error: expected 'LROUNDBRACKET'; got 'RTRIBRACKET'
+// CHECK: {{.*}}/InvalidBitShiftInTemplateArgument.loci:20:58: error: expected 'NAME'; got 'RTRIBRACKET'
+// CHECK: {{.*}}/InvalidBitShiftInTemplateArgument.loci:20:61: error: expected 'RROUNDBRACKET'; got 'RTRIBRACKET'
 
 template <bool V>
 class C () { }

@@ -23,11 +23,11 @@ namespace locic {
 			
 			std::string toString() const {
 				if (expected_.size() == 1) {
-					return makeString("Expected '%s'; got '%s'.",
+					return makeString("expected '%s'; got '%s'",
 					                  Token::kindToString(expected_[0]).c_str(),
 					                  Token::kindToString(actual_).c_str());
 				} else if (expected_.size() > 3) {
-					return makeString("Unexpected token '%s'.",
+					return makeString("unexpected token '%s'",
 					                  Token::kindToString(actual_).c_str());
 				}
 				
@@ -40,7 +40,7 @@ namespace locic {
 				}
 				expectStr += " }";
 				
-				return makeString("Expected one of %s; got '%s'.",
+				return makeString("expected one of %s; got '%s'",
 				                  expectStr.c_str(), Token::kindToString(actual_).c_str());
 			}
 			

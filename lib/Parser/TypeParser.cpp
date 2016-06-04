@@ -21,7 +21,7 @@ namespace locic {
 			: actual_(actual) { }
 			
 			std::string toString() const {
-				return makeString("Unexpected type token: %s",
+				return makeString("unexpected type token: %s",
 				                  Token::kindToString(actual_).c_str());
 			}
 			
@@ -35,7 +35,7 @@ namespace locic {
 			DuplicateSignedQualifierDiag() { }
 			
 			std::string toString() const {
-				return "Duplicate 'signed' qualifier.";
+				return "duplicate 'signed' qualifier";
 			}
 			
 		};
@@ -45,7 +45,7 @@ namespace locic {
 			ConflictingSignedQualifierDiag() { }
 			
 			std::string toString() const {
-				return "Conflicting 'signed' and 'unsigned' qualifiers.";
+				return "conflicting 'signed' and 'unsigned' qualifiers";
 			}
 			
 		};

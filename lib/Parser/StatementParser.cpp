@@ -31,7 +31,7 @@ namespace locic {
 			InvalidLvalueDiag() { }
 			
 			std::string toString() const {
-				return "Invalid lvalue; add parentheses.";
+				return "invalid lvalue; add parentheses";
 			}
 			
 		};
