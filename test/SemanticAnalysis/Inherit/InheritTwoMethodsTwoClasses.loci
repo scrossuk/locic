@@ -1,0 +1,17 @@
+// RUN: %locic %s --emit-llvm -o %t
+// XFAIL: *
+
+class ParentA() {
+	void methodA() { }
+}
+
+class ParentB() {
+	void methodB() { }
+}
+
+class Child(inherit ParentA parentA, inherit ParentB parentB) { }
+
+void function(Child& child) {
+	child.methodA();
+	child.methodB();
+}
