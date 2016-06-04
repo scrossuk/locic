@@ -333,6 +333,8 @@ namespace locic {
 		
 		Token IdentifierLexer::lexPrefixIn() {
 			switch (get().value()) {
+				case 'h':
+					return lexPossibleKeyword("inherit", Token::INHERIT);
 				case 't':
 					return lexPrefixInt();
 				default:

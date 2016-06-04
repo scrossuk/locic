@@ -317,6 +317,7 @@ namespace locic {
 				case Token::PRIMITIVE:
 				case Token::PRIMITIVEFUNCTION:
 				case Token::OVERRIDE_CONST:
+				case Token::INHERIT:
 					return false;
 			}
 			

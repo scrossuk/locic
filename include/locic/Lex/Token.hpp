@@ -166,7 +166,9 @@ namespace locic {
 				CARET,
 
 				SELF,
-				THIS
+				THIS,
+
+				INHERIT
 			};
 			
 			static Token Name(const String stringValue,
@@ -394,6 +396,7 @@ namespace locic {
 					case CARET: return "CARET";
 					case SELF: return "SELF";
 					case THIS: return "THIS";
+					case INHERIT: return "INHERIT";
 				}
 				
 				locic_unreachable("Invalid token kind.");

@@ -194,6 +194,7 @@ namespace locic {
 				case Token::GREATEROREQUAL:
 				case Token::LESSOREQUAL:
 				case Token::CARET:
+				case Token::INHERIT:
 				case Token::UNKNOWN:
 				case Token::ERROR:
 				case Token::END:

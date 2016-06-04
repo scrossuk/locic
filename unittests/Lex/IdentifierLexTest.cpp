@@ -112,4 +112,6 @@ TEST(IdentifierLexTest, Keywords) {
 	
 	testKeyword("virtual", locic::Lex::Token::Kind::VIRTUAL);
 	testKeyword("void", locic::Lex::Token::Kind::VOID);
+	
+	testKeyword("inherit", locic::Lex::Token::Kind::INHERIT);
 }
