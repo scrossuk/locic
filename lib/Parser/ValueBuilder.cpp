@@ -9,16 +9,6 @@ namespace locic {
 	
 	namespace Parser {
 		
-// 		static AST::Value* UnaryOp(const String& name, AST::Node<AST::Value> operand) {
-// 			const auto paramNode = AST::Node<AST::ValueList>(operand.location(), new AST::ValueList());
-// 			return AST::Value::FunctionCall(AST::makeNode(operand.location(), AST::Value::MemberAccess(operand, name)), paramNode);
-// 		}
-// 		
-// 		static AST::Value* BinaryOp(const String& name, AST::Node<AST::Value> leftOperand, AST::Node<AST::Value> rightOperand) {
-// 			const auto paramNode = AST::makeNode(rightOperand.location(), new AST::ValueList(1, rightOperand));
-// 			return AST::Value::FunctionCall(AST::makeNode(leftOperand.location(), AST::Value::MemberAccess(leftOperand, name)), paramNode);
-// 		}
-		
 		ValueBuilder::ValueBuilder(const TokenReader& reader)
 		: reader_(reader) { }
 		
