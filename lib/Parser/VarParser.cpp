@@ -10,19 +10,39 @@ namespace locic {
 	
 	namespace Parser {
 		
+		class UnexpectedInheritDiag: public Error {
+		public:
+			UnexpectedInheritDiag() { }
+			
+			std::string toString() const {
+				return makeString("unexpected 'inherit' keyword");
+			}
+			
+		};
+		
+		class InheritNotImplementedDiag: public Error {
+		public:
+			InheritNotImplementedDiag() { }
+			
+			std::string toString() const {
+				return makeString("inheritance not currently implemented");
+			}
+			
+		};
+		
 		VarParser::VarParser(TokenReader& reader)
 		: reader_(reader), builder_(reader) { }
 		
 		VarParser::~VarParser() { }
 		
-		AST::Node<AST::VarList> VarParser::parseVarList() {
+		AST::Node<AST::VarList> VarParser::parseVarList(const bool allowInherit) {
 			const auto start = reader_.position();
 			
 			AST::VarList typeVarList;
 			typeVarList.reserve(8);
 			
 			if (reader_.peek().kind() != Token::RROUNDBRACKET) {
-				typeVarList.push_back(parseVar());
+				typeVarList.push_back(parseVar(allowInherit));
 				
 				while (true) {
 					if (reader_.peek().kind() != Token::COMMA) {
@@ -37,7 +57,7 @@ namespace locic {
 					
 					reader_.consume();
 					
-					typeVarList.push_back(parseVar());
+					typeVarList.push_back(parseVar(allowInherit));
 				}
 			}
 			
@@ -67,8 +87,19 @@ namespace locic {
 			return builder_.makeVarList(std::move(typeVarList), start);
 		}
 		
-		AST::Node<AST::Var> VarParser::parseVar() {
+		AST::Node<AST::Var> VarParser::parseVar(const bool allowInherit) {
 			const auto start = reader_.position();
+			
+			const bool isInherit = scanOptionalToken(Token::INHERIT);
+			if (isInherit) {
+				if (!allowInherit) {
+					reader_.issueDiag(UnexpectedInheritDiag(),
+					                  start);
+				} else {
+					reader_.issueDiag(InheritNotImplementedDiag(),
+					                  start);
+				}
+			}
 			
 			const bool isUnused = scanOptionalToken(Token::UNUSED);
 			const bool isFinal = scanOptionalToken(Token::FINAL);
@@ -121,6 +152,11 @@ namespace locic {
 		
 		AST::Node<AST::Var> VarParser::parseTypeVar() {
 			const auto start = reader_.position();
+			
+			if (scanOptionalToken(Token::INHERIT)) {
+				reader_.issueDiag(UnexpectedInheritDiag(), start);
+			}
+			
 			auto type = TypeParser(reader_).parseType();
 			return parseVarWithType(std::move(type), start);
 		}
@@ -154,7 +190,7 @@ namespace locic {
 				reader_.consume();
 				return builder_.makeAnyVar(start);
 			} else {
-				return parseVar();
+				return parseVar(/*allowInherit=*/false);
 			}
 		}
 		

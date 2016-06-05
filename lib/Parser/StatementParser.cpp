@@ -213,7 +213,7 @@ namespace locic {
 			const auto start = reader_.position();
 			
 			reader_.expect(Token::CASE);
-			auto var = VarParser(reader_).parseVar();
+			auto var = VarParser(reader_).parseVar(/*allowInherit=*/false);
 			auto scope = ScopeParser(reader_).parseScope();
 			
 			return builder_.makeSwitchCase(std::move(var), std::move(scope), start);
@@ -245,7 +245,7 @@ namespace locic {
 			const auto start = reader_.position();
 			reader_.expect(Token::FOR);
 			reader_.expect(Token::LROUNDBRACKET);
-			auto var = VarParser(reader_).parseVar();
+			auto var = VarParser(reader_).parseVar(/*allowInherit=*/false);
 			reader_.expect(Token::COLON);
 			auto value = ValueParser(reader_).parseValue();
 			reader_.expect(Token::RROUNDBRACKET);
@@ -283,7 +283,7 @@ namespace locic {
 			
 			reader_.expect(Token::CATCH);
 			reader_.expect(Token::LROUNDBRACKET);
-			auto var = VarParser(reader_).parseVar();
+			auto var = VarParser(reader_).parseVar(/*allowInherit=*/false);
 			reader_.expect(Token::RROUNDBRACKET);
 			
 			auto scope = ScopeParser(reader_).parseScope();
@@ -368,6 +368,7 @@ namespace locic {
 				case Token::STATICREF:
 				case Token::UNUSED:
 				case Token::LET:
+				case Token::INHERIT:
 					return true;
 				default:
 					return false;
@@ -379,7 +380,7 @@ namespace locic {
 			
 			(void) reader_.consumeIfPresent(Token::LET);
 			
-			auto var = VarParser(reader_).parseVar();
+			auto var = VarParser(reader_).parseVar(/*allowInherit=*/false);
 			reader_.expect(Token::SETEQUAL);
 			auto value = ValueParser(reader_).parseValue();
 			reader_.expect(Token::SEMICOLON);

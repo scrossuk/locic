@@ -22,11 +22,11 @@ namespace locic {
 			VarParser(TokenReader& reader);
 			~VarParser();
 			
-			AST::Node<AST::VarList> parseVarList();
+			AST::Node<AST::VarList> parseVarList(bool allowInherit);
 			
 			AST::Node<AST::VarList> parseCStyleVarList();
 			
-			AST::Node<AST::Var> parseVar();
+			AST::Node<AST::Var> parseVar(bool allowInherit);
 			
 			bool scanOptionalToken(Token::Kind kind);
 			

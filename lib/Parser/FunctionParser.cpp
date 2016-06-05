@@ -80,7 +80,7 @@ namespace locic {
 			
 			bool isVarArg = false;
 			
-			auto varList = VarParser(reader_).parseVarList();
+			auto varList = VarParser(reader_).parseVarList(/*allowInherit=*/false);
 			
 			if (reader_.peek().kind() == Token::COMMA) {
 				reader_.consume();
@@ -160,7 +160,7 @@ namespace locic {
 			}
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			auto varList = VarParser(reader_).parseVarList();
+			auto varList = VarParser(reader_).parseVarList(/*allowInherit=*/false);
 			reader_.expect(Token::RROUNDBRACKET);
 			
 			auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();

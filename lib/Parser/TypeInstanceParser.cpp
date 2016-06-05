@@ -78,7 +78,7 @@ namespace locic {
 			}
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			auto varList = VarParser(reader_).parseVarList();
+			auto varList = VarParser(reader_).parseVarList(/*allowInherit=*/true);
 			reader_.expect(Token::RROUNDBRACKET);
 			
 			reader_.expect(Token::LCURLYBRACKET);
@@ -96,7 +96,7 @@ namespace locic {
 			
 			if (reader_.peek().kind() == Token::LROUNDBRACKET) {
 				reader_.consume();
-				auto varList = VarParser(reader_).parseVarList();
+				auto varList = VarParser(reader_).parseVarList(/*allowInherit=*/false);
 				reader_.expect(Token::RROUNDBRACKET);
 				return builder_.makeDatatype(name, std::move(varList), start);
 			}
@@ -166,7 +166,7 @@ namespace locic {
 			const auto name = reader_.expectName();
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			auto varList = VarParser(reader_).parseVarList();
+			auto varList = VarParser(reader_).parseVarList(/*allowInherit=*/false);
 			reader_.expect(Token::RROUNDBRACKET);
 			return builder_.makeDatatype(name, std::move(varList), start);
 		}
@@ -178,7 +178,7 @@ namespace locic {
 			const auto name = reader_.expectName();
 			
 			reader_.expect(Token::LROUNDBRACKET);
-			auto varList = VarParser(reader_).parseVarList();
+			auto varList = VarParser(reader_).parseVarList(/*allowInherit=*/false);
 			reader_.expect(Token::RROUNDBRACKET);
 			
 			auto initializer = parseExceptionInitializer();
