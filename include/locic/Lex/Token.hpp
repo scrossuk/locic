@@ -168,7 +168,8 @@ namespace locic {
 				SELF,
 				THIS,
 
-				INHERIT
+				INHERIT,
+				OVERRIDE
 			};
 			
 			static Token Name(const String stringValue,
@@ -397,6 +398,7 @@ namespace locic {
 					case SELF: return "SELF";
 					case THIS: return "THIS";
 					case INHERIT: return "INHERIT";
+					case OVERRIDE: return "OVERRIDE";
 				}
 				
 				locic_unreachable("Invalid token kind.");

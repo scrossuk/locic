@@ -114,7 +114,7 @@ namespace locic {
 				case 'n':
 					return lexPrefixN();
 				case 'o':
-					return lexPossibleKeyword("or", Token::OR);
+					return lexPrefixO();
 				case 'r':
 					return lexPrefixR();
 				case 's':
@@ -419,6 +419,17 @@ namespace locic {
 					return lexPossibleKeyword("noref", Token::NOREF);
 				case 't':
 					return lexPossibleKeyword("notag", Token::NOTAG);
+				default:
+					return lexGeneralIdentifier();
+			}
+		}
+		
+		Token IdentifierLexer::lexPrefixO() {
+			switch (get().value()) {
+				case 'r':
+					return lexPossibleKeyword("or", Token::OR);
+				case 'v':
+					return lexPossibleKeyword("override", Token::OVERRIDE);
 				default:
 					return lexGeneralIdentifier();
 			}

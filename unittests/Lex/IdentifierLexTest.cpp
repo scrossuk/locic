@@ -73,6 +73,7 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("notag", locic::Lex::Token::Kind::NOTAG);
 	
 	testKeyword("or", locic::Lex::Token::Kind::OR);
+	testKeyword("override", locic::Lex::Token::Kind::OVERRIDE);
 	
 	testKeyword("ref", locic::Lex::Token::Kind::REF);
 	testKeyword("reinterpret_cast", locic::Lex::Token::Kind::REINTERPRET_CAST);
