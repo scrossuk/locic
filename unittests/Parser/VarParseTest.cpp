@@ -15,7 +15,7 @@ namespace locic {
 			StringHost stringHost;
 			MockTokenSource tokenSource(stringHost, tokenKinds);
 			TokenReader tokenReader(tokenSource, tokenSource);
-			const auto var = VarParser(tokenReader).parseVar();
+			const auto var = VarParser(tokenReader).parseVar(/*allowInherit=*/true);
 			EXPECT_TRUE(tokenSource.allConsumed());
 			EXPECT_TRUE(tokenReader.peek().kind() == Token::END);
 			fn(var);
@@ -27,6 +27,19 @@ namespace locic {
 				Token::NAME
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
+				EXPECT_TRUE(var->isNamed());
+				EXPECT_TRUE(var->namedType()->isObjectType());
+			});
+		}
+		
+		TEST(VarParseTest, DISABLED_VarInheritNamedType) {
+			auto tokens = {
+				Token::INHERIT,
+				Token::NAME,
+				Token::NAME
+			};
+			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
+				// TODO: check for inherited property
 				EXPECT_TRUE(var->isNamed());
 				EXPECT_TRUE(var->namedType()->isObjectType());
 			});
