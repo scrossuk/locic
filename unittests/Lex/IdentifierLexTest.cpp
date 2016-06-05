@@ -53,6 +53,7 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("for", locic::Lex::Token::Kind::FOR);
 	
 	testKeyword("if", locic::Lex::Token::Kind::IF);
+	testKeyword("inherit", locic::Lex::Token::Kind::INHERIT);
 	testKeyword("int", locic::Lex::Token::Kind::INT);
 	testKeyword("interface", locic::Lex::Token::Kind::INTERFACE);
 	testKeyword("import", locic::Lex::Token::Kind::IMPORT);
@@ -112,6 +113,4 @@ TEST(IdentifierLexTest, Keywords) {
 	
 	testKeyword("virtual", locic::Lex::Token::Kind::VIRTUAL);
 	testKeyword("void", locic::Lex::Token::Kind::VOID);
-	
-	testKeyword("inherit", locic::Lex::Token::Kind::INHERIT);
 }
