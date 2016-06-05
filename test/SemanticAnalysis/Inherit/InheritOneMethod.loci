@@ -1,12 +1,15 @@
-// RUN: %locic %s --emit-llvm -o %t
-// XFAIL: *
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
 
 class Parent() {
 	void method() { }
 }
 
+// CHECK: .loci:9:13: error: inheritance not currently implemented
 class Child(inherit Parent parent) { }
 
 void function(Child& child) {
 	child.method();
 }
+
+// CHECK: 1 error generated.
