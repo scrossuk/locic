@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:21: error: unexpected 'inherit' keyword
+export int function(inherit int i) {
+	return i;
+}
+
+// CHECK: 1 error generated.

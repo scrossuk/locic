@@ -1,0 +1,9 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+struct TestStruct {
+	// CHECK: .loci:6:2: error: unexpected 'inherit' keyword
+	inherit int i;
+};
+
+// CHECK: 1 error generated.
