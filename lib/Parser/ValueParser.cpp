@@ -195,6 +195,7 @@ namespace locic {
 				case Token::LESSOREQUAL:
 				case Token::CARET:
 				case Token::INHERIT:
+				case Token::OVERRIDE:
 				case Token::UNKNOWN:
 				case Token::ERROR:
 				case Token::END:

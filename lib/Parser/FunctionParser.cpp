@@ -27,6 +27,16 @@ namespace locic {
 			
 		};
 		
+		class OverrideNotImplementedDiag: public Error {
+		public:
+			OverrideNotImplementedDiag() { }
+			
+			std::string toString() const {
+				return makeString("'override' not currently implemented");
+			}
+			
+		};
+		
 		FunctionParser::FunctionParser(TokenReader& reader)
 		: reader_(reader), builder_(reader) { }
 		
@@ -165,6 +175,14 @@ namespace locic {
 			
 			auto constSpecifier = AttributeParser(reader_).parseOptionalConstSpecifier();
 			auto noexceptSpecifier = AttributeParser(reader_).parseOptionalNoexceptSpecifier();
+			
+			const auto overrideStart = reader_.position();
+			const bool isOverride = reader_.consumeIfPresent(Token::OVERRIDE);
+			if (isOverride) {
+				reader_.issueDiag(OverrideNotImplementedDiag(),
+				                  overrideStart);
+			}
+			
 			auto requireSpecifier = AttributeParser(reader_).parseOptionalRequireSpecifier();
 			
 			if (isStatic && !constSpecifier->isNone()) {
