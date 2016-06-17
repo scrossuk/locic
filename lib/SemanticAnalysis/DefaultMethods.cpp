@@ -168,7 +168,12 @@ namespace locic {
 			return getDefaultComparePredicate(context, typeInstance, propertyName);
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* const typeInstance, const Name& name) {
+		DefaultMethods::DefaultMethods(Context& context)
+		: context_(context) { }
+		
+		std::unique_ptr<SEM::Function>
+		DefaultMethods::createDefaultConstructorDecl(SEM::TypeInstance* const typeInstance,
+		                                             const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
@@ -176,7 +181,8 @@ namespace locic {
 			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
 			// This method requires move, so add the move predicate.
-			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultMovePredicate(context, typeInstance)));
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			                                                      getDefaultMovePredicate(context_, typeInstance)));
 			
 			semFunction->setMethod(true);
 			semFunction->setStaticMethod(true);
@@ -194,7 +200,7 @@ namespace locic {
 			std::vector<SEM::Var*> argVars;
 			argVars.reserve(constructTypes.size());
 			for (const auto constructType: constructTypes) {
-				const auto lvalType = makeValueLvalType(context, constructType);
+				const auto lvalType = makeValueLvalType(context_, constructType);
 				argVars.push_back(SEM::Var::Basic(constructType, lvalType).release());
 			}
 			
@@ -203,14 +209,17 @@ namespace locic {
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultAlignMaskDecl(Context& context, SEM::TypeInstance* const typeInstance, const Name& name) {
+		std::unique_ptr<SEM::Function>
+		DefaultMethods::createDefaultAlignMaskDecl(SEM::TypeInstance* const typeInstance,
+		                                           const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
 			
 			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
-			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultSizedTypePredicate(context, typeInstance)));
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			                                                      getDefaultSizedTypePredicate(context_, typeInstance)));
 			
 			semFunction->setMethod(true);
 			semFunction->setStaticMethod(true);
@@ -222,19 +231,22 @@ namespace locic {
 			// alignmask never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto sizeType = context.typeBuilder().getSizeType();
+			const auto sizeType = context_.typeBuilder().getSizeType();
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), sizeType, {}));
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultSizeOfDecl(Context& context, SEM::TypeInstance* const typeInstance, const Name& name) {
+		std::unique_ptr<SEM::Function>
+		DefaultMethods::createDefaultSizeOfDecl(SEM::TypeInstance* const typeInstance,
+		                                        const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
 			
 			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
-			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultSizedTypePredicate(context, typeInstance)));
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			                                                      getDefaultSizedTypePredicate(context_, typeInstance)));
 			
 			semFunction->setMethod(true);
 			semFunction->setStaticMethod(true);
@@ -246,12 +258,14 @@ namespace locic {
 			// sizeof never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto sizeType = context.typeBuilder().getSizeType();
+			const auto sizeType = context_.typeBuilder().getSizeType();
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), sizeType, {}));
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultDestroyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+		std::unique_ptr<SEM::Function>
+		DefaultMethods::createDefaultDestroyDecl(SEM::TypeInstance* typeInstance,
+		                                         const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
@@ -269,20 +283,23 @@ namespace locic {
 			// Destructor never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto voidType = context.typeBuilder().getVoidType();
+			const auto voidType = context_.typeBuilder().getVoidType();
 			
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), voidType, /*argTypes=*/{}));
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+		std::unique_ptr<SEM::Function>
+		DefaultMethods::createDefaultMoveDecl(SEM::TypeInstance* typeInstance,
+		                                      const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
 			
 			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
-			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultMovePredicate(context, typeInstance)));
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			                                                      getDefaultMovePredicate(context_, typeInstance)));
 			
 			semFunction->setMethod(true);
 			
@@ -293,10 +310,10 @@ namespace locic {
 			// Move never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto voidType = context.typeBuilder().getVoidType();
-			const auto voidPtrType = getBuiltInType(context, context.getCString("ptr_t"), { voidType });
+			const auto voidType = context_.typeBuilder().getVoidType();
+			const auto voidPtrType = getBuiltInType(context_, context_.getCString("ptr_t"), { voidType });
 			
-			const auto sizeType = context.typeBuilder().getSizeType();
+			const auto sizeType = context_.typeBuilder().getSizeType();
 			
 			SEM::TypeArray argTypes;
 			argTypes.reserve(2);
@@ -307,12 +324,12 @@ namespace locic {
 			argVars.reserve(2);
 			
 			{
-				const auto lvalType = makeValueLvalType(context, voidPtrType);
+				const auto lvalType = makeValueLvalType(context_, voidPtrType);
 				argVars.push_back(SEM::Var::Basic(voidPtrType, lvalType).release());
 			}
 			
 			{
-				const auto lvalType = makeValueLvalType(context, sizeType);
+				const auto lvalType = makeValueLvalType(context_, sizeType);
 				argVars.push_back(SEM::Var::Basic(sizeType, lvalType).release());
 			}
 			
@@ -321,14 +338,17 @@ namespace locic {
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+		std::unique_ptr<SEM::Function>
+		DefaultMethods::createDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance,
+		                                              const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
 			
 			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
-			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultImplicitCopyRequirePredicate(context, typeInstance)));
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			                                                      getDefaultImplicitCopyRequirePredicate(context_, typeInstance)));
 			
 			semFunction->setMethod(true);
 			semFunction->setConstPredicate(SEM::Predicate::True());
@@ -339,7 +359,7 @@ namespace locic {
 			
 			// Default copy method may throw since it
 			// may call child copy methods that throw.
-			auto noExceptPredicate = getDefaultImplicitCopyNoExceptPredicate(context, typeInstance);
+			auto noExceptPredicate = getDefaultImplicitCopyNoExceptPredicate(context_, typeInstance);
 			
 			// Implicit copy should return a notag() type.
 			const auto returnType = typeInstance->selfType()->createNoTagType();
@@ -348,14 +368,17 @@ namespace locic {
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultExplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+		std::unique_ptr<SEM::Function>
+		DefaultMethods::createDefaultExplicitCopyDecl(SEM::TypeInstance* typeInstance,
+		                                              const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
 			
 			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
-			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultExplicitCopyRequirePredicate(context, typeInstance)));
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			                                                      getDefaultExplicitCopyRequirePredicate(context_, typeInstance)));
 			
 			semFunction->setMethod(true);
 			semFunction->setConstPredicate(SEM::Predicate::True());
@@ -366,7 +389,7 @@ namespace locic {
 			
 			// Default copy method may throw since it
 			// may call child copy methods that throw.
-			auto noExceptPredicate = getDefaultExplicitCopyNoExceptPredicate(context, typeInstance);
+			auto noExceptPredicate = getDefaultExplicitCopyNoExceptPredicate(context_, typeInstance);
 			
 			// Implicit copy should return a notag() type.
 			const auto returnType = typeInstance->selfType()->createNoTagType();
@@ -375,14 +398,17 @@ namespace locic {
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+		std::unique_ptr<SEM::Function>
+		DefaultMethods::createDefaultCompareDecl(SEM::TypeInstance* typeInstance,
+		                                         const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
 			
 			semFunction->setDebugInfo(makeDefaultFunctionInfo(*typeInstance, *semFunction));
 			
-			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(), getDefaultCompareRequirePredicate(context, typeInstance)));
+			semFunction->setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			                                                      getDefaultCompareRequirePredicate(context_, typeInstance)));
 			
 			semFunction->setMethod(true);
 			semFunction->setConstPredicate(SEM::Predicate::True());
@@ -393,11 +419,11 @@ namespace locic {
 			
 			// Default compare method may throw since it
 			// may call child compare methods that throw.
-			auto noExceptPredicate = getDefaultCompareNoExceptPredicate(context, typeInstance);
+			auto noExceptPredicate = getDefaultCompareNoExceptPredicate(context_, typeInstance);
 			
 			const auto selfType = typeInstance->selfType();
-			const auto argType = createReferenceType(context, selfType->createTransitiveConstType(SEM::Predicate::True()));
-			const auto compareResultType = getBuiltInType(context, context.getCString("compare_result_t"), {});
+			const auto argType = createReferenceType(context_, selfType->createTransitiveConstType(SEM::Predicate::True()));
+			const auto compareResultType = getBuiltInType(context_, context_.getCString("compare_result_t"), {});
 			
 			SEM::TypeArray argTypes;
 			argTypes.reserve(1);
@@ -408,7 +434,9 @@ namespace locic {
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultSetDeadDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+		std::unique_ptr<SEM::Function>
+		DefaultMethods::createDefaultSetDeadDecl(SEM::TypeInstance* typeInstance,
+		                                         const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
@@ -424,13 +452,15 @@ namespace locic {
 			// Never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto voidType = context.typeBuilder().getVoidType();
+			const auto voidType = context_.typeBuilder().getVoidType();
 			
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), voidType, {}));
 			return semFunction;
 		}
 		
-		std::unique_ptr<SEM::Function> CreateDefaultIsLiveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name) {
+		std::unique_ptr<SEM::Function>
+		DefaultMethods::createDefaultIsLiveDecl(SEM::TypeInstance* typeInstance,
+		                                        const Name& name) {
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*typeInstance),
 			                                                             name.copy(), typeInstance->moduleScope().copy()));
 			semFunction->setDefault(true);
@@ -447,7 +477,7 @@ namespace locic {
 			// Never throws.
 			auto noExceptPredicate = SEM::Predicate::True();
 			
-			const auto boolType = context.typeBuilder().getBoolType();
+			const auto boolType = context_.typeBuilder().getBoolType();
 			
 			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), boolType, {}));
 			return semFunction;
@@ -499,122 +529,127 @@ namespace locic {
 		};
 		
 		std::unique_ptr<SEM::Function>
-		CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance,
-		                        bool isStatic, const Name& name, const Debug::SourceLocation& location) {
+		DefaultMethods::createDefaultMethodDecl(SEM::TypeInstance* typeInstance,
+		                                        bool isStatic, const Name& name,
+		                                        const Debug::SourceLocation& location) {
 			assert(!typeInstance->isClassDecl());
 			assert(!typeInstance->isInterface());
 			
 			const auto canonicalName = CanonicalizeMethodName(name.last());
 			if (canonicalName == "create") {
 				if (!isStatic) {
-					context.issueDiag(DefaultMethodMustBeStaticDiag(name),
+					context_.issueDiag(DefaultMethodMustBeStaticDiag(name),
 					                  location);
 				}
 				
-				return CreateDefaultConstructorDecl(context, typeInstance, name);
+				return createDefaultConstructorDecl(typeInstance, name);
 			} else if (canonicalName == "__destroy") {
 				if (isStatic) {
-					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					context_.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
 					                  location);
 				}
 				
-				return CreateDefaultDestroyDecl(context, typeInstance, name);
+				return createDefaultDestroyDecl(typeInstance, name);
 			} else if (canonicalName == "__moveto") {
 				if (isStatic) {
-					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					context_.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
 					                  location);
 				}
 				
-				return CreateDefaultMoveDecl(context, typeInstance, name);
+				return createDefaultMoveDecl(typeInstance, name);
 			} else if (canonicalName == "implicitcopy") {
 				if (isStatic) {
-					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					context_.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
 					                  location);
 				}
 				
-				return CreateDefaultImplicitCopyDecl(context, typeInstance, name);
+				return createDefaultImplicitCopyDecl(typeInstance, name);
 			} else if (canonicalName == "copy") {
 				if (isStatic) {
-					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					context_.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
 					                  location);
 				}
 				
-				return CreateDefaultExplicitCopyDecl(context, typeInstance, name);
+				return createDefaultExplicitCopyDecl(typeInstance, name);
 			} else if (canonicalName == "compare") {
 				if (isStatic) {
-					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					context_.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
 					                  location);
 				}
 				
-				return CreateDefaultCompareDecl(context, typeInstance, name);
+				return createDefaultCompareDecl(typeInstance, name);
 			} else if (canonicalName == "__setdead") {
 				if (isStatic) {
-					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					context_.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
 					                  location);
 				}
 				
-				return CreateDefaultSetDeadDecl(context, typeInstance, name);
+				return createDefaultSetDeadDecl(typeInstance, name);
 			} else if (canonicalName == "__islive") {
 				if (isStatic) {
-					context.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
+					context_.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
 					                  location);
 				}
 				
-				return CreateDefaultIsLiveDecl(context, typeInstance, name);
+				return createDefaultIsLiveDecl(typeInstance, name);
 			}
 			
-			context.issueDiag(UnknownDefaultMethodDiag(name.last()), location);
-			return CreateDefaultConstructorDecl(context, typeInstance, name);
+			context_.issueDiag(UnknownDefaultMethodDiag(name.last()), location);
+			return createDefaultConstructorDecl(typeInstance, name);
 		}
 		
-		bool HasDefaultConstructor(Context& /*context*/, SEM::TypeInstance* const typeInstance) {
+		bool
+		DefaultMethods::hasDefaultConstructor(SEM::TypeInstance* const typeInstance) {
 			return typeInstance->isDatatype() ||
 				typeInstance->isException() ||
 				typeInstance->isStruct() ||
 				typeInstance->isUnion();
 		}
 		
-		bool HasDefaultAlignMask(Context& context, SEM::TypeInstance* const typeInstance) {
+		bool
+		DefaultMethods::hasDefaultAlignMask(SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
 			
 			// There's only a default method if the user
 			// hasn't specified a custom method.
-			return !typeInstance->hasFunction(context.getCString("__alignmask"));
+			return !typeInstance->hasFunction(context_.getCString("__alignmask"));
 		}
 		
-		bool HasDefaultSizeOf(Context& context, SEM::TypeInstance* const typeInstance) {
+		bool DefaultMethods::hasDefaultSizeOf(SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
 			
 			// There's only a default method if the user
 			// hasn't specified a custom method.
-			return !typeInstance->hasFunction(context.getCString("__sizeof"));
+			return !typeInstance->hasFunction(context_.getCString("__sizeof"));
 		}
 		
-		bool HasDefaultDestroy(Context& context, SEM::TypeInstance* const typeInstance) {
+		bool DefaultMethods::hasDefaultDestroy(SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
 			
 			// There's only a default destructor if the user
 			// hasn't specified a custom destructor.
-			return !typeInstance->hasFunction(context.getCString("__destroy"));
+			return !typeInstance->hasFunction(context_.getCString("__destroy"));
 		}
 		
-		bool HasDefaultMove(Context& context, SEM::TypeInstance* const typeInstance) {
+		bool
+		DefaultMethods::hasDefaultMove(SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
 			
 			// There's only a default move method if the user
 			// hasn't specified a custom move method.
-			return !typeInstance->hasFunction(context.getCString("__moveto"));
+			return !typeInstance->hasFunction(context_.getCString("__moveto"));
 		}
 		
-		bool HasDefaultImplicitCopy(Context& /*context*/, SEM::TypeInstance* const typeInstance) {
+		bool
+		DefaultMethods::hasDefaultImplicitCopy(SEM::TypeInstance* const typeInstance) {
 			return typeInstance->isClassDef() ||
 				typeInstance->isDatatype() ||
 				typeInstance->isEnum() ||
@@ -624,7 +659,8 @@ namespace locic {
 				typeInstance->isUnionDatatype();
 		}
 		
-		bool HasDefaultExplicitCopy(Context& /*context*/, SEM::TypeInstance* const typeInstance) {
+		bool
+		DefaultMethods::hasDefaultExplicitCopy(SEM::TypeInstance* const typeInstance) {
 			return typeInstance->isClassDef() ||
 				typeInstance->isDatatype() ||
 				typeInstance->isEnum() ||
@@ -634,7 +670,8 @@ namespace locic {
 				typeInstance->isUnionDatatype();
 		}
 		
-		bool HasDefaultCompare(Context& /*context*/, SEM::TypeInstance* const typeInstance) {
+		bool
+		DefaultMethods::hasDefaultCompare(SEM::TypeInstance* const typeInstance) {
 			return typeInstance->isClassDef() ||
 				typeInstance->isDatatype() ||
 				typeInstance->isEnum() ||
@@ -643,28 +680,32 @@ namespace locic {
 				typeInstance->isUnionDatatype();
 		}
 		
-		bool HasDefaultSetDead(Context& context, SEM::TypeInstance* const typeInstance) {
+		bool
+		DefaultMethods::hasDefaultSetDead(SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
 			
 			// There's only a default __setdead method if the user
 			// hasn't specified a custom __setdead method.
-			return !typeInstance->hasFunction(context.getCString("__setdead"));
+			return !typeInstance->hasFunction(context_.getCString("__setdead"));
 		}
 		
-		bool HasDefaultIsLive(Context& context, SEM::TypeInstance* const typeInstance) {
+		bool
+		DefaultMethods::hasDefaultIsLive(SEM::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
 			
 			// There's only a default islive method if the user
 			// hasn't specified a custom islive method.
-			return !typeInstance->hasFunction(context.getCString("__islive"));
+			return !typeInstance->hasFunction(context_.getCString("__islive"));
 		}
 		
-		void CreateDefaultConstructor(Context& /*context*/, SEM::TypeInstance* const typeInstance,
-		                              SEM::Function* const /*function*/, const Debug::SourceLocation& /*location*/) {
+		void
+		DefaultMethods::createDefaultConstructor(SEM::TypeInstance* const typeInstance,
+		                                         SEM::Function* const /*function*/,
+		                                         const Debug::SourceLocation& /*location*/) {
 			(void) typeInstance;
 			assert(!typeInstance->isUnionDatatype());
 			
@@ -681,13 +722,16 @@ namespace locic {
 			
 		};
 		
-		bool CreateDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
-			if (!TypeCapabilities(context).supportsImplicitCopy(typeInstance->selfType())) {
+		bool
+		DefaultMethods::createDefaultImplicitCopy(SEM::TypeInstance* typeInstance,
+		                                          SEM::Function* /*function*/,
+		                                          const Debug::SourceLocation& location) {
+			if (!TypeCapabilities(context_).supportsImplicitCopy(typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
 					// Auto-generated, so ignore the problem.
 					return false;
 				}
-				context.issueDiag(CannotGenerateImplicitCopyDiag(), location);
+				context_.issueDiag(CannotGenerateImplicitCopyDiag(), location);
 			}
 			
 			return true;
@@ -703,13 +747,16 @@ namespace locic {
 			
 		};
 		
-		bool CreateDefaultExplicitCopy(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
-			if (!TypeCapabilities(context).supportsExplicitCopy(typeInstance->selfType())) {
+		bool
+		DefaultMethods::createDefaultExplicitCopy(SEM::TypeInstance* typeInstance,
+		                                          SEM::Function* /*function*/,
+		                                          const Debug::SourceLocation& location) {
+			if (!TypeCapabilities(context_).supportsExplicitCopy(typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
 					// Auto-generated, so ignore the problem.
 					return false;
 				}
-				context.issueDiag(CannotGenerateExplicitCopyDiag(), location);
+				context_.issueDiag(CannotGenerateExplicitCopyDiag(), location);
 			}
 			
 			return true;
@@ -725,24 +772,30 @@ namespace locic {
 			
 		};
 		
-		bool CreateDefaultCompare(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* /*function*/, const Debug::SourceLocation& location) {
+		bool
+		DefaultMethods::createDefaultCompare(SEM::TypeInstance* typeInstance,
+		                                     SEM::Function* /*function*/,
+		                                     const Debug::SourceLocation& location) {
 			assert(!typeInstance->isUnion());
-			if (!TypeCapabilities(context).supportsCompare(typeInstance->selfType())) {
+			if (!TypeCapabilities(context_).supportsCompare(typeInstance->selfType())) {
 				if (!typeInstance->isClassDef()) {
 					// Auto-generated, so ignore the problem.
 					return false;
 				}
-				context.issueDiag(CannotGenerateCompareDiag(), location);
+				context_.issueDiag(CannotGenerateCompareDiag(), location);
 			}
 			
 			return true;
 		}
 		
-		bool CreateDefaultMethod(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
+		bool
+		DefaultMethods::createDefaultMethod(SEM::TypeInstance* const typeInstance,
+		                                    SEM::Function* const function,
+		                                    const Debug::SourceLocation& location) {
 			assert(!typeInstance->isClassDecl() && !typeInstance->isInterface());
 			assert(function->isDeclaration());
 			
-			PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*function));
+			PushScopeElement pushFunction(context_.scopeStack(), ScopeElement::Function(*function));
 			
 			const auto& name = function->name();
 			const auto canonicalName = CanonicalizeMethodName(name.last());
@@ -754,17 +807,17 @@ namespace locic {
 				return true;
 			} else if (canonicalName == "create") {
 				assert(!typeInstance->isException());
-				CreateDefaultConstructor(context, typeInstance, function, location);
+				createDefaultConstructor(typeInstance, function, location);
 				return true;
 			} else if (canonicalName == "implicitcopy") {
-				assert(HasDefaultImplicitCopy(context, typeInstance));
-				return CreateDefaultImplicitCopy(context, typeInstance, function, location);
+				assert(hasDefaultImplicitCopy(typeInstance));
+				return createDefaultImplicitCopy(typeInstance, function, location);
 			} else if (canonicalName == "copy") {
-				assert(HasDefaultExplicitCopy(context, typeInstance));
-				return CreateDefaultExplicitCopy(context, typeInstance, function, location);
+				assert(hasDefaultExplicitCopy(typeInstance));
+				return createDefaultExplicitCopy(typeInstance, function, location);
 			} else if (canonicalName == "compare") {
-				assert(HasDefaultCompare(context, typeInstance));
-				return CreateDefaultCompare(context, typeInstance, function, location);
+				assert(hasDefaultCompare(typeInstance));
+				return createDefaultCompare(typeInstance, function, location);
 			} else {
 				// Unknown default methods should be handled by now.
 				return true;

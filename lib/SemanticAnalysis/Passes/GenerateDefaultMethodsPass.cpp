@@ -20,65 +20,76 @@ namespace locic {
 				return;
 			}
 			
+			DefaultMethods defaultMethods(context);
+			
 			// Add default __alignmask method.
-			const bool hasDefaultAlignMask = HasDefaultAlignMask(context, &typeInstance);
+			const bool hasDefaultAlignMask = defaultMethods.hasDefaultAlignMask(&typeInstance);
 			if (hasDefaultAlignMask) {
-				typeInstance.attachFunction(CreateDefaultAlignMaskDecl(context, &typeInstance, typeInstance.name() + context.getCString("__alignmask")));
+				typeInstance.attachFunction(defaultMethods.createDefaultAlignMaskDecl(&typeInstance,
+				                                                                      typeInstance.name() + context.getCString("__alignmask")));
 			}
 			
 			// Add default __sizeof method.
-			const bool hasDefaultSizeOf = HasDefaultSizeOf(context, &typeInstance);
+			const bool hasDefaultSizeOf = defaultMethods.hasDefaultSizeOf(&typeInstance);
 			if (hasDefaultSizeOf) {
-				typeInstance.attachFunction(CreateDefaultSizeOfDecl(context, &typeInstance, typeInstance.name() + context.getCString("__sizeof")));
+				typeInstance.attachFunction(defaultMethods.createDefaultSizeOfDecl(&typeInstance,
+				                                                                   typeInstance.name() + context.getCString("__sizeof")));
 			}
 			
 			// Add default __destroy method.
-			const bool hasDefaultDestroy = HasDefaultDestroy(context, &typeInstance);
+			const bool hasDefaultDestroy = defaultMethods.hasDefaultDestroy(&typeInstance);
 			if (hasDefaultDestroy) {
-				typeInstance.attachFunction(CreateDefaultDestroyDecl(context, &typeInstance, typeInstance.name() + context.getCString("__destroy")));
+				typeInstance.attachFunction(defaultMethods.createDefaultDestroyDecl(&typeInstance,
+				                                                                    typeInstance.name() + context.getCString("__destroy")));
 			}
 			
 			// Add default __moveto method.
-			const bool hasDefaultMove = HasDefaultMove(context, &typeInstance);
+			const bool hasDefaultMove = defaultMethods.hasDefaultMove(&typeInstance);
 			if (hasDefaultMove) {
-				typeInstance.attachFunction(CreateDefaultMoveDecl(context, &typeInstance, typeInstance.name() + context.getCString("__moveto")));
+				typeInstance.attachFunction(defaultMethods.createDefaultMoveDecl(&typeInstance,
+				                                                                 typeInstance.name() + context.getCString("__moveto")));
 			}
 			
 			// Add default __setdead method.
-			const bool hasDefaultSetDead = HasDefaultSetDead(context, &typeInstance);
+			const bool hasDefaultSetDead = defaultMethods.hasDefaultSetDead(&typeInstance);
 			if (hasDefaultSetDead) {
-				typeInstance.attachFunction(CreateDefaultSetDeadDecl(context, &typeInstance, typeInstance.name() + context.getCString("__setdead")));
+				typeInstance.attachFunction(defaultMethods.createDefaultSetDeadDecl(&typeInstance,
+				                                                                    typeInstance.name() + context.getCString("__setdead")));
 			}
 			
 			// Add default __islive method.
-			const bool hasDefaultIsLive = HasDefaultIsLive(context, &typeInstance);
+			const bool hasDefaultIsLive = defaultMethods.hasDefaultIsLive(&typeInstance);
 			if (hasDefaultIsLive) {
-				typeInstance.attachFunction(CreateDefaultIsLiveDecl(context, &typeInstance, typeInstance.name() + context.getCString("__islive")));
+				typeInstance.attachFunction(defaultMethods.createDefaultIsLiveDecl(&typeInstance,
+				                                                                   typeInstance.name() + context.getCString("__islive")));
 			}
 			
 			// All non-class types can also get various other default methods implicitly
 			// (which must be specified explicitly for classes).
 			if (!typeInstance.isClass()) {
 				// Add default constructor.
-				if (HasDefaultConstructor(context, &typeInstance)) {
+				if (defaultMethods.hasDefaultConstructor(&typeInstance)) {
 					// Add constructor for exception types using initializer;
 					// for other types just add a default constructor.
 					auto methodDecl =
 						typeInstance.isException() ?
 							CreateExceptionConstructorDecl(context, &typeInstance) :
-							CreateDefaultConstructorDecl(context, &typeInstance, typeInstance.name() + context.getCString("create"));
+							defaultMethods.createDefaultConstructorDecl(&typeInstance,
+							                                            typeInstance.name() + context.getCString("create"));
 					typeInstance.attachFunction(std::move(methodDecl));
 				}
 				
 				if (!typeInstance.isException()) {
 					// Add default implicit copy if available.
-					if (HasDefaultImplicitCopy(context, &typeInstance)) {
-						typeInstance.attachFunction(CreateDefaultImplicitCopyDecl(context, &typeInstance, typeInstance.name() + context.getCString("implicitcopy")));
+					if (defaultMethods.hasDefaultImplicitCopy(&typeInstance)) {
+						typeInstance.attachFunction(defaultMethods.createDefaultImplicitCopyDecl(&typeInstance,
+						                                                                         typeInstance.name() + context.getCString("implicitcopy")));
 					}
 					
 					// Add default compare for datatypes if available.
-					if (HasDefaultCompare(context, &typeInstance)) {
-						typeInstance.attachFunction(CreateDefaultCompareDecl(context, &typeInstance, typeInstance.name() + context.getCString("compare")));
+					if (defaultMethods.hasDefaultCompare(&typeInstance)) {
+						typeInstance.attachFunction(defaultMethods.createDefaultCompareDecl(&typeInstance,
+						                                                                    typeInstance.name() + context.getCString("compare")));
 					}
 				}
 			}

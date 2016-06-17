@@ -40,7 +40,8 @@ namespace locic {
 		}
 		
 		void CreateDefaultMethodOrRemove(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
-			const bool created = CreateDefaultMethod(context, typeInstance, function, location);
+			const bool created = DefaultMethods(context).createDefaultMethod(typeInstance, function,
+			                                                                 location);
 			if (!created) {
 				// Make sure that the require predicate is false so
 				// CodeGen understands not to generate this function.
@@ -72,9 +73,9 @@ namespace locic {
 				CreateExceptionConstructor(context, astTypeInstanceNode, &semTypeInstance,
 				                           &(semTypeInstance.getFunction(context.getCString("create"))));
 			} else if (semTypeInstance.isDatatype() || semTypeInstance.isStruct() || semTypeInstance.isUnion()) {
-				(void) CreateDefaultMethod(context, &semTypeInstance,
-				                           &(semTypeInstance.getFunction(context.getCString("create"))),
-				                           astTypeInstanceNode.location());
+				(void) DefaultMethods(context).createDefaultMethod(&semTypeInstance,
+				                                                   &(semTypeInstance.getFunction(context.getCString("create"))),
+				                                                   astTypeInstanceNode.location());
 			}
 			
 			// Generate default implicitCopy if relevant.

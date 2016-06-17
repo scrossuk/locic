@@ -27,51 +27,104 @@ namespace locic {
 		
 		Debug::FunctionInfo makeDefaultFunctionInfo(const SEM::TypeInstance& parentType, const SEM::Function& function);
 		
-		std::unique_ptr<SEM::Function> CreateDefaultConstructorDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
-		
-		std::unique_ptr<SEM::Function> CreateDefaultAlignMaskDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
-		
-		std::unique_ptr<SEM::Function> CreateDefaultSizeOfDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
-		
-		std::unique_ptr<SEM::Function> CreateDefaultDestroyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
-		
-		std::unique_ptr<SEM::Function> CreateDefaultMoveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
-		
-		std::unique_ptr<SEM::Function> CreateDefaultImplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
-		
-		std::unique_ptr<SEM::Function> CreateDefaultExplicitCopyDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
-		
-		std::unique_ptr<SEM::Function> CreateDefaultCompareDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
-		
-		std::unique_ptr<SEM::Function> CreateDefaultSetDeadDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
-		
-		std::unique_ptr<SEM::Function> CreateDefaultIsLiveDecl(Context& context, SEM::TypeInstance* typeInstance, const Name& name);
-		
-		std::unique_ptr<SEM::Function> CreateDefaultMethodDecl(Context& context, SEM::TypeInstance* typeInstance, bool isStatic, const Name& name, const Debug::SourceLocation& location);
-		
-		bool HasDefaultConstructor(Context& context, SEM::TypeInstance* typeInstance);
-		
-		bool HasDefaultAlignMask(Context& context, SEM::TypeInstance* typeInstance);
-		
-		bool HasDefaultSizeOf(Context& context, SEM::TypeInstance* typeInstance);
-		
-		bool HasDefaultDestroy(Context& context, SEM::TypeInstance* typeInstance);
-		
-		bool HasDefaultMove(Context& context, SEM::TypeInstance* typeInstance);
-		
-		bool HasDefaultImplicitCopy(Context& context, SEM::TypeInstance* typeInstance);
-		
-		bool HasDefaultExplicitCopy(Context& context, SEM::TypeInstance* typeInstance);
-		
-		bool HasDefaultCompare(Context& context, SEM::TypeInstance* typeInstance);
-		
-		bool HasDefaultSetDead(Context& context, SEM::TypeInstance* typeInstance);
-		
-		bool HasDefaultIsLive(Context& context, SEM::TypeInstance* typeInstance);
-		
-		void CreateDefaultConstructor(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location);
-		
-		bool CreateDefaultMethod(Context& context, SEM::TypeInstance* typeInstance, SEM::Function* function, const Debug::SourceLocation& location);
+		class DefaultMethods {
+		public:
+			DefaultMethods(Context& context);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultConstructorDecl(SEM::TypeInstance* typeInstance,
+			                             const Name& name);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultAlignMaskDecl(SEM::TypeInstance* typeInstance,
+			                           const Name& name);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultSizeOfDecl(SEM::TypeInstance* typeInstance,
+			                        const Name& name);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultDestroyDecl(SEM::TypeInstance* typeInstance,
+			                         const Name& name);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultMoveDecl(SEM::TypeInstance* typeInstance,
+			                      const Name& name);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance,
+			                              const Name& name);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultExplicitCopyDecl(SEM::TypeInstance* typeInstance,
+			                              const Name& name);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultCompareDecl(SEM::TypeInstance* typeInstance,
+			                         const Name& name);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultSetDeadDecl(SEM::TypeInstance* typeInstance,
+			                         const Name& name);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultIsLiveDecl(SEM::TypeInstance* typeInstance,
+			                        const Name& name);
+			
+			std::unique_ptr<SEM::Function>
+			createDefaultMethodDecl(SEM::TypeInstance* typeInstance,
+			                        bool isStatic, const Name& name,
+			                        const Debug::SourceLocation& location);
+			
+			bool hasDefaultConstructor(SEM::TypeInstance* typeInstance);
+			
+			bool hasDefaultAlignMask(SEM::TypeInstance* typeInstance);
+			
+			bool hasDefaultSizeOf(SEM::TypeInstance* typeInstance);
+			
+			bool hasDefaultDestroy(SEM::TypeInstance* typeInstance);
+			
+			bool hasDefaultMove(SEM::TypeInstance* typeInstance);
+			
+			bool hasDefaultImplicitCopy(SEM::TypeInstance* typeInstance);
+			
+			bool hasDefaultExplicitCopy(SEM::TypeInstance* typeInstance);
+			
+			bool hasDefaultCompare(SEM::TypeInstance* typeInstance);
+			
+			bool hasDefaultSetDead(SEM::TypeInstance* typeInstance);
+			
+			bool hasDefaultIsLive(SEM::TypeInstance* typeInstance);
+			
+			void
+			createDefaultConstructor(SEM::TypeInstance* typeInstance,
+			                         SEM::Function* function,
+			                         const Debug::SourceLocation& location);
+			
+			bool
+			createDefaultImplicitCopy(SEM::TypeInstance* typeInstance,
+			                          SEM::Function* function,
+			                          const Debug::SourceLocation& location);
+			
+			bool
+			createDefaultExplicitCopy(SEM::TypeInstance* typeInstance,
+			                          SEM::Function* function,
+			                          const Debug::SourceLocation& location);
+			
+			bool
+			createDefaultCompare(SEM::TypeInstance* typeInstance,
+			                     SEM::Function* function,
+			                     const Debug::SourceLocation& location);
+			
+			bool
+			createDefaultMethod(SEM::TypeInstance* typeInstance,
+			                    SEM::Function* function,
+			                    const Debug::SourceLocation& location);
+			
+		private:
+			Context& context_;
+			
+		};
 		
 	}
 	

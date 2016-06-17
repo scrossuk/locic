@@ -157,9 +157,9 @@ namespace locic {
 				assert(topElement.isTypeInstance());
 				
 				// Create the declaration for the default method.
-				return CreateDefaultMethodDecl(context, &(topElement.typeInstance()),
-				                               astFunctionNode->isStatic(),
-				                               fullName, astFunctionNode.location());
+				return DefaultMethods(context).createDefaultMethodDecl(&(topElement.typeInstance()),
+				                                                       astFunctionNode->isStatic(),
+				                                                       fullName, astFunctionNode.location());
 			}
 			
 			auto semFunction = ConvertFunctionDecl(context, astFunctionNode, moduleScope.copy());

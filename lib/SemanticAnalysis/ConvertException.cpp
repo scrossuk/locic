@@ -66,7 +66,8 @@ namespace locic {
 		std::unique_ptr<SEM::Function> CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* const semTypeInstance) {
 			if (semTypeInstance->parentType() == nullptr) {
 				// No parent, so just create a normal default constructor.
-				return CreateDefaultConstructorDecl(context, semTypeInstance, semTypeInstance->name() + context.getCString("create"));
+				return DefaultMethods(context).createDefaultConstructorDecl(semTypeInstance,
+				                                                            semTypeInstance->name() + context.getCString("create"));
 			}
 			
 			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*semTypeInstance),
@@ -106,7 +107,9 @@ namespace locic {
 				assert(semTypeInstance->parentType() == nullptr);
 				
 				// No parent, so just create a normal default constructor.
-				CreateDefaultConstructor(context, semTypeInstance, function, location);
+				DefaultMethods(context).createDefaultConstructor(semTypeInstance,
+				                                                 function,
+				                                                 location);
 				return;
 			}
 			

@@ -337,7 +337,8 @@ namespace locic {
 			
 			if (astFunctionNode->isDefaultDefinition()) {
 				// Has a default definition.
-				CreateDefaultMethod(context, lookupParentType(context.scopeStack()), &semFunction, astFunctionNode.location());
+				DefaultMethods(context).createDefaultMethod(lookupParentType(context.scopeStack()),
+				                                            &semFunction, astFunctionNode.location());
 				return;
 			}
 			
