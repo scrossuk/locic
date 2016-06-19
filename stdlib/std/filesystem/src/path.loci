@@ -1,3 +1,11 @@
+import int access(const ubyte* pathname, int mode) noexcept;
+import int std_filesystem_is_file(const ubyte* path) noexcept;
+import int std_filesystem_is_directory(const ubyte* path) noexcept;
+
+using R_OK = 4; /* Test for read permission.  */
+using W_OK = 2; /* Test for write permission.  */
+using X_OK = 1; /* Test for execute permission.  */
+using F_OK = 0; /* Test for existence.  */
 
 export std.filesystem 0.1.0 {
 	
@@ -62,6 +70,36 @@ export std.filesystem 0.1.0 {
 				assert levels_up == 0u || !is_absolute;
 				return @(is_absolute, levels_up, move components,
 				         move filename);
+			}
+			
+			bool exists() const {
+				return access(self.to_string().make_buffer().c_str(),
+				              F_OK) == 0;
+			}
+			
+			bool is_file() const {
+				return std_filesystem_is_file(
+					self.to_string().make_buffer().c_str()) != 0;
+			}
+			
+			bool is_directory() const {
+				return std_filesystem_is_directory(
+					self.to_string().make_buffer().c_str()) != 0;
+			}
+			
+			bool is_readable() const {
+				return access(self.to_string().make_buffer().c_str(),
+				              R_OK) == 0;
+			}
+			
+			bool is_writable() const {
+				return access(self.to_string().make_buffer().c_str(),
+				              W_OK) == 0;
+			}
+			
+			bool is_executable() const {
+				return access(self.to_string().make_buffer().c_str(),
+				              X_OK) == 0;
 			}
 			
 			static implicit_cast_string(const std::string& path_string) {

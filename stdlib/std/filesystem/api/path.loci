@@ -17,6 +17,36 @@ import std.filesystem 0.1.0 {
 			bool is_relative() const noexcept;
 			
 			/**
+			 * \brief Check if the path exists.
+			 */
+			bool exists() const;
+			
+			/**
+			 * \brief Check if the path refers to a file.
+			 */
+			bool is_file() const;
+			
+			/**
+			 * \brief Check if the path refers to a directory.
+			 */
+			bool is_directory() const;
+			
+			/**
+			 * \brief Check if the path is readable.
+			 */
+			bool is_readable() const;
+			
+			/**
+			 * \brief Check if the path is writable.
+			 */
+			bool is_writable() const;
+			
+			/**
+			 * \brief Check if the path is executable.
+			 */
+			bool is_executable() const;
+			
+			/**
 			 * \brief Add paths.
 			 */
 			path add(const path& other) const;
