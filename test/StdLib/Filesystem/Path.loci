@@ -11,6 +11,13 @@ void testRootPath() {
 	assert path.stem() == ".";
 	assert path.extension() == "";
 	assert path.to_string() == "/";
+	
+	assert path.exists();
+	assert !path.is_file();
+	assert path.is_directory();
+	assert path.is_readable();
+	assert path.is_executable();
+	unused_result path.is_writable();
 }
 
 void testParse(const std::string& path_string, const bool is_absolute,
