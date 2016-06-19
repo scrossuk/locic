@@ -10,6 +10,8 @@ __primitive size_t {
 	static size_t cast_uint32_t(uint32_t value) noexcept;
 	static size_t cast_uint64_t(uint64_t value) noexcept;
 	static size_t cast_uint_t(uint_t value) noexcept;
+	static size_t cast_ulong_t(ulong_t value) noexcept;
+	static size_t cast_ulonglong_t(ulonglong_t value) noexcept;
 	
 	static size_t cast_int_t(int_t value) noexcept;
 	static size_t cast_float_t(float_t value) noexcept;

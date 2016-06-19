@@ -53,6 +53,8 @@ __primitive int_t {
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
 	
+	uint_t unsigned_value() const noexcept;
+	
 	void __moveto(void* ptr, size_t position) noexcept;
 	
 	void increment() noexcept;

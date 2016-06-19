@@ -12,6 +12,8 @@ __primitive long_t {
 	static long_t cast_byte_t(byte_t value) noexcept;
 	static long_t cast_short_t(short_t value) noexcept;
 	static long_t cast_int_t(int_t value) noexcept;
+	static long_t cast_longlong_t(longlong_t value) noexcept;
+	static long_t cast_ssize_t(ssize_t value) noexcept;
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
@@ -44,6 +46,8 @@ __primitive long_t {
 	bool greater_than_or_equal(const long_t& v) const noexcept;
 	
 	compare_result_t compare(const long_t& v) const noexcept;
+	
+	ulong_t unsigned_value() const noexcept;
 	
 	void __moveto(void* ptr, size_t position) noexcept;
 	

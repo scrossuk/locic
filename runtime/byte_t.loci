@@ -40,6 +40,8 @@ __primitive byte_t {
 	
 	bool isZero() const noexcept;
 	
+	ubyte_t unsigned_value() const noexcept;
+	
 	void __moveto(void* ptr, size_t position) noexcept;
 	
 	void increment() noexcept;
