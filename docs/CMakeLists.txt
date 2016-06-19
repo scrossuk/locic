@@ -14,6 +14,7 @@ set(SPHINX_INPUT_FILES
 	FunctionOverloading.rst
 	GarbageCollection.rst
 	GettingStarted.rst
+	Hashing.rst
 	HeapMemoryManagement.rst
 	ImplicitOperations.rst
 	InteractingWithC++.rst

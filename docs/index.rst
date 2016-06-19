@@ -116,6 +116,7 @@ Language
 	Const
 	ControlFlow
 	Exceptions
+	Hashing
 	ImplicitOperations
 	LifetimeMethods
 	Literals
