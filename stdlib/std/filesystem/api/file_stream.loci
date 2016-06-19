@@ -1,0 +1,58 @@
+
+import std.filesystem 0.1.0 {
+	
+	namespace std {
+		
+		template <typename T>
+		interface in_buffer {
+			const T* data() const;
+			
+			size_t size() const;
+		}
+		
+		template <typename T>
+		interface out_buffer {
+			T* data();
+			
+			size_t size() const;
+		}
+		
+		/**
+		 * \brief File Stream
+		 */
+		class file_stream {
+			/**
+			 * \brief Open path with given mode.
+			 *
+			 * \param pathname Path to open.
+			 * \param mode Mode; same as for fopen().
+			 * \return File stream.
+			 */
+			static file_stream open(const path& pathname,
+			                        const string& mode);
+			
+			bool valid() const noexcept;
+			
+			bool eof() const noexcept;
+			
+			size_t position() const;
+			
+			void seek(size_t position);
+			
+			void seek_relative_current(ssize_t relative_position);
+			
+			void seek_relative_end(ssize_t relative_position);
+			
+			size_t read_some(out_buffer<uint8_t>& destBuffer);
+			
+			size_t write_some(const in_buffer<const uint8_t>& sourceBuffer);
+		}
+		
+		
+		file_stream
+		open(const path& pathname, const string& mode);
+		
+	}
+	
+}
+

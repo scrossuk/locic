@@ -258,6 +258,7 @@ set (STD_EVENT_DEPENDENCIES
 )
 
 set (STD_FILESYSTEM_API_FILES
+	"${CMAKE_SOURCE_DIR}/stdlib/std/filesystem/api/file_stream.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/filesystem/api/path.loci"
 )
 

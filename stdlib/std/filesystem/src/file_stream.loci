@@ -1,0 +1,105 @@
+import void* fopen(const ubyte* path, const ubyte* mode) noexcept;
+import void fclose(void* handle) noexcept;
+import int feof(const void* handle) noexcept;
+import int ferror(const void* handle) noexcept;
+import int fseek(void* handle, long offset, int whence) noexcept;
+import long ftell(const void* handle) noexcept;
+import size_t fread(uint8_t* ptr, size_t size, size_t nmemb,
+                    void* handle) noexcept;
+import size_t fwrite(const uint8_t* ptr, size_t size, size_t nmemb,
+                     void* handle) noexcept;
+
+using SEEK_SET = 0; /* Seek from beginning of file.  */
+using SEEK_CUR = 1; /* Seek from current position.  */
+using SEEK_END = 2; /* Set file pointer to EOF plus "offset" */
+
+export std.filesystem 0.1.0 {
+	
+	namespace std {
+		
+		template <typename T>
+		interface in_buffer {
+			const T* data() const;
+			
+			size_t size() const;
+		}
+		
+		template <typename T>
+		interface out_buffer {
+			T* data();
+			
+			size_t size() const;
+		}
+		
+		exception open_error();
+		
+		class file_stream(void* handle) {
+			static open(const path& pathname, const string& mode) {
+				const auto path_string = pathname.to_string();
+				final auto handle = fopen(path_string.make_buffer().c_str(),
+				                          mode.make_buffer().c_str());
+				if (handle == null) {
+					throw open_error();
+				}
+				return @(handle);
+			}
+			
+			~ {
+				fclose(@handle);
+			}
+			
+			bool valid() const noexcept {
+				return ferror(@handle) == 0;
+			}
+			
+			bool eof() const noexcept {
+				return feof(@handle) != 0;
+			}
+			
+			size_t position() const {
+				const long result = ftell(@handle);
+				assert result >= 0;
+				return result.unsigned_value().cast<size_t>();
+			}
+			
+			void seek(size_t position) {
+				const ssize_t offset = position.signed_value();
+				const int result = fseek(@handle, offset.cast<long>(),
+				                         SEEK_SET);
+				assert result == 0;
+			}
+			
+			void seek_relative_current(ssize_t relative_position) {
+				const ssize_t offset = relative_position;
+				const int result = fseek(@handle, offset.cast<long>(),
+				                         SEEK_CUR);
+				assert result == 0;
+			}
+			
+			void seek_relative_end(ssize_t relative_position) {
+				const ssize_t offset = relative_position;
+				const int result = fseek(@handle, offset.cast<long>(),
+				                         SEEK_END);
+				assert result == 0;
+			}
+			
+			size_t read_some(out_buffer<uint8_t>& destBuffer) {
+				return fread(destBuffer.data(), 1u,
+				             destBuffer.size(), @handle);
+			}
+			
+			size_t write_some(const in_buffer<const uint8_t>& sourceBuffer) {
+				return fwrite(sourceBuffer.data(), 1u,
+				              sourceBuffer.size(), @handle);
+			}
+		}
+		
+		file_stream
+		open(const path& pathname, const string& mode) {
+			return file_stream::open(pathname, mode);
+		}
+		
+	}
+	
+}
+
