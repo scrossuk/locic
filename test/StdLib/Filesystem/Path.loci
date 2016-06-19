@@ -27,9 +27,7 @@ void testParse(const std::string& path_string, const bool is_absolute,
 	assert path.to_string() == str;
 }
 
-export int main(unused int argc, unused ubyte ** argv) {
-	testRootPath();
-	
+void testParsePaths() {
 	testParse("/", /*is_absolute=*/true, /*is_root=*/true, /*dirname=*/"/",
 	          /*filename=*/".", /*stem=*/".", /*ext=*/"", /*str=*/"/");
 	
@@ -123,6 +121,11 @@ export int main(unused int argc, unused ubyte ** argv) {
 	testParse("/a/b/../../c.d/", /*is_absolute=*/true, /*is_root=*/false,
 	          /*dirname=*/"/c.d", /*filename=*/".", /*stem=*/".",
 	          /*ext=*/"", /*str=*/"/c.d/");
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	testRootPath();
+	testParsePaths();
 	return 0;
 }
 
