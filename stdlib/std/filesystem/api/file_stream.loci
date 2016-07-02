@@ -31,24 +31,72 @@ import std.filesystem 0.1.0 {
 			static file_stream open(const path& pathname,
 			                        const string& mode);
 			
+			/**
+			 * \brief Query if stream is valid.
+			 * 
+			 * \return Whether stream is valid.
+			 */
 			bool valid() const noexcept;
 			
+			/**
+			 * \brief Query if stream has reached end of file.
+			 * 
+			 * \return Whether stream has reached end of file.
+			 */
 			bool eof() const noexcept;
 			
+			/**
+			 * \brief Get position in file.
+			 * 
+			 * \return Position in file.
+			 */
 			size_t position() const;
 			
+			/**
+			 * \brief Move to given absolute position.
+			 * 
+			 * \param position New stream position.
+			 */
 			void seek(size_t position);
 			
+			/**
+			 * \brief Move to position relative to current position.
+			 * 
+			 * \param position New relative position.
+			 */
 			void seek_relative_current(ssize_t relative_position);
 			
+			/**
+			 * \brief Move to position relative to end position.
+			 * 
+			 * \param position New relative position.
+			 */
 			void seek_relative_end(ssize_t relative_position);
 			
+			/**
+			 * \brief Read data from file into given buffer.
+			 * 
+			 * \param destBuffer Buffer into which to read.
+			 * \return Size of data read.
+			 */
 			size_t read_some(out_buffer<uint8_t>& destBuffer);
 			
+			/**
+			 * \brief Write data from given buffer into file.
+			 * 
+			 * \param sourceBuffer Buffer from which to write.
+			 * \return Size of data written.
+			 */
 			size_t write_some(const in_buffer<const uint8_t>& sourceBuffer);
 		}
 		
-		
+		/**
+		 * \brief Open given path as file stream.
+		 * 
+		 * \param pathname Path to open.
+		 * \param mode Mode; same as for fopen().
+		 * \return File stream.
+		 */
 		file_stream
 		open(const path& pathname, const string& mode);
 		
