@@ -1,7 +1,15 @@
 __primitive byte_t {
 	static byte_t implicit_cast_int8_t(int8_t value) noexcept;
 	
+	static byte_t cast_int8_t(int8_t value) noexcept;
+	static byte_t cast_int16_t(int16_t value) noexcept;
+	static byte_t cast_int32_t(int32_t value) noexcept;
+	static byte_t cast_int64_t(int64_t value) noexcept;
+	
+	static byte_t cast_short_t(short_t value) noexcept;
 	static byte_t cast_int_t(int_t value) noexcept;
+	static byte_t cast_long_t(long_t value) noexcept;
+	static byte_t cast_longlong_t(longlong_t value) noexcept;
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;

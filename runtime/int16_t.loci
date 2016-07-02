@@ -1,6 +1,20 @@
 __primitive int16_t {
 	static int16_t implicit_cast_int8_t(int8_t value) noexcept;
 	
+	static int16_t implicit_cast_byte_t(byte_t value) noexcept;
+	
+	static int16_t cast_int8_t(int8_t value) noexcept;
+	static int16_t cast_int32_t(int32_t value) noexcept;
+	static int16_t cast_int64_t(int64_t value) noexcept;
+	
+	static int16_t cast_byte_t(byte_t value) noexcept;
+	static int16_t cast_short_t(short_t value) noexcept;
+	static int16_t cast_int_t(int_t value) noexcept;
+	static int16_t cast_long_t(long_t value) noexcept;
+	static int16_t cast_longlong_t(longlong_t value) noexcept;
+	
+	static int16_t cast_ssize_t(ssize_t value) noexcept;
+	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	

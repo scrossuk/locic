@@ -8,14 +8,15 @@ __primitive uint64_t {
 	static uint64_t implicit_cast_uint32_t(uint32_t value) noexcept;
 	static uint64_t implicit_cast_unichar_t(unichar_t value) noexcept;
 	
+	static uint64_t cast_uint8_t(uint8_t value) noexcept;
+	static uint64_t cast_uint16_t(uint16_t value) noexcept;
+	static uint64_t cast_uint32_t(uint32_t value) noexcept;
+	
 	static uint64_t cast_ushort_t(ushort_t value) noexcept;
 	static uint64_t cast_uint_t(uint_t value) noexcept;
 	static uint64_t cast_ulong_t(ulong_t value) noexcept;
 	static uint64_t cast_ulonglong_t(ulonglong_t value) noexcept;
-	static uint64_t cast_uint8_t(uint8_t value) noexcept;
-	static uint64_t cast_uint16_t(uint16_t value) noexcept;
-	static uint64_t cast_uint32_t(uint32_t value) noexcept;
-	static uint64_t cast_uint64_t(uint64_t value) noexcept;
+	
 	static uint64_t cast_unichar_t(unichar_t value) noexcept;
 	
 	static size_t __alignmask() noexcept;

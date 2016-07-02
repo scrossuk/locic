@@ -1,5 +1,18 @@
 __primitive uint16_t {
+	static uint16_t zero() noexcept;
+	static uint16_t leading_ones(size_t count) noexcept;
+	static uint16_t trailing_ones(size_t count) noexcept;
+	
 	static uint16_t implicit_cast_uint8_t(uint8_t value) noexcept;
+	
+	static uint16_t cast_uint8_t(uint8_t value) noexcept;
+	static uint16_t cast_uint32_t(uint32_t value) noexcept;
+	static uint16_t cast_uint64_t(uint64_t value) noexcept;
+	
+	static uint16_t cast_ushort_t(ushort_t value) noexcept;
+	static uint16_t cast_uint_t(uint_t value) noexcept;
+	static uint16_t cast_ulong_t(ulong_t value) noexcept;
+	static uint16_t cast_ulonglong_t(ulonglong_t value) noexcept;
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;

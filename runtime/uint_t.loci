@@ -5,7 +5,15 @@ __primitive uint_t {
 	
 	static uint_t cast_uint8_t(uint8_t value) noexcept;
 	static uint_t cast_uint16_t(uint16_t value) noexcept;
+	static uint_t cast_uint32_t(uint32_t value) noexcept;
+	static uint_t cast_uint64_t(uint64_t value) noexcept;
+	
 	static uint_t cast_ushort_t(ushort_t value) noexcept;
+	static uint_t cast_uint_t(uint_t value) noexcept;
+	static uint_t cast_ulong_t(ulong_t value) noexcept;
+	static uint_t cast_ulonglong_t(ulonglong_t value) noexcept;
+	
+	static uint_t cast_size_t(size_t value) noexcept;
 	
 	static uint_t cast_int_t(int_t value) noexcept;
 	
