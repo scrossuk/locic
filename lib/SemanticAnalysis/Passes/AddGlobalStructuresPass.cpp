@@ -166,9 +166,8 @@ namespace locic {
 			// Check if there's anything with the same name.
 			const auto iterator = parentNamespace.items().find(typeInstanceName);
 			if (iterator != parentNamespace.items().end()) {
-				const auto& existingTypeInstance = iterator->second.typeInstance();
-				const auto& debugInfo = *(existingTypeInstance.debugInfo());
-				OptionalDiag previousDefinedDiag(PreviousDefinedDiag(), debugInfo.location);
+				const auto& location = iterator->second.location();
+				OptionalDiag previousDefinedDiag(PreviousDefinedDiag(), location);
 				context.issueDiag(TypeInstanceClashesWithExistingNameDiag(fullTypeName),
 				                  astTypeInstanceNode.location(),
 				                  std::move(previousDefinedDiag));
