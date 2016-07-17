@@ -219,6 +219,20 @@ namespace locic {
 			
 		};
 		
+		namespace {
+			
+			class PreviousDefinedDiag: public Error {
+			public:
+				PreviousDefinedDiag() { }
+				
+				std::string toString() const {
+					return "previously defined here";
+				}
+				
+			};
+			
+		}
+		
 		void AddNamespaceFunctionDecl(Context& context, AST::Node<AST::Function>& astFunctionNode,
 		                              const AST::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
@@ -232,8 +246,9 @@ namespace locic {
 				
 				const auto iterator = parentNamespace.items().find(name->last());
 				if (iterator != parentNamespace.items().end()) {
+					OptionalDiag previousDefinedDiag(PreviousDefinedDiag(), iterator->second.location());
 					context.issueDiag(FunctionClashesWithExistingNameDiag(fullName),
-					                  name.location());
+					                  name.location(), std::move(previousDefinedDiag));
 				}
 				
 				auto semFunction = AddFunctionDecl(context, astFunctionNode, fullName, moduleScope);
