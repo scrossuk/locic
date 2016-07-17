@@ -1,0 +1,59 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:7:1: error: type 'ClashWithOtherClass' clashes with existing name
+class ClashWithOtherClass() { }
+// CHECK: .loci:5:1: note: because: previously defined here
+class ClashWithOtherClass() { }
+
+// CHECK: .loci:10:1: error: type 'ClashWithNamespaceBefore' clashes with existing name
+class ClashWithNamespaceBefore() { }
+// CHECK: .loci:12:1: note: because: previously defined here
+namespace ClashWithNamespaceBefore {}
+
+// CHECK: .loci:17:1: error: type 'ClashWithNamespaceAfter' clashes with existing name
+namespace ClashWithNamespaceAfter {}
+// CHECK: .loci:15:1: note: because: previously defined here
+class ClashWithNamespaceAfter() { }
+
+// CHECK: .loci:20:1: error: type 'ClashWithAliasBefore' clashes with existing name
+class ClashWithAliasBefore() { }
+// CHECK: .loci:22:1: note: because: previously defined here
+using ClashWithAliasBefore = 10;
+
+// CHECK: .loci:27:1: error: type 'ClashWithAliasAfter' clashes with existing name
+using ClashWithAliasAfter = 10;
+// CHECK: .loci:25:1: note: because: previously defined here
+class ClashWithAliasAfter() { }
+
+// CHECK: .loci:32:1: error: type 'ClashWithStructBefore' clashes with existing name
+class ClashWithStructBefore() { }
+// CHECK: .loci:30:1: note: because: previously defined here
+struct ClashWithStructBefore { }
+
+// CHECK: .loci:37:1: error: type 'ClashWithStructAfter' clashes with existing name
+struct ClashWithStructAfter { }
+// CHECK: .loci:35:1: note: because: previously defined here
+class ClashWithStructAfter() { }
+
+// CHECK: .loci:42:1: error: type 'ClashWithInterfaceBefore' clashes with existing name
+class ClashWithInterfaceBefore() { }
+// CHECK: .loci:40:1: note: because: previously defined here
+interface ClashWithInterfaceBefore { }
+
+// CHECK: .loci:47:1: error: type 'ClashWithInterfaceAfter' clashes with existing name
+interface ClashWithInterfaceAfter { }
+// CHECK: .loci:45:1: note: because: previously defined here
+class ClashWithInterfaceAfter() { }
+
+// CHECK: .loci:52:6: error: function 'ClashWithFunctionBefore' clashes with existing name
+class ClashWithFunctionBefore() { }
+// CHECK: .loci:50:1: note: because: previously defined here
+void ClashWithFunctionBefore() { }
+
+// CHECK: .loci:55:6: error: function 'ClashWithFunctionAfter' clashes with existing name
+void ClashWithFunctionAfter() { }
+// CHECK: .loci:57:1: note: because: previously defined here
+class ClashWithFunctionAfter() { }
+
+// CHECK: 111 error generated.
