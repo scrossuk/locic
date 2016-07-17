@@ -1,0 +1,28 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+interface A {
+	void a();
+}
+
+interface B {
+	void a();
+	void b();
+}
+
+interface MoreStrictInterface {
+	A& method();
+}
+
+interface LessStrictInterface {
+	B& method();
+}
+
+// CHECK-NOT: .loci:22:15: error: static assert predicate evaluates to false
+static assert LessStrictInterface : MoreStrictInterface;
+
+// CHECK: .loci:26:15: error: static assert predicate evaluates to false
+// CHECK: .loci:26:15: note: because: return type in method 'method' has type A& in source but type B& in requirement
+static assert MoreStrictInterface : LessStrictInterface;
+
+// CHECK: 1 error generated.
