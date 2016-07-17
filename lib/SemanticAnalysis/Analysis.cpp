@@ -49,7 +49,7 @@ namespace locic {
 				CompleteFunctionTemplateVariableRequirementsPass(context, rootASTNamespaces);
 				
 				// ---- Generate default methods.
-				GenerateDefaultMethodsPass(context);
+				GenerateDefaultMethodsPass(context, rootASTNamespaces);
 				
 				// ---- Add alias values.
 				AddAliasValuesPass(context, rootASTNamespaces);

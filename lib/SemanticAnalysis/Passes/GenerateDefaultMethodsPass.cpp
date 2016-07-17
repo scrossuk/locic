@@ -95,20 +95,30 @@ namespace locic {
 			}
 		}
 		
-		void GenerateNamespaceDefaultMethods(Context& context, SEM::Namespace& nameSpace) {
-			for (const auto& itemPair: nameSpace.items()) {
-				const auto& item = itemPair.second;
-				if (item.isNamespace()) {
-					GenerateNamespaceDefaultMethods(context, item.nameSpace());
-				} else if (item.isTypeInstance()) {
-					GenerateTypeDefaultMethods(context, item.typeInstance());
-				}
+		void GenerateNamespaceDefaultMethods(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
+			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
+				GenerateNamespaceDefaultMethods(context, astModuleScopeNode->data());
+			}
+			
+			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
+				auto& semChildNamespace = astNamespaceNode->nameSpace();
+				
+				PushScopeElement pushNamespace(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				GenerateNamespaceDefaultMethods(context, astNamespaceNode->data());
+			}
+			
+			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
+				
+				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
+				GenerateTypeDefaultMethods(context, semChildTypeInstance);
 			}
 		}
 		
-		void GenerateDefaultMethodsPass(Context& context) {
-			auto& semNamespace = context.scopeStack().back().nameSpace();
-			GenerateNamespaceDefaultMethods(context, semNamespace);
+		void GenerateDefaultMethodsPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
+			for (const auto& astNamespaceNode: rootASTNamespaces) {
+				GenerateNamespaceDefaultMethods(context, astNamespaceNode->data());
+			}
 			
 			// All methods are now known so we can start producing method sets.
 			context.setMethodSetsComplete();

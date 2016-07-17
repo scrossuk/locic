@@ -55,7 +55,7 @@ namespace locic {
 		/**
 		 * \brief Generate default methods.
 		 */
-		void GenerateDefaultMethodsPass(Context& context);
+		void GenerateDefaultMethodsPass(Context& context, const AST::NamespaceList& rootASTNamespaces);
 		
 		/**
 		 * \brief Check template instantiations.
