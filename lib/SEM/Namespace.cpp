@@ -97,6 +97,21 @@ namespace locic {
 			return *(data_.typeInstance);
 		}
 		
+		Debug::SourceLocation NamespaceItem::location() const {
+			switch (kind()) {
+				case ALIAS:
+					return alias().astAlias().location();
+				case FUNCTION:
+					return function().astFunction().location();
+				case NAMESPACE:
+					return nameSpace().astNamespaces().front()->location();
+				case TYPEINSTANCE:
+					return typeInstance().debugInfo()->location;
+			}
+			
+			locic_unreachable("Unknown NamespaceItem kind.");
+		}
+		
 		std::string NamespaceItem::toString() const {
 			switch (kind()) {
 				case ALIAS:

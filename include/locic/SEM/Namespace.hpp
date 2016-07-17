@@ -54,6 +54,8 @@ namespace locic {
 				SEM::Namespace& nameSpace() const;
 				SEM::TypeInstance& typeInstance() const;
 				
+				Debug::SourceLocation location() const;
+				
 				std::string toString() const;
 				
 			private:
