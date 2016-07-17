@@ -137,8 +137,6 @@ namespace locic {
 		
 		void AddNamespaceDataTypeMemberVariables(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode,
 				std::vector<SEM::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
-			auto& semNamespace = context.scopeStack().back().nameSpace();
-			
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
 				auto& semChildNamespace = astChildNamespaceNode->nameSpace();
 				
@@ -161,7 +159,7 @@ namespace locic {
 				
 				if (semChildTypeInstance.isUnionDatatype()) {
 					for (const auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-						auto& semVariantTypeInstance = semNamespace.items().at(astVariantNode->name).typeInstance();
+						auto& semVariantTypeInstance = astVariantNode->semTypeInstance();
 						
 						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semVariantTypeInstance));
 						AddTypeInstanceMemberVariables(context, astVariantNode, typeInstancesToGenerateNoTagSets);
