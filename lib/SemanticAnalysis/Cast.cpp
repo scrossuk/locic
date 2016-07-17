@@ -71,9 +71,21 @@ namespace locic {
 					std::terminate();
 				}
 				case SEM::Type::OBJECT: {
-					// Objects can only be cast to the same object type.
 					if (sourceType->getObjectType() != destType->getObjectType()) {
-						return nullptr;
+						if (!sourceType->isInterface() || !destType->isInterface()) {
+							// Non-interface objects can only be cast to
+							// the same object type.
+							return nullptr;
+						}
+						
+						const auto sourceMethodSet = getTypeMethodSet(context, sourceType);
+						const auto requireMethodSet = getTypeMethodSet(context, destType);
+						
+						if (methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet)) {
+							return destType;
+						} else {
+							return nullptr;
+						}
 					}
 					
 					// Need to check template arguments.
