@@ -105,6 +105,45 @@ namespace locic {
 		std::string TypeInstance::toString() const {
 			std::string s = makeString("TypeInstance[name = %s](", name.c_str());
 			
+			s += "kind: ";
+			switch (kind) {
+				case PRIMITIVE:
+					s += "primitive";
+					break;
+				case ENUM:
+					s += "enum";
+					break;
+				case STRUCT:
+					s += "struct";
+					break;
+				case OPAQUE_STRUCT:
+					s += "opaque struct";
+					break;
+				case UNION:
+					s += "union";
+					break;
+				case CLASSDECL:
+					s += "class decl";
+					break;
+				case CLASSDEF:
+					s += "class def";
+					break;
+				case DATATYPE:
+					s += "datatype";
+					break;
+				case UNION_DATATYPE:
+					s += "union datatype";
+					break;
+				case INTERFACE:
+					s += "interface";
+					break;
+				case EXCEPTION:
+					s += "exception";
+					break;
+			}
+			
+			s += ", ";
+			
 			{
 				s += "templateVariableList: (";
 				
