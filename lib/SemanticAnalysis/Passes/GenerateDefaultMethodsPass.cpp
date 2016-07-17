@@ -108,10 +108,17 @@ namespace locic {
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
+				{
+					auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
+					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
+					GenerateTypeDefaultMethods(context, semChildTypeInstance);
+				}
 				
-				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				GenerateTypeDefaultMethods(context, semChildTypeInstance);
+				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
+					auto& semChildTypeInstance = astVariantNode->semTypeInstance();
+					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
+					GenerateTypeDefaultMethods(context, semChildTypeInstance);
+				}
 			}
 		}
 		
