@@ -21,7 +21,8 @@ namespace locic {
 		  variants(makeDefaultNode<TypeInstanceList>()),
 		  variables(std::move(v)), functions(std::move(f)),
 		  moveSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
-		  requireSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())) { }
+		  requireSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
+		  semTypeInstance_(nullptr) { }
 		
 		TypeInstance* TypeInstance::Primitive(const String& name, Node<FunctionList> functions) {
 			return new TypeInstance(PRIMITIVE, name, makeDefaultNode<VarList>(), std::move(functions));
@@ -89,6 +90,16 @@ namespace locic {
 		
 		void TypeInstance::setNoTagSet(Node<StringList> pNoTagSet) {
 			noTagSet = std::move(pNoTagSet);
+		}
+		
+		void TypeInstance::setSEMTypeInstance(SEM::TypeInstance& typeInstance) {
+			assert(semTypeInstance_ == nullptr);
+			semTypeInstance_ = &typeInstance;
+		}
+		
+		SEM::TypeInstance& TypeInstance::semTypeInstance() {
+			assert(semTypeInstance_ != nullptr);
+			return *semTypeInstance_;
 		}
 		
 		std::string TypeInstance::toString() const {

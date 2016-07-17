@@ -10,7 +10,13 @@
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
+	
+	namespace SEM {
+		
+		class TypeInstance;
+		
+	}
+	
 	namespace AST {
 	
 		struct ExceptionInitializer;
@@ -82,12 +88,17 @@ namespace locic {
 				void setRequireSpecifier(Node<RequireSpecifier> pRequireSpecifier);
 				void setTemplateVariables(Node<TemplateVarList> pTemplateVariables);
 				void setNoTagSet(Node<StringList> pNoTagSet);
+			
+				void setSEMTypeInstance(SEM::TypeInstance& typeInstance);
+				SEM::TypeInstance& semTypeInstance();
 				
 				std::string toString() const;
 				
 			private:
 				TypeInstance(Kind k, const String& n,
 					Node<VarList> v, Node<FunctionList> f);
+				
+				SEM::TypeInstance* semTypeInstance_;
 				
 		};
 		

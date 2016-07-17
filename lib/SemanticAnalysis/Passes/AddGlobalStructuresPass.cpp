@@ -182,6 +182,7 @@ namespace locic {
 			                                                                         fullTypeName.copy(),
 			                                                                         typeInstanceKind,
 			                                                                         moduleScope.copy()));
+			astTypeInstanceNode->setSEMTypeInstance(*semTypeInstance);
 			
 			if (semTypeInstance->isPrimitive()) {
 				semTypeInstance->setPrimitiveID(context.sharedMaps().primitiveIDMap().getPrimitiveID(typeInstanceName));
