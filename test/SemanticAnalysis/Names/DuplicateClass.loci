@@ -56,4 +56,4 @@ void ClashWithFunctionAfter() { }
 // CHECK: .loci:57:1: note: because: previously defined here
 class ClashWithFunctionAfter() { }
 
-// CHECK: 111 error generated.
+// CHECK: 11 errors generated.
