@@ -1,4 +1,0 @@
-// RUN: %locic %s --emit-llvm -o %t
-
-
-import void f();

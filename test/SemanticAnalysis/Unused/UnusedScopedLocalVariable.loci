@@ -5,6 +5,8 @@ export void function() {
 	{
 		// CHECK: .loci:7:3: warning: unused variable 'scopedLocalVariable' (which is not marked as 'unused')
 		int scopedLocalVariable = 0;
+		
+		unused int unusedScopedLocalVariable = 0;
 	}
 }
 
