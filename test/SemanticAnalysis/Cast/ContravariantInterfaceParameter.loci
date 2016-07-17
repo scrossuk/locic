@@ -1,0 +1,28 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+interface A {
+	void a();
+}
+
+interface B {
+	void a();
+	void b();
+}
+
+interface LessStrictInterface {
+	void method(A& value);
+}
+
+interface MoreStrictInterface {
+	void method(B& value);
+}
+
+// CHECK-NOT: .loci:22:15: error: static assert predicate evaluates to false
+static assert LessStrictInterface : MoreStrictInterface;
+
+// CHECK: .loci:26:15: error: static assert predicate evaluates to false
+// CHECK: .loci:26:15: note: because: cannot cast type 'A&' to 'B&' for parameter 0 in method 'method'
+static assert MoreStrictInterface : LessStrictInterface;
+
+// CHECK: 1 error generated.
