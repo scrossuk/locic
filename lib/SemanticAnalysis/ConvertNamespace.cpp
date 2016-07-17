@@ -60,7 +60,7 @@ namespace locic {
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
 				{
-					auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
+					auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
 					
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 					ConvertTypeInstance(context, astTypeInstanceNode);

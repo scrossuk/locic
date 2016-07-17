@@ -103,8 +103,6 @@ namespace locic {
 		}
 		
 		void CompleteNamespaceDataTypeTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
-			auto& semNamespace = context.scopeStack().back().nameSpace();
-			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
 				CompleteNamespaceDataTypeTemplateVariableRequirements(context,
 				                                                      astModuleScopeNode->data());
@@ -125,7 +123,7 @@ namespace locic {
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
+				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 				CompleteTypeInstanceTemplateVariableRequirements(context, astTypeInstanceNode);

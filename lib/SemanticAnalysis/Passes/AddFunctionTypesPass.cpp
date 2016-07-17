@@ -13,8 +13,6 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void AddNamespaceDataFunctionTypes(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
-			auto& semNamespace = context.scopeStack().back().nameSpace();
-			
 			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
 				const auto& name = astFunctionNode->name();
 				assert(!name->empty());
@@ -50,7 +48,7 @@ namespace locic {
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
+				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 				for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {

@@ -389,8 +389,6 @@ namespace locic {
 		
 		void AddNamespaceDataFunctionDecls(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode,
 		                                   const AST::ModuleScope& moduleScope) {
-			auto& semNamespace = context.scopeStack().back().nameSpace();
-			
 			for (auto& astFunctionNode: astNamespaceDataNode->functions) {
 				AddNamespaceFunctionDecl(context, astFunctionNode, moduleScope);
 			}
@@ -408,7 +406,7 @@ namespace locic {
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = semNamespace.items().at(astTypeInstanceNode->name).typeInstance();
+				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
 				for (auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
