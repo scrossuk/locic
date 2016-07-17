@@ -315,7 +315,7 @@ namespace locic {
 		                      const AST::ModuleScope& moduleScope) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
-			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
+			for (auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
 				const auto& childNamespaceName = astChildNamespaceNode->name();
 				
 				SEM::Namespace* semChildNamespace = nullptr;
@@ -331,6 +331,7 @@ namespace locic {
 				}
 				
 				astChildNamespaceNode->setNamespace(*semChildNamespace);
+				semChildNamespace->astNamespaces().push_back(&astChildNamespaceNode);
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(*semChildNamespace));
 				AddNamespaceData(context, astChildNamespaceNode->data(), moduleScope);

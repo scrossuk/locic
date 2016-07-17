@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include <locic/AST/NamespaceDecl.hpp>
 #include <locic/SEM/GlobalStructure.hpp>
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
@@ -80,6 +81,11 @@ namespace locic {
 				
 				Namespace(Name name, GlobalStructure parent);
 				
+				std::vector<AST::Node<AST::NamespaceDecl>*>&
+				astNamespaces();
+				const std::vector<AST::Node<AST::NamespaceDecl>*>&
+				astNamespaces() const;
+				
 				GlobalStructure& parent();
 				const GlobalStructure& parent() const;
 				
@@ -94,6 +100,7 @@ namespace locic {
 				GlobalStructure parent_;
 				Name name_;
 				FastMap<String, NamespaceItem> items_;
+				std::vector<AST::Node<AST::NamespaceDecl>*> astNamespaces_;
 				
 		};
 		

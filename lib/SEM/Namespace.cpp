@@ -125,6 +125,16 @@ namespace locic {
 			: parent_(std::move(argParent)),
 			  name_(std::move(n)) { }
 		
+		std::vector<AST::Node<AST::NamespaceDecl>*>&
+		Namespace::astNamespaces() {
+			return astNamespaces_;
+		}
+		
+		const std::vector<AST::Node<AST::NamespaceDecl>*>&
+		Namespace::astNamespaces() const {
+			return astNamespaces_;
+		}
+		
 		GlobalStructure& Namespace::parent() {
 			return parent_;
 		}
