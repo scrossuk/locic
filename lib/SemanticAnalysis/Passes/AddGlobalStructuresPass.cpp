@@ -350,8 +350,11 @@ namespace locic {
 				const auto fullTypeName = semNamespace.name() + aliasName;
 				const auto iterator = semNamespace.items().find(aliasName);
 				if (iterator != semNamespace.items().end()) {
+					const auto& location = iterator->second.location();
+					OptionalDiag previousDefinedDiag(PreviousDefinedDiag(), location);
 					context.issueDiag(AliasClashesWithExistingNameDiag(fullTypeName),
-					                  astAliasNode.location());
+					                  astAliasNode.location(),
+					                  std::move(previousDefinedDiag));
 				}
 				
 				std::unique_ptr<SEM::Alias> semAlias(new SEM::Alias(context.semContext(),
