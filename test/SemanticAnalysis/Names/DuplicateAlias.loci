@@ -1,9 +1,24 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-using TestAlias = 10;
+// CHECK: .loci:7:1: error: alias 'ClashWithOtherAlias' clashes with existing name
+// CHECK: .loci:6:1: note: because: previously defined here
+using ClashWithOtherAlias = void;
+using ClashWithOtherAlias = void;
 
-// CHECK: .loci:7:1: error: alias 'TestAlias' clashes with existing name
-using TestAlias = 10;
+// CHECK: .loci:11:1: error: alias 'ClashWithImportedClass' clashes with existing name
+// CHECK: .loci:12:10: note: because: previously defined here
+using ClashWithImportedClass = void;
+import { class ClashWithImportedClass { } }
 
-// CHECK: 1 error generated.
+// CHECK: .loci:17:1: error: type 'ClashWithClass' clashes with existing name
+// CHECK: .loci:16:1: note: because: previously defined here
+using ClashWithClass = void;
+class ClashWithClass() { }
+
+// CHECK: .loci:22:6: error: function 'ClashWithFunction' clashes with existing name
+// CHECK: .loci:21:1: note: because: previously defined here
+using ClashWithFunction = void;
+void ClashWithFunction() { }
+
+// CHECK: 4 errors generated.
