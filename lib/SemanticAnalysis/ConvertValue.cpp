@@ -427,6 +427,16 @@ namespace locic {
 			
 		};
 		
+		class InvalidOperandCapabilityCheckDiag: public Error {
+		public:
+			InvalidOperandCapabilityCheckDiag() { }
+			
+			std::string toString() const {
+				return "invalid operand for capability check";
+			}
+			
+		};
+		
 		class SetFakeDiagnosticReceiver {
 		public:
 			SetFakeDiagnosticReceiver(Context& context)
@@ -959,7 +969,19 @@ namespace locic {
 				}
 				case AST::Value::CAPABILITYTEST: {
 					const auto checkType = TypeResolver(context).resolveType(astValueNode->capabilityTest.checkType);
+					if (checkType->isAlias() &&
+					    !checkType->alias().type()->isBuiltInTypename()) {
+						context.issueDiag(InvalidOperandCapabilityCheckDiag(),
+						                  astValueNode->capabilityTest.checkType.location());
+					}
+					
 					const auto capabilityType = TypeResolver(context).resolveType(astValueNode->capabilityTest.capabilityType);
+					if (capabilityType->isAlias() &&
+					    !capabilityType->alias().type()->isBuiltInTypename()) {
+						context.issueDiag(InvalidOperandCapabilityCheckDiag(),
+						                  astValueNode->capabilityTest.capabilityType.location());
+					}
+					
 					const auto boolType = context.typeBuilder().getBoolType();
 					return SEM::Value::CapabilityTest(checkType,
 					                                  capabilityType,
