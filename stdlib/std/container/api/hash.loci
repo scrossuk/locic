@@ -11,8 +11,16 @@ import std.container 0.1.0 {
 			size_t get() const noexcept;
 		}
 		
+		interface hasher_api {
+			void hash_int(int value) noexcept;
+		}
+		
+		interface hashable_api {
+			void hash(hasher_api& hasher) const noexcept;
+		}
+		
 		template <typename T>
-		require(hashable<T, hasher>)
+		require(T : hashable_api)
 		class hash {
 			static hash<T> create() noexcept;
 			
