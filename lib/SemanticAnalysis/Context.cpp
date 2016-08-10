@@ -64,6 +64,8 @@ namespace locic {
 				validVarArgTypes.insert(String(stringHost, "double_t"));
 				validVarArgTypes.insert(String(stringHost, "longdouble_t"));
 				validVarArgTypes.insert(String(stringHost, "ptr_t"));
+				validVarArgTypes.insert(String(stringHost, "ssize_t"));
+				validVarArgTypes.insert(String(stringHost, "size_t"));
 			}
 			
 			template <typename Key, typename Value>
