@@ -341,7 +341,7 @@ namespace locic {
 					// There still might be some aspects to cast with the constructed type.
 					return ImplicitCastConvert(context, errors, std::move(castValue), destType, location, allowBind);
 				} else {
-					errors.push_back(makeString("User cast failed from type '%s' to type '%s'.",
+					errors.push_back(makeString("user cast failed from type '%s' to type '%s'",
 					                            sourceDerefType->toString().c_str(),
 					                            destDerefType->toString().c_str()));
 				}
