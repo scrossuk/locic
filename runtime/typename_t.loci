@@ -7,3 +7,11 @@ __primitive typename_t {
 	
 	void __moveto(void* ptr, size_t position) noexcept;
 }
+
+interface typename_hasher_t {
+	void hash_typename(typename_t value) noexcept;
+}
+
+void typename_t::hash(typename_hasher_t& hasher) const noexcept {
+	hasher.hash_typename(self);
+}

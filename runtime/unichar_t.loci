@@ -48,3 +48,10 @@ interface __cast_from_unichar_t {
 	static T cast_unichar_t(unichar_t value) noexcept;
 }
 
+interface unichar_hasher_t {
+	void hash_unichar(unichar_t value) noexcept;
+}
+
+void unichar_t::hash(unichar_hasher_t& hasher) const noexcept {
+	hasher.hash_unichar(self);
+}

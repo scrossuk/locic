@@ -33,3 +33,12 @@ template <movable T>
 interface __cast_from_bool_t {
 	static T cast_bool_t(bool_t value) noexcept;
 }
+
+interface bool_hasher_t {
+	void hash_bool(bool_t value) noexcept;
+}
+
+void bool_t::hash(bool_hasher_t& hasher) const noexcept {
+	hasher.hash_bool(self);
+}
+

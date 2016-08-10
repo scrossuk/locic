@@ -66,3 +66,11 @@ template <movable T>
 interface __cast_from_int16_t {
 	static T cast_int16_t(int16_t value) noexcept;
 }
+
+interface int16_hasher_t {
+	void hash_int16(int16_t value) noexcept;
+}
+
+void int16_t::hash(int16_hasher_t& hasher) const noexcept {
+	hasher.hash_int16(self);
+}

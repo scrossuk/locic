@@ -26,3 +26,11 @@ interface nullable_t {
 template <typename T>
 require(movable<T>)
 using nullable = movable<T> and T : nullable_t<T>;
+
+interface null_hasher_t {
+	void hash_null(null_t value) noexcept;
+}
+
+void null_t::hash(null_hasher_t& hasher) const noexcept {
+	hasher.hash_null(self);
+}

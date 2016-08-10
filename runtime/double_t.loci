@@ -65,3 +65,11 @@ template <movable T>
 interface __cast_from_double_t {
 	static T cast_double_t(double_t value) noexcept;
 }
+
+interface double_hasher_t {
+	void hash_double(double_t value) noexcept;
+}
+
+void double_t::hash(double_hasher_t& hasher) const noexcept {
+	hasher.hash_double(self);
+}

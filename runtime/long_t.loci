@@ -68,3 +68,11 @@ template <movable T>
 interface __cast_from_long_t {
 	static T cast_long_t(long_t value) noexcept;
 }
+
+interface long_hasher_t {
+	void hash_long(long_t value) noexcept;
+}
+
+void long_t::hash(long_hasher_t& hasher) const noexcept {
+	hasher.hash_long(self);
+}

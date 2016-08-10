@@ -52,3 +52,11 @@ template <movable T>
 interface __cast_from_ptrdiff_t {
 	static T cast_ptrdiff_t(ptrdiff_t value) noexcept;
 }
+
+interface ptrdiff_hasher_t {
+	void hash_ptrdiff(ptrdiff_t value) noexcept;
+}
+
+void ptrdiff_t::hash(ptrdiff_hasher_t& hasher) const noexcept {
+	hasher.hash_ptrdiff(self);
+}

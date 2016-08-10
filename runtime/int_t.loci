@@ -68,14 +68,6 @@ __primitive int_t {
 	void decrement() noexcept;
 }
 
-interface int_hasher_t {
-	void hash_int(int value) noexcept;
-}
-
-void int_t::hash(int_hasher_t& hasher) const noexcept {
-	hasher.hash_int(self);
-}
-
 template <movable T>
 interface __implicit_cast_from_int_t {
 	static T implicit_cast_int_t(int_t value) noexcept;
@@ -85,3 +77,12 @@ template <movable T>
 interface __cast_from_int_t {
 	static T cast_int_t(int_t value) noexcept;
 }
+
+interface int_hasher_t {
+	void hash_int(int_t value) noexcept;
+}
+
+void int_t::hash(int_hasher_t& hasher) const noexcept {
+	hasher.hash_int(self);
+}
+

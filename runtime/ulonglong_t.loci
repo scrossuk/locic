@@ -69,3 +69,11 @@ template <movable T>
 interface __cast_from_ulonglong_t {
 	static T cast_ulonglong_t(ulonglong_t value) noexcept;
 }
+
+interface ulonglong_hasher_t {
+	void hash_ulonglong(ulonglong_t value) noexcept;
+}
+
+void ulonglong_t::hash(ulonglong_hasher_t& hasher) const noexcept {
+	hasher.hash_ulonglong(self);
+}

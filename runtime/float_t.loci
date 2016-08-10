@@ -59,3 +59,12 @@ template <movable T>
 interface __cast_from_float_t {
 	static T cast_float_t(float_t value) noexcept;
 }
+
+interface float_hasher_t {
+	void hash_float(float_t value) noexcept;
+}
+
+void float_t::hash(float_hasher_t& hasher) const noexcept {
+	hasher.hash_float(self);
+}
+

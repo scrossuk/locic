@@ -71,3 +71,11 @@ template <movable T>
 interface __cast_from_uint64_t {
 	static T cast_uint64_t(uint64_t value) noexcept;
 }
+
+interface uint64_hasher_t {
+	void hash_uint64(uint64_t value) noexcept;
+}
+
+void uint64_t::hash(uint64_hasher_t& hasher) const noexcept {
+	hasher.hash_uint64(self);
+}

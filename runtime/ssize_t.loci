@@ -69,3 +69,11 @@ template <movable T>
 interface __cast_from_ssize_t {
 	static T cast_ssize_t(ssize_t value) noexcept;
 }
+
+interface ssize_hasher_t {
+	void hash_ssize(ssize_t value) noexcept;
+}
+
+void ssize_t::hash(ssize_hasher_t& hasher) const noexcept {
+	hasher.hash_ssize(self);
+}

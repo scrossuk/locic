@@ -66,3 +66,11 @@ interface __cast_from_byte_t {
 	static T cast_byte_t(byte_t value) noexcept;
 }
 
+interface byte_hasher_t {
+	void hash_byte(byte_t value) noexcept;
+}
+
+void byte_t::hash(byte_hasher_t& hasher) const noexcept {
+	hasher.hash_byte(self);
+}
+

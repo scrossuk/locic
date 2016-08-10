@@ -71,3 +71,11 @@ template <movable T>
 interface __cast_from_uint8_t {
 	static T cast_uint8_t(uint8_t value) noexcept;
 }
+
+interface uint8_hasher_t {
+	void hash_uint8(uint8_t value) noexcept;
+}
+
+void uint8_t::hash(uint8_hasher_t& hasher) const noexcept {
+	hasher.hash_uint8(self);
+}

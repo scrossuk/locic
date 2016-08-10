@@ -48,3 +48,11 @@ template <movable T>
 interface __cast_from_longdouble_t {
 	static T cast_longdouble_t(longdouble_t value) noexcept;
 }
+
+interface longdouble_hasher_t {
+	void hash_longdouble(longdouble_t value) noexcept;
+}
+
+void longdouble_t::hash(longdouble_hasher_t& hasher) const noexcept {
+	hasher.hash_longdouble(self);
+}

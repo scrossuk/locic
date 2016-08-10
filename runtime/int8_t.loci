@@ -64,3 +64,12 @@ template <movable T>
 interface __cast_from_int8_t {
 	static T cast_int8_t(int8_t value) noexcept;
 }
+
+interface int8_hasher_t {
+	void hash_int8(int8_t value) noexcept;
+}
+
+void int8_t::hash(int8_hasher_t& hasher) const noexcept {
+	hasher.hash_int8(self);
+}
+

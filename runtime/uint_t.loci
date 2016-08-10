@@ -66,3 +66,11 @@ template <movable T>
 interface __cast_from_uint_t {
 	static T cast_uint_t(uint_t value) noexcept;
 }
+
+interface uint_hasher_t {
+	void hash_uint(uint_t value) noexcept;
+}
+
+void uint_t::hash(uint_hasher_t& hasher) const noexcept {
+	hasher.hash_uint(self);
+}

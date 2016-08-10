@@ -21,3 +21,11 @@ __primitive compare_result_t {
 	
 	void __moveto(void* ptr, size_t position) noexcept;
 }
+interface compare_result_hasher_t {
+	void hash_compare_result(compare_result_t value) noexcept;
+}
+
+void compare_result_t::hash(compare_result_hasher_t& hasher) const noexcept {
+	hasher.hash_compare_result(self);
+}
+

@@ -67,3 +67,11 @@ template <movable T>
 interface __cast_from_ulong_t {
 	static T cast_ulong_t(ulong_t value) noexcept;
 }
+
+interface ulong_hasher_t {
+	void hash_ulong(ulong_t value) noexcept;
+}
+
+void ulong_t::hash(ulong_hasher_t& hasher) const noexcept {
+	hasher.hash_ulong(self);
+}
