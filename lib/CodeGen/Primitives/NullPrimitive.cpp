@@ -105,6 +105,10 @@ namespace locic {
 					                                      typeTemplateArguments);
 					return ConstantGenerator(module).getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
+				case METHOD_IMPLICITCOPY:
+				case METHOD_COPY: {
+					return ConstantGenerator(module).getNull(TypeGenerator(module).getPtrType());
+				}
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST: {
 					SEM::ValueArray valueArray;
