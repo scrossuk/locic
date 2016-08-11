@@ -2,7 +2,7 @@
 // RUN: FileCheck < %t %s
 
 export void varFunction() {
-	// CHECK: .loci:6:2: error: User cast failed from type 'uint8_t' to type 'notag(int_t)'.
+	// CHECK: .loci:6:2: error: user cast failed from type 'uint8_t' to type 'notag(int_t)'
 	unused int value = 42u;
 }
 

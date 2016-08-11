@@ -6,7 +6,7 @@ class TestClass(int value) {
 }
 
 export int main(unused int argc, unused ubyte ** argv) {
-	// CHECK: .loci:10:2: error: User cast failed from type 'null_t' to type 'notag(TestClass)'.
+	// CHECK: .loci:10:2: error: user cast failed from type 'null_t' to type 'notag(TestClass)'
 	TestClass object = null;
 	return 0;
 }

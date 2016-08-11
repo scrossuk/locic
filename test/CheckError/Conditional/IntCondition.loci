@@ -5,7 +5,7 @@
 // (no implicit cast to bool).
 
 export int main(unused int argc, unused ubyte ** argv) {
-	// CHECK: .loci:9:2: error: User cast failed from type 'int8_t' to type 'notag(bool_t)'.
+	// CHECK: .loci:9:2: error: user cast failed from type 'int8_t' to type 'notag(bool_t)'
 	if (1) {
 		// ...
 	}
