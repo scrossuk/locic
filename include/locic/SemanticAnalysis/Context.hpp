@@ -103,8 +103,6 @@ namespace locic {
 				bool methodSetsComplete() const;
 				void setMethodSetsComplete();
 				
-				const std::set<String>& validVarArgTypes() const;
-				
 				const MethodSet* getMethodSet(MethodSet methodSet) const;
 				
 				Optional<bool> getCapability(const SEM::Type* type, const String& capability) const;

@@ -15,20 +15,47 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		bool isValidVarArgType(Context& context, const SEM::Type* const type) {
+		bool isValidVarArgType(const SEM::Type* const type) {
 			if (!type->isObject()) return false;
 			if (!type->getObjectType()->isPrimitive()) return false;
 			if (type->isLval() || type->isRef()) return false;
+			if (!type->isPrimitive()) return false;
 			
-			const auto& name = type->getObjectType()->name().first();
-			const auto& validTypes = context.validVarArgTypes();
-			return validTypes.find(name) != validTypes.end();
+			switch (type->primitiveID()) {
+				case PrimitiveByte:
+				case PrimitiveUByte:
+				case PrimitiveShort:
+				case PrimitiveUShort:
+				case PrimitiveInt:
+				case PrimitiveUInt:
+				case PrimitiveLong:
+				case PrimitiveULong:
+				case PrimitiveLongLong:
+				case PrimitiveULongLong:
+				case PrimitiveInt8:
+				case PrimitiveUInt8:
+				case PrimitiveInt16:
+				case PrimitiveUInt16:
+				case PrimitiveInt32:
+				case PrimitiveUInt32:
+				case PrimitiveInt64:
+				case PrimitiveUInt64:
+				case PrimitiveFloat:
+				case PrimitiveDouble:
+				case PrimitiveLongDouble:
+				case PrimitivePtr:
+				case PrimitiveSize:
+				case PrimitiveSSize:
+					return true;
+				default:
+					return false;
+			}
 		}
 		
 		Optional<SEM::Value> VarArgCastSearch(Context& context, SEM::Value rawValue, const Debug::SourceLocation& location) {
 			auto value = derefValue(std::move(rawValue));
 			
-			if (isValidVarArgType(context, value.type()->resolveAliases())) {
+			if (isValidVarArgType(value.type()->resolveAliases())) {
 				// Already a valid var arg type.
 				return make_optional(std::move(value));
 			}

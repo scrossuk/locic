@@ -42,30 +42,6 @@ namespace locic {
 			typeBuilder(context),
 			methodSetsComplete(false),
 			templateRequirementsComplete(false) {
-				validVarArgTypes.insert(String(stringHost, "byte_t"));
-				validVarArgTypes.insert(String(stringHost, "ubyte_t"));
-				validVarArgTypes.insert(String(stringHost, "short_t"));
-				validVarArgTypes.insert(String(stringHost, "ushort_t"));
-				validVarArgTypes.insert(String(stringHost, "int_t"));
-				validVarArgTypes.insert(String(stringHost, "uint_t"));
-				validVarArgTypes.insert(String(stringHost, "long_t"));
-				validVarArgTypes.insert(String(stringHost, "ulong_t"));
-				validVarArgTypes.insert(String(stringHost, "longlong_t"));
-				validVarArgTypes.insert(String(stringHost, "ulonglong_t"));
-				validVarArgTypes.insert(String(stringHost, "int8_t"));
-				validVarArgTypes.insert(String(stringHost, "uint8_t"));
-				validVarArgTypes.insert(String(stringHost, "int16_t"));
-				validVarArgTypes.insert(String(stringHost, "uint16_t"));
-				validVarArgTypes.insert(String(stringHost, "int32_t"));
-				validVarArgTypes.insert(String(stringHost, "uint32_t"));
-				validVarArgTypes.insert(String(stringHost, "int64_t"));
-				validVarArgTypes.insert(String(stringHost, "uint64_t"));
-				validVarArgTypes.insert(String(stringHost, "float_t"));
-				validVarArgTypes.insert(String(stringHost, "double_t"));
-				validVarArgTypes.insert(String(stringHost, "longdouble_t"));
-				validVarArgTypes.insert(String(stringHost, "ptr_t"));
-				validVarArgTypes.insert(String(stringHost, "ssize_t"));
-				validVarArgTypes.insert(String(stringHost, "size_t"));
 			}
 			
 			template <typename Key, typename Value>
@@ -91,7 +67,6 @@ namespace locic {
 			bool methodSetsComplete;
 			bool templateRequirementsComplete;
 			std::vector<TemplateInst> templateInstantiations;
-			std::set<String> validVarArgTypes;
 			mutable StableSet<MethodSet> methodSets;
 			std::unordered_map<std::pair<const SEM::Type*, String>, bool, hashPair<const SEM::Type*, String>> capabilities;
 			
@@ -217,10 +192,6 @@ namespace locic {
 		void Context::setMethodSetsComplete() {
 			assert(!impl_->methodSetsComplete);
 			impl_->methodSetsComplete = true;
-		}
-		
-		const std::set<String>& Context::validVarArgTypes() const {
-			return impl_->validVarArgTypes;
 		}
 		
 		const MethodSet* Context::getMethodSet(MethodSet methodSet) const {
