@@ -1,0 +1,41 @@
+// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: hash<int>(0) = 0
+// CHECK: hash<int>(1) = 1
+// CHECK: hash<int>(2) = 2
+
+// CHECK: hash<IntWrapper>(0) = 0
+// CHECK: hash<IntWrapper>(1) = 1
+// CHECK: hash<IntWrapper>(2) = 2
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+interface IntHasher {
+	void hashInt(int value) noexcept;
+}
+
+class IntWrapper(int value) {
+	static create = default;
+	
+	void hash(IntHasher& hasher) const noexcept {
+		hasher.hashInt(@value);
+	}
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"hash<int>(0) = %zu\n", std::hash<int>()(0));
+	printf(C"hash<int>(1) = %zu\n", std::hash<int>()(1));
+	printf(C"hash<int>(2) = %zu\n", std::hash<int>()(2));
+	
+	printf(C"hash<IntWrapper>(0) = %zu\n",
+	       std::hash<IntWrapper>()(IntWrapper(0)));
+	printf(C"hash<IntWrapper>(1) = %zu\n",
+	       std::hash<IntWrapper>()(IntWrapper(1)));
+	printf(C"hash<IntWrapper>(2) = %zu\n",
+	       std::hash<IntWrapper>()(IntWrapper(2)));
+	return 0;
+}
+
