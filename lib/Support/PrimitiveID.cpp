@@ -9,7 +9,7 @@ namespace locic {
 	
 	PrimitiveID PrimitiveID::Callable(const PrimitiveIDEnum baseValue,
 	                                  const size_t argumentCount) {
-		assert(0 <= argumentCount && argumentCount <= 8);
+		assert(argumentCount <= 8);
 		return PrimitiveID(static_cast<PrimitiveIDEnum>(baseValue + argumentCount));
 	}
 	
