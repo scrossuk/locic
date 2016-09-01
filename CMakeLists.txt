@@ -30,6 +30,8 @@ set(CMAKE_MODULE_PATH
 	${CMAKE_MODULE_PATH}
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
+	"${CMAKE_CURRENT_SOURCE_DIR}/projects/llvm-abi/cmake"
+	"${CMAKE_CURRENT_SOURCE_DIR}/projects/llvm-abi/cmake/modules"
 )
 
 # --- Compiler Properties
