@@ -156,7 +156,6 @@ namespace locic {
 		
 		void Function::setSEMFunction(SEM::Function& function) {
 			assert(semFunction_ == nullptr);
-			assert(&function != nullptr);
 			semFunction_ = &function;
 		}
 		
