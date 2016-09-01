@@ -1,0 +1,3 @@
+[submodule "projects/llvm-abi"]
+	path = projects/llvm-abi
+	url = https://github.com/scrossuk/llvm-abi.git

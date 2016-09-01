@@ -1,7 +1,6 @@
 # - Build llvm-abi support library.
 
-# TODO: provide a way to use a custom build of llvm-abi.
-
+set(LLVMABI_SOURCE_DIR "${PROJECT_SOURCE_DIR}/projects/llvm-abi")
 set(LLVMABI_INSTALL_DIR "${PROJECT_BINARY_DIR}/llvm-abi-install")
 set(LLVMABI_INCLUDE_LOCATION "${LLVMABI_INSTALL_DIR}/include")
 set(LLVMABI_LIB_LOCATION "${LLVMABI_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}llvm-abi${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -18,8 +17,7 @@ set(LLVMABI_CMAKE_ARGS
 
 # Pull llvm-abi from repository and build it.
 ExternalProject_Add(LLVMABIProject
-	GIT_REPOSITORY "${LLVMABI_REPO}"
-	GIT_TAG "38f939af2b8f06b92d245a35734c6b2e4dbaf3d5"
+	URL "${LLVMABI_SOURCE_DIR}"
 	CMAKE_ARGS ${LLVMABI_CMAKE_ARGS}
 	INSTALL_DIR "${LLVMABI_INSTALL_DIR}"
 )
