@@ -187,7 +187,13 @@ namespace locic {
 		                                                       DILocalVariable variable,
 		                                                       llvm::DebugLoc location,
 		                                                       llvm::Value* varValue) {
-#if LOCIC_LLVM_VERSION >= 307
+#if LOCIC_LLVM_VERSION >= 308
+			return builder_.insertDeclare(varValue,
+			                              variable,
+			                              builder_.createExpression(),
+			                              location,
+			                              function.getEntryBuilder().GetInsertBlock());
+#elif LOCIC_LLVM_VERSION >= 307
 			return builder_.insertDeclare(varValue,
 			                              variable,
 			                              builder_.createExpression(),
