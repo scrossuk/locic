@@ -80,7 +80,7 @@ namespace locic {
 			argValues.reserve(function_.arg_size());
 			
 			for (auto arg = function_.arg_begin(); arg != function_.arg_end(); ++arg) {
-				argValues.push_back(arg);
+				argValues.push_back(&*arg);
 			}
 			
 			SetUseEntryBuilder useEntryBuilder(*this);
