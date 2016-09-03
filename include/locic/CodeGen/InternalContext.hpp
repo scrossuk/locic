@@ -44,7 +44,7 @@ namespace locic {
 				
 				const llvm::TargetMachine& targetMachine() const;
 				
-				const llvm::DataLayout& dataLayout() const;
+				llvm::DataLayout dataLayout() const;
 				
 			private:
 				const SEM::Context& semContext_;

@@ -191,8 +191,10 @@ namespace locic {
 			return *targetMachine_;
 		}
 		
-		const llvm::DataLayout& InternalContext::dataLayout() const {
-#if LOCIC_LLVM_VERSION >= 307
+		llvm::DataLayout InternalContext::dataLayout() const {
+#if LOCIC_LLVM_VERSION >= 308
+			return targetMachine().createDataLayout();
+#elif LOCIC_LLVM_VERSION >= 307
 			return *(targetMachine().getDataLayout());
 #elif LOCIC_LLVM_VERSION >= 306
 			return *(targetMachine().getSubtargetImpl()->getDataLayout());
