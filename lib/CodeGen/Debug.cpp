@@ -173,7 +173,10 @@ namespace locic {
 		}
 		
 		DISubroutineType DebugBuilder::createFunctionType(DIFile file, const std::vector<LLVMMetadataValue*>& parameters) {
-#if LOCIC_LLVM_VERSION >= 306
+#if LOCIC_LLVM_VERSION >= 308
+			(void) file;
+			return builder_.createSubroutineType(builder_.getOrCreateTypeArray(parameters));
+#elif LOCIC_LLVM_VERSION >= 306
 			return builder_.createSubroutineType(file, builder_.getOrCreateTypeArray(parameters));
 #else
 			return builder_.createSubroutineType(file, builder_.getOrCreateArray(parameters));
