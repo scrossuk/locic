@@ -62,7 +62,9 @@ namespace locic {
 			}
 			
 			std::string errorMessage;
-#if LOCIC_LLVM_VERSION >= 306
+#if LOCIC_LLVM_VERSION >= 308
+			const bool linkFailed = llvm::Linker::linkModules(impl_->linkedModule().getLLVMModule(), std::move(loadedModule));
+#elif LOCIC_LLVM_VERSION >= 306
 			const bool linkFailed = llvm::Linker::LinkModules(impl_->linkedModule().getLLVMModulePtr(), loadedModule.release(),
 				[&](const llvm::DiagnosticInfo& info) {
 					llvm::raw_string_ostream rawStream(errorMessage);
