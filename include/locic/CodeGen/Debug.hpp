@@ -58,7 +58,8 @@ namespace locic {
 				                          const String& name,
 				                          DIFile file,
 				                          unsigned lineNumber,
-				                          DIType type);
+				                          DIType type,
+				                          size_t argIndex);
 				
 				DIType createUnspecifiedType(const String& name);
 				
@@ -108,7 +109,8 @@ namespace locic {
 		llvm::Instruction* genDebugVar(Function& function,
 		                               const Debug::VarInfo& varInfo,
 		                               DIType type,
-		                               llvm::Value* varValue);
+		                               llvm::Value* varValue,
+		                               size_t argIndex);
 		
 		llvm::DebugLoc getDebugLocation(Function& function,
 		                                const Debug::SourceLocation& debugSourceLocation);

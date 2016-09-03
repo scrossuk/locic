@@ -91,9 +91,26 @@ namespace locic {
 		                                        const String& name,
 		                                        DIFile file,
 		                                        unsigned lineNumber,
-		                                        DIType type) {
+		                                        DIType type,
+		                                        const size_t argIndex) {
+#if LOCIC_LLVM_VERSION >= 308
+			if (isParam) {
+				return builder_.createParameterVariable(scope,
+				                                        name.c_str(),
+				                                        argIndex,
+				                                        file,
+				                                        lineNumber,
+				                                        type);
+			} else {
+				return builder_.createAutoVariable(scope, name.c_str(),
+				                                   file, lineNumber,
+				                                   type);
+			}
+#else
+			(void) argIndex;
 			const auto tag = isParam ? llvm::dwarf::DW_TAG_arg_variable : llvm::dwarf::DW_TAG_auto_variable;
 			return builder_.createLocalVariable(tag, scope, name.c_str(), file, lineNumber, type);
+#endif
 		}
 		
 		DIType DebugBuilder::createUnspecifiedType(const String& name) {
@@ -223,14 +240,18 @@ namespace locic {
 		llvm::Instruction* genDebugVar(Function& function,
 		                               const Debug::VarInfo& varInfo,
 		                               DIType type,
-		                               llvm::Value* varValue) {
+		                               llvm::Value* varValue,
+		                               const size_t argIndex) {
 			auto& module = function.module();
 			const auto file = module.debugBuilder().createFile(varInfo.declLocation.fileName().asStdString());
 			const auto lineNumber = varInfo.declLocation.range().start().lineNumber();
 			const bool isParam = (varInfo.kind == Debug::VarInfo::VAR_ARGUMENT);
 			
 			const auto location = getDebugLocation(function, varInfo.declLocation);
-			const auto varDebugInfo = module.debugBuilder().createVar(function.debugInfo(), isParam, varInfo.name, file, lineNumber, type);
+			const auto varDebugInfo =
+				module.debugBuilder().createVar(function.debugInfo(), isParam,
+				                                varInfo.name, file, lineNumber,
+				                                type, argIndex);
 			return module.debugBuilder().insertVariableDeclare(function, varDebugInfo, location, varValue);
 		}
 		

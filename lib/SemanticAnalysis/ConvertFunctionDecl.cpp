@@ -545,6 +545,8 @@ namespace locic {
 			SEM::TypeArray parameterTypes;
 			parameterTypes.reserve(astFunctionNode->parameters()->size());
 			
+			size_t index = 0;
+			
 			for (auto& astVarNode: *(astFunctionNode->parameters())) {
 				if (!astVarNode->isNamed()) {
 					context.issueDiag(PatternMatchingNotSupportedForParameterVariablesDiag(),
@@ -554,6 +556,8 @@ namespace locic {
 				
 				auto paramVar = ConvertVar(context, Debug::VarInfo::VAR_ARGUMENT, astVarNode);
 				assert(paramVar->isBasic());
+				
+				paramVar->setIndex(index++);
 				
 				parameterTypes.push_back(paramVar->constructType());
 				parameterVars.push_back(paramVar.release());

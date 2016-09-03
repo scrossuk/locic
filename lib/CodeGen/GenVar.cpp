@@ -38,7 +38,10 @@ namespace locic {
 					const auto& varInfo = *debugInfo;
 					assert(varInfo.kind != Debug::VarInfo::VAR_MEMBER);
 					const auto debugType = genDebugType(module, var->constructType());
-					const auto debugDeclare = genDebugVar(function, varInfo, debugType, stackObject);
+					const auto argIndex = varInfo.kind == Debug::VarInfo::VAR_ARGUMENT ? var->index() : -1;
+					const auto debugDeclare = genDebugVar(function, varInfo,
+					                                      debugType, stackObject,
+					                                      argIndex);
 					
 					const auto varDeclStart = varInfo.declLocation.range().start();
 					debugDeclare->setDebugLoc(llvm::DebugLoc::get(varDeclStart.lineNumber(), varDeclStart.column(), function.debugInfo()));
