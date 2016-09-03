@@ -141,7 +141,11 @@ namespace locic {
 			// TODO: make these options configurable.
 			llvm::TargetOptions llvmTargetOptions;
 			
+#if LOCIC_LLVM_VERSION >= 309
+			llvm::Optional<llvm::Reloc::Model> relocModel;
+#else
 			llvm::Reloc::Model relocModel = llvm::Reloc::Default;
+#endif
 			llvm::CodeModel::Model codeModel = llvm::CodeModel::Default;
 			llvm::CodeGenOpt::Level optimisationLevel = llvm::CodeGenOpt::Default;
 			
