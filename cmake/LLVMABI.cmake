@@ -7,8 +7,6 @@ set(LLVMABI_LIB_LOCATION "${LLVMABI_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREF
 
 include(ExternalProject)
 
-set(LLVMABI_REPO "https://github.com/scross99/llvm-abi.git")
-
 set(LLVMABI_CMAKE_ARGS
 	"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
 	"-DCMAKE_INSTALL_PREFIX=${LLVMABI_INSTALL_DIR}"
@@ -30,8 +28,6 @@ set_target_properties(llvm-abi PROPERTIES
 )
 
 add_dependencies(llvm-abi LLVMABIProject)
-
-message(STATUS "Building llvm-abi from ${LLVMABI_REPO}")
 
 set(LLVMABI_DEPENDENCIES llvm-abi)
 set(LLVMABI_INCLUDE_DIRS "${LLVMABI_INCLUDE_LOCATION}")
