@@ -133,8 +133,8 @@ set(LLVM_VERSION_SIMPLE_STRING "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}")
 
 if("${LLVM_VERSION_SIMPLE_STRING}" VERSION_LESS "3.3")
 	message(FATAL_ERROR "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not supported (first supported version is 3.3).")
-elseif("${LLVM_VERSION_SIMPLE_STRING}" VERSION_GREATER "3.7")
-	message(WARNING "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not officially supported for this release (last supported version is 3.7).")
+elseif("${LLVM_VERSION_SIMPLE_STRING}" VERSION_GREATER "3.9")
+	message(WARNING "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not officially supported for this release (last supported version is 3.9).")
 endif()
 
 math(EXPR LOCIC_LLVM_VERSION ${LLVM_VERSION_MAJOR}*100+${LLVM_VERSION_MINOR})
