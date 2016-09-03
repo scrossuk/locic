@@ -378,6 +378,9 @@ namespace locic {
 		
 		void Function::attachDebugInfo(const DISubprogram subprogram) {
 			debugInfo_ = subprogram;
+#if LOCIC_LLVM_VERSION >= 308
+			function_.setSubprogram(subprogram);
+#endif
 		}
 		
 		DISubprogram Function::debugInfo() const {

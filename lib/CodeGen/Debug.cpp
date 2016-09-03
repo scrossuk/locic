@@ -83,7 +83,7 @@ namespace locic {
 			return builder_.createFunction(file, name.toString(false), "",
 				file, lineNumber, functionType,
 				isLocalToUnit, isDefinition, scopeLine,
-				flags, isOptimised, function);
+				flags, isOptimised);
 		}
 		
 		DILocalVariable DebugBuilder::createVar(DIScope scope,
