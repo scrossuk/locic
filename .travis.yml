@@ -21,7 +21,6 @@ before_install:
   - sudo sh -c "echo 'deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.6 main' >> /etc/apt/sources.list"
   - sudo sh -c "echo 'deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.7 main' >> /etc/apt/sources.list"
   - sudo sh -c "echo 'deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.8 main' >> /etc/apt/sources.list"
-  - sudo sh -c "echo 'deb http://apt.llvm.org/precise/ llvm-toolchain-precise-3.9 main' >> /etc/apt/sources.list"
   - sudo sh -c "echo 'deb http://apt.llvm.org/precise/ llvm-toolchain-precise main' >> /etc/apt/sources.list"
   - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 
@@ -101,6 +100,6 @@ env:
   # Build with LLVM 3.8
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.8 llvm-3.8-dev" CLANG_VERSION="3.8"
 
-  # Build with LLVM 3.9
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-3.9 llvm-3.9-dev" CLANG_VERSION="3.9" LOCIC_UPLOAD_DOCS=1
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.9 llvm-3.9-dev" CLANG_VERSION="3.9"
+  # Build with LLVM 4.0
+  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-4.0 llvm-4.0-dev" CLANG_VERSION="4.0" LOCIC_UPLOAD_DOCS=1
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-4.0 llvm-4.0-dev" CLANG_VERSION="4.0"
