@@ -98,8 +98,8 @@ env:
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.7 llvm-3.7-dev" CLANG_VERSION="3.7"
 
   # Build with LLVM 3.8
-  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.8 llvm-3.8-dev" CLANG_VERSION="3.8"
+  - BUILD_TYPE=Release LLVM_PACKAGE="llvm-3.8 llvm-3.8-dev" CLANG_VERSION="3.8" LOCIC_UPLOAD_DOCS=1
 
   # Build with LLVM 4.0
-  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-4.0 llvm-4.0-dev" CLANG_VERSION="4.0" LOCIC_UPLOAD_DOCS=1
+  - BUILD_TYPE=Debug LLVM_PACKAGE="llvm-4.0 llvm-4.0-dev" CLANG_VERSION="4.0"
   - BUILD_TYPE=Release LLVM_PACKAGE="llvm-4.0 llvm-4.0-dev" CLANG_VERSION="4.0"
