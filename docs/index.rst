@@ -1,7 +1,7 @@
 Loci - Programming Language
 ===========================
 
-Version 1.4 is now available! See :doc:`Releases <Releases>` for more information.
+Version 1.5 is now available! See :doc:`Releases <Releases>` for more information.
 
 .. toctree::
 	:maxdepth: 1

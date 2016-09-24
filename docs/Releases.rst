@@ -6,6 +6,64 @@ Available Releases
 
 This section lists completed releases of the Loci Compiler Tools, in reverse version order.
 
+v1.5
+~~~~
+
+Available here: `locic-1.5.src.tar.xz <http://loci-lang.org/releases/locic-1.5.src.tar.xz>`_
+
+Released on 24th September 2016, version 1.5 provides:
+
+**Compiler**
+
+* Added more links between AST and SEM for efficiency and future merge
+* Added ``SEM::Statement::For()`` to (in future) avoid generating loops in Semantic Analysis
+* Fixed various error messages to be more consistent (e.g. start with a lowercase letter)
+* Added ``size_t`` and ``ssize_t`` to valid vararg types
+* Added error for non-type arguments to capability test (``A : B``)
+* Fixed duplicate type errors to handle clashes with non-type objects
+* Print 'previously defined here' message for function name clash
+* Moved more code generation to use ``IREmitter`` rather than using LLVM's ``IRBuilder`` directly
+
+**Test**
+
+* Added ``check`` target that builds and tests the compiler
+* Various improvements to duplicate object tests
+* Added tests for covariant/contravariant casts
+* Moved 'CheckSuccess' tests into library-specific directories (e.g. ``test/SemanticAnalysis``)
+* Added currently-disabled tests for class inheritance
+* Added test for ``std::string`` ``length()`` and ``empty()``
+* Added test for destroying temporary in ternary value
+* Added tests for ``std::path``
+* Added test for ``unichar`` literal
+
+**Language features**
+
+* Added ``override`` and ``inherit`` keywords to lexer and parser; class inheritance is **not** yet implemented
+* Character literals now use new ``unichar`` type
+
+**Primitives**
+
+* Added ``unichar`` type (full type name is ``unichar_t``)
+* Added ``hash()`` methods for all integer primitives and ``typename_t``
+* Added more cast methods for various primitive types
+* Implemented copy methods for ``null_t``
+
+**Standard library**
+
+* Added ``std::filesystem::file_stream`` and ``std::filesystem::path``
+* Added ``empty()`` method for ``std::string``
+* ``std::hash<>`` now works for ``int``; not yet extended to work with all types
+* Fixed ``std::varray`` to use ``reverse_range<>`` rather than ``reverse_counter<>``
+
+**Documentation**
+
+* Added documentation for hashing support
+
+**Dependencies**
+
+* Tested to build and work with LLVM versions 3.3 to 3.9
+* ``llvm-abi`` is now a Git submodule rather than being fetched from a URL by CMake
+
 v1.4
 ~~~~
 
