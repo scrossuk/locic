@@ -11,8 +11,7 @@
 
 #include <llvm-abi/ABI.hpp>
 
-#include <locic/BuildOptions.hpp>
-
+#include <locic/CodeGen/BuildOptions.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/PrimitiveMap.hpp>
 #include <locic/CodeGen/Primitives.hpp>

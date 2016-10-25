@@ -12,12 +12,12 @@
 #include <boost/program_options.hpp>
 
 #include <locic/AST.hpp>
-#include <locic/BuildOptions.hpp>
 #include <locic/Debug.hpp>
 
 #include <locic/Frontend/DiagnosticArray.hpp>
 #include <locic/Frontend/DiagnosticRenderer.hpp>
 #include <locic/Parser/DefaultParser.hpp>
+#include <locic/CodeGen/BuildOptions.hpp>
 #include <locic/CodeGen/CodeGenerator.hpp>
 #include <locic/CodeGen/Context.hpp>
 #include <locic/CodeGen/Interpreter.hpp>
@@ -415,7 +415,7 @@ public:
 	CodeGen::ModulePtr
 	runCodeGen(CodeGen::Context& codeGenContext, SEM::Module& semModule,
 	           Debug::Module& debugModule) {
-		BuildOptions buildOptions;
+		CodeGen::BuildOptions buildOptions;
 		buildOptions.unsafe = options_.unsafe;
 		
 		if (options_.interpret) {

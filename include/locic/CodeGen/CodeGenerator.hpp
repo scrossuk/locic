@@ -7,8 +7,6 @@
 
 namespace locic {
 	
-	class BuildOptions;
-	
 	namespace Debug {
 		
 		class Module;
@@ -23,6 +21,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
+		class BuildOptions;
 		class Context;
 		class Module;
 		class ModulePtr;
