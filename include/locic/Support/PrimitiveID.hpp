@@ -90,6 +90,120 @@ namespace locic {
 		PrimitiveStaticArray
 	};
 	
+#define NAME_CASE(id, prefix, suffix) \
+	case id ## 0: \
+		return prefix "0_" suffix; \
+	case id ## 1: \
+		return prefix "1_" suffix; \
+	case id ## 2: \
+		return prefix "2_" suffix; \
+	case id ## 3: \
+		return prefix "3_" suffix; \
+	case id ## 4: \
+		return prefix "4_" suffix; \
+	case id ## 5: \
+		return prefix "5_" suffix; \
+	case id ## 6: \
+		return prefix "6_" suffix; \
+	case id ## 7: \
+		return prefix "7_" suffix; \
+	case id ## 8: \
+		return prefix "8_" suffix
+	
+#define PRIMITIVE_STRING_CASE(primitiveID, prefix) \
+	switch (primitiveID) { \
+		case PrimitiveVoid: \
+			return prefix "void_t"; \
+		case PrimitiveNull: \
+			return prefix "null_t"; \
+		case PrimitiveBool: \
+			return prefix "bool_t"; \
+		case PrimitiveCompareResult: \
+			return prefix "compare_result_t"; \
+		case PrimitiveUnichar: \
+			return prefix "unichar_t"; \
+		NAME_CASE(PrimitiveFunctionPtr, prefix "function", "ptr_t"); \
+		NAME_CASE(PrimitiveMethodFunctionPtr, prefix "methodfunction", "ptr_t"); \
+		NAME_CASE(PrimitiveTemplatedFunctionPtr, prefix "templatedfunction", "ptr_t"); \
+		NAME_CASE(PrimitiveTemplatedMethodFunctionPtr, prefix "templatedmethodfunction", "ptr_t"); \
+		NAME_CASE(PrimitiveVarArgFunctionPtr, prefix "varargfunction", "ptr_t"); \
+		NAME_CASE(PrimitiveMethod, prefix "method", "t"); \
+		NAME_CASE(PrimitiveTemplatedMethod, prefix "templatedmethod", "t"); \
+		NAME_CASE(PrimitiveInterfaceMethod, prefix "interfacemethod", "t"); \
+		NAME_CASE(PrimitiveStaticInterfaceMethod, prefix "staticinterfacemethod", "t"); \
+		case PrimitiveInt8: \
+			return prefix "int8_t"; \
+		case PrimitiveUInt8: \
+			return prefix "uint8_t"; \
+		case PrimitiveInt16: \
+			return prefix "int16_t"; \
+		case PrimitiveUInt16: \
+			return prefix "uint16_t"; \
+		case PrimitiveInt32: \
+			return prefix "int32_t"; \
+		case PrimitiveUInt32: \
+			return prefix "uint32_t"; \
+		case PrimitiveInt64: \
+			return prefix "int64_t"; \
+		case PrimitiveUInt64: \
+			return prefix "uint64_t"; \
+		case PrimitiveByte: \
+			return prefix "byte_t"; \
+		case PrimitiveUByte: \
+			return prefix "ubyte_t"; \
+		case PrimitiveShort: \
+			return prefix "short_t"; \
+		case PrimitiveUShort: \
+			return prefix "ushort_t"; \
+		case PrimitiveInt: \
+			return prefix "int_t"; \
+		case PrimitiveUInt: \
+			return prefix "uint_t"; \
+		case PrimitiveLong: \
+			return prefix "long_t"; \
+		case PrimitiveULong: \
+			return prefix "ulong_t"; \
+		case PrimitiveLongLong: \
+			return prefix "longlong_t"; \
+		case PrimitiveULongLong: \
+			return prefix "ulonglong_t"; \
+		case PrimitiveSize: \
+			return prefix "size_t"; \
+		case PrimitiveSSize: \
+			return prefix "ssize_t"; \
+		case PrimitivePtrDiff: \
+			return prefix "ptrdiff_t"; \
+		case PrimitiveFloat: \
+			return prefix "float_t"; \
+		case PrimitiveDouble: \
+			return prefix "double_t"; \
+		case PrimitiveLongDouble: \
+			return prefix "longdouble_t"; \
+		case PrimitiveRef: \
+			return prefix "ref_t"; \
+		case PrimitivePtr: \
+			return prefix "ptr_t"; \
+		case PrimitivePtrLval: \
+			return prefix "ptr_lval_t"; \
+		case PrimitiveValueLval: \
+			return prefix "value_lval_t"; \
+		case PrimitiveFinalLval: \
+			return prefix "final_lval_t"; \
+		case PrimitiveTypename: \
+			return prefix "typename_t"; \
+		case PrimitiveRange: \
+			return prefix "range_t"; \
+		case PrimitiveRangeIncl: \
+			return prefix "range_incl_t"; \
+		case PrimitiveReverseRange: \
+			return prefix "reverse_range_t"; \
+		case PrimitiveReverseRangeIncl: \
+			return prefix "reverse_range_incl_t"; \
+		case PrimitiveStaticArray: \
+			return prefix "static_array_t"; \
+	} \
+	locic_unreachable("Unknown primitive ID.");
+	
 	constexpr size_t PRIMITIVE_COUNT = PrimitiveStaticArray + 1;
 	
 	class PrimitiveID {

@@ -147,11 +147,9 @@ namespace locic {
 			case METHOD_TRAILINGZEROES:
 				return "trailingzeroes";
 			case METHOD_IMPLICITCASTFROM:
-				// TODO: use primitiveID() here.
-				return "implicitcast_?";
+				PRIMITIVE_STRING_CASE(primitiveID(), /*prefix=*/"implicitcast");
 			case METHOD_CASTFROM:
-				// TODO: use primitiveID() here.
-				return "cast_?";
+				PRIMITIVE_STRING_CASE(primitiveID(), /*prefix=*/"cast");
 			case METHOD_ALIGNMASK:
 				return "__alignmask";
 			case METHOD_SIZEOF:
