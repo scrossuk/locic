@@ -126,6 +126,189 @@ namespace locic {
 		return primitiveID_;
 	}
 	
+	const char* MethodID::toCString() const {
+		switch (value_) {
+			case METHOD_CREATE:
+				return "create";
+			case METHOD_DEAD:
+				return "__dead";
+			case METHOD_NULL:
+				return "null";
+			case METHOD_ZERO:
+				return "zero";
+			case METHOD_UNIT:
+				return "unit";
+			case METHOD_LEADINGONES:
+				return "leadingones";
+			case METHOD_TRAILINGONES:
+				return "trailingones";
+			case METHOD_LEADINGZEROES:
+				return "leadingzeroes";
+			case METHOD_TRAILINGZEROES:
+				return "trailingzeroes";
+			case METHOD_IMPLICITCASTFROM:
+				// TODO: use primitiveID() here.
+				return "implicitcast_?";
+			case METHOD_CASTFROM:
+				// TODO: use primitiveID() here.
+				return "cast_?";
+			case METHOD_ALIGNMASK:
+				return "__alignmask";
+			case METHOD_SIZEOF:
+				return "__sizeof";
+			case METHOD_UNINITIALIZED:
+				return "uninitialized";
+			
+			case METHOD_DESTROY:
+				return "__destroy";
+			case METHOD_IMPLICITCAST:
+				return "implicitcast";
+			case METHOD_CAST:
+				return "cast";
+			case METHOD_IMPLICITCOPY:
+				return "implicitcopy";
+			case METHOD_COPY:
+				return "copy";
+			case METHOD_PLUS:
+				return "plus";
+			case METHOD_MINUS:
+				return "minus";
+			case METHOD_NOT:
+				return "not";
+			case METHOD_FRONT:
+				return "front";
+			case METHOD_SKIPFRONT:
+				return "skipfront";
+			case METHOD_BACK:
+				return "back";
+			case METHOD_SKIPBACK:
+				return "skipback";
+			case METHOD_EMPTY:
+				return "empty";
+			case METHOD_ISZERO:
+				return "iszero";
+			case METHOD_ISPOSITIVE:
+				return "ispositive";
+			case METHOD_ISNEGATIVE:
+				return "isnegative";
+			case METHOD_ABS:
+				return "abs";
+			case METHOD_ADDRESS:
+				return "address";
+			case METHOD_DEREF:
+				return "deref";
+			case METHOD_DISSOLVE:
+				return "dissolve";
+			case METHOD_MOVE:
+				return "move";
+			case METHOD_SIGNEDVALUE:
+				return "signedvalue";
+			case METHOD_UNSIGNEDVALUE:
+				return "unsignedvalue";
+			case METHOD_COUNTLEADINGZEROES:
+				return "countleadingzeroes";
+			case METHOD_COUNTLEADINGONES:
+				return "countleadingones";
+			case METHOD_COUNTTRAILINGZEROES:
+				return "counttrailingzeroes";
+			case METHOD_COUNTTRAILINGONES:
+				return "counttrailingones";
+			case METHOD_SQRT:
+				return "sqrt";
+			case METHOD_INCREMENT:
+				return "increment";
+			case METHOD_DECREMENT:
+				return "decrement";
+			case METHOD_SETDEAD:
+				return "__setdead";
+			case METHOD_ISLIVE:
+				return "__islive";
+			case METHOD_SETINVALID:
+				return "__setinvalid";
+			case METHOD_ISVALID:
+				return "__isvalid";
+			case METHOD_ISEQUAL:
+				return "isequal";
+			case METHOD_ISNOTEQUAL:
+				return "isnotequal";
+			case METHOD_ISLESSTHAN:
+				return "islessthan";
+			case METHOD_ISLESSTHANOREQUAL:
+				return "islessthanorequal";
+			case METHOD_ISGREATERTHAN:
+				return "isgreaterthan";
+			case METHOD_ISGREATERTHANOREQUAL:
+				return "isgreaterthanorequal";
+			case METHOD_ASCIIVALUE:
+				return "asciivalue";
+			
+			case METHOD_ADD:
+				return "add";
+			case METHOD_SUBTRACT:
+				return "subtract";
+			case METHOD_MULTIPLY:
+				return "multiply";
+			case METHOD_DIVIDE:
+				return "divide";
+			case METHOD_MODULO:
+				return "modulo";
+			case METHOD_COMPARE:
+				return "compare";
+			case METHOD_ASSIGN:
+				return "assign";
+			case METHOD_INDEX:
+				return "index";
+			case METHOD_EQUAL:
+				return "equal";
+			case METHOD_NOTEQUAL:
+				return "notequal";
+			case METHOD_LESSTHAN:
+				return "lessthan";
+			case METHOD_LESSTHANOREQUAL:
+				return "lessthanorequal";
+			case METHOD_GREATERTHAN:
+				return "greaterthan";
+			case METHOD_GREATERTHANOREQUAL:
+				return "greaterthanorequal";
+			case METHOD_BITWISEAND:
+				return "bitwiseand";
+			case METHOD_BITWISEOR:
+				return "bitwiseor";
+			case METHOD_LEFTSHIFT:
+				return "leftshift";
+			case METHOD_RIGHTSHIFT:
+				return "rightshift";
+			
+			case METHOD_CALL:
+				return "call";
+			case METHOD_MOVETO:
+				return "__moveto";
+			case METHOD_INRANGE:
+				return "inrange";
+			case METHOD_SETVALUE:
+				return "setvalue";
+			case METHOD_EXTRACTVALUE:
+				return "extractvalue";
+			case METHOD_DESTROYVALUE:
+				return "destroyvalue";
+			
+			case METHOD_MIN:
+				return "min";
+			case METHOD_MAX:
+				return "max";
+			case METHOD_RANGE:
+				return "range";
+			case METHOD_RANGE_INCL:
+				return "rangeincl";
+			case METHOD_REVERSE_RANGE:
+				return "reverserange";
+			case METHOD_REVERSE_RANGE_INCL:
+				return "reverserangeincl";
+		}
+		
+		locic_unreachable("Unknown Method ID.");
+	}
+	
 	std::string MethodID::toString() const {
 		return toCString();
 	}
