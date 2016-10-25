@@ -160,6 +160,37 @@ namespace locic {
 			return llvmFunction;
 		}
 		
+		bool
+		SEMFunctionGenerator::hasDef(const SEM::TypeInstance* typeInstance,
+		                             const SEM::Function& function) {
+			if (!function.isDeclaration()) {
+				// This function has some associated code
+				// specified by the user.
+				return true;
+			}
+			
+			if (function.isPrimitive()) {
+				// This function is a language primitive (e.g.
+				// a method of 'int_t').
+				return true;
+			}
+			
+			const bool isClassDecl = typeInstance != nullptr &&
+			                         typeInstance->isClassDecl();
+			
+			if (function.isDefault() && !isClassDecl) {
+				// This function has been specified to be
+				// default-generated and is NOT a class
+				// declaration (class declaration methods will
+				// be default-generated in their own module).
+				return true;
+			}
+			
+			// We shouldn't be generating any IR code for this
+			// function.
+			return false;
+		}
+		
 		llvm::Function*
 		SEMFunctionGenerator::genDef(const SEM::TypeInstance* typeInstance,
 		                             const SEM::Function& function,
@@ -172,11 +203,7 @@ namespace locic {
 			                                  function,
 			                                  isInnerMethod);
 			
-			const bool isClassDecl = typeInstance != nullptr &&
-			                         typeInstance->isClassDecl();
-			
-			if (function.isDeclaration() && !function.isPrimitive() &&
-			    (!function.isDefault() || isClassDecl)) {
+			if (!hasDef(typeInstance, function)) {
 				// A declaration, so it has no associated code.
 				assert(!isInnerMethod);
 				return llvmFunction;

@@ -72,6 +72,13 @@ namespace locic {
 			        bool isInnerMethod = false);
 			
 			/**
+			 * \brief Query whether definition should be generated.
+			 */
+			bool
+			hasDef(const SEM::TypeInstance* typeInstance,
+			       const SEM::Function& function);
+			
+			/**
 			 * \brief Generate function definition.
 			 * 
 			 * This generates the function code and returns a
