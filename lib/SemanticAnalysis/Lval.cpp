@@ -37,17 +37,6 @@ namespace locic {
 			}
 		}
 		
-		size_t getLvalCount(const SEM::Type* type) {
-			type = getDerefType(type);
-			
-			size_t count = 0;
-			while (type->isLval()) {
-				count++;
-				type = getDerefType(type->lvalTarget());
-			}
-			return count;
-		}
-		
 		bool canDissolveType(Context& context, const SEM::Type* const rawType) {
 			const auto type = getSingleDerefType(rawType);
 			return type->isLval() && type->isObjectOrTemplateVar() &&
