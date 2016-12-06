@@ -136,8 +136,9 @@ namespace locic {
 			return builder_.makeConstType(std::move(targetType), start);
 		}
 		
-		AST::Node<AST::TypeDecl> TypeParser::parseTypeWithQualifier(const Debug::SourcePosition& start,
-		                                                        const Token::Kind qualifier) {
+		AST::Node<AST::TypeDecl>
+		TypeParser::parseTypeWithQualifier(const Debug::SourcePosition& start,
+		                                   const Token::Kind qualifier) {
 			reader_.expect(Token::LTRIBRACKET);
 			
 			auto targetType = parseType();
