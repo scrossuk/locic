@@ -24,7 +24,8 @@ namespace locic {
 			
 			const auto id = varType->primitiveID();
 			if (id == PrimitiveValueLval || id == PrimitiveFinalLval) {
-				irEmitter.emitMoveStore(value, var, varType->lvalTarget());
+				irEmitter.emitMoveStore(value, var,
+				                        varType->templateArguments().front().typeRefType());
 			} else {
 				llvm_unreachable("Unknown primitive lval kind.");
 			}
