@@ -544,8 +544,7 @@ namespace locic {
 				assert(doesPredicateImplyPredicate(context, copyValue.type()->constPredicate(), destType->constPredicate()));
 				
 				auto copyLvalValue = sourceType->isLval() ?
-						// TODO: Remove lval target from SEM::Value.
-						SEM::Value::Lval(sourceType, std::move(copyValue)) :
+						SEM::Value::Lval(std::move(copyValue)) :
 						std::move(copyValue);
 				
 				auto copyRefValue = sourceType->isRef() ?

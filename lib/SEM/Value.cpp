@@ -64,10 +64,6 @@ namespace locic {
 				
 				struct {
 					const Type* targetType;
-				} makeLval;
-				
-				struct {
-					const Type* targetType;
 				} makeRef;
 				
 				struct {
@@ -199,9 +195,8 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::Lval(const Type* const targetType, Value operand) {
+		Value Value::Lval(Value operand) {
 			Value value(LVAL, operand.type()->createLvalType(), operand.exitStates());
-			value.impl_->union_.makeLval.targetType = targetType;
 			value.impl_->value0 = std::move(operand);
 			return value;
 		}
@@ -552,11 +547,6 @@ namespace locic {
 			return kind() == LVAL;
 		}
 		
-		const Type* Value::makeLvalTargetType() const {
-			assert(isMakeLval());
-			return impl_->union_.makeLval.targetType;
-		}
-		
 		const Value& Value::makeLvalOperand() const {
 			assert(isMakeLval());
 			return impl_->value0;
@@ -845,7 +835,6 @@ namespace locic {
 					hasher.add(polyCastOperand());
 					break;
 				case Value::LVAL:
-					hasher.add(makeLvalTargetType());
 					hasher.add(makeLvalOperand());
 					break;
 				case Value::NOLVAL:
@@ -971,7 +960,7 @@ namespace locic {
 				case Value::POLYCAST:
 					return polyCastTargetType() == value.polyCastTargetType() && polyCastOperand() == value.polyCastOperand();
 				case Value::LVAL:
-					return makeLvalTargetType() == value.makeLvalTargetType() && makeLvalOperand() == value.makeLvalOperand();
+					return makeLvalOperand() == value.makeLvalOperand();
 				case Value::NOLVAL:
 					return makeNoLvalOperand() == value.makeNoLvalOperand();
 				case Value::REF:
@@ -1181,9 +1170,8 @@ namespace locic {
 						polyCastOperand().toString().c_str(),
 						polyCastTargetType()->toString().c_str());
 				case LVAL:
-					return makeString("Lval(value: %s, targetType: %s)",
-						makeLvalOperand().toString().c_str(),
-						makeLvalTargetType()->toString().c_str());
+					return makeString("Lval(value: %s)",
+						makeLvalOperand().toString().c_str());
 				case NOLVAL:
 					return makeString("NoLval(value: %s)", makeNoLvalOperand().toString().c_str());
 				case REF:
@@ -1289,8 +1277,7 @@ namespace locic {
 				case POLYCAST:
 					return polyCastOperand().toDiagString();
 				case LVAL:
-					return makeString("lval<%s>(%s)",
-						makeLvalTargetType()->toString().c_str(),
+					return makeString("lval(%s)",
 						makeLvalOperand().toDiagString().c_str());
 				case NOLVAL:
 					return makeString("nolval(%s)", makeNoLvalOperand().toDiagString().c_str());

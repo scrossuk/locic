@@ -181,7 +181,7 @@ namespace locic {
 				 * semantics when the value is used (e.g. methods like
 				 * 'dissolve' are automatically invoked).
 				 */
-				static Value Lval(const Type* targetType, Value operand);
+				static Value Lval(Value operand);
 				
 				/**
 				 * \brief Remove Lval Type Tag
@@ -398,7 +398,6 @@ namespace locic {
 				const Value& polyCastOperand() const;
 				
 				bool isMakeLval() const;
-				const Type* makeLvalTargetType() const;
 				const Value& makeLvalOperand() const;
 				
 				bool isMakeNoLval() const;
