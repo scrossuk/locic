@@ -471,23 +471,13 @@ namespace locic {
 				}
 			}
 			
-			// Try to dissolve the source lval type enough times
-			// so that it matches the destination type.
-			{
-				const auto sourceCount = getLvalCount(sourceType);
-				const auto destCount = getLvalCount(destType);
-				if (sourceCount > destCount) {
-					auto reducedValue = value.copy();
-					
-					const auto numReduce = sourceCount - destCount;
-					for (size_t i = 0; i < numReduce; i++) {
-						reducedValue = dissolveLval(context, derefValue(std::move(reducedValue)), location);
-					}
-					
-					auto castResult = ImplicitCastConvert(context, errors, std::move(reducedValue), destType, location, allowBind);
-					if (castResult) {
-						return castResult;
-					}
+			// Try to dissolve the source lval type.
+			if (getDerefType(sourceType)->isLval() && !getDerefType(destType)->isLval()) {
+				auto reducedValue = dissolveLval(context, derefValue(value.copy()), location);
+				
+				auto castResult = ImplicitCastConvert(context, errors, std::move(reducedValue), destType, location, allowBind);
+				if (castResult) {
+					return castResult;
 				}
 			}
 			
