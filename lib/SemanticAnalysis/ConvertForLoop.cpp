@@ -58,8 +58,8 @@ namespace locic {
 				
 				auto initValue = ConvertValue(context, astInitValueNode);
 				
-				const auto initVarType = (initValue.type()->isLvalOrRef()) ?
-						createReferenceType(context, initValue.type()->lvalOrRefTarget()) :
+				const auto initVarType = (initValue.type()->isRef()) ?
+						createReferenceType(context, initValue.type()->refTarget()) :
 						initValue.type();
 				
 				auto initVar = SEM::Var::Basic(initVarType, initVarType);

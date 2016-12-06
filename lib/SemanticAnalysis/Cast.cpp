@@ -659,8 +659,8 @@ namespace locic {
 		namespace {
 			
 			const SEM::Type* getUnionDatatypeParent(const SEM::Type* type) {
-				while (type->isLvalOrRef()) {
-					type = type->lvalOrRefTarget();
+				while (type->isRef()) {
+					type = type->refTarget();
 				}
 				
 				if (!type->isDatatype()) {
