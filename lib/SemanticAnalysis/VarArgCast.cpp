@@ -63,18 +63,12 @@ namespace locic {
 			const auto derefType = getDerefType(value.type()->resolveAliases());
 			assert(!derefType->isRef());
 			
-			if (derefType->isLval() && canDissolveValue(context, value)) {
+			if (derefType->isLval()) {
 				// Dissolve lval.
-				// TODO: remove this value copy!
-				auto dissolvedValue = dissolveLval(context, value.copy(), location);
+				value = dissolveLval(context, std::move(value), location);
 				
-				// See if this results in
-				// a valid var arg value.
-				auto result = VarArgCastSearch(context, std::move(dissolvedValue), location);
-				
-				if (result) {
-					return result;
-				}
+				// See if this results in a valid var arg value.
+				return VarArgCastSearch(context, std::move(value), location);
 			}
 			
 			if (value.type()->isRef() && TypeCapabilities(context).supportsImplicitCopy(derefType)) {
