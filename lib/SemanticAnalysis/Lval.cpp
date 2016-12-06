@@ -37,18 +37,7 @@ namespace locic {
 			}
 		}
 		
-		bool canDissolveType(Context& context, const SEM::Type* const rawType) {
-			const auto type = getSingleDerefType(rawType);
-			return type->isLval() && type->isObjectOrTemplateVar() &&
-			       TypeCapabilities(context).supportsDissolve(type);
-		}
-		
-		bool canDissolveValue(Context& context, const SEM::Value& value) {
-			return canDissolveType(context, value.type());
-		}
-		
 		SEM::Value dissolveLval(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
-			assert (canDissolveValue(context, value));
 			assert(value.type()->isLval() || (value.type()->isRef() && value.type()->isBuiltInReference() && value.type()->refTarget()->isLval()));
 			if (!value.type()->isRef()) {
 				value = bindReference(context, std::move(value));
@@ -57,7 +46,7 @@ namespace locic {
 		}
 		
 		SEM::Value tryDissolveValue(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
-			if (canDissolveValue(context, value)) {
+			if (getSingleDerefType(value.type())->isLval()) {
 				return dissolveLval(context, std::move(value), location);
 			} else {
 				return value;

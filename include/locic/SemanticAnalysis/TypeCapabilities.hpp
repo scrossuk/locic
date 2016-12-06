@@ -52,8 +52,6 @@ namespace locic {
 			
 			bool supportsMove(const SEM::Type* const type);
 			
-			bool supportsDissolve(const SEM::Type* const type);
-			
 			bool supportsCall(const SEM::Type* const type);
 			
 		private:
