@@ -40,6 +40,10 @@ namespace locic {
 		               OptionalDiag chain = OptionalDiag()) {
 			diags_.push_back(DiagInfo(std::move(diag), location, std::move(chain)));
 			std::sort(diags_.begin(), diags_.end(), [](const DiagInfo& a, const DiagInfo& b) {
+				if (a.location.fileName() != b.location.fileName()) {
+					return a.location.fileName().asStdString() < b.location.fileName().asStdString();
+				}
+				
 				return a.location.range().start() < b.location.range().start();
 			});
 		}
