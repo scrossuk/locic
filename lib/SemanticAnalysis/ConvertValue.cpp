@@ -832,10 +832,6 @@ namespace locic {
 						return sourceValue;
 					}
 					
-					const auto targetType = TypeResolver(context).resolveType(astValueNode->makeLval.targetType);
-					// TODO: Remove lval target type from AST::Value.
-					(void) targetType;
-					
 					return SEM::Value::Lval(std::move(sourceValue));
 				}
 				case AST::Value::NOLVAL: {

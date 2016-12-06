@@ -120,8 +120,7 @@ namespace locic {
 			             const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>
-			makeLvalValue(AST::Node<AST::TypeDecl> targetType,
-			              AST::Node<AST::Value> value,
+			makeLvalValue(AST::Node<AST::Value> value,
 			              const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Value>

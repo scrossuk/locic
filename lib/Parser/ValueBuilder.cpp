@@ -165,10 +165,9 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Value>
-		ValueBuilder::makeLvalValue(AST::Node<AST::TypeDecl> targetType,
-		                            AST::Node<AST::Value> value,
+		ValueBuilder::makeLvalValue(AST::Node<AST::Value> value,
 		                            const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Lval(std::move(targetType), std::move(value)), start);
+			return makeValueNode(AST::Value::Lval(std::move(value)), start);
 		}
 		
 		AST::Node<AST::Value>

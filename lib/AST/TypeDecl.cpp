@@ -46,9 +46,8 @@ namespace locic {
 			return type;
 		}
 		
-		TypeDecl* TypeDecl::Lval(Node<TypeDecl> targetType, Node<TypeDecl> lvalType) {
+		TypeDecl* TypeDecl::Lval(Node<TypeDecl> lvalType) {
 			TypeDecl* type = new TypeDecl(LVAL);
-			type->lvalType.targetType = std::move(targetType);
 			type->lvalType.lvalType = std::move(lvalType);
 			return type;
 		}
@@ -153,7 +152,7 @@ namespace locic {
 					return std::string("notag(") + getNoTagTarget()->toString() + ")";
 					
 				case LVAL:
-					return std::string("lval <") + getLvalTarget()->toString() + "> " + getLvalType()->toString();
+					return std::string("lval ") + getLvalType()->toString();
 					
 				case REF:
 					return std::string("ref <") + getRefTarget()->toString() + "> " + getRefType()->toString();

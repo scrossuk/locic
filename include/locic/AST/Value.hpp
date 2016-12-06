@@ -135,7 +135,6 @@ namespace locic {
 			} cast;
 			
 			struct {
-				Node<TypeDecl> targetType;
 				Node<Value> value;
 			} makeLval;
 			
@@ -274,9 +273,8 @@ namespace locic {
 				return value;
 			}
 			
-			static Value* Lval(Node<TypeDecl> targetType, Node<Value> operand) {
+			static Value* Lval(Node<Value> operand) {
 				Value* value = new Value(LVAL);
-				value->makeLval.targetType = std::move(targetType);
 				value->makeLval.value = std::move(operand);
 				return value;
 			}

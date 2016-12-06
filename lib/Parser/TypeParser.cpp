@@ -149,7 +149,9 @@ namespace locic {
 			
 			switch (qualifier) {
 				case Token::LVAL:
-					return builder_.makeLvalType(std::move(targetType), std::move(type), start);
+					// TODO: Don't parse for lval target type.
+					(void) targetType;
+					return builder_.makeLvalType(std::move(type), start);
 				case Token::REF:
 					return builder_.makeRefType(std::move(targetType), std::move(type), start);
 				case Token::STATICREF:

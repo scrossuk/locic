@@ -1105,8 +1105,9 @@ namespace locic {
 						
 						switch (kind) {
 							case Token::LVAL: {
-								auto lvalType = TypeBuilder(reader_).makeLvalType(std::move(targetType),
-								                                                  std::move(type), start);
+								// TODO: Don't parse for lval target type.
+								(void) targetType;
+								auto lvalType = TypeBuilder(reader_).makeLvalType(std::move(type), start);
 								return builder_.makeTypeValue(std::move(lvalType), start);
 							}
 							case Token::REF: {
@@ -1125,7 +1126,9 @@ namespace locic {
 					if (kind == Token::REF) {
 						return builder_.makeRefValue(std::move(targetType), std::move(value), start);
 					} else {
-						return builder_.makeLvalValue(std::move(targetType), std::move(value), start);
+						// TODO: Don't parse for lval target type.
+						(void) targetType;
+						return builder_.makeLvalValue(std::move(value), start);
 					}
 				}
 				default: {

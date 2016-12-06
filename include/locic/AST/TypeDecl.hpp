@@ -67,7 +67,6 @@ namespace locic {
 			} noTagType;
 			
 			struct {
-				Node<TypeDecl> targetType;
 				Node<TypeDecl> lvalType;
 			} lvalType;
 			
@@ -133,7 +132,7 @@ namespace locic {
 			
 			static TypeDecl* NoTag(Node<TypeDecl> targetType);
 			
-			static TypeDecl* Lval(Node<TypeDecl> targetType, Node<TypeDecl> lvalType);
+			static TypeDecl* Lval(Node<TypeDecl> lvalType);
 			
 			static TypeDecl* Ref(Node<TypeDecl> targetType, Node<TypeDecl> refType);
 			
@@ -223,16 +222,6 @@ namespace locic {
 			
 			bool isLval() const {
 				return typeEnum == LVAL;
-			}
-			
-			Node<TypeDecl>& getLvalTarget() {
-				assert(isLval());
-				return lvalType.targetType;
-			}
-			
-			const Node<TypeDecl>& getLvalTarget() const {
-				assert(isLval());
-				return lvalType.targetType;
 			}
 			
 			Node<TypeDecl>& getLvalType() {
