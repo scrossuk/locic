@@ -72,18 +72,13 @@ namespace locic {
 			}
 			
 			if (value.type()->isRef() && TypeCapabilities(context).supportsImplicitCopy(derefType)) {
-				// Try to copy.
+				// Call implicitcopy() method.
 				auto copyValue = CallValue(context, GetMethod(context, std::move(value),
 				                                              context.getCString("implicitcopy"), location),
 				                           {}, location);
 				
-				// See if this results in
-				// a valid var arg value.
-				auto result = VarArgCastSearch(context, std::move(copyValue), location);
-				
-				if (result) {
-					return result;
-				}
+				// See if this results in a valid var arg value.
+				return VarArgCastSearch(context, std::move(copyValue), location);
 			}
 			
 			return Optional<SEM::Value>();
