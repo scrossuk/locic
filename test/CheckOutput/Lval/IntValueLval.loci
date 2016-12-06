@@ -15,13 +15,13 @@
 
 import void printf(const ubyte * str, ...);
 
-void assignFunction(lval<int> value_lval_t<int>& objectLval, int value) {
+void assignFunction(lval value_lval_t<int>& objectLval, int value) {
 	printf(C"assignFunction: Previous value = %d\n", objectLval);
 	objectLval = value;
 	printf(C"assignFunction: New value = %d\n", objectLval);
 }
 
-void moveFunction(lval<int> value_lval_t<int>& objectLval) {
+void moveFunction(lval value_lval_t<int>& objectLval) {
 	printf(C"moveFunction: Previous value = %d\n", objectLval);
 	int value = move objectLval;
 	printf(C"moveFunction: Moved value = %d\n", value);

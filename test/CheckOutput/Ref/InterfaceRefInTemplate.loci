@@ -12,7 +12,7 @@ class TemplatedClass(T object) {
 		return @(move object);
 	}
 	
-	lval<T> value_lval_t<T>& get() noexcept {
+	lval value_lval_t<T>& get() noexcept {
 		return @object;
 	}
 }

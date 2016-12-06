@@ -15,12 +15,12 @@ export int main(unused int argc, unused ubyte ** argv) {
 	
 	printf(C"main: Value = %d.\n", value);
 	
-	lval<int> auto& valueLvalRef1 = value;
+	lval auto& valueLvalRef1 = value;
 	valueLvalRef1 = 11;
 	
 	printf(C"main: Value = %d.\n", value);
 	
-	lval<auto> auto& valueLvalRef2 = value;
+	lval auto& valueLvalRef2 = value;
 	valueLvalRef2 = 111;
 	
 	printf(C"main: Value = %d.\n", value);

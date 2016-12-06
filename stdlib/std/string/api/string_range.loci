@@ -56,7 +56,7 @@ import std.string 0.1.0 {
 			 * 
 			 * \return Value at front of range.
 			 */
-			lval<unichar> string_lval front() const;
+			lval string_lval front() const;
 			
 			/**
 			 * \brief Pop back.
@@ -68,7 +68,7 @@ import std.string 0.1.0 {
 			 * 
 			 * \return Value at back of range.
 			 */
-			lval<unichar> string_lval back() const;
+			lval string_lval back() const;
 			
 			/**
 			 * \brief Get whether range is empty.

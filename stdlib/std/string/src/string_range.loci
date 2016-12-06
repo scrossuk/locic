@@ -37,9 +37,9 @@ export std.string 0.1.0 {
 				@begin += 1u;
 			}
 			
-			lval<unichar> string_lval front() const {
+			lval string_lval front() const {
 				assert !self.empty();
-				return lval<unichar>(string_lval(&@stringData[@begin]));
+				return lval(string_lval(&@stringData[@begin]));
 			}
 			
 			void skip_back() {
@@ -47,9 +47,9 @@ export std.string 0.1.0 {
 				@end -= 1u;
 			}
 			
-			lval<unichar> string_lval back() const {
+			lval string_lval back() const {
 				assert !self.empty();
-                                return lval<unichar>(string_lval(&@stringData[@end - 1u]));
+                                return lval(string_lval(&@stringData[@end - 1u]));
 			}
 			
 			bool empty() const {

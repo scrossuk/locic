@@ -61,7 +61,7 @@ Loci significantly extends the above by allowing custom lvalue types to be creat
 		}
 	}
 	
-	void f(lval<int> CustomLval value) {
+	void f(lval CustomLval value) {
 		// Calls CustomLval::address.
 		int* intPointer = &value;
 		

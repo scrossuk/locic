@@ -10,7 +10,7 @@ export std.container 0.1.0 {
 			static create = default;
 			
 			template <bool IsConst>
-			lval<const<IsConst or IsListConst>(T)> ptr_lval_t<const<IsConst or IsListConst>(T)> front() const(IsConst) {
+			lval ptr_lval_t<const<IsConst or IsListConst>(T)> front() const(IsConst) {
 				assert !self.empty();
 				return *(&(@begin->value));
 			}
@@ -26,7 +26,7 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst or IsListConst>(T)> ptr_lval_t<const<IsConst or IsListConst>(T)> back() const(IsConst) {
+			lval ptr_lval_t<const<IsConst or IsListConst>(T)> back() const(IsConst) {
 				assert !self.empty();
 				return *(&(@end->value));
 			}
@@ -95,13 +95,13 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> front() const(IsConst) {
+			lval ptr_lval_t<const<IsConst>(T)> front() const(IsConst) {
 				assert !self.empty();
 				return *(&(@begin->value));
 			}
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> back() const(IsConst) {
+			lval ptr_lval_t<const<IsConst>(T)> back() const(IsConst) {
 				assert !self.empty();
 				return *(&(@end->value));
 			}

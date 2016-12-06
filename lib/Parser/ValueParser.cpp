@@ -1094,42 +1094,36 @@ namespace locic {
 		AST::Node<AST::Value> ValueParser::parseTypeQualifyingValue(const Token::Kind kind,
 		                                                            const Debug::SourcePosition& start) {
 			switch (kind) {
-				case Token::REF:
-				case Token::LVAL: {
+				case Token::REF: {
 					reader_.expect(Token::LTRIBRACKET);
 					auto targetType = TypeParser(reader_).parseType();
 					reader_.expect(Token::RTRIBRACKET);
 					
 					if (reader_.peek().kind() != Token::LROUNDBRACKET) {
 						auto type = TypeParser(reader_).parseQualifiedType();
-						
-						switch (kind) {
-							case Token::LVAL: {
-								// TODO: Don't parse for lval target type.
-								(void) targetType;
-								auto lvalType = TypeBuilder(reader_).makeLvalType(std::move(type), start);
-								return builder_.makeTypeValue(std::move(lvalType), start);
-							}
-							case Token::REF: {
-								auto refType = TypeBuilder(reader_).makeRefType(std::move(targetType),
-								                                                std::move(type), start);
-								return builder_.makeTypeValue(std::move(refType), start);
-							}
-							default:
-								break;
-						}
+						auto refType = TypeBuilder(reader_).makeRefType(std::move(targetType),
+						                                                std::move(type), start);
+						return builder_.makeTypeValue(std::move(refType), start);
 					}
 					
 					reader_.expect(Token::LROUNDBRACKET);
 					auto value = parseValue();
 					reader_.expect(Token::RROUNDBRACKET);
-					if (kind == Token::REF) {
-						return builder_.makeRefValue(std::move(targetType), std::move(value), start);
-					} else {
-						// TODO: Don't parse for lval target type.
-						(void) targetType;
-						return builder_.makeLvalValue(std::move(value), start);
+					
+					return builder_.makeRefValue(std::move(targetType), std::move(value), start);
+				}
+				case Token::LVAL: {
+					if (reader_.peek().kind() != Token::LROUNDBRACKET) {
+						auto type = TypeParser(reader_).parseQualifiedType();
+						auto lvalType = TypeBuilder(reader_).makeLvalType(std::move(type), start);
+						return builder_.makeTypeValue(std::move(lvalType), start);
 					}
+					
+					reader_.expect(Token::LROUNDBRACKET);
+					auto value = parseValue();
+					reader_.expect(Token::RROUNDBRACKET);
+					
+					return builder_.makeLvalValue(std::move(value), start);
 				}
 				default: {
 					reader_.expect(Token::LROUNDBRACKET);

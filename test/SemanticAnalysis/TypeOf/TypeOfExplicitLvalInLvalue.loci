@@ -2,6 +2,6 @@
 
 // XFAIL: *
 
-export void f(lval<int> ptr_lval_t<int> x) {
-	static assert typeof(x) == lval<int> ptr_lval_t<int>;
+export void f(lval ptr_lval_t<int> x) {
+	static assert typeof(x) == lval ptr_lval_t<int>;
 }

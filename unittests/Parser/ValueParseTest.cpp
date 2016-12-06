@@ -348,9 +348,6 @@ namespace locic {
 		TEST(ValueParseTest, LvalType) {
 			auto tokens = {
 				Token::LVAL,
-				Token::LTRIBRACKET,
-				Token::NAME,
-				Token::RTRIBRACKET,
 				Token::NAME
 			};
 			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
@@ -915,9 +912,6 @@ namespace locic {
 		TEST(ValueParseTest, LvalValue) {
 			auto tokens = {
 				Token::LVAL,
-				Token::LTRIBRACKET,
-				Token::NAME,
-				Token::RTRIBRACKET,
 				Token::LROUNDBRACKET,
 				Token::NAME,
 				Token::RROUNDBRACKET

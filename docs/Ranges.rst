@@ -15,13 +15,13 @@ Input Range
 
 .. code-block:: c++
 
-	template <typename T, typename LvalType>
+	template <typename LvalType>
 	interface input_range {
 		bool empty() const;
 		
 		void skip_front();
 		
-		lval<T> LvalType front() require(movable<LvalType>);
+		lval LvalType front() require(movable<LvalType>);
 	}
 
 Input ranges are the most common kind of range, due to their use in :ref:`for-each loops <foreachloop>`. Here's an example:
@@ -55,17 +55,17 @@ Bidirectional Range
 
 .. code-block:: c++
 
-	template <typename T, typename LvalType>
+	template <typename LvalType>
 	interface bidirectional_range {
 		bool empty() const;
 		
 		void skip_front();
 		
-		lval<T> LvalType front() require(movable<LvalType>);
+		lval LvalType front() require(movable<LvalType>);
 		
 		void skip_back();
 		
-		lval<T> LvalType back() require(movable<LvalType>);
+		lval LvalType back() require(movable<LvalType>);
 	}
 
 A bidirectional range is simply an input range that supports both accessing the first and last operations. This is useful for operations such as:

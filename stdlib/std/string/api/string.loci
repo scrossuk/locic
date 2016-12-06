@@ -110,7 +110,7 @@ import std.string 0.1.0 {
 			 * \return The joined string.
 			 */
 			template <typename LvalType: readable_lval<string>>
-			string join(input_range<string, LvalType>& range) const;
+			string join(input_range<LvalType>& range) const;
 			
 			/**
 			 * \brief Create a UTF-8 buffer for the string.

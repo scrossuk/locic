@@ -18,13 +18,13 @@ import std.container 0.1.0 {
 			size_t capacity() const noexcept;
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> front() const(IsConst) noexcept;
+			lval ptr_lval_t<const<IsConst>(T)> front() const(IsConst) noexcept;
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> back() const(IsConst) noexcept;
+			lval ptr_lval_t<const<IsConst>(T)> back() const(IsConst) noexcept;
 			
 			template <bool IsConst>
-			lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept;
+			lval ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept;
 			
 			void clear() noexcept;
 			
@@ -47,7 +47,7 @@ import std.container 0.1.0 {
 			void skip_front();
 			
 			template <bool IsConst>
-			lval<const<IsConst or IsQueueConst>(T)> ptr_lval_t<const<IsConst or IsQueueConst>(T)> front() const(IsConst) noexcept;
+			lval ptr_lval_t<const<IsConst or IsQueueConst>(T)> front() const(IsConst) noexcept;
 		}
 		
 	}

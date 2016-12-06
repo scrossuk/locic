@@ -11,9 +11,9 @@
 
 import void printf(const ubyte * str, ...) noexcept;
 
-class TestClass(lval<MemberClass> value_lval_t<MemberClass> member) {
+class TestClass(lval value_lval_t<MemberClass> member) {
 	static create(MemberClass value) noexcept {
-		return @(lval<MemberClass>(value_lval_t<MemberClass>(move value)));
+		return @(lval(value_lval_t<MemberClass>(move value)));
 	}
 }
 

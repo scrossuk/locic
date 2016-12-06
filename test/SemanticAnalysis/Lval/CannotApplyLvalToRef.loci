@@ -3,7 +3,7 @@
 
 export void f() {
 	// CHECK: .loci:6:16: error: cannot create lval of value that is already a ref
-	unused_result lval<int>(ref<int>(10));
+	unused_result lval(ref<int>(10));
 }
 
 // CHECK: 1 error generated.

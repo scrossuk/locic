@@ -6,8 +6,8 @@ export staticref<const TestClass> typename getConstType() {
 	return const TestClass;
 }
 
-export staticref<lval<int> TestClass> typename getLvalType() {
-	return lval<int> TestClass;
+export staticref<lval TestClass> typename getLvalType() {
+	return lval TestClass;
 }
 
 export staticref<TestClass> typename getNoTagType() {

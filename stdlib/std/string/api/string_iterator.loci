@@ -37,7 +37,7 @@ import std.string 0.1.0 {
 			 * 
 			 * \return Character at current position.
 			 */
-			lval<unichar> string_lval deref() const;
+			lval string_lval deref() const;
 			
 			/**
 			 * \brief Compare with another iterator.

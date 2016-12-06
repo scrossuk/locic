@@ -2,8 +2,8 @@
 
 // XFAIL: *
 
-import lval<int> ptr_lval_t<int> g();
+import lval ptr_lval_t<int> g();
 
 export void f() {
-	static assert typeof(g()) == lval<int> ptr_lval_t<int>;
+	static assert typeof(g()) == lval ptr_lval_t<int>;
 }

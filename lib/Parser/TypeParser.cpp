@@ -139,6 +139,11 @@ namespace locic {
 		AST::Node<AST::TypeDecl>
 		TypeParser::parseTypeWithQualifier(const Debug::SourcePosition& start,
 		                                   const Token::Kind qualifier) {
+			if (qualifier == Token::LVAL) {
+				auto type = parseQualifiedType();
+				return builder_.makeLvalType(std::move(type), start);
+			}
+			
 			reader_.expect(Token::LTRIBRACKET);
 			
 			auto targetType = parseType();
@@ -148,10 +153,6 @@ namespace locic {
 			auto type = parseQualifiedType();
 			
 			switch (qualifier) {
-				case Token::LVAL:
-					// TODO: Don't parse for lval target type.
-					(void) targetType;
-					return builder_.makeLvalType(std::move(type), start);
 				case Token::REF:
 					return builder_.makeRefType(std::move(targetType), std::move(type), start);
 				case Token::STATICREF:

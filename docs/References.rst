@@ -29,7 +29,7 @@ Here you can see that implicit conversion operations between types are able to u
 
 .. code-block:: c++
 
-	ref<lval<int> IntLvalType> IntLvalRefType getLvalRef();
+	ref<lval IntLvalType> IntLvalRefType getLvalRef();
 	
 	void function() {
 		// Implicitly dereferences 'IntLvalRefType' to call method 'assign'.

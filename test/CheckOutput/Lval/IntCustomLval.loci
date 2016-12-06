@@ -56,7 +56,7 @@ class custom_lval(int value) {
 	}
 }
 
-void addressAssignFunction(lval<int> custom_lval& objectLval, int value) {
+void addressAssignFunction(lval custom_lval& objectLval, int value) {
 	int* valuePtr = &objectLval;
 	
 	printf(C"addressAssignFunction: Previous value = %d\n", *valuePtr);
@@ -66,7 +66,7 @@ void addressAssignFunction(lval<int> custom_lval& objectLval, int value) {
 	printf(C"addressAssignFunction: New value = %d\n", *valuePtr);
 }
 
-void assignFunction(lval<int> custom_lval& objectLval, int value) {
+void assignFunction(lval custom_lval& objectLval, int value) {
 	printf(C"assignFunction: Previous value = %d\n", objectLval);
 	
 	objectLval = value;
@@ -74,7 +74,7 @@ void assignFunction(lval<int> custom_lval& objectLval, int value) {
 	printf(C"assignFunction: New value = %d\n", objectLval);
 }
 
-void moveFunction(lval<int> custom_lval& objectLval) {
+void moveFunction(lval custom_lval& objectLval) {
 	printf(C"moveFunction: Previous value = %d\n", objectLval);
 	
 	int value = move objectLval;
@@ -85,7 +85,7 @@ void moveFunction(lval<int> custom_lval& objectLval) {
 }
 
 export int main(unused int argc, unused ubyte ** argv) {
-	lval<int> custom_lval value = lval<int>(custom_lval(4));
+	lval custom_lval value = lval(custom_lval(4));
 	
 	printf(C"main: Value = %d\n", value);
 	

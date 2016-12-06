@@ -37,10 +37,10 @@ interface serializable {
 template <typename T>
 require(T : serializable and movable<T>)
 // Use a 'value_lval' since it supports move operations.
-class custom_lval(bool hasValue, lval<T> value_lval_t<T> value) {
+class custom_lval(bool hasValue, lval value_lval_t<T> value) {
 	static Create(T value) {
 		printf(C"custom_lval.Create: Value = %s\n", value.toCString());
-		return @(true, lval<T>(value_lval_t<T>(move value)));
+		return @(true, lval(value_lval_t<T>(move value)));
 	}
 	
 	T* address() {
@@ -107,7 +107,7 @@ class TestClass(int a, int b) {
 	}
 }
 
-void addressAssignFunction(lval<TestClass> custom_lval<TestClass>& objectLval, TestClass value) {
+void addressAssignFunction(lval custom_lval<TestClass>& objectLval, TestClass value) {
 	TestClass* valuePtr = &objectLval;
 	
 	printf(C"addressAssignFunction: Previous value = %s\n", (*valuePtr).toCString());
@@ -117,7 +117,7 @@ void addressAssignFunction(lval<TestClass> custom_lval<TestClass>& objectLval, T
 	printf(C"addressAssignFunction: New value = %s\n", (*valuePtr).toCString());
 }
 
-void assignFunction(lval<TestClass> custom_lval<TestClass>& objectLval, TestClass value) {
+void assignFunction(lval custom_lval<TestClass>& objectLval, TestClass value) {
 	printf(C"assignFunction: Previous value = %s\n", objectLval.toCString());
 	
 	objectLval = move value;
@@ -125,7 +125,7 @@ void assignFunction(lval<TestClass> custom_lval<TestClass>& objectLval, TestClas
 	printf(C"assignFunction: New value = %s\n", objectLval.toCString());
 }
 
-void moveFunction(lval<TestClass> custom_lval<TestClass>& objectLval) {
+void moveFunction(lval custom_lval<TestClass>& objectLval) {
 	printf(C"moveFunction: Previous value = %s\n", objectLval.toCString());
 	
 	TestClass value = move objectLval;
@@ -138,7 +138,7 @@ void moveFunction(lval<TestClass> custom_lval<TestClass>& objectLval) {
 }
 
 export int main(unused int argc, unused ubyte ** argv) {
-	lval<TestClass> custom_lval<TestClass> value = lval<TestClass>(custom_lval<TestClass>(TestClass(2, 2)));
+	lval custom_lval<TestClass> value = lval(custom_lval<TestClass>(TestClass(2, 2)));
 	
 	printf(C"main: Value = %s\n", value.toCString());
 	

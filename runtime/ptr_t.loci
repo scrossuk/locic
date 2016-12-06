@@ -13,10 +13,10 @@ __primitive ptr_t {
 	bool __islive() const noexcept;
 	
 	template <bool IsConst>
-	lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> deref() const(IsConst) noexcept;
+	lval ptr_lval_t<const<IsConst>(T)> deref() const(IsConst) noexcept;
 	
 	template <bool IsConst>
-	lval<const<IsConst>(T)> ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept require(sized_type<T>);
+	lval ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept require(sized_type<T>);
 	
 	template <bool IsConst>
 	ptr_t<const<IsConst>(T)> add(const ptrdiff_t& v) const(IsConst) noexcept require(sized_type<T>);

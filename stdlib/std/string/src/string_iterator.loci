@@ -29,9 +29,9 @@ export std.string 0.1.0 {
 				@position += 1u;
 			}
 			
-			lval<unichar> string_lval deref() const {
+			lval string_lval deref() const {
 				assert !self.is_end();
-				return lval<unichar>(string_lval(&@stringData[@position]));
+				return lval(string_lval(&@stringData[@position]));
 			}
 			
 			compare_result_t compare(const string_iterator& other) const noexcept {

@@ -12,10 +12,10 @@ interface internal_thread_api {
 	std::event::source event_source() const noexcept;
 }
 
-datatype thread_ref(lval<internal_thread_api&> value_lval_t<internal_thread_api&> thread);
+datatype thread_ref(lval value_lval_t<internal_thread_api&> thread);
 
 static thread_ref thread_ref::empty() noexcept {
-	return @(lval<internal_thread_api&>(value_lval_t<internal_thread_api&>.__dead()));
+	return @(lval(value_lval_t<internal_thread_api&>.__dead()));
 }
 
 template <typename T>
@@ -24,13 +24,13 @@ class internal_thread(thread_ref self_ref,
 		pthread_t thread_object,
 		std::concurrency::mutex mutex,
 		std::concurrency::mutex joinMutex,
-		lval<T> value_lval_t<T> runnable,
+		lval value_lval_t<T> runnable,
 		bool is_finished,
 		bool has_joined,
 		std::event::generator terminate_generator) {
 	
 	static create(T runnable) {
-		return @(thread_ref.empty(), null, std::concurrency::mutex(), std::concurrency::mutex(), lval<T>(value_lval_t<T>(move runnable)), false, false, std::event::generator());
+		return @(thread_ref.empty(), null, std::concurrency::mutex(), std::concurrency::mutex(), lval(value_lval_t<T>(move runnable)), false, false, std::event::generator());
 	}
 	
 	// Slightly dangerous; need to use unique reference once they're implemented.

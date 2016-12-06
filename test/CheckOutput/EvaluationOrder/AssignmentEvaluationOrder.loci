@@ -8,7 +8,7 @@
 
 import void printf(const ubyte * str, ...);
 
-lval<int> ptr_lval_t<int> getPtrLval(int* ptr) {
+lval ptr_lval_t<int> getPtrLval(int* ptr) {
 	printf(C"getPtrLval\n");
 	return *ptr;
 }
@@ -26,9 +26,9 @@ class CustomLval(int* ptr) {
 	}
 }
 
-lval<int> CustomLval getCustomLval(int* ptr) {
+lval CustomLval getCustomLval(int* ptr) {
 	printf(C"getCustomLval\n");
-	return lval<int>(CustomLval(ptr));
+	return lval(CustomLval(ptr));
 }
 
 export int main(unused int argc, unused ubyte ** argv) {
