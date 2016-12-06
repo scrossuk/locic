@@ -50,12 +50,10 @@ namespace locic {
 				bool isLval() const;
 				bool isRef() const;
 				bool isStaticRef() const;
-				bool isLvalOrRef() const;
 				
 				const Type* lvalTarget() const;
 				const Type* refTarget() const;
 				const Type* staticRefTarget() const;
-				const Type* lvalOrRefTarget() const;
 				
 				const Type* createTransitiveConstType(Predicate predicate) const;
 				const Type* createConstType(Predicate predicate) const;

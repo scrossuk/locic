@@ -188,10 +188,6 @@ namespace locic {
 			return staticRefTarget_ != nullptr;
 		}
 		
-		bool Type::isLvalOrRef() const {
-			return isLval() || isRef() || isStaticRef();
-		}
-		
 		const Type* Type::lvalTarget() const {
 			assert(isLval());
 			return lvalTarget_;
@@ -205,13 +201,6 @@ namespace locic {
 		const Type* Type::staticRefTarget() const {
 			assert(isStaticRef());
 			return staticRefTarget_;
-		}
-		
-		const Type* Type::lvalOrRefTarget() const {
-			assert(isLvalOrRef());
-			return isLval() ? lvalTarget() :
-				isRef() ? refTarget() :
-					staticRefTarget();
 		}
 		
 		const Type* Type::createTransitiveConstType(const Predicate predicate) const {
