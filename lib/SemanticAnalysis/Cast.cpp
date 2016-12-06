@@ -164,7 +164,7 @@ namespace locic {
 			// and the destination type itself is const.
 			const bool hasConstChain = isTopLevel || (hasParentConstChain && isDestConst);
 			
-			const SEM::Type* lvalTarget = nullptr;
+			bool isLval = false;
 			
 			if (sourceType->isLval() || destType->isLval()) {
 				if (!(sourceType->isLval() && destType->isLval())) {
@@ -172,11 +172,7 @@ namespace locic {
 					return nullptr;
 				}
 				
-				// Must perform substitutions for the lval target type.
-				lvalTarget =
-				    ImplicitCastTypeFormatOnlyChain(context, sourceType->lvalTarget(),
-				                                    destType->lvalTarget(), hasConstChain, location);
-				if (lvalTarget == nullptr) return nullptr;
+				isLval = true;
 			}
 			
 			const SEM::Type* refTarget = nullptr;
@@ -216,8 +212,8 @@ namespace locic {
 			if (resultType == nullptr) return nullptr;
 			
 			// Add the substituted tags.
-			if (lvalTarget != nullptr) {
-				resultType = resultType->createLvalType(lvalTarget);
+			if (isLval) {
+				resultType = resultType->createLvalType();
 			}
 			
 			if (refTarget != nullptr) {
@@ -548,7 +544,8 @@ namespace locic {
 				assert(doesPredicateImplyPredicate(context, copyValue.type()->constPredicate(), destType->constPredicate()));
 				
 				auto copyLvalValue = sourceType->isLval() ?
-						SEM::Value::Lval(sourceType->lvalTarget(), std::move(copyValue)) :
+						// TODO: Remove lval target from SEM::Value.
+						SEM::Value::Lval(sourceType, std::move(copyValue)) :
 						std::move(copyValue);
 				
 				auto copyRefValue = sourceType->isRef() ?

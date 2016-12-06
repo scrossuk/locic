@@ -126,7 +126,9 @@ namespace locic {
 				}
 				case AST::TypeDecl::LVAL: {
 					auto targetType = resolveType(type->getLvalTarget());
-					return resolveType(type->getLvalType())->createLvalType(targetType);
+					// TODO: Remove lval target from AST::TypeDecl.
+					(void) targetType;
+					return resolveType(type->getLvalType())->createLvalType();
 				}
 				case AST::TypeDecl::REF: {
 					auto targetType = resolveType(type->getRefTarget());

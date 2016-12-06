@@ -4,7 +4,7 @@
 class TestClass(int& member) {
 	int& getRef() const {
 		// Error: member is const here.
-		// CHECK: .loci:8:3: error: Can't implicitly cast value of type 'lval<const(const(int_t)&)>(const(value_lval_t<const(const(int_t)&)>))&' to type 'int_t&'.
+		// CHECK: .loci:8:3: error: Can't implicitly cast value of type 'lval(const(value_lval_t<const(const(int_t)&)>))&' to type 'int_t&'.
 		return @member;
 	}
 }

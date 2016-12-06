@@ -5,7 +5,7 @@ class TestClass(int value) {
 	static create = default;
 	
 	void modify() const {
-		// CHECK: .loci:11:3: error: cannot refer to mutator method 'assign' from const object of type 'lval<const(int_t)>(const(value_lval_t<const(int_t)>))'
+		// CHECK: .loci:11:3: error: cannot refer to mutator method 'assign' from const object of type 'lval(const(value_lval_t<const(int_t)>))'
 		// CHECK: .loci:11:3: error: template arguments do not satisfy require predicate 'const(int_t) : movable_t' of method 'assign'
 		// CHECK: .loci:11:3: note: because: mutator method '__moveto' is required but type is const
 		@value = 100;

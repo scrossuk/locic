@@ -8,7 +8,7 @@ class TestClass() {
 export void f() {
 	final auto testInstance = TestClass();
 	
-	// CHECK: .loci:12:2: error: cannot find method 'assign' for type 'lval<TestClass>(final_lval_t<TestClass>)'
+	// CHECK: .loci:12:2: error: cannot find method 'assign' for type 'lval(final_lval_t<TestClass>)'
 	testInstance = TestClass();
 }
 

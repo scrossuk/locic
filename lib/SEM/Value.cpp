@@ -200,7 +200,7 @@ namespace locic {
 		}
 		
 		Value Value::Lval(const Type* const targetType, Value operand) {
-			Value value(LVAL, operand.type()->createLvalType(targetType), operand.exitStates());
+			Value value(LVAL, operand.type()->createLvalType(), operand.exitStates());
 			value.impl_->union_.makeLval.targetType = targetType;
 			value.impl_->value0 = std::move(operand);
 			return value;

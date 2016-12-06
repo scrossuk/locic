@@ -8,7 +8,7 @@ class TestClass() {
 export void f() {
 	final auto testInstance = TestClass();
 	
-	// CHECK: .loci:12:34: error: cannot find method 'move' for type 'lval<TestClass>(final_lval_t<TestClass>)'
+	// CHECK: .loci:12:34: error: cannot find method 'move' for type 'lval(final_lval_t<TestClass>)'
 	unused auto testInstanceMoved = move testInstance;
 }
 
