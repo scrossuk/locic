@@ -1,5 +1,5 @@
-#ifndef LOCIC_AST_FUNCTION_HPP
-#define LOCIC_AST_FUNCTION_HPP
+#ifndef LOCIC_AST_FUNCTIONDECL_HPP
+#define LOCIC_AST_FUNCTIONDECL_HPP
 
 #include <string>
 #include <vector>
@@ -25,9 +25,9 @@ namespace locic {
 	
 	namespace AST {
 		
-		class Function {
+		class FunctionDecl {
 		public:
-			Function();
+			FunctionDecl();
 			
 			bool isDeclaration() const;
 			bool isDefinition() const;
@@ -99,7 +99,7 @@ namespace locic {
 			
 		};
 		
-		typedef std::vector<Node<Function>> FunctionList;
+		typedef std::vector<Node<FunctionDecl>> FunctionList;
 		
 	}
 	

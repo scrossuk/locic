@@ -16,7 +16,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void ConvertNamespaceFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
+		void ConvertNamespaceFunctionDef(Context& context, const AST::Node<AST::FunctionDecl>& astFunctionNode) {
 			const auto& name = astFunctionNode->name();
 			
 			if (name->size() == 1) {

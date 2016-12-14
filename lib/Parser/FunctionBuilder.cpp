@@ -12,7 +12,7 @@ namespace locic {
 		
 		FunctionBuilder::~FunctionBuilder() { }
 		
-		AST::Node<AST::Function>
+		AST::Node<AST::FunctionDecl>
 		FunctionBuilder::makeFunctionDecl(bool isVarArg, bool isStatic,
 		                                  AST::Node<AST::TypeDecl> returnType, AST::Node<Name> name,
 		                                  AST::Node<AST::VarList> parameters,
@@ -21,7 +21,7 @@ namespace locic {
 		                                  AST::Node<AST::RequireSpecifier> requireSpecifier,
 		                                  const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			std::unique_ptr<AST::Function> function(new AST::Function());
+			std::unique_ptr<AST::FunctionDecl> function(new AST::FunctionDecl());
 			function->setIsVarArg(isVarArg);
 			function->setIsStatic(isStatic);
 			function->setName(std::move(name));
@@ -33,7 +33,7 @@ namespace locic {
 			return AST::makeNode(location, function.release());
 		}
 		
-		AST::Node<AST::Function>
+		AST::Node<AST::FunctionDecl>
 		FunctionBuilder::makeFunctionDef(bool isVarArg, bool isStatic,
 		                                 AST::Node<AST::TypeDecl> returnType, AST::Node<Name> name,
 		                                 AST::Node<AST::VarList> parameters,
@@ -43,7 +43,7 @@ namespace locic {
 		                                 AST::Node<AST::Scope> scope,
 		                                 const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			std::unique_ptr<AST::Function> function(new AST::Function());
+			std::unique_ptr<AST::FunctionDecl> function(new AST::FunctionDecl());
 			function->setIsVarArg(isVarArg);
 			function->setIsStatic(isStatic);
 			function->setIsDefinition(true);
@@ -58,12 +58,12 @@ namespace locic {
 			
 		}
 		
-		AST::Node<AST::Function>
+		AST::Node<AST::FunctionDecl>
 		FunctionBuilder::makeDefaultMethod(bool isStatic, AST::Node<Name> name,
 		                                   AST::Node<AST::RequireSpecifier> requireSpecifier,
 		                                   const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			std::unique_ptr<AST::Function> function(new AST::Function());
+			std::unique_ptr<AST::FunctionDecl> function(new AST::FunctionDecl());
 			function->setIsStatic(isStatic);
 			function->setIsDefinition(true);
 			function->setIsDefaultDefinition(true);
@@ -72,11 +72,11 @@ namespace locic {
 			return AST::makeNode(location, function.release());
 		}
 		
-		AST::Node<AST::Function>
+		AST::Node<AST::FunctionDecl>
 		FunctionBuilder::makeDestructor(AST::Node<Name> name, AST::Node<AST::Scope> scope,
 		                                const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			std::unique_ptr<AST::Function> function(new AST::Function());
+			std::unique_ptr<AST::FunctionDecl> function(new AST::FunctionDecl());
 			function->setName(std::move(name));
 			function->setIsDefinition(true);
 			function->setReturnType(AST::makeNode(scope.location(),

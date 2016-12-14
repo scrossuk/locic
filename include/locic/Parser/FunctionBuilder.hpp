@@ -22,7 +22,7 @@ namespace locic {
 			FunctionBuilder(const TokenReader& reader);
 			~FunctionBuilder();
 			
-			AST::Node<AST::Function>
+			AST::Node<AST::FunctionDecl>
 			makeFunctionDecl(bool isVarArg, bool isStatic,
 			                 AST::Node<AST::TypeDecl> returnType, AST::Node<Name> name,
 			                 AST::Node<AST::VarList> parameters,
@@ -31,7 +31,7 @@ namespace locic {
 			                 AST::Node<AST::RequireSpecifier> requireSpecifier,
 			                 const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Function>
+			AST::Node<AST::FunctionDecl>
 			makeFunctionDef(bool isVarArg, bool isStatic,
 			                AST::Node<AST::TypeDecl> returnType, AST::Node<Name> name,
 			                AST::Node<AST::VarList> parameters,
@@ -41,12 +41,12 @@ namespace locic {
 			                AST::Node<AST::Scope> scope,
 			                const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Function>
+			AST::Node<AST::FunctionDecl>
 			makeDefaultMethod(bool isStatic, AST::Node<Name> name,
 			                  AST::Node<AST::RequireSpecifier> requireSpecifier,
 			                  const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Function>
+			AST::Node<AST::FunctionDecl>
 			makeDestructor(AST::Node<Name> name, AST::Node<AST::Scope> scope,
 			               const Debug::SourcePosition& start);
 			

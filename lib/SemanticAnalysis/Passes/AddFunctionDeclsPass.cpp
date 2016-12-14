@@ -12,7 +12,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		Debug::FunctionInfo makeFunctionInfo(const AST::Node<AST::Function>& astFunctionNode, const SEM::Function& semFunction) {
+		Debug::FunctionInfo makeFunctionInfo(const AST::Node<AST::FunctionDecl>& astFunctionNode, const SEM::Function& semFunction) {
 			Debug::FunctionInfo functionInfo;
 			functionInfo.isDefinition = astFunctionNode->isDefinition();
 			functionInfo.name = semFunction.name().copy();
@@ -54,7 +54,7 @@ namespace locic {
 		};
 		
 		AST::ModuleScope
-		getFunctionScope(Context& context, const AST::Node<AST::Function>& astFunctionNode,
+		getFunctionScope(Context& context, const AST::Node<AST::FunctionDecl>& astFunctionNode,
 		                 const AST::ModuleScope& moduleScope) {
 			if (astFunctionNode->isImported()) {
 				if (!moduleScope.isInternal()) {
@@ -119,7 +119,7 @@ namespace locic {
 		};
 		
 		std::unique_ptr<SEM::Function>
-		AddFunctionDecl(Context& context, AST::Node<AST::Function>& astFunctionNode,
+		AddFunctionDecl(Context& context, AST::Node<AST::FunctionDecl>& astFunctionNode,
 		                const Name& fullName, const AST::ModuleScope& parentModuleScope) {
 			const auto& topElement = context.scopeStack().back();
 			
@@ -233,7 +233,7 @@ namespace locic {
 			
 		}
 		
-		void AddNamespaceFunctionDecl(Context& context, AST::Node<AST::Function>& astFunctionNode,
+		void AddNamespaceFunctionDecl(Context& context, AST::Node<AST::FunctionDecl>& astFunctionNode,
 		                              const AST::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
@@ -327,7 +327,7 @@ namespace locic {
 			
 		};
 		
-		void AddTypeInstanceFunctionDecl(Context& context, AST::Node<AST::Function>& astFunctionNode,
+		void AddTypeInstanceFunctionDecl(Context& context, AST::Node<AST::FunctionDecl>& astFunctionNode,
 		                                 const AST::ModuleScope& moduleScope) {
 			auto& parentTypeInstance = context.scopeStack().back().typeInstance();
 			

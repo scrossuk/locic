@@ -320,7 +320,7 @@ namespace locic {
 			
 		};
 		
-		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& astFunctionNode) {
+		void ConvertFunctionDef(Context& context, const AST::Node<AST::FunctionDecl>& astFunctionNode) {
 			auto& semFunction = context.scopeStack().back().function();
 			
 			// Function should currently be a declaration

@@ -24,14 +24,14 @@ namespace locic {
 			FunctionParser(TokenReader& reader);
 			~FunctionParser();
 			
-			AST::Node<AST::Function> parseGlobalFunction();
+			AST::Node<AST::FunctionDecl> parseGlobalFunction();
 			
-			AST::Node<AST::Function>
+			AST::Node<AST::FunctionDecl>
 			parseBasicFunction(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Function> parseMethod();
+			AST::Node<AST::FunctionDecl> parseMethod();
 			
-			AST::Node<AST::Function>
+			AST::Node<AST::FunctionDecl>
 			parseNonTemplatedMethod(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeDecl>

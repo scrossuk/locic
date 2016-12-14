@@ -1,6 +1,6 @@
 #include <locic/Support/String.hpp>
 
-#include <locic/AST/Function.hpp>
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
@@ -17,13 +17,14 @@ namespace locic {
 		
 		namespace {
 			
-			AST::Node<AST::Function> createNamedASTFunction(Name name) {
+			AST::Node<AST::FunctionDecl>
+			createNamedASTFunction(Name name) {
 				AST::Node<Name> nameNode(Debug::SourceLocation::Null(),
 				                         new Name(Name::Relative() + name.last()));
-				std::unique_ptr<AST::Function> function(new AST::Function());
+				std::unique_ptr<AST::FunctionDecl> function(new AST::FunctionDecl());
 				function->setName(std::move(nameNode));
-				return AST::Node<AST::Function>(Debug::SourceLocation::Null(),
-				                                function.release());
+				return AST::Node<AST::FunctionDecl>(Debug::SourceLocation::Null(),
+				                                    function.release());
 			}
 			
 		}
@@ -44,7 +45,7 @@ namespace locic {
 			  moduleScope_(std::move(pModuleScope)) { }
 		
 		Function::Function(GlobalStructure pParent,
-		                   AST::Node<AST::Function>& argFunction,
+		                   AST::Node<AST::FunctionDecl>& argFunction,
 		                   AST::ModuleScope pModuleScope)
 			: parent_(std::move(pParent)),
 			  function_(&argFunction),
@@ -73,11 +74,11 @@ namespace locic {
 			return parent().nextNamespace();
 		}
 		
-		AST::Node<AST::Function>& Function::astFunction() {
+		AST::Node<AST::FunctionDecl>& Function::astFunction() {
 			return *function_;
 		}
 		
-		const AST::Node<AST::Function>& Function::astFunction() const {
+		const AST::Node<AST::FunctionDecl>& Function::astFunction() const {
 			return *function_;
 		}
 		
