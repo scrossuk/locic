@@ -374,10 +374,15 @@ add_subdirectory(utils)
 
 # Add a 'check' target that builds and tests the compiler.
 add_custom_target(check
-	lit -sv "${CMAKE_SOURCE_DIR}/test"
 	COMMAND "${CMAKE_BINARY_DIR}/unittests/Lex/locic-unittest-Lex"
 	COMMAND "${CMAKE_BINARY_DIR}/unittests/Parser/locic-unittest-Parser"
-	DEPENDS locic locic-unittest-Lex locic-unittest-Parser ${STD_MODULE_DEPENDS} FileCheck
+	COMMAND lit -sv "${CMAKE_SOURCE_DIR}/test"
+	DEPENDS
+		locic
+		locic-unittest-Lex
+		locic-unittest-Parser
+		${STD_MODULE_DEPENDS}
+		FileCheck
 	WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
