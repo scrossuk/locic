@@ -196,7 +196,7 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isNamed());
-				EXPECT_TRUE(statement->varDeclVar()->namedType()->isObjectType());
+				EXPECT_TRUE(statement->varDeclVar()->type()->isObjectType());
 				EXPECT_TRUE(statement->varDeclValue()->isLiteral());
 			});
 		}
@@ -216,9 +216,9 @@ namespace locic {
 				ASSERT_TRUE(statement->isVarDecl());
 				const auto& var = statement->varDeclVar();
 				ASSERT_TRUE(var->isNamed());
-				ASSERT_TRUE(var->namedType()->isObjectType());
-				ASSERT_EQ(var->namedType()->symbol()->size(), 1);
-				EXPECT_EQ(var->namedType()->symbol()->at(0)->templateArguments()->size(), 1);
+				ASSERT_TRUE(var->type()->isObjectType());
+				ASSERT_EQ(var->type()->symbol()->size(), 1);
+				EXPECT_EQ(var->type()->symbol()->at(0)->templateArguments()->size(), 1);
 				EXPECT_TRUE(statement->varDeclValue()->isLiteral());
 			});
 		}
@@ -235,8 +235,8 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isNamed());
-				ASSERT_TRUE(statement->varDeclVar()->namedType()->isPointer());
-				EXPECT_TRUE(statement->varDeclVar()->namedType()->getPointerTarget()->isObjectType());
+				ASSERT_TRUE(statement->varDeclVar()->type()->isPointer());
+				EXPECT_TRUE(statement->varDeclVar()->type()->getPointerTarget()->isObjectType());
 				EXPECT_TRUE(statement->varDeclValue()->isLiteral());
 			});
 		}
@@ -254,8 +254,8 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isNamed());
-				ASSERT_TRUE(statement->varDeclVar()->namedType()->isPointer());
-				EXPECT_TRUE(statement->varDeclVar()->namedType()->getPointerTarget()->isPointer());
+				ASSERT_TRUE(statement->varDeclVar()->type()->isPointer());
+				EXPECT_TRUE(statement->varDeclVar()->type()->getPointerTarget()->isPointer());
 				EXPECT_TRUE(statement->varDeclValue()->isLiteral());
 			});
 		}
@@ -272,8 +272,8 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isNamed());
-				ASSERT_TRUE(statement->varDeclVar()->namedType()->isPointer());
-				EXPECT_TRUE(statement->varDeclVar()->namedType()->getPointerTarget()->isPrimitive());
+				ASSERT_TRUE(statement->varDeclVar()->type()->isPointer());
+				EXPECT_TRUE(statement->varDeclVar()->type()->getPointerTarget()->isPrimitive());
 				EXPECT_TRUE(statement->varDeclValue()->isLiteral());
 			});
 		}

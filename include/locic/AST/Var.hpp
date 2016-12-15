@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <locic/Debug/VarInfo.hpp>
+#include <locic/Support/Optional.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/TypeDecl.hpp>
@@ -24,19 +26,26 @@ namespace locic {
 				ANYVAR
 			};
 			
+			static Var* Any(Node<TypeDecl> type);
+			
 			static Var* NamedVar(Node<TypeDecl> type, String name);
 			
 			static Var* PatternVar(Node<TypeDecl> type,
 			                       Node<VarList> varList);
 			
-			static Var* Any();
-			
 			Kind kind() const;
 			
+			Node<TypeDecl>& type();
+			const Node<TypeDecl>& type() const;
+			
+			bool isAny() const;
+			
 			bool isNamed() const;
-			Node<TypeDecl>& namedType();
-			const Node<TypeDecl>& namedType() const;
 			const String& name() const;
+			
+			bool isPattern() const;
+			Node<VarList>& varList();
+			const Node<VarList>& varList() const;
 			
 			bool isFinal() const;
 			void setFinal();
@@ -47,33 +56,34 @@ namespace locic {
 			bool isUnused() const;
 			void setUnused();
 			
-			bool isPattern() const;
-			Node<TypeDecl>& patternType();
-			const Node<TypeDecl>& patternType() const;
-			Node<VarList>& varList();
-			const Node<VarList>& varList() const;
+			size_t index() const;
+			void setIndex(size_t index);
 			
-			bool isAny() const;
+			void setDebugInfo(Debug::VarInfo debugInfo);
+			Optional<Debug::VarInfo> debugInfo() const;
 			
 			std::string toString() const;
 			
 		private:
-			Var(Kind pKind);
+			Var(Kind pKind, Node<TypeDecl> type);
 			
 			Kind kind_;
+			bool isFinal_;
+			bool isOverrideConst_;
+			bool isUnused_;
+			size_t index_;
+			
+			Node<TypeDecl> type_;
 			
 			struct {
-				bool isFinal;
-				bool isOverrideConst;
-				bool isUnused;
-				Node<TypeDecl> type;
 				String name;
 			} namedVar_;
 			
 			struct {
-				Node<TypeDecl> type;
 				Node<VarList> varList;
 			} patternVar_;
+			
+			Optional<Debug::VarInfo> debugInfo_;
 			
 		};
 		

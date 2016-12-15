@@ -32,7 +32,8 @@ namespace locic {
 		AST::Node<AST::Var>
 		VarBuilder::makeAnyVar(const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::Var::Any());
+			auto type = AST::makeNode(location, AST::TypeDecl::Auto());
+			return AST::makeNode(location, AST::Var::Any(std::move(type)));
 		}
 		
 		AST::Node<AST::VarList>

@@ -12,46 +12,44 @@ namespace locic {
 	
 		typedef std::vector<Node<Var>> VarList;
 		
+		Var* Var::Any(Node<TypeDecl> type) {
+			return new Var(ANYVAR, std::move(type));
+		}
+		
 		Var* Var::NamedVar(Node<TypeDecl> type, const String name) {
-			Var* typeVar = new Var(NAMEDVAR);
-			typeVar->namedVar_.isFinal = false;
-			typeVar->namedVar_.isOverrideConst = false;
-			typeVar->namedVar_.isUnused = false;
-			typeVar->namedVar_.type = std::move(type);
+			Var* typeVar = new Var(NAMEDVAR, std::move(type));
 			typeVar->namedVar_.name = name;
 			return typeVar;
 		}
-			
+		
 		Var* Var::PatternVar(Node<TypeDecl> type, Node<VarList> varList) {
-			Var* typeVar = new Var(PATTERNVAR);
-			typeVar->patternVar_.type = std::move(type);
+			Var* typeVar = new Var(PATTERNVAR, std::move(type));
 			typeVar->patternVar_.varList = std::move(varList);
 			return typeVar;
 		}
-			
-		Var* Var::Any() {
-			return new Var(ANYVAR);
-		}
 		
-		Var::Var(const Kind pKind)
-		: kind_(pKind) { }
+		Var::Var(const Kind pKind, Node<TypeDecl> argType)
+		: kind_(pKind), isFinal_(false), isOverrideConst_(false),
+		isUnused_(false), index_(-1), type_(std::move(argType)) { }
 		
 		Var::Kind Var::kind() const {
 			return kind_;
 		}
 		
+		Node<TypeDecl>& Var::type() {
+			return type_;
+		}
+		
+		const Node<TypeDecl>& Var::type() const {
+			return type_;
+		}
+		
+		bool Var::isAny() const {
+			return kind() == ANYVAR;
+		}
+		
 		bool Var::isNamed() const {
 			return kind() == NAMEDVAR;
-		}
-		
-		Node<TypeDecl>& Var::namedType() {
-			assert(isNamed());
-			return namedVar_.type;
-		}
-		
-		const Node<TypeDecl>& Var::namedType() const {
-			assert(isNamed());
-			return namedVar_.type;
 		}
 		
 		const String& Var::name() const {
@@ -59,48 +57,8 @@ namespace locic {
 			return namedVar_.name;
 		}
 		
-		bool Var::isFinal() const {
-			assert(isNamed());
-			return namedVar_.isFinal;
-		}
-		
-		void Var::setFinal() {
-			assert(isNamed());
-			namedVar_.isFinal = true;
-		}
-		
-		bool Var::isOverrideConst() const {
-			assert(isNamed());
-			return namedVar_.isOverrideConst;
-		}
-		
-		void Var::setOverrideConst() {
-			assert(isNamed());
-			namedVar_.isOverrideConst = true;
-		}
-		
-		bool Var::isUnused() const {
-			assert(isNamed());
-			return namedVar_.isUnused;
-		}
-		
-		void Var::setUnused() {
-			assert(isNamed());
-			namedVar_.isUnused = true;
-		}
-		
 		bool Var::isPattern() const {
 			return kind() == PATTERNVAR;
-		}
-		
-		Node<TypeDecl>& Var::patternType() {
-			assert(isPattern());
-			return patternVar_.type;
-		}
-		
-		const Node<TypeDecl>& Var::patternType() const {
-			assert(isPattern());
-			return patternVar_.type;
 		}
 		
 		Node<VarList>& Var::varList() {
@@ -113,24 +71,68 @@ namespace locic {
 			return patternVar_.varList;
 		}
 		
-		bool Var::isAny() const {
-			return kind() == ANYVAR;
+		bool Var::isFinal() const {
+			assert(isNamed());
+			return isFinal_;
+		}
+		
+		void Var::setFinal() {
+			assert(isNamed());
+			isFinal_ = true;
+		}
+		
+		bool Var::isOverrideConst() const {
+			assert(isNamed());
+			return isOverrideConst_;
+		}
+		
+		void Var::setOverrideConst() {
+			assert(isNamed());
+			isOverrideConst_ = true;
+		}
+		
+		bool Var::isUnused() const {
+			assert(isNamed());
+			return isUnused_;
+		}
+		
+		void Var::setUnused() {
+			assert(isNamed());
+			isUnused_ = true;
+		}
+		
+		size_t Var::index() const {
+			assert(index_ != (size_t) -1);
+			return index_;
+		}
+		
+		void Var::setIndex(const size_t argIndex) {
+			assert(index_ == (size_t) -1);
+			index_ = argIndex;
+		}
+		
+		void Var::setDebugInfo(const Debug::VarInfo newDebugInfo) {
+			debugInfo_ = make_optional(newDebugInfo);
+		}
+		
+		Optional<Debug::VarInfo> Var::debugInfo() const {
+			return debugInfo_;
 		}
 			
 		std::string Var::toString() const {
 			switch (kind()) {
 				case NAMEDVAR:
 					return makeString("Var[NAMED](type = %s, name = %s)",
-						namedType().toString().c_str(), name().c_str());
+						type().toString().c_str(), name().c_str());
 				case PATTERNVAR:
 					return makeString("Var[PATTERN](type = %s, typeVarList = %s)",
-						patternType().toString().c_str(),
+						type().toString().c_str(),
 						makeArrayString(*(varList())).c_str());
 				case ANYVAR:
 					return "Var[ANY]()";
-				default:
-					return "Var[UNKNOWN]()";
 			}
+			
+			locic_unreachable("Unknown var kind.");
 		}
 		
 	}

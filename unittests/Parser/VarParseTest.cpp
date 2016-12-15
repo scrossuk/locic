@@ -28,7 +28,7 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isNamed());
-				EXPECT_TRUE(var->namedType()->isObjectType());
+				EXPECT_TRUE(var->type()->isObjectType());
 			});
 		}
 		
@@ -41,7 +41,7 @@ namespace locic {
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				// TODO: check for inherited property
 				EXPECT_TRUE(var->isNamed());
-				EXPECT_TRUE(var->namedType()->isObjectType());
+				EXPECT_TRUE(var->type()->isObjectType());
 			});
 		}
 		
@@ -53,8 +53,8 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isNamed());
-				EXPECT_TRUE(var->namedType()->isConst());
-				EXPECT_TRUE(var->namedType()->getConstTarget()->isObjectType());
+				EXPECT_TRUE(var->type()->isConst());
+				EXPECT_TRUE(var->type()->getConstTarget()->isObjectType());
 			});
 		}
 		
@@ -66,8 +66,8 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isNamed());
-				EXPECT_TRUE(var->namedType()->isPointer());
-				EXPECT_TRUE(var->namedType()->getPointerTarget()->isObjectType());
+				EXPECT_TRUE(var->type()->isPointer());
+				EXPECT_TRUE(var->type()->getPointerTarget()->isObjectType());
 			});
 		}
 		
@@ -79,8 +79,8 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isNamed());
-				EXPECT_TRUE(var->namedType()->isReference());
-				EXPECT_TRUE(var->namedType()->getReferenceTarget()->isObjectType());
+				EXPECT_TRUE(var->type()->isReference());
+				EXPECT_TRUE(var->type()->getReferenceTarget()->isObjectType());
 			});
 		}
 		
@@ -92,7 +92,7 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
-				EXPECT_TRUE(var->patternType()->isObjectType());
+				EXPECT_TRUE(var->type()->isObjectType());
 				EXPECT_EQ(var->varList()->size(), 0);
 			});
 		}
@@ -108,10 +108,10 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
-				EXPECT_TRUE(var->patternType()->isObjectType());
+				EXPECT_TRUE(var->type()->isObjectType());
 				EXPECT_EQ(var->varList()->size(), 1);
 				EXPECT_TRUE(var->varList()->at(0)->isPattern());
-				EXPECT_TRUE(var->varList()->at(0)->patternType()->isObjectType());
+				EXPECT_TRUE(var->varList()->at(0)->type()->isObjectType());
 				EXPECT_EQ(var->varList()->at(0)->varList()->size(), 0);
 			});
 		}
@@ -125,7 +125,7 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
-				EXPECT_TRUE(var->patternType()->isObjectType());
+				EXPECT_TRUE(var->type()->isObjectType());
 				EXPECT_EQ(var->varList()->size(), 1);
 				EXPECT_TRUE(var->varList()->at(0)->isAny());
 			});
@@ -142,7 +142,7 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
-				EXPECT_TRUE(var->patternType()->isObjectType());
+				EXPECT_TRUE(var->type()->isObjectType());
 				EXPECT_EQ(var->varList()->size(), 2);
 				EXPECT_TRUE(var->varList()->at(0)->isAny());
 				EXPECT_TRUE(var->varList()->at(1)->isAny());
@@ -159,7 +159,7 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
-				EXPECT_TRUE(var->patternType()->isObjectType());
+				EXPECT_TRUE(var->type()->isObjectType());
 				EXPECT_EQ(var->varList()->size(), 1);
 				EXPECT_TRUE(var->varList()->at(0)->isNamed());
 			});
@@ -178,7 +178,7 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
-				EXPECT_TRUE(var->patternType()->isObjectType());
+				EXPECT_TRUE(var->type()->isObjectType());
 				EXPECT_EQ(var->varList()->size(), 2);
 				EXPECT_TRUE(var->varList()->at(0)->isNamed());
 				EXPECT_TRUE(var->varList()->at(1)->isNamed());
@@ -197,7 +197,7 @@ namespace locic {
 			};
 			testParseVar(tokens, [](const AST::Node<AST::Var>& var) {
 				EXPECT_TRUE(var->isPattern());
-				EXPECT_TRUE(var->patternType()->isObjectType());
+				EXPECT_TRUE(var->type()->isObjectType());
 				EXPECT_EQ(var->varList()->size(), 2);
 				EXPECT_TRUE(var->varList()->at(0)->isNamed());
 				EXPECT_TRUE(var->varList()->at(1)->isAny());
