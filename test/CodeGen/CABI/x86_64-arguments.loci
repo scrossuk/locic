@@ -37,7 +37,7 @@ export long double f5() {
 export void f6(unused byte a0, unused short a1, unused int a2,
                unused long long a3, unused void *a4) { }
 
-// CHECK-LABEL: define void @f7(i32 %coerce)
+// CHECK-LABEL: define void @f7(i32)
 enum e7 {A, B, C};
 export void f7(unused e7 a0) { }
 

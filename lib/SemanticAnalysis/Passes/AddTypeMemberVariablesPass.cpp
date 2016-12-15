@@ -93,12 +93,6 @@ namespace locic {
 			assert(semTypeInstance.variables().empty());
 			assert(semTypeInstance.constructTypes().empty());
 			
-			if (semTypeInstance.isEnum()) {
-				// Enums have underlying type 'int'.
-				const auto underlyingType = getBuiltInType(context, context.getCString("int_t"), {});
-				semTypeInstance.attachVariable(SEM::Var::Basic(underlyingType, underlyingType));
-			}
-			
 			if (semTypeInstance.isException()) {
 				// Add exception type parent using initializer.
 				const auto& astInitializerNode = astTypeInstanceNode->initializer;

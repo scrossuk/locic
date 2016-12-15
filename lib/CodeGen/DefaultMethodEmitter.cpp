@@ -1,3 +1,6 @@
+#include <llvm-abi/ABI.hpp>
+#include <llvm-abi/ABITypeInfo.hpp>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/DefaultMethodEmitter.hpp>
 #include <locic/CodeGen/Destructor.hpp>
@@ -98,7 +101,7 @@ namespace locic {
 		                                            PendingResultArray args,
 		                                            llvm::Value* const hintResultValue) {
 			const auto& typeInstance = *(type->getObjectType());
-			assert(!typeInstance.isUnionDatatype());
+			assert(!typeInstance.isEnum() && !typeInstance.isUnionDatatype());
 			
 			auto& module = functionGenerator_.module();
 			
@@ -326,7 +329,7 @@ namespace locic {
 			const auto positionValue = args[2].resolve(functionGenerator_);
 			const auto sourceValue = args[0].resolve(functionGenerator_);
 			
-			if (typeInstance.isUnion()) {
+			if (typeInstance.isEnum() || typeInstance.isUnion()) {
 				// Basically just do a memcpy.
 				genBasicMove(functionGenerator_, type, sourceValue, destValue, positionValue);
 			} else if (typeInstance.isUnionDatatype()) {
@@ -407,7 +410,10 @@ namespace locic {
 			
 			const auto zero = ConstantGenerator(module).getSizeTValue(0);
 			
-			if (typeInstance.isUnionDatatype()) {
+			if (typeInstance.isEnum()) {
+				const auto intAlign = module.abi().typeInfo().getTypeRequiredAlign(llvm_abi::IntTy).asBytes();
+				return ConstantGenerator(module).getSizeTValue(intAlign - 1);
+			} else if (typeInstance.isUnionDatatype()) {
 				// Calculate maximum alignment mask of all variants,
 				// which is just a matter of OR-ing them together
 				// (the tag byte has an alignment of 1 and hence an
@@ -447,7 +453,10 @@ namespace locic {
 			const auto zero = ConstantGenerator(module).getSizeTValue(0);
 			const auto one = ConstantGenerator(module).getSizeTValue(1);
 			
-			if (typeInstance.isUnion()) {
+			if (typeInstance.isEnum()) {
+				const auto intSize = module.abi().typeInfo().getTypeAllocSize(llvm_abi::IntTy).asBytes();
+				return ConstantGenerator(module).getSizeTValue(intSize);
+			} else if (typeInstance.isUnion()) {
 				// Calculate maximum alignment and size of all variants.
 				llvm::Value* maxVariantAlignMask = zero;
 				llvm::Value* maxVariantSize = zero;
@@ -681,7 +690,7 @@ namespace locic {
 			
 			IREmitter irEmitter(functionGenerator_);
 			
-			if (typeInstance.isUnion()) {
+			if (typeInstance.isEnum() || typeInstance.isUnion()) {
 				return irEmitter.emitMoveLoad(thisPointer, type);
 			}
 			
@@ -775,11 +784,24 @@ namespace locic {
 			const auto thisPointer = args[0].resolve(functionGenerator_);
 			
 			IREmitter irEmitter(functionGenerator_);
+			auto& builder = functionGenerator_.getBuilder();
 			
 			auto& module = functionGenerator_.module();
 			const auto i8Type = TypeGenerator(module).getI8Type();
 			
-			if (typeInstance.isUnionDatatype()) {
+			if (typeInstance.isEnum()) {
+				const auto intType = genType(module, type);
+				const auto thisValue = irEmitter.emitRawLoad(thisPointer, intType);
+				const auto otherValue = irEmitter.emitRawLoad(otherPointer, intType);
+				
+				const auto isNotEqual = builder.CreateICmpNE(thisValue, otherValue);
+				const auto isLessThan = builder.CreateICmpSLT(thisValue, otherValue);
+				const auto result = builder.CreateSelect(isLessThan,
+				                                         ConstantGenerator(module).getI8(-1),
+				                                         ConstantGenerator(module).getI8(1));
+				return builder.CreateSelect(isNotEqual, result,
+				                            ConstantGenerator(module).getI8(0));
+			} else if (typeInstance.isUnionDatatype()) {
 				const auto thisTag = irEmitter.emitLoadDatatypeTag(thisPointer);
 				const auto otherTag = irEmitter.emitLoadDatatypeTag(otherPointer);
 				

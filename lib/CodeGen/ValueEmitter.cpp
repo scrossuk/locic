@@ -504,8 +504,16 @@ namespace locic {
 			const auto objectValue = irEmitter_.emitAlloca(type, hintResultValue);
 			
 			TypeInfo typeInfo(irEmitter_.module());
-			if (typeInfo.isSizeKnownInThisModule(type)) {
+			
+			if (type->isEnum()) {
+				// An enum is just an integer; it doesn't have any variables,
+				// so we just store the integer directly.
+				assert(parameterVars.empty());
+				irEmitter_.emitRawStore(emitValue(parameterValues.front(), objectValue),
+				                        objectValue);
+			} else if (typeInfo.isSizeKnownInThisModule(type)) {
 				const auto objectIRType = genType(irEmitter_.module(), type);
+				
 				for (size_t i = 0; i < parameterValues.size(); i++) {
 					const auto var = parameterVars.at(i);
 					const auto llvmInsertPointer = irEmitter_.emitConstInBoundsGEP2_32(objectIRType,

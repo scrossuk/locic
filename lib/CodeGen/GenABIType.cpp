@@ -37,6 +37,11 @@ namespace locic {
 			if (typeInstance.isPrimitive()) {
 				return getPrimitiveABIType(module, SEM::Type::Object(&typeInstance, templateArguments.copy()));
 			} else {
+				if (typeInstance.isEnum()) {
+					// Enums have underlying type 'int'.
+					return llvm_abi::IntTy;
+				}
+				
 				const auto mangledName = mangleObjectType(module, &typeInstance).asStdString();
 				
 				llvm::SmallVector<llvm_abi::Type, 8> members;
