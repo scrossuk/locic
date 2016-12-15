@@ -197,15 +197,12 @@ namespace locic {
 			
 			auto constructTypes = typeInstance->constructTypes();
 			
-			std::vector<SEM::Var*> argVars;
-			argVars.reserve(constructTypes.size());
-			for (const auto constructType: constructTypes) {
-				const auto lvalType = makeValueLvalType(context_, constructType);
-				argVars.push_back(SEM::Var::Basic(constructType, lvalType).release());
-			}
-			
-			semFunction->setParameters(std::move(argVars));
-			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), typeInstance->selfType(), std::move(constructTypes)));
+			SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod,
+			                                   isTemplatedMethod,
+			                                   std::move(noExceptPredicate));
+			semFunction->setType(SEM::FunctionType(std::move(attributes),
+			                                       typeInstance->selfType(),
+			                                       std::move(constructTypes)));
 			return semFunction;
 		}
 		
@@ -320,21 +317,11 @@ namespace locic {
 			argTypes.push_back(voidPtrType);
 			argTypes.push_back(sizeType);
 			
-			std::vector<SEM::Var*> argVars;
-			argVars.reserve(2);
-			
-			{
-				const auto lvalType = makeValueLvalType(context_, voidPtrType);
-				argVars.push_back(SEM::Var::Basic(voidPtrType, lvalType).release());
-			}
-			
-			{
-				const auto lvalType = makeValueLvalType(context_, sizeType);
-				argVars.push_back(SEM::Var::Basic(sizeType, lvalType).release());
-			}
-			
-			semFunction->setParameters(std::move(argVars));
-			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), voidType, std::move(argTypes)));
+			SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod,
+			                                   isTemplatedMethod,
+			                                   std::move(noExceptPredicate));
+			semFunction->setType(SEM::FunctionType(std::move(attributes),
+			                                       voidType, std::move(argTypes)));
 			return semFunction;
 		}
 		
@@ -429,8 +416,12 @@ namespace locic {
 			argTypes.reserve(1);
 			argTypes.push_back(argType);
 			
-			semFunction->setType(SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), compareResultType, std::move(argTypes)));
-			semFunction->setParameters({ SEM::Var::Basic(argType, argType).release() });
+			SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod,
+			                                   isTemplatedMethod,
+			                                   std::move(noExceptPredicate));
+			semFunction->setType(SEM::FunctionType(std::move(attributes),
+			                                       compareResultType,
+			                                       std::move(argTypes)));
 			return semFunction;
 		}
 		

@@ -35,8 +35,8 @@ namespace locic {
 			
 			Kind kind() const;
 			
-			Node<TypeDecl>& type();
-			const Node<TypeDecl>& type() const;
+			Node<TypeDecl>& declType();
+			const Node<TypeDecl>& declType() const;
 			
 			bool isAny() const;
 			
@@ -55,6 +55,30 @@ namespace locic {
 			
 			bool isUnused() const;
 			void setUnused();
+			
+			/**
+			 * \brief Get construct type.
+			 * 
+			 * This is the type of the value being held in this
+			 * variable. When this variable is initialised it must
+			 * be passed a value of this type.
+			 * 
+			 * If the variable itself has an 'lval' type, then the
+			 * lval type and construct type are the same.
+			 */
+			const SEM::Type* constructType() const;
+			void setConstructType(const SEM::Type* type);
+			
+			/**
+			 * \brief Get lval type.
+			 * 
+			 * This is the type of the lvalue holding this variable.
+			 * 
+			 * If the variable itself has an 'lval' type, then the
+			 * lval type and construct type are the same.
+			 */
+			const SEM::Type* lvalType() const;
+			void setLvalType(const SEM::Type* type);
 			
 			size_t index() const;
 			void setIndex(size_t index);
@@ -84,6 +108,8 @@ namespace locic {
 			} patternVar_;
 			
 			Optional<Debug::VarInfo> debugInfo_;
+			const SEM::Type* constructType_;
+			const SEM::Type* lvalType_;
 			
 		};
 		

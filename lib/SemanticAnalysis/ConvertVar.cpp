@@ -92,7 +92,7 @@ namespace locic {
 		}
 		
 		const SEM::Type* getVarType(Context& context, const AST::Node<AST::Var>& astVarNode, const SEM::Type* /*initialiseType*/) {
-			return TypeResolver(context).resolveType(astVarNode->type())->resolveAliases();
+			return TypeResolver(context).resolveType(astVarNode->declType())->resolveAliases();
 		}
 		
 		class VariableShadowsExistingVariableDiag: public Error {
@@ -181,6 +181,7 @@ namespace locic {
 				
 				switch (astVarNode->kind()) {
 					case AST::Var::ANYVAR: {
+						astVarNode->setConstructType(initialiseType);
 						return SEM::Var::Any(initialiseType);
 					}
 					
@@ -198,7 +199,7 @@ namespace locic {
 							                  location, std::move(previousVarDiag));
 						}
 						
-						const auto varDeclType = TypeResolver(context).resolveType(astVarNode->type())->resolveAliases();
+						const auto varDeclType = TypeResolver(context).resolveType(astVarNode->declType())->resolveAliases();
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
@@ -209,11 +210,15 @@ namespace locic {
 							                  location);
 						}
 						
+						astVarNode->setConstructType(varType);
+						
 						// 'final' keyword uses a different lval type (which doesn't support
 						// moving or re-assignment).
 						const bool isFinalLval = astVarNode->isFinal();
 						
 						const auto lvalType = makeLvalType(context, isFinalLval, varType);
+						
+						astVarNode->setLvalType(lvalType);
 						
 						auto var = SEM::Var::Basic(varType, lvalType);
 						var->setMarkedUnused(astVarNode->isUnused());
@@ -223,16 +228,18 @@ namespace locic {
 					}
 					
 					case AST::Var::PATTERNVAR: {
-						const auto varDeclType = TypeResolver(context).resolveType(astVarNode->type())->resolveAliases();
+						const auto varDeclType = TypeResolver(context).resolveType(astVarNode->declType())->resolveAliases();
 						
 						if (!varDeclType->isDatatype()) {
 							context.issueDiag(CannotPatternMatchNonDatatypeDiag(varDeclType),
-							                  astVarNode->type().location());
+							                  astVarNode->declType().location());
 						}
 						
 						// Use cast to resolve any instances of
 						// 'auto' in the variable's type.
 						const auto varType = CastType(context, initialiseType, varDeclType, location, isTopLevel);
+						
+						astVarNode->setConstructType(varType);
 						
 						const auto& astChildVars = astVarNode->varList();
 						const auto& typeChildVars = varType->getObjectType()->variables();
@@ -304,7 +311,8 @@ namespace locic {
 						}
 					}
 					
-					const auto varType = TypeResolver(context).resolveType(astVarNode->type());
+					const auto varType = TypeResolver(context).resolveType(astVarNode->declType());
+					astVarNode->setConstructType(varType);
 					
 					// 'final' keyword uses a different lval type (which doesn't support
 					// moving or re-assignment).
@@ -314,6 +322,8 @@ namespace locic {
 					const auto lvalType = (varKind != Debug::VarInfo::VAR_EXCEPTION_CATCH) ?
 						makeLvalType(context, isFinalLval, varType) : varType;
 					
+					astVarNode->setLvalType(lvalType);
+					
 					auto var = SEM::Var::Basic(varType, lvalType);
 					var->setMarkedUnused(astVarNode->isUnused());
 					var->setOverrideConst(astVarNode->isOverrideConst());
@@ -322,12 +332,14 @@ namespace locic {
 				}
 				
 				case AST::Var::PATTERNVAR: {
-					const auto varType = TypeResolver(context).resolveType(astVarNode->type())->resolveAliases();
+					const auto varType = TypeResolver(context).resolveType(astVarNode->declType())->resolveAliases();
 					
 					if (!varType->isDatatype()) {
 						context.issueDiag(CannotPatternMatchNonDatatypeDiag(varType),
-						                  astVarNode->type().location());
+						                  astVarNode->declType().location());
 					}
+					
+					astVarNode->setConstructType(varType);
 					
 					const auto& astChildVars = astVarNode->varList();
 					const auto& typeChildVars = varType->getObjectType()->variables();

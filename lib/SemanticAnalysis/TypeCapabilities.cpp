@@ -81,7 +81,7 @@ namespace locic {
 					if (function->isStaticMethod()) return false;
 					
 					if (!evaluatePredicate(context_, function->constPredicate(), type->generateTemplateVarMap())) return false;
-					if (!function->parameters().empty()) return false;
+					if (!function->type().parameterTypes().empty()) return false;
 					if (function->templateVariables().size() != 1) return false;
 					
 					const auto returnType = function->type().returnType()->substitute(type->generateTemplateVarMap());

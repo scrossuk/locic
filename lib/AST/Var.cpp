@@ -30,17 +30,18 @@ namespace locic {
 		
 		Var::Var(const Kind pKind, Node<TypeDecl> argType)
 		: kind_(pKind), isFinal_(false), isOverrideConst_(false),
-		isUnused_(false), index_(-1), type_(std::move(argType)) { }
+		isUnused_(false), index_(-1), type_(std::move(argType)),
+		constructType_(nullptr), lvalType_(nullptr) { }
 		
 		Var::Kind Var::kind() const {
 			return kind_;
 		}
 		
-		Node<TypeDecl>& Var::type() {
+		Node<TypeDecl>& Var::declType() {
 			return type_;
 		}
 		
-		const Node<TypeDecl>& Var::type() const {
+		const Node<TypeDecl>& Var::declType() const {
 			return type_;
 		}
 		
@@ -101,6 +102,26 @@ namespace locic {
 			isUnused_ = true;
 		}
 		
+		const SEM::Type* Var::constructType() const {
+			assert(constructType_ != nullptr);
+			return constructType_;
+		}
+		
+		void Var::setConstructType(const SEM::Type* type) {
+			assert(constructType_ == nullptr && type != nullptr);
+			constructType_ = type;
+		}
+		
+		const SEM::Type* Var::lvalType() const {
+			assert(lvalType_ != nullptr);
+			return lvalType_;
+		}
+		
+		void Var::setLvalType(const SEM::Type* type) {
+			assert(lvalType_ == nullptr && type != nullptr);
+			lvalType_ = type;
+		}
+		
 		size_t Var::index() const {
 			assert(index_ != (size_t) -1);
 			return index_;
@@ -123,10 +144,10 @@ namespace locic {
 			switch (kind()) {
 				case NAMEDVAR:
 					return makeString("Var[NAMED](type = %s, name = %s)",
-						type().toString().c_str(), name().c_str());
+						declType().toString().c_str(), name().c_str());
 				case PATTERNVAR:
 					return makeString("Var[PATTERN](type = %s, typeVarList = %s)",
-						type().toString().c_str(),
+						declType().toString().c_str(),
 						makeArrayString(*(varList())).c_str());
 				case ANYVAR:
 					return "Var[ANY]()";
