@@ -35,11 +35,17 @@ namespace locic {
 				return types;
 			}
 			
-			std::vector<SEM::Var*> getParameters(Context& context, const SEM::TypeArray& constructTypes) {
+			std::vector<SEM::Var*> getParameters(const std::vector<SEM::Var*>& variables) {
+				assert(!variables.empty());
 				std::vector<SEM::Var*> parameters;
-				for (const auto varType: constructTypes) {
-					const auto lvalType = makeValueLvalType(context, varType);
-					parameters.push_back(SEM::Var::Basic(varType, lvalType).release());
+				parameters.reserve(variables.size() - 1);
+				bool isFirst = true;
+				for (const auto var: variables) {
+					if (isFirst) {
+						isFirst = false;
+						continue;
+					}
+					parameters.push_back(var);
 				}
 				return parameters;
 			}
@@ -88,7 +94,7 @@ namespace locic {
 			// Filter out first variable from construct types
 			// since the first variable will store the parent.
 			auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
-			semFunction->setParameters(getParameters(context, constructTypes));
+			semFunction->setParameters(getParameters(semTypeInstance->variables()));
 			
 			SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
 			semFunction->setType(SEM::FunctionType(std::move(attributes), semTypeInstance->selfType(), std::move(constructTypes)));

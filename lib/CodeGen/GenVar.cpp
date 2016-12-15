@@ -36,7 +36,6 @@ namespace locic {
 				const auto& debugInfo = var->debugInfo();
 				if (debugInfo) {
 					const auto& varInfo = *debugInfo;
-					assert(varInfo.kind != Debug::VarInfo::VAR_MEMBER);
 					const auto debugType = genDebugType(module, var->constructType());
 					const auto argIndex = varInfo.kind == Debug::VarInfo::VAR_ARGUMENT ? var->index() : -1;
 					const auto debugDeclare = genDebugVar(function, varInfo,
