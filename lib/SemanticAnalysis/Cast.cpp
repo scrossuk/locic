@@ -63,12 +63,10 @@ namespace locic {
 			
 			switch (destType->kind()) {
 				case SEM::Type::AUTO: {
-					// Shouldn't happen, since source type can't be 'auto'.
-					std::terminate();
+					locic_unreachable("Source type can't be auto.");
 				}
 				case SEM::Type::ALIAS: {
-					// Aliases should be resolved by now...
-					std::terminate();
+					locic_unreachable("Aliases should already be resolved.");
 				}
 				case SEM::Type::OBJECT: {
 					if (sourceType->getObjectType() != destType->getObjectType()) {
@@ -133,7 +131,7 @@ namespace locic {
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown type kind.");
 		}
 
 		static const SEM::Type*

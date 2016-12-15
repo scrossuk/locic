@@ -78,7 +78,7 @@ namespace locic {
 					return "[]";
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown op kind.");
 		}
 		
 		const char* binaryOpNameCString(const AST::BinaryOpKind kind) {
@@ -123,7 +123,7 @@ namespace locic {
 					return "index";
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown op kind.");
 		}
 		
 		String binaryOpName(Context& context, const AST::BinaryOpKind kind) {
@@ -551,7 +551,7 @@ namespace locic {
 						return templateVar.selfRefValue();
 					}
 					
-					std::terminate();
+					locic_unreachable("Unknown search result kind.");
 				}
 				case AST::Value::TYPEREF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->typeRef.type);
@@ -629,7 +629,7 @@ namespace locic {
 						}
 					}
 					
-					std::terminate();
+					locic_unreachable("Unknown op kind.");
 				}
 				case AST::Value::BINARYOP: {
 					const auto binaryOp = astValueNode->binaryOp.kind;
@@ -777,7 +777,7 @@ namespace locic {
 						}
 					}
 					
-					std::terminate();
+					locic_unreachable("Unknown op kind.");
 				}
 				case AST::Value::TERNARY: {
 					auto cond = ConvertValue(context, astValueNode->ternary.condition);
@@ -817,7 +817,7 @@ namespace locic {
 							return SEM::Value::Reinterpret(ImplicitCast(context, std::move(sourceValue), sourceType, location), targetType);
 					}
 					
-					std::terminate();
+					locic_unreachable("Unknown cast kind.");
 				}
 				case AST::Value::LVAL: {
 					auto sourceValue = ConvertValue(context, astValueNode->makeLval.value);
@@ -1053,7 +1053,7 @@ namespace locic {
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown value kind.");
 		}
 		
 		Debug::ValueInfo makeValueInfo(const AST::Node<AST::Value>& astValueNode) {

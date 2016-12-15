@@ -223,12 +223,11 @@ namespace locic {
 					}
 				}
 				case Constant::STRING: {
-					// Not handled here.
-					std::terminate();
+					locic_unreachable("String constants should already be handled.");
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown constant kind.");
 		}
 		
 		const SEM::Type* getLiteralType(Context& context, const String& specifier, const Constant& constant,

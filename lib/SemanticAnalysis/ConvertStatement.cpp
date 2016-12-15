@@ -53,7 +53,7 @@ namespace locic {
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown assign kind.");
 		}
 		
 		class ScopeActionCanThrowDiag: public Error {

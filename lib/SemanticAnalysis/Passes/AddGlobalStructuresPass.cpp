@@ -46,7 +46,7 @@ namespace locic {
 					return SEM::TypeInstance::EXCEPTION;
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown type instance kind.");
 		}
 		
 		class TypeInstanceClashesWithExistingNameDiag: public Error {

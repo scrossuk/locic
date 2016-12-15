@@ -261,7 +261,7 @@ namespace locic {
 					}
 				}
 				
-				std::terminate();
+				locic_unreachable("Unknown var kind.");
 			}
 			
 		}
@@ -352,7 +352,7 @@ namespace locic {
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown var kind.");
 		}
 		
 		std::unique_ptr<SEM::Var> ConvertInitialisedVar(Context& context, AST::Node<AST::Var>& astVarNode,

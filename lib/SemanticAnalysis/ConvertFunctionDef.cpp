@@ -78,7 +78,7 @@ namespace locic {
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown statement kind.");
 		}
 		
 		class CodeNeverExecutedDiag: public Warning {

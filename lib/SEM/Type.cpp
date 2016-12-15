@@ -81,7 +81,7 @@ namespace locic {
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown type kind.");
 		}
 		
 		template <typename CheckFunction, typename PreFunction, typename PostFunction>
@@ -733,7 +733,7 @@ namespace locic {
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown type kind.");
 		}
 		
 		const Type* doSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
@@ -845,7 +845,7 @@ namespace locic {
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown type kind.");
 		}
 		
 		bool Type::dependsOnOnly(const TemplateVarArray& array) const {
@@ -882,7 +882,7 @@ namespace locic {
 				}
 			}
 			
-			std::terminate();
+			locic_unreachable("Unknown type kind.");
 		}
 		
 		std::string Type::nameToString() const {
