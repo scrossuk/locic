@@ -216,7 +216,7 @@ Released on 28th March 2015, version 1.2 provides:
 
 **Other**
 
-* `Continuous Integration <https://travis-ci.org/scross99/locic>`_ - verifying support for LLVM 3.3/3.4/3.5/3.6
+* `Continuous Integration <https://travis-ci.org/scrossuk/locic>`_ - verifying support for LLVM 3.3/3.4/3.5/3.6
 
 **Dependencies**
 

@@ -139,24 +139,24 @@ You can follow similar steps for Clang by using the *CLANG_ROOT_DIR* variable.
 Development
 -----------
 
-The Loci Compiler Tools are under active development in `this GitHub repository <https://github.com/scross99/locic>`_. You can checkout the latest version by:
+The Loci Compiler Tools are under active development in `this GitHub repository <https://github.com/scrossuk/locic>`_. You can checkout the latest version by:
 
 .. code-block:: bash
 
-	git clone https://github.com/scross99/locic.git
+	git clone https://github.com/scrossuk/locic.git
 
 You can then follow the :doc:`Getting Started Guide <GettingStarted>` to build the compiler.
 
-The compiler itself also uses the `llvm-abi library <https://github.com/scross99/llvm-abi>`_ for generating functions that conform to platform ABIs (for interoperability with C). This is automatically cloned from GitHub as part of a compiler build, but you can also manually clone it by:
+The compiler itself also uses the `llvm-abi library <https://github.com/scrossuk/llvm-abi>`_ for generating functions that conform to platform ABIs (for interoperability with C). This is automatically cloned from GitHub as part of a compiler build, but you can also manually clone it by:
 
 .. code-block:: bash
 
-	git clone https://github.com/scross99/llvm-abi.git
+	git clone https://github.com/scrossuk/llvm-abi.git
 
 Other pieces of infrastructure for the project:
 
 * `Website <http://loci-lang.org>`_
-* `Travis CI <https://travis-ci.org/scross99/locic>`_ - Continuous integration build jobs.
+* `Travis CI <https://travis-ci.org/scrossuk/locic>`_ - Continuous integration build jobs.
 * `Travis CI Artifacts <http://loci-lang.org/travis/>`_ - Artifacts (binaries) from Travis CI jobs.
 * `Phabricator <https://locic.exana.io/>`_ - Issue tracker and code review.
 * `Twitter account <https://twitter.com/loci_lang>`_
@@ -169,5 +169,5 @@ This project is being developed by `Stephen Cross <http://scross.co.uk>`_.
 
 Contributions, queries, suggestions and feedback are all very welcome; you can:
 
-* `Raise an issue on GitHub <https://github.com/scross99/locic/issues>`_
+* `Raise an issue on GitHub <https://github.com/scrossuk/locic/issues>`_
 * `Post to the Google Group <https://groups.google.com/group/loci-dev>`_
