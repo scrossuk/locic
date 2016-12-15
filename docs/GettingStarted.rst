@@ -13,8 +13,8 @@ Before building and using the Loci Compiler Tools, it's first necessary to build
 * Boost Program Options - *debian package: libboost-program-options-dev, arch package: extra/boost*
 * Boost Regex - *debian package: libboost-regex-dev, arch package: extra/boost*
 * Boost System - *debian package: libboost-system-dev, arch package: extra/boost*
-* LLVM 3.3 to 3.7 (development build) - *debian package: llvm-dev, arch package: extra/llvm*
-* Clang 3.3 to 3.7- *debian package: clang, arch package: extra/clang*
+* LLVM 3.3 to 3.9 (development build) - *debian package: llvm-dev, arch package: extra/llvm*
+* Clang 3.3 to 3.9 - *debian package: clang, arch package: extra/clang*
 * Sphinx (documentation) - *debian package: python-sphinx, arch package: community/python-sphinx*
 * tinfo (ncurses library routines) - *debian package: libtinfo-dev, arch package: aur/libtinfo*
 
