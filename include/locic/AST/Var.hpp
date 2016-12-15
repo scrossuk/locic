@@ -53,8 +53,11 @@ namespace locic {
 			bool isOverrideConst() const;
 			void setOverrideConst();
 			
-			bool isUnused() const;
-			void setUnused();
+			bool isMarkedUnused() const;
+			void setMarkedUnused();
+			
+			bool isUsed() const;
+			void setUsed();
 			
 			/**
 			 * \brief Get construct type.
@@ -94,7 +97,8 @@ namespace locic {
 			Kind kind_;
 			bool isFinal_;
 			bool isOverrideConst_;
-			bool isUnused_;
+			bool isMarkedUnused_;
+			bool isUsed_;
 			size_t index_;
 			
 			Node<TypeDecl> type_;

@@ -19,20 +19,20 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		void genStoreVar(Function& function, llvm::Value* const value, llvm::Value* const var, SEM::Var* const semVar) {
-			assert(semVar->isBasic());
+		void genStoreVar(Function& function, llvm::Value* const value, llvm::Value* const varPtr, AST::Var* const var) {
+			assert(var->isNamed());
 			
-			const auto valueType = semVar->constructType();
-			const auto varType = semVar->type();
+			const auto valueType = var->constructType();
+			const auto varType = var->lvalType();
 			
 			if (valueType == varType) {
 				IREmitter irEmitter(function);
-				irEmitter.emitMoveStore(value, var, varType);
+				irEmitter.emitMoveStore(value, varPtr, varType);
 			} else {
 				// If the variable type wasn't actually an lval
 				// (very likely), then a value_lval will be created
 				// to hold it, and this needs to be constructed.
-				genStorePrimitiveLval(function, value, var, varType);
+				genStorePrimitiveLval(function, value, varPtr, varType);
 			}
 		}
 		

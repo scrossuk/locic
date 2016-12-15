@@ -109,7 +109,7 @@ namespace locic {
 				// Simple case: this isn't a pattern.
 				auto typeVar = parseTypeVar();
 				if (isUnused) {
-					typeVar->setUnused();
+					typeVar->setMarkedUnused();
 				}
 				if (isFinal) {
 					typeVar->setFinal();

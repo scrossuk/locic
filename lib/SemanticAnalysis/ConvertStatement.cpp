@@ -479,7 +479,8 @@ namespace locic {
 						{
 							PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::SwitchCase(*semCase));
 							
-							semCase->setVar(ConvertVar(context, Debug::VarInfo::VAR_LOCAL, astCase->var));
+							auto var = ConvertVar(context, Debug::VarInfo::VAR_LOCAL, astCase->var);
+							semCase->setVar(*var);
 							semCase->setScope(ConvertScope(context, astCase->scope));
 						}
 						
@@ -591,9 +592,11 @@ namespace locic {
 							                  astVar.location());
 						}
 						
-						semCatch->setVar(ConvertVar(context, Debug::VarInfo::VAR_EXCEPTION_CATCH, astVar));
+						auto var = ConvertVar(context, Debug::VarInfo::VAR_EXCEPTION_CATCH, astVar);
+						assert(var == astVar.get());
+						semCatch->setVar(*var);
 						
-						const auto varType = semCatch->var().type();
+						const auto varType = semCatch->var().constructType();
 						if (!varType->isException()) {
 							context.issueDiag(CannotCatchNonExceptionTypeDiag(varType),
 							                  astVar.location());
@@ -641,17 +644,16 @@ namespace locic {
 					
 					// Convert the AST type var.
 					const auto varType = semInitialiseValue.type();
-					auto semVar = ConvertInitialisedVar(context, astVarNode, varType);
-					assert(!semVar->isAny());
+					auto var = ConvertInitialisedVar(context, astVarNode, varType);
+					assert(!var->isAny());
 					
 					// Add the variable to the SEM scope.
 					auto& semScope = context.scopeStack().back().scope();
 					
-					const auto varPtr = semVar.get();
-					semScope.variables().push_back(semVar.release());
+					semScope.variables().push_back(var);
 					
 					// Generate the initialise statement.
-					return SEM::Statement::InitialiseStmt(varPtr, std::move(semInitialiseValue));
+					return SEM::Statement::InitialiseStmt(*var, std::move(semInitialiseValue));
 				}
 				case AST::Statement::ASSIGN: {
 					const auto assignKind = statement->assignKind();

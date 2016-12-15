@@ -64,12 +64,12 @@ namespace locic {
 			size_t currentOffset = 0;
 			TypeInfo typeInfo(module);
 			for (const auto& var: typeInstance.variables()) {
-				if (!typeInfo.isSizeKnownInThisModule(var->type())) {
+				if (!typeInfo.isSizeKnownInThisModule(var->lvalType())) {
 					// Reached an unknown-size member, so give up here.
 					break;
 				}
 				
-				const auto abiType = genABIType(module, var->type());
+				const auto abiType = genABIType(module, var->lvalType());
 				const auto& abiTypeInfo = module.abi().typeInfo();
 				const size_t nextOffset = roundUpToAlign(currentOffset,
 				                                         abiTypeInfo.getTypeRequiredAlign(abiType).asBytes());

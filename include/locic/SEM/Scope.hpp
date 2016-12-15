@@ -11,10 +11,14 @@
 #include <locic/SEM/Statement.hpp>
 
 namespace locic {
-
-	namespace SEM {
+	
+	namespace AST {
 		
 		class Var;
+		
+	}
+	
+	namespace SEM {
 		
 		class Scope {
 			public:
@@ -26,11 +30,11 @@ namespace locic {
 				
 				ExitStates exitStates() const;
 				
-				Array<Var*, 10>& variables();
-				const Array<Var*, 10>& variables() const;
+				Array<AST::Var*, 10>& variables();
+				const Array<AST::Var*, 10>& variables() const;
 				
-				FastMap<String, Var*>& namedVariables();
-				const FastMap<String, Var*>& namedVariables() const;
+				FastMap<String, AST::Var*>& namedVariables();
+				const FastMap<String, AST::Var*>& namedVariables() const;
 				
 				Array<Statement, 10>& statements();
 				const Array<Statement, 10>& statements() const;
@@ -42,8 +46,8 @@ namespace locic {
 				Scope(const Scope&);
 				Scope& operator=(const Scope&);
 				
-				Array<Var*, 10> variables_;
-				FastMap<String, Var*> namedVariables_;
+				Array<AST::Var*, 10> variables_;
+				FastMap<String, AST::Var*> namedVariables_;
 				Array<Statement, 10> statementList_;
 				
 		};

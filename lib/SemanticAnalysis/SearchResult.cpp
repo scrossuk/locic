@@ -34,7 +34,7 @@ namespace locic {
 			return element;
 		}
 		
-		SearchResult SearchResult::Var(SEM::Var& var) {
+		SearchResult SearchResult::Var(AST::Var& var) {
 			SearchResult element(VAR);
 			element.data_.var = &var;
 			return element;
@@ -88,7 +88,7 @@ namespace locic {
 			return *(data_.typeInstance);
 		}
 		
-		SEM::Var& SearchResult::var() const {
+		AST::Var& SearchResult::var() const {
 			assert(isVar());
 			return *(data_.var);
 		}

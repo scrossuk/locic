@@ -8,34 +8,39 @@
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
-	namespace SEM {
 	
-		class Scope;
+	namespace AST {
+		
 		class Var;
+		
+	}
+	
+	namespace SEM {
+		
+		class Scope;
 		
 		class SwitchCase {
 			public:
 				SwitchCase();
-				SwitchCase(std::unique_ptr<Var> var, std::unique_ptr<Scope> scope);
+				SwitchCase(AST::Var& var, std::unique_ptr<Scope> scope);
 				
-				void setVar(std::unique_ptr<Var> var);
+				void setVar(AST::Var& var);
 				
 				void setScope(std::unique_ptr<Scope> scope);
 				
-				Var& var();
-				const Var& var() const;
+				AST::Var& var();
+				const AST::Var& var() const;
 				
-				FastMap<String, Var*>& namedVariables();
-				const FastMap<String, Var*>& namedVariables() const;
+				FastMap<String, AST::Var*>& namedVariables();
+				const FastMap<String, AST::Var*>& namedVariables() const;
 				
 				Scope& scope() const;
 				
 				std::string toString() const;
 				
 			private:
-				std::unique_ptr<Var> var_;
-				FastMap<String, Var*> namedVariables_;
+				AST::Var* var_;
+				FastMap<String, AST::Var*> namedVariables_;
 				std::unique_ptr<Scope> scope_;
 				
 		};

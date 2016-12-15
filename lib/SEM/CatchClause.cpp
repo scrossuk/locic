@@ -2,22 +2,23 @@
 #include <map>
 #include <memory>
 
+#include <locic/AST/Value.hpp>
+#include <locic/AST/Var.hpp>
+
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/CatchClause.hpp>
 #include <locic/SEM/Scope.hpp>
-#include <locic/SEM/Var.hpp>
 
 namespace locic {
 
 	namespace SEM {
 	
-		CatchClause::CatchClause() { }
+		CatchClause::CatchClause() : var_(nullptr) { }
 		
-		void CatchClause::setVar(std::unique_ptr<Var> pVar) {
-			assert(var_.get() == nullptr);
-			assert(pVar.get() != nullptr);
-			var_ = std::move(pVar);
+		void CatchClause::setVar(AST::Var& pVar) {
+			assert(var_ == nullptr);
+			var_ = &pVar;
 		}
 		
 		void CatchClause::setScope(std::unique_ptr<Scope> pScope) {
@@ -26,19 +27,19 @@ namespace locic {
 			scope_ = std::move(pScope);
 		}
 		
-		Var& CatchClause::var() {
+		AST::Var& CatchClause::var() {
 			return *var_;
 		}
 		
-		const Var& CatchClause::var() const {
+		const AST::Var& CatchClause::var() const {
 			return *var_;
 		}
 		
-		FastMap<String, Var*>& CatchClause::namedVariables() {
+		FastMap<String, AST::Var*>& CatchClause::namedVariables() {
 			return namedVariables_;
 		}
 		
-		const FastMap<String, Var*>& CatchClause::namedVariables() const {
+		const FastMap<String, AST::Var*>& CatchClause::namedVariables() const {
 			return namedVariables_;
 		}
 		

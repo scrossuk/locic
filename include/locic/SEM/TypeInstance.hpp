@@ -22,12 +22,17 @@
 
 namespace locic {
 	
+	namespace AST {
+		
+		class Var;
+		
+	}
+	
 	namespace SEM {
 	
 		class Context;
 		class Function;
 		class TemplateVar;
-		class Var;
 		
 		/**
 		 * \brief Type Instance
@@ -246,8 +251,8 @@ namespace locic {
 				 * 
 				 * \return Name to member variable mapping.
 				 */
-				FastMap<String, Var*>& namedVariables();
-				const FastMap<String, Var*>& namedVariables() const;
+				FastMap<String, AST::Var*>& namedVariables();
+				const FastMap<String, AST::Var*>& namedVariables() const;
 				
 				/**
 				 * \brief Get member variables.
@@ -257,9 +262,9 @@ namespace locic {
 				 * 
 				 * \return Member variable array.
 				 */
-				const std::vector<Var*>& variables() const;
+				const std::vector<AST::Var*>& variables() const;
 				
-				void attachVariable(std::unique_ptr<Var> var);
+				void attachVariable(AST::Var& var);
 				
 				/**
 				 * \brief Get methods.
@@ -383,8 +388,8 @@ namespace locic {
 				Predicate requiresPredicate_;
 				Predicate noexceptPredicate_;
 				
-				std::vector<Var*> variables_;
-				FastMap<String, Var*> namedVariables_;
+				std::vector<AST::Var*> variables_;
+				FastMap<String, AST::Var*> namedVariables_;
 				
 				Array<std::unique_ptr<Function>, 8> functions_;
 				

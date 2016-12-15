@@ -50,7 +50,7 @@ namespace locic {
 					members.reserve(typeInstance.variables().size() + 1);
 					
 					for (const auto var: typeInstance.variables()) {
-						members.push_back(genABIType(module, var->type()));
+						members.push_back(genABIType(module, var->lvalType()));
 					}
 					
 					return abiTypeBuilder.getUnionTy(members, mangledName);
@@ -69,7 +69,7 @@ namespace locic {
 					members.reserve(typeInstance.variables().size() + 1);
 					
 					for (const auto var: typeInstance.variables()) {
-						members.push_back(genABIType(module, var->type()));
+						members.push_back(genABIType(module, var->lvalType()));
 					}
 					
 					const auto livenessIndicator = getLivenessIndicator(module, typeInstance);

@@ -5,6 +5,12 @@ namespace locic {
 	
 	class String;
 	
+	namespace AST {
+		
+		class Var;
+		
+	}
+	
 	namespace SEM {
 		
 		class CatchClause;
@@ -30,7 +36,7 @@ namespace locic {
 			
 			void emitScope(const SEM::Scope& scope);
 			
-			void emitInitialise(SEM::Var* var,
+			void emitInitialise(AST::Var& var,
 			                    const SEM::Value& value);
 			
 			void emitIf(const std::vector<SEM::IfClause*>& ifClauseList,
@@ -44,7 +50,7 @@ namespace locic {
 			              const SEM::Scope& iterationScope,
 			              const SEM::Scope& advanceScope);
 			
-			void emitFor(SEM::Var* var, const SEM::Value& initValue,
+			void emitFor(AST::Var& var, const SEM::Value& initValue,
 			             const SEM::Scope& scope);
 			
 			void emitReturnVoid();

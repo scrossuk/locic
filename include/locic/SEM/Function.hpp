@@ -28,12 +28,17 @@ namespace locic {
 	
 	template <typename Key, typename Value>
 	class Map;
-
+	
+	namespace AST {
+		
+		class Var;
+		
+	}
+	
 	namespace SEM {
 	
 		class Scope;
 		class TypeInstance;
-		class Var;
 		
 		/**
 		 * \brief Function
@@ -120,11 +125,11 @@ namespace locic {
 				
 				const Predicate& noexceptPredicate() const;
 				
-				void setParameters(std::vector<Var*> pParameters);
-				const std::vector<Var*>& parameters() const;
+				void setParameters(std::vector<AST::Var*> pParameters);
+				const std::vector<AST::Var*>& parameters() const;
 				
-				FastMap<String, Var*>& namedVariables();
-				const FastMap<String, Var*>& namedVariables() const;
+				FastMap<String, AST::Var*>& namedVariables();
+				const FastMap<String, AST::Var*>& namedVariables() const;
 				
 				void setScope(std::unique_ptr<Scope> newScope);
 				const Scope& scope() const;
@@ -148,8 +153,8 @@ namespace locic {
 				FastMap<String, TemplateVar*> namedTemplateVariables_;
 				Predicate constPredicate_;
 				Predicate requiresPredicate_;
-				std::vector<Var*> parameters_;
-				FastMap<String, Var*> namedVariables_;
+				std::vector<AST::Var*> parameters_;
+				FastMap<String, AST::Var*> namedVariables_;
 				
 				AST::ModuleScope moduleScope_;
 				std::unique_ptr<Scope> scope_;

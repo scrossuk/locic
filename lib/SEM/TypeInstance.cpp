@@ -1,6 +1,7 @@
 #include <string>
 
 #include <locic/AST/ModuleScope.hpp>
+#include <locic/AST/Var.hpp>
 
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
@@ -15,7 +16,6 @@
 #include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
-#include <locic/SEM/Var.hpp>
 
 namespace locic {
 
@@ -191,21 +191,21 @@ namespace locic {
 			return variants_;
 		}
 		
-		FastMap<String, Var*>& TypeInstance::namedVariables() {
+		FastMap<String, AST::Var*>& TypeInstance::namedVariables() {
 			return namedVariables_;
 		}
 		
-		const FastMap<String, Var*>& TypeInstance::namedVariables() const {
+		const FastMap<String, AST::Var*>& TypeInstance::namedVariables() const {
 			return namedVariables_;
 		}
 		
-		const std::vector<Var*>& TypeInstance::variables() const {
+		const std::vector<AST::Var*>& TypeInstance::variables() const {
 			return variables_;
 		}
 		
-		void TypeInstance::attachVariable(std::unique_ptr<Var> var) {
-			var->setIndex(variables_.size());
-			variables_.push_back(var.release());
+		void TypeInstance::attachVariable(AST::Var& var) {
+			var.setIndex(variables_.size());
+			variables_.push_back(&var);
 		}
 		
 		Array<std::unique_ptr<Function>, 8>& TypeInstance::functions() {

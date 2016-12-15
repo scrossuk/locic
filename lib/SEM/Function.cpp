@@ -9,7 +9,6 @@
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Type.hpp>
-#include <locic/SEM/Var.hpp>
 
 namespace locic {
 
@@ -182,19 +181,19 @@ namespace locic {
 			return type().attributes().noExceptPredicate();
 		}
 		
-		void Function::setParameters(std::vector<Var*> pParameters) {
+		void Function::setParameters(std::vector<AST::Var*> pParameters) {
 			parameters_ = std::move(pParameters);
 		}
 		
-		const std::vector<Var*>& Function::parameters() const {
+		const std::vector<AST::Var*>& Function::parameters() const {
 			return parameters_;
 		}
 		
-		FastMap<String, Var*>& Function::namedVariables() {
+		FastMap<String, AST::Var*>& Function::namedVariables() {
 			return namedVariables_;
 		}
 		
-		const FastMap<String, Var*>& Function::namedVariables() const {
+		const FastMap<String, AST::Var*>& Function::namedVariables() const {
 			return namedVariables_;
 		}
 		

@@ -1,11 +1,14 @@
+#include <locic/CodeGen/GenVar.hpp>
+
 #include <cassert>
 #include <stdexcept>
+
+#include <locic/AST/Var.hpp>
 
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -13,23 +16,21 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
-#include <locic/SEM/Var.hpp>
-
 namespace locic {
 
 	namespace CodeGen {
 		
-		void genVarAlloca(Function& function, SEM::Var* const var, llvm::Value* hintResultValue) {
+		void genVarAlloca(Function& function, AST::Var* const var, llvm::Value* hintResultValue) {
 			if (var->isAny()) {
 				return;
 			}
 			
 			IREmitter irEmitter(function);
 			
-			if (var->isBasic()) {
+			if (var->isNamed()) {
 				auto& module = function.module();
 				
-				const auto stackObject = irEmitter.emitAlloca(var->type(), hintResultValue);
+				const auto stackObject = irEmitter.emitAlloca(var->lvalType(), hintResultValue);
 				
 				// Generate debug information for the variable
 				// if any is available.
@@ -49,8 +50,8 @@ namespace locic {
 				// Add this to the local variable map, so that
 				// any SEM vars can be mapped to the actual value.
 				function.getLocalVarMap().insert(var, stackObject);
-			} else if (var->isComposite()) {
-				for (const auto& childVar: var->children()) {
+			} else if (var->isPattern()) {
+				for (const auto& childVar: *(var->varList())) {
 					genVarAlloca(function, childVar.get());
 				}
 			} else {
@@ -58,18 +59,18 @@ namespace locic {
 			}
 		}
 		
-		void genVarInitialise(Function& function, SEM::Var* const var, llvm::Value* initialiseValue) {
+		void genVarInitialise(Function& function, AST::Var* const var, llvm::Value* initialiseValue) {
 			IREmitter irEmitter(function);
 			
 			if (var->isAny()) {
 				// Casting to 'any', which means the destructor
 				// should be called for the value.
 				irEmitter.emitDestructorCall(initialiseValue, var->constructType());
-			} else if (var->isBasic()) {
+			} else if (var->isNamed()) {
 				const auto varValue = function.getLocalVarMap().get(var);
 				genStoreVar(function, initialiseValue, varValue, var);
-				scheduleDestructorCall(function, var->type(), varValue);
-			} else if (var->isComposite()) {
+				scheduleDestructorCall(function, var->lvalType(), varValue);
+			} else if (var->isPattern()) {
 				if (!initialiseValue->getType()->isPointerTy()) {
 					const auto initialisePtr = irEmitter.emitAlloca(var->constructType());
 					irEmitter.emitBasicStore(initialiseValue, initialisePtr, var->constructType());
@@ -78,8 +79,8 @@ namespace locic {
 				
 				// For composite variables, extract each member of
 				// the type and assign it to its variable.
-				for (size_t i = 0; i < var->children().size(); i++) {
-					const auto& childVar = var->children()[i];
+				for (size_t i = 0; i < var->varList()->size(); i++) {
+					const auto& childVar = (*(var->varList()))[i];
 					const auto memberOffsetValue = genMemberOffset(function, var->constructType(), i);
 					const auto childInitialiseValue = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                                            initialiseValue,

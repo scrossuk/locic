@@ -32,7 +32,7 @@ namespace locic {
 		
 		namespace {
 			
-			std::pair<FastMap<String, SEM::Var*>::iterator, bool> insertVar(const ScopeElement& element, const String& name, SEM::Var* var) {
+			std::pair<FastMap<String, AST::Var*>::iterator, bool> insertVar(const ScopeElement& element, const String& name, AST::Var* var) {
 				if (element.isScope()) {
 					return element.scope().namedVariables().insert(std::make_pair(name, var));
 				} else if (element.isSwitchCase()) {
@@ -76,19 +76,20 @@ namespace locic {
 		};
 		
 		// Attach the variable to the SemanticAnalysis node tree.
-		void attachVar(Context& context, const String& name, const AST::Node<AST::Var>& astVarNode, SEM::Var& var, const Debug::VarInfo::Kind varKind) {
-			assert(var.isBasic());
+		void attachVar(Context& context, AST::Node<AST::Var>& varNode, const Debug::VarInfo::Kind varKind) {
+			assert(varNode->isNamed());
 			
-			const auto insertResult = insertVar(context.scopeStack().back(), name, &var);
+			const auto insertResult = insertVar(context.scopeStack().back(),
+			                                    varNode->name(), varNode.get());
 			if (!insertResult.second) {
 				const auto existingVar = insertResult.first->second;
 				OptionalDiag previousVarDiag(PreviousVariableDiag(),
 				                             existingVar->debugInfo()->declLocation);
-				context.issueDiag(VariableDuplicatesExistingVariableDiag(name),
-				                  astVarNode.location(), std::move(previousVarDiag));
+				context.issueDiag(VariableDuplicatesExistingVariableDiag(varNode->name()),
+				                  varNode.location(), std::move(previousVarDiag));
 			}
 			
-			var.setDebugInfo(makeVarInfo(varKind, astVarNode));
+			varNode->setDebugInfo(makeVarInfo(varKind, varNode));
 		}
 		
 		const SEM::Type* getVarType(Context& context, const AST::Node<AST::Var>& astVarNode, const SEM::Type* /*initialiseType*/) {
@@ -172,7 +173,7 @@ namespace locic {
 				return value.type();
 			}
 			
-			std::unique_ptr<SEM::Var>
+			AST::Var*
 			ConvertInitialisedVarRecurse(Context& context,
 			                             AST::Node<AST::Var>& astVarNode,
 			                             const SEM::Type* initialiseType,
@@ -182,7 +183,7 @@ namespace locic {
 				switch (astVarNode->kind()) {
 					case AST::Var::ANYVAR: {
 						astVarNode->setConstructType(initialiseType);
-						return SEM::Var::Any(initialiseType);
+						return astVarNode.get();
 					}
 					
 					case AST::Var::NAMEDVAR: {
@@ -220,11 +221,9 @@ namespace locic {
 						
 						astVarNode->setLvalType(lvalType);
 						
-						auto var = SEM::Var::Basic(varType, lvalType);
-						var->setMarkedUnused(astVarNode->isUnused());
-						var->setOverrideConst(astVarNode->isOverrideConst());
-						attachVar(context, varName, astVarNode, *var, Debug::VarInfo::VAR_LOCAL);
-						return var;
+						attachVar(context, astVarNode, Debug::VarInfo::VAR_LOCAL);
+						
+						return astVarNode.get();
 					}
 					
 					case AST::Var::PATTERNVAR: {
@@ -252,8 +251,6 @@ namespace locic {
 						
 						const auto templateVarMap = varType->generateTemplateVarMap();
 						
-						std::vector<std::unique_ptr<SEM::Var>> children;
-						
 						const size_t numUsableVars = std::min(astChildVars->size(), typeChildVars.size());
 						for (size_t i = 0; i < numUsableVars; i++) {
 							auto& astVar = astChildVars->at(i);
@@ -261,10 +258,10 @@ namespace locic {
 							
 							const auto childInitialiseType = semVar->constructType()->substitute(templateVarMap);
 							const bool childIsTopLevel = false;
-							children.push_back(ConvertInitialisedVarRecurse(context, astVar, childInitialiseType, childIsTopLevel));
+							(void) ConvertInitialisedVarRecurse(context, astVar, childInitialiseType, childIsTopLevel);
 						}
 						
-						return SEM::Var::Composite(varType, std::move(children));
+						return astVarNode.get();
 					}
 				}
 				
@@ -283,7 +280,7 @@ namespace locic {
 			
 		};
 		
-		std::unique_ptr<SEM::Var>
+		AST::Var*
 		ConvertVar(Context& context, const Debug::VarInfo::Kind varKind,
 		           AST::Node<AST::Var>& astVarNode) {
 			const auto& location = astVarNode.location();
@@ -292,7 +289,7 @@ namespace locic {
 				case AST::Var::ANYVAR: {
 					context.issueDiag(AnyVarsNotImplementedForUninitialisedVariablesDiag(),
 					                  location);
-					return nullptr;
+					return astVarNode.get();
 				}
 				
 				case AST::Var::NAMEDVAR: {
@@ -324,11 +321,9 @@ namespace locic {
 					
 					astVarNode->setLvalType(lvalType);
 					
-					auto var = SEM::Var::Basic(varType, lvalType);
-					var->setMarkedUnused(astVarNode->isUnused());
-					var->setOverrideConst(astVarNode->isOverrideConst());
-					attachVar(context, varName, astVarNode, *var, varKind);
-					return var;
+					attachVar(context, astVarNode, varKind);
+					
+					return astVarNode.get();
 				}
 				
 				case AST::Var::PATTERNVAR: {
@@ -352,23 +347,21 @@ namespace locic {
 					
 					const auto templateVarMap = varType->generateTemplateVarMap();
 					
-					std::vector<std::unique_ptr<SEM::Var>> children;
-					
 					const size_t numUsableVars = std::min(astChildVars->size(), typeChildVars.size());
 					for (size_t i = 0; i < numUsableVars; i++) {
 						auto& astVar = astChildVars->at(i);
-						children.push_back(ConvertVar(context, varKind, astVar));
+						(void) ConvertVar(context, varKind, astVar);
 					}
 					
-					return SEM::Var::Composite(varType, std::move(children));
+					return astVarNode.get();
 				}
 			}
 			
 			locic_unreachable("Unknown var kind.");
 		}
 		
-		std::unique_ptr<SEM::Var> ConvertInitialisedVar(Context& context, AST::Node<AST::Var>& astVarNode,
-		                                                const SEM::Type* const initialiseType) {
+		AST::Var* ConvertInitialisedVar(Context& context, AST::Node<AST::Var>& astVarNode,
+		                                const SEM::Type* const initialiseType) {
 			const bool isTopLevel = true;
 			return ConvertInitialisedVarRecurse(context, astVarNode, initialiseType, isTopLevel);
 		}

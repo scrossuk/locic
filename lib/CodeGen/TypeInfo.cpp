@@ -5,7 +5,6 @@
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
-#include <locic/SEM/Var.hpp>
 
 namespace locic {
 	
@@ -50,7 +49,7 @@ namespace locic {
 				// All members of the type must have a known size
 				// for it to have a known size.
 				for (auto var: typeInstance.variables()) {
-					if (!isSizeAlwaysKnown(var->type())) {
+					if (!isSizeAlwaysKnown(var->lvalType())) {
 						return false;
 					}
 				}
@@ -95,7 +94,7 @@ namespace locic {
 				// All members of the type must have a known size
 				// for it to have a known size.
 				for (auto var: typeInstance.variables()) {
-					if (!isSizeKnownInThisModule(var->type())) {
+					if (!isSizeKnownInThisModule(var->lvalType())) {
 						return false;
 					}
 				}
@@ -153,7 +152,7 @@ namespace locic {
 				}
 				
 				for (const auto var: typeInstance.variables()) {
-					if (hasCustomDestructor(var->type())) {
+					if (hasCustomDestructor(var->lvalType())) {
 						return true;
 					}
 				}
@@ -212,7 +211,7 @@ namespace locic {
 				}
 				
 				for (const auto var: typeInstance.variables()) {
-					if (hasCustomMove(var->type())) {
+					if (hasCustomMove(var->lvalType())) {
 						return true;
 					}
 				}

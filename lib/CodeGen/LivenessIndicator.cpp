@@ -2,12 +2,6 @@
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class Var;
-		
-	}
-	
 	namespace CodeGen {
 		
 		LivenessIndicator LivenessIndicator::None() {
@@ -15,7 +9,7 @@ namespace locic {
 			return indicator;
 		}
 		
-		LivenessIndicator LivenessIndicator::MemberInvalidState(const SEM::Var& memberVar) {
+		LivenessIndicator LivenessIndicator::MemberInvalidState(const AST::Var& memberVar) {
 			LivenessIndicator indicator(MEMBER_INVALID_STATE);
 			indicator.data_.memberVar = &memberVar;
 			return indicator;
@@ -52,7 +46,7 @@ namespace locic {
 			return kind() == MEMBER_INVALID_STATE;
 		}
 		
-		const SEM::Var& LivenessIndicator::memberVar() const {
+		const AST::Var& LivenessIndicator::memberVar() const {
 			assert(isMemberInvalidState());
 			return *(data_.memberVar);
 		}

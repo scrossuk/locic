@@ -38,7 +38,6 @@ namespace locic {
 		class Function;
 		class Type;
 		class TypeInstance;
-		class Var;
 		
 	}
 	

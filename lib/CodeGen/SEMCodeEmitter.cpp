@@ -16,7 +16,6 @@
 
 #include <locic/SEM/Function.hpp>
 #include <locic/SEM/TypeInstance.hpp>
-#include <locic/SEM/Var.hpp>
 
 #include <locic/Support/MethodID.hpp>
 
@@ -187,7 +186,7 @@ namespace locic {
 				// Add this to the list of variables to be
 				// destroyed at the end of the function.
 				scheduleDestructorCall(functionGenerator_,
-				                       paramVar->type(),
+				                       paramVar->lvalType(),
 				                       stackObject);
 			}
 			

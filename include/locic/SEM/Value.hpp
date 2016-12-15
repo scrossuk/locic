@@ -14,6 +14,12 @@ namespace locic {
 	
 	class Constant;
 	
+	namespace AST {
+		
+		class Var;
+		
+	}
+	
 	namespace Debug {
 		
 		class ValueInfo;
@@ -30,7 +36,6 @@ namespace locic {
 		class TemplateVarMap;
 		class Type;
 		class TypeInstance;
-		class Var;
 		
 		class Value {
 			public:
@@ -114,7 +119,7 @@ namespace locic {
 				 * 
 				 * A reference to a local variable.
 				 */
-				static Value LocalVar(const Var& var, const Type* type);
+				static Value LocalVar(const AST::Var& var, const Type* type);
 				
 				/**
 				 * \brief Union data offset
@@ -241,7 +246,7 @@ namespace locic {
 				 * Accesses a member variable of the given object.
 				 * This will return a reference to an lvalue type.
 				 */
-				static Value MemberAccess(Value object, const Var& var, const Type* type);
+				static Value MemberAccess(Value object, const AST::Var& var, const Type* type);
 				
 				/**
 				 * \brief Bind Value Reference
@@ -369,7 +374,7 @@ namespace locic {
 				const Predicate& predicate() const;
 				
 				bool isLocalVarRef() const;
-				const Var& localVar() const;
+				const AST::Var& localVar() const;
 				
 				bool isUnionDataOffset() const;
 				const TypeInstance* unionDataOffsetTypeInstance() const;
@@ -422,7 +427,7 @@ namespace locic {
 				
 				bool isMemberAccess() const;
 				const Value& memberAccessObject() const;
-				const Var& memberAccessVar() const;
+				const AST::Var& memberAccessVar() const;
 				
 				bool isBindReference() const;
 				const Value& bindReferenceOperand() const;

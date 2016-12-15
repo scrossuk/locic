@@ -540,7 +540,7 @@ namespace locic {
 				semReturnType = TypeResolver(context).resolveType(astReturnTypeNode);
 			}
 			
-			std::vector<SEM::Var*> parameterVars;
+			std::vector<AST::Var*> parameterVars;
 			parameterVars.reserve(astFunctionNode->parameters()->size());
 			
 			SEM::TypeArray parameterTypes;
@@ -556,12 +556,12 @@ namespace locic {
 				}
 				
 				auto paramVar = ConvertVar(context, Debug::VarInfo::VAR_ARGUMENT, astVarNode);
-				assert(paramVar->isBasic());
+				assert(paramVar->isNamed());
 				
 				paramVar->setIndex(index++);
 				
 				parameterTypes.push_back(paramVar->constructType());
-				parameterVars.push_back(paramVar.release());
+				parameterVars.push_back(paramVar);
 			}
 			
 			function.setParameters(std::move(parameterVars));

@@ -30,8 +30,9 @@ namespace locic {
 		
 		Var::Var(const Kind pKind, Node<TypeDecl> argType)
 		: kind_(pKind), isFinal_(false), isOverrideConst_(false),
-		isUnused_(false), index_(-1), type_(std::move(argType)),
-		constructType_(nullptr), lvalType_(nullptr) { }
+		isMarkedUnused_(false), isUsed_(false), index_(-1),
+		type_(std::move(argType)), constructType_(nullptr),
+		lvalType_(nullptr) { }
 		
 		Var::Kind Var::kind() const {
 			return kind_;
@@ -92,14 +93,24 @@ namespace locic {
 			isOverrideConst_ = true;
 		}
 		
-		bool Var::isUnused() const {
+		bool Var::isMarkedUnused() const {
 			assert(isNamed());
-			return isUnused_;
+			return isMarkedUnused_;
 		}
 		
-		void Var::setUnused() {
+		void Var::setMarkedUnused() {
 			assert(isNamed());
-			isUnused_ = true;
+			isMarkedUnused_ = true;
+		}
+		
+		bool Var::isUsed() const {
+			assert(isNamed());
+			return isUsed_;
+		}
+		
+		void Var::setUsed() {
+			assert(isNamed());
+			isUsed_ = true;
 		}
 		
 		const SEM::Type* Var::constructType() const {

@@ -3,7 +3,7 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Var;
 		
@@ -36,7 +36,7 @@ namespace locic {
 			 * object can simply use the member's invalid state to
 			 * indicate that the object is 'dead'.
 			 */
-			static LivenessIndicator MemberInvalidState(const SEM::Var& memberVar);
+			static LivenessIndicator MemberInvalidState(const AST::Var& memberVar);
 			
 			/**
 			 * \brief Use custom '__dead' and '__islive' methods.
@@ -78,7 +78,7 @@ namespace locic {
 			
 			bool isMemberInvalidState() const;
 			
-			const SEM::Var& memberVar() const;
+			const AST::Var& memberVar() const;
 			
 			bool isCustomMethods() const;
 			
@@ -94,7 +94,7 @@ namespace locic {
 			Kind kind_;
 			
 			union {
-				const SEM::Var* memberVar;
+				const AST::Var* memberVar;
 				size_t offset;
 			} data_;
 			

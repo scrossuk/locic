@@ -3,13 +3,18 @@
 
 namespace locic {
 	
+	namespace AST {
+		
+		class Var;
+		
+	}
+	
 	namespace SEM {
 		
 		class Alias;
 		class Function;
 		class TemplateVar;
 		class TypeInstance;
-		class Var;
 		
 	}
 	
@@ -36,7 +41,7 @@ namespace locic {
 				
 				static SearchResult TypeInstance(SEM::TypeInstance& typeInstance);
 				
-				static SearchResult Var(SEM::Var& var);
+				static SearchResult Var(AST::Var& var);
 				
 				Kind kind() const;
 				
@@ -51,7 +56,7 @@ namespace locic {
 				SEM::Function& function() const;
 				SEM::TemplateVar& templateVar() const;
 				SEM::TypeInstance& typeInstance() const;
-				SEM::Var& var() const;
+				AST::Var& var() const;
 				
 			private:
 				SearchResult(Kind pKind);
@@ -64,7 +69,7 @@ namespace locic {
 					SEM::Function* function;
 					SEM::TemplateVar* templateVar;
 					SEM::TypeInstance* typeInstance;
-					SEM::Var* var;
+					AST::Var* var;
 				} data_;
 				
 		};

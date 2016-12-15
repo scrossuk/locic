@@ -213,7 +213,7 @@ namespace locic {
 					const auto ptrToMember = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                                   thisValue,
 					                                                   memberOffsetValue);
-					irEmitter.emitDestructorCall(ptrToMember, memberVar->type());
+					irEmitter.emitDestructorCall(ptrToMember, memberVar->lvalType());
 				}
 				
 				// Put the object into a dead state.
@@ -391,7 +391,7 @@ namespace locic {
 						adjustedPositionValue = positionValue;
 					}
 					genMoveCall(functionGenerator_,
-					            memberVar->type(),
+					            memberVar->lvalType(),
 					            ptrToMember,
 					            destValue,
 					            adjustedPositionValue);
@@ -434,7 +434,7 @@ namespace locic {
 				llvm::Value* classAlignMask = zero;
 				
 				for (const auto& var: typeInstance.variables()) {
-					const auto varType = var->type()->substitute(type->generateTemplateVarMap());
+					const auto varType = var->lvalType()->substitute(type->generateTemplateVarMap());
 					const auto varAlignMask = irEmitter.emitAlignMask(varType);
 					classAlignMask = functionGenerator_.getBuilder().CreateOr(classAlignMask, varAlignMask);
 				}
@@ -462,8 +462,8 @@ namespace locic {
 				llvm::Value* maxVariantSize = zero;
 				
 				for (const auto& var: typeInstance.variables()) {
-					const auto variantAlignMask = irEmitter.emitAlignMask(var->type());
-					const auto variantSize = irEmitter.emitSizeOf(var->type());
+					const auto variantAlignMask = irEmitter.emitAlignMask(var->lvalType());
+					const auto variantSize = irEmitter.emitSizeOf(var->lvalType());
 					
 					maxVariantAlignMask = functionGenerator_.getBuilder().CreateOr(maxVariantAlignMask, variantAlignMask);
 					
@@ -516,7 +516,7 @@ namespace locic {
 				llvm::Value* classAlignMask = zero;
 				
 				for (const auto& var: typeInstance.variables()) {
-					const auto varType = var->type()->substitute(type->generateTemplateVarMap());
+					const auto varType = var->lvalType()->substitute(type->generateTemplateVarMap());
 					const auto memberAlignMask = irEmitter.emitAlignMask(varType);
 					const auto memberSize = irEmitter.emitSizeOf(varType);
 					

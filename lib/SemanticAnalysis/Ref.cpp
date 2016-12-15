@@ -129,15 +129,15 @@ namespace locic {
 			return SEM::Value::Self(createReferenceType(context, selfType));
 		}
 		
-		SEM::Value createLocalVarRef(Context& context, const SEM::Var& var) {
-			return SEM::Value::LocalVar(var, createReferenceType(context, var.type()));
+		SEM::Value createLocalVarRef(Context& context, const AST::Var& var) {
+			return SEM::Value::LocalVar(var, createReferenceType(context, var.lvalType()));
 		}
 		
-		SEM::Value createMemberVarRef(Context& context, SEM::Value object, const SEM::Var& var) {
+		SEM::Value createMemberVarRef(Context& context, SEM::Value object, const AST::Var& var) {
 			// If the object type is const, then the members must
 			// also be, *UNLESS* the variable is marked '__override_const'.
 			const auto derefType = getDerefType(object.type());
-			const auto memberType = var.type()->createTransitiveConstType(derefType->constPredicate().copy());
+			const auto memberType = var.lvalType()->createTransitiveConstType(derefType->constPredicate().copy());
 			const auto memberTypeSub = memberType->substitute(derefType->generateTemplateVarMap());
 			const auto resultMemberType = var.isOverrideConst() ? memberTypeSub->withoutConst() : memberTypeSub;
 			return SEM::Value::MemberAccess(derefOrBindValue(context, std::move(object)), var, createReferenceType(context, resultMemberType));

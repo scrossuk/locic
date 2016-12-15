@@ -12,7 +12,13 @@
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
+	
+	namespace AST {
+		
+		class Var;
+		
+	}
+	
 	namespace SEM {
 	
 		class CatchClause;
@@ -20,7 +26,6 @@ namespace locic {
 		class Scope;
 		class SwitchCase;
 		class Type;
-		class Var;
 		
 		class Statement {
 			public:
@@ -49,7 +54,7 @@ namespace locic {
 				
 				static Statement ScopeStmt(std::unique_ptr<Scope> scope);
 				
-				static Statement InitialiseStmt(Var* var, Value value);
+				static Statement InitialiseStmt(AST::Var& var, Value value);
 				
 				static Statement If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope);
 				
@@ -57,7 +62,7 @@ namespace locic {
 				
 				static Statement Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope);
 				
-				static Statement For(Var* var, Value initValue,
+				static Statement For(AST::Var& var, Value initValue,
 				                     std::unique_ptr<Scope> scope);
 				
 				static Statement Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList);
@@ -99,7 +104,7 @@ namespace locic {
 				
 				bool isInitialiseStatement() const;
 				
-				Var* getInitialiseVar() const;
+				AST::Var& getInitialiseVar() const;
 				
 				const Value& getInitialiseValue() const;
 				
@@ -127,7 +132,7 @@ namespace locic {
 				
 				bool isFor() const;
 				
-				Var* getForVar() const;
+				AST::Var& getForVar() const;
 				
 				const Value& getForInitValue() const;
 				
@@ -195,7 +200,7 @@ namespace locic {
 				} scopeStmt_;
 				
 				struct {
-					Var* var;
+					AST::Var* var;
 					Value value;
 				} initialiseStmt_;
 				
@@ -217,7 +222,7 @@ namespace locic {
 				} loopStmt_;
 				
 				struct {
-					Var* var;
+					AST::Var* var;
 					Value initValue;
 					std::unique_ptr<Scope> scope;
 				} forStmt_;

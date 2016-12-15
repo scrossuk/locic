@@ -18,6 +18,5 @@
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 #include <locic/SEM/Value.hpp>
-#include <locic/SEM/Var.hpp>
 
 #endif

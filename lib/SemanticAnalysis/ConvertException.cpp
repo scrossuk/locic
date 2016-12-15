@@ -20,7 +20,7 @@ namespace locic {
 	
 		namespace {
 			
-			SEM::TypeArray getFilteredConstructTypes(const std::vector<SEM::Var*>& variables) {
+			SEM::TypeArray getFilteredConstructTypes(const std::vector<AST::Var*>& variables) {
 				assert(!variables.empty());
 				SEM::TypeArray types;
 				types.reserve(variables.size() - 1);
@@ -35,9 +35,9 @@ namespace locic {
 				return types;
 			}
 			
-			std::vector<SEM::Var*> getParameters(const std::vector<SEM::Var*>& variables) {
+			std::vector<AST::Var*> getParameters(const std::vector<AST::Var*>& variables) {
 				assert(!variables.empty());
-				std::vector<SEM::Var*> parameters;
+				std::vector<AST::Var*> parameters;
 				parameters.reserve(variables.size() - 1);
 				bool isFirst = true;
 				for (const auto var: variables) {
@@ -50,20 +50,16 @@ namespace locic {
 				return parameters;
 			}
 			
-			void attachParameters(SEM::Function& function, const AST::Node<AST::VarList>& astParametersNode,
-			                      const std::vector<SEM::Var*>& semParameters) {
-				assert(astParametersNode->size() == semParameters.size());
-				
-				for (size_t i = 0; i < astParametersNode->size(); i++) {
-					const auto& astVarNode = astParametersNode->at(i);
-					const auto& semVar = semParameters.at(i);
-					assert(astVarNode->isNamed());
+			void attachParameters(SEM::Function& function, const std::vector<AST::Var*>& parameters) {
+				for (size_t i = 0; i < parameters.size(); i++) {
+					const auto& var = parameters.at(i);
+					assert(var->isNamed());
 					
-					const auto& varName = astVarNode->name();
+					const auto& varName = var->name();
 					
 					// It doesn't matter if this fails to insert the variable as we
 					// will have already issued an error to the user.
-					(void) function.namedVariables().insert(std::make_pair(varName, semVar));
+					(void) function.namedVariables().insert(std::make_pair(varName, var));
 				}
 			}
 			
@@ -122,8 +118,7 @@ namespace locic {
 			assert(semTypeInstance->parentType() != nullptr);
 			
 			// Attach parameters to the function.
-			attachParameters(*function, astTypeInstanceNode->variables,
-			                 function->parameters());
+			attachParameters(*function, function->parameters());
 			
 			// Push function on to scope stack (to resolve references to parameters).
 			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(*function));
@@ -140,9 +135,9 @@ namespace locic {
 			auto typeRefValue = createTypeRef(context, semTypeInstance->parentType());
 			constructValues.push_back(CallValue(context, GetStaticMethod(context, std::move(typeRefValue), context.getCString("create"), location), std::move(parentArguments), location));
 			
-			for (const auto semVar: function->parameters()) {
-				const auto varType = getBuiltInType(context, context.getCString("ref_t"), { semVar->type() })->createRefType(semVar->type());
-				auto varValue = SEM::Value::LocalVar(*semVar, varType);
+			for (const auto var: function->parameters()) {
+				const auto varType = getBuiltInType(context, context.getCString("ref_t"), { var->lvalType() })->createRefType(var->lvalType());
+				auto varValue = SEM::Value::LocalVar(*var, varType);
 				
 				// Move from each value_lval into the internal constructor.
 				constructValues.push_back(CallValue(context, GetSpecialMethod(context, derefValue(std::move(varValue)), context.getCString("move"), location), {}, location));

@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/Value.hpp>
+#include <locic/AST/Var.hpp>
+
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/String.hpp>
 
@@ -13,7 +16,6 @@
 #include <locic/SEM/SwitchCase.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
-#include <locic/SEM/Var.hpp>
 
 namespace locic {
 
@@ -31,9 +33,9 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::InitialiseStmt(Var* const var, Value value) {
+		Statement Statement::InitialiseStmt(AST::Var& var, Value value) {
 			Statement statement(INITIALISE, value.exitStates());
-			statement.initialiseStmt_.var = var;
+			statement.initialiseStmt_.var = &var;
 			statement.initialiseStmt_.value = std::move(value);
 			return statement;
 		}
@@ -111,7 +113,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::For(Var* var, Value initValue,
+		Statement Statement::For(AST::Var& var, Value initValue,
 		                         std::unique_ptr<Scope> scope) {
 			// TODO: get exit states of skip_front() method.
 			auto exitStates = initValue.exitStates();
@@ -135,7 +137,7 @@ namespace locic {
 			exitStates.add(scopeExitStates);
 			
 			Statement statement(FOR, exitStates);
-			statement.forStmt_.var = var;
+			statement.forStmt_.var = &var;
 			statement.forStmt_.initValue = std::move(initValue);
 			statement.forStmt_.scope = std::move(scope);
 			return statement;
@@ -260,9 +262,9 @@ namespace locic {
 			return kind() == INITIALISE;
 		}
 		
-		Var* Statement::getInitialiseVar() const {
+		AST::Var& Statement::getInitialiseVar() const {
 			assert(isInitialiseStatement());
-			return initialiseStmt_.var;
+			return *(initialiseStmt_.var);
 		}
 		
 		const Value& Statement::getInitialiseValue() const {
@@ -326,9 +328,9 @@ namespace locic {
 			return kind() == FOR;
 		}
 		
-		Var* Statement::getForVar() const {
+		AST::Var& Statement::getForVar() const {
 			assert(isFor());
-			return forStmt_.var;
+			return *(forStmt_.var);
 		}
 		
 		const Value& Statement::getForInitValue() const {
@@ -476,7 +478,7 @@ namespace locic {
 				
 				case FOR: {
 					return makeString("ForStatement(var: %s, initValue: %s, scope: %s)",
-						getForVar()->toString().c_str(),
+						getForVar().toString().c_str(),
 						getForInitValue().toString().c_str(),
 						getForScope().toString().c_str());
 				}

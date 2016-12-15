@@ -180,14 +180,14 @@ namespace locic {
 			ScopeEmitter(irEmitter_).emitScope(scope);
 		}
 		
-		void StatementEmitter::emitInitialise(SEM::Var* const var,
+		void StatementEmitter::emitInitialise(AST::Var& var,
 		                                      const SEM::Value& value) {
-			const auto varAllocaOptional = irEmitter_.function().getLocalVarMap().tryGet(var);
+			const auto varAllocaOptional = irEmitter_.function().getLocalVarMap().tryGet(&var);
 			const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
 			
 			ValueEmitter valueEmitter(irEmitter_);
 			const auto valueIR = valueEmitter.emitValue(value, varAlloca);
-			genVarInitialise(irEmitter_.function(), var, valueIR);
+			genVarInitialise(irEmitter_.function(), &var, valueIR);
 		}
 		
 		void StatementEmitter::emitIf(const std::vector<SEM::IfClause*>& ifClauseList,
@@ -460,7 +460,7 @@ namespace locic {
 			irEmitter_.selectBasicBlock(loopEndBB);
 		}
 		
-		void StatementEmitter::emitFor(SEM::Var* const var,
+		void StatementEmitter::emitFor(AST::Var& var,
 		                               const SEM::Value& initValue,
 		                               const SEM::Scope& scope) {
 			/**
@@ -490,7 +490,7 @@ namespace locic {
 			 *     forEnd:
 			 * }
 			 */
-			const auto valueType = var->type();
+			const auto valueType = var.lvalType();
 			const auto iteratorType = initValue.type();
 			
 			auto& function = irEmitter_.function();
@@ -528,11 +528,11 @@ namespace locic {
 				ScopeLifetime valueScope(function);
 				
 				// Initialise the loop value.
-				const auto varAllocaOptional = function.getLocalVarMap().tryGet(var);
+				const auto varAllocaOptional = function.getLocalVarMap().tryGet(&var);
 				const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
 				const auto value = irEmitter_.emitFrontCall(iteratorVar, iteratorType,
 				                                            valueType, varAlloca);
-				genVarInitialise(function, var, value);
+				genVarInitialise(function, &var, value);
 				
 				ControlFlowScope controlFlowScope(function, forEndBB, forAdvanceBB);
 				ScopeEmitter(irEmitter_).emitScope(scope);
@@ -684,7 +684,7 @@ namespace locic {
 					exceptionPtrValue->setDoesNotAccessMemory();
 					exceptionPtrValue->setDoesNotThrow();
 					
-					assert(catchClause->var().isBasic());
+					assert(catchClause->var().isNamed());
 					function.getLocalVarMap().forceInsert(&(catchClause->var()), exceptionPtrValue);
 					
 					{

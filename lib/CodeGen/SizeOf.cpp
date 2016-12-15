@@ -237,7 +237,7 @@ namespace locic {
 			for (size_t i = 0; i < typeVars.size(); i++) {
 				const auto& var = typeVars.at(i);
 				
-				offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->type()));
+				offsetValue = makeAligned(function, offsetValue, genAlignMask(function, var->lvalType()));
 				
 				const auto exitBB = irEmitter.createBasicBlock("exit");
 				const auto nextBB = irEmitter.createBasicBlock("next");
@@ -253,7 +253,7 @@ namespace locic {
 				irEmitter.selectBasicBlock(nextBB);
 				
 				if (i != typeVars.size() - 1) {
-					offsetValue = function.getBuilder().CreateAdd(offsetValue, genSizeOf(function, var->type()));
+					offsetValue = function.getBuilder().CreateAdd(offsetValue, genSizeOf(function, var->lvalType()));
 				}
 			}
 			
@@ -277,7 +277,7 @@ namespace locic {
 			llvm::Value* classAlignMask = zero;
 			
 			for (const auto& var: typeInstance.variables()) {
-				const auto memberAlignMask = genAlignMask(function, var->type());
+				const auto memberAlignMask = genAlignMask(function, var->lvalType());
 				
 				classAlignMask = function.getBuilder().CreateOr(classAlignMask, memberAlignMask);
 				
@@ -286,7 +286,7 @@ namespace locic {
 				// Add can't overflow.
 				const bool hasNoUnsignedWrap = true;
 				const bool hasNoSignedWrap = false;
-				classSize = function.getBuilder().CreateAdd(classSize, genSizeOf(function, var->type()),
+				classSize = function.getBuilder().CreateAdd(classSize, genSizeOf(function, var->lvalType()),
 									    "", hasNoUnsignedWrap, hasNoSignedWrap);
 			}
 			
@@ -312,7 +312,7 @@ namespace locic {
 				
 				for (size_t i = 0; i < memberIndex; i++) {
 					const auto memberVar = objectType->variables().at(i);
-					const auto abiType = genABIType(module, memberVar->type());
+					const auto abiType = genABIType(module, memberVar->lvalType());
 					const auto typeAlign = abi.typeInfo().getTypeRequiredAlign(abiType);
 					const auto typeSize = abi.typeInfo().getTypeAllocSize(abiType);
 					offset = roundUpToAlign(offset, typeAlign.asBytes()) + typeSize.asBytes();
@@ -320,7 +320,7 @@ namespace locic {
 				
 				{
 					const auto memberVar = objectType->variables().at(memberIndex);
-					const auto abiType = genABIType(module, memberVar->type());
+					const auto abiType = genABIType(module, memberVar->lvalType());
 					const auto typeAlign = abi.typeInfo().getTypeRequiredAlign(abiType);
 					offset = roundUpToAlign(offset, typeAlign.asBytes());
 				}

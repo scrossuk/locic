@@ -2,25 +2,27 @@
 
 #include <map>
 
+#include <locic/AST/Value.hpp>
+#include <locic/AST/Var.hpp>
+
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/SwitchCase.hpp>
-#include <locic/SEM/Var.hpp>
 
 namespace locic {
 
 	namespace SEM {
 	
-		SwitchCase::SwitchCase() { }
+		SwitchCase::SwitchCase()
+		: var_(nullptr) { }
 		
-		SwitchCase::SwitchCase(std::unique_ptr<Var> pVar, std::unique_ptr<Scope> pScope)
-		: var_(std::move(pVar)), scope_(std::move(pScope)) { }
+		SwitchCase::SwitchCase(AST::Var& pVar, std::unique_ptr<Scope> pScope)
+		: var_(&pVar), scope_(std::move(pScope)) { }
 		
-		void SwitchCase::setVar(std::unique_ptr<Var> pVar) {
-			assert(var_.get() == nullptr);
-			assert(pVar != nullptr);
-			var_ = std::move(pVar);
+		void SwitchCase::setVar(AST::Var& pVar) {
+			assert(var_ == nullptr);
+			var_ = &pVar;
 		}
 		
 		void SwitchCase::setScope(std::unique_ptr<Scope> pScope) {
@@ -29,19 +31,19 @@ namespace locic {
 			scope_ = std::move(pScope);
 		}
 		
-		Var& SwitchCase::var() {
+		AST::Var& SwitchCase::var() {
 			return *var_;
 		}
 		
-		const Var& SwitchCase::var() const {
+		const AST::Var& SwitchCase::var() const {
 			return *var_;
 		}
 		
-		FastMap<String, Var*>& SwitchCase::namedVariables() {
+		FastMap<String, AST::Var*>& SwitchCase::namedVariables() {
 			return namedVariables_;
 		}
 		
-		const FastMap<String, Var*>& SwitchCase::namedVariables() const {
+		const FastMap<String, AST::Var*>& SwitchCase::namedVariables() const {
 			return namedVariables_;
 		}
 		

@@ -10,7 +10,6 @@
 #include <locic/SEM/TypeInstance.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/SEM/ValueArray.hpp>
-#include <locic/SEM/Var.hpp>
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Hasher.hpp>
@@ -42,7 +41,7 @@ namespace locic {
 				const SEM::Alias* alias;
 				
 				struct {
-					const Var* var;
+					const AST::Var* var;
 				} localVar;
 				
 				struct {
@@ -71,7 +70,7 @@ namespace locic {
 				} makeStaticRef;
 				
 				struct {
-					const Var* memberVar;
+					const AST::Var* memberVar;
 				} memberAccess;
 				
 				struct {
@@ -138,7 +137,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::LocalVar(const Var& var, const Type* const type) {
+		Value Value::LocalVar(const AST::Var& var, const Type* const type) {
 			assert(type->isRef() && type->isBuiltInReference());
 			Value value(LOCALVAR, type, ExitStates::Normal());
 			value.impl_->union_.localVar.var = &var;
@@ -243,7 +242,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::MemberAccess(Value object, const Var& var, const Type* const type) {
+		Value Value::MemberAccess(Value object, const AST::Var& var, const Type* const type) {
 			assert(object.type()->isRef() && object.type()->isBuiltInReference());
 			assert(type->isRef() && type->isBuiltInReference());
 			// If the object type is const, then
@@ -450,7 +449,7 @@ namespace locic {
 			return kind() == LOCALVAR;
 		}
 		
-		const Var& Value::localVar() const {
+		const AST::Var& Value::localVar() const {
 			assert(isLocalVarRef());
 			return *(impl_->union_.localVar.var);
 		}
@@ -625,7 +624,7 @@ namespace locic {
 			return impl_->value0;
 		}
 		
-		const Var& Value::memberAccessVar() const {
+		const AST::Var& Value::memberAccessVar() const {
 			assert(isMemberAccess());
 			return *(impl_->union_.memberAccess.memberVar);
 		}
@@ -1260,7 +1259,7 @@ namespace locic {
 				case UNIONDATAOFFSET:
 					return unionDataOffsetTypeInstance()->name().toString();
 				case MEMBEROFFSET:
-					// TODO: this should have a SEM::Var&, not an index.
+					// TODO: this should have a AST::Var&, not an index.
 					return makeString("@%s",
 					                  memberOffsetTypeInstance()->variables()[memberOffsetMemberIndex()]->toString().c_str());
 				case REINTERPRET:

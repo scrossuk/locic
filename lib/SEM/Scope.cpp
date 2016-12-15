@@ -1,12 +1,14 @@
 #include <string>
 
+#include <locic/AST/Value.hpp>
+#include <locic/AST/Var.hpp>
+
 #include <locic/Support/Array.hpp>
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
-#include <locic/SEM/Var.hpp>
 
 namespace locic {
 
@@ -123,19 +125,19 @@ namespace locic {
 			return scopeExitStates;
 		}
 		
-		Array<Var*, 10>& Scope::variables() {
+		Array<AST::Var*, 10>& Scope::variables() {
 			return variables_;
 		}
 		
-		const Array<Var*, 10>& Scope::variables() const {
+		const Array<AST::Var*, 10>& Scope::variables() const {
 			return variables_;
 		}
 		
-		FastMap<String, Var*>& Scope::namedVariables() {
+		FastMap<String, AST::Var*>& Scope::namedVariables() {
 			return namedVariables_;
 		}
 		
-		const FastMap<String, Var*>& Scope::namedVariables() const {
+		const FastMap<String, AST::Var*>& Scope::namedVariables() const {
 			return namedVariables_;
 		}
 		
