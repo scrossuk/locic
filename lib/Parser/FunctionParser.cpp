@@ -136,7 +136,7 @@ namespace locic {
 			auto templateInfo = TemplateParser(reader_).parseTemplate();
 			auto function = parseNonTemplatedMethod(start);
 			
-			function->setTemplateVariables(templateInfo.extractTemplateVariables());
+			function->setTemplateVariableDecls(templateInfo.extractTemplateVariables());
 			
 			if (templateInfo.hasRequireSpecifier()) {
 				// TODO: reject duplicate require() specifier.

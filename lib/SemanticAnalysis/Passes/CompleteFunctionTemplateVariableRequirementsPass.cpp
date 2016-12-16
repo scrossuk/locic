@@ -28,7 +28,7 @@ namespace locic {
 			}
 			
 			// Add requirements specified inline for template variables.
-			for (const auto& astTemplateVarNode: *(astFunctionNode->templateVariables())) {
+			for (const auto& astTemplateVarNode: *(astFunctionNode->templateVariableDecls())) {
 				const auto& templateVarName = astTemplateVarNode->name();
 				const auto semTemplateVar = function.namedTemplateVariables().at(templateVarName);
 				

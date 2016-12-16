@@ -147,14 +147,14 @@ namespace locic {
 			semFunction->setMethod(isMethod);
 			semFunction->setStaticMethod(isMethod && astFunctionNode->isStatic());
 			
-			if (!astFunctionNode->templateVariables()->empty() && (thisTypeInstance != nullptr && thisTypeInstance->isInterface())) {
+			if (!astFunctionNode->templateVariableDecls()->empty() && (thisTypeInstance != nullptr && thisTypeInstance->isInterface())) {
 				context.issueDiag(InterfaceMethodCannotBeTemplatedDiag(name),
 				                  astFunctionNode.location());
 			}
 			
 			// Add template variables.
 			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
-			for (const auto& astTemplateVarNode: *(astFunctionNode->templateVariables())) {
+			for (const auto& astTemplateVarNode: *(astFunctionNode->templateVariableDecls())) {
 				const auto& templateVarName = astTemplateVarNode->name();
 				
 				// TODO!

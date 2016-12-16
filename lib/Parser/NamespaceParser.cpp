@@ -203,7 +203,7 @@ namespace locic {
 		                                             const Debug::SourcePosition& start) {
 			auto function = FunctionParser(reader_).parseGlobalFunction();
 			
-			function->setTemplateVariables(templateInfo.extractTemplateVariables());
+			function->setTemplateVariableDecls(templateInfo.extractTemplateVariables());
 			
 			if (templateInfo.hasRequireSpecifier()) {
 				// TODO: reject duplicate require() specifier.
