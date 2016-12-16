@@ -78,7 +78,6 @@ add_executable(locic
 target_link_libraries(locic
 	locic-semanalysis
 	locic-codegen
-	locic-sem
 	locic-parser
 	locic-ast
 	locic-lex
@@ -101,8 +100,8 @@ add_executable(loci-vtable
 target_link_libraries(loci-vtable
 	locic-semanalysis
 	locic-codegen
-	locic-sem
 	locic-parser
+	locic-ast
 	locic-lex
 	locic-support
 	${REQ_LIBS}

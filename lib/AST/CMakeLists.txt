@@ -1,3 +1,24 @@
+set(SEM_FILES
+	../SEM/Alias.cpp
+	../SEM/CatchClause.cpp
+	../SEM/Context.cpp
+	../SEM/Function.cpp
+	../SEM/FunctionType.cpp
+	../SEM/GlobalStructure.cpp
+	../SEM/IfClause.cpp
+	../SEM/Module.cpp
+	../SEM/Namespace.cpp
+	../SEM/Predicate.cpp
+	../SEM/Scope.cpp
+	../SEM/Statement.cpp
+	../SEM/SwitchCase.cpp
+	../SEM/TemplateVar.cpp
+	../SEM/TemplateVarMap.cpp
+	../SEM/Type.cpp
+	../SEM/TypeInstance.cpp
+	../SEM/Value.cpp
+)
+
 add_library(locic-ast
 	AliasDecl.cpp
 	ConstSpecifier.cpp
@@ -17,5 +38,6 @@ add_library(locic-ast
 	TypeInstance.cpp
 	Value.cpp
 	Var.cpp
+	${SEM_FILES}
 )
 

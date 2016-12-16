@@ -15,9 +15,6 @@ add_subdirectory(Lex)
 # Build parser.
 add_subdirectory(Parser)
 
-# Build semantic tree structures.
-add_subdirectory(SEM)
-
 # Build semantic analysis.
 add_subdirectory(SemanticAnalysis)
 
