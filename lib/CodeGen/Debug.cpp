@@ -233,16 +233,16 @@ namespace locic {
 		
 		Optional<DISubprogram> genDebugFunctionInfo(Module& module,
 		                                            const SEM::TypeInstance* parentType,
-		                                            const AST::FunctionDecl* const function,
+		                                            const AST::FunctionDecl& function,
 		                                            llvm::Function* const llvmFunction) {
-			const auto& debugInfo = function->debugInfo();
+			const auto& debugInfo = function.debugInfo();
 			
 			if (debugInfo) {
-				const auto debugSubprogramType = genDebugFunctionType(module, function->type());
+				const auto debugSubprogramType = genDebugFunctionType(module, function.type());
 				const auto& functionInfo = *debugInfo;
-				const bool isInternal = function->moduleScope().isInternal();
+				const bool isInternal = function.moduleScope().isInternal();
 				const bool isDefinition = SEMFunctionGenerator(module).hasDef(parentType,
-				                                                              *function);
+				                                                              function);
 				return make_optional(genDebugFunction(module, functionInfo, debugSubprogramType, llvmFunction, isInternal, isDefinition));
 			} else {
 				return None;

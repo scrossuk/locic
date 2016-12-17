@@ -233,7 +233,7 @@ namespace locic {
 			
 			const auto debugSubprogram = genDebugFunctionInfo(module_,
 			                                                  typeInstance,
-			                                                  &function,
+			                                                  function,
 			                                                  llvmFunction);
 			assert(debugSubprogram);
 			functionGenerator.attachDebugInfo(*debugSubprogram);

@@ -110,7 +110,7 @@ namespace locic {
 		
 		Optional<DISubprogram> genDebugFunctionInfo(Module& module,
 		                                            const SEM::TypeInstance* parentType,
-		                                            const AST::FunctionDecl* function,
+		                                            const AST::FunctionDecl& function,
 		                                            llvm::Function* llvmFunction);
 		
 		llvm::Instruction* genDebugVar(Function& function,
