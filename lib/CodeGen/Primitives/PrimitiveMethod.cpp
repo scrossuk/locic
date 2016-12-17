@@ -39,57 +39,6 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool isFloatType(Module& /*module*/, const SEM::Type* const rawType) {
-			const auto type = rawType->resolveAliases();
-			switch (type->primitiveID()) {
-				case PrimitiveFloat:
-				case PrimitiveDouble:
-				case PrimitiveLongDouble:
-					return true;
-				default:
-					return false;
-			}
-		}
-		
-		bool isSignedIntegerType(Module& /*module*/, const SEM::Type* const rawType) {
-			const auto type = rawType->resolveAliases();
-			switch (type->primitiveID()) {
-				case PrimitiveInt8:
-				case PrimitiveInt16:
-				case PrimitiveInt32:
-				case PrimitiveInt64:
-				case PrimitiveByte:
-				case PrimitiveShort:
-				case PrimitiveInt:
-				case PrimitiveLong:
-				case PrimitiveLongLong:
-				case PrimitiveSSize:
-				case PrimitivePtrDiff:
-					return true;
-				default:
-					return false;
-			}
-		}
-		
-		bool isUnsignedIntegerType(Module& /*module*/, const SEM::Type* const rawType) {
-			const auto type = rawType->resolveAliases();
-			switch (type->primitiveID()) {
-				case PrimitiveUInt8:
-				case PrimitiveUInt16:
-				case PrimitiveUInt32:
-				case PrimitiveUInt64:
-				case PrimitiveUByte:
-				case PrimitiveUShort:
-				case PrimitiveUInt:
-				case PrimitiveULong:
-				case PrimitiveULongLong:
-				case PrimitiveSize:
-					return true;
-				default:
-					return false;
-			}
-		}
-		
 		llvm::Value* callRawCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
 				const String& targetMethodName, const SEM::Type* const castToType, llvm::Value* const hintResultValue) {
 			const bool isVarArg = false;
@@ -152,66 +101,6 @@ namespace locic {
 			                            arrayRef(type->templateArguments()),
 			                            /*functionTemplateArguments=*/arrayRef(templateArgs),
 			                            std::move(args), hintResultValue);
-		}
-		
-		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* const typeInstance, AST::FunctionDecl* const astFunction, llvm::Function& llvmFunction) {
-			const auto argInfo = getFunctionArgInfo(module, astFunction->type());
-			Function function(module, llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
-			
-			const auto debugSubprogram = genDebugFunctionInfo(module, typeInstance,
-			                                                  astFunction, &llvmFunction);
-			assert(debugSubprogram);
-			function.attachDebugInfo(*debugSubprogram);
-			
-			function.setDebugPosition(astFunction->debugInfo()->scopeLocation.range().start());
-			
-			SEM::ValueArray templateArgs;
-			for (const auto& templateVar: astFunction->templateVariables()) {
-				templateArgs.push_back(templateVar->selfRefValue());
-			}
-			
-			PendingResultArray args;
-			const auto contextValue =
-				argInfo.hasContextArgument() ?
-					function.getContextValue() :
-					nullptr;
-			RefPendingResult contextPendingResult(contextValue, typeInstance->selfType());
-			if (argInfo.hasContextArgument()) {
-				args.push_back(contextPendingResult);
-			}
-			
-			// Need an array to store all the pending results
-			// being referred to in 'genTrivialPrimitiveFunctionCall'.
-			Array<ValuePendingResult, 10> pendingResultArgs;
-			
-			const auto& argTypes = astFunction->type().parameterTypes();
-			for (size_t i = 0; i < argTypes.size(); i++) {
-				const auto argValue = function.getArg(i);
-				pendingResultArgs.push_back(ValuePendingResult(argValue, argTypes[i]));
-				args.push_back(pendingResultArgs.back());
-			}
-			
-			MethodInfo methodInfo(typeInstance->selfType(), astFunction->fullName().last(), astFunction->type(), std::move(templateArgs));
-			
-			const auto hintResultValue = argInfo.hasReturnVarArgument() ? function.getReturnVar() : nullptr;
-			const auto result = genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(args), hintResultValue);
-			
-			const auto returnType = astFunction->type().returnType();
-			
-			IREmitter irEmitter(function);
-			
-			// Return the result in the appropriate way.
-			if (argInfo.hasReturnVarArgument()) {
-				irEmitter.emitMoveStore(result, function.getReturnVar(), returnType);
-				irEmitter.emitReturnVoid();
-			} else if (!returnType->isBuiltInVoid()) {
-				function.returnValue(result);
-			} else {
-				irEmitter.emitReturnVoid();
-			}
-			
-			// Check the generated function is correct.
-			function.verify();
 		}
 		
 	}

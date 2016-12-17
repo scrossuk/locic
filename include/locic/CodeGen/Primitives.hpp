@@ -30,13 +30,6 @@ namespace locic {
 		class Function;
 		class Module;
 		
-		bool isSignedIntegerType(Module& module, const SEM::Type* type);
-		
-		bool isUnsignedIntegerType(Module& module, const SEM::Type* type);
-		
-		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* typeInstance,
-		                           AST::FunctionDecl* function, llvm::Function& llvmFunction);
-		
 		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
 		
 		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
