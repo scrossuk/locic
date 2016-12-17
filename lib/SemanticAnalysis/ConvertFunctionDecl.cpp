@@ -115,58 +115,54 @@ namespace locic {
 			
 		};
 		
-		std::unique_ptr<SEM::Function>
-		ConvertFunctionDecl(Context& context, AST::Node<AST::FunctionDecl>& astFunctionNode,
-		                    AST::ModuleScope moduleScope) {
+		void
+		ConvertFunctionDecl(Context& context, AST::Node<AST::FunctionDecl>& function) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
-			const auto& name = astFunctionNode->name()->last();
+			const auto& name = function->nameDecl()->last();
 			
-			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(getParent(context.scopeStack().back()),
-			                                                             astFunctionNode,
-			                                                             std::move(moduleScope)));
+			function->setParent(getParent(context.scopeStack().back()));
 			
 			const bool isMethod = thisTypeInstance != nullptr;
 			
-			if (!isMethod && !astFunctionNode->constSpecifier()->isNone()) {
-				context.issueDiag(FunctionCannotHaveConstSpecifierDiag(semFunction->name()),
-				                  astFunctionNode->constSpecifier().location());
+			if (!isMethod && !function->constSpecifier()->isNone()) {
+				context.issueDiag(FunctionCannotHaveConstSpecifierDiag(function->fullName()),
+				                  function->constSpecifier().location());
 			}
 			
-			if (!isMethod && astFunctionNode->isStatic()) {
-				context.issueDiag(FunctionCannotBeStaticDiag(semFunction->name()),
-				                  astFunctionNode.location());
+			if (!isMethod && function->isStatic()) {
+				context.issueDiag(FunctionCannotBeStaticDiag(function->fullName()),
+				                  function.location());
 			}
 			
-			// Don't treat extension methods as primitive methods.
-			const bool isPrimitiveMethod = isMethod && thisTypeInstance->isPrimitive() && astFunctionNode->name()->size() == 1;
-			const bool isPrimitiveFunction = astFunctionNode->isPrimitive();
+			// Methods of a primitive type will be primitive, unless
+			// they are extension methods.
+			if (isMethod && thisTypeInstance->isPrimitive() && function->nameDecl()->size() == 1) {
+				function->setIsPrimitive(true);
+			}
 			
-			semFunction->setPrimitive(isPrimitiveMethod || isPrimitiveFunction);
+			function->setMethod(isMethod);
 			
-			semFunction->setMethod(isMethod);
-			semFunction->setStaticMethod(isMethod && astFunctionNode->isStatic());
-			
-			if (!astFunctionNode->templateVariableDecls()->empty() && (thisTypeInstance != nullptr && thisTypeInstance->isInterface())) {
+			if (!function->templateVariableDecls()->empty() && (thisTypeInstance != nullptr && thisTypeInstance->isInterface())) {
 				context.issueDiag(InterfaceMethodCannotBeTemplatedDiag(name),
-				                  astFunctionNode.location());
+				                  function.location());
 			}
 			
 			// Add template variables.
 			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
-			for (const auto& astTemplateVarNode: *(astFunctionNode->templateVariableDecls())) {
+			for (const auto& astTemplateVarNode: *(function->templateVariableDecls())) {
 				const auto& templateVarName = astTemplateVarNode->name();
 				
 				// TODO!
 				const bool isVirtual = false;
 				const auto semTemplateVar =
 					new SEM::TemplateVar(context.semContext(),
-						semFunction->name() + templateVarName,
+						function->fullName() + templateVarName,
 						templateVarIndex++, isVirtual);
 				
-				const auto templateVarIterator = semFunction->namedTemplateVariables().find(templateVarName);
-				if (templateVarIterator == semFunction->namedTemplateVariables().end()) {
-					semFunction->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
+				const auto templateVarIterator = function->namedTemplateVariables().find(templateVarName);
+				if (templateVarIterator == function->namedTemplateVariables().end()) {
+					function->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
 				} else {
 					context.issueDiag(ShadowsTemplateParameterDiag(templateVarName),
 					                  astTemplateVarNode.location());
@@ -179,17 +175,15 @@ namespace locic {
 				if (!semVarType->isPrimitive()) {
 					context.issueDiag(FunctionTemplateHasNonPrimitiveTypeDiag(templateVarName,
 					                                                          semVarType,
-					                                                          semFunction->name()),
+					                                                          function->fullName()),
 					                  astTemplateVarNode->type().location());
 				}
 				
 				semTemplateVar->setType(semVarType);
-				semFunction->templateVariables().push_back(semTemplateVar);
+				function->templateVariables().push_back(semTemplateVar);
 			}
 			
-			assert(semFunction->isDeclaration());
-			
-			return semFunction;
+			assert(!function->hasGeneratedScope());
 		}
 		
 		bool isValidLifetimeMethod(const MethodID methodID) {
@@ -506,25 +500,24 @@ namespace locic {
 			
 		};
 		
-		void ConvertFunctionDeclType(Context& context, SEM::Function& function) {
-			if (function.isAutoGenerated()) {
+		void ConvertFunctionDeclType(Context& context, AST::Node<AST::FunctionDecl>& function) {
+			if (function->isAutoGenerated()) {
 				// Auto-generated functions have already had their
 				// type converted.
 				return;
 			}
 			
-			auto& astFunctionNode = function.astFunction();
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			
 			// Enable lookups for function template variables.
-			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(function));
+			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(*function));
 			
 			// Convert const specifier.
-			if (!astFunctionNode->constSpecifier().isNull()) {
-				function.setConstPredicate(ConvertConstSpecifier(context, astFunctionNode->constSpecifier()));
+			if (!function->constSpecifier().isNull()) {
+				function->setConstPredicate(ConvertConstSpecifier(context, function->constSpecifier()));
 			}
 			
-			auto& astReturnTypeNode = astFunctionNode->returnType();
+			auto& astReturnTypeNode = function->returnType();
 			const SEM::Type* semReturnType = NULL;
 			
 			if (astReturnTypeNode->typeEnum == AST::TypeDecl::AUTO) {
@@ -532,8 +525,8 @@ namespace locic {
 				// constructor, with no return type specified (i.e.
 				// the return type will be the parent class type).
 				assert(thisTypeInstance != nullptr);
-				assert(astFunctionNode->isDefinition());
-				assert(astFunctionNode->isStatic());
+				assert(function->hasScopeDecl());
+				assert(function->isStatic());
 				
 				semReturnType = thisTypeInstance->selfType();
 			} else {
@@ -541,14 +534,14 @@ namespace locic {
 			}
 			
 			std::vector<AST::Var*> parameterVars;
-			parameterVars.reserve(astFunctionNode->parameters()->size());
+			parameterVars.reserve(function->parameterDecls()->size());
 			
 			SEM::TypeArray parameterTypes;
-			parameterTypes.reserve(astFunctionNode->parameters()->size());
+			parameterTypes.reserve(function->parameterDecls()->size());
 			
 			size_t index = 0;
 			
-			for (auto& astVarNode: *(astFunctionNode->parameters())) {
+			for (auto& astVarNode: *(function->parameterDecls())) {
 				if (!astVarNode->isNamed()) {
 					context.issueDiag(PatternMatchingNotSupportedForParameterVariablesDiag(),
 					                  astVarNode.location());
@@ -564,32 +557,32 @@ namespace locic {
 				parameterVars.push_back(paramVar);
 			}
 			
-			function.setParameters(std::move(parameterVars));
+			function->setParameters(std::move(parameterVars));
 			
-			auto noExceptPredicate = ConvertNoExceptSpecifier(context, astFunctionNode->noexceptSpecifier());
-			if (function.name().last() == "__destroy") {
+			auto noExceptPredicate = ConvertNoExceptSpecifier(context, function->noexceptSpecifier());
+			if (function->fullName().last() == "__destroy") {
 				// Destructors are always noexcept.
 				noExceptPredicate = SEM::Predicate::True();
 			}
 			
-			if (!noExceptPredicate.isTrue() && function.name().last().starts_with("__")) {
-				context.issueDiag(LifetimeMethodNotNoExceptDiag(function.name().toString()),
-				                  astFunctionNode.location());
+			if (!noExceptPredicate.isTrue() && function->fullName().last().starts_with("__")) {
+				context.issueDiag(LifetimeMethodNotNoExceptDiag(function->fullName().toString()),
+				                  function.location());
 				noExceptPredicate = SEM::Predicate::True();
 			}
 			
-			const bool isDynamicMethod = function.isMethod() && !astFunctionNode->isStatic();
-			const bool isTemplatedMethod = !function.templateVariables().empty() ||
+			const bool isDynamicMethod = function->isMethod() && !function->isStatic();
+			const bool isTemplatedMethod = !function->templateVariables().empty() ||
 				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());
 			
-			SEM::FunctionAttributes attributes(astFunctionNode->isVarArg(), isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
+			SEM::FunctionAttributes attributes(function->isVarArg(), isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
 			SEM::FunctionType functionType(std::move(attributes), semReturnType, std::move(parameterTypes));
-			validateFunctionType(context, function.name(),
+			validateFunctionType(context, function->fullName(),
 			                     functionType,
-			                     function.constPredicate(),
-			                     astFunctionNode.location());
+			                     function->constPredicate(),
+			                     function.location());
 			
-			function.setType(functionType);
+			function->setType(functionType);
 		}
 		
 	}

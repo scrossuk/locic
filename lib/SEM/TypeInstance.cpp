@@ -1,5 +1,6 @@
 #include <string>
 
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/Var.hpp>
 
@@ -10,7 +11,6 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/Context.hpp>
-#include <locic/SEM/Function.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/TemplateVar.hpp>
@@ -54,7 +54,7 @@ namespace locic {
 			return parent().nextNamespace();
 		}
 		
-		const Name& TypeInstance::name() const {
+		const Name& TypeInstance::fullName() const {
 			return name_;
 		}
 		
@@ -208,47 +208,52 @@ namespace locic {
 			variables_.push_back(&var);
 		}
 		
-		Array<std::unique_ptr<Function>, 8>& TypeInstance::functions() {
+		Array<AST::FunctionDecl*, 8>& TypeInstance::functions() {
 			return functions_;
 		}
 		
-		const Array<std::unique_ptr<Function>, 8>& TypeInstance::functions() const {
+		const Array<AST::FunctionDecl*, 8>& TypeInstance::functions() const {
 			return functions_;
 		}
 		
-		void TypeInstance::attachFunction(std::unique_ptr<Function> function) {
-			functions_.push_back(std::move(function));
+		void TypeInstance::attachFunction(AST::FunctionDecl& function) {
+			functions_.push_back(&function);
+		}
+		
+		void TypeInstance::attachFunction(std::unique_ptr<AST::FunctionDecl> function) {
+			// FIXME!
+			functions_.push_back(function.release());
 		}
 		
 		bool TypeInstance::hasFunction(String canonicalName) const {
 			return findFunction(canonicalName) != nullptr;
 		}
 		
-		Function* TypeInstance::findFunction(String canonicalName) {
+		AST::FunctionDecl* TypeInstance::findFunction(String canonicalName) {
 			for (const auto& function: functions()) {
 				if (function->canonicalName() == canonicalName) {
-					return function.get();
+					return function;
 				}
 			}
 			return nullptr;
 		}
 		
-		const Function* TypeInstance::findFunction(String canonicalName) const {
+		const AST::FunctionDecl* TypeInstance::findFunction(String canonicalName) const {
 			for (const auto& function: functions()) {
 				if (function->canonicalName() == canonicalName) {
-					return function.get();
+					return function;
 				}
 			}
 			return nullptr;
 		}
 		
-		Function& TypeInstance::getFunction(String canonicalName) {
+		AST::FunctionDecl& TypeInstance::getFunction(String canonicalName) {
 			const auto function = findFunction(canonicalName);
 			assert(function != nullptr);
 			return *function;
 		}
 		
-		const Function& TypeInstance::getFunction(String canonicalName) const {
+		const AST::FunctionDecl& TypeInstance::getFunction(String canonicalName) const {
 			const auto function = findFunction(canonicalName);
 			assert(function != nullptr);
 			return *function;
@@ -304,47 +309,47 @@ namespace locic {
 			switch (kind()) {
 				case PRIMITIVE:
 					return makeString("Primitive(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 									  
 				case ENUM:
 					return makeString("Enum(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 									  
 				case STRUCT:
 					return makeString("Struct(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 									  
 				case OPAQUE_STRUCT:
 					return makeString("OpaqueStruct(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 				
 				case UNION:
 					return makeString("Union(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 									  
 				case CLASSDECL:
 					return makeString("ClassDecl(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 									  
 				case CLASSDEF:
 					return makeString("ClassDef(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 									  
 				case DATATYPE:
 					return makeString("Datatype(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 				
 				case UNION_DATATYPE:
 					return makeString("UnionDatatype(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 									  
 				case INTERFACE:
 					return makeString("Interface(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 				
 				case EXCEPTION:
 					return makeString("Exception(name: %s)",
-									  name().toString().c_str());
+									  fullName().toString().c_str());
 			}
 			
 			locic_unreachable("Unknown SEM::TypeInstance kind.");

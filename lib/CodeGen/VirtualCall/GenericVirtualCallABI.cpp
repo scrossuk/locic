@@ -2,6 +2,8 @@
 
 #include <llvm-abi/Type.hpp>
 
+#include <locic/AST/FunctionDecl.hpp>
+
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
@@ -123,7 +125,7 @@ namespace locic {
 		
 		llvm::Constant*
 		GenericVirtualCallABI::emitVTableSlot(const SEM::TypeInstance& typeInstance,
-		                                      llvm::ArrayRef<SEM::Function*> methods) {
+		                                      llvm::ArrayRef<AST::FunctionDecl*> methods) {
 			ConstantGenerator constGen(module_);
 			TypeGenerator typeGen(module_);
 			
@@ -147,11 +149,11 @@ namespace locic {
 			
 			auto& builder = function.getBuilder();
 			
-			for (const auto semMethod : methods) {
+			for (const auto method : methods) {
 				const auto callMethodBasicBlock = irEmitter.createBasicBlock("callMethod");
 				const auto tryNextMethodBasicBlock = irEmitter.createBasicBlock("tryNextMethod");
 				
-				const auto methodHash = CreateMethodNameHash(semMethod->name().last());
+				const auto methodHash = CreateMethodNameHash(method->fullName().last());
 				
 				const auto cmpValue = builder.CreateICmpEQ(llvmHashValue, constGen.getI64(methodHash));
 				irEmitter.emitCondBranch(cmpValue, callMethodBasicBlock,
@@ -159,13 +161,13 @@ namespace locic {
 				
 				irEmitter.selectBasicBlock(callMethodBasicBlock);
 				
-				const auto argInfo = getFunctionArgInfo(module_, semMethod->type());
+				const auto argInfo = getFunctionArgInfo(module_, method->type());
 				
 				auto& semFunctionGenerator = module_.semFunctionGenerator();
 				const auto llvmMethod = semFunctionGenerator.getDecl(&typeInstance,
-				                                                     *semMethod);
+				                                                     *method);
 				
-				const auto functionType = semMethod->type();
+				const auto functionType = method->type();
 				const auto returnType = functionType.returnType();
 				const auto& paramTypes = functionType.parameterTypes();
 				

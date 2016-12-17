@@ -7,6 +7,8 @@
 
 #include <llvm-abi/ABITypeInfo.hpp>
 
+#include <locic/AST/FunctionDecl.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
@@ -412,11 +414,13 @@ namespace locic {
 			}
 		}
 		
-		static bool isTemplatedObjectDecl(TemplatedObject templatedObject) {
+		static bool isTemplatedObjectDecl(Module& module, TemplatedObject templatedObject) {
+			auto& semFunctionGenerator = module.semFunctionGenerator();
 			if (templatedObject.isTypeInstance()) {
 				return templatedObject.typeInstance()->isClassDecl();
 			} else {
-				return templatedObject.function()->isDeclaration();
+				return !semFunctionGenerator.hasDef(templatedObject.parentTypeInstance(),
+				                                    *(templatedObject.function()));
 			}
 		}
 		
@@ -512,7 +516,7 @@ namespace locic {
 			const auto argInfo = intermediateFunctionArgInfo(module);
 			const auto llvmFunction = genTemplateIntermediateFunctionDecl(module, templatedObject);
 			
-			if (isTemplatedObjectDecl(templatedObject)) {
+			if (isTemplatedObjectDecl(module, templatedObject)) {
 				return llvmFunction;
 			}
 			

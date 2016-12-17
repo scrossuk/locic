@@ -7,6 +7,8 @@
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
+#include <locic/AST/Var.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/Interface.hpp>

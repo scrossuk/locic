@@ -1,3 +1,4 @@
+#include <locic/AST/Var.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>

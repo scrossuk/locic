@@ -2,7 +2,6 @@ set(SEM_FILES
 	../SEM/Alias.cpp
 	../SEM/CatchClause.cpp
 	../SEM/Context.cpp
-	../SEM/Function.cpp
 	../SEM/FunctionType.cpp
 	../SEM/GlobalStructure.cpp
 	../SEM/IfClause.cpp

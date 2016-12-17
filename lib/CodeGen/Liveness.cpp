@@ -1,6 +1,7 @@
 #include <llvm-abi/ABI.hpp>
 #include <llvm-abi/ABITypeInfo.hpp>
 
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>

@@ -245,7 +245,7 @@ namespace locic {
 		llvm::Constant* genCatchInfo(Module& module, const SEM::TypeInstance* const catchTypeInstance) {
 			assert(catchTypeInstance->isException());
 			
-			const auto typeName = catchTypeInstance->name().genString();
+			const auto typeName = catchTypeInstance->fullName().genString();
 			const auto typeNameGlobalPtr = getTypeNameGlobal(module, typeName);
 			
 			ConstantGenerator constGen(module);
@@ -278,7 +278,7 @@ namespace locic {
 			// Add type names in REVERSE order.
 			const SEM::TypeInstance* currentInstance = throwTypeInstance;
 			while (currentInstance != nullptr) {
-				typeNames.push_back(currentInstance->name().genString());
+				typeNames.push_back(currentInstance->fullName().genString());
 				currentInstance = currentInstance->parentType() != nullptr ?
 					currentInstance->parentType()->getObjectType() : nullptr;
 			}

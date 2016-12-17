@@ -2,6 +2,8 @@
 
 #include <llvm-abi/Type.hpp>
 
+#include <locic/AST/FunctionDecl.hpp>
+
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
@@ -58,7 +60,7 @@ namespace locic {
 		
 		llvm::Constant*
 		NestVirtualCallABI::emitVTableSlot(const SEM::TypeInstance& typeInstance,
-		                                      llvm::ArrayRef<SEM::Function*> methods) {
+		                                      llvm::ArrayRef<AST::FunctionDecl*> methods) {
 			ConstantGenerator constGen(module_);
 			TypeGenerator typeGen(module_);
 			
@@ -90,11 +92,11 @@ namespace locic {
 			const auto llvmHashValue = builder.CreatePtrToInt(llvmHashValuePtr,
 			                                                  typeGen.getI64Type());
 			
-			for (const auto semMethod : methods) {
+			for (const auto method : methods) {
 				const auto callMethodBasicBlock = irEmitter.createBasicBlock("callMethod");
 				const auto tryNextMethodBasicBlock = irEmitter.createBasicBlock("tryNextMethod");
 				
-				const auto methodHash = CreateMethodNameHash(semMethod->name().last());
+				const auto methodHash = CreateMethodNameHash(method->fullName().last());
 				
 				const auto cmpValue = builder.CreateICmpEQ(llvmHashValue, constGen.getI64(methodHash));
 				irEmitter.emitCondBranch(cmpValue, callMethodBasicBlock,
@@ -104,7 +106,7 @@ namespace locic {
 				
 				auto& semFunctionGenerator = module_.semFunctionGenerator();
 				const auto llvmMethod = semFunctionGenerator.getDecl(&typeInstance,
-				                                                     *semMethod);
+				                                                     *method);
 				llvm::Value* const parameters[] = { llvmHashValuePtr };
 				
 				// Use 'musttail' to ensure perfect forwarding.

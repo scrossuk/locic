@@ -17,11 +17,13 @@ namespace locic {
 		
 		class Context;
 		
-		std::unique_ptr<SEM::Function>
-		ConvertFunctionDecl(Context& context, AST::Node<AST::FunctionDecl>& function,
-		                    AST::ModuleScope moduleScope);
+		void
+		ConvertFunctionDecl(Context& context,
+		                    AST::Node<AST::FunctionDecl>& function);
 		
-		void ConvertFunctionDeclType(Context& context, SEM::Function& function);
+		void
+		ConvertFunctionDeclType(Context& context,
+		                        AST::Node<AST::FunctionDecl>& function);
 		
 	}
 	

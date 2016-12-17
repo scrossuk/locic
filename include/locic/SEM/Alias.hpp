@@ -35,7 +35,7 @@ namespace locic {
 				
 				const AST::Node<AST::AliasDecl>& astAlias() const;
 				
-				const Name& name() const;
+				const Name& fullName() const;
 				
 				const Type* type() const;
 				void setType(const Type* type);

@@ -223,7 +223,7 @@ namespace locic {
 			
 			std::string toString() const {
 				return makeString("duplicate case for type '%s'",
-				                  typeInstance_.name().toString(/*addPrefix=*/false).c_str());
+				                  typeInstance_.fullName().toString(/*addPrefix=*/false).c_str());
 			}
 			
 		private:
@@ -240,8 +240,8 @@ namespace locic {
 			
 			std::string toString() const {
 				return makeString("switch type '%s' is not variant of type '%s'",
-				                  caseTypeInstance_.name().toString(/*addPrefix=*/false).c_str(),
-				                  switchTypeInstance_.name().toString(/*addPrefix=*/false).c_str());
+				                  caseTypeInstance_.fullName().toString(/*addPrefix=*/false).c_str(),
+				                  switchTypeInstance_.fullName().toString(/*addPrefix=*/false).c_str());
 			}
 			
 		private:
@@ -273,7 +273,7 @@ namespace locic {
 				assert(!unhandledCases.empty());
 				for (size_t i = 0; i < std::min<size_t>(unhandledCases.size(), MAX_DIAG_LIST_SIZE); i++) {
 					if (i > 0) casesNotHandled_ += ", ";
-					casesNotHandled_ += unhandledCases[i]->name().toString(/*addPrefix=*/false);
+					casesNotHandled_ += unhandledCases[i]->fullName().toString(/*addPrefix=*/false);
 				}
 				if (unhandledCases.size() > MAX_DIAG_LIST_SIZE) {
 					casesNotHandled_ += ", ...";
@@ -702,7 +702,7 @@ namespace locic {
 				case AST::Statement::RETURNVOID: {
 					// Void return statement (i.e. return;)
 					if (!getParentFunctionReturnType(context.scopeStack())->isBuiltInVoid()) {
-						const auto& functionName = lookupParentFunction(context.scopeStack())->name();
+						const auto& functionName = lookupParentFunction(context.scopeStack())->fullName();
 						context.issueDiag(CannotReturnVoidInNonVoidFunctionDiag(functionName),
 						                  location);
 					}
@@ -730,7 +730,7 @@ namespace locic {
 					
 					if (functionIsVoid && !valueIsVoid) {
 						// Can't return in a function that returns void.
-						const auto& name = lookupParentFunction(context.scopeStack())->name();
+						const auto& name = lookupParentFunction(context.scopeStack())->fullName();
 						context.issueDiag(CannotReturnNonVoidInVoidFunctionDiag(name),
 						                  location);
 						return SEM::Statement::Return(std::move(semValue));
@@ -738,7 +738,7 @@ namespace locic {
 					
 					if (!functionIsVoid && valueIsVoid) {
 						// Can't return void.
-						const auto& name = lookupParentFunction(context.scopeStack())->name();
+						const auto& name = lookupParentFunction(context.scopeStack())->fullName();
 						context.issueDiag(CannotReturnVoidInNonVoidFunctionDiag(name),
 						                  location);
 						return SEM::Statement::Return(std::move(semValue));

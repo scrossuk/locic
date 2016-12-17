@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/FunctionDecl.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -130,7 +132,7 @@ namespace locic {
 			
 			auto& module = function.module();
 			const auto methodName = getCastMethodName(module, methodID);
-			const auto targetMethodName = methodName + "_" + castFromType->getObjectType()->name().last();
+			const auto targetMethodName = methodName + "_" + castFromType->getObjectType()->fullName().last();
 			return callRawCastMethod(function, castFromValue, castFromType, targetMethodName, castToType, hintResultValue);
 		}
 		
@@ -152,18 +154,19 @@ namespace locic {
 			                            std::move(args), hintResultValue);
 		}
 		
-		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* const typeInstance, SEM::Function* const semFunction, llvm::Function& llvmFunction) {
-			const auto argInfo = getFunctionArgInfo(module, semFunction->type());
+		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* const typeInstance, AST::FunctionDecl* const astFunction, llvm::Function& llvmFunction) {
+			const auto argInfo = getFunctionArgInfo(module, astFunction->type());
 			Function function(module, llvmFunction, argInfo, &(module.templateBuilder(TemplatedObject::TypeInstance(typeInstance))));
 			
-			const auto debugSubprogram = genDebugFunctionInfo(module, semFunction, &llvmFunction);
+			const auto debugSubprogram = genDebugFunctionInfo(module, typeInstance,
+			                                                  astFunction, &llvmFunction);
 			assert(debugSubprogram);
 			function.attachDebugInfo(*debugSubprogram);
 			
-			function.setDebugPosition(semFunction->debugInfo()->scopeLocation.range().start());
+			function.setDebugPosition(astFunction->debugInfo()->scopeLocation.range().start());
 			
 			SEM::ValueArray templateArgs;
-			for (const auto& templateVar: semFunction->templateVariables()) {
+			for (const auto& templateVar: astFunction->templateVariables()) {
 				templateArgs.push_back(templateVar->selfRefValue());
 			}
 			
@@ -181,19 +184,19 @@ namespace locic {
 			// being referred to in 'genTrivialPrimitiveFunctionCall'.
 			Array<ValuePendingResult, 10> pendingResultArgs;
 			
-			const auto& argTypes = semFunction->type().parameterTypes();
+			const auto& argTypes = astFunction->type().parameterTypes();
 			for (size_t i = 0; i < argTypes.size(); i++) {
 				const auto argValue = function.getArg(i);
 				pendingResultArgs.push_back(ValuePendingResult(argValue, argTypes[i]));
 				args.push_back(pendingResultArgs.back());
 			}
 			
-			MethodInfo methodInfo(typeInstance->selfType(), semFunction->name().last(), semFunction->type(), std::move(templateArgs));
+			MethodInfo methodInfo(typeInstance->selfType(), astFunction->fullName().last(), astFunction->type(), std::move(templateArgs));
 			
 			const auto hintResultValue = argInfo.hasReturnVarArgument() ? function.getReturnVar() : nullptr;
 			const auto result = genTrivialPrimitiveFunctionCall(function, std::move(methodInfo), std::move(args), hintResultValue);
 			
-			const auto returnType = semFunction->type().returnType();
+			const auto returnType = astFunction->type().returnType();
 			
 			IREmitter irEmitter(function);
 			

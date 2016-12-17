@@ -88,7 +88,7 @@ namespace locic {
 		
 		SEM::TypeInstance* lookupParentType(const ScopeStack& scopeStack);
 		
-		SEM::Function* lookupParentFunction(const ScopeStack& scopeStack);
+		AST::FunctionDecl* lookupParentFunction(const ScopeStack& scopeStack);
 		
 		const SEM::TemplatedObject* lookupTemplatedObject(const ScopeStack& scopeStack);
 		

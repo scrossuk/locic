@@ -13,13 +13,12 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void AddNamespaceDataFunctionTypes(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
-			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
-				const auto& name = astFunctionNode->name();
+			for (auto& function: astNamespaceDataNode->functions) {
+				const auto& name = function->nameDecl();
 				assert(!name->empty());
 				
 				if (name->size() == 1) {
-					auto& semChildFunction = astFunctionNode->semFunction();
-					ConvertFunctionDeclType(context, semChildFunction);
+					ConvertFunctionDeclType(context, function);
 				} else {
 					const auto searchResult = performSearch(context, name->getPrefix());
 					if (!searchResult.isTypeInstance()) {
@@ -27,12 +26,11 @@ namespace locic {
 					}
 					
 					auto& parentTypeInstance = searchResult.typeInstance();
-					auto& semChildFunction = astFunctionNode->semFunction();
 					
 					// Push the type instance on the scope stack, since the extension method is
 					// effectively within the scope of the type instance.
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(parentTypeInstance));
-					ConvertFunctionDeclType(context, semChildFunction);
+					ConvertFunctionDeclType(context, function);
 				}
 			}
 			
@@ -51,8 +49,8 @@ namespace locic {
 				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
-					ConvertFunctionDeclType(context, astFunctionNode->semFunction());
+				for (auto& function: *(astTypeInstanceNode->functions)) {
+					ConvertFunctionDeclType(context, function);
 				}
 			}
 		}

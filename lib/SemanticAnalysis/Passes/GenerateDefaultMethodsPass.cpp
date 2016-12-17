@@ -26,42 +26,42 @@ namespace locic {
 			const bool hasDefaultAlignMask = defaultMethods.hasDefaultAlignMask(&typeInstance);
 			if (hasDefaultAlignMask) {
 				typeInstance.attachFunction(defaultMethods.createDefaultAlignMaskDecl(&typeInstance,
-				                                                                      typeInstance.name() + context.getCString("__alignmask")));
+				                                                                      typeInstance.fullName() + context.getCString("__alignmask")));
 			}
 			
 			// Add default __sizeof method.
 			const bool hasDefaultSizeOf = defaultMethods.hasDefaultSizeOf(&typeInstance);
 			if (hasDefaultSizeOf) {
 				typeInstance.attachFunction(defaultMethods.createDefaultSizeOfDecl(&typeInstance,
-				                                                                   typeInstance.name() + context.getCString("__sizeof")));
+				                                                                   typeInstance.fullName() + context.getCString("__sizeof")));
 			}
 			
 			// Add default __destroy method.
 			const bool hasDefaultDestroy = defaultMethods.hasDefaultDestroy(&typeInstance);
 			if (hasDefaultDestroy) {
 				typeInstance.attachFunction(defaultMethods.createDefaultDestroyDecl(&typeInstance,
-				                                                                    typeInstance.name() + context.getCString("__destroy")));
+				                                                                    typeInstance.fullName() + context.getCString("__destroy")));
 			}
 			
 			// Add default __moveto method.
 			const bool hasDefaultMove = defaultMethods.hasDefaultMove(&typeInstance);
 			if (hasDefaultMove) {
 				typeInstance.attachFunction(defaultMethods.createDefaultMoveDecl(&typeInstance,
-				                                                                 typeInstance.name() + context.getCString("__moveto")));
+				                                                                 typeInstance.fullName() + context.getCString("__moveto")));
 			}
 			
 			// Add default __setdead method.
 			const bool hasDefaultSetDead = defaultMethods.hasDefaultSetDead(&typeInstance);
 			if (hasDefaultSetDead) {
 				typeInstance.attachFunction(defaultMethods.createDefaultSetDeadDecl(&typeInstance,
-				                                                                    typeInstance.name() + context.getCString("__setdead")));
+				                                                                    typeInstance.fullName() + context.getCString("__setdead")));
 			}
 			
 			// Add default __islive method.
 			const bool hasDefaultIsLive = defaultMethods.hasDefaultIsLive(&typeInstance);
 			if (hasDefaultIsLive) {
 				typeInstance.attachFunction(defaultMethods.createDefaultIsLiveDecl(&typeInstance,
-				                                                                   typeInstance.name() + context.getCString("__islive")));
+				                                                                   typeInstance.fullName() + context.getCString("__islive")));
 			}
 			
 			// All non-class types can also get various other default methods implicitly
@@ -75,7 +75,7 @@ namespace locic {
 						typeInstance.isException() ?
 							CreateExceptionConstructorDecl(context, &typeInstance) :
 							defaultMethods.createDefaultConstructorDecl(&typeInstance,
-							                                            typeInstance.name() + context.getCString("create"));
+							                                            typeInstance.fullName() + context.getCString("create"));
 					typeInstance.attachFunction(std::move(methodDecl));
 				}
 				
@@ -83,13 +83,13 @@ namespace locic {
 					// Add default implicit copy if available.
 					if (defaultMethods.hasDefaultImplicitCopy(&typeInstance)) {
 						typeInstance.attachFunction(defaultMethods.createDefaultImplicitCopyDecl(&typeInstance,
-						                                                                         typeInstance.name() + context.getCString("implicitcopy")));
+						                                                                         typeInstance.fullName() + context.getCString("implicitcopy")));
 					}
 					
 					// Add default compare for datatypes if available.
 					if (defaultMethods.hasDefaultCompare(&typeInstance)) {
 						typeInstance.attachFunction(defaultMethods.createDefaultCompareDecl(&typeInstance,
-						                                                                    typeInstance.name() + context.getCString("compare")));
+						                                                                    typeInstance.fullName() + context.getCString("compare")));
 					}
 				}
 			}

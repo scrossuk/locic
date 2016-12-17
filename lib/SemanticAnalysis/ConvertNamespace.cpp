@@ -16,14 +16,13 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void ConvertNamespaceFunctionDef(Context& context, const AST::Node<AST::FunctionDecl>& astFunctionNode) {
-			const auto& name = astFunctionNode->name();
+		void ConvertNamespaceFunctionDef(Context& context, const AST::Node<AST::FunctionDecl>& function) {
+			const auto& name = function->nameDecl();
 			
 			if (name->size() == 1) {
 				// Normal namespace function.
-				auto& semChildFunction = astFunctionNode->semFunction();
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
-				ConvertFunctionDef(context, astFunctionNode);
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(*function));
+				ConvertFunctionDef(context, function);
 			} else {
 				// Extension method.
 				const auto searchResult = performSearch(context, name->getPrefix());
@@ -32,19 +31,18 @@ namespace locic {
 				}
 				
 				auto& semTypeInstance = searchResult.typeInstance();
-				auto& semChildFunction = astFunctionNode->semFunction();
 				
 				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semTypeInstance));
-				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(semChildFunction));
-				ConvertFunctionDef(context, astFunctionNode);
+				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*function));
+				ConvertFunctionDef(context, function);
 			}
 		}
 		
 		void ConvertNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			auto& semNamespace = context.scopeStack().back().nameSpace();
 			
-			for (const auto& astFunctionNode: astNamespaceDataNode->functions) {
-				ConvertNamespaceFunctionDef(context, astFunctionNode);
+			for (const auto& function: astNamespaceDataNode->functions) {
+				ConvertNamespaceFunctionDef(context, function);
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {

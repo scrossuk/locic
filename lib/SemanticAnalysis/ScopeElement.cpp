@@ -1,3 +1,4 @@
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/Support/String.hpp>
@@ -24,7 +25,7 @@ namespace locic {
 			return element;
 		}
 		
-		ScopeElement ScopeElement::Function(SEM::Function& function) {
+		ScopeElement ScopeElement::Function(AST::FunctionDecl& function) {
 			ScopeElement element(FUNCTION);
 			element.data_.function = &function;
 			return element;
@@ -129,7 +130,7 @@ namespace locic {
 			return *(data_.typeInstance);
 		}
 		
-		SEM::Function& ScopeElement::function() const {
+		AST::FunctionDecl& ScopeElement::function() const {
 			assert(isFunction());
 			return *(data_.function);
 		}
@@ -163,11 +164,11 @@ namespace locic {
 			if (isNamespace()) {
 				return nameSpace().name().last();
 			} else if (isAlias()) {
-				return alias().name().last();
+				return alias().fullName().last();
 			} else if (isTypeInstance()) {
-				return typeInstance().name().last();
+				return typeInstance().fullName().last();
 			} else if (isFunction()) {
-				return function().name().last();
+				return function().fullName().last();
 			} else {
 				locic_unreachable("Can't access name of unnamed scope element.");
 			}

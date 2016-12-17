@@ -516,9 +516,9 @@ namespace locic {
 							auto parentTemplateArguments = GetTemplateValues(templateVarMap, typeInstance.templateVariables());
 							const auto parentType = SEM::Type::Object(&typeInstance, std::move(parentTemplateArguments));
 							
-							return SEM::Value::FunctionRef(parentType, &function, std::move(functionTemplateArguments), functionType);
+							return SEM::Value::FunctionRef(parentType, function, std::move(functionTemplateArguments), functionType);
 						} else {
-							return SEM::Value::FunctionRef(nullptr, &function, std::move(functionTemplateArguments), functionType);
+							return SEM::Value::FunctionRef(nullptr, function, std::move(functionTemplateArguments), functionType);
 						}
 					} else if (searchResult.isTypeInstance()) {
 						auto& typeInstance = searchResult.typeInstance();
@@ -808,8 +808,8 @@ namespace locic {
 							context.issueDiag(DynamicCastNotImplementedDiag(), location);
 							throw SkipException();
 						case AST::Value::CAST_REINTERPRET:
-							if (!sourceType->isPrimitive() || sourceType->getObjectType()->name().last() != "ptr_t"
-								|| !targetType->isPrimitive() || targetType->getObjectType()->name().last() != "ptr_t") {
+							if (!sourceType->isPrimitive() || sourceType->getObjectType()->fullName().last() != "ptr_t"
+								|| !targetType->isPrimitive() || targetType->getObjectType()->fullName().last() != "ptr_t") {
 								context.issueDiag(ReinterpretCastOnlySupportsPointersDiag(sourceType, targetType),
 								                  location);
 								throw SkipException();

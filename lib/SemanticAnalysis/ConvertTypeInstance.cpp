@@ -14,10 +14,11 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		void CreateEnumConstructorMethod(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function& function, const size_t value) {
+		void CreateEnumConstructorMethod(Context& context, SEM::TypeInstance* const typeInstance,
+		                                 AST::FunctionDecl& function, const size_t value) {
 			assert(typeInstance->isEnum());
 			
-			if (function.isDefinition()) {
+			if (function.hasGeneratedScope()) {
 				// Function already has a scope; this can happen when
 				// the user has given duplicate enum constructors, in
 				// which case we will have issued an error but continued
@@ -39,23 +40,23 @@ namespace locic {
 			function.setScope(std::move(functionScope));
 		}
 		
-		void CreateDefaultMethodOrRemove(Context& context, SEM::TypeInstance* const typeInstance, SEM::Function* const function, const Debug::SourceLocation& location) {
+		void CreateDefaultMethodOrRemove(Context& context, SEM::TypeInstance* const typeInstance,
+		                                 AST::FunctionDecl& function, const Debug::SourceLocation& location) {
 			const bool created = DefaultMethods(context).createDefaultMethod(typeInstance, function,
 			                                                                 location);
 			if (!created) {
 				// Make sure that the require predicate is false so
 				// CodeGen understands not to generate this function.
-				function->setRequiresPredicate(SEM::Predicate::False());
+				function.setRequiresPredicate(SEM::Predicate::False());
 			}
 		}
 		
 		void ConvertTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
 			auto& semTypeInstance = context.scopeStack().back().typeInstance();
 			
-			for (const auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
-				auto& semChildFunction = astFunctionNode->semFunction();
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(semChildFunction));
-				ConvertFunctionDef(context, astFunctionNode);
+			for (const auto& function: *(astTypeInstanceNode->functions)) {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(*function));
+				ConvertFunctionDef(context, function);
 			}
 			
 			if (semTypeInstance.isEnum()) {
@@ -71,10 +72,10 @@ namespace locic {
 			// Generate default constructor for applicable types.
 			if (semTypeInstance.isException()) {
 				CreateExceptionConstructor(context, astTypeInstanceNode, &semTypeInstance,
-				                           &(semTypeInstance.getFunction(context.getCString("create"))));
+				                           semTypeInstance.getFunction(context.getCString("create")));
 			} else if (semTypeInstance.isDatatype() || semTypeInstance.isStruct() || semTypeInstance.isUnion()) {
 				(void) DefaultMethods(context).createDefaultMethod(&semTypeInstance,
-				                                                   &(semTypeInstance.getFunction(context.getCString("create"))),
+				                                                   semTypeInstance.getFunction(context.getCString("create")),
 				                                                   astTypeInstanceNode.location());
 			}
 			
@@ -83,7 +84,7 @@ namespace locic {
 					semTypeInstance.isUnionDatatype() || semTypeInstance.isUnion()) {
 				const auto existingFunction = semTypeInstance.findFunction(context.getCString("implicitcopy"));
 				if (existingFunction != nullptr) {
-					CreateDefaultMethodOrRemove(context, &semTypeInstance, existingFunction,
+					CreateDefaultMethodOrRemove(context, &semTypeInstance, *existingFunction,
 					                            astTypeInstanceNode.location());
 				}
 			}
@@ -92,7 +93,7 @@ namespace locic {
 			if (semTypeInstance.isEnum() || semTypeInstance.isStruct() || semTypeInstance.isDatatype() || semTypeInstance.isUnionDatatype()) {
 				const auto existingFunction = semTypeInstance.findFunction(context.getCString("compare"));
 				if (existingFunction != nullptr) {
-					CreateDefaultMethodOrRemove(context, &semTypeInstance, existingFunction,
+					CreateDefaultMethodOrRemove(context, &semTypeInstance, *existingFunction,
 					                            astTypeInstanceNode.location());
 				}
 			}

@@ -50,9 +50,9 @@ namespace locic {
 				return parameters;
 			}
 			
-			void attachParameters(SEM::Function& function, const std::vector<AST::Var*>& parameters) {
-				for (size_t i = 0; i < parameters.size(); i++) {
-					const auto& var = parameters.at(i);
+			void attachParameters(AST::FunctionDecl& function) {
+				for (size_t i = 0; i < function.parameters().size(); i++) {
+					const auto& var = function.parameters().at(i);
 					assert(var->isNamed());
 					
 					const auto& varName = var->name();
@@ -65,22 +65,25 @@ namespace locic {
 			
 		}
 		
-		std::unique_ptr<SEM::Function> CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* const semTypeInstance) {
+		std::unique_ptr<AST::FunctionDecl>
+		CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* const semTypeInstance) {
 			if (semTypeInstance->parentType() == nullptr) {
 				// No parent, so just create a normal default constructor.
 				return DefaultMethods(context).createDefaultConstructorDecl(semTypeInstance,
-				                                                            semTypeInstance->name() + context.getCString("create"));
+				                                                            semTypeInstance->fullName() + context.getCString("create"));
 			}
 			
-			std::unique_ptr<SEM::Function> semFunction(new SEM::Function(SEM::GlobalStructure::TypeInstance(*semTypeInstance),
-			                                                             semTypeInstance->name() + context.getCString("create"),
-			                                                             semTypeInstance->moduleScope().copy()));
-			semFunction->setDebugInfo(makeDefaultFunctionInfo(*semTypeInstance, *semFunction));
+			std::unique_ptr<AST::FunctionDecl> function(new AST::FunctionDecl());
+			function->setParent(SEM::GlobalStructure::TypeInstance(*semTypeInstance));
+			function->setFullName(semTypeInstance->fullName() + context.getCString("create"));
+			function->setModuleScope(semTypeInstance->moduleScope().copy());
 			
-			semFunction->setRequiresPredicate(semTypeInstance->requiresPredicate().copy());
+			function->setDebugInfo(makeDefaultFunctionInfo(*semTypeInstance, *function));
 			
-			semFunction->setMethod(true);
-			semFunction->setStaticMethod(true);
+			function->setRequiresPredicate(semTypeInstance->requiresPredicate().copy());
+			
+			function->setMethod(true);
+			function->setIsStatic(true);
 			
 			const bool isVarArg = false;
 			const bool isDynamicMethod = false;
@@ -90,14 +93,15 @@ namespace locic {
 			// Filter out first variable from construct types
 			// since the first variable will store the parent.
 			auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
-			semFunction->setParameters(getParameters(semTypeInstance->variables()));
+			function->setParameters(getParameters(semTypeInstance->variables()));
 			
 			SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
-			semFunction->setType(SEM::FunctionType(std::move(attributes), semTypeInstance->selfType(), std::move(constructTypes)));
-			return semFunction;
+			function->setType(SEM::FunctionType(std::move(attributes), semTypeInstance->selfType(), std::move(constructTypes)));
+			return function;
 		}
 		
-		void CreateExceptionConstructor(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode, SEM::TypeInstance* semTypeInstance, SEM::Function* function) {
+		void CreateExceptionConstructor(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
+		                                SEM::TypeInstance* semTypeInstance, AST::FunctionDecl& function) {
 			assert(semTypeInstance->isException());
 			
 			const auto& initializerNode = astTypeInstanceNode->initializer;
@@ -118,10 +122,10 @@ namespace locic {
 			assert(semTypeInstance->parentType() != nullptr);
 			
 			// Attach parameters to the function.
-			attachParameters(*function, function->parameters());
+			attachParameters(function);
 			
 			// Push function on to scope stack (to resolve references to parameters).
-			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(*function));
+			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(function));
 			
 			HeapArray<SEM::Value> parentArguments;
 			for (const auto& astValueNode: *(initializerNode->valueList)) {
@@ -129,13 +133,13 @@ namespace locic {
 			}
 			
 			HeapArray<SEM::Value> constructValues;
-			constructValues.reserve(1 + function->parameters().size());
+			constructValues.reserve(1 + function.parameters().size());
 			
 			// Call parent constructor.
 			auto typeRefValue = createTypeRef(context, semTypeInstance->parentType());
 			constructValues.push_back(CallValue(context, GetStaticMethod(context, std::move(typeRefValue), context.getCString("create"), location), std::move(parentArguments), location));
 			
-			for (const auto var: function->parameters()) {
+			for (const auto var: function.parameters()) {
 				const auto varType = getBuiltInType(context, context.getCString("ref_t"), { var->lvalType() })->createRefType(var->lvalType());
 				auto varValue = SEM::Value::LocalVar(*var, varType);
 				
@@ -147,7 +151,7 @@ namespace locic {
 			
 			std::unique_ptr<SEM::Scope> scope(new SEM::Scope());
 			scope->statements().push_back(SEM::Statement::Return(std::move(returnValue)));
-			function->setScope(std::move(scope));
+			function.setScope(std::move(scope));
 		}
 		
 	}

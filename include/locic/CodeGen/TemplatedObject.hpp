@@ -8,9 +8,14 @@
 
 namespace locic {
 	
+	namespace AST {
+		
+		class FunctionDecl;
+		
+	}
+	
 	namespace SEM {
 		
-		class Function;
 		class TypeInstance;
 		
 	}
@@ -27,7 +32,7 @@ namespace locic {
 				static TemplatedObject TypeInstance(const SEM::TypeInstance* typeInstance);
 				
 				static TemplatedObject Function(const SEM::TypeInstance* parentTypeInstance,
-				                                const SEM::Function* function);
+				                                const AST::FunctionDecl* function);
 				
 				Kind kind() const;
 				
@@ -37,7 +42,7 @@ namespace locic {
 				const SEM::TypeInstance* typeInstance() const;
 				
 				const SEM::TypeInstance* parentTypeInstance() const;
-				const SEM::Function* function() const;
+				const AST::FunctionDecl* function() const;
 				
 				SEM::TemplateVarArray templateVariables() const;
 				
@@ -56,7 +61,7 @@ namespace locic {
 					const SEM::TypeInstance* typeInstance;
 					struct {
 						const SEM::TypeInstance* parentTypeInstance;
-						const SEM::Function* function;
+						const AST::FunctionDecl* function;
 					} functionPair;
 				} data_;
 				
@@ -67,7 +72,7 @@ namespace locic {
 				static TemplateInst Type(const SEM::Type* type);
 				
 				static TemplateInst Function(const SEM::Type* parentType,
-				                             const SEM::Function* function,
+				                             const AST::FunctionDecl* function,
 				                             llvm::ArrayRef<SEM::Value> functionArgs);
 				
 				TemplateInst(TemplatedObject pObject, llvm::ArrayRef<SEM::Value> pArguments);

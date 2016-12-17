@@ -4,6 +4,7 @@
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
+#include <locic/AST/Var.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>

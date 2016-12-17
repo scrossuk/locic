@@ -58,7 +58,7 @@ namespace locic {
 			const auto debugInfo = objectType->debugInfo();
 			
 			if (!debugInfo) {
-				return module.debugBuilder().createUnspecifiedType(objectType->name().last());
+				return module.debugBuilder().createUnspecifiedType(objectType->fullName().last());
 			}
 			
 			const auto& typeInstanceInfo = *debugInfo;
@@ -73,11 +73,11 @@ namespace locic {
 				const auto typeAlign = module.abi().typeInfo().getTypeAllocSize(abiType);
 				return module.debugBuilder().createObjectType(file,
 				                                              lineNumber,
-				                                              objectType->name(),
+				                                              objectType->fullName(),
 				                                              typeSize.asBits(),
 				                                              typeAlign.asBits());
 			} else {
-				return module.debugBuilder().createUnspecifiedType(objectType->name().last());
+				return module.debugBuilder().createUnspecifiedType(objectType->fullName().last());
 			}
 		}
 		

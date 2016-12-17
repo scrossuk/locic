@@ -11,9 +11,14 @@ namespace locic {
 	class PrimitiveID;
 	class String;
 	
+	namespace AST {
+		
+		class FunctionDecl;
+		
+	}
+	
 	namespace SEM {
 		
-		class Function;
 		class Type;
 		class TypeInstance;
 		
@@ -29,7 +34,8 @@ namespace locic {
 		
 		bool isUnsignedIntegerType(Module& module, const SEM::Type* type);
 		
-		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* typeInstance, SEM::Function* function, llvm::Function& llvmFunction);
+		void createPrimitiveMethod(Module& module, const SEM::TypeInstance* typeInstance,
+		                           AST::FunctionDecl* function, llvm::Function& llvmFunction);
 		
 		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
 		

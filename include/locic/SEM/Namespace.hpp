@@ -13,10 +13,15 @@
 
 namespace locic {
 	
+	namespace AST {
+		
+		class FunctionDecl;
+		
+	}
+	
 	namespace SEM {
 		
 		class Alias;
-		class Function;
 		class Namespace;
 		class TypeInstance;
 		
@@ -31,7 +36,7 @@ namespace locic {
 				
 				static NamespaceItem Alias(std::unique_ptr<Alias> alias);
 				
-				static NamespaceItem Function(std::unique_ptr<Function> function);
+				static NamespaceItem Function(AST::FunctionDecl& function);
 				
 				static NamespaceItem Namespace(std::unique_ptr<Namespace> nameSpace);
 				
@@ -50,7 +55,7 @@ namespace locic {
 				bool isTypeInstance() const;
 				
 				SEM::Alias& alias() const;
-				SEM::Function& function() const;
+				AST::FunctionDecl& function() const;
 				SEM::Namespace& nameSpace() const;
 				SEM::TypeInstance& typeInstance() const;
 				
@@ -69,7 +74,7 @@ namespace locic {
 				union {
 					void* ptr;
 					SEM::Alias* alias;
-					SEM::Function* function;
+					AST::FunctionDecl* function;
 					SEM::Namespace* nameSpace;
 					SEM::TypeInstance* typeInstance;
 				} data_;

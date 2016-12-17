@@ -1,5 +1,6 @@
 #include <assert.h>
 
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
 
@@ -12,7 +13,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SearchResult performFunctionSearch(SEM::Function& function, const Name& name, size_t pos) {
+		SearchResult performFunctionSearch(AST::FunctionDecl& function, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
 			if (size == 0) return SearchResult::Function(function);
@@ -64,7 +65,7 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performInnerFunctionSearch(SEM::Function& function, const Name& name) {
+		SearchResult performInnerFunctionSearch(AST::FunctionDecl& function, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
 			// Search template variables.

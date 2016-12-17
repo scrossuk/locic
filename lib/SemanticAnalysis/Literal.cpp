@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/Constant.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/APInt.hpp>
@@ -286,7 +287,7 @@ namespace locic {
 			auto& typeBuilder = context.typeBuilder();
 			const auto functionRefType = typeBuilder.getFunctionPointerType(searchResult.function().type());
 			
-			auto functionRef = SEM::Value::FunctionRef(nullptr, &(searchResult.function()), {}, functionRefType);
+			auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, functionRefType);
 			return CallValue(context, std::move(functionRef), makeHeapArray( std::move(constantValue) ), location);
 		}
 		

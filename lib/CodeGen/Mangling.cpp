@@ -1,5 +1,6 @@
 #include <string>
 
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/SEM.hpp>
 #include <locic/Support/String.hpp>
@@ -98,7 +99,7 @@ namespace locic {
 		
 		String mangleObjectType(Module& module, const SEM::TypeInstance* const typeInstance) {
 			assert(typeInstance != nullptr);
-			return mangleTypeName(module, typeInstance->name());
+			return mangleTypeName(module, typeInstance->fullName());
 		}
 		
 		String mangleTypeName(Module& module, const Name& name) {
@@ -133,7 +134,7 @@ namespace locic {
 					s += mangleObjectType(module, templatedObject.typeInstance()).asStdString();
 					break;
 				case TemplatedObject::FUNCTION:
-					s += mangleFunctionName(module, templatedObject.function()->name()).asStdString();
+					s += mangleFunctionName(module, templatedObject.function()->fullName()).asStdString();
 					break;
 				default:	
 					llvm_unreachable("Unknown templated object kind.");

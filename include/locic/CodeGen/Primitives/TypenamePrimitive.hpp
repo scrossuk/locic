@@ -13,7 +13,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class Function;
 		class Type;
 		class TypeInstance;
 		

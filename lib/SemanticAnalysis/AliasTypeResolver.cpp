@@ -1,4 +1,5 @@
 #include <memory>
+#include <unordered_map>
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Value.hpp>
@@ -114,7 +115,7 @@ namespace locic {
 				auto& resolveInfo = resolveMap_.at(&alias);
 				
 				if (resolveInfo.isResolving()) {
-					context_.issueDiag(AliasDependsOnItselfDiag(alias.name().copy()),
+					context_.issueDiag(AliasDependsOnItselfDiag(alias.fullName().copy()),
 					                   alias.astAlias().location());
 					const auto voidType = context_.typeBuilder().getVoidType();
 					alias.setType(voidType);

@@ -24,6 +24,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class FunctionDecl;
 		class Var;
 		
 	}
@@ -31,7 +32,6 @@ namespace locic {
 	namespace SEM {
 	
 		class Context;
-		class Function;
 		class TemplateVar;
 		
 		/**
@@ -88,7 +88,7 @@ namespace locic {
 				Namespace& nameSpace();
 				const Namespace& nameSpace() const;
 				
-				const Name& name() const;
+				const Name& fullName() const;
 				
 				Kind kind() const;
 				
@@ -274,8 +274,8 @@ namespace locic {
 				 * 
 				 * \return Method map.
 				 */
-				Array<std::unique_ptr<Function>, 8>& functions();
-				const Array<std::unique_ptr<Function>, 8>& functions() const;
+				Array<AST::FunctionDecl*, 8>& functions();
+				const Array<AST::FunctionDecl*, 8>& functions() const;
 				
 				/**
 				 * \brief Attach method.
@@ -284,7 +284,8 @@ namespace locic {
 				 * same name; this allows SemanticAnalysis to continue
 				 * to process code that has duplicate methods.
 				 */
-				void attachFunction(std::unique_ptr<Function> function);
+				void attachFunction(AST::FunctionDecl& function);
+				void attachFunction(std::unique_ptr<AST::FunctionDecl> function);
 				
 				/**
 				 * \brief Check if type already has method.
@@ -296,8 +297,8 @@ namespace locic {
 				 * 
 				 * \return Function if found, NULL otherwise.
 				 */
-				Function* findFunction(String canonicalName);
-				const Function* findFunction(String canonicalName) const;
+				AST::FunctionDecl* findFunction(String canonicalName);
+				const AST::FunctionDecl* findFunction(String canonicalName) const;
 				
 				/**
 				 * \brief Get method.
@@ -305,8 +306,8 @@ namespace locic {
 				 * This relies on the type already being known to
 				 * have the given method (it will assert this).
 				 */
-				Function& getFunction(String canonicalName);
-				const Function& getFunction(String canonicalName) const;
+				AST::FunctionDecl& getFunction(String canonicalName);
+				const AST::FunctionDecl& getFunction(String canonicalName) const;
 				
 				/**
 				 * \brief Compute construct types.
@@ -391,7 +392,7 @@ namespace locic {
 				std::vector<AST::Var*> variables_;
 				FastMap<String, AST::Var*> namedVariables_;
 				
-				Array<std::unique_ptr<Function>, 8> functions_;
+				Array<AST::FunctionDecl*, 8> functions_;
 				
 				TemplateVarArray noTagSet_;
 				mutable const Type* cachedSelfType_;

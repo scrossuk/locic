@@ -1,5 +1,7 @@
 #include <assert.h>
 
+#include <locic/AST/FunctionDecl.hpp>
+
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
@@ -18,7 +20,7 @@ namespace locic {
 		}
 		
 		TemplatedObject TemplatedObject::Function(const SEM::TypeInstance* const parentTypeInstance,
-		                                          const SEM::Function* const function) {
+		                                          const AST::FunctionDecl* const function) {
 			TemplatedObject object(FUNCTION);
 			object.data_.functionPair.parentTypeInstance = parentTypeInstance;
 			object.data_.functionPair.function = function;
@@ -47,7 +49,7 @@ namespace locic {
 			return data_.functionPair.parentTypeInstance;
 		}
 		
-		const SEM::Function* TemplatedObject::function() const {
+		const AST::FunctionDecl* TemplatedObject::function() const {
 			assert(isFunction());
 			return data_.functionPair.function;
 		}
@@ -111,15 +113,15 @@ namespace locic {
 			switch (kind()) {
 				case TYPEINSTANCE:
 					return makeString("TemplatedObject::TypeInstance(%s)",
-					                  typeInstance()->name().toString().c_str());
+					                  typeInstance()->fullName().toString().c_str());
 				case FUNCTION:
 					if (parentTypeInstance() != nullptr) {
 						return makeString("TemplatedObject::Function(%s, %s)",
-						                  parentTypeInstance()->name().toString().c_str(),
-						                  function()->name().toString().c_str());
+						                  parentTypeInstance()->fullName().toString().c_str(),
+						                  function()->fullName().toString().c_str());
 					} else {
 						return makeString("TemplatedObject::Function(%s)",
-						                  function()->name().toString().c_str());
+						                  function()->fullName().toString().c_str());
 					}
 				default:
 					llvm_unreachable("Unknown templated object kind.");
@@ -136,7 +138,7 @@ namespace locic {
 		}
 		
 		TemplateInst TemplateInst::Function(const SEM::Type* parentType,
-		                                    const SEM::Function* function,
+		                                    const AST::FunctionDecl* function,
 		                                    llvm::ArrayRef<SEM::Value> functionArgs) {
 			if (parentType != nullptr) {
 				assert(parentType->isObject());

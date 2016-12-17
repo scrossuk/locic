@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
@@ -57,7 +58,7 @@ namespace locic {
 			const auto lineNumber = position.lineNumber();
 			const bool isInternal = typeInstance.moduleScope().isInternal();
 			const bool isDefinition = true;
-			const auto functionName = typeInstance.name() + module.getCString("~");
+			const auto functionName = typeInstance.fullName() + module.getCString("~");
 			
 			std::vector<LLVMMetadataValue*> debugArgs;
 			debugArgs.push_back(module.debugBuilder().createVoidType());

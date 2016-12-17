@@ -12,7 +12,6 @@
 
 #include <locic/SEM/Alias.hpp>
 #include <locic/SEM/Context.hpp>
-#include <locic/SEM/Function.hpp>
 #include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplateVar.hpp>
@@ -895,7 +894,7 @@ namespace locic {
 						return templateArguments().front().typeRefType()->nameToString() + "&";
 					}
 					
-					const auto objectName = getObjectType()->name().toString(false);
+					const auto objectName = getObjectType()->fullName().toString(false);
 					if (templateArguments().empty()) {
 						return objectName;
 					} else {
@@ -921,7 +920,7 @@ namespace locic {
 					return "TemplateVarType(templateVar: [possible loop])";
 				}
 				case ALIAS: {
-					const auto aliasName = alias().name().toString(false);
+					const auto aliasName = alias().fullName().toString(false);
 					if (aliasArguments().empty()) {
 						return aliasName;
 					} else {
@@ -959,7 +958,7 @@ namespace locic {
 						return templateArguments().front().typeRefType()->toString() + "&";
 					}
 					
-					const auto objectName = getObjectType()->name().toString(false);
+					const auto objectName = getObjectType()->fullName().toString(false);
 					if (templateArguments().empty()) {
 						return objectName;
 					} else {
@@ -991,7 +990,7 @@ namespace locic {
 					                  getTemplateVar()->toString().c_str());
 				}
 				case ALIAS: {
-					const auto aliasName = alias().name().toString(false);
+					const auto aliasName = alias().fullName().toString(false);
 					if (aliasArguments().empty()) {
 						return aliasName;
 					} else {
@@ -1058,7 +1057,7 @@ namespace locic {
 						return templateArguments().front().typeRefType()->toDiagString() + "&";
 					}
 					
-					const auto objectName = getObjectType()->name().toString(false);
+					const auto objectName = getObjectType()->fullName().toString(false);
 					if (templateArguments().empty()) {
 						return objectName;
 					} else {
@@ -1084,7 +1083,7 @@ namespace locic {
 					return getTemplateVar()->name().last().asStdString();
 				}
 				case ALIAS: {
-					const auto aliasName = alias().name().toString(false);
+					const auto aliasName = alias().fullName().toString(false);
 					if (aliasArguments().empty()) {
 						return aliasName;
 					} else {

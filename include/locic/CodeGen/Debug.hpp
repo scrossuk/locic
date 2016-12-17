@@ -13,9 +13,15 @@ namespace locic {
 	
 	class PrimitiveID;
 	
+	namespace AST {
+		
+		class FunctionDecl;
+		
+	}
+	
 	namespace SEM {
 		
-		class Function;
+		class TypeInstance;
 		class Value;
 		
 	}
@@ -103,7 +109,8 @@ namespace locic {
 		                              bool isDefinition);
 		
 		Optional<DISubprogram> genDebugFunctionInfo(Module& module,
-		                                            const SEM::Function* function,
+		                                            const SEM::TypeInstance* parentType,
+		                                            const AST::FunctionDecl* function,
 		                                            llvm::Function* llvmFunction);
 		
 		llvm::Instruction* genDebugVar(Function& function,
@@ -116,7 +123,7 @@ namespace locic {
 		                                const Debug::SourceLocation& debugSourceLocation);
 		
 		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function,
-		                                                  const SEM::Function& semFunction);
+		                                                  const AST::FunctionDecl& semFunction);
 		
 		Optional<llvm::DebugLoc> getValueDebugLocation(Function& function,
 		                                               const SEM::Value& value);

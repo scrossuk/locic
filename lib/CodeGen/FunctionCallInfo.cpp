@@ -1,5 +1,7 @@
 #include <cassert>
 
+#include <locic/AST/FunctionDecl.hpp>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -23,7 +25,6 @@
 #include <locic/CodeGen/ValueEmitter.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
-#include <locic/SEM/Function.hpp>
 #include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
@@ -35,7 +36,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Function* genFunctionDeclRef(Module& module, const SEM::Type* const parentType,
-		                                   const SEM::Function* function) {
+		                                   const AST::FunctionDecl* function) {
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			if (parentType == nullptr) {
 				return semFunctionGenerator.getDecl(nullptr,
@@ -49,14 +50,14 @@ namespace locic {
 		}
 		
 		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType,
-		                            const SEM::Function* const semFunction, const SEM::FunctionType functionType) {
+		                            const AST::FunctionDecl* const astFunction, const SEM::FunctionType functionType) {
 			auto& module = function.module();
-			const auto functionRefPtr = genFunctionDeclRef(module, parentType, semFunction);
+			const auto functionRefPtr = genFunctionDeclRef(module, parentType, astFunction);
 			
 			// There may need to be a stub generated to handle issues with types being
 			// passed/returned by value versus via a pointer (which happens when primitives
 			// are used in templates).
-			return genTranslatedFunctionPointer(function, functionRefPtr, semFunction->type(), functionType);
+			return genTranslatedFunctionPointer(function, functionRefPtr, astFunction->type(), functionType);
 		}
 		
 		class CallValuePendingResult: public PendingResultBase {
@@ -100,7 +101,7 @@ namespace locic {
 		bool isTrivialFunction(Module& module, const SEM::Value& value) {
 			switch (value.kind()) {
 				case SEM::Value::FUNCTIONREF: {
-					return value.functionRefFunction()->isPrimitive();
+					return value.functionRefFunction().isPrimitive();
 				}
 				
 				case SEM::Value::METHODOBJECT: {
@@ -136,11 +137,11 @@ namespace locic {
 						args.push_back(pendingResultArgs.back());
 					}
 					
-					if (!value.functionRefFunction()->isPrimitive()) {
+					if (!value.functionRefFunction().isPrimitive()) {
 						llvm_unreachable("Can't perform trivial call to non-primitive function.");
 					}
 					
-					const auto& methodName = value.functionRefFunction()->name().last();
+					const auto& methodName = value.functionRefFunction().fullName().last();
 					const auto methodID = module.context().getMethodID(CanonicalizeMethodName(methodName));
 					
 					IREmitter irEmitter(function);
@@ -188,12 +189,12 @@ namespace locic {
 					// There may need to be a stub generated to handle issues with types being
 					// passed/returned by value versus via a pointer (which happens when primitives
 					// are used in templates).
-					callInfo.functionPtr = genFunctionRef(function, parentType, value.functionRefFunction(), functionType);
+					callInfo.functionPtr = genFunctionRef(function, parentType, &(value.functionRefFunction()), functionType);
 					
 					if (functionType.attributes().isTemplated()) {
 						if (!value.functionRefTemplateArguments().empty()) {
 							// The function is templated on the function (and potentially also the parent object).
-							const auto templateInst = TemplateInst::Function(parentType, value.functionRefFunction(), arrayRef(value.functionRefTemplateArguments()));
+							const auto templateInst = TemplateInst::Function(parentType, &(value.functionRefFunction()), arrayRef(value.functionRefTemplateArguments()));
 							callInfo.templateGenerator = getTemplateGenerator(function, templateInst);
 						} else {
 							// The function is only templated on the parent object.
@@ -328,8 +329,8 @@ namespace locic {
 					
 					assert(method.kind() == SEM::Value::FUNCTIONREF);
 					
-					const auto interfaceFunction = method.functionRefFunction();
-					const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
+					const auto& interfaceFunction = method.functionRefFunction();
+					const auto methodHash = CreateMethodNameHash(interfaceFunction.fullName().last());
 					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
 					
 					return VirtualMethodComponents(getVirtualObjectComponents(function, methodOwner), methodHashValue);
@@ -341,11 +342,11 @@ namespace locic {
 					
 					assert(method.kind() == SEM::Value::FUNCTIONREF);
 					
-					const auto interfaceFunction = method.functionRefFunction();
+					const auto& interfaceFunction = method.functionRefFunction();
 					
 					const auto contextPointer = ConstantGenerator(function.module()).getNull(TypeGenerator(function.module()).getPtrType());
 					
-					const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
+					const auto methodHash = CreateMethodNameHash(interfaceFunction.fullName().last());
 					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);
 					
 					return VirtualMethodComponents(VirtualObjectComponents(typeInfoComponents, contextPointer), methodHashValue);

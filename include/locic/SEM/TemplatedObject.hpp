@@ -14,7 +14,7 @@ namespace locic {
 		
 		class TemplatedObject {
 			public:
-				virtual const Name& name() const = 0;
+				virtual const Name& fullName() const = 0;
 				
 				virtual TemplateVarArray& templateVariables() = 0;
 				

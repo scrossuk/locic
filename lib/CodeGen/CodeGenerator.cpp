@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>

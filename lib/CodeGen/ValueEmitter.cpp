@@ -4,6 +4,9 @@
 
 #include <locic/Constant.hpp>
 
+#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Var.hpp>
+
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
@@ -342,7 +345,7 @@ namespace locic {
 			const auto sourceType = castValue.type()->resolveAliases();
 			const auto destType = value.type()->resolveAliases();
 			assert((sourceType->kind() == destType->kind()
-					|| (sourceType->isPrimitive() && sourceType->getObjectType()->name().last() == "null_t")
+					|| (sourceType->isPrimitive() && sourceType->getObjectType()->fullName().last() == "null_t")
 					|| destType->isBuiltInVoid())
 				   && "Types must be in the same group for cast, or "
 				   "it should be a cast from null, or a cast to void");
@@ -669,8 +672,8 @@ namespace locic {
 			
 			assert(method.kind() == SEM::Value::FUNCTIONREF);
 			
-			const auto interfaceFunction = method.functionRefFunction();
-			const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
+			const auto& interfaceFunction = method.functionRefFunction();
+			const auto methodHash = CreateMethodNameHash(interfaceFunction.fullName().last());
 			const auto methodHashValue = irEmitter_.constantGenerator().getI64(methodHash);
 			return makeInterfaceMethodValue(irEmitter_.function(),
 			                                methodOwner, methodHashValue);
@@ -687,8 +690,8 @@ namespace locic {
 			
 			assert(method.kind() == SEM::Value::FUNCTIONREF);
 			
-			const auto interfaceFunction = method.functionRefFunction();
-			const auto methodHash = CreateMethodNameHash(interfaceFunction->name().last());
+			const auto& interfaceFunction = method.functionRefFunction();
+			const auto methodHash = CreateMethodNameHash(interfaceFunction.fullName().last());
 			const auto methodHashValue = irEmitter_.constantGenerator().getI64(methodHash);
 			return makeStaticInterfaceMethodValue(irEmitter_.function(),
 			                                      typeRef, methodHashValue);

@@ -2,12 +2,13 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/FunctionDecl.hpp>
+
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/Alias.hpp>
-#include <locic/SEM/Function.hpp>
 #include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -22,9 +23,9 @@ namespace locic {
 			return item;
 		}
 		
-		NamespaceItem NamespaceItem::Function(std::unique_ptr<SEM::Function> function) {
+		NamespaceItem NamespaceItem::Function(AST::FunctionDecl& function) {
 			NamespaceItem item(FUNCTION);
-			item.data_.function = function.release();
+			item.data_.function = &function;
 			return item;
 		}
 		
@@ -82,7 +83,7 @@ namespace locic {
 			return *(data_.alias);
 		}
 		
-		Function& NamespaceItem::function() const {
+		AST::FunctionDecl& NamespaceItem::function() const {
 			assert(isFunction());
 			return *(data_.function);
 		}
@@ -102,7 +103,7 @@ namespace locic {
 				case ALIAS:
 					return alias().astAlias().location();
 				case FUNCTION:
-					return function().astFunction().location();
+					return function().debugInfo()->declLocation;
 				case NAMESPACE:
 					return nameSpace().astNamespaces().front()->location();
 				case TYPEINSTANCE:

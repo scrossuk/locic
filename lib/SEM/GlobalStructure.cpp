@@ -46,11 +46,11 @@ namespace locic {
 		const Name& GlobalStructure::name() const {
 			switch (kind()) {
 				case ALIAS:
-					return alias().name();
+					return alias().fullName();
 				case NAMESPACE:
 					return nameSpace().name();
 				case TYPEINSTANCE:
-					return typeInstance().name();
+					return typeInstance().fullName();
 			}
 			
 			locic_unreachable("Unknown GlobalStructure kind.");

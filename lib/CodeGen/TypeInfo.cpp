@@ -1,8 +1,8 @@
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
-#include <locic/SEM/Function.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 

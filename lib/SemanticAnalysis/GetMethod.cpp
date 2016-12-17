@@ -106,7 +106,7 @@ namespace locic {
 				const auto functionType = simplifyFunctionType(context, function.type().substitute(functionTypeTemplateMap));
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				
-				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, &function, {}, functionRefType), location);
+				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function, {}, functionRefType), location);
 				
 				if (targetType->isInterface()) {
 					const auto interfaceMethodType = typeBuilder.getStaticInterfaceMethodType(functionType);
@@ -288,7 +288,7 @@ namespace locic {
 						const auto boolType = context.typeBuilder().getBoolType();
 						templateArguments.push_back(SEM::Value::PredicateExpr(objectConstPredicate.copy(), boolType));
 					} else {
-						context.issueDiag(InvalidMethodTemplateArgCountDiag(function->name().last(),
+						context.issueDiag(InvalidMethodTemplateArgCountDiag(function->fullName().last(),
 						                                                    templateVariables.size(),
 						                                                    templateArguments.size()),
 						                  location);
@@ -306,7 +306,7 @@ namespace locic {
 						if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
 							context.issueDiag(InvalidMethodTemplateArgDiag(templateTypeValue,
 							                                               templateVariable->name().last(),
-							                                               function->name().last()),
+							                                               function->fullName().last()),
 							                  location);
 						}
 						
@@ -343,7 +343,7 @@ namespace locic {
 				const auto functionType = simplifyFunctionType(context, function->type().substitute(templateVariableAssignments));
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				
-				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, function, std::move(templateArguments), functionRefType), location);
+				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, *function, std::move(templateArguments), functionRefType), location);
 				if (methodElement.isStatic()) {
 					return functionRef;
 				}

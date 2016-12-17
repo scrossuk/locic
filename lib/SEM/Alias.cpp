@@ -40,7 +40,7 @@ namespace locic {
 			return astAlias_;
 		}
 		
-		const Name& Alias::name() const {
+		const Name& Alias::fullName() const {
 			return name_;
 		}
 		
@@ -113,7 +113,7 @@ namespace locic {
 		
 		std::string Alias::toString() const {
 			return makeString("Alias(name = %s, value = %s)",
-				name().toString().c_str(),
+				fullName().toString().c_str(),
 				value_ ? value().toString().c_str() : "[NONE]");
 		}
 		

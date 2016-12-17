@@ -3,6 +3,8 @@
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
+#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Var.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -62,7 +64,7 @@ namespace locic {
 		
 		llvm::Value* genAlignOf(Function& function, const SEM::Type* type) {
 			const auto alignMask = genAlignMask(function, type);
-			const auto name = makeString("alignof__%s", type->isObject() ? type->getObjectType()->name().last().c_str() : "");
+			const auto name = makeString("alignof__%s", type->isObject() ? type->getObjectType()->fullName().last().c_str() : "");
 			return function.getBuilder().CreateAdd(alignMask, ConstantGenerator(function.module()).getSizeTValue(1), name);
 		}
 		
@@ -85,7 +87,7 @@ namespace locic {
 						return genPrimitiveAlignMask(function, type);
 					}
 					
-					const auto callName = makeString("alignmask__%s", type->getObjectType()->name().last().c_str());
+					const auto callName = makeString("alignmask__%s", type->getObjectType()->fullName().last().c_str());
 					const auto alignMaskFunction = genAlignMaskFunctionDecl(module, type->getObjectType());
 					
 					const bool hasTemplate = !type->templateArguments().empty();
@@ -149,7 +151,7 @@ namespace locic {
 						}
 					}
 					
-					const auto callName = makeString("sizeof__%s", type->getObjectType()->name().last().c_str());
+					const auto callName = makeString("sizeof__%s", type->getObjectType()->fullName().last().c_str());
 					const auto sizeOfFunction = genSizeOfFunctionDecl(module, type->getObjectType());
 					
 					const bool hasTemplate = !type->templateArguments().empty();
@@ -339,7 +341,7 @@ namespace locic {
 			}
 			
 			const auto callName = makeString("memberoffset_%llu__%s", (unsigned long long) memberIndex,
-				type->getObjectType()->name().last().c_str());
+				type->getObjectType()->fullName().last().c_str());
 			
 			const auto memberIndexValue = ConstantGenerator(module).getSizeTValue(memberIndex);
 			

@@ -1,15 +1,20 @@
 #include <memory>
 
+#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Var.hpp>
+
 #include <locic/Constant.hpp>
+
 #include <locic/Debug/ValueInfo.hpp>
+
 #include <locic/SEM/Alias.hpp>
 #include <locic/SEM/ExitStates.hpp>
-#include <locic/SEM/Function.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/SEM/ValueArray.hpp>
+
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Hasher.hpp>
@@ -83,7 +88,7 @@ namespace locic {
 				
 				struct {
 					const Type* parentType;
-					const Function* function;
+					const AST::FunctionDecl* function;
 				} functionRef;
 				
 				struct {
@@ -298,13 +303,13 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::FunctionRef(const Type* const parentType, const Function* function,
+		Value Value::FunctionRef(const Type* const parentType, const AST::FunctionDecl& function,
 		                         ValueArray templateArguments, const Type* const type) {
 			assert(parentType == NULL || parentType->isObject());
 			assert(type != NULL && type->isCallable());
 			Value value(FUNCTIONREF, type, ExitStates::Normal());
 			value.impl_->union_.functionRef.parentType = parentType;
-			value.impl_->union_.functionRef.function = function;
+			value.impl_->union_.functionRef.function = &function;
 			value.impl_->valueArray = std::move(templateArguments);
 			return value;
 		}
@@ -679,9 +684,9 @@ namespace locic {
 			return impl_->union_.functionRef.parentType;
 		}
 		
-		const Function* Value::functionRefFunction() const {
+		const AST::FunctionDecl& Value::functionRefFunction() const {
 			assert(isFunctionRef());
-			return impl_->union_.functionRef.function;
+			return *(impl_->union_.functionRef.function);
 		}
 		
 		const ValueArray& Value::functionRefTemplateArguments() const {
@@ -881,7 +886,7 @@ namespace locic {
 					break;
 				case Value::FUNCTIONREF:
 					hasher.add(functionRefParentType());
-					hasher.add(functionRefFunction());
+					hasher.add(&(functionRefFunction()));
 					hasher.add(functionRefTemplateArguments().size());
 					for (const auto& arg: functionRefTemplateArguments()) {
 						hasher.add(arg);
@@ -983,7 +988,7 @@ namespace locic {
 				case Value::CALL:
 					return callValue() == value.callValue() && callParameters() == value.callParameters();
 				case Value::FUNCTIONREF:
-					return functionRefParentType() == value.functionRefParentType() && functionRefFunction() == value.functionRefFunction() &&
+					return functionRefParentType() == value.functionRefParentType() && &(functionRefFunction()) == &(value.functionRefFunction()) &&
 						functionRefTemplateArguments() == value.functionRefTemplateArguments();
 				case Value::TEMPLATEFUNCTIONREF:
 					return templateFunctionRefParentType() == value.templateFunctionRefParentType() && templateFunctionRefName() == value.templateFunctionRefName() &&
@@ -1146,10 +1151,10 @@ namespace locic {
 				case LOCALVAR:
 					return makeString("LocalVar(%s)", localVar().toString().c_str());
 				case UNIONDATAOFFSET:
-					return makeString("UnionDataOffset(%s)", unionDataOffsetTypeInstance()->name().toString().c_str());
+					return makeString("UnionDataOffset(%s)", unionDataOffsetTypeInstance()->fullName().toString().c_str());
 				case MEMBEROFFSET:
 					return makeString("MemberOffset(type: %s, memberIndex: %llu)",
-						memberOffsetTypeInstance()->name().toString().c_str(),
+						memberOffsetTypeInstance()->fullName().toString().c_str(),
 						(unsigned long long) memberOffsetMemberIndex());
 				case REINTERPRET:
 					return makeString("Reinterpret(value: %s)", reinterpretOperand().toString().c_str());
@@ -1204,7 +1209,7 @@ namespace locic {
 						makeArrayString(callParameters()).c_str());
 				case FUNCTIONREF:
 					return makeString("FunctionRef(name: %s, type: %s, parentType: %s, templateArgs: %s)",
-						functionRefFunction()->name().toString().c_str(),
+						functionRefFunction().fullName().toString().c_str(),
 						type()->toString().c_str(),
 						functionRefParentType() != nullptr ?
 							functionRefParentType()->toString().c_str() :
@@ -1257,7 +1262,7 @@ namespace locic {
 				case LOCALVAR:
 					return localVar().toString();
 				case UNIONDATAOFFSET:
-					return unionDataOffsetTypeInstance()->name().toString();
+					return unionDataOffsetTypeInstance()->fullName().toString();
 				case MEMBEROFFSET:
 					// TODO: this should have a AST::Var&, not an index.
 					return makeString("@%s",
@@ -1309,7 +1314,7 @@ namespace locic {
 					return makeString("%s(%s)", callValue().toDiagString().c_str(),
 						makeArrayString(callParameters()).c_str());
 				case FUNCTIONREF:
-					return functionRefFunction()->name().toString();
+					return functionRefFunction().fullName().toString();
 				case TEMPLATEFUNCTIONREF:
 					return makeString("%s::%s",
 					                  templateFunctionRefParentType()->toString().c_str(),

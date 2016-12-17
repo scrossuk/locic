@@ -89,7 +89,7 @@ namespace locic {
 			if (!result) {
 				const auto substitutedRequirePredicate = requiresPredicate.substitute(variableAssignments);
 				context.issueDiag(TemplateArgsDoNotSatisfyRequirePredicateDiag(substitutedRequirePredicate,
-				                                                               templatedObject.name()),
+				                                                               templatedObject.fullName()),
 				                  location, std::move(result));
 			}
 			

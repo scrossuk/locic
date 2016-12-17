@@ -7,12 +7,13 @@
 #include <llvm-abi/ABITypeInfo.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/SEM/Function.hpp>
+#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/Optional.hpp>
@@ -231,7 +232,8 @@ namespace locic {
 		}
 		
 		Optional<DISubprogram> genDebugFunctionInfo(Module& module,
-		                                            const SEM::Function* const function,
+		                                            const SEM::TypeInstance* parentType,
+		                                            const AST::FunctionDecl* const function,
 		                                            llvm::Function* const llvmFunction) {
 			const auto& debugInfo = function->debugInfo();
 			
@@ -239,7 +241,8 @@ namespace locic {
 				const auto debugSubprogramType = genDebugFunctionType(module, function->type());
 				const auto& functionInfo = *debugInfo;
 				const bool isInternal = function->moduleScope().isInternal();
-				const bool isDefinition = functionInfo.isDefinition || function->isPrimitive();
+				const bool isDefinition = SEMFunctionGenerator(module).hasDef(parentType,
+				                                                              *function);
 				return make_optional(genDebugFunction(module, functionInfo, debugSubprogramType, llvmFunction, isInternal, isDefinition));
 			} else {
 				return None;
@@ -271,8 +274,8 @@ namespace locic {
 		}
 		
 		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function,
-		                                                  const SEM::Function& semFunction) {
-			const auto& debugInfo = semFunction.debugInfo();
+		                                                  const AST::FunctionDecl& astFunction) {
+			const auto& debugInfo = astFunction.debugInfo();
 			if (debugInfo) {
 				const auto debugSourceLocation = debugInfo->declLocation;
 				return make_optional(getDebugLocation(function, debugSourceLocation));

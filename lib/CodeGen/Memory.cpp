@@ -1,5 +1,6 @@
 #include <stdexcept>
 
+#include <locic/AST/Var.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>

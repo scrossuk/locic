@@ -41,7 +41,7 @@ namespace locic {
 			auto typeInstance = &rootTypeInstance;
 			while (true) {
 				if (hasInheritanceCycle(*typeInstance)) {
-					context.issueDiag(ExceptionCircularInheritanceDiag(typeInstance->name().toString()),
+					context.issueDiag(ExceptionCircularInheritanceDiag(typeInstance->fullName().toString()),
 					                  typeInstance->debugInfo()->location);
 				}
 					
@@ -65,7 +65,7 @@ namespace locic {
 			
 			std::string toString() const {
 				return makeString("'%s' cannot inherit from non-exception type '%s'",
-				                  exceptionType_.name().toString(/*addPrefix=*/false).c_str(),
+				                  exceptionType_.fullName().toString(/*addPrefix=*/false).c_str(),
 				                  inheritType_->toString().c_str());
 			}
 			

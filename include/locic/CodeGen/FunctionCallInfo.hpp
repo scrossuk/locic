@@ -5,9 +5,14 @@
 
 namespace locic {
 	
+	namespace AST {
+		
+		class FunctionDecl;
+		
+	}
+	
 	namespace SEM {
 		
-		class Function;
 		class FunctionType;
 		class Type;
 		class Value;
@@ -77,7 +82,7 @@ namespace locic {
 		 * \return The function pointer.
 		 */
 		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType,
-		                            const SEM::Function* semFunction, SEM::FunctionType functionType);
+		                            const AST::FunctionDecl* astFunction, SEM::FunctionType functionType);
 		
 		/**
 		 * \brief Query whether value is a trivial function.

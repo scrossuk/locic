@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
@@ -40,7 +41,7 @@ namespace locic {
 			return nullptr;
 		}
 		
-		SEM::Function* lookupParentFunction(const ScopeStack& scopeStack) {
+		AST::FunctionDecl* lookupParentFunction(const ScopeStack& scopeStack) {
 			for (size_t i = 0; i < scopeStack.size(); i++) {
 				const auto pos = scopeStack.size() - i - 1;
 				const auto& element = scopeStack[pos];

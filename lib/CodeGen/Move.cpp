@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <vector>
 
+#include <locic/AST/FunctionDecl.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
@@ -152,7 +153,6 @@ namespace locic {
 			const auto& moveSEMFunction = typeInstance->getFunction(module.getCString("__moveto"));
 			
 			auto functionInfo = *(moveSEMFunction.debugInfo());
-			functionInfo.isDefinition = true;
 			functionInfo.name = functionInfo.name + module.getCString("vtableentry");
 			
 			const bool isDefinition = true;
