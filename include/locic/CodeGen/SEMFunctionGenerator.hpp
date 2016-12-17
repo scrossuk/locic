@@ -118,7 +118,7 @@ namespace locic {
 			 * subsequently referenced.
 			 */
 			llvm::Function*
-			genTemplateFunctionStub(const SEM::TemplateVar* templateVar,
+			genTemplateFunctionStub(const AST::TemplateVar* templateVar,
 			                        const String& functionName,
 			                        SEM::FunctionType functionType,
 			                        llvm::DebugLoc debugLoc);

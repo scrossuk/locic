@@ -7,9 +7,14 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class TemplateVar;
+		
+	}
+	
+	namespace SEM {
+		
 		class TemplateVarMap;
 		class Type;
 		
@@ -46,7 +51,7 @@ namespace locic {
 				
 				static Predicate Satisfies(const Type* type, const Type* requirement);
 				
-				static Predicate Variable(TemplateVar* templateVar);
+				static Predicate Variable(AST::TemplateVar* templateVar);
 				
 				Predicate(Predicate&&) = default;
 				Predicate& operator=(Predicate&&) = default;
@@ -58,7 +63,7 @@ namespace locic {
 				Optional<bool> evaluate() const;
 				bool evaluateWithDefault(bool defaultValue) const;*/
 				
-				bool dependsOn(const TemplateVar* templateVar) const;
+				bool dependsOn(const AST::TemplateVar* templateVar) const;
 				
 				/**
 				 * \brief Depends on any of given template variables
@@ -114,7 +119,7 @@ namespace locic {
 				const Type* satisfiesType() const;
 				const Type* satisfiesRequirement() const;
 				
-				TemplateVar* variableTemplateVar() const;
+				AST::TemplateVar* variableTemplateVar() const;
 				
 				bool operator==(const Predicate& other) const;
 				bool operator!=(const Predicate& other) const {
@@ -131,7 +136,7 @@ namespace locic {
 				Kind kind_;
 				std::unique_ptr<Predicate> left_, right_;
 				
-				TemplateVar* templateVar_;
+				AST::TemplateVar* templateVar_;
 				const Type* type_;
 				const Type* requirement_;
 				

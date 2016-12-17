@@ -19,18 +19,15 @@ namespace locic {
 					SEM::Predicate::True();
 			
 			// Add requirements specified inline for template variables.
-			for (const auto& astTemplateVarNode: *(astAliasNode->templateVariables())) {
-				const auto& templateVarName = astTemplateVarNode->name();
-				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
-				
+			for (const auto& templateVarNode: *(astAliasNode->templateVariables())) {
 				TypeResolver typeResolver(context);
 				auto templateVarTypePredicate =
-					typeResolver.getTemplateVarTypePredicate(astTemplateVarNode->type(),
-					                                         *semTemplateVar);
+					typeResolver.getTemplateVarTypePredicate(templateVarNode->typeDecl(),
+					                                         *templateVarNode);
 				predicate = SEM::Predicate::And(std::move(predicate),
 				                                std::move(templateVarTypePredicate));
 				
-				auto& astSpecType = astTemplateVarNode->specType();
+				auto& astSpecType = templateVarNode->specType();
 				
 				if (astSpecType->isVoid()) {
 					// No requirement specified.
@@ -40,7 +37,7 @@ namespace locic {
 				const auto semSpecType = typeResolver.resolveType(astSpecType);
 				
 				// Add the satisfies requirement to the predicate.
-				auto inlinePredicate = SEM::Predicate::Satisfies(semTemplateVar->selfRefType(), semSpecType);
+				auto inlinePredicate = SEM::Predicate::Satisfies(templateVarNode->selfRefType(), semSpecType);
 				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
 			
@@ -63,18 +60,15 @@ namespace locic {
 					SEM::Predicate::True();
 			
 			// Add requirements specified inline for template variables.
-			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
-				const auto& templateVarName = astTemplateVarNode->name();
-				const auto semTemplateVar = typeInstance.namedTemplateVariables().at(templateVarName);
-				
+			for (const auto& templateVarNode: *(astTypeInstanceNode->templateVariables)) {
 				TypeResolver typeResolver(context);
 				auto templateVarTypePredicate =
-					typeResolver.getTemplateVarTypePredicate(astTemplateVarNode->type(),
-					                                         *semTemplateVar);
+					typeResolver.getTemplateVarTypePredicate(templateVarNode->typeDecl(),
+					                                         *templateVarNode);
 				requirePredicate = SEM::Predicate::And(std::move(requirePredicate),
 				                                       std::move(templateVarTypePredicate));
 				
-				auto& astSpecType = astTemplateVarNode->specType();
+				auto& astSpecType = templateVarNode->specType();
 				
 				if (astSpecType->isVoid()) {
 					// No requirement specified.
@@ -84,7 +78,7 @@ namespace locic {
 				const auto semSpecType = typeResolver.resolveType(astSpecType);
 			 	
 			 	// Add the satisfies requirement to the predicate.
-				auto inlinePredicate = SEM::Predicate::Satisfies(semTemplateVar->selfRefType(), semSpecType);
+				auto inlinePredicate = SEM::Predicate::Satisfies(templateVarNode->selfRefType(), semSpecType);
 				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), std::move(inlinePredicate));
 			}
 			

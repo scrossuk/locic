@@ -13,7 +13,6 @@
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Scope.hpp>
-#include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
@@ -155,11 +154,11 @@ namespace locic {
 			return templateVariables_;
 		}
 		
-		FastMap<String, TemplateVar*>& TypeInstance::namedTemplateVariables() {
+		FastMap<String, AST::TemplateVar*>& TypeInstance::namedTemplateVariables() {
 			return namedTemplateVariables_;
 		}
 		
-		const FastMap<String, TemplateVar*>& TypeInstance::namedTemplateVariables() const {
+		const FastMap<String, AST::TemplateVar*>& TypeInstance::namedTemplateVariables() const {
 			return namedTemplateVariables_;
 		}
 		

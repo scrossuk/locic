@@ -330,7 +330,7 @@ namespace locic {
 					if (iterator == variableAssignments.end()) {
 						// TODO: we should be looking at the function/type's require()
 						// predicate here.
-						return OptionalDiag(PredicateVariableNotFoundDiag(templateVar->name().last()));
+						return OptionalDiag(PredicateVariableNotFoundDiag(templateVar->fullName().last()));
 					}
 					
 					const auto& templateValue = iterator->second;

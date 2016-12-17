@@ -21,7 +21,7 @@ namespace locic {
 		
 		class MethodSetElement {
 			public:
-				MethodSetElement(Array<SEM::TemplateVar*, 8> templateVariables,
+				MethodSetElement(Array<AST::TemplateVar*, 8> templateVariables,
 					SEM::Predicate constPredicate, SEM::Predicate noexceptPredicate, SEM::Predicate requirePredicate,
 					bool isStatic, const SEM::Type* returnType, SEM::TypeArray parameterTypes);
 				

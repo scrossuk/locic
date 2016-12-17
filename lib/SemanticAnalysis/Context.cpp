@@ -75,7 +75,7 @@ namespace locic {
 				hashPair<const SEM::TemplatedObject*, const SEM::Type*>> templateVarMethodSetMap;
 			
 			std::vector<std::pair<const SEM::Type*, const SEM::Type*>> assumedSatisfyPairs;
-			std::vector<std::pair<const SEM::TemplateVar*, const SEM::Predicate*>> computingMethodSetTemplateVars;
+			std::vector<std::pair<const AST::TemplateVar*, const SEM::Predicate*>> computingMethodSetTemplateVars;
 		};
 		
 		Context::Context(const SharedMaps& argSharedMaps, Debug::Module& argDebugModule,
@@ -212,7 +212,7 @@ namespace locic {
 			(void) impl_->capabilities.insert(std::make_pair(std::make_pair(type, capability), isCapable));
 		}
 		
-		bool Context::isComputingMethodSet(const SEM::TemplateVar* const templateVar, const SEM::Predicate& predicate) const {
+		bool Context::isComputingMethodSet(const AST::TemplateVar* const templateVar, const SEM::Predicate& predicate) const {
 			for (const auto& computingMethodSetPair: impl_->computingMethodSetTemplateVars) {
 				if (templateVar == computingMethodSetPair.first && predicate == *(computingMethodSetPair.second)) {
 					return true;
@@ -221,7 +221,7 @@ namespace locic {
 			return false;
 		}
 		
-		void Context::pushComputingMethodSet(const SEM::TemplateVar* const  templateVar, const SEM::Predicate& predicate) {
+		void Context::pushComputingMethodSet(const AST::TemplateVar* const  templateVar, const SEM::Predicate& predicate) {
 			impl_->computingMethodSetTemplateVars.push_back(std::make_pair(templateVar, &predicate));
 		}
 		

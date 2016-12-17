@@ -215,25 +215,29 @@ namespace locic {
 			
 			// Add template variables.
 			size_t templateVarIndex = 0;
-			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
-				const auto& templateVarName = astTemplateVarNode->name();
+			for (auto& templateVarNode: *(astTypeInstanceNode->templateVariables)) {
+				const auto templateVarName = templateVarNode->name();
+				
+				templateVarNode->setContext(context.semContext());
+				
 				// TODO!
-				const bool isVirtual = (typeInstanceName == "ref_t");
-				const auto semTemplateVar =
-					new SEM::TemplateVar(context.semContext(),
-						fullTypeName + templateVarName,
-						templateVarIndex++, isVirtual);
+				templateVarNode->setVirtual(typeInstanceName == "ref_t");
+				
+				templateVarNode->setFullName(fullTypeName + templateVarName);
+				
+				templateVarNode->setIndex(templateVarIndex++);
 				
 				const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator == semTypeInstance->namedTemplateVariables().end()) {
-					semTypeInstance->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
+					semTypeInstance->namedTemplateVariables().insert(std::make_pair(templateVarName, templateVarNode.get()));
 				} else {
 					context.issueDiag(ShadowsTemplateParameterDiag(templateVarName),
-					                  astTemplateVarNode.location());
+					                  templateVarNode.location());
 				}
 				
-				semTemplateVar->setDebugInfo(makeTemplateVarInfo(astTemplateVarNode));
-				semTypeInstance->templateVariables().push_back(semTemplateVar);
+				templateVarNode->setDebugInfo(makeTemplateVarInfo(templateVarNode));
+				
+				semTypeInstance->templateVariables().push_back(templateVarNode.get());
 			}
 			
 			if (semTypeInstance->isUnionDatatype()) {
@@ -364,24 +368,23 @@ namespace locic {
 				
 				// Add template variables.
 				size_t templateVarIndex = 0;
-				for (const auto& astTemplateVarNode: *(astAliasNode->templateVariables())) {
-					const auto& templateVarName = astTemplateVarNode->name();
+				for (auto& templateVarNode: *(astAliasNode->templateVariables())) {
+					const auto templateVarName = templateVarNode->name();
+				
+					templateVarNode->setContext(context.semContext());
 					
-					// TODO!
-					const bool isVirtual = false;
-					const auto semTemplateVar =
-						new SEM::TemplateVar(context.semContext(),
-							fullTypeName + templateVarName,
-							templateVarIndex++, isVirtual);
+					templateVarNode->setFullName(fullTypeName + templateVarName);
+					
+					templateVarNode->setIndex(templateVarIndex++);
 					
 					const auto templateVarIterator = semAlias->namedTemplateVariables().find(templateVarName);
 					if (templateVarIterator != semAlias->namedTemplateVariables().end()) {
 						context.issueDiag(TemplateVarClashesWithExistingNameDiag(templateVarName),
-						                  astTemplateVarNode.location());
+						                  templateVarNode.location());
 					}
 					
-					semAlias->templateVariables().push_back(semTemplateVar);
-					semAlias->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
+					semAlias->templateVariables().push_back(templateVarNode.get());
+					semAlias->namedTemplateVariables().insert(std::make_pair(templateVarName, templateVarNode.get()));
 				}
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(*semAlias));

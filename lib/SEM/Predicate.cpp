@@ -3,8 +3,9 @@
 #include <memory>
 #include <string>
 
+#include <locic/AST/Value.hpp>
+#include <locic/AST/TemplateVar.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
@@ -78,7 +79,7 @@ namespace locic {
 			return predicate;
 		}
 		
-		Predicate Predicate::Variable(TemplateVar* templateVar) {
+		Predicate Predicate::Variable(AST::TemplateVar* templateVar) {
 			Predicate predicate(VARIABLE);
 			predicate.templateVar_ = templateVar;
 			return predicate;
@@ -243,7 +244,7 @@ namespace locic {
 			
 		}*/
 		
-		bool Predicate::dependsOn(const TemplateVar* const templateVar) const {
+		bool Predicate::dependsOn(const AST::TemplateVar* const templateVar) const {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:
@@ -459,7 +460,7 @@ namespace locic {
 			return requirement_;
 		}
 		
-		TemplateVar* Predicate::variableTemplateVar() const {
+		AST::TemplateVar* Predicate::variableTemplateVar() const {
 			assert(isVariable());
 			return templateVar_;
 		}
@@ -565,7 +566,7 @@ namespace locic {
 				}
 				case VARIABLE:
 				{
-					return variableTemplateVar()->name().last().asStdString();
+					return variableTemplateVar()->fullName().last().asStdString();
 				}
 			}
 			

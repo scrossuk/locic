@@ -11,10 +11,14 @@
 #include <locic/Support/Array.hpp>
 
 namespace locic {
-
-	namespace SEM {
 	
+	namespace AST {
+		
 		class TemplateVar;
+		
+	}
+	
+	namespace SEM {
 		
 		constexpr size_t TemplateVarMapBaseSize = 8;
 		
@@ -31,7 +35,7 @@ namespace locic {
 		 */
 		class TemplateVarMap {
 			public:
-				using key_type = const TemplateVar*;
+				using key_type = const AST::TemplateVar*;
 				using mapped_type = Value;
 				using value_type = std::pair<key_type, mapped_type>;
 				using ArrayType = Array<value_type, TemplateVarMapBaseSize>;

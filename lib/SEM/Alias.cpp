@@ -87,7 +87,7 @@ namespace locic {
 			return templateVars_;
 		}
 		
-		FastMap<String, TemplateVar*>& Alias::namedTemplateVariables() {
+		FastMap<String, AST::TemplateVar*>& Alias::namedTemplateVariables() {
 			return namedTemplateVariables_;
 		}
 		

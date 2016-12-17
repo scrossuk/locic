@@ -5,12 +5,22 @@
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/TypeDecl.hpp>
+#include <locic/Debug/TemplateVarInfo.hpp>
+#include <locic/Support/Optional.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
-	namespace AST {
 	
+	namespace SEM {
+		
+		class Context;
+		class Type;
+		class Value;
+		
+	}
+	
+	namespace AST {
+		
 		class TemplateVar {
 		public:
 			static TemplateVar*
@@ -22,24 +32,48 @@ namespace locic {
 			
 			TemplateVar();
 			
+			SEM::Context& context() const;
+			void setContext(SEM::Context& context);
+			
 			String name() const;
 			
-			Node<TypeDecl>& type();
-			const Node<TypeDecl>& type() const;
-			
-			Node<TypeDecl>& specType();
-			const Node<TypeDecl>& specType() const;
+			const Name& fullName() const;
+			void setFullName(Name fullName);
 			
 			size_t index() const;
 			void setIndex(size_t index);
 			
+			Node<TypeDecl>& typeDecl();
+			const Node<TypeDecl>& typeDecl() const;
+			
+			Node<TypeDecl>& specType();
+			const Node<TypeDecl>& specType() const;
+			
+			const SEM::Type* type() const;
+			void setType(const SEM::Type* type);
+			
+			bool isVirtual() const;
+			void setVirtual(bool isVirtual);
+			
+			SEM::Value selfRefValue() const;
+			const SEM::Type* selfRefType() const;
+			
+			void setDebugInfo(Debug::TemplateVarInfo debugInfo);
+			Optional<Debug::TemplateVarInfo> debugInfo() const;
+			
 			std::string toString() const;
 			
 		private:
-			Node<TypeDecl> type_;
+			SEM::Context* context_;
+			Node<TypeDecl> typeDecl_;
+			const SEM::Type* type_;
+			const SEM::Type* selfRefType_;
 			String name_;
-			Node<TypeDecl> specType_;
+			Name fullName_;
 			size_t index_;
+			bool isVirtual_;
+			Node<TypeDecl> specType_;
+			Optional<Debug::TemplateVarInfo> debugInfo_;
 			
 		};
 		

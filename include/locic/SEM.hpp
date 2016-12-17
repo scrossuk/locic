@@ -13,7 +13,6 @@
 #include <locic/SEM/Statement.hpp>
 #include <locic/SEM/SwitchCase.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
-#include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 #include <locic/SEM/Value.hpp>

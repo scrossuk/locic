@@ -11,7 +11,6 @@ set(SEM_FILES
 	../SEM/Scope.cpp
 	../SEM/Statement.cpp
 	../SEM/SwitchCase.cpp
-	../SEM/TemplateVar.cpp
 	../SEM/TemplateVarMap.cpp
 	../SEM/Type.cpp
 	../SEM/TypeInstance.cpp

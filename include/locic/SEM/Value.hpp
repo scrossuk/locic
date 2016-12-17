@@ -17,6 +17,7 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
+		class TemplateVar;
 		class Var;
 		
 	}
@@ -32,7 +33,6 @@ namespace locic {
 		class Alias;
 		class ExitStates;
 		class Predicate;
-		class TemplateVar;
 		class TemplateVarMap;
 		class Type;
 		class TypeInstance;
@@ -269,7 +269,7 @@ namespace locic {
 				 * 
 				 * A reference to a template variable.
 				 */
-				static Value TemplateVarRef(const TemplateVar* targetVar, const Type* type);
+				static Value TemplateVarRef(const AST::TemplateVar* targetVar, const Type* type);
 				
 				/**
 				 * \brief Call
@@ -436,7 +436,7 @@ namespace locic {
 				const Type* typeRefType() const;
 				
 				bool isTemplateVarRef() const;
-				const TemplateVar* templateVar() const;
+				const AST::TemplateVar* templateVar() const;
 				
 				bool isCall() const;
 				const Value& callValue() const;
@@ -481,7 +481,7 @@ namespace locic {
 					return !(*this == value);
 				}
 				
-				bool dependsOn(const TemplateVar* const templateVar) const;
+				bool dependsOn(const AST::TemplateVar* const templateVar) const;
 				bool dependsOnAny(const TemplateVarArray& array) const;
 				bool dependsOnOnly(const TemplateVarArray& array) const;
 				

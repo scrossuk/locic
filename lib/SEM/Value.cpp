@@ -83,7 +83,7 @@ namespace locic {
 				} typeRef;
 				
 				struct {
-					const TemplateVar* templateVar;
+					const AST::TemplateVar* templateVar;
 				} templateVarRef;
 				
 				struct {
@@ -277,7 +277,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::TemplateVarRef(const TemplateVar* const targetVar, const Type* const type) {
+		Value Value::TemplateVarRef(const AST::TemplateVar* const targetVar, const Type* const type) {
 			Value value(TEMPLATEVARREF, type, ExitStates::Normal());
 			value.impl_->union_.templateVarRef.templateVar = targetVar;
 			return value;
@@ -656,7 +656,7 @@ namespace locic {
 			return kind() == TEMPLATEVARREF;
 		}
 		
-		const TemplateVar* Value::templateVar() const {
+		const AST::TemplateVar* Value::templateVar() const {
 			assert(isTemplateVarRef());
 			return impl_->union_.templateVarRef.templateVar;
 		}
@@ -1024,7 +1024,7 @@ namespace locic {
 				case TYPEREF:
 					return typeRefType()->dependsOnAny(array);
 				case TEMPLATEVARREF:
-					return array.contains(const_cast<TemplateVar*>(templateVar()));
+					return array.contains(const_cast<AST::TemplateVar*>(templateVar()));
 				default:
 					locic_unreachable("Invalid value kind for dependsOnAny().");
 			}
@@ -1037,7 +1037,7 @@ namespace locic {
 				case TYPEREF:
 					return typeRefType()->dependsOnOnly(array);
 				case TEMPLATEVARREF:
-					return array.contains(const_cast<TemplateVar*>(templateVar()));
+					return array.contains(const_cast<AST::TemplateVar*>(templateVar()));
 				default:
 					locic_unreachable("Invalid value kind for dependsOnOnly().");
 			}
@@ -1117,7 +1117,7 @@ namespace locic {
 				case PREDICATE:
 					return predicate().copy();
 				case TEMPLATEVARREF: {
-					return Predicate::Variable(const_cast<TemplateVar*>(templateVar()));
+					return Predicate::Variable(const_cast<AST::TemplateVar*>(templateVar()));
 				}
 				case TERNARY: {
 					// TODO: Remove this, because it isn't entirely correct.
@@ -1309,7 +1309,7 @@ namespace locic {
 				case TYPEREF:
 					return typeRefType()->toDiagString();
 				case TEMPLATEVARREF:
-					return templateVar()->name().last().asStdString();
+					return templateVar()->fullName().last().asStdString();
 				case CALL:
 					return makeString("%s(%s)", callValue().toDiagString().c_str(),
 						makeArrayString(callParameters()).c_str());

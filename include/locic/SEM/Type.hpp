@@ -16,12 +16,17 @@ namespace locic {
 	class PrimitiveID;
 	class String;
 	
+	namespace AST {
+		
+		class TemplateVar;
+		
+	}
+	
 	namespace SEM {
 		
 		class Alias;
 		class Context;
 		class FunctionType;
-		class TemplateVar;
 		class Type;
 		class TypeInstance;
 		
@@ -39,7 +44,7 @@ namespace locic {
 				static const Type* Auto(const Context& context);
 				static const Type* Alias(const Alias& alias, ValueArray templateArguments);
 				static const Type* Object(const TypeInstance* typeInstance, ValueArray templateArguments);
-				static const Type* TemplateVarRef(const TemplateVar* templateVar);
+				static const Type* TemplateVarRef(const AST::TemplateVar* templateVar);
 				
 				const Context& context() const;
 				Kind kind() const;
@@ -94,7 +99,7 @@ namespace locic {
 				const ValueArray& templateArguments() const;
 				
 				bool isTemplateVar() const;
-				const TemplateVar* getTemplateVar() const;
+				const AST::TemplateVar* getTemplateVar() const;
 				
 				bool isTypeInstance(const TypeInstance* typeInstance) const;
 				
@@ -128,7 +133,7 @@ namespace locic {
 				const Type* substitute(const TemplateVarMap& templateVarMap) const;
 				const Type* resolveAliases() const;
 				
-				bool dependsOn(const TemplateVar* const templateVar) const;
+				bool dependsOn(const AST::TemplateVar* const templateVar) const;
 				bool dependsOnAny(const TemplateVarArray& array) const;
 				bool dependsOnOnly(const TemplateVarArray& array) const;
 				
@@ -173,7 +178,7 @@ namespace locic {
 					} objectType;
 					
 					struct {
-						const SEM::TemplateVar* templateVar;
+						const AST::TemplateVar* templateVar;
 					} templateVarRef;
 				} data_;
 				

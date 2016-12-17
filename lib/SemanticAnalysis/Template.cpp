@@ -100,7 +100,7 @@ namespace locic {
 				const auto templateValueType = templateValue.type()->resolveAliases();
 				
 				if (templateVarType != templateValueType) {
-					context.issueDiag(TemplateArgHasInvalidTypeDiag(templateVar->name().last(),
+					context.issueDiag(TemplateArgHasInvalidTypeDiag(templateVar->fullName().last(),
 					                                                templateVarType,
 					                                                templateValueType),
 					                  location);

@@ -180,7 +180,7 @@ namespace locic {
 				}
 				case SEM::Type::TEMPLATEVAR: {
 					const auto templateVar = type->getTemplateVar();
-					return module.debugBuilder().createUnspecifiedType(templateVar->name().last());
+					return module.debugBuilder().createUnspecifiedType(templateVar->fullName().last());
 				}
 				case SEM::Type::ALIAS: {
 					return genDebugType(module, type->resolveAliases());

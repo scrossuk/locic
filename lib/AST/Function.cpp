@@ -276,11 +276,11 @@ namespace locic {
 			return templateVariables_;
 		}
 		
-		FastMap<String, SEM::TemplateVar*>& Function::namedTemplateVariables() {
+		FastMap<String, TemplateVar*>& Function::namedTemplateVariables() {
 			return namedTemplateVariables_;
 		}
 		
-		const FastMap<String, SEM::TemplateVar*>& Function::namedTemplateVariables() const {
+		const FastMap<String, TemplateVar*>& Function::namedTemplateVariables() const {
 			return namedTemplateVariables_;
 		}
 		

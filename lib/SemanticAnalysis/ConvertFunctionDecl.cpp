@@ -150,37 +150,34 @@ namespace locic {
 			
 			// Add template variables.
 			size_t templateVarIndex = (thisTypeInstance != nullptr) ? thisTypeInstance->templateVariables().size() : 0;
-			for (const auto& astTemplateVarNode: *(function->templateVariableDecls())) {
-				const auto& templateVarName = astTemplateVarNode->name();
+			for (const auto& templateVarNode: *(function->templateVariableDecls())) {
+				const auto templateVarName = templateVarNode->name();
 				
-				// TODO!
-				const bool isVirtual = false;
-				const auto semTemplateVar =
-					new SEM::TemplateVar(context.semContext(),
-						function->fullName() + templateVarName,
-						templateVarIndex++, isVirtual);
+				templateVarNode->setContext(context.semContext());
+				templateVarNode->setFullName(function->fullName() + templateVarName);
+				templateVarNode->setIndex(templateVarIndex++);
 				
 				const auto templateVarIterator = function->namedTemplateVariables().find(templateVarName);
 				if (templateVarIterator == function->namedTemplateVariables().end()) {
-					function->namedTemplateVariables().insert(std::make_pair(templateVarName, semTemplateVar));
+					function->namedTemplateVariables().insert(std::make_pair(templateVarName, templateVarNode.get()));
 				} else {
 					context.issueDiag(ShadowsTemplateParameterDiag(templateVarName),
-					                  astTemplateVarNode.location());
+					                  templateVarNode.location());
 				}
 				
 				// Also adding the function template variable type here.
-				auto& astVarType = astTemplateVarNode->type();
+				auto& astVarType = templateVarNode->typeDecl();
 				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
 				
 				if (!semVarType->isPrimitive()) {
 					context.issueDiag(FunctionTemplateHasNonPrimitiveTypeDiag(templateVarName,
 					                                                          semVarType,
 					                                                          function->fullName()),
-					                  astTemplateVarNode->type().location());
+					                  templateVarNode->typeDecl().location());
 				}
 				
-				semTemplateVar->setType(semVarType);
-				function->templateVariables().push_back(semTemplateVar);
+				templateVarNode->setType(semVarType);
+				function->templateVariables().push_back(templateVarNode.get());
 			}
 			
 			assert(!function->hasGeneratedScope());

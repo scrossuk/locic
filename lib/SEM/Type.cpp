@@ -3,7 +3,10 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/AST/TemplateVar.hpp>
+
 #include <locic/Constant.hpp>
+
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/Map.hpp>
@@ -14,7 +17,6 @@
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TemplateVar.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
@@ -138,7 +140,7 @@ namespace locic {
 			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::TemplateVarRef(const TemplateVar* const templateVar) {
+		const Type* Type::TemplateVarRef(const AST::TemplateVar* const templateVar) {
 			assert(templateVar->type()->isObject() && templateVar->type()->isBuiltInTypename());
 			const auto templateVarRefType = templateVar->selfRefType();
 			if (templateVarRefType) {
@@ -465,7 +467,7 @@ namespace locic {
 			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveVarArgFunctionPtr0;
 		}
 		
-		const TemplateVar* Type::getTemplateVar() const {
+		const AST::TemplateVar* Type::getTemplateVar() const {
 			assert(isTemplateVar());
 			return data_.templateVarRef.templateVar;
 		}
@@ -807,9 +809,9 @@ namespace locic {
 			return result;
 		}
 		
-		bool Type::dependsOn(const TemplateVar* const templateVar) const {
+		bool Type::dependsOn(const AST::TemplateVar* const templateVar) const {
 			// TODO: remove const cast.
-			return dependsOnAny({ const_cast<TemplateVar*>(templateVar) });
+			return dependsOnAny({ const_cast<AST::TemplateVar*>(templateVar) });
 		}
 		
 		bool Type::dependsOnAny(const TemplateVarArray& array) const {
@@ -837,7 +839,7 @@ namespace locic {
 					return false;
 				}
 				case TEMPLATEVAR: {
-					return array.contains(const_cast<TemplateVar*>(getTemplateVar()));
+					return array.contains(const_cast<AST::TemplateVar*>(getTemplateVar()));
 				}
 				case ALIAS: {
 					return resolveAliases()->dependsOnAny(array);
@@ -874,7 +876,7 @@ namespace locic {
 					return true;
 				}
 				case TEMPLATEVAR: {
-					return array.contains(const_cast<TemplateVar*>(getTemplateVar()));
+					return array.contains(const_cast<AST::TemplateVar*>(getTemplateVar()));
 				}
 				case ALIAS: {
 					return resolveAliases()->dependsOnOnly(array);
@@ -1080,7 +1082,7 @@ namespace locic {
 					}
 				}
 				case TEMPLATEVAR: {
-					return getTemplateVar()->name().last().asStdString();
+					return getTemplateVar()->fullName().last().asStdString();
 				}
 				case ALIAS: {
 					const auto aliasName = alias().fullName().toString(false);

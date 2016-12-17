@@ -25,6 +25,7 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
+		class TemplateVar;
 		class Var;
 		
 	}
@@ -32,7 +33,6 @@ namespace locic {
 	namespace SEM {
 	
 		class Context;
-		class TemplateVar;
 		
 		/**
 		 * \brief Type Instance
@@ -200,8 +200,8 @@ namespace locic {
 				 * 
 				 * \return Name to template variable mapping.
 				 */
-				FastMap<String, TemplateVar*>& namedTemplateVariables();
-				const FastMap<String, TemplateVar*>& namedTemplateVariables() const;
+				FastMap<String, AST::TemplateVar*>& namedTemplateVariables();
+				const FastMap<String, AST::TemplateVar*>& namedTemplateVariables() const;
 				
 				/**
 				 * \brief Get (optional) move predicate.
@@ -384,7 +384,7 @@ namespace locic {
 				std::vector<TypeInstance*> variants_;
 				
 				TemplateVarArray templateVariables_;
-				FastMap<String, TemplateVar*> namedTemplateVariables_;
+				FastMap<String, AST::TemplateVar*> namedTemplateVariables_;
 				Optional<Predicate> movePredicate_;
 				Predicate requiresPredicate_;
 				Predicate noexceptPredicate_;

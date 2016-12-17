@@ -26,42 +26,34 @@ namespace locic {
 		};
 		
 		void AddAliasTemplateVariableTypes(Context& context, const AST::Node<AST::AliasDecl>& astAliasNode) {
-			auto& alias = context.scopeStack().back().alias();
-			
 			// Add types of template variables.
-			for (const auto& astTemplateVarNode: *(astAliasNode->templateVariables())) {
-				const auto& templateVarName = astTemplateVarNode->name();
-				const auto semTemplateVar = alias.namedTemplateVariables().at(templateVarName);
-				
-				auto& astVarType = astTemplateVarNode->type();
+			for (const auto& templateVarNode: *(astAliasNode->templateVariables())) {
+				auto& astVarType = templateVarNode->typeDecl();
 				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
 				
 				if (!semVarType->isPrimitive()) {
+					const auto& templateVarName = templateVarNode->name();
 					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, semVarType),
-					                  astTemplateVarNode.location());
+					                  templateVarNode.location());
 				}
 				
-				semTemplateVar->setType(semVarType);
+				templateVarNode->setType(semVarType);
 			}
 		}
 		
 		void AddTypeInstanceTemplateVariableTypes(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
-			auto& typeInstance = context.scopeStack().back().typeInstance();
-			
 			// Add types of template variables.
-			for (const auto& astTemplateVarNode: *(astTypeInstanceNode->templateVariables)) {
-				const auto& templateVarName = astTemplateVarNode->name();
-				const auto semTemplateVar = typeInstance.namedTemplateVariables().at(templateVarName);
-				
-				auto& astVarType = astTemplateVarNode->type();
+			for (const auto& templateVarNode: *(astTypeInstanceNode->templateVariables)) {
+				auto& astVarType = templateVarNode->typeDecl();
 				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
 				
 				if (!semVarType->isPrimitive()) {
+					const auto& templateVarName = templateVarNode->name();
 					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, semVarType),
-					                  astTemplateVarNode.location());
+					                  templateVarNode.location());
 				}
 				
-				semTemplateVar->setType(semVarType);
+				templateVarNode->setType(semVarType);
 			}
 		}
 		

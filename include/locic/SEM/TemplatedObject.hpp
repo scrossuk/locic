@@ -10,7 +10,6 @@ namespace locic {
 	namespace SEM {
 		
 		class Predicate;
-		class TemplateVar;
 		
 		class TemplatedObject {
 			public:

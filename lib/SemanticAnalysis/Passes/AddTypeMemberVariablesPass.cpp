@@ -181,7 +181,7 @@ namespace locic {
 				// any template variable references inside the type.
 				if (memberVar->constructType()->isTemplateVar()) {
 					// TODO: remove const_cast.
-					noTagSet.push_back(const_cast<SEM::TemplateVar*>(memberVar->constructType()->getTemplateVar()));
+					noTagSet.push_back(const_cast<AST::TemplateVar*>(memberVar->constructType()->getTemplateVar()));
 				}
 			}
 			

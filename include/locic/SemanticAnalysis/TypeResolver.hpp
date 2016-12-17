@@ -7,9 +7,14 @@ namespace locic {
 	
 	class String;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class TemplateVar;
+		
+	}
+	
+	namespace SEM {
+		
 		class Type;
 		
 	}
@@ -40,7 +45,7 @@ namespace locic {
 			
 			SEM::Predicate
 			getTemplateVarTypePredicate(const AST::Node<AST::TypeDecl>& type,
-			                            const SEM::TemplateVar& templateVar);
+			                            const AST::TemplateVar& templateVar);
 			
 			const SEM::Type*
 			resolveTemplateVarType(AST::Node<AST::TypeDecl>& typeDecl);

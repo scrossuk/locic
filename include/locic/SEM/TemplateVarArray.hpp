@@ -4,13 +4,17 @@
 #include <locic/Support/Array.hpp>
 
 namespace locic {
-	
-	namespace SEM {
+		
+	namespace AST {
 		
 		class TemplateVar;
 		
+	}
+	
+	namespace SEM {
+		
 		constexpr size_t TemplateVarArrayBaseSize = 8;
-		using TemplateVarArray = Array<TemplateVar*, TemplateVarArrayBaseSize>;
+		using TemplateVarArray = Array<AST::TemplateVar*, TemplateVarArrayBaseSize>;
 		
 	}
 	

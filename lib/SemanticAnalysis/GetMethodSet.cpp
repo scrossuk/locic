@@ -77,7 +77,7 @@ namespace locic {
 		
 		class PushComputingMethodSet {
 		public:
-			PushComputingMethodSet(Context& context, const SEM::TemplateVar* const templateVar, const SEM::Predicate& predicate)
+			PushComputingMethodSet(Context& context, const AST::TemplateVar* const templateVar, const SEM::Predicate& predicate)
 			: context_(context) {
 				context_.pushComputingMethodSet(templateVar, predicate);
 			}
@@ -113,7 +113,7 @@ namespace locic {
 		 * and hence determine that template variable 'T' must
 		 * have the method 'customMethod' inside the function.
 		 */
-		const MethodSet* getMethodSetForRequiresPredicate(Context& context, const SEM::TemplateVar* const templateVar, const SEM::Predicate& requiresPredicate) {
+		const MethodSet* getMethodSetForRequiresPredicate(Context& context, const AST::TemplateVar* const templateVar, const SEM::Predicate& requiresPredicate) {
 			// Avoid cycles such as:
 			// 
 			// template <typename A, typename B, typename C>

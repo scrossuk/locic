@@ -1,6 +1,7 @@
 #include <string>
 
-#include <locic/SEM/TemplateVar.hpp>
+#include <locic/AST/Value.hpp>
+#include <locic/AST/TemplateVar.hpp>
 #include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/Support/MakeString.hpp>

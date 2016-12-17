@@ -305,7 +305,7 @@ namespace locic {
 						
 						if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
 							context.issueDiag(InvalidMethodTemplateArgDiag(templateTypeValue,
-							                                               templateVariable->name().last(),
+							                                               templateVariable->fullName().last(),
 							                                               function->fullName().last()),
 							                  location);
 						}

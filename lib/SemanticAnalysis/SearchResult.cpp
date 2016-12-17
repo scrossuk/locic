@@ -22,7 +22,7 @@ namespace locic {
 			return element;
 		}
 		
-		SearchResult SearchResult::TemplateVar(SEM::TemplateVar& templateVar) {
+		SearchResult SearchResult::TemplateVar(AST::TemplateVar& templateVar) {
 			SearchResult element(TEMPLATEVAR);
 			element.data_.templateVar = &templateVar;
 			return element;
@@ -78,7 +78,7 @@ namespace locic {
 			return *(data_.function);
 		}
 		
-		SEM::TemplateVar& SearchResult::templateVar() const {
+		AST::TemplateVar& SearchResult::templateVar() const {
 			assert(isTemplateVar());
 			return *(data_.templateVar);
 		}

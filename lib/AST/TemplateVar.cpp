@@ -5,6 +5,7 @@
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/Value.hpp>
+#include <locic/SEM/Type.hpp>
 
 namespace locic {
 	
@@ -13,7 +14,7 @@ namespace locic {
 		TemplateVar*
 		TemplateVar::NoSpec(Node<TypeDecl> pType, const String& pName) {
 			TemplateVar* typeVar = new TemplateVar();
-			typeVar->type_ = std::move(pType);
+			typeVar->typeDecl_ = std::move(pType);
 			typeVar->name_ = pName;
 			typeVar->specType_ = makeNode(Debug::SourceLocation::Null(),
 			                              TypeDecl::Void());
@@ -25,25 +26,56 @@ namespace locic {
 		                          Node<TypeDecl> pSpecType) {
 			assert(!pSpecType.isNull());
 			TemplateVar* typeVar = new TemplateVar();
-			typeVar->type_ = std::move(pType);
+			typeVar->typeDecl_ = std::move(pType);
 			typeVar->name_ = pName;
 			typeVar->specType_ = std::move(pSpecType);
 			return typeVar;
 		}
 		
 		TemplateVar::TemplateVar()
-		: index_(-1) { }
+		: context_(nullptr), type_(nullptr), selfRefType_(nullptr),
+		index_(-1), isVirtual_(false) { }
+		
+		SEM::Context& TemplateVar::context() const {
+			assert(context_ != nullptr);
+			return *context_;
+		}
+		
+		void TemplateVar::setContext(SEM::Context& pContext) {
+			assert(context_ == nullptr);
+			context_ = &pContext;
+		}
 		
 		String TemplateVar::name() const {
 			return name_;
 		}
 		
-		Node<TypeDecl>& TemplateVar::type() {
-			return type_;
+		const Name& TemplateVar::fullName() const {
+			assert(!fullName_.empty());
+			return fullName_;
 		}
 		
-		const Node<TypeDecl>& TemplateVar::type() const {
-			return type_;
+		void TemplateVar::setFullName(Name pFullName) {
+			assert(fullName_.empty());
+			fullName_ = std::move(pFullName);
+		}
+		
+		size_t TemplateVar::index() const {
+			assert(index_ != (size_t)-1);
+			return index_;
+		}
+		
+		void TemplateVar::setIndex(const size_t pIndex) {
+			assert(index_ == (size_t)-1);
+			index_ = pIndex;
+		}
+		
+		Node<TypeDecl>& TemplateVar::typeDecl() {
+			return typeDecl_;
+		}
+		
+		const Node<TypeDecl>& TemplateVar::typeDecl() const {
+			return typeDecl_;
 		}
 		
 		Node<TypeDecl>& TemplateVar::specType() {
@@ -54,18 +86,52 @@ namespace locic {
 			return specType_;
 		}
 		
-		size_t TemplateVar::index() const {
-			return index_;
+		const SEM::Type* TemplateVar::type() const {
+			assert(type_ != nullptr);
+			return type_;
 		}
 		
-		void TemplateVar::setIndex(const size_t pIndex) {
-			assert(index() == (size_t)-1);
-			index_ = pIndex;
+		void TemplateVar::setType(const SEM::Type* pType) {
+			assert(type_ == nullptr && pType != nullptr);
+			type_ = pType;
+			if (type_->isBuiltInTypename()) {
+				selfRefType_ = SEM::Type::TemplateVarRef(this);
+				type_ = type_->createStaticRefType(selfRefType_);
+			}
+		}
+		
+		bool TemplateVar::isVirtual() const {
+			return isVirtual_;
+		}
+		
+		void TemplateVar::setVirtual(bool pIsVirtual) {
+			isVirtual_ = pIsVirtual;
+		}
+		
+		SEM::Value TemplateVar::selfRefValue() const {
+			if (type()->isBuiltInTypename()) {
+				return SEM::Value::TypeRef(selfRefType(), type());
+			} else {
+				return SEM::Value::TemplateVarRef(this, type());
+			}
+		}
+		
+		const SEM::Type* TemplateVar::selfRefType() const {
+			assert(type()->isBuiltInTypename());
+			return selfRefType_;
+		}
+		
+		void TemplateVar::setDebugInfo(Debug::TemplateVarInfo pDebugInfo) {
+			debugInfo_ = make_optional(pDebugInfo);
+		}
+		
+		Optional<Debug::TemplateVarInfo> TemplateVar::debugInfo() const {
+			return debugInfo_;
 		}
 		
 		std::string TemplateVar::toString() const {
 			return makeString("TemplateVar(type = %s, name = %s, specType = %s)",
-			                  type().toString().c_str(), name().c_str(),
+			                  typeDecl().toString().c_str(), name().c_str(),
 			                  specType().toString().c_str());
 		}
 		

@@ -258,7 +258,7 @@ namespace locic {
 		
 		SEM::Predicate
 		TypeResolver::getTemplateVarTypePredicate(const AST::Node<AST::TypeDecl>& type,
-		                                          const SEM::TemplateVar& templateVar) {
+		                                          const AST::TemplateVar& templateVar) {
 			const auto alias = getTemplateVarTypeAlias(type);
 			if (alias == nullptr) {
 				return SEM::Predicate::True();
