@@ -286,6 +286,10 @@ namespace locic {
 		const SEM::Type*
 		TypeResolver::resolveTemplateVarType(AST::Node<AST::TypeDecl>& type) {
 			if (getTemplateVarTypeAlias(type) != nullptr) {
+				// If the template variable type is actually an
+				// alias, this likely means it is a predicate
+				// (e.g. <movable T>), hence it actually has
+				// type 'typename'.
 				return TypeBuilder(context_).getTypenameType();
 			} else {
 				return resolveType(type);
