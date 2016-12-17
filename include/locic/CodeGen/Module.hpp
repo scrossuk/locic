@@ -29,7 +29,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class FunctionDecl;
+		class Function;
 		
 	}
 	
@@ -82,7 +82,7 @@ namespace locic {
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> DestructorMap;
 		typedef FastMap<String, llvm::Function*> FunctionMap;
 		typedef FastMap<std::pair<llvm::Function*, llvm::FunctionType*>, llvm::Function*> FunctionPtrStubMap;
-		typedef std::unordered_map<const AST::FunctionDecl*, llvm::Function*> FunctionDeclMap;
+		typedef std::unordered_map<const AST::Function*, llvm::Function*> FunctionDeclMap;
 		typedef std::unordered_map<std::pair<String, Name>, String, hashPair<String, Name>> MangledNameMap;
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
 		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MoveFunctionMap;

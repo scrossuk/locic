@@ -7,7 +7,7 @@
 #include <llvm-abi/ABITypeInfo.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -233,7 +233,7 @@ namespace locic {
 		
 		Optional<DISubprogram> genDebugFunctionInfo(Module& module,
 		                                            const SEM::TypeInstance* parentType,
-		                                            const AST::FunctionDecl& function,
+		                                            const AST::Function& function,
 		                                            llvm::Function* const llvmFunction) {
 			const auto& debugInfo = function.debugInfo();
 			
@@ -274,7 +274,7 @@ namespace locic {
 		}
 		
 		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function,
-		                                                  const AST::FunctionDecl& astFunction) {
+		                                                  const AST::Function& astFunction) {
 			const auto& debugInfo = astFunction.debugInfo();
 			if (debugInfo) {
 				const auto debugSourceLocation = debugInfo->declLocation;

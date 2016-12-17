@@ -7,7 +7,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class FunctionDecl;
+		class Function;
 		
 	}
 	
@@ -46,7 +46,7 @@ namespace locic {
 			 */
 			llvm::GlobalValue::LinkageTypes
 			getLinkage(const SEM::TypeInstance* typeInstance,
-			           const AST::FunctionDecl& function) const;
+			           const AST::Function& function) const;
 			
 			llvm::GlobalValue::LinkageTypes
 			getTypeLinkage(const SEM::TypeInstance& typeInstance) const;
@@ -73,7 +73,7 @@ namespace locic {
 			 */
 			llvm::Function*
 			getDecl(const SEM::TypeInstance* typeInstance,
-			        const AST::FunctionDecl& function,
+			        const AST::Function& function,
 			        bool isInnerMethod = false);
 			
 			/**
@@ -81,7 +81,7 @@ namespace locic {
 			 */
 			bool
 			hasDef(const SEM::TypeInstance* typeInstance,
-			       const AST::FunctionDecl& function);
+			       const AST::Function& function);
 			
 			/**
 			 * \brief Generate function definition.
@@ -91,7 +91,7 @@ namespace locic {
 			 */
 			llvm::Function*
 			genDef(const SEM::TypeInstance* typeInstance,
-			       const AST::FunctionDecl& function,
+			       const AST::Function& function,
 			       bool isInnerMethod = false);
 			
 			/**

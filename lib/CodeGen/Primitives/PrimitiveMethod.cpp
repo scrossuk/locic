@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>

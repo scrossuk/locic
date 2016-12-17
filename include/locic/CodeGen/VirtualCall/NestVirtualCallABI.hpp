@@ -7,7 +7,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class FunctionDecl;
+		class Function;
 		
 	}
 	
@@ -41,7 +41,7 @@ namespace locic {
 			
 			llvm::Constant*
 			emitVTableSlot(const SEM::TypeInstance& typeInstance,
-			               llvm::ArrayRef<AST::FunctionDecl*> methods);
+			               llvm::ArrayRef<AST::Function*> methods);
 		
 			llvm::Value*
 			emitRawCall(IREmitter& irEmitter,

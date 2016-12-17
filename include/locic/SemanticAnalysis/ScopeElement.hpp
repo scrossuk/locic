@@ -7,7 +7,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class FunctionDecl;
+		class Function;
 		
 	}
 	
@@ -46,7 +46,7 @@ namespace locic {
 				
 				static ScopeElement TypeInstance(SEM::TypeInstance& typeInstance);
 				
-				static ScopeElement Function(AST::FunctionDecl& function);
+				static ScopeElement Function(AST::Function& function);
 				
 				static ScopeElement Scope(SEM::Scope& scope);
 				
@@ -79,7 +79,7 @@ namespace locic {
 				SEM::Namespace& nameSpace() const;
 				SEM::Alias& alias() const;
 				SEM::TypeInstance& typeInstance() const;
-				AST::FunctionDecl& function() const;
+				AST::Function& function() const;
 				SEM::Scope& scope() const;
 				SEM::SwitchCase& switchCase() const;
 				SEM::CatchClause& catchClause() const;
@@ -98,7 +98,7 @@ namespace locic {
 					SEM::Namespace* nameSpace;
 					SEM::Alias* alias;
 					SEM::TypeInstance* typeInstance;
-					AST::FunctionDecl* function;
+					AST::Function* function;
 					SEM::Scope* scope;
 					SEM::SwitchCase* switchCase;
 					SEM::CatchClause* catchClause;

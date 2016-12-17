@@ -320,7 +320,7 @@ namespace locic {
 			
 		};
 		
-		void ConvertFunctionDef(Context& context, const AST::Node<AST::FunctionDecl>& function) {
+		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& function) {
 			assert(!function->hasGeneratedScope());
 			
 			const auto functionType = function->type();

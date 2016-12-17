@@ -22,7 +22,7 @@ add_library(locic-ast
 	AliasDecl.cpp
 	ConstSpecifier.cpp
 	ExceptionInitializer.cpp
-	FunctionDecl.cpp
+	Function.cpp
 	ModuleScope.cpp
 	ModuleScopeDecl.cpp
 	NamespaceDecl.cpp

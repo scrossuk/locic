@@ -1,4 +1,4 @@
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 
 #include <locic/SEM.hpp>
 
@@ -19,8 +19,8 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		Map<MethodHash, AST::FunctionDecl*> CreateFunctionHashMap(const SEM::TypeInstance* const typeInstance) {
-			Map<MethodHash, AST::FunctionDecl*> hashMap;
+		Map<MethodHash, AST::Function*> CreateFunctionHashMap(const SEM::TypeInstance* const typeInstance) {
+			Map<MethodHash, AST::Function*> hashMap;
 			
 			const auto& functions = typeInstance->functions();
 			
@@ -36,10 +36,10 @@ namespace locic {
 			return hashMap;
 		}
 		
-		std::vector<MethodHash> CreateHashArray(const Map<MethodHash, AST::FunctionDecl*>& hashMap) {
+		std::vector<MethodHash> CreateHashArray(const Map<MethodHash, AST::Function*>& hashMap) {
 			std::vector<MethodHash> hashArray;
 			
-			Map<MethodHash, AST::FunctionDecl*>::Range range = hashMap.range();
+			Map<MethodHash, AST::Function*>::Range range = hashMap.range();
 			
 			for (; !range.empty(); range.popFront()) {
 				hashArray.push_back(range.front().key());
@@ -98,7 +98,7 @@ namespace locic {
 			for (size_t i = 0; i < VTABLE_SIZE; i++) {
 				const auto& slotList = virtualTable.table().at(i);
 				
-				std::vector<AST::FunctionDecl*> methods;
+				std::vector<AST::Function*> methods;
 				for (const auto methodHash: slotList) {
 					methods.push_back(functionHashMap.get(methodHash));
 				}

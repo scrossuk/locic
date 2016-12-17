@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/Constant.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/APInt.hpp>

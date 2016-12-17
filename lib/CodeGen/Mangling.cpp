@@ -1,6 +1,6 @@
 #include <string>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/SEM.hpp>
 #include <locic/Support/String.hpp>

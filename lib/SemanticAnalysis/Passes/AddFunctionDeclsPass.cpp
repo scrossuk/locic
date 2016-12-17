@@ -12,7 +12,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		Debug::FunctionInfo makeFunctionInfo(const AST::Node<AST::FunctionDecl>& function) {
+		Debug::FunctionInfo makeFunctionInfo(const AST::Node<AST::Function>& function) {
 			Debug::FunctionInfo functionInfo;
 			functionInfo.name = function->fullName().copy();
 			functionInfo.declLocation = function.location();
@@ -53,7 +53,7 @@ namespace locic {
 		};
 		
 		AST::ModuleScope
-		getFunctionScope(Context& context, const AST::Node<AST::FunctionDecl>& function,
+		getFunctionScope(Context& context, const AST::Node<AST::Function>& function,
 		                 const AST::ModuleScope& moduleScope) {
 			if (function->isImported()) {
 				if (!moduleScope.isInternal()) {
@@ -118,7 +118,7 @@ namespace locic {
 		};
 		
 		void
-		AddFunctionDecl(Context& context, AST::Node<AST::FunctionDecl>& function,
+		AddFunctionDecl(Context& context, AST::Node<AST::Function>& function,
 		                const Name& fullName, const AST::ModuleScope& parentModuleScope) {
 			const auto& topElement = context.scopeStack().back();
 			
@@ -234,7 +234,7 @@ namespace locic {
 			
 		}
 		
-		void AddNamespaceFunctionDecl(Context& context, AST::Node<AST::FunctionDecl>& function,
+		void AddNamespaceFunctionDecl(Context& context, AST::Node<AST::Function>& function,
 		                              const AST::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
@@ -326,7 +326,7 @@ namespace locic {
 			
 		};
 		
-		void AddTypeInstanceFunctionDecl(Context& context, AST::Node<AST::FunctionDecl>& function,
+		void AddTypeInstanceFunctionDecl(Context& context, AST::Node<AST::Function>& function,
 		                                 const AST::ModuleScope& moduleScope) {
 			auto& parentTypeInstance = context.scopeStack().back().typeInstance();
 			
@@ -381,7 +381,7 @@ namespace locic {
 					                  astTypeInstanceNode->constructors.location());
 				}
 				
-				std::unique_ptr<AST::FunctionDecl> function(new AST::FunctionDecl());
+				std::unique_ptr<AST::Function> function(new AST::Function());
 				function->setParent(SEM::GlobalStructure::TypeInstance(semTypeInstance));
 				function->setFullName(std::move(fullName));
 				function->setModuleScope(semTypeInstance.moduleScope().copy());

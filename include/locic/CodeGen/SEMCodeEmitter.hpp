@@ -9,7 +9,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class FunctionDecl;
+		class Function;
 		
 	}
 	
@@ -28,26 +28,26 @@ namespace locic {
 			SEMCodeEmitter(Function& functionGenerator);
 			
 			void emitFunctionCode(const SEM::TypeInstance* typeInstance,
-			                      const AST::FunctionDecl& function,
+			                      const AST::Function& function,
 			                      bool isInnerMethod);
 			
 			llvm::Value*
 			emitBuiltInFunctionContents(MethodID methodID,
 			                            bool isInnerMethod,
 			                            const SEM::TypeInstance* typeInstance,
-			                            const AST::FunctionDecl& function,
+			                            const AST::Function& function,
 			                            PendingResultArray args,
 			                            llvm::Value* hintResultValue);
 			
 			void emitBuiltInFunctionCode(const SEM::TypeInstance* typeInstance,
-			                             const AST::FunctionDecl& function,
+			                             const AST::Function& function,
 			                             bool isInnerMethod);
 			
-			void emitUserFunctionCode(const AST::FunctionDecl& function);
+			void emitUserFunctionCode(const AST::Function& function);
 			
-			void emitParameterAllocas(const AST::FunctionDecl& function);
+			void emitParameterAllocas(const AST::Function& function);
 			
-			void emitScopeFunctionCode(const AST::FunctionDecl& function);
+			void emitScopeFunctionCode(const AST::Function& function);
 			
 		private:
 			Function& functionGenerator_;

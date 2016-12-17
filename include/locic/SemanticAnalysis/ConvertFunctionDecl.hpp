@@ -19,11 +19,11 @@ namespace locic {
 		
 		void
 		ConvertFunctionDecl(Context& context,
-		                    AST::Node<AST::FunctionDecl>& function);
+		                    AST::Node<AST::Function>& function);
 		
 		void
 		ConvertFunctionDeclType(Context& context,
-		                        AST::Node<AST::FunctionDecl>& function);
+		                        AST::Node<AST::Function>& function);
 		
 	}
 	

@@ -42,7 +42,7 @@ namespace locic {
 		
 		FunctionParser::~FunctionParser() { }
 		
-		AST::Node<AST::FunctionDecl> FunctionParser::parseGlobalFunction() {
+		AST::Node<AST::Function> FunctionParser::parseGlobalFunction() {
 			const auto start = reader_.position();
 			
 			bool isPrimitive = false;
@@ -81,7 +81,7 @@ namespace locic {
 			return function;
 		}
 		
-		AST::Node<AST::FunctionDecl> FunctionParser::parseBasicFunction(const Debug::SourcePosition& start) {
+		AST::Node<AST::Function> FunctionParser::parseBasicFunction(const Debug::SourcePosition& start) {
 			const bool isStatic = reader_.consumeIfPresent(Token::STATIC);
 			auto returnType = TypeParser(reader_).parseType();
 			auto name = parseFunctionName();
@@ -126,7 +126,7 @@ namespace locic {
 			                                std::move(scope), start);
 		}
 		
-		AST::Node<AST::FunctionDecl> FunctionParser::parseMethod() {
+		AST::Node<AST::Function> FunctionParser::parseMethod() {
 			const auto start = reader_.position();
 			
 			if (reader_.peek().kind() != Token::TEMPLATE) {
@@ -147,7 +147,7 @@ namespace locic {
 			return function;
 		}
 		
-		AST::Node<AST::FunctionDecl>
+		AST::Node<AST::Function>
 		FunctionParser::parseNonTemplatedMethod(const Debug::SourcePosition& start) {
 			if (reader_.peek().kind() == Token::TILDA) {
 				reader_.consume();

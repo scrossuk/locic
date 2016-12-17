@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 
 #include <locic/SEM.hpp>
 
@@ -20,7 +20,7 @@ namespace locic {
 		}
 		
 		TemplatedObject TemplatedObject::Function(const SEM::TypeInstance* const parentTypeInstance,
-		                                          const AST::FunctionDecl* const function) {
+		                                          const AST::Function* const function) {
 			TemplatedObject object(FUNCTION);
 			object.data_.functionPair.parentTypeInstance = parentTypeInstance;
 			object.data_.functionPair.function = function;
@@ -49,7 +49,7 @@ namespace locic {
 			return data_.functionPair.parentTypeInstance;
 		}
 		
-		const AST::FunctionDecl* TemplatedObject::function() const {
+		const AST::Function* TemplatedObject::function() const {
 			assert(isFunction());
 			return data_.functionPair.function;
 		}
@@ -138,7 +138,7 @@ namespace locic {
 		}
 		
 		TemplateInst TemplateInst::Function(const SEM::Type* parentType,
-		                                    const AST::FunctionDecl* function,
+		                                    const AST::Function* function,
 		                                    llvm::ArrayRef<SEM::Value> functionArgs) {
 			if (parentType != nullptr) {
 				assert(parentType->isObject());

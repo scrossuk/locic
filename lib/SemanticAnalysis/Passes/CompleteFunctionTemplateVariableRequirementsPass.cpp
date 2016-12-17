@@ -11,7 +11,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void CompleteFunctionTemplateVariableRequirements(Context& context, AST::Node<AST::FunctionDecl>& astFunctionNode,
+		void CompleteFunctionTemplateVariableRequirements(Context& context, AST::Node<AST::Function>& astFunctionNode,
 		                                                  const SEM::Predicate& parentRequiresPredicate) {
 			auto& function = context.scopeStack().back().function();
 			

@@ -1,4 +1,4 @@
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Support.hpp>

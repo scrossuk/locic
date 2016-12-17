@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
@@ -23,7 +23,7 @@ namespace locic {
 			return item;
 		}
 		
-		NamespaceItem NamespaceItem::Function(AST::FunctionDecl& function) {
+		NamespaceItem NamespaceItem::Function(AST::Function& function) {
 			NamespaceItem item(FUNCTION);
 			item.data_.function = &function;
 			return item;
@@ -83,7 +83,7 @@ namespace locic {
 			return *(data_.alias);
 		}
 		
-		AST::FunctionDecl& NamespaceItem::function() const {
+		AST::Function& NamespaceItem::function() const {
 			assert(isFunction());
 			return *(data_.function);
 		}

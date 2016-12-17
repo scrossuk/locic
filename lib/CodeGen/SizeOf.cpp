@@ -3,7 +3,7 @@
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/AST/Var.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>

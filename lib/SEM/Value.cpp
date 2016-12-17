@@ -1,6 +1,6 @@
 #include <memory>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/Constant.hpp>
@@ -88,7 +88,7 @@ namespace locic {
 				
 				struct {
 					const Type* parentType;
-					const AST::FunctionDecl* function;
+					const AST::Function* function;
 				} functionRef;
 				
 				struct {
@@ -303,7 +303,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::FunctionRef(const Type* const parentType, const AST::FunctionDecl& function,
+		Value Value::FunctionRef(const Type* const parentType, const AST::Function& function,
 		                         ValueArray templateArguments, const Type* const type) {
 			assert(parentType == NULL || parentType->isObject());
 			assert(type != NULL && type->isCallable());
@@ -684,7 +684,7 @@ namespace locic {
 			return impl_->union_.functionRef.parentType;
 		}
 		
-		const AST::FunctionDecl& Value::functionRefFunction() const {
+		const AST::Function& Value::functionRefFunction() const {
 			assert(isFunctionRef());
 			return *(impl_->union_.functionRef.function);
 		}

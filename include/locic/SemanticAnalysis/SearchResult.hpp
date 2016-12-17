@@ -5,7 +5,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class FunctionDecl;
+		class Function;
 		class Var;
 		
 	}
@@ -35,7 +35,7 @@ namespace locic {
 				
 				static SearchResult Alias(SEM::Alias& alias);
 				
-				static SearchResult Function(AST::FunctionDecl& function);
+				static SearchResult Function(AST::Function& function);
 				
 				static SearchResult TemplateVar(SEM::TemplateVar& templateVar);
 				
@@ -53,7 +53,7 @@ namespace locic {
 				bool isVar() const;
 				
 				SEM::Alias& alias() const;
-				AST::FunctionDecl& function() const;
+				AST::Function& function() const;
 				SEM::TemplateVar& templateVar() const;
 				SEM::TypeInstance& typeInstance() const;
 				AST::Var& var() const;
@@ -66,7 +66,7 @@ namespace locic {
 				union {
 					void* ptr;
 					SEM::Alias* alias;
-					AST::FunctionDecl* function;
+					AST::Function* function;
 					SEM::TemplateVar* templateVar;
 					SEM::TypeInstance* typeInstance;
 					AST::Var* var;

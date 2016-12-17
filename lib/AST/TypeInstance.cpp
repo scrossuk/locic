@@ -4,7 +4,7 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/AST/ExceptionInitializer.hpp>
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/StringList.hpp>

@@ -1,6 +1,6 @@
 #include <cassert>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
@@ -36,7 +36,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Function* genFunctionDeclRef(Module& module, const SEM::Type* const parentType,
-		                                   const AST::FunctionDecl* function) {
+		                                   const AST::Function* function) {
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			if (parentType == nullptr) {
 				return semFunctionGenerator.getDecl(nullptr,
@@ -50,7 +50,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType,
-		                            const AST::FunctionDecl* const astFunction, const SEM::FunctionType functionType) {
+		                            const AST::Function* const astFunction, const SEM::FunctionType functionType) {
 			auto& module = function.module();
 			const auto functionRefPtr = genFunctionDeclRef(module, parentType, astFunction);
 			

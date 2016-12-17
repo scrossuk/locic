@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>

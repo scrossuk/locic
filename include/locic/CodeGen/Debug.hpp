@@ -15,7 +15,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class FunctionDecl;
+		class Function;
 		
 	}
 	
@@ -110,7 +110,7 @@ namespace locic {
 		
 		Optional<DISubprogram> genDebugFunctionInfo(Module& module,
 		                                            const SEM::TypeInstance* parentType,
-		                                            const AST::FunctionDecl& function,
+		                                            const AST::Function& function,
 		                                            llvm::Function* llvmFunction);
 		
 		llvm::Instruction* genDebugVar(Function& function,
@@ -123,7 +123,7 @@ namespace locic {
 		                                const Debug::SourceLocation& debugSourceLocation);
 		
 		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function,
-		                                                  const AST::FunctionDecl& semFunction);
+		                                                  const AST::Function& semFunction);
 		
 		Optional<llvm::DebugLoc> getValueDebugLocation(Function& function,
 		                                               const SEM::Value& value);

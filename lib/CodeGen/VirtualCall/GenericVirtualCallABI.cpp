@@ -2,7 +2,7 @@
 
 #include <llvm-abi/Type.hpp>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 
 #include <locic/SEM.hpp>
 
@@ -125,7 +125,7 @@ namespace locic {
 		
 		llvm::Constant*
 		GenericVirtualCallABI::emitVTableSlot(const SEM::TypeInstance& typeInstance,
-		                                      llvm::ArrayRef<AST::FunctionDecl*> methods) {
+		                                      llvm::ArrayRef<AST::Function*> methods) {
 			ConstantGenerator constGen(module_);
 			TypeGenerator typeGen(module_);
 			

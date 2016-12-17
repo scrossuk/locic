@@ -15,7 +15,7 @@ namespace locic {
 	namespace SemanticAnalysis {
 	
 		void CreateEnumConstructorMethod(Context& context, SEM::TypeInstance* const typeInstance,
-		                                 AST::FunctionDecl& function, const size_t value) {
+		                                 AST::Function& function, const size_t value) {
 			assert(typeInstance->isEnum());
 			
 			if (function.hasGeneratedScope()) {
@@ -41,7 +41,7 @@ namespace locic {
 		}
 		
 		void CreateDefaultMethodOrRemove(Context& context, SEM::TypeInstance* const typeInstance,
-		                                 AST::FunctionDecl& function, const Debug::SourceLocation& location) {
+		                                 AST::Function& function, const Debug::SourceLocation& location) {
 			const bool created = DefaultMethods(context).createDefaultMethod(typeInstance, function,
 			                                                                 location);
 			if (!created) {

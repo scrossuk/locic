@@ -4,7 +4,7 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/AST/AliasDecl.hpp>
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/AST/ModuleScopeDecl.hpp>
 #include <locic/AST/NamespaceDecl.hpp>
 #include <locic/AST/Node.hpp>

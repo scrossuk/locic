@@ -16,7 +16,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class FunctionDecl;
+		class Function;
 		class Var;
 		
 	}
@@ -285,7 +285,7 @@ namespace locic {
 				 * The function could be a method hence the parent type should be
 				 * set, otherwise it should be NULL.
 				 */
-				static Value FunctionRef(const Type* parentType, const AST::FunctionDecl& function,
+				static Value FunctionRef(const Type* parentType, const AST::Function& function,
 				                         ValueArray templateArguments, const Type* const type);
 				
 				/**
@@ -444,7 +444,7 @@ namespace locic {
 				
 				bool isFunctionRef() const;
 				const Type* functionRefParentType() const;
-				const AST::FunctionDecl& functionRefFunction() const;
+				const AST::Function& functionRefFunction() const;
 				const ValueArray& functionRefTemplateArguments() const;
 				
 				bool isTemplateFunctionRef() const;

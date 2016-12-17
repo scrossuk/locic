@@ -16,7 +16,7 @@ namespace locic {
 			return element;
 		}
 		
-		SearchResult SearchResult::Function(AST::FunctionDecl& function) {
+		SearchResult SearchResult::Function(AST::Function& function) {
 			SearchResult element(FUNCTION);
 			element.data_.function = &function;
 			return element;
@@ -73,7 +73,7 @@ namespace locic {
 			return *(data_.alias);
 		}
 		
-		AST::FunctionDecl& SearchResult::function() const {
+		AST::Function& SearchResult::function() const {
 			assert(isFunction());
 			return *(data_.function);
 		}

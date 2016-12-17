@@ -1,4 +1,4 @@
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/Support/String.hpp>
@@ -25,7 +25,7 @@ namespace locic {
 			return element;
 		}
 		
-		ScopeElement ScopeElement::Function(AST::FunctionDecl& function) {
+		ScopeElement ScopeElement::Function(AST::Function& function) {
 			ScopeElement element(FUNCTION);
 			element.data_.function = &function;
 			return element;
@@ -130,7 +130,7 @@ namespace locic {
 			return *(data_.typeInstance);
 		}
 		
-		AST::FunctionDecl& ScopeElement::function() const {
+		AST::Function& ScopeElement::function() const {
 			assert(isFunction());
 			return *(data_.function);
 		}

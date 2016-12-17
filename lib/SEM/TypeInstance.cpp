@@ -1,6 +1,6 @@
 #include <string>
 
-#include <locic/AST/FunctionDecl.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/Var.hpp>
 
@@ -208,19 +208,19 @@ namespace locic {
 			variables_.push_back(&var);
 		}
 		
-		Array<AST::FunctionDecl*, 8>& TypeInstance::functions() {
+		Array<AST::Function*, 8>& TypeInstance::functions() {
 			return functions_;
 		}
 		
-		const Array<AST::FunctionDecl*, 8>& TypeInstance::functions() const {
+		const Array<AST::Function*, 8>& TypeInstance::functions() const {
 			return functions_;
 		}
 		
-		void TypeInstance::attachFunction(AST::FunctionDecl& function) {
+		void TypeInstance::attachFunction(AST::Function& function) {
 			functions_.push_back(&function);
 		}
 		
-		void TypeInstance::attachFunction(std::unique_ptr<AST::FunctionDecl> function) {
+		void TypeInstance::attachFunction(std::unique_ptr<AST::Function> function) {
 			// FIXME!
 			functions_.push_back(function.release());
 		}
@@ -229,7 +229,7 @@ namespace locic {
 			return findFunction(canonicalName) != nullptr;
 		}
 		
-		AST::FunctionDecl* TypeInstance::findFunction(String canonicalName) {
+		AST::Function* TypeInstance::findFunction(String canonicalName) {
 			for (const auto& function: functions()) {
 				if (function->canonicalName() == canonicalName) {
 					return function;
@@ -238,7 +238,7 @@ namespace locic {
 			return nullptr;
 		}
 		
-		const AST::FunctionDecl* TypeInstance::findFunction(String canonicalName) const {
+		const AST::Function* TypeInstance::findFunction(String canonicalName) const {
 			for (const auto& function: functions()) {
 				if (function->canonicalName() == canonicalName) {
 					return function;
@@ -247,13 +247,13 @@ namespace locic {
 			return nullptr;
 		}
 		
-		AST::FunctionDecl& TypeInstance::getFunction(String canonicalName) {
+		AST::Function& TypeInstance::getFunction(String canonicalName) {
 			const auto function = findFunction(canonicalName);
 			assert(function != nullptr);
 			return *function;
 		}
 		
-		const AST::FunctionDecl& TypeInstance::getFunction(String canonicalName) const {
+		const AST::Function& TypeInstance::getFunction(String canonicalName) const {
 			const auto function = findFunction(canonicalName);
 			assert(function != nullptr);
 			return *function;

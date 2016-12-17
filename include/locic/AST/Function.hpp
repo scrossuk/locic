@@ -1,5 +1,5 @@
-#ifndef LOCIC_AST_FUNCTIONDECL_HPP
-#define LOCIC_AST_FUNCTIONDECL_HPP
+#ifndef LOCIC_AST_FUNCTION_HPP
+#define LOCIC_AST_FUNCTION_HPP
 
 #include <string>
 #include <vector>
@@ -35,10 +35,10 @@ namespace locic {
 	
 	namespace AST {
 		
-		class FunctionDecl: public SEM::TemplatedObject {
+		class Function: public SEM::TemplatedObject {
 		public:
-			FunctionDecl();
-			~FunctionDecl();
+			Function();
+			~Function();
 			
 			SEM::GlobalStructure& parent();
 			const SEM::GlobalStructure& parent() const;
@@ -206,7 +206,7 @@ namespace locic {
 			
 		};
 		
-		typedef std::vector<Node<FunctionDecl>> FunctionList;
+		typedef std::vector<Node<Function>> FunctionList;
 		
 	}
 	

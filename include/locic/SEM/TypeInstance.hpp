@@ -24,7 +24,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class FunctionDecl;
+		class Function;
 		class Var;
 		
 	}
@@ -274,8 +274,8 @@ namespace locic {
 				 * 
 				 * \return Method map.
 				 */
-				Array<AST::FunctionDecl*, 8>& functions();
-				const Array<AST::FunctionDecl*, 8>& functions() const;
+				Array<AST::Function*, 8>& functions();
+				const Array<AST::Function*, 8>& functions() const;
 				
 				/**
 				 * \brief Attach method.
@@ -284,8 +284,8 @@ namespace locic {
 				 * same name; this allows SemanticAnalysis to continue
 				 * to process code that has duplicate methods.
 				 */
-				void attachFunction(AST::FunctionDecl& function);
-				void attachFunction(std::unique_ptr<AST::FunctionDecl> function);
+				void attachFunction(AST::Function& function);
+				void attachFunction(std::unique_ptr<AST::Function> function);
 				
 				/**
 				 * \brief Check if type already has method.
@@ -297,8 +297,8 @@ namespace locic {
 				 * 
 				 * \return Function if found, NULL otherwise.
 				 */
-				AST::FunctionDecl* findFunction(String canonicalName);
-				const AST::FunctionDecl* findFunction(String canonicalName) const;
+				AST::Function* findFunction(String canonicalName);
+				const AST::Function* findFunction(String canonicalName) const;
 				
 				/**
 				 * \brief Get method.
@@ -306,8 +306,8 @@ namespace locic {
 				 * This relies on the type already being known to
 				 * have the given method (it will assert this).
 				 */
-				AST::FunctionDecl& getFunction(String canonicalName);
-				const AST::FunctionDecl& getFunction(String canonicalName) const;
+				AST::Function& getFunction(String canonicalName);
+				const AST::Function& getFunction(String canonicalName) const;
 				
 				/**
 				 * \brief Compute construct types.
@@ -392,7 +392,7 @@ namespace locic {
 				std::vector<AST::Var*> variables_;
 				FastMap<String, AST::Var*> namedVariables_;
 				
-				Array<AST::FunctionDecl*, 8> functions_;
+				Array<AST::Function*, 8> functions_;
 				
 				TemplateVarArray noTagSet_;
 				mutable const Type* cachedSelfType_;

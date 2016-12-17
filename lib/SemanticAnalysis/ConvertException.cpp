@@ -50,7 +50,7 @@ namespace locic {
 				return parameters;
 			}
 			
-			void attachParameters(AST::FunctionDecl& function) {
+			void attachParameters(AST::Function& function) {
 				for (size_t i = 0; i < function.parameters().size(); i++) {
 					const auto& var = function.parameters().at(i);
 					assert(var->isNamed());
@@ -65,7 +65,7 @@ namespace locic {
 			
 		}
 		
-		std::unique_ptr<AST::FunctionDecl>
+		std::unique_ptr<AST::Function>
 		CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* const semTypeInstance) {
 			if (semTypeInstance->parentType() == nullptr) {
 				// No parent, so just create a normal default constructor.
@@ -73,7 +73,7 @@ namespace locic {
 				                                                            semTypeInstance->fullName() + context.getCString("create"));
 			}
 			
-			std::unique_ptr<AST::FunctionDecl> function(new AST::FunctionDecl());
+			std::unique_ptr<AST::Function> function(new AST::Function());
 			function->setParent(SEM::GlobalStructure::TypeInstance(*semTypeInstance));
 			function->setFullName(semTypeInstance->fullName() + context.getCString("create"));
 			function->setModuleScope(semTypeInstance->moduleScope().copy());
@@ -101,7 +101,7 @@ namespace locic {
 		}
 		
 		void CreateExceptionConstructor(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
-		                                SEM::TypeInstance* semTypeInstance, AST::FunctionDecl& function) {
+		                                SEM::TypeInstance* semTypeInstance, AST::Function& function) {
 			assert(semTypeInstance->isException());
 			
 			const auto& initializerNode = astTypeInstanceNode->initializer;
