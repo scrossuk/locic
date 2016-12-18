@@ -1,7 +1,6 @@
 #ifndef LOCIC_SEM_HPP
 #define LOCIC_SEM_HPP
 
-#include <locic/SEM/Alias.hpp>
 #include <locic/SEM/CatchClause.hpp>
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/ExitStates.hpp>

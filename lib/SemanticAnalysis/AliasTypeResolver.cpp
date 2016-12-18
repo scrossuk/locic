@@ -12,29 +12,16 @@
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class Alias;
-		class Type;
-		
-	}
-	
 	namespace SemanticAnalysis {
 		
 		class AliasResolveInfo {
 		public:
-			AliasResolveInfo(const AST::Node<AST::Value>& argASTValue,
-			                 ScopeStack argScopeStack)
-			: astValue_(argASTValue),
-			scopeStack_(std::move(argScopeStack)),
+			AliasResolveInfo(ScopeStack argScopeStack)
+			: scopeStack_(std::move(argScopeStack)),
 			isResolving_(false) { }
 			
 			AliasResolveInfo(AliasResolveInfo&&) = default;
 			AliasResolveInfo& operator=(AliasResolveInfo&&) = default;
-			
-			const AST::Node<AST::Value>& astValue() const {
-				return astValue_;
-			}
 			
 			ScopeStack& scopeStack() {
 				return scopeStack_;
@@ -49,7 +36,6 @@ namespace locic {
 			}
 			
 		private:
-			const AST::Node<AST::Value>& astValue_;
 			ScopeStack scopeStack_;
 			bool isResolving_;
 			
@@ -97,15 +83,14 @@ namespace locic {
 			AliasTypeResolverImpl(Context& context)
 			: context_(context) { }
 			
-			void addAlias(const SEM::Alias& alias,
-			              const AST::Node<AST::Value>& astValue,
+			void addAlias(const AST::AliasDecl& alias,
 			              ScopeStack scopeStack) {
-				AliasResolveInfo resolveInfo(astValue, std::move(scopeStack));
+				AliasResolveInfo resolveInfo(std::move(scopeStack));
 				resolveMap_.insert(std::make_pair(&alias,
 				                                  std::move(resolveInfo)));
 			}
 			
-			const SEM::Type* resolveAliasType(SEM::Alias& alias) {
+			const SEM::Type* resolveAliasType(AST::AliasDecl& alias) {
 				if (alias.type() != nullptr) {
 					return alias.type();
 				}
@@ -116,7 +101,7 @@ namespace locic {
 				
 				if (resolveInfo.isResolving()) {
 					context_.issueDiag(AliasDependsOnItselfDiag(alias.fullName().copy()),
-					                   alias.astAlias().location());
+					                   alias.location());
 					const auto voidType = context_.typeBuilder().getVoidType();
 					alias.setType(voidType);
 					return voidType;
@@ -126,14 +111,14 @@ namespace locic {
 				
 				SwapScopeStack swapScopeStack(context_.scopeStack(), resolveInfo.scopeStack());
 				
-				alias.setValue(ConvertValue(context_, resolveInfo.astValue()));
+				alias.setValue(ConvertValue(context_, alias.valueDecl()));
 				
 				return alias.type();
 			}
 			
 		private:
 			Context& context_;
-			std::unordered_map<const SEM::Alias*, AliasResolveInfo> resolveMap_;
+			std::unordered_map<const AST::AliasDecl*, AliasResolveInfo> resolveMap_;
 			
 		};
 		
@@ -142,14 +127,12 @@ namespace locic {
 		
 		AliasTypeResolver::~AliasTypeResolver() { }
 		
-		void AliasTypeResolver::addAlias(const SEM::Alias& alias,
-		                                 const AST::Node<AST::Value>& astValue,
+		void AliasTypeResolver::addAlias(const AST::AliasDecl& alias,
 		                                 ScopeStack scopeStack) {
-			impl_->addAlias(alias, astValue,
-			                std::move(scopeStack));
+			impl_->addAlias(alias, std::move(scopeStack));
 		}
 		
-		const SEM::Type* AliasTypeResolver::resolveAliasType(SEM::Alias& alias) {
+		const SEM::Type* AliasTypeResolver::resolveAliasType(AST::AliasDecl& alias) {
 			return impl_->resolveAliasType(alias);
 		}
 		

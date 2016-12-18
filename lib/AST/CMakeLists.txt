@@ -1,5 +1,4 @@
 set(SEM_FILES
-	../SEM/Alias.cpp
 	../SEM/CatchClause.cpp
 	../SEM/Context.cpp
 	../SEM/FunctionType.cpp

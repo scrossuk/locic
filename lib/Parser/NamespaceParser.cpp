@@ -164,12 +164,15 @@ namespace locic {
 		                                          const Debug::SourcePosition& start) {
 			auto alias = parseAlias();
 			
-			alias->setTemplateVariables(templateInfo.extractTemplateVariables());
+			alias->setTemplateVariableDecls(templateInfo.extractTemplateVariables());
 			
 			if (templateInfo.hasRequireSpecifier()) {
 				alias->setRequireSpecifier(templateInfo.extractRequireSpecifier());
 			}
 			
+			// TODO: We should only have to set the location on the
+			//       Alias and NOT on the node.
+			alias->setLocation(reader_.locationWithRangeFrom(start));
 			alias.setLocation(reader_.locationWithRangeFrom(start));
 			
 			data.aliases.push_back(std::move(alias));

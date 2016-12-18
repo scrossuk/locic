@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/AliasDecl.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/Name.hpp>

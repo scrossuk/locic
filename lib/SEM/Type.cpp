@@ -3,6 +3,7 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/AST/AliasDecl.hpp>
 #include <locic/AST/TemplateVar.hpp>
 
 #include <locic/Constant.hpp>
@@ -13,7 +14,6 @@
 #include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/Alias.hpp>
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
@@ -120,7 +120,7 @@ namespace locic {
 			return context.getType(Type(context, AUTO));
 		}
 		
-		const Type* Type::Alias(const SEM::Alias& alias, ValueArray templateArguments) {
+		const Type* Type::Alias(const AST::AliasDecl& alias, ValueArray templateArguments) {
 			assert(alias.templateVariables().size() == templateArguments.size());
 			auto& context = alias.context();
 			
@@ -402,7 +402,7 @@ namespace locic {
 			return kind() == ALIAS;
 		}
 		
-		const SEM::Alias& Type::alias() const {
+		const AST::AliasDecl& Type::alias() const {
 			return *(data_.aliasType.alias);
 		}
 		

@@ -16,6 +16,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class AliasDecl;
 		class Function;
 		class TemplateVar;
 		class TemplateVarMap;
@@ -31,7 +32,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class Alias;
 		class ExitStates;
 		class Predicate;
 		class Type;
@@ -104,7 +104,7 @@ namespace locic {
 				 * 
 				 * An alias value.
 				 */
-				static Value Alias(const SEM::Alias& alias,
+				static Value Alias(const AST::AliasDecl& alias,
 				                   ValueArray templateArguments);
 				
 				/**
@@ -367,7 +367,7 @@ namespace locic {
 				const locic::Constant& constant() const;
 				
 				bool isAlias() const;
-				const SEM::Alias& alias() const;
+				const AST::AliasDecl& alias() const;
 				const ValueArray& aliasTemplateArguments() const;
 				
 				bool isPredicate() const;

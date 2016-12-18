@@ -238,7 +238,7 @@ namespace locic {
 			
 		};
 		
-		SEM::Alias*
+		AST::AliasDecl*
 		TypeResolver::getTemplateVarTypeAlias(const AST::Node<AST::TypeDecl>& type) {
 			if (!type->isObjectType()) return nullptr;
 			

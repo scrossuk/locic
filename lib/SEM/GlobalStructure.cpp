@@ -1,4 +1,5 @@
-#include <locic/SEM/Alias.hpp>
+#include <locic/AST/AliasDecl.hpp>
+
 #include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -9,7 +10,7 @@ namespace locic {
 	
 	namespace SEM {
 		
-		GlobalStructure GlobalStructure::Alias(SEM::Alias& alias) {
+		GlobalStructure GlobalStructure::Alias(AST::AliasDecl& alias) {
 			GlobalStructure globalStructure(ALIAS);
 			globalStructure.data_.alias = &alias;
 			return globalStructure;
@@ -82,11 +83,11 @@ namespace locic {
 			locic_unreachable("Unknown GlobalStructure kind.");
 		}
 		
-		SEM::Alias& GlobalStructure::alias() {
+		AST::AliasDecl& GlobalStructure::alias() {
 			return *(data_.alias);
 		}
 		
-		const SEM::Alias& GlobalStructure::alias() const {
+		const AST::AliasDecl& GlobalStructure::alias() const {
 			return *(data_.alias);
 		}
 		

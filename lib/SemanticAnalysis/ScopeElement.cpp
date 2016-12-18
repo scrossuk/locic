@@ -1,3 +1,4 @@
+#include <locic/AST/AliasDecl.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
@@ -13,7 +14,7 @@ namespace locic {
 			return element;
 		}
 		
-		ScopeElement ScopeElement::Alias(SEM::Alias& alias) {
+		ScopeElement ScopeElement::Alias(AST::AliasDecl& alias) {
 			ScopeElement element(ALIAS);
 			element.data_.alias = &alias;
 			return element;
@@ -120,7 +121,7 @@ namespace locic {
 			return *(data_.nameSpace);
 		}
 		
-		SEM::Alias& ScopeElement::alias() const {
+		AST::AliasDecl& ScopeElement::alias() const {
 			assert(isAlias());
 			return *(data_.alias);
 		}

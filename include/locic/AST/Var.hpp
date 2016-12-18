@@ -33,6 +33,8 @@ namespace locic {
 			static Var* PatternVar(Node<TypeDecl> type,
 			                       Node<VarList> varList);
 			
+			~Var();
+			
 			Kind kind() const;
 			
 			Node<TypeDecl>& declType();

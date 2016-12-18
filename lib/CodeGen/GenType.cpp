@@ -5,6 +5,9 @@
 #include <llvm-abi/ABI.hpp>
 #include <llvm-abi/ABITypeInfo.hpp>
 
+#include <locic/AST/Value.hpp>
+#include <locic/AST/TemplateVar.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/GenABIType.hpp>

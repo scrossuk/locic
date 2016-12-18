@@ -3,6 +3,7 @@
 #include <cassert>
 #include <stdexcept>
 
+#include <locic/AST/Value.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/CodeGen/Debug.hpp>
@@ -15,6 +16,8 @@
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+
+#include <locic/Support/ErrorHandling.hpp>
 
 namespace locic {
 

@@ -2,13 +2,13 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/AliasDecl.hpp>
 #include <locic/AST/Function.hpp>
 
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/Alias.hpp>
 #include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -17,9 +17,9 @@ namespace locic {
 	
 	namespace SEM {
 		
-		NamespaceItem NamespaceItem::Alias(std::unique_ptr<SEM::Alias> alias) {
+		NamespaceItem NamespaceItem::Alias(AST::AliasDecl& alias) {
 			NamespaceItem item(ALIAS);
-			item.data_.alias = alias.release();
+			item.data_.alias = &alias;
 			return item;
 		}
 		
@@ -78,7 +78,7 @@ namespace locic {
 			return kind() == TYPEINSTANCE;
 		}
 		
-		Alias& NamespaceItem::alias() const {
+		AST::AliasDecl& NamespaceItem::alias() const {
 			assert(isAlias());
 			return *(data_.alias);
 		}
@@ -101,7 +101,7 @@ namespace locic {
 		Debug::SourceLocation NamespaceItem::location() const {
 			switch (kind()) {
 				case ALIAS:
-					return alias().astAlias().location();
+					return alias().location();
 				case FUNCTION:
 					return function().debugInfo()->declLocation;
 				case NAMESPACE:

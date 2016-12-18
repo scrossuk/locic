@@ -1,3 +1,4 @@
+#include <locic/Constant.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>

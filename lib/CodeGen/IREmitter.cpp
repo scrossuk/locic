@@ -1,3 +1,6 @@
+#include <locic/AST/Value.hpp>
+#include <locic/AST/TemplateVar.hpp>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>

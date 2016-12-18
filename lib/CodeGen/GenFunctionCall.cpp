@@ -4,6 +4,9 @@
 #include <llvm-abi/ABITypeInfo.hpp>
 #include <llvm-abi/Type.hpp>
 
+#include <locic/AST/Value.hpp>
+#include <locic/AST/TemplateVar.hpp>
+
 #include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>

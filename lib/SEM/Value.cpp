@@ -1,5 +1,6 @@
 #include <memory>
 
+#include <locic/AST/AliasDecl.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Var.hpp>
 
@@ -7,7 +8,6 @@
 
 #include <locic/Debug/ValueInfo.hpp>
 
-#include <locic/SEM/Alias.hpp>
 #include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Type.hpp>
@@ -43,7 +43,7 @@ namespace locic {
 			locic::Constant constant;
 			
 			union {
-				const SEM::Alias* alias;
+				const AST::AliasDecl* alias;
 				
 				struct {
 					const AST::Var* var;
@@ -118,7 +118,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::Alias(const SEM::Alias& alias,
+		Value Value::Alias(const AST::AliasDecl& alias,
 		                   ValueArray templateArguments) {
 			// TODO: fix exit states!
 			assert(alias.type() != nullptr);
@@ -431,7 +431,7 @@ namespace locic {
 			return kind() == ALIAS;
 		}
 		
-		const SEM::Alias& Value::alias() const {
+		const AST::AliasDecl& Value::alias() const {
 			assert(isAlias());
 			return *(impl_->union_.alias);
 		}

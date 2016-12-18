@@ -96,7 +96,7 @@ namespace locic {
 			};
 			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
 				ASSERT_EQ(nameSpace->data()->aliases.size(), 1);
-				EXPECT_TRUE(nameSpace->data()->aliases[0]->value()->isSymbol());
+				EXPECT_TRUE(nameSpace->data()->aliases[0]->valueDecl()->isSymbol());
 			});
 		}
 		
@@ -122,7 +122,7 @@ namespace locic {
 			};
 			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
 				ASSERT_EQ(nameSpace->data()->aliases.size(), 1);
-				EXPECT_TRUE(nameSpace->data()->aliases[0]->value()->isSymbol());
+				EXPECT_TRUE(nameSpace->data()->aliases[0]->valueDecl()->isSymbol());
 			});
 		}
 		
@@ -153,7 +153,7 @@ namespace locic {
 			};
 			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
 				ASSERT_EQ(nameSpace->data()->aliases.size(), 1);
-				EXPECT_TRUE(nameSpace->data()->aliases[0]->value()->isSymbol());
+				EXPECT_TRUE(nameSpace->data()->aliases[0]->valueDecl()->isSymbol());
 			});
 		}
 		

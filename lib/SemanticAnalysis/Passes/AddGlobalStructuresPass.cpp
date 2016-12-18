@@ -349,50 +349,47 @@ namespace locic {
 				                 ConvertModuleScope(astModuleScopeNode));
 			}
 			
-			for (const auto& astAliasNode: astNamespaceDataNode->aliases) {
-				const auto& aliasName = astAliasNode->name();
+			for (auto& aliasNode: astNamespaceDataNode->aliases) {
+				const auto& aliasName = aliasNode->name();
 				const auto fullTypeName = semNamespace.name() + aliasName;
 				const auto iterator = semNamespace.items().find(aliasName);
 				if (iterator != semNamespace.items().end()) {
 					const auto& location = iterator->second.location();
 					OptionalDiag previousDefinedDiag(PreviousDefinedDiag(), location);
 					context.issueDiag(AliasClashesWithExistingNameDiag(fullTypeName),
-					                  astAliasNode.location(),
+					                  aliasNode.location(),
 					                  std::move(previousDefinedDiag));
 				}
 				
-				std::unique_ptr<SEM::Alias> semAlias(new SEM::Alias(context.semContext(),
-				                                                    SEM::GlobalStructure::Namespace(semNamespace),
-				                                                    fullTypeName.copy(),
-				                                                    astAliasNode));
+				aliasNode->setContext(context.semContext());
+				aliasNode->setParent(SEM::GlobalStructure::Namespace(semNamespace));
+				aliasNode->setFullName(fullTypeName.copy());
 				
 				// Add template variables.
 				size_t templateVarIndex = 0;
-				for (auto& templateVarNode: *(astAliasNode->templateVariables())) {
+				for (auto& templateVarNode: *(aliasNode->templateVariableDecls())) {
 					const auto templateVarName = templateVarNode->name();
-				
+					
 					templateVarNode->setContext(context.semContext());
 					
 					templateVarNode->setFullName(fullTypeName + templateVarName);
 					
 					templateVarNode->setIndex(templateVarIndex++);
 					
-					const auto templateVarIterator = semAlias->namedTemplateVariables().find(templateVarName);
-					if (templateVarIterator != semAlias->namedTemplateVariables().end()) {
+					const auto templateVarIterator = aliasNode->namedTemplateVariables().find(templateVarName);
+					if (templateVarIterator != aliasNode->namedTemplateVariables().end()) {
 						context.issueDiag(TemplateVarClashesWithExistingNameDiag(templateVarName),
 						                  templateVarNode.location());
 					}
 					
-					semAlias->templateVariables().push_back(templateVarNode.get());
-					semAlias->namedTemplateVariables().insert(std::make_pair(templateVarName, templateVarNode.get()));
+					aliasNode->templateVariables().push_back(templateVarNode.get());
+					aliasNode->namedTemplateVariables().insert(std::make_pair(templateVarName, templateVarNode.get()));
 				}
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(*semAlias));
-				context.aliasTypeResolver().addAlias(*semAlias, astAliasNode->value(), context.scopeStack().copy());
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(*aliasNode));
+				context.aliasTypeResolver().addAlias(*aliasNode, context.scopeStack().copy());
 				
-				astAliasNode->setAlias(*semAlias);
-				
-				semNamespace.items().insert(std::make_pair(aliasName, SEM::NamespaceItem::Alias(std::move(semAlias))));
+				semNamespace.items().insert(std::make_pair(aliasName, SEM::NamespaceItem::Alias(*aliasNode)));
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {

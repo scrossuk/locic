@@ -9,17 +9,17 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void CompleteAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::AliasDecl>& astAliasNode) {
+		void CompleteAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::AliasDecl>& aliasNode) {
 			auto& alias = context.scopeStack().back().alias();
 			
 			// Add any requirements in require() specifier.
 			auto predicate =
-				(!astAliasNode->requireSpecifier().isNull()) ?
-					ConvertRequireSpecifier(context, astAliasNode->requireSpecifier()) :
+				(!aliasNode->requireSpecifier().isNull()) ?
+					ConvertRequireSpecifier(context, aliasNode->requireSpecifier()) :
 					SEM::Predicate::True();
 			
 			// Add requirements specified inline for template variables.
-			for (const auto& templateVarNode: *(astAliasNode->templateVariables())) {
+			for (const auto& templateVarNode: *(aliasNode->templateVariableDecls())) {
 				TypeResolver typeResolver(context);
 				auto templateVarTypePredicate =
 					typeResolver.getTemplateVarTypePredicate(templateVarNode->typeDecl(),
@@ -109,11 +109,9 @@ namespace locic {
 				CompleteNamespaceDataTypeTemplateVariableRequirements(context, astNamespaceNode->data());
 			}
 			
-			for (const auto& astAliasNode: astNamespaceDataNode->aliases) {
-				auto& semChildAlias = astAliasNode->alias();
-				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(semChildAlias));
-				CompleteAliasTemplateVariableRequirements(context, astAliasNode);
+			for (const auto& aliasNode: astNamespaceDataNode->aliases) {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(*aliasNode));
+				CompleteAliasTemplateVariableRequirements(context, aliasNode);
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {

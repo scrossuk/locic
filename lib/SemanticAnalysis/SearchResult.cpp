@@ -1,3 +1,4 @@
+#include <locic/AST/Function.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/SearchResult.hpp>
@@ -10,7 +11,7 @@ namespace locic {
 			return SearchResult(NONE);
 		}
 		
-		SearchResult SearchResult::Alias(SEM::Alias& alias) {
+		SearchResult SearchResult::Alias(AST::AliasDecl& alias) {
 			SearchResult element(ALIAS);
 			element.data_.alias = &alias;
 			return element;
@@ -68,7 +69,7 @@ namespace locic {
 			return kind() == VAR;
 		}
 		
-		SEM::Alias& SearchResult::alias() const {
+		AST::AliasDecl& SearchResult::alias() const {
 			assert(isAlias());
 			return *(data_.alias);
 		}

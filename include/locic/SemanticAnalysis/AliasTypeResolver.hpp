@@ -4,13 +4,17 @@
 #include <memory>
 
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Value.hpp>
 
 namespace locic {
 	
+	namespace AST {
+		
+		class AliasDecl;
+		
+	}
+	
 	namespace SEM {
 		
-		class Alias;
 		class Type;
 		
 	}
@@ -48,11 +52,10 @@ namespace locic {
 			AliasTypeResolver(Context& context);
 			~AliasTypeResolver();
 			
-			void addAlias(const SEM::Alias& alias,
-			              const AST::Node<AST::Value>& astValue,
+			void addAlias(const AST::AliasDecl& alias,
 			              ScopeStack scopeStack);
 			
-			const SEM::Type* resolveAliasType(SEM::Alias& alias);
+			const SEM::Type* resolveAliasType(AST::AliasDecl& alias);
 			
 		private:
 			std::unique_ptr<class AliasTypeResolverImpl> impl_;

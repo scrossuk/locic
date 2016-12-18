@@ -34,6 +34,8 @@ namespace locic {
 		type_(std::move(argType)), constructType_(nullptr),
 		lvalType_(nullptr) { }
 		
+		Var::~Var() { }
+		
 		Var::Kind Var::kind() const {
 			return kind_;
 		}
