@@ -19,7 +19,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class AliasDecl;
+		class Alias;
 		class TemplateVar;
 		
 	}
@@ -43,7 +43,7 @@ namespace locic {
 				static const ValueArray NO_TEMPLATE_ARGS;
 				
 				static const Type* Auto(const Context& context);
-				static const Type* Alias(const AST::AliasDecl& alias, ValueArray templateArguments);
+				static const Type* Alias(const AST::Alias& alias, ValueArray templateArguments);
 				static const Type* Object(const TypeInstance* typeInstance, ValueArray templateArguments);
 				static const Type* TemplateVarRef(const AST::TemplateVar* templateVar);
 				
@@ -76,7 +76,7 @@ namespace locic {
 				bool isAuto() const;
 				bool isAlias() const;
 				
-				const AST::AliasDecl& alias() const;
+				const AST::Alias& alias() const;
 				const ValueArray& aliasArguments() const;
 				
 				PrimitiveID primitiveID() const;
@@ -171,7 +171,7 @@ namespace locic {
 				
 				union {
 					struct {
-						const AST::AliasDecl* alias;
+						const AST::Alias* alias;
 					} aliasType;
 					
 					struct {

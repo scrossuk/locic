@@ -9,7 +9,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class AliasDecl;
+		class Alias;
 		class TemplateVar;
 		
 	}
@@ -41,7 +41,7 @@ namespace locic {
 			const SEM::Type*
 			resolveType(AST::Node<AST::TypeDecl>& typeDecl);
 			
-			AST::AliasDecl*
+			AST::Alias*
 			getTemplateVarTypeAlias(const AST::Node<AST::TypeDecl>& type);
 			
 			SEM::Predicate

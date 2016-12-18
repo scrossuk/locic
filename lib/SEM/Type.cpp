@@ -3,7 +3,7 @@
 
 #include <boost/functional/hash.hpp>
 
-#include <locic/AST/AliasDecl.hpp>
+#include <locic/AST/Alias.hpp>
 #include <locic/AST/TemplateVar.hpp>
 
 #include <locic/Constant.hpp>
@@ -120,7 +120,7 @@ namespace locic {
 			return context.getType(Type(context, AUTO));
 		}
 		
-		const Type* Type::Alias(const AST::AliasDecl& alias, ValueArray templateArguments) {
+		const Type* Type::Alias(const AST::Alias& alias, ValueArray templateArguments) {
 			assert(alias.templateVariables().size() == templateArguments.size());
 			auto& context = alias.context();
 			
@@ -402,7 +402,7 @@ namespace locic {
 			return kind() == ALIAS;
 		}
 		
-		const AST::AliasDecl& Type::alias() const {
+		const AST::Alias& Type::alias() const {
 			return *(data_.aliasType.alias);
 		}
 		

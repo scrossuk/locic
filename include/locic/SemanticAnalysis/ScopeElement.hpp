@@ -7,7 +7,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class AliasDecl;
+		class Alias;
 		class Function;
 		
 	}
@@ -42,7 +42,7 @@ namespace locic {
 				
 				static ScopeElement Namespace(SEM::Namespace& nameSpace);
 				
-				static ScopeElement Alias(AST::AliasDecl& alias);
+				static ScopeElement Alias(AST::Alias& alias);
 				
 				static ScopeElement TypeInstance(SEM::TypeInstance& typeInstance);
 				
@@ -77,7 +77,7 @@ namespace locic {
 				bool isAssertNoExcept() const;
 				
 				SEM::Namespace& nameSpace() const;
-				AST::AliasDecl& alias() const;
+				AST::Alias& alias() const;
 				SEM::TypeInstance& typeInstance() const;
 				AST::Function& function() const;
 				SEM::Scope& scope() const;
@@ -96,7 +96,7 @@ namespace locic {
 				union {
 					void* ptr;
 					SEM::Namespace* nameSpace;
-					AST::AliasDecl* alias;
+					AST::Alias* alias;
 					SEM::TypeInstance* typeInstance;
 					AST::Function* function;
 					SEM::Scope* scope;

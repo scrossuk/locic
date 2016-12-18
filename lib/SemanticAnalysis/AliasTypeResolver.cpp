@@ -83,14 +83,14 @@ namespace locic {
 			AliasTypeResolverImpl(Context& context)
 			: context_(context) { }
 			
-			void addAlias(const AST::AliasDecl& alias,
+			void addAlias(const AST::Alias& alias,
 			              ScopeStack scopeStack) {
 				AliasResolveInfo resolveInfo(std::move(scopeStack));
 				resolveMap_.insert(std::make_pair(&alias,
 				                                  std::move(resolveInfo)));
 			}
 			
-			const SEM::Type* resolveAliasType(AST::AliasDecl& alias) {
+			const SEM::Type* resolveAliasType(AST::Alias& alias) {
 				if (alias.type() != nullptr) {
 					return alias.type();
 				}
@@ -118,7 +118,7 @@ namespace locic {
 			
 		private:
 			Context& context_;
-			std::unordered_map<const AST::AliasDecl*, AliasResolveInfo> resolveMap_;
+			std::unordered_map<const AST::Alias*, AliasResolveInfo> resolveMap_;
 			
 		};
 		
@@ -127,12 +127,12 @@ namespace locic {
 		
 		AliasTypeResolver::~AliasTypeResolver() { }
 		
-		void AliasTypeResolver::addAlias(const AST::AliasDecl& alias,
+		void AliasTypeResolver::addAlias(const AST::Alias& alias,
 		                                 ScopeStack scopeStack) {
 			impl_->addAlias(alias, std::move(scopeStack));
 		}
 		
-		const SEM::Type* AliasTypeResolver::resolveAliasType(AST::AliasDecl& alias) {
+		const SEM::Type* AliasTypeResolver::resolveAliasType(AST::Alias& alias) {
 			return impl_->resolveAliasType(alias);
 		}
 		

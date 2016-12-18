@@ -9,7 +9,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void CompleteAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::AliasDecl>& aliasNode) {
+		void CompleteAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::Alias>& aliasNode) {
 			auto& alias = context.scopeStack().back().alias();
 			
 			// Add any requirements in require() specifier.

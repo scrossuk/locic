@@ -4,7 +4,7 @@
 
 #include <locic/Constant.hpp>
 
-#include <locic/AST/AliasDecl.hpp>
+#include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Var.hpp>
 

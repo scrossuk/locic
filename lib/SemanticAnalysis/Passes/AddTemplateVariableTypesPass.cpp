@@ -25,7 +25,7 @@ namespace locic {
 			
 		};
 		
-		void AddAliasTemplateVariableTypes(Context& context, const AST::Node<AST::AliasDecl>& aliasNode) {
+		void AddAliasTemplateVariableTypes(Context& context, const AST::Node<AST::Alias>& aliasNode) {
 			// Add types of template variables.
 			for (const auto& templateVarNode: *(aliasNode->templateVariableDecls())) {
 				auto& astVarType = templateVarNode->typeDecl();

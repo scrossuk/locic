@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include <locic/AST/AliasDecl.hpp>
+#include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
@@ -22,7 +22,7 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performAliasSearch(AST::AliasDecl& alias, const Name& name, size_t pos) {
+		SearchResult performAliasSearch(AST::Alias& alias, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
 			if (size == 0) return SearchResult::Alias(alias);
@@ -88,7 +88,7 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performInnerAliasSearch(AST::AliasDecl& alias, const Name& name) {
+		SearchResult performInnerAliasSearch(AST::Alias& alias, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
 			const auto iterator = alias.namedTemplateVariables().find(name.at(0));

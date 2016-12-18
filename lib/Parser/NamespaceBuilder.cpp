@@ -27,12 +27,12 @@ namespace locic {
 			return AST::makeNode(location, new AST::NamespaceData(std::move(data)));
 		}
 		
-		AST::Node<AST::AliasDecl>
+		AST::Node<AST::Alias>
 		NamespaceBuilder::makeAlias(const String name, AST::Node<AST::Value> value,
 		                            const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::AliasDecl(name, std::move(value),
-			                                                  location));
+			return AST::makeNode(location, new AST::Alias(name, std::move(value),
+			                                              location));
 		}
 		
 		AST::Node<AST::StaticAssert>

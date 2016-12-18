@@ -11,7 +11,7 @@ namespace locic {
 			return SearchResult(NONE);
 		}
 		
-		SearchResult SearchResult::Alias(AST::AliasDecl& alias) {
+		SearchResult SearchResult::Alias(AST::Alias& alias) {
 			SearchResult element(ALIAS);
 			element.data_.alias = &alias;
 			return element;
@@ -69,7 +69,7 @@ namespace locic {
 			return kind() == VAR;
 		}
 		
-		AST::AliasDecl& SearchResult::alias() const {
+		AST::Alias& SearchResult::alias() const {
 			assert(isAlias());
 			return *(data_.alias);
 		}

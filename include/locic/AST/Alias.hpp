@@ -1,5 +1,5 @@
-#ifndef LOCIC_AST_ALIASDECL_HPP
-#define LOCIC_AST_ALIASDECL_HPP
+#ifndef LOCIC_AST_ALIAS_HPP
+#define LOCIC_AST_ALIAS_HPP
 
 #include <string>
 
@@ -30,11 +30,11 @@ namespace locic {
 	
 	namespace AST {
 		
-		class AliasDecl final: public SEM::TemplatedObject {
+		class Alias final: public SEM::TemplatedObject {
 		public:
-			AliasDecl(const String& pName, AST::Node<Value> pValue,
+			Alias(const String& pName, AST::Node<Value> pValue,
 			          const Debug::SourceLocation& location);
-			~AliasDecl();
+			~Alias();
 			
 			const Debug::SourceLocation& location() const;
 			void setLocation(Debug::SourceLocation location);

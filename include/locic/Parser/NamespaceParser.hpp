@@ -40,7 +40,7 @@ namespace locic {
 			                         TemplateInfo templateInfo,
 			                         const Debug::SourcePosition& start);
 			
-			AST::Node<AST::AliasDecl> parseAlias();
+			AST::Node<AST::Alias> parseAlias();
 			
 			AST::Node<AST::StaticAssert> parseStaticAssert();
 			

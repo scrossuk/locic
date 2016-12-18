@@ -1,7 +1,7 @@
 #ifndef LOCIC_AST_HPP
 #define LOCIC_AST_HPP
 
-#include <locic/AST/AliasDecl.hpp>
+#include <locic/AST/Alias.hpp>
 #include <locic/AST/CatchClause.hpp>
 #include <locic/AST/ConstSpecifier.hpp>
 #include <locic/AST/ExceptionInitializer.hpp>

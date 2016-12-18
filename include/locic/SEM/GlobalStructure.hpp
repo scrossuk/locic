@@ -7,7 +7,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class AliasDecl;
+		class Alias;
 		
 	}
 	
@@ -24,7 +24,7 @@ namespace locic {
 					TYPEINSTANCE
 				};
 				
-				static GlobalStructure Alias(AST::AliasDecl& alias);
+				static GlobalStructure Alias(AST::Alias& alias);
 				
 				static GlobalStructure Namespace(Namespace& nameSpace);
 				
@@ -44,8 +44,8 @@ namespace locic {
 				GlobalStructure& parent();
 				const GlobalStructure& parent() const;
 				
-				AST::AliasDecl& alias();
-				const AST::AliasDecl& alias() const;
+				AST::Alias& alias();
+				const AST::Alias& alias() const;
 				
 				SEM::Namespace& nameSpace();
 				const SEM::Namespace& nameSpace() const;
@@ -68,7 +68,7 @@ namespace locic {
 				
 				union {
 					void* ptr;
-					AST::AliasDecl* alias;
+					AST::Alias* alias;
 					SEM::Namespace* nameSpace;
 					SEM::TypeInstance* typeInstance;
 				} data_;

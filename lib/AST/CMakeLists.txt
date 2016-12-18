@@ -16,7 +16,7 @@ set(SEM_FILES
 )
 
 add_library(locic-ast
-	AliasDecl.cpp
+	Alias.cpp
 	ConstSpecifier.cpp
 	ExceptionInitializer.cpp
 	Function.cpp

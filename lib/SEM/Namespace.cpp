@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#include <locic/AST/AliasDecl.hpp>
+#include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
 
 #include <locic/Support/ErrorHandling.hpp>
@@ -17,7 +17,7 @@ namespace locic {
 	
 	namespace SEM {
 		
-		NamespaceItem NamespaceItem::Alias(AST::AliasDecl& alias) {
+		NamespaceItem NamespaceItem::Alias(AST::Alias& alias) {
 			NamespaceItem item(ALIAS);
 			item.data_.alias = &alias;
 			return item;
@@ -78,7 +78,7 @@ namespace locic {
 			return kind() == TYPEINSTANCE;
 		}
 		
-		AST::AliasDecl& NamespaceItem::alias() const {
+		AST::Alias& NamespaceItem::alias() const {
 			assert(isAlias());
 			return *(data_.alias);
 		}

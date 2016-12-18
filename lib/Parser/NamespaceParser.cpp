@@ -178,7 +178,7 @@ namespace locic {
 			data.aliases.push_back(std::move(alias));
 		}
 		
-		AST::Node<AST::AliasDecl> NamespaceParser::parseAlias() {
+		AST::Node<AST::Alias> NamespaceParser::parseAlias() {
 			const auto start = reader_.position();
 			
 			reader_.expect(Token::USING);

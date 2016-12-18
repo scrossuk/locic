@@ -30,7 +30,7 @@ namespace locic {
 			makeNamespaceData(AST::NamespaceData data,
 			                  const Debug::SourcePosition& start);
 			
-			AST::Node<AST::AliasDecl>
+			AST::Node<AST::Alias>
 			makeAlias(String name, AST::Node<AST::Value> value,
 			          const Debug::SourcePosition& start);
 			
