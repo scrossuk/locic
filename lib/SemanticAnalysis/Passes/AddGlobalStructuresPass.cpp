@@ -177,7 +177,7 @@ namespace locic {
 			
 			// Create a placeholder type instance.
 			std::unique_ptr<SEM::TypeInstance> semTypeInstance(new SEM::TypeInstance(context.semContext(),
-			                                                                         SEM::GlobalStructure::Namespace(parentNamespace),
+			                                                                         AST::GlobalStructure::Namespace(parentNamespace),
 			                                                                         fullTypeName.copy(),
 			                                                                         typeInstanceKind,
 			                                                                         moduleScope.copy()));
@@ -326,7 +326,7 @@ namespace locic {
 				const auto iterator = uniquedNamespace.items().find(childNamespaceName);
 				if (iterator == uniquedNamespace.items().end()) {
 					std::unique_ptr<AST::Namespace> childNamespace(new AST::Namespace(uniquedNamespace.name() + childNamespaceName,
-					                                                                  SEM::GlobalStructure::Namespace(uniquedNamespace)));
+					                                                                  AST::GlobalStructure::Namespace(uniquedNamespace)));
 					uniquedChildNamespace = childNamespace.get();
 					uniquedNamespace.items().insert(std::make_pair(childNamespaceName, AST::NamespaceItem::Namespace(std::move(childNamespace))));
 				} else {
@@ -362,7 +362,7 @@ namespace locic {
 				}
 				
 				aliasNode->setContext(context.semContext());
-				aliasNode->setParent(SEM::GlobalStructure::Namespace(uniquedNamespace));
+				aliasNode->setParent(AST::GlobalStructure::Namespace(uniquedNamespace));
 				aliasNode->setFullName(fullTypeName.copy());
 				
 				// Add template variables.

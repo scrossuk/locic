@@ -382,7 +382,7 @@ namespace locic {
 				}
 				
 				std::unique_ptr<AST::Function> function(new AST::Function());
-				function->setParent(SEM::GlobalStructure::TypeInstance(semTypeInstance));
+				function->setParent(AST::GlobalStructure::TypeInstance(semTypeInstance));
 				function->setFullName(std::move(fullName));
 				function->setModuleScope(semTypeInstance.moduleScope().copy());
 				

@@ -6,11 +6,11 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/GlobalStructure.hpp>
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/TemplatedObject.hpp>
 #include <locic/AST/TemplateVarArray.hpp>
 #include <locic/Debug/TypeInstanceInfo.hpp>
-#include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
@@ -67,7 +67,7 @@ namespace locic {
 					EXCEPTION
 				};
 				
-				TypeInstance(Context& c, GlobalStructure parent,
+				TypeInstance(Context& c, AST::GlobalStructure parent,
 				             Name name, Kind kind,
 				             AST::ModuleScope moduleScope);
 				
@@ -82,8 +82,8 @@ namespace locic {
 				 */
 				Context& context() const;
 				
-				GlobalStructure& parent();
-				const GlobalStructure& parent() const;
+				AST::GlobalStructure& parent();
+				const AST::GlobalStructure& parent() const;
 				
 				AST::Namespace& nameSpace();
 				const AST::Namespace& nameSpace() const;
@@ -371,7 +371,7 @@ namespace locic {
 				
 			private:
 				Context& context_;
-				GlobalStructure parent_;
+				AST::GlobalStructure parent_;
 				Name name_;
 				Kind kind_;
 				AST::ModuleScope moduleScope_;

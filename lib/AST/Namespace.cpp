@@ -134,10 +134,10 @@ namespace locic {
 			}
 		
 		Namespace::Namespace()
-			: parent_(SEM::GlobalStructure::Namespace(*this)),
+			: parent_(GlobalStructure::Namespace(*this)),
 			name_(Name::Absolute()) { }
 		
-		Namespace::Namespace(Name n, SEM::GlobalStructure argParent)
+		Namespace::Namespace(Name n, GlobalStructure argParent)
 			: parent_(std::move(argParent)),
 			  name_(std::move(n)) { }
 		
@@ -151,11 +151,11 @@ namespace locic {
 			return namespaceDecls_;
 		}
 		
-		SEM::GlobalStructure& Namespace::parent() {
+		GlobalStructure& Namespace::parent() {
 			return parent_;
 		}
 		
-		const SEM::GlobalStructure& Namespace::parent() const {
+		const GlobalStructure& Namespace::parent() const {
 			return parent_;
 		}
 		

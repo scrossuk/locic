@@ -1,14 +1,14 @@
 #include <locic/AST/Alias.hpp>
+#include <locic/AST/GlobalStructure.hpp>
 #include <locic/AST/Namespace.hpp>
 
-#include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
 #include <locic/Support/Name.hpp>
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		GlobalStructure GlobalStructure::Alias(AST::Alias& alias) {
 			GlobalStructure globalStructure(ALIAS);

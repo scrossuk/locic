@@ -27,15 +27,15 @@ namespace locic {
 		
 		Function::~Function() { }
 		
-		SEM::GlobalStructure& Function::parent() {
+		GlobalStructure& Function::parent() {
 			return *parent_;
 		}
 		
-		const SEM::GlobalStructure& Function::parent() const {
+		const GlobalStructure& Function::parent() const {
 			return *parent_;
 		}
 		
-		void Function::setParent(SEM::GlobalStructure argParent) {
+		void Function::setParent(GlobalStructure argParent) {
 			parent_ = make_optional(std::move(argParent));
 		}
 		

@@ -21,12 +21,12 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		SEM::GlobalStructure getParent(const ScopeElement& topElement) {
+		AST::GlobalStructure getParent(const ScopeElement& topElement) {
 			assert(topElement.isNamespace() || topElement.isTypeInstance());
 			if (topElement.isNamespace()) {
-				return SEM::GlobalStructure::Namespace(topElement.nameSpace());
+				return AST::GlobalStructure::Namespace(topElement.nameSpace());
 			} else {
-				return SEM::GlobalStructure::TypeInstance(topElement.typeInstance());
+				return AST::GlobalStructure::TypeInstance(topElement.typeInstance());
 			}
 		}
 		

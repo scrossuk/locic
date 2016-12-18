@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <locic/AST/GlobalStructure.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/TemplatedObject.hpp>
@@ -12,7 +13,6 @@
 
 #include <locic/Debug/SourceLocation.hpp>
 
-#include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Value.hpp>
 
@@ -50,9 +50,9 @@ namespace locic {
 			SEM::Context& context() const;
 			void setContext(SEM::Context& context);
 			
-			SEM::GlobalStructure& parent();
-			const SEM::GlobalStructure& parent() const;
-			void setParent(SEM::GlobalStructure parent);
+			GlobalStructure& parent();
+			const GlobalStructure& parent() const;
+			void setParent(GlobalStructure parent);
 			
 			const Name& fullName() const;
 			void setFullName(Name fullName);
@@ -104,7 +104,7 @@ namespace locic {
 			Node<RequireSpecifier> requireSpecifier_;
 			Node<Value> valueDecl_;
 			SEM::Context* context_;
-			Optional<SEM::GlobalStructure> parent_;
+			Optional<GlobalStructure> parent_;
 			Name fullName_;
 			TemplateVarArray templateVars_;
 			FastMap<String, TemplateVar*> namedTemplateVariables_;

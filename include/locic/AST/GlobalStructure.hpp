@@ -1,20 +1,20 @@
-#ifndef LOCIC_SEM_GLOBALSTRUCTURE_HPP
-#define LOCIC_SEM_GLOBALSTRUCTURE_HPP
+#ifndef LOCIC_AST_GLOBALSTRUCTURE_HPP
+#define LOCIC_AST_GLOBALSTRUCTURE_HPP
 
 namespace locic {
 	
 	class Name;
 	
+	namespace SEM {
+		
+		class TypeInstance;
+		
+	}
+	
 	namespace AST {
 		
 		class Alias;
 		class Namespace;
-		
-	}
-	
-	namespace SEM {
-		
-		class TypeInstance;
 		
 		class GlobalStructure {
 			public:
@@ -28,7 +28,7 @@ namespace locic {
 				
 				static GlobalStructure Namespace(AST::Namespace& nameSpace);
 				
-				static GlobalStructure TypeInstance(TypeInstance& typeInstance);
+				static GlobalStructure TypeInstance(SEM::TypeInstance& typeInstance);
 				
 				GlobalStructure(GlobalStructure&&) = default;
 				GlobalStructure& operator=(GlobalStructure&&) = default;

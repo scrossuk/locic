@@ -3,13 +3,13 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/AST/Alias.hpp>
+#include <locic/AST/GlobalStructure.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Value.hpp>
 
 #include <locic/Debug/SourceLocation.hpp>
 
-#include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
@@ -72,15 +72,15 @@ namespace locic {
 			context_ = &pContext;
 		}
 		
-		SEM::GlobalStructure& Alias::parent() {
+		GlobalStructure& Alias::parent() {
 			return *parent_;
 		}
 		
-		const SEM::GlobalStructure& Alias::parent() const {
+		const GlobalStructure& Alias::parent() const {
 			return *parent_;
 		}
 		
-		void Alias::setParent(SEM::GlobalStructure pParent) {
+		void Alias::setParent(GlobalStructure pParent) {
 			parent_ = make_optional(std::move(pParent));
 		}
 		

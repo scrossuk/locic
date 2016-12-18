@@ -20,7 +20,7 @@ namespace locic {
 
 	namespace SEM {
 	
-		TypeInstance::TypeInstance(Context& c, GlobalStructure p,
+		TypeInstance::TypeInstance(Context& c, AST::GlobalStructure p,
 		                           Name n, Kind k, AST::ModuleScope m)
 			: context_(c),
 			parent_(std::move(p)),
@@ -37,11 +37,11 @@ namespace locic {
 			return context_;
 		}
 		
-		GlobalStructure& TypeInstance::parent() {
+		AST::GlobalStructure& TypeInstance::parent() {
 			return parent_;
 		}
 		
-		const GlobalStructure& TypeInstance::parent() const {
+		const AST::GlobalStructure& TypeInstance::parent() const {
 			return parent_;
 		}
 		
