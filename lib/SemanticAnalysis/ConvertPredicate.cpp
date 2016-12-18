@@ -252,7 +252,7 @@ namespace locic {
 		};
 		
 		OptionalDiag
-		evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments) {
+		evaluatePredicate(Context& context, const SEM::Predicate& predicate, const AST::TemplateVarMap& variableAssignments) {
 			switch (predicate.kind()) {
 				case SEM::Predicate::TRUE:
 				{

@@ -268,11 +268,11 @@ namespace locic {
 			templateVariableDecls_ = std::move(pTemplateVariables);
 		}
 		
-		SEM::TemplateVarArray& Function::templateVariables() {
+		TemplateVarArray& Function::templateVariables() {
 			return templateVariables_;
 		}
 		
-		const SEM::TemplateVarArray& Function::templateVariables() const {
+		const TemplateVarArray& Function::templateVariables() const {
 			return templateVariables_;
 		}
 		

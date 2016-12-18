@@ -14,16 +14,16 @@ namespace locic {
 		
 		void CheckTemplateInstantiation(Context& context,
 		                                const SEM::TemplatedObject& templatedObject,
-		                                const SEM::TemplateVarMap& variableAssignments,
+		                                const AST::TemplateVarMap& variableAssignments,
 		                                const Debug::SourceLocation& location);
 		
-		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const SEM::TemplatedObject& templatedObject,
+		AST::TemplateVarMap GenerateTemplateVarMap(Context& context, const SEM::TemplatedObject& templatedObject,
 			SEM::ValueArray values, const Debug::SourceLocation& location,
-			SEM::TemplateVarMap variableAssignments = SEM::TemplateVarMap());
+			AST::TemplateVarMap variableAssignments = AST::TemplateVarMap());
 		
-		SEM::TemplateVarMap GenerateSymbolTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
+		AST::TemplateVarMap GenerateSymbolTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbolNode);
 		
-		SEM::ValueArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const SEM::TemplateVarArray& templateVariables);
+		SEM::ValueArray GetTemplateValues(const AST::TemplateVarMap& templateVarMap, const AST::TemplateVarArray& templateVariables);
 		
 		SEM::ValueArray makeTemplateArgs(Context& context, SEM::TypeArray typeArray);
 		

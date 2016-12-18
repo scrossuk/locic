@@ -7,11 +7,11 @@
 #include <vector>
 
 #include <locic/AST/ModuleScope.hpp>
+#include <locic/AST/TemplateVarArray.hpp>
 #include <locic/Debug/TypeInstanceInfo.hpp>
 #include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
-#include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
 #include <locic/Support/FastMap.hpp>
@@ -189,8 +189,8 @@ namespace locic {
 				 * 
 				 * \return Template variable array.
 				 */
-				TemplateVarArray& templateVariables();
-				const TemplateVarArray& templateVariables() const;
+				AST::TemplateVarArray& templateVariables();
+				const AST::TemplateVarArray& templateVariables() const;
 				
 				/**
 				 * \brief Get name to template variable mapping.
@@ -350,8 +350,8 @@ namespace locic {
 				 * (based on their associated template variable)
 				 * should have the notag() added to them.
 				 */
-				const TemplateVarArray& noTagSet() const;
-				void setNoTagSet(TemplateVarArray noTagSet);
+				const AST::TemplateVarArray& noTagSet() const;
+				void setNoTagSet(AST::TemplateVarArray noTagSet);
 				
 				/**
 				 * \brief Get/set debugging info.
@@ -383,7 +383,7 @@ namespace locic {
 				
 				std::vector<TypeInstance*> variants_;
 				
-				TemplateVarArray templateVariables_;
+				AST::TemplateVarArray templateVariables_;
 				FastMap<String, AST::TemplateVar*> namedTemplateVariables_;
 				Optional<Predicate> movePredicate_;
 				Predicate requiresPredicate_;
@@ -394,7 +394,7 @@ namespace locic {
 				
 				Array<AST::Function*, 8> functions_;
 				
-				TemplateVarArray noTagSet_;
+				AST::TemplateVarArray noTagSet_;
 				mutable const Type* cachedSelfType_;
 				
 		};

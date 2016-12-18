@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include <locic/SEM/TemplateVarArray.hpp>
+#include <locic/AST/TemplateVarArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
 #include <locic/Support/HeapArray.hpp>
 #include <locic/Support/Map.hpp>
@@ -18,6 +18,7 @@ namespace locic {
 		
 		class Function;
 		class TemplateVar;
+		class TemplateVarMap;
 		class Var;
 		
 	}
@@ -33,7 +34,6 @@ namespace locic {
 		class Alias;
 		class ExitStates;
 		class Predicate;
-		class TemplateVarMap;
 		class Type;
 		class TypeInstance;
 		
@@ -482,10 +482,10 @@ namespace locic {
 				}
 				
 				bool dependsOn(const AST::TemplateVar* const templateVar) const;
-				bool dependsOnAny(const TemplateVarArray& array) const;
-				bool dependsOnOnly(const TemplateVarArray& array) const;
+				bool dependsOnAny(const AST::TemplateVarArray& array) const;
+				bool dependsOnOnly(const AST::TemplateVarArray& array) const;
 				
-				Value substitute(const TemplateVarMap& templateVarMap) const;
+				Value substitute(const AST::TemplateVarMap& templateVarMap) const;
 				Predicate makePredicate() const;
 				
 				std::string toString() const;

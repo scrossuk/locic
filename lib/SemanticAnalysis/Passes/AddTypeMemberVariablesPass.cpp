@@ -169,12 +169,12 @@ namespace locic {
 			}
 		}
 		
-		const SEM::TemplateVarArray& GetTypeInstanceNoTagSet(SEM::TypeInstance& typeInstance) {
+		const AST::TemplateVarArray& GetTypeInstanceNoTagSet(SEM::TypeInstance& typeInstance) {
 			if (!typeInstance.noTagSet().empty()) {
 				return typeInstance.noTagSet();
 			}
 			
-			SEM::TemplateVarArray noTagSet;
+			AST::TemplateVarArray noTagSet;
 			
 			for (const auto& memberVar: typeInstance.variables()) {
 				// TODO: fix this to be less simplistic by looking for

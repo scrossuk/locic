@@ -148,7 +148,7 @@ namespace locic {
 			*this = argReturnType->context().getFunctionType(std::move(functionTypeData));
 		}
 		
-		FunctionType FunctionType::substitute(const TemplateVarMap& templateVarMap) const {
+		FunctionType FunctionType::substitute(const AST::TemplateVarMap& templateVarMap) const {
 			if (templateVarMap.empty()) {
 				return *this;
 			}
@@ -192,7 +192,7 @@ namespace locic {
 			return FunctionType(std::move(newAttributes), returnType(), parameterTypes().copy());
 		}
 		
-		bool FunctionType::dependsOnAny(const TemplateVarArray& array) const {
+		bool FunctionType::dependsOnAny(const AST::TemplateVarArray& array) const {
 			if (returnType()->dependsOnAny(array)) {
 				return true;
 			}
@@ -210,7 +210,7 @@ namespace locic {
 			return false;
 		}
 		
-		bool FunctionType::dependsOnOnly(const TemplateVarArray& array) const {
+		bool FunctionType::dependsOnOnly(const AST::TemplateVarArray& array) const {
 			if (!returnType()->dependsOnOnly(array)) {
 				return false;
 			}

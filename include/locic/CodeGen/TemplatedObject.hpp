@@ -44,7 +44,7 @@ namespace locic {
 				const SEM::TypeInstance* parentTypeInstance() const;
 				const AST::Function* function() const;
 				
-				SEM::TemplateVarArray templateVariables() const;
+				AST::TemplateVarArray templateVariables() const;
 				
 				bool operator==(const TemplatedObject& other) const;
 				bool operator!=(const TemplatedObject& other) const;
@@ -83,7 +83,7 @@ namespace locic {
 				
 				llvm::ArrayRef<SEM::Value> arguments() const;
 				
-				bool allArgumentsAreTemplateVars(const SEM::TemplateVarArray& templateVariables) const;
+				bool allArgumentsAreTemplateVars(const AST::TemplateVarArray& templateVariables) const;
 				
 				bool allArgumentsAreSelfTemplateVars() const;
 				

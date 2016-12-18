@@ -3,8 +3,8 @@
 
 #include <string>
 
+#include <locic/AST/TemplateVarArray.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/Support/Array.hpp>
 #include <locic/Support/String.hpp>
@@ -33,7 +33,7 @@ namespace locic {
 				MethodSetElement withRequirement(SEM::Predicate requirement) const;
 				MethodSetElement withNoExceptPredicate(SEM::Predicate newNoExceptPredicate) const;
 				
-				const SEM::TemplateVarArray& templateVariables() const;
+				const AST::TemplateVarArray& templateVariables() const;
 				const SEM::Predicate& constPredicate() const;
 				const SEM::Predicate& noexceptPredicate() const;
 				const SEM::Predicate& requirePredicate() const;
@@ -51,7 +51,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				SEM::TemplateVarArray templateVariables_;
+				AST::TemplateVarArray templateVariables_;
 				SEM::Predicate constPredicate_;
 				SEM::Predicate noexceptPredicate_;
 				SEM::Predicate requirePredicate_;

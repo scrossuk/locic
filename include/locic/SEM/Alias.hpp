@@ -7,10 +7,10 @@
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 #include <locic/AST/AliasDecl.hpp>
+#include <locic/AST/TemplateVarArray.hpp>
 #include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TemplatedObject.hpp>
-#include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
 #include <locic/SEM/Value.hpp>
 
@@ -61,8 +61,8 @@ namespace locic {
 				const Type* selfRefType(ValueArray templateArguments) const;
 				ValueArray selfTemplateArgs() const;
 				
-				TemplateVarArray& templateVariables();
-				const TemplateVarArray& templateVariables() const;
+				AST::TemplateVarArray& templateVariables();
+				const AST::TemplateVarArray& templateVariables() const;
 				
 				FastMap<String, AST::TemplateVar*>& namedTemplateVariables();
 				
@@ -81,7 +81,7 @@ namespace locic {
 				GlobalStructure parent_;
 				const AST::Node<AST::AliasDecl>& astAlias_;
 				Name name_;
-				TemplateVarArray templateVars_;
+				AST::TemplateVarArray templateVars_;
 				FastMap<String, AST::TemplateVar*> namedTemplateVariables_;
 				Predicate requiresPredicate_;
 				Predicate noexceptPredicate_;

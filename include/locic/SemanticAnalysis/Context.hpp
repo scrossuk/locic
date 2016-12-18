@@ -6,9 +6,9 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/TemplateVarMap.hpp>
 #include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Frontend/OptionalDiag.hpp>
-#include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/Support/Optional.hpp>
 
 namespace locic {

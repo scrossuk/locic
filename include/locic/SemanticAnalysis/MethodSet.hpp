@@ -3,8 +3,8 @@
 
 #include <string>
 
+#include <locic/AST/TemplateVarArray.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TemplateVarArray.hpp>
 #include <locic/SemanticAnalysis/MethodSetElement.hpp>
 #include <locic/Support/Array.hpp>
 #include <locic/Support/String.hpp>

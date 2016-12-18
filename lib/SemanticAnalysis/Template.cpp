@@ -80,7 +80,7 @@ namespace locic {
 		
 		void CheckTemplateInstantiation(Context& context,
 		                                const SEM::TemplatedObject& templatedObject,
-		                                const SEM::TemplateVarMap& variableAssignments,
+		                                const AST::TemplateVarMap& variableAssignments,
 		                                const Debug::SourceLocation& location) {
 			// Requires predicate is already known so check it immediately.
 			const auto& requiresPredicate = templatedObject.requiresPredicate();
@@ -118,8 +118,8 @@ namespace locic {
 			}
 		}
 		
-		SEM::TemplateVarMap GenerateTemplateVarMap(Context& context, const SEM::TemplatedObject& templatedObject,
-				SEM::ValueArray values, const Debug::SourceLocation& location, SEM::TemplateVarMap variableAssignments) {
+		AST::TemplateVarMap GenerateTemplateVarMap(Context& context, const SEM::TemplatedObject& templatedObject,
+				SEM::ValueArray values, const Debug::SourceLocation& location, AST::TemplateVarMap variableAssignments) {
 			const auto& templateVariables = templatedObject.templateVariables();
 			
 			for (size_t i = 0; i < std::min(templateVariables.size(), values.size()); i++) {
@@ -214,13 +214,13 @@ namespace locic {
 			
 		};
 		
-		SEM::TemplateVarMap GenerateSymbolTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
+		AST::TemplateVarMap GenerateSymbolTemplateVarMap(Context& context, const AST::Node<AST::Symbol>& astSymbol) {
 			const auto& location = astSymbol.location();
 			
 			const Name fullName = astSymbol->createName();
 			assert(fullName.size() == astSymbol->size());
 			
-			SEM::TemplateVarMap variableAssignments;
+			AST::TemplateVarMap variableAssignments;
 			
 			for (size_t i = 0; i < astSymbol->size(); i++) {
 				const auto& astSymbolElement = astSymbol->at(i);
@@ -262,7 +262,7 @@ namespace locic {
 			return variableAssignments;
 		}
 		
-		SEM::ValueArray GetTemplateValues(const SEM::TemplateVarMap& templateVarMap, const SEM::TemplateVarArray& templateVariables) {
+		SEM::ValueArray GetTemplateValues(const AST::TemplateVarMap& templateVarMap, const AST::TemplateVarArray& templateVariables) {
 			SEM::ValueArray templateArguments;
 			templateArguments.reserve(templateVariables.size());
 			for (const auto templateVar: templateVariables) {

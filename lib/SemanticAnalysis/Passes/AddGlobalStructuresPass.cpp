@@ -251,7 +251,7 @@ namespace locic {
 			}
 			
 			if (!astTypeInstanceNode->noTagSet.isNull()) {
-				SEM::TemplateVarArray noTagSet;
+				AST::TemplateVarArray noTagSet;
 				
 				for (const auto& astNoTagName: *(astTypeInstanceNode->noTagSet)) {
 					const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(astNoTagName);

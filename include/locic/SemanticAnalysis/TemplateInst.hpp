@@ -3,8 +3,8 @@
 
 #include <utility>
 
+#include <locic/AST/TemplateVarMap.hpp>
 #include <locic/Debug/SourceLocation.hpp>
-#include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 
 namespace locic {
@@ -20,7 +20,7 @@ namespace locic {
 		class TemplateInst {
 		public:
 			TemplateInst(ScopeStack argScopeStack,
-			             SEM::TemplateVarMap argTemplateVarMap,
+			             AST::TemplateVarMap argTemplateVarMap,
 			             const SEM::TemplatedObject& argTemplatedObject,
 			             Debug::SourceLocation argLocation)
 			: scopeStack_(std::move(argScopeStack)),
@@ -35,7 +35,7 @@ namespace locic {
 				return scopeStack_;
 			}
 			
-			const SEM::TemplateVarMap& templateVarMap() const {
+			const AST::TemplateVarMap& templateVarMap() const {
 				return templateVarMap_;
 			}
 			
@@ -52,7 +52,7 @@ namespace locic {
 			TemplateInst& operator=(const TemplateInst&) = delete;
 			
 			ScopeStack scopeStack_;
-			SEM::TemplateVarMap templateVarMap_;
+			AST::TemplateVarMap templateVarMap_;
 			const SEM::TemplatedObject* templatedObject_;
 			Debug::SourceLocation location_;
 			

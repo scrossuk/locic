@@ -11,7 +11,6 @@ set(SEM_FILES
 	../SEM/Scope.cpp
 	../SEM/Statement.cpp
 	../SEM/SwitchCase.cpp
-	../SEM/TemplateVarMap.cpp
 	../SEM/Type.cpp
 	../SEM/TypeInstance.cpp
 	../SEM/Value.cpp
@@ -32,6 +31,7 @@ add_library(locic-ast
 	StaticAssert.cpp
 	Symbol.cpp
 	TemplateVar.cpp
+	TemplateVarMap.cpp
 	TypeDecl.cpp
 	TypeInstance.cpp
 	Value.cpp

@@ -3,10 +3,11 @@
 
 #include <string>
 
+#include <locic/AST/TemplateVarArray.hpp>
+#include <locic/AST/TemplateVarMap.hpp>
+
 #include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TemplateVarArray.hpp>
-#include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
 #include <locic/Support/Optional.hpp>
@@ -118,7 +119,7 @@ namespace locic {
 				bool isClassOrTemplateVar() const;
 				bool isObjectOrTemplateVar() const;
 				
-				TemplateVarMap generateTemplateVarMap() const;
+				AST::TemplateVarMap generateTemplateVarMap() const;
 				
 				bool isCallable() const;
 				bool isCallableMethod() const;
@@ -130,12 +131,12 @@ namespace locic {
 				FunctionType asFunctionType() const;
 				Value asValue() const;
 				
-				const Type* substitute(const TemplateVarMap& templateVarMap) const;
+				const Type* substitute(const AST::TemplateVarMap& templateVarMap) const;
 				const Type* resolveAliases() const;
 				
 				bool dependsOn(const AST::TemplateVar* const templateVar) const;
-				bool dependsOnAny(const TemplateVarArray& array) const;
-				bool dependsOnOnly(const TemplateVarArray& array) const;
+				bool dependsOnAny(const AST::TemplateVarArray& array) const;
+				bool dependsOnOnly(const AST::TemplateVarArray& array) const;
 				
 				std::string nameToString() const;
 				

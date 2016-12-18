@@ -1017,7 +1017,7 @@ namespace locic {
 			return copyValue;
 		}
 		
-		bool Value::dependsOnAny(const TemplateVarArray& array) const {
+		bool Value::dependsOnAny(const AST::TemplateVarArray& array) const {
 			switch (kind()) {
 				case CONSTANT:
 					return false;
@@ -1030,7 +1030,7 @@ namespace locic {
 			}
 		}
 		
-		bool Value::dependsOnOnly(const TemplateVarArray& array) const {
+		bool Value::dependsOnOnly(const AST::TemplateVarArray& array) const {
 			switch (kind()) {
 				case CONSTANT:
 					return true;
@@ -1043,7 +1043,7 @@ namespace locic {
 			}
 		}
 		
-		Value Value::substitute(const TemplateVarMap& templateVarMap) const {
+		Value Value::substitute(const AST::TemplateVarMap& templateVarMap) const {
 			switch (kind()) {
 				case CONSTANT:
 					return copy();
@@ -1110,8 +1110,8 @@ namespace locic {
 					assert(constant().kind() == Constant::BOOLEAN);
 					return constant().boolValue() ? Predicate::True() : Predicate::False();
 				case ALIAS: {
-					TemplateVarMap assignments(alias().templateVariables().copy(),
-					                           aliasTemplateArguments().copy());
+					AST::TemplateVarMap assignments(alias().templateVariables().copy(),
+					                                aliasTemplateArguments().copy());
 					return alias().value().substitute(assignments).makePredicate();
 				}
 				case PREDICATE:

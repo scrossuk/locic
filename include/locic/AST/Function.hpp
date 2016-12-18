@@ -159,8 +159,8 @@ namespace locic {
 			const Node<TemplateVarList>& templateVariableDecls() const;
 			void setTemplateVariableDecls(Node<TemplateVarList> templateVariables);
 			
-			SEM::TemplateVarArray& templateVariables();
-			const SEM::TemplateVarArray& templateVariables() const;
+			TemplateVarArray& templateVariables();
+			const TemplateVarArray& templateVariables() const;
 			
 			FastMap<String, TemplateVar*>& namedTemplateVariables();
 			const FastMap<String, TemplateVar*>& namedTemplateVariables() const;
@@ -185,7 +185,7 @@ namespace locic {
 			Name fullName_;
 			
 			Node<TemplateVarList> templateVariableDecls_;
-			SEM::TemplateVarArray templateVariables_;
+			TemplateVarArray templateVariables_;
 			FastMap<String, TemplateVar*> namedTemplateVariables_;
 			
 			SEM::FunctionType type_;

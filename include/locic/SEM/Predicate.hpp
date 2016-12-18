@@ -3,19 +3,19 @@
 
 #include <memory>
 
-#include <locic/SEM/TemplateVarArray.hpp>
+#include <locic/AST/TemplateVarArray.hpp>
 
 namespace locic {
 	
 	namespace AST {
 		
 		class TemplateVar;
+		class TemplateVarMap;
 		
 	}
 	
 	namespace SEM {
 		
-		class TemplateVarMap;
 		class Type;
 		
 		/**
@@ -57,7 +57,7 @@ namespace locic {
 				Predicate& operator=(Predicate&&) = default;
 				
 				Predicate copy() const;
-				Predicate substitute(const TemplateVarMap& templateVarMap) const;
+				Predicate substitute(const AST::TemplateVarMap& templateVarMap) const;
 				
 				/*bool isEvaluatable() const;
 				Optional<bool> evaluate() const;
@@ -71,7 +71,7 @@ namespace locic {
 				 * Checks whether the predicate depends on any of the given
 				 * template variables.
 				 */
-				bool dependsOnAny(const TemplateVarArray& array) const;
+				bool dependsOnAny(const AST::TemplateVarArray& array) const;
 				
 				/**
 				 * \brief Depends only on given template variables
@@ -80,7 +80,7 @@ namespace locic {
 				 * variables and no other template variables are required to
 				 * evaluate it.
 				 */
-				bool dependsOnOnly(const TemplateVarArray& array) const;
+				bool dependsOnOnly(const AST::TemplateVarArray& array) const;
 				
 				/**
 				 * \brief Reduce to dependencies
@@ -89,7 +89,7 @@ namespace locic {
 				 * variables. Any expressions that depend on other template
 				 * variables will be reduced to the conservative default given.
 				 */
-				Predicate reduceToDependencies(const TemplateVarArray& array, bool conservativeDefault) const;
+				Predicate reduceToDependencies(const AST::TemplateVarArray& array, bool conservativeDefault) const;
 				
 				/**
 				 * \brief Implies

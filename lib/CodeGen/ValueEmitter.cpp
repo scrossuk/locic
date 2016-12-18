@@ -228,7 +228,7 @@ namespace locic {
 		                        llvm::Value* const hintResultValue) {
 			const auto& alias = value.alias();
 			
-			SEM::TemplateVarMap assignments(alias.templateVariables().copy(),
+			AST::TemplateVarMap assignments(alias.templateVariables().copy(),
 			                                value.aliasTemplateArguments().copy());
 			auto resolvedValue = alias.value().substitute(assignments);
 			return emitValue(resolvedValue, hintResultValue);

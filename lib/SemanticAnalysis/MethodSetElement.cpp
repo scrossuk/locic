@@ -20,7 +20,7 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		MethodSetElement::MethodSetElement(
-				SEM::TemplateVarArray argTemplateVariables,
+				AST::TemplateVarArray argTemplateVariables,
 				SEM::Predicate argConstPredicate,
 				SEM::Predicate argNoexceptPredicate,
 				SEM::Predicate argRequirePredicate,
@@ -57,7 +57,7 @@ namespace locic {
 				isStatic(), returnType(), parameterTypes().copy());
 		}
 		
-		const SEM::TemplateVarArray& MethodSetElement::templateVariables() const {
+		const AST::TemplateVarArray& MethodSetElement::templateVariables() const {
 			return templateVariables_;
 		}
 		

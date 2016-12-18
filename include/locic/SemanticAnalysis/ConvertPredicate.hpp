@@ -8,10 +8,15 @@ namespace locic {
 	
 	class OptionalDiag;
 	
+	namespace AST {
+		
+		class TemplateVarMap;
+		
+	}
+	
 	namespace SEM {
 		
 		class Predicate;
-		class TemplateVarMap;
 		
 	}
 	
@@ -47,7 +52,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		evaluatePredicate(Context& context, const SEM::Predicate& predicate, const SEM::TemplateVarMap& variableAssignments);
+		evaluatePredicate(Context& context, const SEM::Predicate& predicate, const AST::TemplateVarMap& variableAssignments);
 		
 		bool doesPredicateImplyPredicate(Context& context, const SEM::Predicate& firstPredicate, const SEM::Predicate& secondPredicate);
 		

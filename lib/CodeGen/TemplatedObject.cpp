@@ -54,13 +54,13 @@ namespace locic {
 			return data_.functionPair.function;
 		}
 		
-		SEM::TemplateVarArray TemplatedObject::templateVariables() const {
+		AST::TemplateVarArray TemplatedObject::templateVariables() const {
 			if (isTypeInstance()) {
 				return typeInstance()->templateVariables().copy();
 			} else if (parentTypeInstance() == nullptr) {
 				return function()->templateVariables().copy();
 			} else {
-				SEM::TemplateVarArray array;
+				AST::TemplateVarArray array;
 				for (const auto& templateVar: parentTypeInstance()->templateVariables()) {
 					array.push_back(templateVar);
 				}
@@ -174,7 +174,7 @@ namespace locic {
 			return arrayRef(arguments_);
 		}
 		
-		bool TemplateInst::allArgumentsAreTemplateVars(const SEM::TemplateVarArray& templateVariables) const {
+		bool TemplateInst::allArgumentsAreTemplateVars(const AST::TemplateVarArray& templateVariables) const {
 			assert(arguments().size() == templateVariables.size());
 			
 			for (size_t i = 0; i < arguments().size(); i++) {

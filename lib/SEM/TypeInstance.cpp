@@ -146,11 +146,11 @@ namespace locic {
 			return templateArgs;
 		}
 		
-		TemplateVarArray& TypeInstance::templateVariables() {
+		AST::TemplateVarArray& TypeInstance::templateVariables() {
 			return templateVariables_;
 		}
 		
-		const TemplateVarArray& TypeInstance::templateVariables() const {
+		const AST::TemplateVarArray& TypeInstance::templateVariables() const {
 			return templateVariables_;
 		}
 		
@@ -288,11 +288,11 @@ namespace locic {
 			return parentType_;
 		}
 		
-		const TemplateVarArray& TypeInstance::noTagSet() const {
+		const AST::TemplateVarArray& TypeInstance::noTagSet() const {
 			return noTagSet_;
 		}
 		
-		void TypeInstance::setNoTagSet(TemplateVarArray newNoTagSet) {
+		void TypeInstance::setNoTagSet(AST::TemplateVarArray newNoTagSet) {
 			noTagSet_ = std::move(newNoTagSet);
 		}
 		

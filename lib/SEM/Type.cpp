@@ -594,11 +594,11 @@ namespace locic {
 			return isObject() || isTemplateVar();
 		}
 		
-		TemplateVarMap Type::generateTemplateVarMap() const {
+		AST::TemplateVarMap Type::generateTemplateVarMap() const {
 			assert(isObject() || isTemplateVar());
 			
 			if (isTemplateVar()) {
-				return TemplateVarMap();
+				return AST::TemplateVarMap();
 			}
 			
 			const auto& templateVars = getObjectType()->templateVariables();
@@ -606,7 +606,7 @@ namespace locic {
 			
 			assert(templateVars.size() == templateArgs.size());
 			
-			TemplateVarMap templateVarMap;
+			AST::TemplateVarMap templateVarMap;
 			
 			for (size_t i = 0; i < templateVars.size(); i++) {
 				templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i).copy()));
@@ -681,7 +681,7 @@ namespace locic {
 			return SEM::Value::TypeRef(this, typenameType->createStaticRefType(this));
 		}
 		
-		static const Type* basicSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
+		static const Type* basicSubstitute(const Type* const type, const AST::TemplateVarMap& templateVarMap) {
 			switch (type->kind()) {
 				case Type::AUTO: {
 					return type->withoutTags();
@@ -737,7 +737,7 @@ namespace locic {
 			locic_unreachable("Unknown type kind.");
 		}
 		
-		const Type* doSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
+		const Type* doSubstitute(const Type* const type, const AST::TemplateVarMap& templateVarMap) {
 			const auto basicType = basicSubstitute(type, templateVarMap);
 			
 			if (type->isNoTag()) {
@@ -767,7 +767,7 @@ namespace locic {
 			return staticRefType;
 		}
 		
-		const Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
+		const Type* Type::substitute(const AST::TemplateVarMap& templateVarMap) const {
 			if (templateVarMap.empty()) {
 				return this;
 			}
@@ -791,7 +791,7 @@ namespace locic {
 						const auto& templateVars = type->alias().templateVariables();
 						const auto& templateArgs = type->aliasArguments();
 						
-						TemplateVarMap templateVarMap;
+						AST::TemplateVarMap templateVarMap;
 						for (size_t i = 0; i < templateVars.size(); i++) {
 							templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i).copy()));
 						}
@@ -814,7 +814,7 @@ namespace locic {
 			return dependsOnAny({ const_cast<AST::TemplateVar*>(templateVar) });
 		}
 		
-		bool Type::dependsOnAny(const TemplateVarArray& array) const {
+		bool Type::dependsOnAny(const AST::TemplateVarArray& array) const {
 			if (constPredicate().dependsOnAny(array)) {
 				return true;
 			}
@@ -849,7 +849,7 @@ namespace locic {
 			locic_unreachable("Unknown type kind.");
 		}
 		
-		bool Type::dependsOnOnly(const TemplateVarArray& array) const {
+		bool Type::dependsOnOnly(const AST::TemplateVarArray& array) const {
 			if (!constPredicate().dependsOnOnly(array)) {
 				return false;
 			}

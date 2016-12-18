@@ -79,11 +79,11 @@ namespace locic {
 			return templateArgs;
 		}
 		
-		TemplateVarArray& Alias::templateVariables() {
+		AST::TemplateVarArray& Alias::templateVariables() {
 			return templateVars_;
 		}
 		
-		const TemplateVarArray& Alias::templateVariables() const {
+		const AST::TemplateVarArray& Alias::templateVariables() const {
 			return templateVars_;
 		}
 		

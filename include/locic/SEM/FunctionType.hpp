@@ -3,9 +3,10 @@
 
 #include <string>
 
+#include <locic/AST/TemplateVarArray.hpp>
+#include <locic/AST/TemplateVarMap.hpp>
+
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TemplateVarArray.hpp>
-#include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
 
@@ -122,13 +123,13 @@ namespace locic {
 				return data_->parameterTypes();
 			}
 			
-			FunctionType substitute(const TemplateVarMap& templateVarMap) const;
+			FunctionType substitute(const AST::TemplateVarMap& templateVarMap) const;
 			
 			FunctionType makeTemplated() const;
 			
-			bool dependsOnAny(const TemplateVarArray& array) const;
+			bool dependsOnAny(const AST::TemplateVarArray& array) const;
 			
-			bool dependsOnOnly(const TemplateVarArray& array) const;
+			bool dependsOnOnly(const AST::TemplateVarArray& array) const;
 			
 			std::string toString() const {
 				return data_->toString();

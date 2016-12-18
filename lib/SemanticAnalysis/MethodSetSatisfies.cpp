@@ -22,8 +22,8 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		SEM::TemplateVarMap generateSatisfyTemplateVarMap(const MethodSetElement& checkElement, const MethodSetElement& requireElement) {
-			SEM::TemplateVarMap templateVarMap;
+		AST::TemplateVarMap generateSatisfyTemplateVarMap(const MethodSetElement& checkElement, const MethodSetElement& requireElement) {
+			AST::TemplateVarMap templateVarMap;
 			
 			// Very basic template deduction.
 			for (const auto& templateVar: checkElement.templateVariables()) {

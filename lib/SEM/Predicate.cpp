@@ -5,8 +5,8 @@
 
 #include <locic/AST/Value.hpp>
 #include <locic/AST/TemplateVar.hpp>
+#include <locic/AST/TemplateVarMap.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TemplateVarMap.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/Support/ErrorHandling.hpp>
@@ -118,7 +118,7 @@ namespace locic {
 			locic_unreachable("Unknown predicate kind.");
 		}
 		
-		Predicate Predicate::substitute(const TemplateVarMap& templateVarMap) const {
+		Predicate Predicate::substitute(const AST::TemplateVarMap& templateVarMap) const {
 			switch (kind()) {
 				case TRUE:
 				{
@@ -272,7 +272,7 @@ namespace locic {
 			locic_unreachable("Unknown predicate kind.");
 		}
 		
-		bool Predicate::dependsOnAny(const TemplateVarArray& array) const {
+		bool Predicate::dependsOnAny(const AST::TemplateVarArray& array) const {
 			for (const auto& templateVar: array) {
 				if (dependsOn(templateVar)) {
 					return true;
@@ -281,7 +281,7 @@ namespace locic {
 			return false;
 		}
 		
-		bool Predicate::dependsOnOnly(const TemplateVarArray& array) const {
+		bool Predicate::dependsOnOnly(const AST::TemplateVarArray& array) const {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:
@@ -309,7 +309,7 @@ namespace locic {
 			locic_unreachable("Unknown predicate kind.");
 		}
 		
-		Predicate Predicate::reduceToDependencies(const TemplateVarArray& array, const bool conservativeDefault) const {
+		Predicate Predicate::reduceToDependencies(const AST::TemplateVarArray& array, const bool conservativeDefault) const {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:

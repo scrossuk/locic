@@ -1,11 +1,11 @@
-#ifndef LOCIC_SEM_TEMPLATEVARMAP_HPP
-#define LOCIC_SEM_TEMPLATEVARMAP_HPP
+#ifndef LOCIC_AST_TEMPLATEVARMAP_HPP
+#define LOCIC_AST_TEMPLATEVARMAP_HPP
 
 #include <cassert>
 #include <cstddef>
 #include <string>
 
-#include <locic/SEM/TemplateVarArray.hpp>
+#include <locic/AST/TemplateVarArray.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/SEM/ValueArray.hpp>
 #include <locic/Support/Array.hpp>
@@ -15,10 +15,6 @@ namespace locic {
 	namespace AST {
 		
 		class TemplateVar;
-		
-	}
-	
-	namespace SEM {
 		
 		constexpr size_t TemplateVarMapBaseSize = 8;
 		
@@ -35,8 +31,8 @@ namespace locic {
 		 */
 		class TemplateVarMap {
 			public:
-				using key_type = const AST::TemplateVar*;
-				using mapped_type = Value;
+				using key_type = const TemplateVar*;
+				using mapped_type = SEM::Value;
 				using value_type = std::pair<key_type, mapped_type>;
 				using ArrayType = Array<value_type, TemplateVarMapBaseSize>;
 				using iterator = ArrayType::iterator;
@@ -45,7 +41,7 @@ namespace locic {
 				TemplateVarMap() { }
 				
 				TemplateVarMap(TemplateVarArray variables,
-				               ValueArray values) {
+				               SEM::ValueArray values) {
 					assert(variables.size() == values.size());
 					for (size_t i = 0; i < variables.size(); i++) {
 						insert(std::make_pair(variables[i], std::move(values[i])));
