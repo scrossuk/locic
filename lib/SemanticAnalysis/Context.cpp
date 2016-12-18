@@ -71,8 +71,8 @@ namespace locic {
 			std::unordered_map<std::pair<const SEM::Type*, String>, bool, hashPair<const SEM::Type*, String>> capabilities;
 			
 			std::unordered_map<const SEM::Type*, const MethodSet*> objectMethodSetMap;
-			std::unordered_map<std::pair<const SEM::TemplatedObject*, const SEM::Type*>, const MethodSet*,
-				hashPair<const SEM::TemplatedObject*, const SEM::Type*>> templateVarMethodSetMap;
+			std::unordered_map<std::pair<const AST::TemplatedObject*, const SEM::Type*>, const MethodSet*,
+				hashPair<const AST::TemplatedObject*, const SEM::Type*>> templateVarMethodSetMap;
 			
 			std::vector<std::pair<const SEM::Type*, const SEM::Type*>> assumedSatisfyPairs;
 			std::vector<std::pair<const AST::TemplateVar*, const SEM::Predicate*>> computingMethodSetTemplateVars;
@@ -135,7 +135,7 @@ namespace locic {
 			return impl_->typeBuilder;
 		}
 		
-		const MethodSet* Context::findMethodSet(const SEM::TemplatedObject* const templatedObject,
+		const MethodSet* Context::findMethodSet(const AST::TemplatedObject* const templatedObject,
 		                                        const SEM::Type* const type) const {
 			assert(methodSetsComplete());
 			assert(type->isObject() || type->isTemplateVar());
@@ -150,7 +150,7 @@ namespace locic {
 			}
 		}
 		
-		void Context::addMethodSet(const SEM::TemplatedObject* const templatedObject,
+		void Context::addMethodSet(const AST::TemplatedObject* const templatedObject,
 		                           const SEM::Type* const type,
 		                           const MethodSet* const methodSet) {
 			assert(methodSetsComplete());

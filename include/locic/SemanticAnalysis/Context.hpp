@@ -18,6 +18,12 @@ namespace locic {
 	class String;
 	class StringHost;
 	
+	namespace AST {
+		
+		class TemplatedObject;
+		
+	}
+	
 	namespace Debug {
 		
 		class Module;
@@ -29,7 +35,6 @@ namespace locic {
 		
 		class Context;
 		class Predicate;
-		class TemplatedObject;
 		class Type;
 		class Value;
 		
@@ -78,10 +83,10 @@ namespace locic {
 				
 				TypeBuilder& typeBuilder();
 				
-				const MethodSet* findMethodSet(const SEM::TemplatedObject* templatedObject,
+				const MethodSet* findMethodSet(const AST::TemplatedObject* templatedObject,
 				                               const SEM::Type* type) const;
 				
-				void addMethodSet(const SEM::TemplatedObject* templatedObject,
+				void addMethodSet(const AST::TemplatedObject* templatedObject,
 				                  const SEM::Type* type,
 				                  const MethodSet* methodSet);
 				

@@ -304,7 +304,7 @@ namespace locic {
 			                      std::move(elements));
 		}
 		
-		const MethodSet* getMethodSetForTemplateVarType(Context& context, const SEM::Type* const templateVarType, const SEM::TemplatedObject& templatedObject) {
+		const MethodSet* getMethodSetForTemplateVarType(Context& context, const SEM::Type* const templateVarType, const AST::TemplatedObject& templatedObject) {
 			assert(templateVarType->isTemplateVar());
 			
 			// Look in the require() predicate to see what methods this

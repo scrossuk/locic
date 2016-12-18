@@ -9,7 +9,7 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class TemplatedObject;
 		
@@ -21,7 +21,7 @@ namespace locic {
 		public:
 			TemplateInst(ScopeStack argScopeStack,
 			             AST::TemplateVarMap argTemplateVarMap,
-			             const SEM::TemplatedObject& argTemplatedObject,
+			             const AST::TemplatedObject& argTemplatedObject,
 			             Debug::SourceLocation argLocation)
 			: scopeStack_(std::move(argScopeStack)),
 			templateVarMap_(std::move(argTemplateVarMap)),
@@ -39,7 +39,7 @@ namespace locic {
 				return templateVarMap_;
 			}
 			
-			const SEM::TemplatedObject& templatedObject() const {
+			const AST::TemplatedObject& templatedObject() const {
 				return *templatedObject_;
 			}
 			
@@ -53,7 +53,7 @@ namespace locic {
 			
 			ScopeStack scopeStack_;
 			AST::TemplateVarMap templateVarMap_;
-			const SEM::TemplatedObject* templatedObject_;
+			const AST::TemplatedObject* templatedObject_;
 			Debug::SourceLocation location_;
 			
 		};

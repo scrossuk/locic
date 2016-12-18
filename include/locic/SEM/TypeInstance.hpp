@@ -7,11 +7,11 @@
 #include <vector>
 
 #include <locic/AST/ModuleScope.hpp>
+#include <locic/AST/TemplatedObject.hpp>
 #include <locic/AST/TemplateVarArray.hpp>
 #include <locic/Debug/TypeInstanceInfo.hpp>
 #include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
 #include <locic/Support/FastMap.hpp>
@@ -51,7 +51,7 @@ namespace locic {
 		 * - Require predicates
 		 * - In some cases variants and parent
 		 */
-		class TypeInstance final: public TemplatedObject {
+		class TypeInstance final: public AST::TemplatedObject {
 			public:
 				enum Kind {
 					PRIMITIVE,

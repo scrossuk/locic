@@ -12,6 +12,7 @@
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Symbol.hpp>
+#include <locic/AST/TemplatedObject.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/Var.hpp>
@@ -20,7 +21,6 @@
 
 #include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/GlobalStructure.hpp>
-#include <locic/SEM/TemplatedObject.hpp>
 
 #include <locic/Support/FastMap.hpp>
 
@@ -55,7 +55,7 @@ namespace locic {
 		* - Require predicate
 		* - A scope containing statements
 		*/
-		class Function: public SEM::TemplatedObject {
+		class Function: public TemplatedObject {
 		public:
 			Function();
 			~Function();

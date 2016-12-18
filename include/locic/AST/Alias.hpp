@@ -5,6 +5,7 @@
 
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
+#include <locic/AST/TemplatedObject.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TemplateVarArray.hpp>
 #include <locic/AST/Value.hpp>
@@ -13,7 +14,6 @@
 
 #include <locic/SEM/GlobalStructure.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TemplatedObject.hpp>
 #include <locic/SEM/Value.hpp>
 
 #include <locic/Support/FastMap.hpp>
@@ -30,7 +30,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		class Alias final: public SEM::TemplatedObject {
+		class Alias final: public TemplatedObject {
 		public:
 			Alias(const String& pName, AST::Node<Value> pValue,
 			          const Debug::SourceLocation& location);

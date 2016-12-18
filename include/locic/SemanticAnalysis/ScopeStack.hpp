@@ -90,7 +90,7 @@ namespace locic {
 		
 		AST::Function* lookupParentFunction(const ScopeStack& scopeStack);
 		
-		const SEM::TemplatedObject* lookupTemplatedObject(const ScopeStack& scopeStack);
+		const AST::TemplatedObject* lookupTemplatedObject(const ScopeStack& scopeStack);
 		
 		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack);
 		

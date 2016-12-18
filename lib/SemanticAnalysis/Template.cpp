@@ -25,7 +25,7 @@ namespace locic {
 		
 		namespace {
 			
-			SEM::TemplatedObject& getTemplatedObject(const SearchResult& searchResult) {
+			AST::TemplatedObject& getTemplatedObject(const SearchResult& searchResult) {
 				switch (searchResult.kind()) {
 					case SearchResult::ALIAS:
 						return searchResult.alias();
@@ -79,7 +79,7 @@ namespace locic {
 		};
 		
 		void CheckTemplateInstantiation(Context& context,
-		                                const SEM::TemplatedObject& templatedObject,
+		                                const AST::TemplatedObject& templatedObject,
 		                                const AST::TemplateVarMap& variableAssignments,
 		                                const Debug::SourceLocation& location) {
 			// Requires predicate is already known so check it immediately.
@@ -118,7 +118,7 @@ namespace locic {
 			}
 		}
 		
-		AST::TemplateVarMap GenerateTemplateVarMap(Context& context, const SEM::TemplatedObject& templatedObject,
+		AST::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::TemplatedObject& templatedObject,
 				SEM::ValueArray values, const Debug::SourceLocation& location, AST::TemplateVarMap variableAssignments) {
 			const auto& templateVariables = templatedObject.templateVariables();
 			

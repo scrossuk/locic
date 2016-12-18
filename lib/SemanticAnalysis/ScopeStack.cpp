@@ -55,7 +55,7 @@ namespace locic {
 			return nullptr;
 		}
 		
-		const SEM::TemplatedObject* lookupTemplatedObject(const ScopeStack& scopeStack) {
+		const AST::TemplatedObject* lookupTemplatedObject(const ScopeStack& scopeStack) {
 			for (size_t i = 0; i < scopeStack.size(); i++) {
 				const auto pos = scopeStack.size() - i - 1;
 				const auto& element = scopeStack[pos];
