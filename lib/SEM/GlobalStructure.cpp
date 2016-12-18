@@ -1,7 +1,7 @@
 #include <locic/AST/Alias.hpp>
+#include <locic/AST/Namespace.hpp>
 
 #include <locic/SEM/GlobalStructure.hpp>
-#include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
 #include <locic/Support/Name.hpp>
@@ -16,7 +16,7 @@ namespace locic {
 			return globalStructure;
 		}
 		
-		GlobalStructure GlobalStructure::Namespace(SEM::Namespace& nameSpace) {
+		GlobalStructure GlobalStructure::Namespace(AST::Namespace& nameSpace) {
 			GlobalStructure globalStructure(NAMESPACE);
 			globalStructure.data_.nameSpace = &nameSpace;
 			return globalStructure;
@@ -91,11 +91,11 @@ namespace locic {
 			return *(data_.alias);
 		}
 		
-		SEM::Namespace& GlobalStructure::nameSpace() {
+		AST::Namespace& GlobalStructure::nameSpace() {
 			return *(data_.nameSpace);
 		}
 		
-		const SEM::Namespace& GlobalStructure::nameSpace() const {
+		const AST::Namespace& GlobalStructure::nameSpace() const {
 			return *(data_.nameSpace);
 		}
 		
@@ -107,7 +107,7 @@ namespace locic {
 			return *(data_.typeInstance);
 		}
 		
-		SEM::Namespace& GlobalStructure::nextNamespace() {
+		AST::Namespace& GlobalStructure::nextNamespace() {
 			auto next = this;
 			while (!next->isNamespace()) {
 				next = &(next->parent());
@@ -115,7 +115,7 @@ namespace locic {
 			return next->nameSpace();
 		}
 		
-		const SEM::Namespace& GlobalStructure::nextNamespace() const {
+		const AST::Namespace& GlobalStructure::nextNamespace() const {
 			auto next = this;
 			while (!next->isNamespace()) {
 				next = &(next->parent());

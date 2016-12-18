@@ -85,8 +85,8 @@ namespace locic {
 				GlobalStructure& parent();
 				const GlobalStructure& parent() const;
 				
-				Namespace& nameSpace();
-				const Namespace& nameSpace() const;
+				AST::Namespace& nameSpace();
+				const AST::Namespace& nameSpace() const;
 				
 				const Name& fullName() const;
 				

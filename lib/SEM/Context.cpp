@@ -1,9 +1,10 @@
+#include <locic/AST/Namespace.hpp>
+
 #include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/StableSet.hpp>
 
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/FunctionType.hpp>
-#include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/Type.hpp>
 
 namespace locic {

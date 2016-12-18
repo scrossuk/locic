@@ -3,6 +3,7 @@
 
 #include <vector>
 
+#include <locic/AST/Namespace.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
@@ -96,7 +97,7 @@ namespace locic {
 		
 		class Context;
 		
-		const SEM::NamespaceItem& getBuiltInNamespaceItem(Context& context, const String& typeName);
+		const AST::NamespaceItem& getBuiltInNamespaceItem(Context& context, const String& typeName);
 		
 		const SEM::TypeInstance& getBuiltInTypeInstance(Context& context, const String& typeName);
 		

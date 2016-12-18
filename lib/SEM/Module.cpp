@@ -1,8 +1,9 @@
 #include <string>
 
+#include <locic/AST/Namespace.hpp>
+
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Module.hpp>
-#include <locic/SEM/Namespace.hpp>
 
 #include <locic/Support/MakeString.hpp>
 
@@ -11,7 +12,7 @@ namespace locic {
 	namespace SEM {
 		
 		Module::Module(Context& pContext)
-		: context_(pContext), rootNamespace_(new Namespace()) { }
+		: context_(pContext), rootNamespace_(new AST::Namespace()) { }
 		
 		Module::~Module() { }
 		
@@ -23,11 +24,11 @@ namespace locic {
 			return context_;
 		}
 		
-		Namespace& Module::rootNamespace() {
+		AST::Namespace& Module::rootNamespace() {
 			return *rootNamespace_;
 		}
 		
-		const Namespace& Module::rootNamespace() const {
+		const AST::Namespace& Module::rootNamespace() const {
 			return *rootNamespace_;
 		}
 		

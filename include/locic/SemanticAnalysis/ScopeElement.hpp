@@ -9,13 +9,13 @@ namespace locic {
 		
 		class Alias;
 		class Function;
+		class Namespace;
 		
 	}
 	
 	namespace SEM {
 		
 		class CatchClause;
-		class Namespace;
 		class Scope;
 		class SwitchCase;
 		class TypeInstance;
@@ -40,7 +40,7 @@ namespace locic {
 					ASSERTNOEXCEPT
 				};
 				
-				static ScopeElement Namespace(SEM::Namespace& nameSpace);
+				static ScopeElement Namespace(AST::Namespace& nameSpace);
 				
 				static ScopeElement Alias(AST::Alias& alias);
 				
@@ -76,7 +76,7 @@ namespace locic {
 				bool isTryScope() const;
 				bool isAssertNoExcept() const;
 				
-				SEM::Namespace& nameSpace() const;
+				AST::Namespace& nameSpace() const;
 				AST::Alias& alias() const;
 				SEM::TypeInstance& typeInstance() const;
 				AST::Function& function() const;
@@ -95,7 +95,7 @@ namespace locic {
 				
 				union {
 					void* ptr;
-					SEM::Namespace* nameSpace;
+					AST::Namespace* nameSpace;
 					AST::Alias* alias;
 					SEM::TypeInstance* typeInstance;
 					AST::Function* function;

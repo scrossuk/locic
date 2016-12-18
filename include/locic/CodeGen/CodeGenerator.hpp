@@ -7,15 +7,15 @@
 
 namespace locic {
 	
-	namespace Debug {
+	namespace AST {
 		
-		class Module;
+		class Namespace;
 		
 	}
 	
-	namespace SEM {
+	namespace Debug {
 		
-		class Namespace;
+		class Module;
 		
 	}
 	
@@ -37,7 +37,7 @@ namespace locic {
 				
 				void applyOptimisations(size_t optLevel);
 				
-				void genNamespace(SEM::Namespace* nameSpace);
+				void genNamespace(AST::Namespace* nameSpace);
 				
 				void writeToFile(const std::string& fileName);
 				

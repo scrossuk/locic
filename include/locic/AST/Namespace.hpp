@@ -1,5 +1,5 @@
-#ifndef LOCIC_SEM_NAMESPACE_HPP
-#define LOCIC_SEM_NAMESPACE_HPP
+#ifndef LOCIC_AST_NAMESPACE_HPP
+#define LOCIC_AST_NAMESPACE_HPP
 
 #include <map>
 #include <memory>
@@ -13,17 +13,17 @@
 
 namespace locic {
 	
+	namespace SEM {
+		
+		class TypeInstance;
+		
+	}
+	
 	namespace AST {
 		
 		class Alias;
 		class Function;
-		
-	}
-	
-	namespace SEM {
-		
 		class Namespace;
-		class TypeInstance;
 		
 		class NamespaceItem {
 			public:
@@ -38,9 +38,9 @@ namespace locic {
 				
 				static NamespaceItem Function(AST::Function& function);
 				
-				static NamespaceItem Namespace(std::unique_ptr<Namespace> nameSpace);
+				static NamespaceItem Namespace(std::unique_ptr<AST::Namespace> nameSpace);
 				
-				static NamespaceItem TypeInstance(std::unique_ptr<TypeInstance> typeInstance);
+				static NamespaceItem TypeInstance(std::unique_ptr<SEM::TypeInstance> typeInstance);
 				
 				NamespaceItem(NamespaceItem&&) = default;
 				NamespaceItem& operator=(NamespaceItem&) = default;
@@ -56,7 +56,7 @@ namespace locic {
 				
 				AST::Alias& alias() const;
 				AST::Function& function() const;
-				SEM::Namespace& nameSpace() const;
+				AST::Namespace& nameSpace() const;
 				SEM::TypeInstance& typeInstance() const;
 				
 				Debug::SourceLocation location() const;
@@ -75,26 +75,38 @@ namespace locic {
 					void* ptr;
 					AST::Alias* alias;
 					AST::Function* function;
-					SEM::Namespace* nameSpace;
+					AST::Namespace* nameSpace;
 					SEM::TypeInstance* typeInstance;
 				} data_;
 				
 		};
 		
+		/**
+		 * \brief Uniqued namespace
+		 * 
+		 * This class is created when multiple namespace declarations
+		 * are 'uniqued. For example:
+		 * 
+		 * namespace Test { void f(); }
+		 * namespace Test { void g(); }
+		 * 
+		 * In this case there are two namespace declarations (both
+		 * called 'Test') but just one uniqued namespace ('Test').
+		 */
 		class Namespace {
 			public:
 				// Create root namespace.
 				Namespace();
 				
-				Namespace(Name name, GlobalStructure parent);
+				Namespace(Name name, SEM::GlobalStructure parent);
 				
-				std::vector<AST::Node<AST::NamespaceDecl>*>&
-				astNamespaces();
-				const std::vector<AST::Node<AST::NamespaceDecl>*>&
-				astNamespaces() const;
+				std::vector<Node<NamespaceDecl>*>&
+				namespaceDecls();
+				const std::vector<Node<NamespaceDecl>*>&
+				namespaceDecls() const;
 				
-				GlobalStructure& parent();
-				const GlobalStructure& parent() const;
+				SEM::GlobalStructure& parent();
+				const SEM::GlobalStructure& parent() const;
 				
 				const Name& name() const;
 				
@@ -104,10 +116,10 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				GlobalStructure parent_;
+				SEM::GlobalStructure parent_;
 				Name name_;
 				FastMap<String, NamespaceItem> items_;
-				std::vector<AST::Node<AST::NamespaceDecl>*> astNamespaces_;
+				std::vector<Node<NamespaceDecl>*> namespaceDecls_;
 				
 		};
 		

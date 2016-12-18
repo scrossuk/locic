@@ -1,5 +1,6 @@
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Namespace.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/Support/String.hpp>
@@ -8,7 +9,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		ScopeElement ScopeElement::Namespace(SEM::Namespace& nameSpace) {
+		ScopeElement ScopeElement::Namespace(AST::Namespace& nameSpace) {
 			ScopeElement element(NAMESPACE);
 			element.data_.nameSpace = &nameSpace;
 			return element;
@@ -116,7 +117,7 @@ namespace locic {
 			return kind() == ASSERTNOEXCEPT;
 		}
 		
-		SEM::Namespace& ScopeElement::nameSpace() const {
+		AST::Namespace& ScopeElement::nameSpace() const {
 			assert(isNamespace());
 			return *(data_.nameSpace);
 		}

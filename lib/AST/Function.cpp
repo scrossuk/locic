@@ -39,11 +39,11 @@ namespace locic {
 			parent_ = make_optional(std::move(argParent));
 		}
 		
-		SEM::Namespace& Function::nameSpace() {
+		Namespace& Function::nameSpace() {
 			return parent().nextNamespace();
 		}
 		
-		const SEM::Namespace& Function::nameSpace() const {
+		const Namespace& Function::nameSpace() const {
 			return parent().nextNamespace();
 		}
 		

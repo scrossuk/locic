@@ -44,7 +44,7 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performNamespaceSearch(SEM::Namespace& nameSpace, const Name& name, size_t pos) {
+		SearchResult performNamespaceSearch(AST::Namespace& nameSpace, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
 			if (size == 0) return SearchResult::None();

@@ -9,6 +9,7 @@
 #include <locic/AST/IfClause.hpp>
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/ModuleScopeDecl.hpp>
+#include <locic/AST/Namespace.hpp>
 #include <locic/AST/NamespaceDecl.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Predicate.hpp>

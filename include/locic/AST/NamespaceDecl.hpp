@@ -9,28 +9,23 @@
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class Namespace;
-		
-	}
-	
 	namespace AST {
 		
 		class Alias;
 		class Function;
 		class ModuleScopeDecl;
+		class Namespace;
 		class NamespaceDecl;
 		class StaticAssert;
 		struct TypeInstance;
 		
 		struct NamespaceData {
-			std::vector< AST::Node<Alias> > aliases;
-			std::vector< AST::Node<Function> > functions;
-			std::vector< AST::Node<ModuleScopeDecl> > moduleScopes;
-			std::vector< AST::Node<NamespaceDecl> > namespaces;
-			std::vector< AST::Node<StaticAssert> > staticAsserts;
-			std::vector< AST::Node<TypeInstance> > typeInstances;
+			std::vector<Node<Alias>> aliases;
+			std::vector<Node<Function>> functions;
+			std::vector<Node<ModuleScopeDecl>> moduleScopes;
+			std::vector<Node<NamespaceDecl>> namespaces;
+			std::vector<Node<StaticAssert>> staticAsserts;
+			std::vector<Node<TypeInstance>> typeInstances;
 			
 			NamespaceData();
 			~NamespaceData();
@@ -52,24 +47,24 @@ namespace locic {
 		
 		class NamespaceDecl {
 		public:
-			NamespaceDecl(const String& n, AST::Node<NamespaceData> d);
+			NamespaceDecl(const String& n, Node<NamespaceData> d);
 			~NamespaceDecl();
 			
 			String name() const;
 			
-			const AST::Node<NamespaceData>& data() const;
+			const Node<NamespaceData>& data() const;
 			
-			void setNamespace(SEM::Namespace& nameSpace);
+			void setNamespace(Namespace& nameSpace);
 			
-			SEM::Namespace& nameSpace();
-			const SEM::Namespace& nameSpace() const;
+			Namespace& nameSpace();
+			const Namespace& nameSpace() const;
 			
 			std::string toString() const;
 			
 		private:
 			String name_;
-			AST::Node<NamespaceData> data_;
-			SEM::Namespace* namespace_;
+			Node<NamespaceData> data_;
+			Namespace* namespace_;
 			
 		};
 		

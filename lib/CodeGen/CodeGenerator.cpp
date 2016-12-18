@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Namespace.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>
@@ -83,7 +84,7 @@ namespace locic {
 			}
 		}
 		
-		void genNamespaceFunctions(Module& module, const SEM::Namespace& nameSpace) {
+		void genNamespaceFunctions(Module& module, const AST::Namespace& nameSpace) {
 			for (const auto& itemPair: nameSpace.items()) {
 				const auto& item = itemPair.second;
 				if (item.isFunction()) {
@@ -137,7 +138,7 @@ namespace locic {
 			optimisations.run();
 		}
 		
-		void CodeGenerator::genNamespace(SEM::Namespace* nameSpace) {
+		void CodeGenerator::genNamespace(AST::Namespace* nameSpace) {
 			genNamespaceFunctions(*module_, *nameSpace);
 			module_->debugBuilder().finalize();
 			module_->verify();

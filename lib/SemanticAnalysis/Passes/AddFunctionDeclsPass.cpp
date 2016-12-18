@@ -254,7 +254,7 @@ namespace locic {
 				
 				AddFunctionDecl(context, function, fullName, moduleScope);
 				
-				parentNamespace.items().insert(std::make_pair(name->last(), SEM::NamespaceItem::Function(*function)));
+				parentNamespace.items().insert(std::make_pair(name->last(), AST::NamespaceItem::Function(*function)));
 			} else {
 				// An extension method; search for the parent type.
 				assert(name->size() > 1);

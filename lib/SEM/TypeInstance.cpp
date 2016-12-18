@@ -45,11 +45,11 @@ namespace locic {
 			return parent_;
 		}
 		
-		Namespace& TypeInstance::nameSpace() {
+		AST::Namespace& TypeInstance::nameSpace() {
 			return parent().nextNamespace();
 		}
 		
-		const Namespace& TypeInstance::nameSpace() const {
+		const AST::Namespace& TypeInstance::nameSpace() const {
 			return parent().nextNamespace();
 		}
 		

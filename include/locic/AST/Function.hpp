@@ -28,13 +28,13 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Namespace;
 		class TemplateVar;
 		
 	}
 	
 	namespace SEM {
 		
-		class Namespace;
 		class Scope;
 		
 	}
@@ -64,8 +64,8 @@ namespace locic {
 			const SEM::GlobalStructure& parent() const;
 			void setParent(SEM::GlobalStructure parent);
 			
-			SEM::Namespace& nameSpace();
-			const SEM::Namespace& nameSpace() const;
+			Namespace& nameSpace();
+			const Namespace& nameSpace() const;
 			
 			const ModuleScope& moduleScope() const;
 			void setModuleScope(ModuleScope moduleScope);

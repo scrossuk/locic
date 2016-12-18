@@ -5,7 +5,6 @@ set(SEM_FILES
 	../SEM/GlobalStructure.cpp
 	../SEM/IfClause.cpp
 	../SEM/Module.cpp
-	../SEM/Namespace.cpp
 	../SEM/Predicate.cpp
 	../SEM/Scope.cpp
 	../SEM/Statement.cpp
@@ -22,6 +21,7 @@ add_library(locic-ast
 	Function.cpp
 	ModuleScope.cpp
 	ModuleScopeDecl.cpp
+	Namespace.cpp
 	NamespaceDecl.cpp
 	Predicate.cpp
 	RequireSpecifier.cpp

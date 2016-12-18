@@ -269,7 +269,7 @@ namespace locic {
 			
 			const auto typeInstancePtr = semTypeInstance.get();
 			
-			parentNamespace.items().insert(std::make_pair(typeInstanceName, SEM::NamespaceItem::TypeInstance(std::move(semTypeInstance))));
+			parentNamespace.items().insert(std::make_pair(typeInstanceName, AST::NamespaceItem::TypeInstance(std::move(semTypeInstance))));
 			
 			return typeInstancePtr;
 		}
@@ -316,28 +316,28 @@ namespace locic {
 		
 		void AddNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode,
 		                      const AST::ModuleScope& moduleScope) {
-			auto& semNamespace = context.scopeStack().back().nameSpace();
+			auto& uniquedNamespace = context.scopeStack().back().nameSpace();
 			
-			for (auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
-				const auto& childNamespaceName = astChildNamespaceNode->name();
+			for (auto& childNamespaceNode: astNamespaceDataNode->namespaces) {
+				const auto& childNamespaceName = childNamespaceNode->name();
 				
-				SEM::Namespace* semChildNamespace = nullptr;
+				AST::Namespace* uniquedChildNamespace = nullptr;
 				
-				const auto iterator = semNamespace.items().find(childNamespaceName);
-				if (iterator == semNamespace.items().end()) {
-					std::unique_ptr<SEM::Namespace> childNamespace(new SEM::Namespace(semNamespace.name() + childNamespaceName,
-					                                                                  SEM::GlobalStructure::Namespace(semNamespace)));
-					semChildNamespace = childNamespace.get();
-					semNamespace.items().insert(std::make_pair(childNamespaceName, SEM::NamespaceItem::Namespace(std::move(childNamespace))));
+				const auto iterator = uniquedNamespace.items().find(childNamespaceName);
+				if (iterator == uniquedNamespace.items().end()) {
+					std::unique_ptr<AST::Namespace> childNamespace(new AST::Namespace(uniquedNamespace.name() + childNamespaceName,
+					                                                                  SEM::GlobalStructure::Namespace(uniquedNamespace)));
+					uniquedChildNamespace = childNamespace.get();
+					uniquedNamespace.items().insert(std::make_pair(childNamespaceName, AST::NamespaceItem::Namespace(std::move(childNamespace))));
 				} else {
-					semChildNamespace = &(iterator->second.nameSpace());
+					uniquedChildNamespace = &(iterator->second.nameSpace());
 				}
 				
-				astChildNamespaceNode->setNamespace(*semChildNamespace);
-				semChildNamespace->astNamespaces().push_back(&astChildNamespaceNode);
+				childNamespaceNode->setNamespace(*uniquedChildNamespace);
+				uniquedChildNamespace->namespaceDecls().push_back(&childNamespaceNode);
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(*semChildNamespace));
-				AddNamespaceData(context, astChildNamespaceNode->data(), moduleScope);
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(*uniquedChildNamespace));
+				AddNamespaceData(context, childNamespaceNode->data(), moduleScope);
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
@@ -351,9 +351,9 @@ namespace locic {
 			
 			for (auto& aliasNode: astNamespaceDataNode->aliases) {
 				const auto& aliasName = aliasNode->name();
-				const auto fullTypeName = semNamespace.name() + aliasName;
-				const auto iterator = semNamespace.items().find(aliasName);
-				if (iterator != semNamespace.items().end()) {
+				const auto fullTypeName = uniquedNamespace.name() + aliasName;
+				const auto iterator = uniquedNamespace.items().find(aliasName);
+				if (iterator != uniquedNamespace.items().end()) {
 					const auto& location = iterator->second.location();
 					OptionalDiag previousDefinedDiag(PreviousDefinedDiag(), location);
 					context.issueDiag(AliasClashesWithExistingNameDiag(fullTypeName),
@@ -362,7 +362,7 @@ namespace locic {
 				}
 				
 				aliasNode->setContext(context.semContext());
-				aliasNode->setParent(SEM::GlobalStructure::Namespace(semNamespace));
+				aliasNode->setParent(SEM::GlobalStructure::Namespace(uniquedNamespace));
 				aliasNode->setFullName(fullTypeName.copy());
 				
 				// Add template variables.
@@ -389,7 +389,7 @@ namespace locic {
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Alias(*aliasNode));
 				context.aliasTypeResolver().addAlias(*aliasNode, context.scopeStack().copy());
 				
-				semNamespace.items().insert(std::make_pair(aliasName, SEM::NamespaceItem::Alias(*aliasNode)));
+				uniquedNamespace.items().insert(std::make_pair(aliasName, AST::NamespaceItem::Alias(*aliasNode)));
 			}
 			
 			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {

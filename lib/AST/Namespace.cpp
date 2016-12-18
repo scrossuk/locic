@@ -4,18 +4,18 @@
 
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Namespace.hpp>
 
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		NamespaceItem NamespaceItem::Alias(AST::Alias& alias) {
 			NamespaceItem item(ALIAS);
@@ -29,7 +29,7 @@ namespace locic {
 			return item;
 		}
 		
-		NamespaceItem NamespaceItem::Namespace(std::unique_ptr<SEM::Namespace> nameSpace) {
+		NamespaceItem NamespaceItem::Namespace(std::unique_ptr<AST::Namespace> nameSpace) {
 			NamespaceItem item(NAMESPACE);
 			item.data_.nameSpace = nameSpace.release();
 			return item;
@@ -88,12 +88,12 @@ namespace locic {
 			return *(data_.function);
 		}
 		
-		Namespace& NamespaceItem::nameSpace() const {
+		AST::Namespace& NamespaceItem::nameSpace() const {
 			assert(isNamespace());
 			return *(data_.nameSpace);
 		}
 		
-		TypeInstance& NamespaceItem::typeInstance() const {
+		SEM::TypeInstance& NamespaceItem::typeInstance() const {
 			assert(isTypeInstance());
 			return *(data_.typeInstance);
 		}
@@ -105,7 +105,7 @@ namespace locic {
 				case FUNCTION:
 					return function().debugInfo()->declLocation;
 				case NAMESPACE:
-					return nameSpace().astNamespaces().front()->location();
+					return nameSpace().namespaceDecls().front()->location();
 				case TYPEINSTANCE:
 					return typeInstance().debugInfo()->location;
 			}
@@ -134,28 +134,28 @@ namespace locic {
 			}
 		
 		Namespace::Namespace()
-			: parent_(GlobalStructure::Namespace(*this)),
+			: parent_(SEM::GlobalStructure::Namespace(*this)),
 			name_(Name::Absolute()) { }
 		
-		Namespace::Namespace(Name n, GlobalStructure argParent)
+		Namespace::Namespace(Name n, SEM::GlobalStructure argParent)
 			: parent_(std::move(argParent)),
 			  name_(std::move(n)) { }
 		
-		std::vector<AST::Node<AST::NamespaceDecl>*>&
-		Namespace::astNamespaces() {
-			return astNamespaces_;
+		std::vector<Node<NamespaceDecl>*>&
+		Namespace::namespaceDecls() {
+			return namespaceDecls_;
 		}
 		
-		const std::vector<AST::Node<AST::NamespaceDecl>*>&
-		Namespace::astNamespaces() const {
-			return astNamespaces_;
+		const std::vector<Node<NamespaceDecl>*>&
+		Namespace::namespaceDecls() const {
+			return namespaceDecls_;
 		}
 		
-		GlobalStructure& Namespace::parent() {
+		SEM::GlobalStructure& Namespace::parent() {
 			return parent_;
 		}
 		
-		const GlobalStructure& Namespace::parent() const {
+		const SEM::GlobalStructure& Namespace::parent() const {
 			return parent_;
 		}
 		

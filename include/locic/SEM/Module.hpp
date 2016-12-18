@@ -6,10 +6,15 @@
 
 namespace locic {
 	
+	namespace AST {
+		
+		class Namespace;
+		
+	}
+	
 	namespace SEM {
 		
 		class Context;
-		class Namespace;
 		
 		class Module {
 			public:
@@ -22,14 +27,14 @@ namespace locic {
 				Context& context();
 				const Context& context() const;
 				
-				Namespace& rootNamespace();
-				const Namespace& rootNamespace() const;
+				AST::Namespace& rootNamespace();
+				const AST::Namespace& rootNamespace() const;
 				
 				std::string toString() const;
 				
 			private:
 				Context& context_;
-				std::unique_ptr<Namespace> rootNamespace_;
+				std::unique_ptr<AST::Namespace> rootNamespace_;
 				
 		};
 		

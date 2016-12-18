@@ -78,7 +78,7 @@ namespace locic {
 			return function->type().returnType();
 		}
 		
-		const SEM::NamespaceItem& getBuiltInNamespaceItem(Context& context, const String& typeName) {
+		const AST::NamespaceItem& getBuiltInNamespaceItem(Context& context, const String& typeName) {
 			const auto& scopeStack = context.scopeStack();
 			const auto rootElement = scopeStack[0];
 			assert(rootElement.isNamespace());

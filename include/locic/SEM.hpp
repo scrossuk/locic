@@ -6,7 +6,6 @@
 #include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/IfClause.hpp>
 #include <locic/SEM/Module.hpp>
-#include <locic/SEM/Namespace.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
