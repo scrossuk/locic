@@ -8,7 +8,7 @@
 #include <locic/AST/TypeArray.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/ValueArray.hpp>
+#include <locic/AST/ValueArray.hpp>
 
 namespace locic {
 	

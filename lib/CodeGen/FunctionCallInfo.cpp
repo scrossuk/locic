@@ -27,7 +27,7 @@
 #include <locic/CodeGen/ValueEmitter.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
-#include <locic/SEM/Value.hpp>
+#include <locic/AST/Value.hpp>
 
 #include <locic/Support/MethodID.hpp>
 
@@ -62,7 +62,7 @@ namespace locic {
 		
 		class CallValuePendingResult: public PendingResultBase {
 		public:
-			CallValuePendingResult(const SEM::Value& value)
+			CallValuePendingResult(const AST::Value& value)
 			: value_(value) { }
 			
 			llvm::Value* generateValue(Function& function, llvm::Value* const hintResultValue) const {
@@ -94,17 +94,17 @@ namespace locic {
 			}
 			
 		private:
-			const SEM::Value& value_;
+			const AST::Value& value_;
 			
 		};
 		
-		bool isTrivialFunction(Module& module, const SEM::Value& value) {
+		bool isTrivialFunction(Module& module, const AST::Value& value) {
 			switch (value.kind()) {
-				case SEM::Value::FUNCTIONREF: {
+				case AST::Value::FUNCTIONREF: {
 					return value.functionRefFunction().isPrimitive();
 				}
 				
-				case SEM::Value::METHODOBJECT: {
+				case AST::Value::METHODOBJECT: {
 					return isTrivialFunction(module, value.methodObject());
 				}
 				
@@ -114,14 +114,14 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialMethodCall(Function& function, const SEM::Value& value,
-		                                  llvm::ArrayRef<SEM::Value> valueArgs,
+		llvm::Value* genTrivialMethodCall(Function& function, const AST::Value& value,
+		                                  llvm::ArrayRef<AST::Value> valueArgs,
 		                                  Optional<PendingResult> contextValue,
 		                                  llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			
 			switch (value.kind()) {
-				case SEM::Value::FUNCTIONREF: {
+				case AST::Value::FUNCTIONREF: {
 					PendingResultArray args;
 					
 					if (contextValue) {
@@ -153,7 +153,7 @@ namespace locic {
 					                                             hintResultValue);
 				}
 				
-				case SEM::Value::METHODOBJECT: {
+				case AST::Value::METHODOBJECT: {
 					const auto& dataValue = value.methodOwner();
 					const CallValuePendingResult dataResult(dataValue);
 					const PendingResult dataPendingResult(dataResult);
@@ -167,12 +167,12 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> valueArgs,
+		llvm::Value* genTrivialFunctionCall(Function& function, const AST::Value& value, llvm::ArrayRef<AST::Value> valueArgs,
 				llvm::Value* const hintResultValue) {
 			return genTrivialMethodCall(function, value, valueArgs, None, hintResultValue);
 		}
 		
-		FunctionCallInfo genFunctionCallInfo(Function& function, const SEM::Value& value) {
+		FunctionCallInfo genFunctionCallInfo(Function& function, const AST::Value& value) {
 			auto& builder = function.getBuilder();
 			auto& module = function.module();
 			
@@ -180,7 +180,7 @@ namespace locic {
 			ValueEmitter valueEmitter(irEmitter);
 			
 			switch (value.kind()) {
-				case SEM::Value::FUNCTIONREF: {
+				case AST::Value::FUNCTIONREF: {
 					FunctionCallInfo callInfo;
 					
 					const auto parentType = value.functionRefParentType();
@@ -205,7 +205,7 @@ namespace locic {
 					return callInfo;
 				}
 				
-				case SEM::Value::TEMPLATEFUNCTIONREF: {
+				case AST::Value::TEMPLATEFUNCTIONREF: {
 					FunctionCallInfo callInfo;
 					
 					const auto parentType = value.templateFunctionRefParentType();
@@ -230,7 +230,7 @@ namespace locic {
 					return callInfo;
 				}
 				
-				case SEM::Value::METHODOBJECT: {
+				case AST::Value::METHODOBJECT: {
 					assert(value.type()->isCallableMethodObject());
 					
 					FunctionCallInfo callInfo;
@@ -276,14 +276,14 @@ namespace locic {
 			}
 		}
 		
-		TypeInfoComponents genTypeInfoComponents(Function& function, const SEM::Value& value) {
+		TypeInfoComponents genTypeInfoComponents(Function& function, const AST::Value& value) {
 			auto& module = function.module();
 			
 			IREmitter irEmitter(function);
 			ValueEmitter valueEmitter(irEmitter);
 			
 			switch (value.kind()) {
-				case SEM::Value::TYPEREF: {
+				case AST::Value::TYPEREF: {
 					const auto targetType = value.typeRefType();
 					const auto vtablePointer = genVTable(module, targetType->resolveAliases()->getObjectType());
 					const auto templateGenerator = getTemplateGenerator(function, TemplateInst::Type(targetType));
@@ -296,12 +296,12 @@ namespace locic {
 			}
 		}
 		
-		TypeInfoComponents genBoundTypeInfoComponents(Function& function, const SEM::Value& value) {
+		TypeInfoComponents genBoundTypeInfoComponents(Function& function, const AST::Value& value) {
 			IREmitter irEmitter(function);
 			ValueEmitter valueEmitter(irEmitter);
 			
 			switch (value.kind()) {
-				case SEM::Value::BIND_REFERENCE: {
+				case AST::Value::BIND_REFERENCE: {
 					return genTypeInfoComponents(function, value.bindReferenceOperand());
 				}
 				
@@ -315,7 +315,7 @@ namespace locic {
 			}
 		}
 		
-		VirtualMethodComponents genVirtualMethodComponents(Function& function, const SEM::Value& value) {
+		VirtualMethodComponents genVirtualMethodComponents(Function& function, const AST::Value& value) {
 			assert(value.type()->isBuiltInInterfaceMethod() || value.type()->isBuiltInStaticInterfaceMethod());
 			auto& module = function.module();
 			
@@ -323,11 +323,11 @@ namespace locic {
 			ValueEmitter valueEmitter(irEmitter);
 			
 			switch (value.kind()) {
-				case SEM::Value::INTERFACEMETHODOBJECT: {
+				case AST::Value::INTERFACEMETHODOBJECT: {
 					const auto& method = value.interfaceMethodObject();
 					const auto methodOwner = valueEmitter.emitValue(value.interfaceMethodOwner());
 					
-					assert(method.kind() == SEM::Value::FUNCTIONREF);
+					assert(method.kind() == AST::Value::FUNCTIONREF);
 					
 					const auto& interfaceFunction = method.functionRefFunction();
 					const auto methodHash = CreateMethodNameHash(interfaceFunction.fullName().last());
@@ -336,11 +336,11 @@ namespace locic {
 					return VirtualMethodComponents(getVirtualObjectComponents(function, methodOwner), methodHashValue);
 				}
 				
-				case SEM::Value::STATICINTERFACEMETHODOBJECT: {
+				case AST::Value::STATICINTERFACEMETHODOBJECT: {
 					const auto& method = value.staticInterfaceMethodObject();
 					const auto typeInfoComponents = genBoundTypeInfoComponents(function, value.staticInterfaceMethodOwner());
 					
-					assert(method.kind() == SEM::Value::FUNCTIONREF);
+					assert(method.kind() == AST::Value::FUNCTIONREF);
 					
 					const auto& interfaceFunction = method.functionRefFunction();
 					

@@ -269,8 +269,8 @@ namespace locic {
 			
 		};
 		
-		SEM::Value getLiteralValue(Context& context, const String& specifier, const Constant& constant, const Debug::SourceLocation& location) {
-			auto constantValue = SEM::Value::Constant(constant, getLiteralType(context, specifier, constant, location));
+		AST::Value getLiteralValue(Context& context, const String& specifier, const Constant& constant, const Debug::SourceLocation& location) {
+			auto constantValue = AST::Value::Constant(constant, getLiteralType(context, specifier, constant, location));
 			
 			if (constant.kind() != Constant::STRING || specifier == "C") {
 				return constantValue;
@@ -288,7 +288,7 @@ namespace locic {
 			auto& typeBuilder = context.typeBuilder();
 			const auto functionRefType = typeBuilder.getFunctionPointerType(searchResult.function().type());
 			
-			auto functionRef = SEM::Value::FunctionRef(nullptr, searchResult.function(), {}, functionRefType);
+			auto functionRef = AST::Value::FunctionRef(nullptr, searchResult.function(), {}, functionRefType);
 			return CallValue(context, std::move(functionRef), makeHeapArray( std::move(constantValue) ), location);
 		}
 		

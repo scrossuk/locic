@@ -28,13 +28,13 @@ namespace locic {
 			
 			auto functionScope = SEM::Scope::Create();
 			
-			HeapArray<SEM::Value> constructValues;
+			HeapArray<AST::Value> constructValues;
 			
 			const auto intConstant = Constant::Integer(APInt(value));
 			const auto intType = getBuiltInType(context, context.getCString("int_t"), {});
-			constructValues.push_back(SEM::Value::Constant(intConstant, intType));
+			constructValues.push_back(AST::Value::Constant(intConstant, intType));
 			
-			auto internalConstructedValue = SEM::Value::InternalConstruct(typeInstance->selfType(), std::move(constructValues));
+			auto internalConstructedValue = AST::Value::InternalConstruct(typeInstance->selfType(), std::move(constructValues));
 			functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
 			
 			function.setScope(std::move(functionScope));

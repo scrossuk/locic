@@ -120,7 +120,7 @@ namespace locic {
 		}
 		
 		AST::TemplateVarMap GenerateTemplateVarMap(Context& context, const AST::TemplatedObject& templatedObject,
-				SEM::ValueArray values, const Debug::SourceLocation& location, AST::TemplateVarMap variableAssignments) {
+				AST::ValueArray values, const Debug::SourceLocation& location, AST::TemplateVarMap variableAssignments) {
 			const auto& templateVariables = templatedObject.templateVariables();
 			
 			for (size_t i = 0; i < std::min(templateVariables.size(), values.size()); i++) {
@@ -146,7 +146,7 @@ namespace locic {
 				// cast and the issue mentioned above needs to be
 				// resolved.
 				const auto templateVarType = templateVar->type()->substitute(variableAssignments);
-				templateValue = SEM::Value::Constant(templateValue.constant(),
+				templateValue = AST::Value::Constant(templateValue.constant(),
 				                                     templateVarType);
 			}
 			
@@ -235,7 +235,7 @@ namespace locic {
 					const auto& templatedObject = getTemplatedObject(searchResult);
 					const auto& templateVariables = templatedObject.templateVariables();
 					
-					SEM::ValueArray templateValues;
+					AST::ValueArray templateValues;
 					for (const auto& astTemplateArg: *astTemplateArgs) {
 						templateValues.push_back(ConvertValue(context, astTemplateArg));
 					}
@@ -263,8 +263,8 @@ namespace locic {
 			return variableAssignments;
 		}
 		
-		SEM::ValueArray GetTemplateValues(const AST::TemplateVarMap& templateVarMap, const AST::TemplateVarArray& templateVariables) {
-			SEM::ValueArray templateArguments;
+		AST::ValueArray GetTemplateValues(const AST::TemplateVarMap& templateVarMap, const AST::TemplateVarArray& templateVariables) {
+			AST::ValueArray templateArguments;
 			templateArguments.reserve(templateVariables.size());
 			for (const auto templateVar: templateVariables) {
 				templateArguments.push_back(templateVarMap.at(templateVar).copy());
@@ -272,14 +272,14 @@ namespace locic {
 			return templateArguments;
 		}
 		
-		SEM::ValueArray makeTemplateArgs(Context& context, AST::TypeArray typeArray) {
-			SEM::ValueArray templateArguments;
+		AST::ValueArray makeTemplateArgs(Context& context, AST::TypeArray typeArray) {
+			AST::ValueArray templateArguments;
 			templateArguments.reserve(typeArray.size());
 			
 			const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
 			
 			for (const auto& arg: typeArray) {
-				templateArguments.push_back(SEM::Value::TypeRef(arg, typenameType->createStaticRefType(arg)));
+				templateArguments.push_back(AST::Value::TypeRef(arg, typenameType->createStaticRefType(arg)));
 			}
 			
 			return templateArguments;

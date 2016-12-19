@@ -38,7 +38,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value dissolveLval(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
+		AST::Value dissolveLval(Context& context, AST::Value value, const Debug::SourceLocation& location) {
 			assert(value.type()->isLval() || (value.type()->isRef() && value.type()->isBuiltInReference() && value.type()->refTarget()->isLval()));
 			if (!value.type()->isRef()) {
 				value = bindReference(context, std::move(value));
@@ -46,7 +46,7 @@ namespace locic {
 			return CallValue(context, GetSpecialMethod(context, std::move(value), context.getCString("dissolve"), location), {}, location);
 		}
 		
-		SEM::Value tryDissolveValue(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
+		AST::Value tryDissolveValue(Context& context, AST::Value value, const Debug::SourceLocation& location) {
 			if (getSingleDerefType(value.type())->isLval()) {
 				return dissolveLval(context, std::move(value), location);
 			} else {

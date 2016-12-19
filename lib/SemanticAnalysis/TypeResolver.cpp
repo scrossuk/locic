@@ -268,7 +268,7 @@ namespace locic {
 			(void) context_.aliasTypeResolver().resolveAliasType(*alias);
 			assert(alias->templateVariables().size() == 1);
 			
-			SEM::ValueArray values;
+			AST::ValueArray values;
 			values.push_back(templateVar.selfRefValue());
 			auto templateVarMap = GenerateTemplateVarMap(context_, *alias,
 			                                             std::move(values),

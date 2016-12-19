@@ -12,7 +12,7 @@ namespace locic {
 	
 		bool isValidVarArgType(Context& context, const AST::Type* type);
 		
-		SEM::Value VarArgCast(Context& context, SEM::Value value, const Debug::SourceLocation& location);
+		AST::Value VarArgCast(Context& context, AST::Value value, const Debug::SourceLocation& location);
 		
 	}
 	

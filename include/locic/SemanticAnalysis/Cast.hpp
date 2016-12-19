@@ -9,11 +9,6 @@ namespace locic {
 	namespace AST {
 		
 		class Type;
-		
-	}
-	
-	namespace SEM {
-		
 		class Value;
 		
 	}
@@ -38,14 +33,14 @@ namespace locic {
 		 *    6. Reinterpret cast - to 'reinterpret' the byte contents of a value.
 		 */
 		
-		SEM::Value ImplicitCast(Context& context, SEM::Value value, const AST::Type* type, const Debug::SourceLocation& location, bool formatOnly = false);
+		AST::Value ImplicitCast(Context& context, AST::Value value, const AST::Type* type, const Debug::SourceLocation& location, bool formatOnly = false);
 
 		const AST::Type*
 		ImplicitCastTypeFormatOnly(Context& context, const AST::Type* sourceType, const AST::Type* destType,
 		                           const Debug::SourceLocation& location);
 
-		Optional<SEM::Value>
-		ImplicitCastFormatOnly(Context& context, SEM::Value value, const AST::Type* destType,
+		Optional<AST::Value>
+		ImplicitCastFormatOnly(Context& context, AST::Value value, const AST::Type* destType,
 		                       const Debug::SourceLocation& location);
 
 		bool TypeSatisfiesInterface(Context& context, const AST::Type* objectType, const AST::Type* interfaceType);

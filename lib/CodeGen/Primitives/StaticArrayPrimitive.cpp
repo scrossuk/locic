@@ -53,7 +53,7 @@ namespace locic {
 		: typeInstance_(typeInstance) { }
 		
 		bool StaticArrayPrimitive::isSizeAlwaysKnown(const TypeInfo& typeInfo,
-		                                             llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                             llvm::ArrayRef<AST::Value> templateArguments) const {
 			assert(templateArguments.size() == 2);
 			const auto targetType = templateArguments.front().typeRefType();
 			const auto& elementCountValue = templateArguments.back();
@@ -62,7 +62,7 @@ namespace locic {
 		}
 		
 		bool StaticArrayPrimitive::isSizeKnownInThisModule(const TypeInfo& typeInfo,
-		                                                   llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                                   llvm::ArrayRef<AST::Value> templateArguments) const {
 			assert(templateArguments.size() == 2);
 			const auto targetType = templateArguments.front().typeRefType();
 			const auto& elementCountValue = templateArguments.back();
@@ -71,18 +71,18 @@ namespace locic {
 		}
 		
 		bool StaticArrayPrimitive::hasCustomDestructor(const TypeInfo& typeInfo,
-		                                               llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                               llvm::ArrayRef<AST::Value> templateArguments) const {
 			return typeInfo.hasCustomDestructor(templateArguments.front().typeRefType());
 		}
 		
 		bool StaticArrayPrimitive::hasCustomMove(const TypeInfo& typeInfo,
-		                                         llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                         llvm::ArrayRef<AST::Value> templateArguments) const {
 			return typeInfo.hasCustomMove(templateArguments.front().typeRefType());
 		}
 		
 		llvm_abi::Type StaticArrayPrimitive::getABIType(Module& module,
 		                                                 const llvm_abi::TypeBuilder& abiTypeBuilder,
-		                                                 llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                                 llvm::ArrayRef<AST::Value> templateArguments) const {
 			const auto elementType = genABIType(module, templateArguments.front().typeRefType());
 			const auto& elementCount = templateArguments.back().constant().integerValue();
 			return abiTypeBuilder.getArrayTy(elementCount.asUint64(),
@@ -91,7 +91,7 @@ namespace locic {
 		
 		llvm::Type* StaticArrayPrimitive::getIRType(Module& module,
 		                                            const TypeGenerator& typeGenerator,
-		                                            llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                            llvm::ArrayRef<AST::Value> templateArguments) const {
 			const auto elementType = genType(module, templateArguments.front().typeRefType());
 			const auto& elementCount = templateArguments.back().constant().integerValue();
 			return typeGenerator.getArrayType(elementType,
@@ -127,15 +127,15 @@ namespace locic {
 		
 		llvm::Value* StaticArrayPrimitive::emitMethod(IREmitter& irEmitter,
 		                                              const MethodID methodID,
-		                                              llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                              llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                              llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                              llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                              PendingResultArray args,
 		                                              llvm::Value* const hintResultValue) const {
 			auto& builder = irEmitter.builder();
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
-			SEM::ValueArray valueArray;
+			AST::ValueArray valueArray;
 			for (const auto& value: typeTemplateArguments) {
 				valueArray.push_back(value.copy());
 			}

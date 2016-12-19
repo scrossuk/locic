@@ -23,7 +23,7 @@ namespace locic {
 		
 		const AST::Type*
 		TypeBuilder::getPrimitiveType(PrimitiveID primitiveID,
-		                              SEM::ValueArray templateArguments) {
+		                              AST::ValueArray templateArguments) {
 			if (primitiveID == PrimitiveUByte) {
 				primitiveID = PrimitiveUInt8;
 			}
@@ -95,7 +95,7 @@ namespace locic {
 		
 		const AST::Type*
 		TypeBuilder::getPointerType(const AST::Type* const elementType) {
-			SEM::ValueArray array;
+			AST::ValueArray array;
 			array.push_back(elementType->asValue());
 			return getPrimitiveType(PrimitivePtr, std::move(array));
 		}
@@ -104,7 +104,7 @@ namespace locic {
 		TypeBuilder::getConstantStaticArrayType(const AST::Type* elementType,
 		                                        const size_t arraySize,
 		                                        const Debug::SourceLocation& location) {
-			auto arraySizeValue = SEM::Value::Constant(Constant::Integer(arraySize),
+			auto arraySizeValue = AST::Value::Constant(Constant::Integer(arraySize),
 			                                           getSizeType());
 			return getStaticArrayType(elementType,
 			                          std::move(arraySizeValue),
@@ -132,15 +132,15 @@ namespace locic {
 		
 		const AST::Type*
 		TypeBuilder::getStaticArrayType(const AST::Type* const elementType,
-		                                SEM::Value arraySize,
+		                                AST::Value arraySize,
 		                                const Debug::SourceLocation& location) {
-			SEM::ValueArray templateArgValues;
+			AST::ValueArray templateArgValues;
 			templateArgValues.reserve(2);
 			
 			const auto arraySizeType = getSizeType();
 			
 			if (arraySize.isConstant() && arraySize.constant().isInteger()) {
-				arraySize = SEM::Value::Constant(arraySize.constant(),
+				arraySize = AST::Value::Constant(arraySize.constant(),
 				                                 arraySizeType);
 			}
 			
@@ -150,17 +150,17 @@ namespace locic {
 				                   location);
 			}
 			
-			templateArgValues.push_back(SEM::Value::TypeRef(elementType,
+			templateArgValues.push_back(AST::Value::TypeRef(elementType,
 			                                                getTypenameType()->createStaticRefType(elementType)));
 			templateArgValues.push_back(std::move(arraySize));
 			
 			return getPrimitiveType(PrimitiveStaticArray, std::move(templateArgValues));
 		}
 		
-		static SEM::ValueArray getFunctionTemplateArgs(Context& context, const AST::FunctionType functionType) {
+		static AST::ValueArray getFunctionTemplateArgs(Context& context, const AST::FunctionType functionType) {
 			const auto& parameterTypes = functionType.parameterTypes();
 			
-			SEM::ValueArray templateArgs;
+			AST::ValueArray templateArgs;
 			templateArgs.reserve(1 + parameterTypes.size());
 			
 			auto& typeBuilder = context.typeBuilder();
@@ -168,15 +168,15 @@ namespace locic {
 			const auto boolType = typeBuilder.getBoolType();
 			
 			auto reducedNoexceptPredicate = reducePredicate(context, functionType.attributes().noExceptPredicate().copy());
-			templateArgs.push_back(SEM::Value::PredicateExpr(std::move(reducedNoexceptPredicate), boolType));
+			templateArgs.push_back(AST::Value::PredicateExpr(std::move(reducedNoexceptPredicate), boolType));
 			
 			const auto typenameType = typeBuilder.getTypenameType();
 			
 			const auto returnType = functionType.returnType();
-			templateArgs.push_back(SEM::Value::TypeRef(returnType, typenameType->createStaticRefType(returnType)));
+			templateArgs.push_back(AST::Value::TypeRef(returnType, typenameType->createStaticRefType(returnType)));
 			
 			for (const auto& paramType: parameterTypes) {
-				templateArgs.push_back(SEM::Value::TypeRef(paramType, typenameType->createStaticRefType(paramType)));
+				templateArgs.push_back(AST::Value::TypeRef(paramType, typenameType->createStaticRefType(paramType)));
 			}
 			
 			return templateArgs;

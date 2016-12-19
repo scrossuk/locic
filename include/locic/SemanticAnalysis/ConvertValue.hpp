@@ -11,7 +11,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Value ConvertValue(Context& context, const AST::Node<AST::ValueDecl>& value);
+		AST::Value ConvertValue(Context& context, const AST::Node<AST::ValueDecl>& value);
 		
 		class BuiltInTypeMissingException final: public Exception {
 			public:

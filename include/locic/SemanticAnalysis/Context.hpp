@@ -22,6 +22,7 @@ namespace locic {
 		
 		class TemplatedObject;
 		class Type;
+		class Value;
 		
 	}
 	
@@ -36,7 +37,6 @@ namespace locic {
 		
 		class Context;
 		class Predicate;
-		class Value;
 		
 	}
 	
@@ -132,9 +132,9 @@ namespace locic {
 				
 		};
 		
-		SEM::Value getSelfValue(Context& context, const Debug::SourceLocation& location);
+		AST::Value getSelfValue(Context& context, const Debug::SourceLocation& location);
 		
-		SEM::Value getThisValue(Context& context, const Debug::SourceLocation& location);
+		AST::Value getThisValue(Context& context, const Debug::SourceLocation& location);
 		
 	}
 	

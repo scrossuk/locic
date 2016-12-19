@@ -7,6 +7,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Value;
 		class Var;
 		
 	}
@@ -18,7 +19,6 @@ namespace locic {
 		class Scope;
 		class Statement;
 		class SwitchClause;
-		class Value;
 		
 	}
 	
@@ -32,35 +32,35 @@ namespace locic {
 			
 			void emitStatement(const SEM::Statement& statement);
 			
-			void emitValue(const SEM::Value& value);
+			void emitValue(const AST::Value& value);
 			
 			void emitScope(const SEM::Scope& scope);
 			
 			void emitInitialise(AST::Var& var,
-			                    const SEM::Value& value);
+			                    const AST::Value& value);
 			
 			void emitIf(const std::vector<SEM::IfClause*>& ifClauseList,
 			            const SEM::Scope& elseScope);
 			
-			void emitSwitch(const SEM::Value& switchValue,
+			void emitSwitch(const AST::Value& switchValue,
 			                const std::vector<SEM::SwitchCase*>& switchCases,
 			                const SEM::Scope* defaultScope);
 			
-			void emitLoop(const SEM::Value& condition,
+			void emitLoop(const AST::Value& condition,
 			              const SEM::Scope& iterationScope,
 			              const SEM::Scope& advanceScope);
 			
-			void emitFor(AST::Var& var, const SEM::Value& initValue,
+			void emitFor(AST::Var& var, const AST::Value& initValue,
 			             const SEM::Scope& scope);
 			
 			void emitReturnVoid();
 			
-			void emitReturn(const SEM::Value& value);
+			void emitReturn(const AST::Value& value);
 			
 			void emitTry(const SEM::Scope& scope,
 			             const std::vector<SEM::CatchClause*>& catchClauses);
 			
-			void emitThrow(const SEM::Value& value);
+			void emitThrow(const AST::Value& value);
 			
 			void emitRethrow();
 			
@@ -71,7 +71,7 @@ namespace locic {
 			
 			void emitContinue();
 			
-			void emitAssert(const SEM::Value& value,
+			void emitAssert(const AST::Value& value,
 			                const String& assertName);
 			
 			void emitAssertNoExcept(const SEM::Scope& scope);

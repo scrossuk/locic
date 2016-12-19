@@ -52,41 +52,41 @@ namespace locic {
 		: typeInstance_(typeInstance) { }
 		
 		bool NullPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
-		                                      llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                      llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool NullPrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
-		                                            llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                            llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool NullPrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
-		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                        llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		bool NullPrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
-		                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                  llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		llvm_abi::Type NullPrimitive::getABIType(Module& /*module*/,
 		                                          const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
-		                                          llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                          llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return llvm_abi::PointerTy;
 		}
 		
 		llvm::Type* NullPrimitive::getIRType(Module& /*module*/,
 		                                     const TypeGenerator& typeGenerator,
-		                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                     llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return typeGenerator.getPtrType();
 		}
 		
 		llvm::Value* NullPrimitive::emitMethod(IREmitter& irEmitter,
 		                                       const MethodID methodID,
-		                                       llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                       llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                       llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                       llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                       PendingResultArray /*args*/,
 		                                       llvm::Value* const hintResultValue) const {
 			auto& function = irEmitter.function();
@@ -113,7 +113,7 @@ namespace locic {
 				}
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST: {
-					SEM::ValueArray valueArray;
+					AST::ValueArray valueArray;
 					for (const auto& value: typeTemplateArguments) {
 						valueArray.push_back(value.copy());
 					}

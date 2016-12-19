@@ -95,7 +95,7 @@ namespace locic {
 						return nullptr;
 					}
 					
-					SEM::ValueArray templateArgs;
+					AST::ValueArray templateArgs;
 					templateArgs.reserve(sourceType->templateArguments().size());
 					
 					for (size_t i = 0; i < sourceType->templateArguments().size(); i++) {
@@ -111,7 +111,7 @@ namespace locic {
 							                                    hasConstChain, location);
 							if (templateArg == nullptr) return nullptr;
 							
-							templateArgs.push_back(SEM::Value::TypeRef(templateArg, sourceTemplateArg.type()));
+							templateArgs.push_back(AST::Value::TypeRef(templateArg, sourceTemplateArg.type()));
 						} else {
 							if (sourceTemplateArg != destTemplateArg) {
 								return nullptr;
@@ -251,29 +251,29 @@ namespace locic {
 			                                       location, isTopLevel);
 		}
 
-		Optional<SEM::Value>
-		ImplicitCastFormatOnly(Context& context, SEM::Value value, const AST::Type* destType,
+		Optional<AST::Value>
+		ImplicitCastFormatOnly(Context& context, AST::Value value, const AST::Type* destType,
 		                       const Debug::SourceLocation& location) {
 			auto resultType = ImplicitCastTypeFormatOnly(context, value.type(), destType, location);
 			if (resultType == nullptr) {
-				return Optional<SEM::Value>();
+				return Optional<AST::Value>();
 			}
 			
 			// The value's type needs to reflect the successful cast, however
 			// this shouldn't be added unless necessary.
 			if (value.type() != resultType) {
-				return make_optional(SEM::Value::Cast(resultType, std::move(value)));
+				return make_optional(AST::Value::Cast(resultType, std::move(value)));
 			} else {
 				return make_optional(std::move(value));
 			}
 		}
 
-		Optional<SEM::Value>
-		ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value value,
+		Optional<AST::Value>
+		ImplicitCastConvert(Context& context, std::vector<std::string>& errors, AST::Value value,
 		                    const AST::Type* destType, const Debug::SourceLocation& location, bool allowBind,
 		                    bool formatOnly = false);
 
-		static Optional<SEM::Value> PolyCastRefValueToType(Context& context, SEM::Value value, const AST::Type* destType) {
+		static Optional<AST::Value> PolyCastRefValueToType(Context& context, AST::Value value, const AST::Type* destType) {
 			const auto sourceType = value.type();
 			assert(sourceType->isRef() && destType->isRef());
 			
@@ -284,11 +284,11 @@ namespace locic {
 			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
 			
 			return methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet) ?
-				make_optional(SEM::Value::PolyCast(destType, std::move(value))) :
-				Optional<SEM::Value>();
+				make_optional(AST::Value::PolyCast(destType, std::move(value))) :
+				Optional<AST::Value>();
 		}
 		
-		static Optional<SEM::Value> PolyCastStaticRefValueToType(Context& context, SEM::Value value, const AST::Type* destType) {
+		static Optional<AST::Value> PolyCastStaticRefValueToType(Context& context, AST::Value value, const AST::Type* destType) {
 			const auto sourceType = value.type();
 			assert(sourceType->isStaticRef() && destType->isStaticRef());
 			
@@ -299,13 +299,13 @@ namespace locic {
 			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
 			
 			return methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet) ?
-				make_optional(SEM::Value::PolyCast(destType, std::move(value))) :
-				Optional<SEM::Value>();
+				make_optional(AST::Value::PolyCast(destType, std::move(value))) :
+				Optional<AST::Value>();
 		}
 		
 		// User-defined casts.
-		static Optional<SEM::Value> ImplicitCastUser(Context& context, std::vector<std::string>& errors,
-		                                             SEM::Value rawValue, const AST::Type* destType,
+		static Optional<AST::Value> ImplicitCastUser(Context& context, std::vector<std::string>& errors,
+		                                             AST::Value rawValue, const AST::Type* destType,
 		                                             const Debug::SourceLocation& location, bool allowBind) {
 			auto value = derefValue(std::move(rawValue));
 			const auto sourceDerefType = getDerefType(value.type());
@@ -317,7 +317,7 @@ namespace locic {
 			    TypeCapabilities(context).supportsImplicitCast(sourceDerefType)) {
 				if (destDerefType->isObject() && sourceDerefType->getObjectType() == destDerefType->getObjectType()) {
 					// Can't cast to same type.
-					return Optional<SEM::Value>();
+					return Optional<AST::Value>();
 				}
 				
 				const auto& castFunction = sourceDerefType->getObjectType()->getFunction(context.getCString("implicitcast"));
@@ -326,7 +326,7 @@ namespace locic {
 				
 				auto combinedTemplateVarMap = sourceDerefType->generateTemplateVarMap();
 				const auto& castTemplateVar = castFunction.templateVariables().front();
-				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, SEM::Value::TypeRef(destDerefType, castTemplateVar->type()->createStaticRefType(destDerefType))));
+				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, AST::Value::TypeRef(destDerefType, castTemplateVar->type()->createStaticRefType(destDerefType))));
 				
 				if (evaluatePredicate(context, requiresPredicate, combinedTemplateVarMap)) {
 					auto boundValue = bindReference(context, std::move(value));
@@ -342,7 +342,7 @@ namespace locic {
 				}
 			}
 			
-			return Optional<SEM::Value>();
+			return Optional<AST::Value>();
 		}
 		
 		static bool isStructurallyEqual(const AST::Type* firstType, const AST::Type* secondType) {
@@ -359,7 +359,7 @@ namespace locic {
 			}
 		}
 		
-		static bool canTreatConstantAsUnsigned(const SEM::Value& value, const AST::Type* const destType) {
+		static bool canTreatConstantAsUnsigned(const AST::Value& value, const AST::Type* const destType) {
 			assert(value.isConstant());
 			
 			const auto sourceType = value.type()->resolveAliases();
@@ -398,7 +398,7 @@ namespace locic {
 			std::string message_;
 		};
 
-		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, const SEM::Value value, const AST::Type* destType, const Debug::SourceLocation& location, bool allowBind, bool formatOnly) {
+		Optional<AST::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, const AST::Value value, const AST::Type* destType, const Debug::SourceLocation& location, bool allowBind, bool formatOnly) {
 			{
 				// Try a format only cast first, since
 				// this requires no transformations.
@@ -417,7 +417,7 @@ namespace locic {
 			    canTreatConstantAsUnsigned(value, destType)) {
 				// Allow positive signed integer constants to be
 				// treated as unsigned.
-				return make_optional(SEM::Value::Constant(value.constant(),
+				return make_optional(AST::Value::Constant(value.constant(),
 				                                          destType));
 			}
 			
@@ -434,7 +434,7 @@ namespace locic {
 					}
 					
 					if (found) {
-						auto castValue = SEM::Value::Cast(destDerefType, value.copy());
+						auto castValue = AST::Value::Cast(destDerefType, value.copy());
 						auto castResult = ImplicitCastConvert(context, errors, std::move(castValue), destType, location, allowBind);
 						if (castResult) {
 							return castResult;
@@ -513,7 +513,7 @@ namespace locic {
 					auto copyValue = CallValue(context, GetSpecialMethod(context, derefValue(value.copy()), context.getCString("implicitcopy"), location), {}, location);
 					
 					auto copyRefValue = sourceDerefType->isStaticRef() ?
-						SEM::Value::StaticRef(sourceDerefType->staticRefTarget(), std::move(copyValue)) :
+						AST::Value::StaticRef(sourceDerefType->staticRefTarget(), std::move(copyValue)) :
 						std::move(copyValue);
 					
 					const bool nextAllowBind = false;
@@ -543,15 +543,15 @@ namespace locic {
 				assert(doesPredicateImplyPredicate(context, copyValue.type()->constPredicate(), destType->constPredicate()));
 				
 				auto copyLvalValue = sourceType->isLval() ?
-						SEM::Value::Lval(std::move(copyValue)) :
+						AST::Value::Lval(std::move(copyValue)) :
 						std::move(copyValue);
 				
 				auto copyRefValue = sourceType->isRef() ?
-						SEM::Value::Ref(sourceType->refTarget(), std::move(copyLvalValue)) :
+						AST::Value::Ref(sourceType->refTarget(), std::move(copyLvalValue)) :
 						std::move(copyLvalValue);
 				
 				auto copyStaticRefValue = sourceType->isStaticRef() ?
-						SEM::Value::StaticRef(sourceType->staticRefTarget(), std::move(copyRefValue)) :
+						AST::Value::StaticRef(sourceType->staticRefTarget(), std::move(copyRefValue)) :
 						std::move(copyRefValue);
 				
 				const bool nextAllowBind = false;
@@ -581,7 +581,7 @@ namespace locic {
 				}
 			}
 			
-			return Optional<SEM::Value>();
+			return Optional<AST::Value>();
 		}
 
 		class CannotImplicitlyCastTypeDiag : public Error {
@@ -618,7 +618,7 @@ namespace locic {
 			std::string message_;
 		};
 
-		SEM::Value ImplicitCast(Context& context, SEM::Value value, const AST::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
+		AST::Value ImplicitCast(Context& context, AST::Value value, const AST::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
 			std::vector<std::string> errors;
 			const auto valueKind = value.kind();
 			const auto valueType = value.type();
@@ -629,7 +629,7 @@ namespace locic {
 			}
 			
 			if (errors.empty()) {
-				if (valueKind == SEM::Value::CASTDUMMYOBJECT) {
+				if (valueKind == AST::Value::CASTDUMMYOBJECT) {
 					context.issueDiag(CannotImplicitlyCastTypeDiag(valueType, destType), location);
 					throw SkipException();
 				} else {
@@ -647,7 +647,7 @@ namespace locic {
 			const bool allowBind = true;
 			const bool formatOnly = false;
 			std::vector<std::string> errors;
-			const auto result = ImplicitCastConvert(context, errors, SEM::Value::CastDummy(sourceType), destType, location, allowBind, formatOnly);
+			const auto result = ImplicitCastConvert(context, errors, AST::Value::CastDummy(sourceType), destType, location, allowBind, formatOnly);
 			return result;
 		}
 		

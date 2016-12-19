@@ -19,7 +19,7 @@ namespace locic {
 			return primitive.emitMethod(irEmitter,
 			                            METHOD_ALIGNMASK,
 			                            arrayRef(type->templateArguments()),
-			                            /*functionTemplateArguments=*/llvm::ArrayRef<SEM::Value>(),
+			                            /*functionTemplateArguments=*/llvm::ArrayRef<AST::Value>(),
 			                            /*args=*/{}, /*hintResultValue=*/nullptr);
 		}
 		
@@ -32,7 +32,7 @@ namespace locic {
 			return primitive.emitMethod(irEmitter,
 			                            METHOD_SIZEOF,
 			                            arrayRef(type->templateArguments()),
-			                            /*functionTemplateArguments=*/llvm::ArrayRef<SEM::Value>(),
+			                            /*functionTemplateArguments=*/llvm::ArrayRef<AST::Value>(),
 			                            /*args=*/{}, /*hintResultValue=*/nullptr);
 		}
 		

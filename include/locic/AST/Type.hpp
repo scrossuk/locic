@@ -9,7 +9,7 @@
 #include <locic/AST/TypeArray.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/ValueArray.hpp>
+#include <locic/AST/ValueArray.hpp>
 #include <locic/Support/Optional.hpp>
 
 namespace locic {
@@ -40,11 +40,11 @@ namespace locic {
 					TEMPLATEVAR
 				};
 				
-				static const SEM::ValueArray NO_TEMPLATE_ARGS;
+				static const AST::ValueArray NO_TEMPLATE_ARGS;
 				
 				static const Type* Auto(const SEM::Context& context);
-				static const Type* Alias(const AST::Alias& alias, SEM::ValueArray templateArguments);
-				static const Type* Object(const SEM::TypeInstance* typeInstance, SEM::ValueArray templateArguments);
+				static const Type* Alias(const AST::Alias& alias, AST::ValueArray templateArguments);
+				static const Type* Object(const SEM::TypeInstance* typeInstance, AST::ValueArray templateArguments);
 				static const Type* TemplateVarRef(const TemplateVar* templateVar);
 				
 				const SEM::Context& context() const;
@@ -77,7 +77,7 @@ namespace locic {
 				bool isAlias() const;
 				
 				const AST::Alias& alias() const;
-				const SEM::ValueArray& aliasArguments() const;
+				const AST::ValueArray& aliasArguments() const;
 				
 				PrimitiveID primitiveID() const;
 				
@@ -97,7 +97,7 @@ namespace locic {
 				
 				bool isObject() const;
 				const SEM::TypeInstance* getObjectType() const;
-				const SEM::ValueArray& templateArguments() const;
+				const AST::ValueArray& templateArguments() const;
 				
 				bool isTemplateVar() const;
 				const TemplateVar* getTemplateVar() const;
@@ -129,7 +129,7 @@ namespace locic {
 				bool isCallableVarArg() const;
 				
 				FunctionType asFunctionType() const;
-				SEM::Value asValue() const;
+				AST::Value asValue() const;
 				
 				const Type* substitute(const TemplateVarMap& templateVarMap) const;
 				const Type* resolveAliases() const;
@@ -167,7 +167,7 @@ namespace locic {
 				const Type* staticRefTarget_;
 				
 				TypeArray typeArray_;
-				SEM::ValueArray valueArray_;
+				AST::ValueArray valueArray_;
 				
 				union {
 					struct {

@@ -50,41 +50,41 @@ namespace locic {
 		}
 		
 		bool PtrPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
-		                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                     llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool PtrPrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
-		                                           llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                           llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool PtrPrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
-		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                        llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		bool PtrPrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
-		                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                  llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		llvm_abi::Type PtrPrimitive::getABIType(Module& /*module*/,
 		                                        const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
-		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                        llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return llvm_abi::PointerTy;
 		}
 		
 		llvm::Type* PtrPrimitive::getIRType(Module& /*module*/,
 		                                    const TypeGenerator& typeGenerator,
-		                                    llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                    llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return typeGenerator.getPtrType();
 		}
 		
 		llvm::Value* PtrPrimitive::emitMethod(IREmitter& irEmitter,
 		                                      const MethodID methodID,
-		                                      llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                      llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                      llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                      llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                      PendingResultArray args,
 		                                      llvm::Value* /*hintResultValue*/) const {
 			auto& builder = irEmitter.builder();

@@ -27,8 +27,8 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		static SEM::Value GetAssignValue(Context& context, AST::AssignKind assignKind, SEM::Value varValue,
-		                                 SEM::Value operandValue, const Debug::SourceLocation& location) {
+		static AST::Value GetAssignValue(Context& context, AST::AssignKind assignKind, AST::Value varValue,
+		                                 AST::Value operandValue, const Debug::SourceLocation& location) {
 			switch (assignKind) {
 				case AST::ASSIGN_DIRECT:
 					return operandValue;
@@ -438,7 +438,7 @@ namespace locic {
 							                  location);
 						}
 						const auto voidType = context.typeBuilder().getVoidType();
-						return SEM::Statement::ValueStmt(SEM::Value::Cast(voidType, std::move(value)));
+						return SEM::Statement::ValueStmt(AST::Value::Cast(voidType, std::move(value)));
 					} else {
 						if (!value.type()->isBuiltInVoid()) {
 							context.issueDiag(NonVoidNotExplicitlyIgnoredDiag(),
@@ -682,7 +682,7 @@ namespace locic {
 					} else {
 						// Automatically cast to void if necessary.
 						const auto voidType = context.typeBuilder().getVoidType();
-						auto voidCastedValue = SEM::Value::Cast(voidType, std::move(opResult));
+						auto voidCastedValue = AST::Value::Cast(voidType, std::move(opResult));
 						return SEM::Statement::ValueStmt(std::move(voidCastedValue));
 					}
 				}
@@ -696,7 +696,7 @@ namespace locic {
 					} else {
 						// Automatically cast to void if necessary.
 						const auto voidType = context.typeBuilder().getVoidType();
-						auto voidCastedValue = SEM::Value::Cast(voidType, std::move(opResult));
+						auto voidCastedValue = AST::Value::Cast(voidType, std::move(opResult));
 						return SEM::Statement::ValueStmt(std::move(voidCastedValue));
 					}
 				}

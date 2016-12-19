@@ -33,7 +33,7 @@ namespace locic {
 			(void) primitive.emitMethod(irEmitter,
 			                            METHOD_DESTROY,
 			                            arrayRef(type->templateArguments()),
-			                            /*functionTemplateArguments=*/llvm::ArrayRef<SEM::Value>(),
+			                            /*functionTemplateArguments=*/llvm::ArrayRef<AST::Value>(),
 			                            std::move(arguments),
 			                            /*hintResultValue=*/nullptr);
 		}

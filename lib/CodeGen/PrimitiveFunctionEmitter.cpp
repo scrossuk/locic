@@ -18,7 +18,7 @@ namespace locic {
 		
 		llvm::Value*
 		PrimitiveFunctionEmitter::emitMinOrMax(const MethodID methodID,
-		                                       llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                       llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                       PendingResultArray args,
 		                                       llvm::Value* /*hintResultValue*/) {
 			assert(methodID == METHOD_MIN || methodID == METHOD_MAX);
@@ -62,17 +62,17 @@ namespace locic {
 		
 		llvm::Value*
 		PrimitiveFunctionEmitter::emitRange(const MethodID methodID,
-		                                    llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                    llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                    PendingResultArray args,
 		                                    llvm::Value* const hintResultValue) {
-			llvm::SmallVector<SEM::Value, 1> typeTemplateArguments;
+			llvm::SmallVector<AST::Value, 1> typeTemplateArguments;
 			
 			const auto targetType = functionTemplateArguments[0].typeRefType();
 			const auto typenameType = irEmitter_.module().context().semContext().getPrimitive(PrimitiveTypename).selfType();
-			typeTemplateArguments.push_back(SEM::Value::TypeRef(targetType,
+			typeTemplateArguments.push_back(AST::Value::TypeRef(targetType,
 			                                                    typenameType->createStaticRefType(targetType)));
 			
-			llvm::SmallVector<SEM::Value, 1> methodFunctionTemplateArguments;
+			llvm::SmallVector<AST::Value, 1> methodFunctionTemplateArguments;
 			
 			const auto rangePrimitiveID = getRangePrimitiveID(methodID);
 			const auto& rangeTypeInstance = irEmitter_.module().context().semContext().getPrimitive(rangePrimitiveID);
@@ -85,7 +85,7 @@ namespace locic {
 		
 		llvm::Value*
 		PrimitiveFunctionEmitter::emitStandaloneFunction(const MethodID methodID,
-		                                                 llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                                 llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                                 PendingResultArray args,
 		                                                 llvm::Value* const hintResultValue) {
 			assert(methodID.isStandaloneFunction());
@@ -111,7 +111,7 @@ namespace locic {
 		llvm::Value*
 		PrimitiveFunctionEmitter::emitMethod(const MethodID methodID,
 		                                     const AST::Type* const parentType,
-		                                     llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                     llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                     PendingResultArray args,
 		                                     llvm::Value* const hintResultValue) {
 			assert(parentType != nullptr);
@@ -126,7 +126,7 @@ namespace locic {
 		llvm::Value*
 		PrimitiveFunctionEmitter::emitFunction(const MethodID methodID,
 		                                       const AST::Type* const parentType,
-		                                       llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                       llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) {
 			if (parentType != nullptr) {

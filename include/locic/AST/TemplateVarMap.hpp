@@ -6,8 +6,8 @@
 #include <string>
 
 #include <locic/AST/TemplateVarArray.hpp>
-#include <locic/SEM/Value.hpp>
-#include <locic/SEM/ValueArray.hpp>
+#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueArray.hpp>
 #include <locic/Support/Array.hpp>
 
 namespace locic {
@@ -32,7 +32,7 @@ namespace locic {
 		class TemplateVarMap {
 			public:
 				using key_type = const TemplateVar*;
-				using mapped_type = SEM::Value;
+				using mapped_type = AST::Value;
 				using value_type = std::pair<key_type, mapped_type>;
 				using ArrayType = Array<value_type, TemplateVarMapBaseSize>;
 				using iterator = ArrayType::iterator;
@@ -41,7 +41,7 @@ namespace locic {
 				TemplateVarMap() { }
 				
 				TemplateVarMap(TemplateVarArray variables,
-				               SEM::ValueArray values) {
+				               AST::ValueArray values) {
 					assert(variables.size() == values.size());
 					for (size_t i = 0; i < variables.size(); i++) {
 						insert(std::make_pair(variables[i], std::move(values[i])));

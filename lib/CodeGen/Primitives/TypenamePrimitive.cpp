@@ -49,41 +49,41 @@ namespace locic {
 		}
 		
 		bool TypenamePrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
-		                                          llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                          llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool TypenamePrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
-		                                                llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                                llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool TypenamePrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
-		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                        llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		bool TypenamePrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
-		                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                  llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		llvm_abi::Type TypenamePrimitive::getABIType(Module& module,
 		                                             const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
-		                                             llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                             llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return typeInfoType(module).first;
 		}
 		
 		llvm::Type* TypenamePrimitive::getIRType(Module& module,
 		                                         const TypeGenerator& /*typeGenerator*/,
-		                                         llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                         llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return typeInfoType(module).second;
 		}
 		
 		llvm::Value* TypenamePrimitive::emitMethod(IREmitter& irEmitter,
 		                                           const MethodID methodID,
-		                                           llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                           llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                           llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                           llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                           PendingResultArray args,
 		                                           llvm::Value* /*hintResultValue*/) const {
 			auto& function = irEmitter.function();

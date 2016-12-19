@@ -269,7 +269,7 @@ namespace locic {
 			
 		};
 		
-		SEM::Value getSelfValue(Context& context, const Debug::SourceLocation& location) {
+		AST::Value getSelfValue(Context& context, const Debug::SourceLocation& location) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			const auto thisFunction = lookupParentFunction(context.scopeStack());
 			
@@ -306,7 +306,7 @@ namespace locic {
 			
 		};
 		
-		SEM::Value getThisValue(Context& context, const Debug::SourceLocation& location) {
+		AST::Value getThisValue(Context& context, const Debug::SourceLocation& location) {
 			const auto thisTypeInstance = lookupParentType(context.scopeStack());
 			const auto thisFunction = lookupParentFunction(context.scopeStack());
 			
@@ -320,7 +320,7 @@ namespace locic {
 			
 			const auto selfType = thisTypeInstance != nullptr ? thisTypeInstance->selfType() : context.typeBuilder().getVoidType();
 			const auto selfConstType = selfType->createTransitiveConstType(thisFunction->constPredicate().copy());
-			return SEM::Value::This(getBuiltInType(context, context.getCString("ptr_t"), { selfConstType }));
+			return AST::Value::This(getBuiltInType(context, context.getCString("ptr_t"), { selfConstType }));
 		}
 		
 	}

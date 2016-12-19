@@ -75,7 +75,7 @@ namespace locic {
 		: irEmitter_(irEmitter) { }
 		
 		llvm::Value*
-		ValueEmitter::emitValue(const SEM::Value& value,
+		ValueEmitter::emitValue(const AST::Value& value,
 		                        llvm::Value* const hintResultValue) {
 			const auto& debugInfo = value.debugInfo();
 			if (debugInfo) {
@@ -83,68 +83,68 @@ namespace locic {
 			}
 			
 			switch (value.kind()) {
-				case SEM::Value::SELF:
+				case AST::Value::SELF:
 					return emitSelf();
-				case SEM::Value::THIS:
+				case AST::Value::THIS:
 					return emitThis();
-				case SEM::Value::CONSTANT:
+				case AST::Value::CONSTANT:
 					return emitConstant(value);
-				case SEM::Value::ALIAS:
+				case AST::Value::ALIAS:
 					return emitAlias(value, hintResultValue);
-				case SEM::Value::LOCALVAR:
+				case AST::Value::LOCALVAR:
 					return emitLocalVar(value);
-				case SEM::Value::REINTERPRET:
+				case AST::Value::REINTERPRET:
 					return emitReinterpretCast(value, hintResultValue);
-				case SEM::Value::DEREF_REFERENCE:
+				case AST::Value::DEREF_REFERENCE:
 					return emitDerefReference(value);
-				case SEM::Value::UNIONDATAOFFSET:
+				case AST::Value::UNIONDATAOFFSET:
 					return emitUnionDataOffset(value);
-				case SEM::Value::MEMBEROFFSET:
+				case AST::Value::MEMBEROFFSET:
 					return emitMemberOffset(value);
-				case SEM::Value::TERNARY:
+				case AST::Value::TERNARY:
 					return emitTernary(value, hintResultValue);
-				case SEM::Value::CAST:
+				case AST::Value::CAST:
 					return emitCast(value, hintResultValue);
-				case SEM::Value::POLYCAST:
+				case AST::Value::POLYCAST:
 					return emitPolyCast(value);
-				case SEM::Value::LVAL:
+				case AST::Value::LVAL:
 					return emitLval(value, hintResultValue);
-				case SEM::Value::NOLVAL:
+				case AST::Value::NOLVAL:
 					return emitNoLval(value, hintResultValue);
-				case SEM::Value::REF:
+				case AST::Value::REF:
 					return emitRef(value, hintResultValue);
-				case SEM::Value::NOREF:
+				case AST::Value::NOREF:
 					return emitNoRef(value, hintResultValue);
-				case SEM::Value::STATICREF:
+				case AST::Value::STATICREF:
 					return emitStaticRef(value, hintResultValue);
-				case SEM::Value::NOSTATICREF:
+				case AST::Value::NOSTATICREF:
 					return emitNoStaticRef(value, hintResultValue);
-				case SEM::Value::INTERNALCONSTRUCT:
+				case AST::Value::INTERNALCONSTRUCT:
 					return emitInternalConstruct(value, hintResultValue);
-				case SEM::Value::MEMBERACCESS:
+				case AST::Value::MEMBERACCESS:
 					return emitMemberAccess(value);
-				case SEM::Value::BIND_REFERENCE:
+				case AST::Value::BIND_REFERENCE:
 					return emitBindReference(value);
-				case SEM::Value::TYPEREF:
+				case AST::Value::TYPEREF:
 					return emitTypeRef(value);
-				case SEM::Value::CALL:
+				case AST::Value::CALL:
 					return emitCall(value, hintResultValue);
-				case SEM::Value::FUNCTIONREF:
-				case SEM::Value::TEMPLATEFUNCTIONREF:
+				case AST::Value::FUNCTIONREF:
+				case AST::Value::TEMPLATEFUNCTIONREF:
 					return emitFunctionRef(value);
-				case SEM::Value::METHODOBJECT:
+				case AST::Value::METHODOBJECT:
 					return emitMethodObject(value);
-				case SEM::Value::INTERFACEMETHODOBJECT:
+				case AST::Value::INTERFACEMETHODOBJECT:
 					return emitInterfaceMethodObject(value);
-				case SEM::Value::STATICINTERFACEMETHODOBJECT:
+				case AST::Value::STATICINTERFACEMETHODOBJECT:
 					return emitStaticInterfaceMethodObject(value);
-				case SEM::Value::TEMPLATEVARREF:
+				case AST::Value::TEMPLATEVARREF:
 					return emitTemplateVarRef(value, hintResultValue);
-				case SEM::Value::ARRAYLITERAL:
+				case AST::Value::ARRAYLITERAL:
 					return emitArrayLiteral(value, hintResultValue);
-				case SEM::Value::PREDICATE:
-				case SEM::Value::CAPABILITYTEST:
-				case SEM::Value::CASTDUMMYOBJECT:
+				case AST::Value::PREDICATE:
+				case AST::Value::CAPABILITYTEST:
+				case AST::Value::CASTDUMMYOBJECT:
 					llvm_unreachable("Invalid value enum for code generation.");
 			}
 			
@@ -162,7 +162,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitConstant(const SEM::Value& value) {
+		ValueEmitter::emitConstant(const AST::Value& value) {
 			switch (value.constant().kind()) {
 				case locic::Constant::NULLVAL:
 					return irEmitter_.constantGenerator().getNullPointer();
@@ -226,7 +226,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitAlias(const SEM::Value& value,
+		ValueEmitter::emitAlias(const AST::Value& value,
 		                        llvm::Value* const hintResultValue) {
 			const auto& alias = value.alias();
 			
@@ -237,13 +237,13 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitLocalVar(const SEM::Value& value) {
+		ValueEmitter::emitLocalVar(const AST::Value& value) {
 			const auto& var = value.localVar();
 			return irEmitter_.function().getLocalVarMap().get(&var);
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitReinterpretCast(const SEM::Value& value,
+		ValueEmitter::emitReinterpretCast(const AST::Value& value,
 		                                  llvm::Value* const hintResultValue) {
 			const auto sourceValue = emitValue(value.reinterpretOperand(), hintResultValue);
 			
@@ -255,28 +255,28 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitDerefReference(const SEM::Value& value) {
+		ValueEmitter::emitDerefReference(const AST::Value& value) {
 			llvm::Value* const refValue = emitValue(value.derefOperand(),
 			                                        /*hintResultValue=*/nullptr);
 			return irEmitter_.emitMoveLoad(refValue, value.type());
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitUnionDataOffset(const SEM::Value& value) {
+		ValueEmitter::emitUnionDataOffset(const AST::Value& value) {
 			// Offset of union datatype data is equivalent to its
 			// alignment size.
 			return genAlignOf(irEmitter_.function(), value.unionDataOffsetTypeInstance()->selfType());
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitMemberOffset(const SEM::Value& value) {
+		ValueEmitter::emitMemberOffset(const AST::Value& value) {
 			// Offset of union datatype data is equivalent to its
 			// alignment size.
 			return genMemberOffset(irEmitter_.function(), value.memberOffsetTypeInstance()->selfType(), value.memberOffsetMemberIndex());
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitTernary(const SEM::Value& value,
+		ValueEmitter::emitTernary(const AST::Value& value,
 		                          llvm::Value* const hintResultValue) {
 			const auto boolCondition = emitValue(value.ternaryCondition(),
 			                                     /*hintResultValue=*/nullptr);
@@ -339,7 +339,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitCast(const SEM::Value& value,
+		ValueEmitter::emitCast(const AST::Value& value,
 		                       llvm::Value* const hintResultValue) {
 			const auto& castValue = value.castOperand();
 			const auto codeValue = emitValue(castValue,
@@ -405,7 +405,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitPolyCast(const SEM::Value& value) {
+		ValueEmitter::emitPolyCast(const AST::Value& value) {
 			const auto& castValue = value.polyCastOperand();
 			const auto rawValue = emitValue(castValue,
 			                                /*hintResultValue=*/nullptr);
@@ -462,43 +462,43 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitLval(const SEM::Value& value,
+		ValueEmitter::emitLval(const AST::Value& value,
 		                       llvm::Value* const hintResultValue) {
 			return emitValue(value.makeLvalOperand(), hintResultValue);
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitNoLval(const SEM::Value& value,
+		ValueEmitter::emitNoLval(const AST::Value& value,
 		                         llvm::Value* const hintResultValue) {
 			return emitValue(value.makeNoLvalOperand(), hintResultValue);
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitRef(const SEM::Value& value,
+		ValueEmitter::emitRef(const AST::Value& value,
 		                      llvm::Value* const hintResultValue) {
 			return emitValue(value.makeRefOperand(), hintResultValue);
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitNoRef(const SEM::Value& value,
+		ValueEmitter::emitNoRef(const AST::Value& value,
 		                        llvm::Value* const hintResultValue) {
 			return emitValue(value.makeNoRefOperand(), hintResultValue);
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitStaticRef(const SEM::Value& value,
+		ValueEmitter::emitStaticRef(const AST::Value& value,
 		                            llvm::Value* const hintResultValue) {
 			return emitValue(value.makeStaticRefOperand(), hintResultValue);
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitNoStaticRef(const SEM::Value& value,
+		ValueEmitter::emitNoStaticRef(const AST::Value& value,
 		                              llvm::Value* const hintResultValue) {
 			return emitValue(value.makeNoStaticRefOperand(), hintResultValue);
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitInternalConstruct(const SEM::Value& value,
+		ValueEmitter::emitInternalConstruct(const AST::Value& value,
 		                                    llvm::Value* const hintResultValue) {
 			const auto& parameterValues = value.internalConstructParameters();
 			const auto& parameterVars = value.type()->getObjectType()->variables();
@@ -560,7 +560,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitMemberAccess(const SEM::Value& value) {
+		ValueEmitter::emitMemberAccess(const AST::Value& value) {
 			const auto memberIndex = value.memberAccessVar().index();
 			
 			const auto& dataRefValue = value.memberAccessObject();
@@ -573,7 +573,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitBindReference(const SEM::Value& value) {
+		ValueEmitter::emitBindReference(const AST::Value& value) {
 			const auto& dataValue = value.bindReferenceOperand();
 			const auto llvmDataValue = emitValue(dataValue,
 			                                     /*hintResultValue=*/nullptr);
@@ -582,7 +582,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitTypeRef(const SEM::Value& value) {
+		ValueEmitter::emitTypeRef(const AST::Value& value) {
 			const auto targetType = value.typeRefType();
 			
 			const auto vtablePointer = genVTable(irEmitter_.module(),
@@ -596,7 +596,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitCall(const SEM::Value& value,
+		ValueEmitter::emitCall(const AST::Value& value,
 		                       llvm::Value* const hintResultValue) {
 			auto& module = irEmitter_.module();
 			auto& function = irEmitter_.function();
@@ -627,7 +627,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitFunctionRef(const SEM::Value& value) {
+		ValueEmitter::emitFunctionRef(const AST::Value& value) {
 			const auto callInfo = genFunctionCallInfo(irEmitter_.function(),
 			                                          value);
 			
@@ -643,7 +643,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitMethodObject(const SEM::Value& value) {
+		ValueEmitter::emitMethodObject(const AST::Value& value) {
 			const auto callInfo = genFunctionCallInfo(irEmitter_.function(),
 			                                          value);
 			
@@ -667,12 +667,12 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitInterfaceMethodObject(const SEM::Value& value) {
+		ValueEmitter::emitInterfaceMethodObject(const AST::Value& value) {
 			const auto& method = value.interfaceMethodObject();
 			const auto methodOwner = emitValue(value.interfaceMethodOwner(),
 			                                   /*hintResultValue=*/nullptr);
 			
-			assert(method.kind() == SEM::Value::FUNCTIONREF);
+			assert(method.kind() == AST::Value::FUNCTIONREF);
 			
 			const auto& interfaceFunction = method.functionRefFunction();
 			const auto methodHash = CreateMethodNameHash(interfaceFunction.fullName().last());
@@ -682,7 +682,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitStaticInterfaceMethodObject(const SEM::Value& value) {
+		ValueEmitter::emitStaticInterfaceMethodObject(const AST::Value& value) {
 			const auto& method = value.staticInterfaceMethodObject();
 			const auto typeRefPtr = emitValue(value.staticInterfaceMethodOwner(),
 			                                  /*hintResultValue=*/nullptr);
@@ -690,7 +690,7 @@ namespace locic {
 			const auto typeRef = irEmitter_.emitRawLoad(typeRefPtr,
 			                                            typeInfoType(irEmitter_.module()).second);
 			
-			assert(method.kind() == SEM::Value::FUNCTIONREF);
+			assert(method.kind() == AST::Value::FUNCTIONREF);
 			
 			const auto& interfaceFunction = method.functionRefFunction();
 			const auto methodHash = CreateMethodNameHash(interfaceFunction.fullName().last());
@@ -700,7 +700,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitTemplateVarRef(const SEM::Value& value,
+		ValueEmitter::emitTemplateVarRef(const AST::Value& value,
 		                                 llvm::Value* const hintResultValue) {
 			const auto templateArgs = irEmitter_.function().getTemplateArgs();
 			const auto templateVar = value.templateVar();
@@ -728,7 +728,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		ValueEmitter::emitArrayLiteral(const SEM::Value& value,
+		ValueEmitter::emitArrayLiteral(const AST::Value& value,
 		                               llvm::Value* const hintResultValue) {
 			const auto arrayPtr = irEmitter_.emitAlloca(value.type(), hintResultValue);
 			

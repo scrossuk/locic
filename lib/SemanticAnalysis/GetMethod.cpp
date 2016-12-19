@@ -20,7 +20,7 @@ namespace locic {
 		
 		namespace {
 			
-			SEM::Value addDebugInfo(SEM::Value value, const Debug::SourceLocation& location) {
+			AST::Value addDebugInfo(AST::Value value, const Debug::SourceLocation& location) {
 				Debug::ValueInfo valueInfo;
 				valueInfo.location = location;
 				value.setDebugInfo(valueInfo);
@@ -72,7 +72,7 @@ namespace locic {
 			
 		};
 		
-		SEM::Value GetStaticMethod(Context& context, SEM::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
+		AST::Value GetStaticMethod(Context& context, AST::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
 			auto value = derefOrBindValue(context, std::move(rawValue));
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
 			assert(value.type()->refTarget()->isStaticRef());
@@ -87,7 +87,7 @@ namespace locic {
 			if (methodIterator == methodSet->end()) {
 				context.issueDiag(CannotFindStaticMethodDiag(methodName, targetType),
 				                  location);
-				return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
+				return AST::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 			}
 			
 			const auto& methodElement = methodIterator->second;
@@ -107,39 +107,39 @@ namespace locic {
 				const auto functionType = simplifyFunctionType(context, function.type().substitute(functionTypeTemplateMap));
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				
-				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(targetType, function, {}, functionRefType), location);
+				auto functionRef = addDebugInfo(AST::Value::FunctionRef(targetType, function, {}, functionRefType), location);
 				
 				if (targetType->isInterface()) {
 					const auto interfaceMethodType = typeBuilder.getStaticInterfaceMethodType(functionType);
-					return addDebugInfo(SEM::Value::StaticInterfaceMethodObject(std::move(functionRef), std::move(value), interfaceMethodType), location);
+					return addDebugInfo(AST::Value::StaticInterfaceMethodObject(std::move(functionRef), std::move(value), interfaceMethodType), location);
 				} else {
 					return functionRef;
 				}
 			} else {
 				const bool isTemplated = true;
 				const auto functionType = typeBuilder.getFunctionPointerType(methodElement.createFunctionType(isTemplated));
-				return addDebugInfo(SEM::Value::TemplateFunctionRef(targetType, methodName, functionType), location);
+				return addDebugInfo(AST::Value::TemplateFunctionRef(targetType, methodName, functionType), location);
 			}
 		}
 		
-		SEM::Value GetMethod(Context& context, SEM::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
+		AST::Value GetMethod(Context& context, AST::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
 			return GetTemplatedMethod(context, std::move(rawValue), methodName, {}, location);
 		}
 		
-		SEM::Value GetTemplatedMethod(Context& context, SEM::Value rawValue, const String& methodName, SEM::ValueArray templateArguments, const Debug::SourceLocation& location) {
+		AST::Value GetTemplatedMethod(Context& context, AST::Value rawValue, const String& methodName, AST::ValueArray templateArguments, const Debug::SourceLocation& location) {
 			auto value = derefOrBindValue(context, tryDissolveValue(context, derefOrBindValue(context, std::move(rawValue)), location));
 			const auto type = getDerefType(value.type())->resolveAliases();
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, std::move(templateArguments), location);
 		}
 		
 		// Gets the method without dissolving or derefencing the object.
-		SEM::Value GetSpecialMethod(Context& context, SEM::Value value, const String& methodName, const Debug::SourceLocation& location) {
+		AST::Value GetSpecialMethod(Context& context, AST::Value value, const String& methodName, const Debug::SourceLocation& location) {
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
 			const auto type = getSingleDerefType(value.type())->resolveAliases();
 			return GetMethodWithoutResolution(context, std::move(value), type, methodName, location);
 		}
 		
-		SEM::Value GetMethodWithoutResolution(Context& context, SEM::Value value, const AST::Type* type, const String& methodName, const Debug::SourceLocation& location) {
+		AST::Value GetMethodWithoutResolution(Context& context, AST::Value value, const AST::Type* type, const String& methodName, const Debug::SourceLocation& location) {
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, {}, location);
 		}
 		
@@ -252,7 +252,7 @@ namespace locic {
 			
 		};
 		
-		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const AST::Type* const type, const String& methodName, SEM::ValueArray templateArguments, const Debug::SourceLocation& location) {
+		AST::Value GetTemplatedMethodWithoutResolution(Context& context, AST::Value value, const AST::Type* const type, const String& methodName, AST::ValueArray templateArguments, const Debug::SourceLocation& location) {
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
 			assert(type->isObjectOrTemplateVar());
 			
@@ -265,7 +265,7 @@ namespace locic {
 			if (methodIterator == methodSet->end()) {
 				context.issueDiag(CannotFindMethodDiag(methodName, type),
 				                  location);
-				return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
+				return AST::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 			}
 			
 			const auto& methodElement = methodIterator->second;
@@ -287,7 +287,7 @@ namespace locic {
 						function->constPredicate().variableTemplateVar() == templateVariables[0]
 					) {
 						const auto boolType = context.typeBuilder().getBoolType();
-						templateArguments.push_back(SEM::Value::PredicateExpr(objectConstPredicate.copy(), boolType));
+						templateArguments.push_back(AST::Value::PredicateExpr(objectConstPredicate.copy(), boolType));
 					} else {
 						context.issueDiag(InvalidMethodTemplateArgCountDiag(function->fullName().last(),
 						                                                    templateVariables.size(),
@@ -311,7 +311,7 @@ namespace locic {
 							                  location);
 						}
 						
-						templateVariableAssignments.insert(std::make_pair(templateVariable, SEM::Value::TypeRef(templateTypeValue, templateValue.type())));
+						templateVariableAssignments.insert(std::make_pair(templateVariable, AST::Value::TypeRef(templateTypeValue, templateValue.type())));
 					} else {
 						templateVariableAssignments.insert(std::make_pair(templateVariable, templateValue.copy()));
 					}
@@ -344,29 +344,29 @@ namespace locic {
 				const auto functionType = simplifyFunctionType(context, function->type().substitute(templateVariableAssignments));
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				
-				auto functionRef = addDebugInfo(SEM::Value::FunctionRef(type, *function, std::move(templateArguments), functionRefType), location);
+				auto functionRef = addDebugInfo(AST::Value::FunctionRef(type, *function, std::move(templateArguments), functionRefType), location);
 				if (methodElement.isStatic()) {
 					return functionRef;
 				}
 				
 				if (type->isInterface()) {
 					const auto interfaceMethodType = typeBuilder.getInterfaceMethodType(functionType);
-					return addDebugInfo(SEM::Value::InterfaceMethodObject(std::move(functionRef), std::move(value), interfaceMethodType), location);
+					return addDebugInfo(AST::Value::InterfaceMethodObject(std::move(functionRef), std::move(value), interfaceMethodType), location);
 				} else {
 					const auto methodType = typeBuilder.getMethodType(functionType);
-					return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);
+					return addDebugInfo(AST::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);
 				}
 			} else {
 				const bool isTemplated = true;
 				const auto functionType = methodElement.createFunctionType(isTemplated);
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
-				auto functionRef = addDebugInfo(SEM::Value::TemplateFunctionRef(type, methodName, functionRefType), location);
+				auto functionRef = addDebugInfo(AST::Value::TemplateFunctionRef(type, methodName, functionRefType), location);
 				if (methodElement.isStatic()) {
 					return functionRef;
 				}
 				
 				const auto methodType = typeBuilder.getMethodType(functionType);
-				return addDebugInfo(SEM::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);
+				return addDebugInfo(AST::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);
 			}
 		}
 		

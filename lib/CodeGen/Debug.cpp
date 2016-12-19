@@ -14,7 +14,7 @@
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/SEMFunctionGenerator.hpp>
-#include <locic/SEM/Value.hpp>
+#include <locic/AST/Value.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/Optional.hpp>
 

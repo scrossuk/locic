@@ -1,7 +1,7 @@
 #ifndef LOCIC_SEMANTICANALYSIS_GETMETHOD_HPP
 #define LOCIC_SEMANTICANALYSIS_GETMETHOD_HPP
 
-#include <locic/SEM/ValueArray.hpp>
+#include <locic/AST/ValueArray.hpp>
 
 namespace locic {
 	
@@ -10,6 +10,7 @@ namespace locic {
 	namespace AST {
 		
 		class Type;
+		class Value;
 		
 	}
 	
@@ -18,37 +19,31 @@ namespace locic {
 		class SourceLocation;
 		
 	}
-	
-	namespace SEM {
-		
-		class Value;
-		
-	}
 
 	namespace SemanticAnalysis {
 		
 		class Context;
 		
-		SEM::Value GetStaticMethod(Context& context, SEM::Value value, const String& methodName, const Debug::SourceLocation& location);
+		AST::Value GetStaticMethod(Context& context, AST::Value value, const String& methodName, const Debug::SourceLocation& location);
 		
-		SEM::Value GetMethod(Context& context, SEM::Value value, const String& methodName, const Debug::SourceLocation& location);
+		AST::Value GetMethod(Context& context, AST::Value value, const String& methodName, const Debug::SourceLocation& location);
 		
-		SEM::Value GetTemplatedMethod(Context& context, SEM::Value value, const String& methodName,
-			SEM::ValueArray templateArguments, const Debug::SourceLocation& location);
+		AST::Value GetTemplatedMethod(Context& context, AST::Value value, const String& methodName,
+			AST::ValueArray templateArguments, const Debug::SourceLocation& location);
 		
-		SEM::Value GetSpecialMethod(Context& context, SEM::Value value, const String& methodName, const Debug::SourceLocation& location);
+		AST::Value GetSpecialMethod(Context& context, AST::Value value, const String& methodName, const Debug::SourceLocation& location);
 		
-		SEM::Value GetMethodWithoutResolution(Context& context,
-			SEM::Value value,
+		AST::Value GetMethodWithoutResolution(Context& context,
+			AST::Value value,
 			const AST::Type* type,
 			const String& methodName,
 			const Debug::SourceLocation& location);
 		
-		SEM::Value GetTemplatedMethodWithoutResolution(Context& context,
-			SEM::Value value,
+		AST::Value GetTemplatedMethodWithoutResolution(Context& context,
+			AST::Value value,
 			const AST::Type* type,
 			const String& methodName,
-			SEM::ValueArray templateArguments,
+			AST::ValueArray templateArguments,
 			const Debug::SourceLocation& location);
 		
 	}

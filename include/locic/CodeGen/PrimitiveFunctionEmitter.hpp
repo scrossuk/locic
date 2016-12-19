@@ -10,11 +10,6 @@ namespace locic {
 	namespace AST {
 		
 		class Type;
-		
-	}
-	
-	namespace SEM {
-		
 		class Value;
 		
 	}
@@ -29,13 +24,13 @@ namespace locic {
 			
 			llvm::Value*
 			emitMinOrMax(MethodID methodID,
-			             llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+			             llvm::ArrayRef<AST::Value> functionTemplateArguments,
 			             PendingResultArray args,
 			             llvm::Value* hintResultValue);
 			
 			llvm::Value*
 			emitRange(MethodID methodID,
-			          llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+			          llvm::ArrayRef<AST::Value> functionTemplateArguments,
 			          PendingResultArray args,
 			          llvm::Value* hintResultValue);
 			
@@ -50,7 +45,7 @@ namespace locic {
 			 */
 			llvm::Value*
 			emitStandaloneFunction(MethodID methodID,
-			                       llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+			                       llvm::ArrayRef<AST::Value> functionTemplateArguments,
 			                       PendingResultArray args,
 			                       llvm::Value* hintResultValue);
 			
@@ -66,7 +61,7 @@ namespace locic {
 			llvm::Value*
 			emitMethod(MethodID methodID,
 			           const AST::Type* parentType,
-			           llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+			           llvm::ArrayRef<AST::Value> functionTemplateArguments,
 			           PendingResultArray args,
 			           llvm::Value* hintResultValue);
 			
@@ -82,7 +77,7 @@ namespace locic {
 			llvm::Value*
 			emitFunction(MethodID methodID,
 			             const AST::Type* parentType,
-			             llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+			             llvm::ArrayRef<AST::Value> functionTemplateArguments,
 			             PendingResultArray args,
 			             llvm::Value* hintResultValue);
 			

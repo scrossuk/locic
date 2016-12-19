@@ -134,8 +134,8 @@ namespace locic {
 			return cachedSelfType_;
 		}
 		
-		ValueArray TypeInstance::selfTemplateArgs() const {
-			ValueArray templateArgs;
+		AST::ValueArray TypeInstance::selfTemplateArgs() const {
+			AST::ValueArray templateArgs;
 			templateArgs.reserve(templateVariables().size());
 			
 			for (const auto templateVar: templateVariables()) {

@@ -52,47 +52,47 @@ namespace locic {
 		: typeInstance_(typeInstance) { }
 		
 		bool BoolPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
-		                                      llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                      llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool BoolPrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
-		                                            llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                            llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool BoolPrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
-		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                        llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		bool BoolPrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
-		                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                  llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		llvm_abi::Type BoolPrimitive::getABIType(Module& /*module*/,
 		                                         const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
-		                                         llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                         llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return llvm_abi::BoolTy;
 		}
 		
 		llvm::Type* BoolPrimitive::getIRType(Module& /*module*/,
 		                                     const TypeGenerator& typeGenerator,
-		                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                     llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return typeGenerator.getI8Type();
 		}
 		
 		llvm::Value* BoolPrimitive::emitMethod(IREmitter& irEmitter,
 		                                       const MethodID methodID,
-		                                       llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                       llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                       llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                       llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
-			SEM::ValueArray valueArray;
+			AST::ValueArray valueArray;
 			for (const auto& value: typeTemplateArguments) {
 				valueArray.push_back(value.copy());
 			}

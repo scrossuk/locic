@@ -39,24 +39,24 @@ namespace locic {
 			return type;
 		}
 		
-		SEM::Value derefOne(SEM::Value value) {
+		AST::Value derefOne(AST::Value value) {
 			assert(value.type()->isRef() && value.type()->refTarget()->isRef());
 			// TODO: add support for custom ref types.
-			return SEM::Value::DerefReference(std::move(value));
+			return AST::Value::DerefReference(std::move(value));
 		}
 		
-		SEM::Value derefValue(SEM::Value value) {
+		AST::Value derefValue(AST::Value value) {
 			while (value.type()->isRef() && value.type()->refTarget()->isRef()) {
 				// TODO: add support for custom ref types.
-				value = SEM::Value::DerefReference(std::move(value));
+				value = AST::Value::DerefReference(std::move(value));
 			}
 			return value;
 		}
 		
-		SEM::Value derefAll(SEM::Value value) {
+		AST::Value derefAll(AST::Value value) {
 			while (value.type()->isRef()) {
 				// TODO: add support for custom ref types.
-				value = SEM::Value::DerefReference(std::move(value));
+				value = AST::Value::DerefReference(std::move(value));
 			}
 			return value;
 		}
@@ -84,43 +84,43 @@ namespace locic {
 			return type;
 		}
 		
-		SEM::Value staticDerefOne(SEM::Value value) {
+		AST::Value staticDerefOne(AST::Value value) {
 			assert(value.type()->isStaticRef() && value.type()->staticRefTarget()->isStaticRef());
 			// TODO: add support for custom ref types.
-			return SEM::Value::DerefReference(std::move(value));
+			return AST::Value::DerefReference(std::move(value));
 		}
 		
-		SEM::Value staticDerefValue(SEM::Value value) {
+		AST::Value staticDerefValue(AST::Value value) {
 			while (value.type()->isStaticRef() && value.type()->staticRefTarget()->isStaticRef()) {
 				// TODO: add support for custom ref types.
-				value = SEM::Value::DerefReference(std::move(value));
+				value = AST::Value::DerefReference(std::move(value));
 			}
 			return value;
 		}
 		
-		SEM::Value staticDerefAll(SEM::Value value) {
+		AST::Value staticDerefAll(AST::Value value) {
 			while (value.type()->isStaticRef()) {
 				// TODO: add support for custom ref types.
-				value = SEM::Value::DerefReference(std::move(value));
+				value = AST::Value::DerefReference(std::move(value));
 			}
 			return value;
 		}
 		
-		SEM::Value createTypeRef(Context& context, const AST::Type* targetType) {
+		AST::Value createTypeRef(Context& context, const AST::Type* targetType) {
 			const auto typenameType = context.typeBuilder().getTypenameType();
-			return SEM::Value::TypeRef(targetType, typenameType->createStaticRefType(targetType));
+			return AST::Value::TypeRef(targetType, typenameType->createStaticRefType(targetType));
 		}
 		
 		const AST::Type* createReferenceType(Context& context, const AST::Type* const varType) {
 			return getBuiltInType(context, context.getCString("ref_t"), { varType})->createRefType(varType);
 		}
 		
-		SEM::Value bindReference(Context& context, SEM::Value value) {
+		AST::Value bindReference(Context& context, AST::Value value) {
 			const auto refType = createReferenceType(context, value.type());
-			return SEM::Value::BindReference(std::move(value), refType);
+			return AST::Value::BindReference(std::move(value), refType);
 		}
 		
-		SEM::Value derefOrBindValue(Context& context, SEM::Value value) {
+		AST::Value derefOrBindValue(Context& context, AST::Value value) {
 			if (value.type()->isRef()) {
 				return derefValue(std::move(value));
 			} else {
@@ -128,22 +128,22 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value createSelfRef(Context& context, const AST::Type* const selfType) {
-			return SEM::Value::Self(createReferenceType(context, selfType));
+		AST::Value createSelfRef(Context& context, const AST::Type* const selfType) {
+			return AST::Value::Self(createReferenceType(context, selfType));
 		}
 		
-		SEM::Value createLocalVarRef(Context& context, const AST::Var& var) {
-			return SEM::Value::LocalVar(var, createReferenceType(context, var.lvalType()));
+		AST::Value createLocalVarRef(Context& context, const AST::Var& var) {
+			return AST::Value::LocalVar(var, createReferenceType(context, var.lvalType()));
 		}
 		
-		SEM::Value createMemberVarRef(Context& context, SEM::Value object, const AST::Var& var) {
+		AST::Value createMemberVarRef(Context& context, AST::Value object, const AST::Var& var) {
 			// If the object type is const, then the members must
 			// also be, *UNLESS* the variable is marked '__override_const'.
 			const auto derefType = getDerefType(object.type());
 			const auto memberType = var.lvalType()->createTransitiveConstType(derefType->constPredicate().copy());
 			const auto memberTypeSub = memberType->substitute(derefType->generateTemplateVarMap());
 			const auto resultMemberType = var.isOverrideConst() ? memberTypeSub->withoutConst() : memberTypeSub;
-			return SEM::Value::MemberAccess(derefOrBindValue(context, std::move(object)), var, createReferenceType(context, resultMemberType));
+			return AST::Value::MemberAccess(derefOrBindValue(context, std::move(object)), var, createReferenceType(context, resultMemberType));
 		}
 		
 	}

@@ -24,7 +24,7 @@ namespace locic {
 			
 			const AST::Type*
 			getPrimitiveType(PrimitiveID primitiveID,
-			                 SEM::ValueArray templateArguments = {});
+			                 AST::ValueArray templateArguments = {});
 			
 			const AST::Type*
 			getVoidType();
@@ -54,7 +54,7 @@ namespace locic {
 		
 			const AST::Type*
 			getStaticArrayType(const AST::Type* elementType,
-			                   SEM::Value arraySize,
+			                   AST::Value arraySize,
 			                   const Debug::SourceLocation& location);
 			
 			const AST::Type*

@@ -605,9 +605,9 @@ namespace locic {
 		createRefType(const AST::Type* const refTargetType,
 		              const SEM::TypeInstance& refTypeInstance,
 		              const AST::Type* const typenameType) {
-			auto typeRef = SEM::Value::TypeRef(refTargetType,
+			auto typeRef = AST::Value::TypeRef(refTargetType,
 			                                   typenameType->createStaticRefType(refTargetType));
-			SEM::ValueArray templateArguments;
+			AST::ValueArray templateArguments;
 			templateArguments.push_back(std::move(typeRef));
 			return AST::Type::Object(&refTypeInstance,
 			                         std::move(templateArguments))->createRefType(refTargetType);

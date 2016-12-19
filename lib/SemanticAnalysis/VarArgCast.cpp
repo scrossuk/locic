@@ -53,7 +53,7 @@ namespace locic {
 			}
 		}
 		
-		Optional<SEM::Value> VarArgCastSearch(Context& context, SEM::Value rawValue, const Debug::SourceLocation& location) {
+		Optional<AST::Value> VarArgCastSearch(Context& context, AST::Value rawValue, const Debug::SourceLocation& location) {
 			auto value = derefValue(std::move(rawValue));
 			
 			if (isValidVarArgType(value.type()->resolveAliases())) {
@@ -82,7 +82,7 @@ namespace locic {
 				return VarArgCastSearch(context, std::move(copyValue), location);
 			}
 			
-			return Optional<SEM::Value>();
+			return Optional<AST::Value>();
 		}
 		
 		class VarArgInvalidTypeDiag: public Error {
@@ -100,14 +100,14 @@ namespace locic {
 			
 		};
 		
-		SEM::Value VarArgCast(Context& context, SEM::Value value, const Debug::SourceLocation& location) {
+		AST::Value VarArgCast(Context& context, AST::Value value, const Debug::SourceLocation& location) {
 			const std::string valueString = value.toString();
 			const auto valueType = value.type();
 			auto result = VarArgCastSearch(context, std::move(value), location);
 			if (!result) {
 				context.issueDiag(VarArgInvalidTypeDiag(valueType),
 				                  location);
-				return SEM::Value::CastDummy(valueType);
+				return AST::Value::CastDummy(valueType);
 			}
 			return std::move(*result);
 		}

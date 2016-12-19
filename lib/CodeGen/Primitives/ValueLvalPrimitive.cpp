@@ -50,34 +50,34 @@ namespace locic {
 		}
 		
 		bool ValueLvalPrimitive::isSizeAlwaysKnown(const TypeInfo& typeInfo,
-		                                           llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                           llvm::ArrayRef<AST::Value> templateArguments) const {
 			return typeInfo.isSizeAlwaysKnown(templateArguments.front().typeRefType());
 		}
 		
 		bool ValueLvalPrimitive::isSizeKnownInThisModule(const TypeInfo& typeInfo,
-		                                                 llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                                 llvm::ArrayRef<AST::Value> templateArguments) const {
 			return typeInfo.isSizeKnownInThisModule(templateArguments.front().typeRefType());
 		}
 		
 		bool ValueLvalPrimitive::hasCustomDestructor(const TypeInfo& typeInfo,
-		                                             llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                             llvm::ArrayRef<AST::Value> templateArguments) const {
 			return typeInfo.hasCustomDestructor(templateArguments.front().typeRefType());
 		}
 		
 		bool ValueLvalPrimitive::hasCustomMove(const TypeInfo& typeInfo,
-		                                       llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                       llvm::ArrayRef<AST::Value> templateArguments) const {
 			return typeInfo.hasCustomMove(templateArguments.front().typeRefType());
 		}
 		
 		llvm_abi::Type ValueLvalPrimitive::getABIType(Module& module,
 		                                              const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
-		                                              llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                              llvm::ArrayRef<AST::Value> templateArguments) const {
 			return genABIType(module, templateArguments.front().typeRefType());
 		}
 		
 		llvm::Type* ValueLvalPrimitive::getIRType(Module& module,
 		                                          const TypeGenerator& /*typeGenerator*/,
-		                                          llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                          llvm::ArrayRef<AST::Value> templateArguments) const {
 			return genType(module, templateArguments.front().typeRefType());
 		}
 		
@@ -162,8 +162,8 @@ namespace locic {
 		
 		llvm::Value* ValueLvalPrimitive::emitMethod(IREmitter& irEmitter,
 		                                            const MethodID methodID,
-		                                            llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                            llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                            llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                            llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                            PendingResultArray args,
 		                                            llvm::Value* const hintResultValue) const {
 			auto& functionGenerator = irEmitter.function();

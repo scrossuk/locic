@@ -51,32 +51,32 @@ namespace locic {
 		: typeInstance_(typeInstance) { }
 		
 		bool RefPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
-		                                               llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                               llvm::ArrayRef<AST::Value> templateArguments) const {
 			const auto refTargetType = templateArguments.front().typeRefType();
 			return !refTargetType->isTemplateVar() ||
 			       !refTargetType->getTemplateVar()->isVirtual();
 		}
 		
 		bool RefPrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
-		                                           llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                           llvm::ArrayRef<AST::Value> templateArguments) const {
 			const auto refTargetType = templateArguments.front().typeRefType();
 			return !refTargetType->isTemplateVar() ||
 			       !refTargetType->getTemplateVar()->isVirtual();
 		}
 		
 		bool RefPrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
-		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                        llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		bool RefPrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
-		                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                  llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		llvm_abi::Type RefPrimitive::getABIType(Module& module,
 		                                        const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
-		                                        llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                        llvm::ArrayRef<AST::Value> templateArguments) const {
 			if (templateArguments.front().typeRefType()->isInterface()) {
 				return interfaceStructType(module).first;
 			} else {
@@ -86,7 +86,7 @@ namespace locic {
 		
 		llvm::Type* RefPrimitive::getIRType(Module& module,
 		                                    const TypeGenerator& typeGenerator,
-		                                    llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                    llvm::ArrayRef<AST::Value> templateArguments) const {
 			const auto argType = templateArguments.front().typeRefType();
 			if (argType->isTemplateVar() && argType->getTemplateVar()->isVirtual()) {
 				// Unknown whether the argument type is virtual, so use an opaque struct type.
@@ -270,15 +270,15 @@ namespace locic {
 		
 		llvm::Value* RefPrimitive::emitMethod(IREmitter& irEmitter,
 		                                      const MethodID methodID,
-		                                      llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                      llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                      llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                      llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                      PendingResultArray args,
 		                                      llvm::Value* const hintResultValue) const {
 			auto& builder = irEmitter.builder();
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
-			SEM::ValueArray valueArray;
+			AST::ValueArray valueArray;
 			for (const auto& value: typeTemplateArguments) {
 				valueArray.push_back(value.copy());
 			}

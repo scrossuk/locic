@@ -16,13 +16,13 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
+		class Value;
 		
 	}
 	
 	namespace SEM {
 		
 		class TypeInstance;
-		class Value;
 		
 	}
 	
@@ -126,7 +126,7 @@ namespace locic {
 		                                                  const AST::Function& semFunction);
 		
 		Optional<llvm::DebugLoc> getValueDebugLocation(Function& function,
-		                                               const SEM::Value& value);
+		                                               const AST::Value& value);
 		
 	}
 	

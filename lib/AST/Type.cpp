@@ -19,7 +19,7 @@
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TypeInstance.hpp>
-#include <locic/SEM/ValueArray.hpp>
+#include <locic/AST/ValueArray.hpp>
 
 namespace locic {
 	
@@ -35,7 +35,7 @@ namespace locic {
 					return type;
 				}
 				case Type::OBJECT: {
-					SEM::ValueArray templateArgs;
+					AST::ValueArray templateArgs;
 					templateArgs.reserve(type->templateArguments().size());
 					
 					bool changed = false;
@@ -44,7 +44,7 @@ namespace locic {
 						if (templateArg.isTypeRef()) {
 							const auto appliedArg = applyType<CheckFunction, PreFunction, PostFunction>(templateArg.typeRefType(), checkFunction, preFunction, postFunction);
 							changed |= (appliedArg != templateArg.typeRefType());
-							templateArgs.push_back(SEM::Value::TypeRef(appliedArg, templateArg.type()));
+							templateArgs.push_back(AST::Value::TypeRef(appliedArg, templateArg.type()));
 						} else {
 							templateArgs.push_back(templateArg.copy());
 						}
@@ -60,7 +60,7 @@ namespace locic {
 					return Type::TemplateVarRef(type->getTemplateVar());
 				}
 				case Type::ALIAS: {
-					SEM::ValueArray templateArgs;
+					AST::ValueArray templateArgs;
 					templateArgs.reserve(type->aliasArguments().size());
 					
 					bool changed = false;
@@ -69,7 +69,7 @@ namespace locic {
 						if (templateArg.isTypeRef()) {
 							const auto appliedArg = applyType<CheckFunction, PreFunction, PostFunction>(templateArg.typeRefType(), checkFunction, preFunction, postFunction);
 							changed |= (appliedArg != templateArg.typeRefType());
-							templateArgs.push_back(SEM::Value::TypeRef(appliedArg, templateArg.type()));
+							templateArgs.push_back(AST::Value::TypeRef(appliedArg, templateArg.type()));
 						} else {
 							templateArgs.push_back(templateArg.copy());
 						}
@@ -115,13 +115,13 @@ namespace locic {
 			return postFunction(staticRefType);
 		}
 		
-		const SEM::ValueArray Type::NO_TEMPLATE_ARGS = SEM::ValueArray();
+		const AST::ValueArray Type::NO_TEMPLATE_ARGS = AST::ValueArray();
 		
 		const Type* Type::Auto(const SEM::Context& context) {
 			return context.getType(Type(context, AUTO));
 		}
 		
-		const Type* Type::Alias(const AST::Alias& alias, SEM::ValueArray templateArguments) {
+		const Type* Type::Alias(const AST::Alias& alias, AST::ValueArray templateArguments) {
 			assert(alias.templateVariables().size() == templateArguments.size());
 			auto& context = alias.context();
 			
@@ -132,7 +132,7 @@ namespace locic {
 		}
 		
 		const Type* Type::Object(const SEM::TypeInstance* const typeInstance,
-		                         SEM::ValueArray templateArguments) {
+		                         AST::ValueArray templateArguments) {
 			assert(typeInstance->templateVariables().size() == templateArguments.size());
 			auto& context = typeInstance->context();
 			
@@ -249,7 +249,7 @@ namespace locic {
 					auto& existingTemplateArgument = typeCopy.valueArray_[templateVarIndex];
 					assert(existingTemplateArgument.isTypeRef());
 					
-					existingTemplateArgument = SEM::Value::TypeRef(existingTemplateArgument.typeRefType()->createNoTagType(), existingTemplateArgument.type());
+					existingTemplateArgument = AST::Value::TypeRef(existingTemplateArgument.typeRefType()->createNoTagType(), existingTemplateArgument.type());
 				}
 			}
 			
@@ -408,7 +408,7 @@ namespace locic {
 			return *(data_.aliasType.alias);
 		}
 		
-		const SEM::ValueArray& Type::aliasArguments() const {
+		const AST::ValueArray& Type::aliasArguments() const {
 			return valueArray_;
 		}
 		
@@ -483,7 +483,7 @@ namespace locic {
 			return data_.objectType.typeInstance;
 		}
 		
-		const SEM::ValueArray& Type::templateArguments() const {
+		const AST::ValueArray& Type::templateArguments() const {
 			assert(isObject());
 			return valueArray_;
 		}
@@ -680,9 +680,9 @@ namespace locic {
 			return functionType;
 		}
 		
-		SEM::Value Type::asValue() const {
+		AST::Value Type::asValue() const {
 			const auto typenameType = context_.getPrimitive(PrimitiveTypename).selfType();
-			return SEM::Value::TypeRef(this, typenameType->createStaticRefType(this));
+			return AST::Value::TypeRef(this, typenameType->createStaticRefType(this));
 		}
 		
 		static const Type* basicSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
@@ -691,7 +691,7 @@ namespace locic {
 					return type->withoutTags();
 				}
 				case Type::OBJECT: {
-					SEM::ValueArray templateArgs;
+					AST::ValueArray templateArgs;
 					templateArgs.reserve(type->templateArguments().size());
 					
 					bool changed = false;
@@ -719,7 +719,7 @@ namespace locic {
 					}
 				}
 				case Type::ALIAS: {
-					SEM::ValueArray templateArgs;
+					AST::ValueArray templateArgs;
 					templateArgs.reserve(type->aliasArguments().size());
 					
 					bool changed = false;

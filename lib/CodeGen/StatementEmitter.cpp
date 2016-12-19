@@ -174,7 +174,7 @@ namespace locic {
 			llvm_unreachable("Unknown statement type");
 		}
 		
-		void StatementEmitter::emitValue(const SEM::Value& value) {
+		void StatementEmitter::emitValue(const AST::Value& value) {
 			assert(value.type()->isBuiltInVoid());
 			ValueEmitter valueEmitter(irEmitter_);
 			(void) valueEmitter.emitValue(value);
@@ -185,7 +185,7 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitInitialise(AST::Var& var,
-		                                      const SEM::Value& value) {
+		                                      const AST::Value& value) {
 			const auto varAllocaOptional = irEmitter_.function().getLocalVarMap().tryGet(&var);
 			const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
 			
@@ -313,7 +313,7 @@ namespace locic {
 			}
 		}
 		
-		void StatementEmitter::emitSwitch(const SEM::Value& switchValue,
+		void StatementEmitter::emitSwitch(const AST::Value& switchValue,
 		                                  const std::vector<SEM::SwitchCase*>& switchCases,
 		                                  const SEM::Scope* defaultScope) {
 			assert(switchValue.type()->isUnionDatatype() ||
@@ -408,7 +408,7 @@ namespace locic {
 			}
 		}
 		
-		void StatementEmitter::emitLoop(const SEM::Value& condition,
+		void StatementEmitter::emitLoop(const AST::Value& condition,
 		                                const SEM::Scope& iterationScope,
 		                                const SEM::Scope& advanceScope) {
 			auto& function = irEmitter_.function();
@@ -465,7 +465,7 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitFor(AST::Var& var,
-		                               const SEM::Value& initValue,
+		                               const AST::Value& initValue,
 		                               const SEM::Scope& scope) {
 			/**
 			 * This code converts:
@@ -571,7 +571,7 @@ namespace locic {
 			}
 		}
 		
-		void StatementEmitter::emitReturn(const SEM::Value& value) {
+		void StatementEmitter::emitReturn(const AST::Value& value) {
 			auto& function = irEmitter_.function();
 			ValueEmitter valueEmitter(irEmitter_);
 			
@@ -727,7 +727,7 @@ namespace locic {
 			}
 		}
 		
-		void StatementEmitter::emitThrow(const SEM::Value& value) {
+		void StatementEmitter::emitThrow(const AST::Value& value) {
 			auto& function = irEmitter_.function();
 			auto& module = irEmitter_.module();
 			ValueEmitter valueEmitter(irEmitter_);
@@ -850,7 +850,7 @@ namespace locic {
 			genUnwind(irEmitter_.function(), UnwindStateContinue);
 		}
 		
-		void StatementEmitter::emitAssert(const SEM::Value& value,
+		void StatementEmitter::emitAssert(const AST::Value& value,
 		                                  const String& assertName) {
 			auto& module = irEmitter_.module();
 			ValueEmitter valueEmitter(irEmitter_);

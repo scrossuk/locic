@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include <locic/SEM/Value.hpp>
+#include <locic/AST/Value.hpp>
 #include <locic/Support/Array.hpp>
 
 namespace locic {
@@ -73,15 +73,15 @@ namespace locic {
 				
 				static TemplateInst Function(const AST::Type* parentType,
 				                             const AST::Function* function,
-				                             llvm::ArrayRef<SEM::Value> functionArgs);
+				                             llvm::ArrayRef<AST::Value> functionArgs);
 				
-				TemplateInst(TemplatedObject pObject, llvm::ArrayRef<SEM::Value> pArguments);
+				TemplateInst(TemplatedObject pObject, llvm::ArrayRef<AST::Value> pArguments);
 				
 				TemplateInst copy() const;
 				
 				TemplatedObject object() const;
 				
-				llvm::ArrayRef<SEM::Value> arguments() const;
+				llvm::ArrayRef<AST::Value> arguments() const;
 				
 				bool allArgumentsAreTemplateVars(const AST::TemplateVarArray& templateVariables) const;
 				
@@ -91,7 +91,7 @@ namespace locic {
 				
 			private:
 				TemplatedObject object_;
-				Array<SEM::Value, 10> arguments_;
+				Array<AST::Value, 10> arguments_;
 				
 		};
 		

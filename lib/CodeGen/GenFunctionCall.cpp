@@ -37,8 +37,8 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Value* genSEMFunctionCall(Function& function,
-		                                const SEM::Value& semCallValue,
-		                                llvm::ArrayRef<SEM::Value> args,
+		                                const AST::Value& semCallValue,
+		                                llvm::ArrayRef<AST::Value> args,
 		                                llvm::Value* const hintResultValue) {
 			auto& module = function.module();
 			

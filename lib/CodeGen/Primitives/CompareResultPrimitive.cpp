@@ -49,42 +49,42 @@ namespace locic {
 		}
 		
 		bool CompareResultPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
-		                                               llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                               llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool CompareResultPrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
-		                                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                                     llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool CompareResultPrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
-		                                                 llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                                 llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		bool CompareResultPrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
-		                                           llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                           llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		llvm_abi::Type CompareResultPrimitive::getABIType(Module& /*module*/,
 		                                                  const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
-		                                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                                  llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			 // Compare results represented with 8 bits.
 			return llvm_abi::Int8Ty;
 		}
 		
 		llvm::Type* CompareResultPrimitive::getIRType(Module& /*module*/,
 		                                              const TypeGenerator& typeGenerator,
-		                                              llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                              llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return typeGenerator.getI8Type();
 		}
 		
 		llvm::Value* CompareResultPrimitive::emitMethod(IREmitter& irEmitter,
 		                                                const MethodID methodID,
-		                                                llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                                llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                                llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                                llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                                PendingResultArray args,
 		                                                llvm::Value* /*hintResultValue*/) const {
 			auto& function = irEmitter.function();

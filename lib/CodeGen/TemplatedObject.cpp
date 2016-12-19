@@ -140,10 +140,10 @@ namespace locic {
 		
 		TemplateInst TemplateInst::Function(const AST::Type* parentType,
 		                                    const AST::Function* function,
-		                                    llvm::ArrayRef<SEM::Value> functionArgs) {
+		                                    llvm::ArrayRef<AST::Value> functionArgs) {
 			if (parentType != nullptr) {
 				assert(parentType->isObject());
-				llvm::SmallVector<SEM::Value, 10> args;
+				llvm::SmallVector<AST::Value, 10> args;
 				for (const auto& arg: parentType->templateArguments()) {
 					args.push_back(arg.copy());
 				}
@@ -156,7 +156,7 @@ namespace locic {
 			}
 		}
 		
-		TemplateInst::TemplateInst(TemplatedObject pObject, llvm::ArrayRef<SEM::Value> pArguments)
+		TemplateInst::TemplateInst(TemplatedObject pObject, llvm::ArrayRef<AST::Value> pArguments)
 			: object_(pObject) {
 				for (size_t i = 0; i < pArguments.size(); i++) {
 					arguments_.push_back(pArguments[i].copy());
@@ -171,7 +171,7 @@ namespace locic {
 			return object_;
 		}
 		
-		llvm::ArrayRef<SEM::Value> TemplateInst::arguments() const {
+		llvm::ArrayRef<AST::Value> TemplateInst::arguments() const {
 			return arrayRef(arguments_);
 		}
 		

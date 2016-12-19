@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include <locic/SEM/Value.hpp>
+#include <locic/AST/Value.hpp>
 
 namespace locic {
 
@@ -14,16 +14,16 @@ namespace locic {
 		
 		class IfClause {
 			public:
-				IfClause(Value condition, std::unique_ptr<Scope> scope);
+				IfClause(AST::Value condition, std::unique_ptr<Scope> scope);
 				
-				const Value& condition() const;
+				const AST::Value& condition() const;
 				
 				Scope& scope() const;
 				
 				std::string toString() const;
 				
 			private:
-				Value condition_;
+				AST::Value condition_;
 				std::unique_ptr<Scope> scope_;
 				
 		};

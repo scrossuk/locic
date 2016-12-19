@@ -49,41 +49,41 @@ namespace locic {
 		}
 		
 		bool PtrLvalPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
-		                                               llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                               llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool PtrLvalPrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
-		                                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                                     llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool PtrLvalPrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
-		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                        llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		bool PtrLvalPrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
-		                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                  llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		llvm_abi::Type PtrLvalPrimitive::getABIType(Module& /*module*/,
 		                                            const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
-		                                            llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                            llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return llvm_abi::PointerTy;
 		}
 		
 		llvm::Type* PtrLvalPrimitive::getIRType(Module& /*module*/,
 		                                        const TypeGenerator& typeGenerator,
-		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                        llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return typeGenerator.getPtrType();
 		}
 		
 		llvm::Value* PtrLvalPrimitive::emitMethod(IREmitter& irEmitter,
 		                                          const MethodID methodID,
-		                                          llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                          llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                          llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                          llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                          PendingResultArray args,
 		                                          llvm::Value* /*hintResultValue*/) const {
 			auto& function = irEmitter.function();

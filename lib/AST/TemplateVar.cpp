@@ -108,11 +108,11 @@ namespace locic {
 			isVirtual_ = pIsVirtual;
 		}
 		
-		SEM::Value TemplateVar::selfRefValue() const {
+		AST::Value TemplateVar::selfRefValue() const {
 			if (type()->isBuiltInTypename()) {
-				return SEM::Value::TypeRef(selfRefType(), type());
+				return AST::Value::TypeRef(selfRefType(), type());
 			} else {
-				return SEM::Value::TemplateVarRef(this, type());
+				return AST::Value::TemplateVarRef(this, type());
 			}
 		}
 		

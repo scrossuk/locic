@@ -128,12 +128,12 @@ namespace locic {
 			// Push function on to scope stack (to resolve references to parameters).
 			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(function));
 			
-			HeapArray<SEM::Value> parentArguments;
+			HeapArray<AST::Value> parentArguments;
 			for (const auto& astValueNode: *(initializerNode->valueList)) {
 				parentArguments.push_back(ConvertValue(context, astValueNode));
 			}
 			
-			HeapArray<SEM::Value> constructValues;
+			HeapArray<AST::Value> constructValues;
 			constructValues.reserve(1 + function.parameters().size());
 			
 			// Call parent constructor.
@@ -142,13 +142,13 @@ namespace locic {
 			
 			for (const auto var: function.parameters()) {
 				const auto varType = getBuiltInType(context, context.getCString("ref_t"), { var->lvalType() })->createRefType(var->lvalType());
-				auto varValue = SEM::Value::LocalVar(*var, varType);
+				auto varValue = AST::Value::LocalVar(*var, varType);
 				
 				// Move from each value_lval into the internal constructor.
 				constructValues.push_back(CallValue(context, GetSpecialMethod(context, derefValue(std::move(varValue)), context.getCString("move"), location), {}, location));
 			}
 			
-			auto returnValue = SEM::Value::InternalConstruct(semTypeInstance->selfType(), std::move(constructValues));
+			auto returnValue = AST::Value::InternalConstruct(semTypeInstance->selfType(), std::move(constructValues));
 			
 			std::unique_ptr<SEM::Scope> scope(new SEM::Scope());
 			scope->statements().push_back(SEM::Statement::Return(std::move(returnValue)));

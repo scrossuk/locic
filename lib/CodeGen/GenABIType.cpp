@@ -35,7 +35,7 @@ namespace locic {
 		}
 		
 		llvm_abi::Type genABIObjectType(Module& module, const SEM::TypeInstance& typeInstance,
-		                                const SEM::ValueArray& templateArguments) {
+		                                const AST::ValueArray& templateArguments) {
 			auto& abiTypeBuilder = module.abiTypeBuilder();
 			
 			if (typeInstance.isPrimitive()) {

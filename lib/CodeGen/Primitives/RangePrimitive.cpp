@@ -50,28 +50,28 @@ namespace locic {
 		: typeInstance_(typeInstance) { }
 		
 		bool RangePrimitive::isSizeAlwaysKnown(const TypeInfo& typeInfo,
-		                                       llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                       llvm::ArrayRef<AST::Value> templateArguments) const {
 			return typeInfo.isSizeAlwaysKnown(templateArguments.front().typeRefType());
 		}
 		
 		bool RangePrimitive::isSizeKnownInThisModule(const TypeInfo& typeInfo,
-		                                           llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                           llvm::ArrayRef<AST::Value> templateArguments) const {
 			return typeInfo.isSizeKnownInThisModule(templateArguments.front().typeRefType());
 		}
 		
 		bool RangePrimitive::hasCustomDestructor(const TypeInfo& typeInfo,
-		                                         llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                         llvm::ArrayRef<AST::Value> templateArguments) const {
 			return typeInfo.hasCustomDestructor(templateArguments.front().typeRefType());
 		}
 		
 		bool RangePrimitive::hasCustomMove(const TypeInfo& typeInfo,
-		                                   llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                   llvm::ArrayRef<AST::Value> templateArguments) const {
 			return typeInfo.hasCustomMove(templateArguments.front().typeRefType());
 		}
 		
 		llvm_abi::Type RangePrimitive::getABIType(Module& module,
 		                                          const llvm_abi::TypeBuilder& abiTypeBuilder,
-		                                          llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                          llvm::ArrayRef<AST::Value> templateArguments) const {
 			const auto memberType = genABIType(module, templateArguments.front().typeRefType());
 			llvm_abi::Type memberTypes[] = { memberType, memberType };
 			return abiTypeBuilder.getStructTy(memberTypes);
@@ -79,7 +79,7 @@ namespace locic {
 		
 		llvm::Type* RangePrimitive::getIRType(Module& module,
 		                                      const TypeGenerator& typeGenerator,
-		                                      llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                      llvm::ArrayRef<AST::Value> templateArguments) const {
 			const auto memberType = genType(module, templateArguments.front().typeRefType());
 			llvm::Type* const memberTypes[] = { memberType, memberType };
 			return typeGenerator.getStructType(memberTypes);
@@ -139,14 +139,14 @@ namespace locic {
 		
 		llvm::Value* RangePrimitive::emitMethod(IREmitter& irEmitter,
 		                                        const MethodID methodID,
-		                                        llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                        llvm::ArrayRef<SEM::Value> /*functionTemplateArguments*/,
+		                                        llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                        llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                        PendingResultArray args,
 		                                        llvm::Value* const hintResultValue) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
-			SEM::ValueArray valueArray;
+			AST::ValueArray valueArray;
 			for (const auto& value: typeTemplateArguments) {
 				valueArray.push_back(value.copy());
 			}

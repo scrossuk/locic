@@ -5,7 +5,7 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Value;
 		
@@ -18,14 +18,14 @@ namespace locic {
 		/**
 		 * \brief Value Emitter
 		 * 
-		 * This class emits IR for SEM values.
+		 * This class emits IR for AST values.
 		 */
 		class ValueEmitter {
 		public:
 			ValueEmitter(IREmitter& irEmitter);
 			
 			llvm::Value*
-			emitValue(const SEM::Value& value,
+			emitValue(const AST::Value& value,
 			          llvm::Value* hintResultValue = nullptr);
 			
 			llvm::Value* emitSelf();
@@ -33,98 +33,98 @@ namespace locic {
 			llvm::Value* emitThis();
 			
 			llvm::Value*
-			emitConstant(const SEM::Value& value);
+			emitConstant(const AST::Value& value);
 			
 			llvm::Value*
-			emitAlias(const SEM::Value& value,
+			emitAlias(const AST::Value& value,
 			          llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitLocalVar(const SEM::Value& value);
+			emitLocalVar(const AST::Value& value);
 			
 			llvm::Value*
-			emitReinterpretCast(const SEM::Value& value,
+			emitReinterpretCast(const AST::Value& value,
 			                    llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitDerefReference(const SEM::Value& value);
+			emitDerefReference(const AST::Value& value);
 			
 			llvm::Value*
-			emitUnionDataOffset(const SEM::Value& value);
+			emitUnionDataOffset(const AST::Value& value);
 			
 			llvm::Value*
-			emitMemberOffset(const SEM::Value& value);
+			emitMemberOffset(const AST::Value& value);
 			
 			llvm::Value*
-			emitTernary(const SEM::Value& value,
+			emitTernary(const AST::Value& value,
 			            llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitCast(const SEM::Value& value,
+			emitCast(const AST::Value& value,
 			         llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitPolyCast(const SEM::Value& value);
+			emitPolyCast(const AST::Value& value);
 			
 			llvm::Value*
-			emitLval(const SEM::Value& value,
+			emitLval(const AST::Value& value,
 			         llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitNoLval(const SEM::Value& value,
+			emitNoLval(const AST::Value& value,
 			           llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitRef(const SEM::Value& value,
+			emitRef(const AST::Value& value,
 			        llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitNoRef(const SEM::Value& value,
+			emitNoRef(const AST::Value& value,
 			          llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitStaticRef(const SEM::Value& value,
+			emitStaticRef(const AST::Value& value,
 			              llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitNoStaticRef(const SEM::Value& value,
+			emitNoStaticRef(const AST::Value& value,
 			                llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitInternalConstruct(const SEM::Value& value,
+			emitInternalConstruct(const AST::Value& value,
 			                      llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitMemberAccess(const SEM::Value& value);
+			emitMemberAccess(const AST::Value& value);
 			
 			llvm::Value*
-			emitBindReference(const SEM::Value& value);
+			emitBindReference(const AST::Value& value);
 			
 			llvm::Value*
-			emitTypeRef(const SEM::Value& value);
+			emitTypeRef(const AST::Value& value);
 			
 			llvm::Value*
-			emitCall(const SEM::Value& value,
+			emitCall(const AST::Value& value,
 			         llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitFunctionRef(const SEM::Value& value);
+			emitFunctionRef(const AST::Value& value);
 			
 			llvm::Value*
-			emitMethodObject(const SEM::Value& value);
+			emitMethodObject(const AST::Value& value);
 			
 			llvm::Value*
-			emitInterfaceMethodObject(const SEM::Value& value);
+			emitInterfaceMethodObject(const AST::Value& value);
 			
 			llvm::Value*
-			emitStaticInterfaceMethodObject(const SEM::Value& value);
+			emitStaticInterfaceMethodObject(const AST::Value& value);
 			
 			llvm::Value*
-			emitTemplateVarRef(const SEM::Value& value,
+			emitTemplateVarRef(const AST::Value& value,
 			                   llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitArrayLiteral(const SEM::Value& value,
+			emitArrayLiteral(const AST::Value& value,
 			                 llvm::Value* hintResultValue);
 			
 		private:

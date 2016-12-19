@@ -15,13 +15,13 @@
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
 #include <locic/SEM/SwitchCase.hpp>
-#include <locic/SEM/Value.hpp>
+#include <locic/AST/Value.hpp>
 
 namespace locic {
 
 	namespace SEM {
 	
-		Statement Statement::ValueStmt(Value value) {
+		Statement Statement::ValueStmt(AST::Value value) {
 			Statement statement(VALUE, value.exitStates());
 			statement.valueStmt_.value = std::move(value);
 			return statement;
@@ -33,7 +33,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::InitialiseStmt(AST::Var& var, Value value) {
+		Statement Statement::InitialiseStmt(AST::Var& var, AST::Value value) {
 			Statement statement(INITIALISE, value.exitStates());
 			statement.initialiseStmt_.var = &var;
 			statement.initialiseStmt_.value = std::move(value);
@@ -60,7 +60,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
+		Statement Statement::Switch(AST::Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
 			AST::ExitStates exitStates = AST::ExitStates::None();
 			exitStates.add(value.exitStates().throwingStates());
 			
@@ -79,7 +79,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope) {
+		Statement Statement::Loop(AST::Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope) {
 			// If the loop condition can be exited normally then the loop
 			// can be exited normally (i.e. because the condition can be false).
 			AST::ExitStates exitStates = condition.exitStates();
@@ -113,7 +113,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::For(AST::Var& var, Value initValue,
+		Statement Statement::For(AST::Var& var, AST::Value initValue,
 		                         std::unique_ptr<Scope> scope) {
 			// TODO: get exit states of skip_front() method.
 			auto exitStates = initValue.exitStates();
@@ -180,7 +180,7 @@ namespace locic {
 			return Statement(RETURNVOID, AST::ExitStates::Return());
 		}
 		
-		Statement Statement::Return(Value value) {
+		Statement Statement::Return(AST::Value value) {
 			assert(value.exitStates().onlyHasNormalOrThrowingStates());
 			
 			AST::ExitStates exitStates = AST::ExitStates::Return();
@@ -191,7 +191,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Throw(Value value) {
+		Statement Statement::Throw(AST::Value value) {
 			Statement statement(THROW, AST::ExitStates::ThrowAlways());
 			statement.throwStmt_.value = std::move(value);
 			return statement;
@@ -209,7 +209,7 @@ namespace locic {
 			return Statement(CONTINUE, AST::ExitStates::Continue());
 		}
 		
-		Statement Statement::Assert(Value value, const String& name) {
+		Statement Statement::Assert(AST::Value value, const String& name) {
 			Statement statement(ASSERT, value.exitStates());
 			statement.assertStmt_.value = std::move(value);
 			statement.assertStmt_.name = name;
@@ -244,7 +244,7 @@ namespace locic {
 			return kind() == VALUE;
 		}
 		
-		const Value& Statement::getValue() const {
+		const AST::Value& Statement::getValue() const {
 			assert(isValueStatement());
 			return valueStmt_.value;
 		}
@@ -267,7 +267,7 @@ namespace locic {
 			return *(initialiseStmt_.var);
 		}
 		
-		const Value& Statement::getInitialiseValue() const {
+		const AST::Value& Statement::getInitialiseValue() const {
 			assert(isInitialiseStatement());
 			return initialiseStmt_.value;
 		}
@@ -290,7 +290,7 @@ namespace locic {
 			return kind() == SWITCH;
 		}
 		
-		const Value& Statement::getSwitchValue() const {
+		const AST::Value& Statement::getSwitchValue() const {
 			assert(isSwitchStatement());
 			return switchStmt_.value;
 		}
@@ -309,7 +309,7 @@ namespace locic {
 			return kind() == LOOP;
 		}
 		
-		const Value& Statement::getLoopCondition() const {
+		const AST::Value& Statement::getLoopCondition() const {
 			assert(isLoopStatement());
 			return loopStmt_.condition;
 		}
@@ -333,7 +333,7 @@ namespace locic {
 			return *(forStmt_.var);
 		}
 		
-		const Value& Statement::getForInitValue() const {
+		const AST::Value& Statement::getForInitValue() const {
 			assert(isFor());
 			return forStmt_.initValue;
 		}
@@ -375,7 +375,7 @@ namespace locic {
 			return kind() == RETURN;
 		}
 		
-		const Value& Statement::getReturnValue() const {
+		const AST::Value& Statement::getReturnValue() const {
 			assert(isReturnStatement());
 			return returnStmt_.value;
 		}
@@ -384,7 +384,7 @@ namespace locic {
 			return kind() == THROW;
 		}
 		
-		const Value& Statement::getThrowValue() const {
+		const AST::Value& Statement::getThrowValue() const {
 			assert(isThrowStatement());
 			return throwStmt_.value;
 		}
@@ -405,7 +405,7 @@ namespace locic {
 			return kind() == ASSERT;
 		}
 		
-		const Value& Statement::getAssertValue() const {
+		const AST::Value& Statement::getAssertValue() const {
 			assert(isAssertStatement());
 			return assertStmt_.value;
 		}

@@ -10,11 +10,6 @@ namespace locic {
 		class Function;
 		class FunctionType;
 		class Type;
-		
-	}
-	
-	namespace SEM {
-		
 		class Value;
 		
 	}
@@ -101,7 +96,7 @@ namespace locic {
 		 * \param value The SEM value which may be a trivial function.
 		 * \return Whether the value is a trivial function.
 		 */
-		bool isTrivialFunction(Module& module, const SEM::Value& value);
+		bool isTrivialFunction(Module& module, const AST::Value& value);
 		
 		/**
 		 * \brief Generate trivial function call.
@@ -116,16 +111,16 @@ namespace locic {
 		 * \param hintResultValue A result pointer (to avoid unnecessary allocs/moves) or null if none available.
 		 * \return The result of the function call.
 		 */
-		llvm::Value* genTrivialFunctionCall(Function& function, const SEM::Value& value, llvm::ArrayRef<SEM::Value> args,
+		llvm::Value* genTrivialFunctionCall(Function& function, const AST::Value& value, llvm::ArrayRef<AST::Value> args,
 			llvm::Value* const hintResultValue = nullptr);
 		
-		FunctionCallInfo genFunctionCallInfo(Function& function, const SEM::Value& value);
+		FunctionCallInfo genFunctionCallInfo(Function& function, const AST::Value& value);
 		
-		TypeInfoComponents genTypeInfoComponents(Function& function, const SEM::Value& value);
+		TypeInfoComponents genTypeInfoComponents(Function& function, const AST::Value& value);
 		
-		TypeInfoComponents genBoundTypeInfoComponents(Function& function, const SEM::Value& value);
+		TypeInfoComponents genBoundTypeInfoComponents(Function& function, const AST::Value& value);
 		
-		VirtualMethodComponents genVirtualMethodComponents(Function& function, const SEM::Value& value);
+		VirtualMethodComponents genVirtualMethodComponents(Function& function, const AST::Value& value);
 		
 	}
 	

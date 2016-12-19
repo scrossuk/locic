@@ -132,7 +132,7 @@ namespace locic {
 			return context.getCString(cString);
 		}
 		
-		bool HasBinaryOp(Context& context, const SEM::Value& value, AST::BinaryOpKind opKind,
+		bool HasBinaryOp(Context& context, const AST::Value& value, AST::BinaryOpKind opKind,
 		                 const Debug::SourceLocation& /*location*/) {
 			const auto derefType = getDerefType(value.type());
 			assert(derefType->isObjectOrTemplateVar());
@@ -142,7 +142,7 @@ namespace locic {
 			return methodSet->hasMethod(CanonicalizeMethodName(methodName));
 		}
 		
-		SEM::Value GetBinaryOp(Context& context, SEM::Value value, const AST::BinaryOpKind opKind, const Debug::SourceLocation& location) {
+		AST::Value GetBinaryOp(Context& context, AST::Value value, const AST::BinaryOpKind opKind, const Debug::SourceLocation& location) {
 			return GetMethod(context, std::move(value), binaryOpName(context, opKind), location);
 		}
 		
@@ -162,7 +162,7 @@ namespace locic {
 			
 		};
 		
-		SEM::Value MakeMemberAccess(Context& context, SEM::Value rawValue, const String& memberName, const Debug::SourceLocation& location) {
+		AST::Value MakeMemberAccess(Context& context, AST::Value rawValue, const String& memberName, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			const auto derefType = getStaticDerefType(getDerefType(value.type()->resolveAliases()));
 			assert(derefType->isObjectOrTemplateVar());
@@ -467,7 +467,7 @@ namespace locic {
 			
 		};
 		
-		SEM::Value ConvertValueData(Context& context, const AST::Node<AST::ValueDecl>& astValueNode) {
+		AST::Value ConvertValueData(Context& context, const AST::Node<AST::ValueDecl>& astValueNode) {
 			assert(astValueNode.get() != nullptr);
 			const auto& location = astValueNode.location();
 			
@@ -498,7 +498,7 @@ namespace locic {
 					if (searchResult.isNone()) {
 						context.issueDiag(UseOfUndeclaredIdentifierDiag(name.copy()),
 						                  location);
-						return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
+						return AST::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 					} else if (searchResult.isFunction()) {
 						auto& function = searchResult.function();
 						
@@ -517,9 +517,9 @@ namespace locic {
 							auto parentTemplateArguments = GetTemplateValues(templateVarMap, typeInstance.templateVariables());
 							const auto parentType = AST::Type::Object(&typeInstance, std::move(parentTemplateArguments));
 							
-							return SEM::Value::FunctionRef(parentType, function, std::move(functionTemplateArguments), functionType);
+							return AST::Value::FunctionRef(parentType, function, std::move(functionTemplateArguments), functionType);
 						} else {
-							return SEM::Value::FunctionRef(nullptr, function, std::move(functionTemplateArguments), functionType);
+							return AST::Value::FunctionRef(nullptr, function, std::move(functionTemplateArguments), functionType);
 						}
 					} else if (searchResult.isTypeInstance()) {
 						auto& typeInstance = searchResult.typeInstance();
@@ -531,7 +531,7 @@ namespace locic {
 						
 						const auto typenameType = context.typeBuilder().getTypenameType();
 						const auto parentType = AST::Type::Object(&typeInstance, GetTemplateValues(templateVarMap, typeInstance.templateVariables()));
-						return SEM::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
+						return AST::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
 					} else if (searchResult.isAlias()) {
 						auto& alias = searchResult.alias();
 						(void) context.aliasTypeResolver().resolveAliasType(alias);
@@ -545,7 +545,7 @@ namespace locic {
 						assert(astSymbolNode->first()->templateArguments()->empty());
 						auto& var = searchResult.var();
 						var.setUsed();
-						return SEM::Value::LocalVar(var, getBuiltInType(context, context.getCString("ref_t"), { var.lvalType() })->createRefType(var.lvalType()));
+						return AST::Value::LocalVar(var, getBuiltInType(context, context.getCString("ref_t"), { var.lvalType() })->createRefType(var.lvalType()));
 					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						auto& templateVar = searchResult.templateVar();
@@ -557,7 +557,7 @@ namespace locic {
 				case AST::ValueDecl::TYPEREF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->typeRef.type);
 					const auto typenameType = context.typeBuilder().getTypenameType();
-					return SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
+					return AST::Value::TypeRef(type, typenameType->createStaticRefType(type));
 				}
 				case AST::ValueDecl::MEMBERREF: {
 					const auto& memberName = astValueNode->memberRef.name;
@@ -572,7 +572,7 @@ namespace locic {
 					if (variableIterator == typeInstance->namedVariables().end()) {
 						context.issueDiag(CannotFindMemberVariableDiag(memberName),
 						                  location);
-						return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
+						return AST::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 					}
 					
 					return createMemberVarRef(context, std::move(selfValue), *(variableIterator->second));
@@ -580,7 +580,7 @@ namespace locic {
 				case AST::ValueDecl::ALIGNOF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->alignOf.type);
 					const auto typenameType = context.typeBuilder().getTypenameType();
-					auto typeRefValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
+					auto typeRefValue = AST::Value::TypeRef(type, typenameType->createStaticRefType(type));
 					
 					auto alignMaskMethod = GetStaticMethod(context, std::move(typeRefValue), context.getCString("__alignmask"), location);
 					auto alignMaskValue = CallValue(context, std::move(alignMaskMethod), {}, location);
@@ -588,13 +588,13 @@ namespace locic {
 					const auto sizeType = context.typeBuilder().getSizeType();
 					
 					auto alignMaskValueAddMethod = GetMethod(context, std::move(alignMaskValue), context.getCString("add"), location);
-					auto oneValue = SEM::Value::Constant(Constant::Integer(1), sizeType);
+					auto oneValue = AST::Value::Constant(Constant::Integer(1), sizeType);
 					return CallValue(context, std::move(alignMaskValueAddMethod), makeHeapArray( std::move(oneValue) ), location);
 				}
 				case AST::ValueDecl::SIZEOF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->sizeOf.type);
 					const auto typenameType = context.typeBuilder().getTypenameType();
-					auto typeRefValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
+					auto typeRefValue = AST::Value::TypeRef(type, typenameType->createStaticRefType(type));
 					
 					auto sizeOfMethod = GetStaticMethod(context, std::move(typeRefValue), context.getCString("__sizeof"), location);
 					return CallValue(context, std::move(sizeOfMethod), {}, location);
@@ -746,7 +746,7 @@ namespace locic {
 							
 							// Logical AND only evaluates the right operand if the left
 							// operand is TRUE, otherwise it returns FALSE.
-							return SEM::Value::Ternary(std::move(boolValue), std::move(rightOperand), SEM::Value::Constant(Constant::False(), boolType));
+							return AST::Value::Ternary(std::move(boolValue), std::move(rightOperand), AST::Value::Constant(Constant::False(), boolType));
 						}
 						case AST::OP_LOGICALOR: {
 							const auto boolType = context.typeBuilder().getBoolType();
@@ -754,7 +754,7 @@ namespace locic {
 							
 							// Logical OR only evaluates the right operand if the left
 							// operand is FALSE, otherwise it returns TRUE.
-							return SEM::Value::Ternary(std::move(boolValue), SEM::Value::Constant(Constant::True(), boolType), std::move(rightOperand));
+							return AST::Value::Ternary(std::move(boolValue), AST::Value::Constant(Constant::True(), boolType), std::move(rightOperand));
 						}
 						case AST::OP_BITWISEAND: {
 							auto opMethod = GetMethod(context, std::move(leftOperand), context.getCString("bitwise_and"), location);
@@ -794,7 +794,7 @@ namespace locic {
 					auto castIfTrue = ImplicitCast(context, std::move(ifTrue), targetType, location);
 					auto castIfFalse = ImplicitCast(context, std::move(ifFalse), targetType, location);
 					
-					return SEM::Value::Ternary(std::move(boolValue), std::move(castIfTrue), std::move(castIfFalse));
+					return AST::Value::Ternary(std::move(boolValue), std::move(castIfTrue), std::move(castIfFalse));
 				}
 				case AST::ValueDecl::CAST: {
 					auto sourceValue = ConvertValue(context, astValueNode->cast.value);
@@ -815,7 +815,7 @@ namespace locic {
 								                  location);
 								throw SkipException();
 							}
-							return SEM::Value::Reinterpret(ImplicitCast(context, std::move(sourceValue), sourceType, location), targetType);
+							return AST::Value::Reinterpret(ImplicitCast(context, std::move(sourceValue), sourceType, location), targetType);
 					}
 					
 					locic_unreachable("Unknown cast kind.");
@@ -833,7 +833,7 @@ namespace locic {
 						return sourceValue;
 					}
 					
-					return SEM::Value::Lval(std::move(sourceValue));
+					return AST::Value::Lval(std::move(sourceValue));
 				}
 				case AST::ValueDecl::NOLVAL: {
 					auto sourceValue = ConvertValue(context, astValueNode->makeNoLval.value);
@@ -843,7 +843,7 @@ namespace locic {
 						return sourceValue;
 					}
 					
-					return SEM::Value::NoLval(std::move(sourceValue));
+					return AST::Value::NoLval(std::move(sourceValue));
 				}
 				case AST::ValueDecl::REF: {
 					auto sourceValue = ConvertValue(context, astValueNode->makeRef.value);
@@ -859,7 +859,7 @@ namespace locic {
 					}
 					
 					const auto targetType = TypeResolver(context).resolveType(astValueNode->makeRef.targetType);
-					return SEM::Value::Ref(targetType, std::move(sourceValue));
+					return AST::Value::Ref(targetType, std::move(sourceValue));
 				}
 				case AST::ValueDecl::NOREF: {
 					auto sourceValue = ConvertValue(context, astValueNode->makeNoRef.value);
@@ -869,7 +869,7 @@ namespace locic {
 						return sourceValue;
 					}
 					
-					return SEM::Value::NoRef(std::move(sourceValue));
+					return AST::Value::NoRef(std::move(sourceValue));
 				}
 				case AST::ValueDecl::INTERNALCONSTRUCT: {
 					const auto& astTemplateArgs = astValueNode->internalConstruct.templateArgs;
@@ -879,10 +879,10 @@ namespace locic {
 					
 					if (thisTypeInstance == nullptr) {
 						context.issueDiag(CannotCallInternalConstructorInNonMethodDiag(), location);
-						return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
+						return AST::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 					}
 					
-					SEM::ValueArray templateArgs;
+					AST::ValueArray templateArgs;
 					templateArgs.reserve(thisTypeInstance->templateVariables().size());
 					for (const auto& astTemplateArg: *astTemplateArgs) {
 						templateArgs.push_back(ConvertValue(context, astTemplateArg));
@@ -919,7 +919,7 @@ namespace locic {
 						                  location);
 					}
 					
-					HeapArray<SEM::Value> semValues;
+					HeapArray<AST::Value> semValues;
 					semValues.reserve(astParameterValueNodes->size());
 					
 					for (size_t i = 0; i < astParameterValueNodes->size(); i++) {
@@ -935,7 +935,7 @@ namespace locic {
 						}
 					}
 					
-					return SEM::Value::InternalConstruct(thisType, std::move(semValues));
+					return AST::Value::InternalConstruct(thisType, std::move(semValues));
 				}
 				case AST::ValueDecl::MEMBERACCESS: {
 					const auto& memberName = astValueNode->memberAccess.memberName;
@@ -947,7 +947,7 @@ namespace locic {
 					const auto& memberName = astValueNode->templatedMemberAccess.memberName;
 					auto object = ConvertValue(context, astValueNode->templatedMemberAccess.object);
 					
-					SEM::ValueArray templateArguments;
+					AST::ValueArray templateArguments;
 					templateArguments.reserve(astValueNode->templatedMemberAccess.templateArgs->size());
 					
 					for (const auto& arg: *(astValueNode->templatedMemberAccess.templateArgs)) {
@@ -959,7 +959,7 @@ namespace locic {
 				case AST::ValueDecl::FUNCTIONCALL: {
 					auto functionValue = ConvertValue(context, astValueNode->functionCall.functionValue);
 					
-					HeapArray<SEM::Value> argumentValues;
+					HeapArray<AST::Value> argumentValues;
 					
 					for (const auto& astArgumentValueNode: *(astValueNode->functionCall.parameters)) {
 						argumentValues.push_back(ConvertValue(context, astArgumentValueNode));
@@ -983,12 +983,12 @@ namespace locic {
 					}
 					
 					const auto boolType = context.typeBuilder().getBoolType();
-					return SEM::Value::CapabilityTest(checkType,
+					return AST::Value::CapabilityTest(checkType,
 					                                  capabilityType,
 					                                  boolType);
 				}
 				case AST::ValueDecl::ARRAYLITERAL: {
-					SEM::ValueArray elementValues;
+					AST::ValueArray elementValues;
 					for (const auto& astElementValueNode: *(astValueNode->arrayLiteral.values)) {
 						elementValues.push_back(ConvertValue(context, astElementValueNode));
 					}
@@ -1014,7 +1014,7 @@ namespace locic {
 					                                                              elementValues.size(),
 					                                                              location);
 					
-					return SEM::Value::ArrayLiteral(arrayType,
+					return AST::Value::ArrayLiteral(arrayType,
 					                                std::move(elementValues));
 				}
 				case AST::ValueDecl::MERGE: {
@@ -1063,7 +1063,7 @@ namespace locic {
 			return valueInfo;
 		}
 		
-		SEM::Value ConvertValue(Context& context, const AST::Node<AST::ValueDecl>& astValueNode) {
+		AST::Value ConvertValue(Context& context, const AST::Node<AST::ValueDecl>& astValueNode) {
 			auto semValue = ConvertValueData(context, astValueNode);
 			semValue.setDebugInfo(makeValueInfo(astValueNode));
 			return semValue;

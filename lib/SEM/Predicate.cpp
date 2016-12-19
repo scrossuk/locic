@@ -8,7 +8,7 @@
 #include <locic/AST/TemplateVarMap.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/Value.hpp>
+#include <locic/AST/Value.hpp>
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/Hasher.hpp>
 #include <locic/Support/MakeString.hpp>

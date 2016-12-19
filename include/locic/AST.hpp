@@ -23,6 +23,7 @@
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/TypeInstance.hpp>
+#include <locic/AST/Value.hpp>
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 

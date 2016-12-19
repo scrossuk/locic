@@ -99,7 +99,7 @@ namespace locic {
 			const auto& value = getBuiltInNamespaceItem(context, typeName);
 			assert(value.isTypeInstance() || value.isAlias());
 			
-			SEM::ValueArray templateArgValues;
+			AST::ValueArray templateArgValues;
 			templateArgValues.reserve(templateArgs.size());
 			
 			const auto& templateVariables = (value.isTypeInstance() ? value.typeInstance().templateVariables() : value.alias().templateVariables());
@@ -107,7 +107,7 @@ namespace locic {
 			for (size_t i = 0; i < templateArgs.size(); i++) {
 				const auto& argVar = templateVariables[i];
 				const auto& argType = templateArgs[i];
-				templateArgValues.push_back(SEM::Value::TypeRef(argType, argVar->type()->createStaticRefType(argType)));
+				templateArgValues.push_back(AST::Value::TypeRef(argType, argVar->type()->createStaticRefType(argType)));
 			}
 			
 			if (value.isTypeInstance()) {
@@ -119,7 +119,7 @@ namespace locic {
 			}
 		}
 		
-		const AST::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, SEM::ValueArray templateArgValues) {
+		const AST::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, AST::ValueArray templateArgValues) {
 			const auto& value = getBuiltInNamespaceItem(context, typeName);
 			assert(value.isTypeInstance() || value.isAlias());
 			

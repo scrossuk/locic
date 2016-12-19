@@ -52,28 +52,28 @@ namespace locic {
 		: typeInstance_(typeInstance) { }
 		
 		bool FloatPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
-		                                       llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                       llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool FloatPrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
-		                                             llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                             llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool FloatPrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
-		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                        llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		bool FloatPrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
-		                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                  llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		llvm_abi::Type FloatPrimitive::getABIType(Module& /*module*/,
 		                                          const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
-		                                          llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                          llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			switch (typeInstance_.primitiveID()) {
 				case PrimitiveFloat:
 					return llvm_abi::FloatTy;
@@ -88,7 +88,7 @@ namespace locic {
 		
 		llvm::Type* FloatPrimitive::getIRType(Module& /*module*/,
 		                                      const TypeGenerator& typeGenerator,
-		                                      llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                      llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			switch (typeInstance_.primitiveID()) {
 				case PrimitiveFloat:
 					return typeGenerator.getFloatType();
@@ -103,8 +103,8 @@ namespace locic {
 		
 		llvm::Value* FloatPrimitive::emitMethod(IREmitter& irEmitter,
 		                                        const MethodID methodID,
-		                                        llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                        llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                        llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                        llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                        PendingResultArray args,
 		                                        llvm::Value* const hintResultValue) const {
 			auto& builder = irEmitter.builder();
@@ -169,7 +169,7 @@ namespace locic {
 				}
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST: {
-					SEM::ValueArray valueArray;
+					AST::ValueArray valueArray;
 					for (const auto& value: typeTemplateArguments) {
 						valueArray.push_back(value.copy());
 					}

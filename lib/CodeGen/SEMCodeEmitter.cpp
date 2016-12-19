@@ -63,7 +63,7 @@ namespace locic {
 			} else {
 				assert(!isInnerMethod);
 				
-				SEM::ValueArray templateArgs;
+				AST::ValueArray templateArgs;
 				for (const auto& templateVar: function.templateVariables()) {
 					templateArgs.push_back(templateVar->selfRefValue());
 				}

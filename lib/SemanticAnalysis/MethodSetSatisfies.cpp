@@ -35,13 +35,13 @@ namespace locic {
 					if (requireElement.constPredicate().isTrivialBool()) {
 						const bool chosenValue = requireElement.constPredicate().isTrue() ? true : false;
 						const auto chosenConstant = chosenValue ? Constant::True() : Constant::False();
-						auto value = SEM::Value::Constant(chosenConstant, selfRefValue.type());
+						auto value = AST::Value::Constant(chosenConstant, selfRefValue.type());
 						templateVarMap.insert(std::make_pair(templateVar, std::move(value)));
 					} else if (requireElement.constPredicate().isVariable()) {
-						auto value = SEM::Value::PredicateExpr(SEM::Predicate::False(), selfRefValue.type());
+						auto value = AST::Value::PredicateExpr(SEM::Predicate::False(), selfRefValue.type());
 						templateVarMap.insert(std::make_pair(templateVar, std::move(value)));
 					} else {
-						auto value = SEM::Value::PredicateExpr(requireElement.constPredicate().copy(), selfRefValue.type());
+						auto value = AST::Value::PredicateExpr(requireElement.constPredicate().copy(), selfRefValue.type());
 						templateVarMap.insert(std::make_pair(templateVar, std::move(value)));
 					}
 				} else {

@@ -5,15 +5,15 @@
 
 namespace locic {
 	
-	namespace Debug {
+	namespace AST {
 		
-		class SourceLocation;
+		class Value;
 		
 	}
 	
-	namespace SEM {
+	namespace Debug {
 		
-		class Value;
+		class SourceLocation;
 		
 	}
 	
@@ -21,7 +21,7 @@ namespace locic {
 		
 		class Context;
 		
-		SEM::Value CallValue(Context& context, SEM::Value value, HeapArray<SEM::Value> args, const Debug::SourceLocation& location);
+		AST::Value CallValue(Context& context, AST::Value value, HeapArray<AST::Value> args, const Debug::SourceLocation& location);
 		
 	}
 	

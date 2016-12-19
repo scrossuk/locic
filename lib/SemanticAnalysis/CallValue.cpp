@@ -19,16 +19,16 @@ namespace locic {
 		
 		namespace {
 			
-			SEM::Value addDebugInfo(SEM::Value value, const Debug::SourceLocation& location) {
+			AST::Value addDebugInfo(AST::Value value, const Debug::SourceLocation& location) {
 				Debug::ValueInfo valueInfo;
 				valueInfo.location = location;
 				value.setDebugInfo(valueInfo);
 				return value;
 			}
 		
-			HeapArray<SEM::Value> CastFunctionArguments(Context& context, HeapArray<SEM::Value> arguments,
+			HeapArray<AST::Value> CastFunctionArguments(Context& context, HeapArray<AST::Value> arguments,
 			                                            const AST::TypeArray& types, const Debug::SourceLocation& location) {
-				HeapArray<SEM::Value> castValues;
+				HeapArray<AST::Value> castValues;
 				castValues.reserve(arguments.size());
 				
 				for (size_t i = 0; i < arguments.size(); i++) {
@@ -111,7 +111,7 @@ namespace locic {
 			
 		};
 		
-		SEM::Value CallValue(Context& context, SEM::Value rawValue, HeapArray<SEM::Value> args, const Debug::SourceLocation& location) {
+		AST::Value CallValue(Context& context, AST::Value rawValue, HeapArray<AST::Value> args, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			
 			if (getDerefType(value.type())->isStaticRef()) {
@@ -127,7 +127,7 @@ namespace locic {
 				} else {
 					context.issueDiag(TypeNotCallableDiag(getDerefType(value.type())),
 					                  location);
-					return SEM::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
+					return AST::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 				}
 			}
 			
@@ -148,7 +148,7 @@ namespace locic {
 				}
 			}
 			
-			return addDebugInfo(SEM::Value::Call(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location)), location);
+			return addDebugInfo(AST::Value::Call(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location)), location);
 		}
 		
 	}

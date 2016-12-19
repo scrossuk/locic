@@ -33,7 +33,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		bool isRootArgumentList(llvm::ArrayRef<SEM::Value> templateArguments);
+		bool isRootArgumentList(llvm::ArrayRef<AST::Value> templateArguments);
 		
 		bool isRootType(const AST::Type* const type) {
 			switch (type->kind()) {
@@ -56,7 +56,7 @@ namespace locic {
 			}
 		}
 		
-		bool isRootArgument(const SEM::Value& value) {
+		bool isRootArgument(const AST::Value& value) {
 			if (value.isTypeRef()) {
 				return isRootType(value.typeRefType());
 			} else if (value.isTemplateVarRef()) {
@@ -66,7 +66,7 @@ namespace locic {
 			}
 		}
 		
-		bool isRootArgumentList(llvm::ArrayRef<SEM::Value> templateArguments) {
+		bool isRootArgumentList(llvm::ArrayRef<AST::Value> templateArguments) {
 			for (size_t i = 0; i < templateArguments.size(); i++) {
 				if (!isRootArgument(templateArguments[i])) {
 					return false;
@@ -260,7 +260,7 @@ namespace locic {
 			return value;
 		}
 		
-		llvm::Function* genTemplateValueFunction(Function& parentFunction, const SEM::Value& value) {
+		llvm::Function* genTemplateValueFunction(Function& parentFunction, const AST::Value& value) {
 			auto& module = parentFunction.module();
 			
 			AST::FunctionAttributes attributes(/*isVarArg=*/false,

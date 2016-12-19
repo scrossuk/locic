@@ -170,7 +170,7 @@ namespace locic {
 				// to format only casts.
 				const bool formatOnly = !isTopLevel;
 				
-				const auto value = ImplicitCast(context, SEM::Value::CastDummy(sourceType), destType, location, formatOnly);
+				const auto value = ImplicitCast(context, AST::Value::CastDummy(sourceType), destType, location, formatOnly);
 				return value.type();
 			}
 			

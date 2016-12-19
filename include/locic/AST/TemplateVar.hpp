@@ -14,13 +14,13 @@ namespace locic {
 	namespace SEM {
 		
 		class Context;
-		class Value;
 		
 	}
 	
 	namespace AST {
 		
 		class Type;
+		class Value;
 		
 		class TemplateVar {
 		public:
@@ -56,7 +56,7 @@ namespace locic {
 			bool isVirtual() const;
 			void setVirtual(bool isVirtual);
 			
-			SEM::Value selfRefValue() const;
+			AST::Value selfRefValue() const;
 			const Type* selfRefType() const;
 			
 			void setDebugInfo(Debug::TemplateVarInfo debugInfo);

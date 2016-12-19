@@ -2,7 +2,7 @@
 #define LOCIC_CODEGEN_METHODINFO_HPP
 
 #include <locic/AST/FunctionType.hpp>
-#include <locic/SEM/Value.hpp>
+#include <locic/AST/Value.hpp>
 #include <locic/Support/HeapArray.hpp>
 #include <locic/Support/String.hpp>
 
@@ -11,11 +11,6 @@ namespace locic {
 	namespace AST {
 		
 		class Type;
-		
-	}
-	
-	namespace SEM {
-		
 		class Value;
 		
 	}
@@ -28,10 +23,10 @@ namespace locic {
 			const AST::Type* parentType;
 			String name;
 			AST::FunctionType functionType;
-			HeapArray<SEM::Value> templateArgs;
+			HeapArray<AST::Value> templateArgs;
 			
 			MethodInfo(const AST::Type* const argParentType, const String& argName,
-			           AST::FunctionType argFunctionType, HeapArray<SEM::Value> argTemplateArgs)
+			           AST::FunctionType argFunctionType, HeapArray<AST::Value> argTemplateArgs)
 			: parentType(argParentType),
 			name(argName),
 			functionType(std::move(argFunctionType)),

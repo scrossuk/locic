@@ -30,11 +30,11 @@ namespace locic {
 		/**
 		 * \brief Generate SEM function call.
 		 * 
-		 * Calls the given function with the SEM::Value arguments.
+		 * Calls the given function with the AST::Value arguments.
 		 */
 		llvm::Value* genSEMFunctionCall(Function& function,
-		                                const SEM::Value& callValue,
-		                                llvm::ArrayRef<SEM::Value> args,
+		                                const AST::Value& callValue,
+		                                llvm::ArrayRef<AST::Value> args,
 		                                llvm::Value* hintResultValue = nullptr);
 		
 		/**

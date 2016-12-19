@@ -52,28 +52,28 @@ namespace locic {
 		: typeInstance_(typeInstance) { }
 		
 		bool UnsignedIntegerPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,
-		                                               llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                               llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool UnsignedIntegerPrimitive::isSizeKnownInThisModule(const TypeInfo& /*typeInfo*/,
-		                                                     llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                                     llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return true;
 		}
 		
 		bool UnsignedIntegerPrimitive::hasCustomDestructor(const TypeInfo& /*typeInfo*/,
-		                                        llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                        llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		bool UnsignedIntegerPrimitive::hasCustomMove(const TypeInfo& /*typeInfo*/,
-		                                  llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                  llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			return false;
 		}
 		
 		llvm_abi::Type UnsignedIntegerPrimitive::getABIType(Module& /*module*/,
 		                                                    const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
-		                                                    llvm::ArrayRef<SEM::Value> /*templateArguments*/) const {
+		                                                    llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
 			switch (typeInstance_.primitiveID()) {
 				case PrimitiveUInt8:
 					return llvm_abi::UInt8Ty;
@@ -102,7 +102,7 @@ namespace locic {
 		
 		llvm::Type* UnsignedIntegerPrimitive::getIRType(Module& module,
 		                                                const TypeGenerator& typeGenerator,
-		                                                llvm::ArrayRef<SEM::Value> templateArguments) const {
+		                                                llvm::ArrayRef<AST::Value> templateArguments) const {
 			const auto abiType = this->getABIType(module,
 			                                      module.abiTypeBuilder(),
 			                                      templateArguments);
@@ -111,8 +111,8 @@ namespace locic {
 		
 		llvm::Value* UnsignedIntegerPrimitive::emitMethod(IREmitter& irEmitter,
 		                                                  const MethodID methodID,
-		                                                  llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-		                                                  llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+		                                                  llvm::ArrayRef<AST::Value> typeTemplateArguments,
+		                                                  llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                                  PendingResultArray args,
 		                                                  llvm::Value* const hintResultValue) const {
 			auto& builder = irEmitter.builder();
@@ -215,7 +215,7 @@ namespace locic {
 				}
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST: {
-					SEM::ValueArray valueArray;
+					AST::ValueArray valueArray;
 					for (const auto& value: typeTemplateArguments) {
 						valueArray.push_back(value.copy());
 					}

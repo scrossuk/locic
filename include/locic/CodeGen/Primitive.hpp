@@ -5,7 +5,7 @@
 #include <llvm-abi/TypeBuilder.hpp>
 
 #include <locic/CodeGen/PendingResult.hpp>
-#include <locic/SEM/ValueArray.hpp>
+#include <locic/AST/ValueArray.hpp>
 
 namespace locic {
 	
@@ -33,7 +33,7 @@ namespace locic {
 			 * \return Whether the type's size is always known.
 			 */
 			virtual bool isSizeAlwaysKnown(const TypeInfo& typeInfo,
-			                               llvm::ArrayRef<SEM::Value> templateArguments) const = 0;
+			                               llvm::ArrayRef<AST::Value> templateArguments) const = 0;
 			
 			/**
 			 * \brief Query whether the type's size is statically known in this module.
@@ -46,19 +46,19 @@ namespace locic {
 			 * \return Whether the type's size is known in this module.
 			 */
 			virtual bool isSizeKnownInThisModule(const TypeInfo& typeInfo,
-			                                     llvm::ArrayRef<SEM::Value> templateArguments) const = 0;
+			                                     llvm::ArrayRef<AST::Value> templateArguments) const = 0;
 			
 			/**
 			 * \brief Query whether the primitive has a custom destructor.
 			 */
 			virtual bool hasCustomDestructor(const TypeInfo& typeInfo,
-			                                 llvm::ArrayRef<SEM::Value> templateArguments) const = 0;
+			                                 llvm::ArrayRef<AST::Value> templateArguments) const = 0;
 			
 			/**
 			 * \brief Query whether the primitive has a custom move method.
 			 */
 			virtual bool hasCustomMove(const TypeInfo& typeInfo,
-			                           llvm::ArrayRef<SEM::Value> templateArguments) const = 0;
+			                           llvm::ArrayRef<AST::Value> templateArguments) const = 0;
 			
 			/**
 			 * \brief Get the ABI type corresponding to the primitive.
@@ -70,7 +70,7 @@ namespace locic {
 			 */
 			virtual llvm_abi::Type getABIType(Module& module,
 			                                  const llvm_abi::TypeBuilder& abiTypeBuilder,
-			                                  llvm::ArrayRef<SEM::Value> templateArguments) const = 0;
+			                                  llvm::ArrayRef<AST::Value> templateArguments) const = 0;
 			
 			/**
 			 * \brief Get the IR type corresponding to the primitive.
@@ -82,7 +82,7 @@ namespace locic {
 			 */
 			virtual llvm::Type* getIRType(Module& module,
 			                              const TypeGenerator& typeGenerator,
-			                              llvm::ArrayRef<SEM::Value> templateArguments) const = 0;
+			                              llvm::ArrayRef<AST::Value> templateArguments) const = 0;
 			
 			/**
 			 * \brief Emit method code for primitive.
@@ -99,8 +99,8 @@ namespace locic {
 			 * \return The IR value result.
 			 */
 			virtual llvm::Value* emitMethod(IREmitter& irEmitter, MethodID methodID,
-			                                llvm::ArrayRef<SEM::Value> typeTemplateArguments,
-			                                llvm::ArrayRef<SEM::Value> functionTemplateArguments,
+			                                llvm::ArrayRef<AST::Value> typeTemplateArguments,
+			                                llvm::ArrayRef<AST::Value> functionTemplateArguments,
 			                                PendingResultArray args,
 			                                llvm::Value* hintResultValue) const = 0;
 			

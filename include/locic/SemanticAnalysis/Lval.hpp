@@ -16,9 +16,9 @@ namespace locic {
 		// to an lval).
 		const AST::Type* makeLvalType(Context& context, bool isFinal, const AST::Type* valueType);
 		
-		SEM::Value dissolveLval(Context& context, SEM::Value lvalValue, const Debug::SourceLocation& location);
+		AST::Value dissolveLval(Context& context, AST::Value lvalValue, const Debug::SourceLocation& location);
 		
-		SEM::Value tryDissolveValue(Context& context, SEM::Value value, const Debug::SourceLocation& location);
+		AST::Value tryDissolveValue(Context& context, AST::Value value, const Debug::SourceLocation& location);
 		
 	}
 	

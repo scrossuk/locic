@@ -12,7 +12,7 @@
 #include <locic/Debug/SourceLocation.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/Value.hpp>
+#include <locic/AST/Value.hpp>
 
 namespace locic {
 	
@@ -103,23 +103,23 @@ namespace locic {
 			type_ = argType;
 		}
 		
-		SEM::Value Alias::selfRefValue(SEM::ValueArray templateArguments) const {
+		AST::Value Alias::selfRefValue(AST::ValueArray templateArguments) const {
 			assert(templateArguments.size() == templateVariables().size());
 			if (type()->isBuiltInTypename()) {
 				const auto aliasRef = selfRefType(std::move(templateArguments));
-				return SEM::Value::TypeRef(aliasRef, type()->createStaticRefType(aliasRef));
+				return AST::Value::TypeRef(aliasRef, type()->createStaticRefType(aliasRef));
 			} else {
-				return SEM::Value::Alias(*this, std::move(templateArguments));
+				return AST::Value::Alias(*this, std::move(templateArguments));
 			}
 		}
 		
-		const AST::Type* Alias::selfRefType(SEM::ValueArray templateArguments) const {
+		const AST::Type* Alias::selfRefType(AST::ValueArray templateArguments) const {
 			assert(templateArguments.size() == templateVariables().size());
 			return Type::Alias(*this, std::move(templateArguments));
 		}
 		
-		SEM::ValueArray Alias::selfTemplateArgs() const {
-			SEM::ValueArray templateArgs;
+		AST::ValueArray Alias::selfTemplateArgs() const {
+			AST::ValueArray templateArgs;
 			templateArgs.reserve(templateVariables().size());
 			
 			for (const auto templateVar: templateVariables()) {
@@ -154,11 +154,11 @@ namespace locic {
 			return noexceptPredicate_;
 		}
 		
-		const SEM::Value& Alias::value() const {
+		const AST::Value& Alias::value() const {
 			return *value_;
 		}
 		
-		void Alias::setValue(SEM::Value argValue) {
+		void Alias::setValue(AST::Value argValue) {
 			value_ = make_optional(std::move(argValue));
 		}
 		

@@ -103,7 +103,7 @@ namespace locic {
 		
 		const AST::Type* getBuiltInType(Context& context, const String& typeName, AST::TypeArray templateArgs);
 		
-		const AST::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, SEM::ValueArray templateArgValues);
+		const AST::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, AST::ValueArray templateArgValues);
 		
 	}
 	

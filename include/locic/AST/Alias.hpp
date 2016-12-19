@@ -14,7 +14,7 @@
 #include <locic/Debug/SourceLocation.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/Value.hpp>
+#include <locic/AST/Value.hpp>
 
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/String.hpp>
@@ -61,7 +61,7 @@ namespace locic {
 			const AST::Type* type() const;
 			void setType(const AST::Type* type);
 			
-			SEM::Value selfRefValue(SEM::ValueArray templateArguments) const;
+			AST::Value selfRefValue(AST::ValueArray templateArguments) const;
 			
 			/**
 			 * \brief Get type of 'self'.
@@ -80,8 +80,8 @@ namespace locic {
 			 *     SomeAlias<A, B>
 			 * 
 			 */
-			const AST::Type* selfRefType(SEM::ValueArray templateArguments) const;
-			SEM::ValueArray selfTemplateArgs() const;
+			const AST::Type* selfRefType(AST::ValueArray templateArguments) const;
+			AST::ValueArray selfTemplateArgs() const;
 			
 			TemplateVarArray& templateVariables();
 			const TemplateVarArray& templateVariables() const;
@@ -93,8 +93,8 @@ namespace locic {
 			
 			const SEM::Predicate& noexceptPredicate() const;
 			
-			const SEM::Value& value() const;
-			void setValue(SEM::Value value);
+			const AST::Value& value() const;
+			void setValue(AST::Value value);
 			
 			std::string toString() const;
 			
@@ -112,7 +112,7 @@ namespace locic {
 			SEM::Predicate requiresPredicate_;
 			SEM::Predicate noexceptPredicate_;
 			const AST::Type* type_;
-			Optional<SEM::Value> value_;
+			Optional<AST::Value> value_;
 			
 		};
 		

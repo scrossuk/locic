@@ -13,7 +13,7 @@
 #include <locic/AST/TypeArray.hpp>
 #include <locic/Debug/TypeInstanceInfo.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/ValueArray.hpp>
+#include <locic/AST/ValueArray.hpp>
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/Optional.hpp>
@@ -166,7 +166,7 @@ namespace locic {
 				 * 
 				 * \return Template argument array.
 				 */
-				ValueArray selfTemplateArgs() const;
+				AST::ValueArray selfTemplateArgs() const;
 				
 				/**
 				 * \brief Get variants.

@@ -6,8 +6,8 @@
 #include <vector>
 
 #include <locic/AST/ExitStates.hpp>
+#include <locic/AST/Value.hpp>
 #include <locic/Debug/StatementInfo.hpp>
-#include <locic/SEM/Value.hpp>
 #include <locic/Support/Optional.hpp>
 #include <locic/Support/String.hpp>
 
@@ -50,19 +50,19 @@ namespace locic {
 					UNREACHABLE
 				};
 				
-				static Statement ValueStmt(Value value);
+				static Statement ValueStmt(AST::Value value);
 				
 				static Statement ScopeStmt(std::unique_ptr<Scope> scope);
 				
-				static Statement InitialiseStmt(AST::Var& var, Value value);
+				static Statement InitialiseStmt(AST::Var& var, AST::Value value);
 				
 				static Statement If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope);
 				
-				static Statement Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope);
+				static Statement Switch(AST::Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope);
 				
-				static Statement Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope);
+				static Statement Loop(AST::Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope);
 				
-				static Statement For(AST::Var& var, Value initValue,
+				static Statement For(AST::Var& var, AST::Value initValue,
 				                     std::unique_ptr<Scope> scope);
 				
 				static Statement Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList);
@@ -71,9 +71,9 @@ namespace locic {
 				
 				static Statement ReturnVoid();
 				
-				static Statement Return(Value value);
+				static Statement Return(AST::Value value);
 				
-				static Statement Throw(Value value);
+				static Statement Throw(AST::Value value);
 				
 				static Statement Rethrow();
 				
@@ -81,7 +81,7 @@ namespace locic {
 				
 				static Statement Continue();
 				
-				static Statement Assert(Value value, const String& name);
+				static Statement Assert(AST::Value value, const String& name);
 				
 				static Statement AssertNoExcept(std::unique_ptr<Scope> scope);
 				
@@ -96,7 +96,7 @@ namespace locic {
 				
 				bool isValueStatement() const;
 				
-				const Value& getValue() const;
+				const AST::Value& getValue() const;
 				
 				bool isScope() const;
 				
@@ -106,7 +106,7 @@ namespace locic {
 				
 				AST::Var& getInitialiseVar() const;
 				
-				const Value& getInitialiseValue() const;
+				const AST::Value& getInitialiseValue() const;
 				
 				bool isIfStatement() const;
 				
@@ -116,7 +116,7 @@ namespace locic {
 				
 				bool isSwitchStatement() const;
 				
-				const Value& getSwitchValue() const;
+				const AST::Value& getSwitchValue() const;
 				
 				const std::vector<SwitchCase*>& getSwitchCaseList() const;
 				
@@ -124,7 +124,7 @@ namespace locic {
 				
 				bool isLoopStatement() const;
 				
-				const Value& getLoopCondition() const;
+				const AST::Value& getLoopCondition() const;
 				
 				Scope& getLoopIterationScope() const;
 				
@@ -134,7 +134,7 @@ namespace locic {
 				
 				AST::Var& getForVar() const;
 				
-				const Value& getForInitValue() const;
+				const AST::Value& getForInitValue() const;
 				
 				Scope& getForScope() const;
 				
@@ -152,11 +152,11 @@ namespace locic {
 				
 				bool isReturnStatement() const;
 				
-				const Value& getReturnValue() const;
+				const AST::Value& getReturnValue() const;
 				
 				bool isThrowStatement() const;
 				
-				const Value& getThrowValue() const;
+				const AST::Value& getThrowValue() const;
 				
 				bool isRethrowStatement() const;
 				
@@ -166,7 +166,7 @@ namespace locic {
 				
 				bool isAssertStatement() const;
 				
-				const Value& getAssertValue() const;
+				const AST::Value& getAssertValue() const;
 				
 				const String& getAssertName() const;
 				
@@ -192,7 +192,7 @@ namespace locic {
 				Optional<Debug::StatementInfo> debugInfo_;
 				
 				struct {
-					Value value;
+					AST::Value value;
 				} valueStmt_;
 				
 				struct {
@@ -201,7 +201,7 @@ namespace locic {
 				
 				struct {
 					AST::Var* var;
-					Value value;
+					AST::Value value;
 				} initialiseStmt_;
 				
 				struct {
@@ -210,20 +210,20 @@ namespace locic {
 				} ifStmt_;
 				
 				struct {
-					Value value;
+					AST::Value value;
 					std::vector<SwitchCase*> caseList;
 					std::unique_ptr<Scope> defaultScope;
 				} switchStmt_;
 				
 				struct {
-					Value condition;
+					AST::Value condition;
 					std::unique_ptr<Scope> iterationScope;
 					std::unique_ptr<Scope> advanceScope;
 				} loopStmt_;
 				
 				struct {
 					AST::Var* var;
-					Value initValue;
+					AST::Value initValue;
 					std::unique_ptr<Scope> scope;
 				} forStmt_;
 				
@@ -238,15 +238,15 @@ namespace locic {
 				} scopeExitStmt_;
 				
 				struct {
-					Value value;
+					AST::Value value;
 				} returnStmt_;
 				
 				struct {
-					Value value;
+					AST::Value value;
 				} throwStmt_;
 				
 				struct {
-					Value value;
+					AST::Value value;
 					String name;
 				} assertStmt_;
 				
