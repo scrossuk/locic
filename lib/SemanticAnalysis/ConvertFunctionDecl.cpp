@@ -429,7 +429,7 @@ namespace locic {
 		};
 		
 		void validateFunctionType(Context& context, const Name& functionFullName,
-		                          const SEM::FunctionType& functionType,
+		                          const AST::FunctionType& functionType,
 		                          const SEM::Predicate& constPredicate,
 		                          const Debug::SourceLocation& location) {
 			const auto& name = functionFullName.last();
@@ -572,8 +572,8 @@ namespace locic {
 			const bool isTemplatedMethod = !function->templateVariables().empty() ||
 				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());
 			
-			SEM::FunctionAttributes attributes(function->isVarArg(), isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
-			SEM::FunctionType functionType(std::move(attributes), semReturnType, std::move(parameterTypes));
+			AST::FunctionAttributes attributes(function->isVarArg(), isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
+			AST::FunctionType functionType(std::move(attributes), semReturnType, std::move(parameterTypes));
 			validateFunctionType(context, function->fullName(),
 			                     functionType,
 			                     function->constPredicate(),

@@ -708,11 +708,11 @@ namespace locic {
 			const auto valueEntry = irEmitter_.builder().CreateExtractValue(templateArgs,
 			                                                                extractIndexArray);
 			
-			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/false,
 			                                   /*isTemplated=*/false,
 			                                   /*noExceptPredicate=*/SEM::Predicate::True());
-			SEM::FunctionType functionType(std::move(attributes),
+			AST::FunctionType functionType(std::move(attributes),
 			                               /*returnType=*/value.type(),
 			                               /*parameterTypes=*/{});
 			

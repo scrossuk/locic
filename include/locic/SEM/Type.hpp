@@ -3,10 +3,10 @@
 
 #include <string>
 
+#include <locic/AST/FunctionType.hpp>
 #include <locic/AST/TemplateVarArray.hpp>
 #include <locic/AST/TemplateVarMap.hpp>
 
-#include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
@@ -20,6 +20,7 @@ namespace locic {
 	namespace AST {
 		
 		class Alias;
+		class FunctionType;
 		class TemplateVar;
 		
 	}
@@ -27,7 +28,6 @@ namespace locic {
 	namespace SEM {
 		
 		class Context;
-		class FunctionType;
 		class Type;
 		class TypeInstance;
 		
@@ -128,7 +128,7 @@ namespace locic {
 				bool isCallableTemplated() const;
 				bool isCallableVarArg() const;
 				
-				FunctionType asFunctionType() const;
+				AST::FunctionType asFunctionType() const;
 				Value asValue() const;
 				
 				const Type* substitute(const AST::TemplateVarMap& templateVarMap) const;
@@ -186,7 +186,7 @@ namespace locic {
 				mutable const Type* cachedResolvedType_;
 				mutable const Type* cachedWithoutTagsType_;
 				mutable Optional<size_t> cachedHashValue_;
-				mutable Optional<FunctionType> cachedFunctionType_;
+				mutable Optional<AST::FunctionType> cachedFunctionType_;
 				
 		};
 		

@@ -3,9 +3,14 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class FunctionType;
+		
+	}
+	
+	namespace SEM {
+		
 		class Type;
 		
 	}
@@ -16,11 +21,11 @@ namespace locic {
 		
 		llvm::Type* genArgType(Module& module, const SEM::Type* type);
 		
-		llvm::FunctionType* genFunctionType(Module& module, SEM::FunctionType type);
+		llvm::FunctionType* genFunctionType(Module& module, AST::FunctionType type);
 		
 		llvm::Type* genType(Module& module, const SEM::Type* type);
 		
-		DISubroutineType genDebugFunctionType(Module& module, SEM::FunctionType type);
+		DISubroutineType genDebugFunctionType(Module& module, AST::FunctionType type);
 		
 		DIType genDebugType(Module& module, const SEM::Type* type);
 		

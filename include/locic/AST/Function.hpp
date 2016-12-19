@@ -7,6 +7,7 @@
 #include <locic/Support/Name.hpp>
 
 #include <locic/AST/ConstSpecifier.hpp>
+#include <locic/AST/FunctionType.hpp>
 #include <locic/AST/GlobalStructure.hpp>
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/Node.hpp>
@@ -19,8 +20,6 @@
 #include <locic/AST/Var.hpp>
 
 #include <locic/Debug/FunctionInfo.hpp>
-
-#include <locic/SEM/FunctionType.hpp>
 
 #include <locic/Support/FastMap.hpp>
 
@@ -128,8 +127,8 @@ namespace locic {
 			
 			String canonicalName() const;
 			
-			void setType(SEM::FunctionType type);
-			const SEM::FunctionType& type() const;
+			void setType(FunctionType type);
+			const FunctionType& type() const;
 			
 			Node<TypeDecl>& returnType();
 			const Node<TypeDecl>& returnType() const;
@@ -198,7 +197,7 @@ namespace locic {
 			TemplateVarArray templateVariables_;
 			FastMap<String, TemplateVar*> namedTemplateVariables_;
 			
-			SEM::FunctionType type_;
+			FunctionType type_;
 			Node<TypeDecl> returnType_;
 			
 			Node<VarList> parameterDecls_;

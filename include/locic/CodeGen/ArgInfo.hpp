@@ -10,9 +10,14 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class FunctionType;
+		
+	}
+	
+	namespace SEM {
+		
 		class Type;
 		
 	}
@@ -147,7 +152,7 @@ namespace locic {
 		
 		bool canPassByValue(Module& module, const SEM::Type* type);
 		
-		ArgInfo getFunctionArgInfo(Module& module, SEM::FunctionType functionType);
+		ArgInfo getFunctionArgInfo(Module& module, AST::FunctionType functionType);
 		
 	}
 	

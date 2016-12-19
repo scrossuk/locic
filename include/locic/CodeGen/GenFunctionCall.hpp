@@ -8,9 +8,14 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class FunctionType;
+		
+	}
+	
+	namespace SEM {
+		
 		class Type;
 		class Value;
 		
@@ -64,13 +69,13 @@ namespace locic {
 		 * template generator).
 		 */
 		llvm::Value* genFunctionCall(Function& function,
-		                             SEM::FunctionType functionType,
+		                             AST::FunctionType functionType,
 		                             FunctionCallInfo callInfo,
 		                             llvm::ArrayRef<llvm_abi::TypedValue> args,
 		                             llvm::Value* hintResultValue);
 		
 		llvm::Value* genNonVarArgsFunctionCall(Function& function,
-		                                       SEM::FunctionType functionType,
+		                                       AST::FunctionType functionType,
 		                                       FunctionCallInfo callInfo,
 		                                       PendingResultArray args,
 		                                       llvm::Value* hintResultValue);

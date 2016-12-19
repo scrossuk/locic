@@ -1,5 +1,5 @@
-#ifndef LOCIC_SEM_FUNCTIONTYPE_HPP
-#define LOCIC_SEM_FUNCTIONTYPE_HPP
+#ifndef LOCIC_AST_FUNCTIONTYPE_HPP
+#define LOCIC_AST_FUNCTIONTYPE_HPP
 
 #include <string>
 
@@ -17,9 +17,15 @@ namespace locic {
 		class Context;
 		class Type;
 		
+	}
+	
+	namespace AST {
+		
 		class FunctionAttributes {
 		public:
-			FunctionAttributes(bool isVarArg, bool isMethod, bool isTemplated, Predicate noExceptPredicate);
+			FunctionAttributes(bool isVarArg, bool isMethod,
+			                   bool isTemplated,
+			                   SEM::Predicate noExceptPredicate);
 			
 			FunctionAttributes copy() const;
 			
@@ -41,7 +47,7 @@ namespace locic {
 			 */
 			bool isTemplated() const;
 			
-			const Predicate& noExceptPredicate() const;
+			const SEM::Predicate& noExceptPredicate() const;
 			
 			std::string toString() const;
 			
@@ -56,23 +62,25 @@ namespace locic {
 			bool isVarArg_;
 			bool isMethod_;
 			bool isTemplated_;
-			Predicate noExceptPredicate_;
+			SEM::Predicate noExceptPredicate_;
 			
 		};
 		
 		class FunctionTypeData {
 		public:
-			FunctionTypeData(FunctionAttributes attributes, const Type* returnType, TypeArray parameterTypes);
+			FunctionTypeData(FunctionAttributes attributes,
+			                 const SEM::Type* returnType,
+			                 SEM::TypeArray parameterTypes);
 			
 			FunctionTypeData copy() const;
 			
-			const Context& context() const;
+			const SEM::Context& context() const;
 			
 			const FunctionAttributes& attributes() const;
 			
-			const Type* returnType() const;
+			const SEM::Type* returnType() const;
 			
-			const TypeArray& parameterTypes() const;
+			const SEM::TypeArray& parameterTypes() const;
 			
 			std::string toString() const;
 			
@@ -88,8 +96,8 @@ namespace locic {
 			
 		private:
 			FunctionAttributes attributes_;
-			const Type* returnType_;
-			TypeArray parameterTypes_;
+			const SEM::Type* returnType_;
+			SEM::TypeArray parameterTypes_;
 			
 		};
 		
@@ -98,12 +106,14 @@ namespace locic {
 			FunctionType()
 			: data_(nullptr) { }
 			
-			FunctionType(FunctionAttributes attributes, const Type* returnType, TypeArray parameterTypes);
+			FunctionType(FunctionAttributes attributes,
+			             const SEM::Type* returnType,
+			             SEM::TypeArray parameterTypes);
 			
 			FunctionType(const FunctionTypeData& data)
 			: data_(&data) { }
 			
-			const Context& context() const {
+			const SEM::Context& context() const {
 				return data_->context();
 			}
 			
@@ -115,21 +125,21 @@ namespace locic {
 				return attributes().isVarArg();
 			}
 			
-			const Type* returnType() const {
+			const SEM::Type* returnType() const {
 				return data_->returnType();
 			}
 			
-			const TypeArray& parameterTypes() const {
+			const SEM::TypeArray& parameterTypes() const {
 				return data_->parameterTypes();
 			}
 			
-			FunctionType substitute(const AST::TemplateVarMap& templateVarMap) const;
+			FunctionType substitute(const TemplateVarMap& templateVarMap) const;
 			
 			FunctionType makeTemplated() const;
 			
-			bool dependsOnAny(const AST::TemplateVarArray& array) const;
+			bool dependsOnAny(const TemplateVarArray& array) const;
 			
-			bool dependsOnOnly(const AST::TemplateVarArray& array) const;
+			bool dependsOnOnly(const TemplateVarArray& array) const;
 			
 			std::string toString() const {
 				return data_->toString();

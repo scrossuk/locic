@@ -7,9 +7,14 @@ namespace locic {
 	
 	class MethodID;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class FunctionType;
+		
+	}
+	
+	namespace SEM {
+		
 		class Type;
 		
 	}
@@ -34,34 +39,34 @@ namespace locic {
 			emitMethod(MethodID methodID,
 			           bool isInnerMethod,
 			           const SEM::Type* type,
-			           SEM::FunctionType functionType,
+			           AST::FunctionType functionType,
 			           PendingResultArray args,
 			           llvm::Value* hintResultValue);
 			
 			llvm::Value*
 			emitCreateConstructor(const SEM::Type* type,
-			                      SEM::FunctionType functionType,
+			                      AST::FunctionType functionType,
 			                      PendingResultArray args,
 			                      llvm::Value* hintResultValue);
 			
 			llvm::Value*
 			emitOuterDestroy(const SEM::Type* type,
-			                 SEM::FunctionType functionType,
+			                 AST::FunctionType functionType,
 			                 PendingResultArray args);
 			
 			llvm::Value*
 			emitInnerDestroy(const SEM::Type* type,
-			                 SEM::FunctionType functionType,
+			                 AST::FunctionType functionType,
 			                 PendingResultArray args);
 			
 			llvm::Value*
 			emitOuterMoveTo(const SEM::Type* type,
-			                SEM::FunctionType functionType,
+			                AST::FunctionType functionType,
 			                PendingResultArray args);
 			
 			llvm::Value*
 			emitInnerMoveTo(const SEM::Type* type,
-			                SEM::FunctionType functionType,
+			                AST::FunctionType functionType,
 			                PendingResultArray args);
 			
 			llvm::Value*
@@ -72,36 +77,36 @@ namespace locic {
 			
 			llvm::Value*
 			emitSetDead(const SEM::Type* type,
-			            SEM::FunctionType functionType,
+			            AST::FunctionType functionType,
 			            PendingResultArray args);
 			
 			llvm::Value*
 			emitIsLive(const SEM::Type* type,
-			           SEM::FunctionType functionType,
+			           AST::FunctionType functionType,
 			           PendingResultArray args);
 			
 			llvm::Value*
 			emitImplicitCopy(const SEM::Type* type,
-			                 SEM::FunctionType functionType,
+			                 AST::FunctionType functionType,
 			                 PendingResultArray args,
 			                 llvm::Value* hintResultValue);
 			
 			llvm::Value*
 			emitExplicitCopy(const SEM::Type* type,
-			                 SEM::FunctionType functionType,
+			                 AST::FunctionType functionType,
 			                 PendingResultArray args,
 			                 llvm::Value* hintResultValue);
 			
 			llvm::Value*
 			emitCopyMethod(MethodID methodID,
 			               const SEM::Type* type,
-			               SEM::FunctionType functionType,
+			               AST::FunctionType functionType,
 			               PendingResultArray args,
 			               llvm::Value* hintResultValue);
 			
 			llvm::Value*
 			emitCompare(const SEM::Type* type,
-			            SEM::FunctionType functionType,
+			            AST::FunctionType functionType,
 			            PendingResultArray args);
 			
 		private:

@@ -155,7 +155,7 @@ namespace locic {
 			return getPrimitiveType(PrimitiveStaticArray, std::move(templateArgValues));
 		}
 		
-		static SEM::ValueArray getFunctionTemplateArgs(Context& context, const SEM::FunctionType functionType) {
+		static SEM::ValueArray getFunctionTemplateArgs(Context& context, const AST::FunctionType functionType) {
 			const auto& parameterTypes = functionType.parameterTypes();
 			
 			SEM::ValueArray templateArgs;
@@ -181,7 +181,7 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getPrimitiveCallableType(const SEM::FunctionType functionType,
+		TypeBuilder::getPrimitiveCallableType(const AST::FunctionType functionType,
 		                                      const char* const functionTypeName) {
 			return getBuiltInTypeWithValueArgs(context_,
 			                                   context_.getCString(functionTypeName),
@@ -193,7 +193,7 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getTrivialFunctionPointerType(const SEM::FunctionType functionType) {
+		TypeBuilder::getTrivialFunctionPointerType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getFunctionPointerName(functionType.parameterTypes().size()));
 		}
@@ -203,7 +203,7 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getTemplatedFunctionPointerType(const SEM::FunctionType functionType) {
+		TypeBuilder::getTemplatedFunctionPointerType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getTemplatedFunctionPointerName(functionType.parameterTypes().size()));
 		}
@@ -213,7 +213,7 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getMethodFunctionPointerType(const SEM::FunctionType functionType) {
+		TypeBuilder::getMethodFunctionPointerType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getMethodFunctionPointerName(functionType.parameterTypes().size()));
 		}
@@ -223,7 +223,7 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getTemplatedMethodFunctionPointerType(const SEM::FunctionType functionType) {
+		TypeBuilder::getTemplatedMethodFunctionPointerType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getTemplatedMethodFunctionPointerName(functionType.parameterTypes().size()));
 		}
@@ -233,13 +233,13 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getVarArgFunctionPointerType(const SEM::FunctionType functionType) {
+		TypeBuilder::getVarArgFunctionPointerType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getVarArgFunctionPointerName(functionType.parameterTypes().size()));
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getFunctionPointerType(const SEM::FunctionType functionType) {
+		TypeBuilder::getFunctionPointerType(const AST::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
 			
 			if (attributes.isVarArg()) {
@@ -264,7 +264,7 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getTrivialMethodType(const SEM::FunctionType functionType) {
+		TypeBuilder::getTrivialMethodType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getTrivialMethodName(functionType.parameterTypes().size()));
 		}
@@ -274,13 +274,13 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getTemplatedMethodType(const SEM::FunctionType functionType) {
+		TypeBuilder::getTemplatedMethodType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getTemplatedMethodName(functionType.parameterTypes().size()));
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getMethodType(const SEM::FunctionType functionType) {
+		TypeBuilder::getMethodType(const AST::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
 			assert(!attributes.isVarArg());
 			assert(attributes.isMethod());
@@ -297,7 +297,7 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getInterfaceMethodType(const SEM::FunctionType functionType) {
+		TypeBuilder::getInterfaceMethodType(const AST::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
 			(void) attributes;
 			assert(!attributes.isVarArg());
@@ -312,7 +312,7 @@ namespace locic {
 		}
 		
 		const SEM::Type*
-		TypeBuilder::getStaticInterfaceMethodType(const SEM::FunctionType functionType) {
+		TypeBuilder::getStaticInterfaceMethodType(const AST::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
 			(void) attributes;
 			assert(!attributes.isVarArg());

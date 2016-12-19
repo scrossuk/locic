@@ -7,10 +7,15 @@ namespace locic {
 	
 	class PrimitiveID;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class FunctionType;
 		class FunctionTypeData;
+		
+	}
+	
+	namespace SEM {
+		
 		class Type;
 		class TypeInstance;
 		
@@ -19,7 +24,8 @@ namespace locic {
 				Context();
 				~Context();
 				
-				FunctionType getFunctionType(FunctionTypeData functionType) const;
+				AST::FunctionType
+				getFunctionType(AST::FunctionTypeData functionType) const;
 				
 				const Type* getType(Type&& type) const;
 				

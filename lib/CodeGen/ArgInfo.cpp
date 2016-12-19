@@ -316,7 +316,7 @@ namespace locic {
 			return TypeInfo(module).canPassByValue(type);
 		}
 		
-		ArgInfo getFunctionArgInfo(Module& module, const SEM::FunctionType functionType) {
+		ArgInfo getFunctionArgInfo(Module& module, const AST::FunctionType functionType) {
 			const auto semReturnType = functionType.returnType();
 			
 			const auto& attributes = functionType.attributes();

@@ -7,9 +7,14 @@ namespace locic {
 	
 	class PrimitiveID;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class FunctionType;
+		
+	}
+	
+	namespace SEM {
+		
 		class Type;
 		
 	}
@@ -58,41 +63,41 @@ namespace locic {
 			                   const Debug::SourceLocation& location);
 			
 			const SEM::Type*
-			getPrimitiveCallableType(SEM::FunctionType functionType,
+			getPrimitiveCallableType(AST::FunctionType functionType,
 			                         const char* functionTypeName);
 			
 			const SEM::Type*
-			getTrivialFunctionPointerType(SEM::FunctionType functionType);
+			getTrivialFunctionPointerType(AST::FunctionType functionType);
 			
 			const SEM::Type*
-			getTemplatedFunctionPointerType(SEM::FunctionType functionType);
+			getTemplatedFunctionPointerType(AST::FunctionType functionType);
 			
 			const SEM::Type*
-			getMethodFunctionPointerType(SEM::FunctionType functionType);
+			getMethodFunctionPointerType(AST::FunctionType functionType);
 			
 			const SEM::Type*
-			getTemplatedMethodFunctionPointerType(SEM::FunctionType functionType);
+			getTemplatedMethodFunctionPointerType(AST::FunctionType functionType);
 			
 			const SEM::Type*
-			getVarArgFunctionPointerType(SEM::FunctionType functionType);
+			getVarArgFunctionPointerType(AST::FunctionType functionType);
 			
 			const SEM::Type*
-			getFunctionPointerType(SEM::FunctionType functionType);
+			getFunctionPointerType(AST::FunctionType functionType);
 			
 			const SEM::Type*
-			getTrivialMethodType(SEM::FunctionType functionType);
+			getTrivialMethodType(AST::FunctionType functionType);
 			
 			const SEM::Type*
-			getTemplatedMethodType(SEM::FunctionType functionType);
+			getTemplatedMethodType(AST::FunctionType functionType);
 			
 			const SEM::Type*
-			getMethodType(SEM::FunctionType functionType);
+			getMethodType(AST::FunctionType functionType);
 			
 			const SEM::Type*
-			getInterfaceMethodType(SEM::FunctionType functionType);
+			getInterfaceMethodType(AST::FunctionType functionType);
 			
 			const SEM::Type*
-			getStaticInterfaceMethodType(SEM::FunctionType functionType);
+			getStaticInterfaceMethodType(AST::FunctionType functionType);
 			
 		private:
 			Context& context_;

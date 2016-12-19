@@ -6,12 +6,12 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
+		class FunctionType;
 		
 	}
 	
 	namespace SEM {
 		
-		class FunctionType;
 		class TypeInstance;
 		
 	}
@@ -41,7 +41,7 @@ namespace locic {
 			 */
 			virtual llvm::Value*
 			emitCall(IREmitter& irEmitter,
-			         SEM::FunctionType functionType,
+			         AST::FunctionType functionType,
 			         VirtualMethodComponents methodComponents,
 			         llvm::ArrayRef<llvm::Value*> args,
 			         llvm::Value* hintResultValue) = 0;

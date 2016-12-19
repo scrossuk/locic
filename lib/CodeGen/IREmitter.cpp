@@ -577,12 +577,12 @@ namespace locic {
 			const bool isTemplated = type->isObject() &&
 			                         !type->templateArguments().empty();
 			
-			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/SEM::Predicate::False());
 			
-			SEM::FunctionType functionType(std::move(attributes),
+			AST::FunctionType functionType(std::move(attributes),
 			                               type,
 			                               {});
 			
@@ -623,7 +623,7 @@ namespace locic {
 			const bool isTemplated = type->isObject() &&
 			                         !type->templateArguments().empty();
 			
-			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/SEM::Predicate::False());
@@ -633,7 +633,7 @@ namespace locic {
 			const auto& refTypeInstance = module().context().semContext().getPrimitive(PrimitiveRef);
 			const auto thisRefType = createRefType(type, refTypeInstance, typenameType);
 			
-			SEM::FunctionType functionType(std::move(attributes),
+			AST::FunctionType functionType(std::move(attributes),
 			                               compareResultType,
 			                               { thisRefType });
 			
@@ -661,7 +661,7 @@ namespace locic {
 			const bool isTemplated = type->isObject() &&
 			                         !type->templateArguments().empty();
 			
-			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/SEM::Predicate::False());
@@ -671,7 +671,7 @@ namespace locic {
 			const auto& refTypeInstance = module().context().semContext().getPrimitive(PrimitiveRef);
 			const auto thisRefType = createRefType(type, refTypeInstance, typenameType);
 			
-			SEM::FunctionType functionType(std::move(attributes),
+			AST::FunctionType functionType(std::move(attributes),
 			                               boolType,
 			                               { thisRefType });
 			
@@ -695,14 +695,14 @@ namespace locic {
 			const bool isTemplated = type->isObject() &&
 			                         !type->templateArguments().empty();
 			
-			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/SEM::Predicate::False());
 			
 			const auto voidType = module().context().semContext().getPrimitive(PrimitiveVoid).selfType();
 			
-			SEM::FunctionType functionType(std::move(attributes),
+			AST::FunctionType functionType(std::move(attributes),
 			                               voidType,
 			                               {});
 			
@@ -727,14 +727,14 @@ namespace locic {
 			const bool isTemplated = type->isObject() &&
 			                         !type->templateArguments().empty();
 			
-			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/SEM::Predicate::False());
 			
 			const auto boolType = module().context().semContext().getPrimitive(PrimitiveBool).selfType();
 			
-			SEM::FunctionType functionType(std::move(attributes),
+			AST::FunctionType functionType(std::move(attributes),
 			                               boolType, {});
 			
 			MethodInfo methodInfo(type, module().getCString("empty"),
@@ -758,12 +758,12 @@ namespace locic {
 			const bool isTemplated = type->isObject() &&
 			                         !type->templateArguments().empty();
 			
-			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/SEM::Predicate::False());
 			
-			SEM::FunctionType functionType(std::move(attributes),
+			AST::FunctionType functionType(std::move(attributes),
 			                               resultType, {});
 			
 			MethodInfo methodInfo(type, module().getCString("front"),
@@ -784,14 +784,14 @@ namespace locic {
 			const bool isTemplated = type->isObject() &&
 			                         !type->templateArguments().empty();
 			
-			SEM::FunctionAttributes attributes(/*isVarArg=*/false,
+			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/SEM::Predicate::False());
 			
 			const auto voidType = module().context().semContext().getPrimitive(PrimitiveVoid).selfType();
 			
-			SEM::FunctionType functionType(std::move(attributes),
+			AST::FunctionType functionType(std::move(attributes),
 			                               voidType, {});
 			
 			MethodInfo methodInfo(type, module().getCString("skipfront"),

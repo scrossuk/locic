@@ -33,7 +33,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::FunctionType* genFunctionType(Module& module, SEM::FunctionType type) {
+		llvm::FunctionType* genFunctionType(Module& module, AST::FunctionType type) {
 			return getFunctionArgInfo(module, type).makeFunctionType();
 		}
 		
@@ -42,7 +42,7 @@ namespace locic {
 			return module.abi().typeInfo().getLLVMType(abiType);
 		}
 		
-		DISubroutineType genDebugFunctionType(Module& module, SEM::FunctionType type) {
+		DISubroutineType genDebugFunctionType(Module& module, AST::FunctionType type) {
 			// TODO!
 			const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
 			

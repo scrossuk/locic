@@ -1,7 +1,8 @@
+#include <locic/AST/FunctionType.hpp>
+
 #include <string>
 
 #include <locic/SEM/Context.hpp>
-#include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/Type.hpp>
@@ -11,14 +12,12 @@
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class Type;
+	namespace AST {
 		
 		FunctionAttributes::FunctionAttributes(const bool argIsVarArg,
 		                                       const bool argIsMethod,
 		                                       const bool argIsTemplated,
-		                                       Predicate argNoExceptPredicate)
+		                                       SEM::Predicate argNoExceptPredicate)
 		: isVarArg_(argIsVarArg),
 		isMethod_(argIsMethod),
 		isTemplated_(argIsTemplated),
@@ -43,7 +42,7 @@ namespace locic {
 			return isTemplated_;
 		}
 		
-		const Predicate& FunctionAttributes::noExceptPredicate() const {
+		const SEM::Predicate& FunctionAttributes::noExceptPredicate() const {
 			return noExceptPredicate_;
 		}
 		
@@ -76,8 +75,8 @@ namespace locic {
 		}
 		
 		FunctionTypeData::FunctionTypeData(FunctionAttributes argAttributes,
-		                                   const Type* const argReturnType,
-		                                   TypeArray argParameterTypes)
+		                                   const SEM::Type* const argReturnType,
+		                                   SEM::TypeArray argParameterTypes)
 		: attributes_(std::move(argAttributes)),
 		returnType_(argReturnType),
 		parameterTypes_(std::move(argParameterTypes)) { }
@@ -88,7 +87,7 @@ namespace locic {
 			                        parameterTypes().copy());
 		}
 		
-		const Context& FunctionTypeData::context() const {
+		const SEM::Context& FunctionTypeData::context() const {
 			return returnType()->context();
 		}
 		
@@ -96,11 +95,11 @@ namespace locic {
 			return attributes_;
 		}
 		
-		const Type* FunctionTypeData::returnType() const {
+		const SEM::Type* FunctionTypeData::returnType() const {
 			return returnType_;
 		}
 		
-		const TypeArray& FunctionTypeData::parameterTypes() const {
+		const SEM::TypeArray& FunctionTypeData::parameterTypes() const {
 			return parameterTypes_;
 		}
 		
@@ -139,8 +138,8 @@ namespace locic {
 		}
 		
 		FunctionType::FunctionType(FunctionAttributes argAttributes,
-		                           const Type* const argReturnType,
-		                           TypeArray argParameterTypes)
+		                           const SEM::Type* const argReturnType,
+		                           SEM::TypeArray argParameterTypes)
 		: data_(nullptr) {
 			FunctionTypeData functionTypeData(std::move(argAttributes),
 			                                  argReturnType,
@@ -148,7 +147,7 @@ namespace locic {
 			*this = argReturnType->context().getFunctionType(std::move(functionTypeData));
 		}
 		
-		FunctionType FunctionType::substitute(const AST::TemplateVarMap& templateVarMap) const {
+		FunctionType FunctionType::substitute(const TemplateVarMap& templateVarMap) const {
 			if (templateVarMap.empty()) {
 				return *this;
 			}
@@ -157,7 +156,7 @@ namespace locic {
 			
 			bool changed = (substitutedReturnType != returnType());
 			
-			TypeArray substitutedParameterTypes;
+			SEM::TypeArray substitutedParameterTypes;
 			
 			for (const auto parameterType: parameterTypes()) {
 				const auto substitutedParameterType = parameterType->substitute(templateVarMap);
@@ -192,7 +191,7 @@ namespace locic {
 			return FunctionType(std::move(newAttributes), returnType(), parameterTypes().copy());
 		}
 		
-		bool FunctionType::dependsOnAny(const AST::TemplateVarArray& array) const {
+		bool FunctionType::dependsOnAny(const TemplateVarArray& array) const {
 			if (returnType()->dependsOnAny(array)) {
 				return true;
 			}
@@ -210,7 +209,7 @@ namespace locic {
 			return false;
 		}
 		
-		bool FunctionType::dependsOnOnly(const AST::TemplateVarArray& array) const {
+		bool FunctionType::dependsOnOnly(const TemplateVarArray& array) const {
 			if (!returnType()->dependsOnOnly(array)) {
 				return false;
 			}

@@ -1,6 +1,7 @@
 #include <llvm-abi/ABI.hpp>
 #include <llvm-abi/ABITypeInfo.hpp>
 
+#include <locic/AST/FunctionType.hpp>
 #include <locic/AST/Value.hpp>
 #include <locic/AST/Var.hpp>
 
@@ -18,7 +19,6 @@
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 
-#include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -36,7 +36,7 @@ namespace locic {
 		DefaultMethodEmitter::emitMethod(const MethodID methodID,
 		                                 const bool isInnerMethod,
 		                                 const SEM::Type* const type,
-		                                 const SEM::FunctionType functionType,
+		                                 const AST::FunctionType functionType,
 		                                 PendingResultArray args,
 		                                 llvm::Value* const hintResultValue) {
 			if (isInnerMethod) {
@@ -99,7 +99,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitCreateConstructor(const SEM::Type* const type,
-		                                            const SEM::FunctionType /*functionType*/,
+		                                            const AST::FunctionType /*functionType*/,
 		                                            PendingResultArray args,
 		                                            llvm::Value* const hintResultValue) {
 			const auto& typeInstance = *(type->getObjectType());
@@ -138,7 +138,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitOuterDestroy(const SEM::Type* const type,
-		                                       const SEM::FunctionType /*functionType*/,
+		                                       const AST::FunctionType /*functionType*/,
 		                                       PendingResultArray args) {
 			const auto& typeInstance = *(type->getObjectType());
 			auto& module = functionGenerator_.module();
@@ -231,7 +231,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitInnerDestroy(const SEM::Type* const /*type*/,
-		                                       const SEM::FunctionType /*functionType*/,
+		                                       const AST::FunctionType /*functionType*/,
 		                                       PendingResultArray args) {
 			// Default destroy code doesn't do anything.
 			auto& module = functionGenerator_.module();
@@ -241,7 +241,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitOuterMoveTo(const SEM::Type* const type,
-		                                      const SEM::FunctionType /*functionType*/,
+		                                      const AST::FunctionType /*functionType*/,
 		                                      PendingResultArray args) {
 			const auto& typeInstance = *(type->getObjectType());
 			auto& module = functionGenerator_.module();
@@ -319,7 +319,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitInnerMoveTo(const SEM::Type* const type,
-		                                      const SEM::FunctionType /*functionType*/,
+		                                      const AST::FunctionType /*functionType*/,
 		                                      PendingResultArray args) {
 			auto& module = functionGenerator_.module();
 			auto& builder = functionGenerator_.getBuilder();
@@ -550,7 +550,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitSetDead(const SEM::Type* const type,
-		                                  const SEM::FunctionType /*functionType*/,
+		                                  const AST::FunctionType /*functionType*/,
 		                                  PendingResultArray args) {
 			auto& module = functionGenerator_.module();
 			
@@ -604,7 +604,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitIsLive(const SEM::Type* const type,
-		                                 const SEM::FunctionType functionType,
+		                                 const AST::FunctionType functionType,
 		                                 PendingResultArray args) {
 			auto& module = functionGenerator_.module();
 			auto& builder = functionGenerator_.getBuilder();
@@ -655,7 +655,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitImplicitCopy(const SEM::Type* const type,
-		                                       const SEM::FunctionType functionType,
+		                                       const AST::FunctionType functionType,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) {
 			return emitCopyMethod(METHOD_IMPLICITCOPY,
@@ -667,7 +667,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitExplicitCopy(const SEM::Type* const type,
-		                                       const SEM::FunctionType functionType,
+		                                       const AST::FunctionType functionType,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) {
 			return emitCopyMethod(METHOD_COPY,
@@ -680,7 +680,7 @@ namespace locic {
 		llvm::Value*
 		DefaultMethodEmitter::emitCopyMethod(const MethodID methodID,
 		                                     const SEM::Type* const type,
-		                                     const SEM::FunctionType /*functionType*/,
+		                                     const AST::FunctionType /*functionType*/,
 		                                     PendingResultArray args,
 		                                     llvm::Value* const hintResultValue) {
 			assert(methodID == METHOD_IMPLICITCOPY ||
@@ -776,7 +776,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitCompare(const SEM::Type* const type,
-		                                  const SEM::FunctionType /*functionType*/,
+		                                  const AST::FunctionType /*functionType*/,
 		                                  PendingResultArray args) {
 			const auto& typeInstance = *(type->getObjectType());
 			assert(!typeInstance.isUnion() &&

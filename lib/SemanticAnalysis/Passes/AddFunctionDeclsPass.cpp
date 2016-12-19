@@ -397,8 +397,8 @@ namespace locic {
 				auto noExceptPredicate = SEM::Predicate::True();
 				const auto returnType = semTypeInstance.selfType();
 				
-				SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
-				function->setType(SEM::FunctionType(std::move(attributes), returnType, {}));
+				AST::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
+				function->setType(AST::FunctionType(std::move(attributes), returnType, {}));
 				semTypeInstance.attachFunction(*function);
 				
 				// TODO: memory leak!

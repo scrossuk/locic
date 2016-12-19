@@ -179,7 +179,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genNonVarArgsFunctionCall(Function& function,
-		                                       SEM::FunctionType functionType,
+		                                       AST::FunctionType functionType,
 		                                       const FunctionCallInfo callInfo,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) {
@@ -200,7 +200,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genFunctionCall(Function& function,
-		                             SEM::FunctionType functionType,
+		                             AST::FunctionType functionType,
 		                             const FunctionCallInfo callInfo,
 		                             llvm::ArrayRef<llvm_abi::TypedValue> args,
 		                             llvm::Value* const hintResultValue) {

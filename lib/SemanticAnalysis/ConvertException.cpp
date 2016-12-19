@@ -95,8 +95,8 @@ namespace locic {
 			auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
 			function->setParameters(getParameters(semTypeInstance->variables()));
 			
-			SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
-			function->setType(SEM::FunctionType(std::move(attributes), semTypeInstance->selfType(), std::move(constructTypes)));
+			AST::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
+			function->setType(AST::FunctionType(std::move(attributes), semTypeInstance->selfType(), std::move(constructTypes)));
 			return function;
 		}
 		

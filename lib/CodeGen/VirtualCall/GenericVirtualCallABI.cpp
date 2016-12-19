@@ -243,7 +243,7 @@ namespace locic {
 		
 		void
 		GenericVirtualCallABI::emitCallWithReturnVar(IREmitter& irEmitter,
-		                                             const SEM::FunctionType functionType,
+		                                             const AST::FunctionType functionType,
 		                                             llvm::Value* returnVarPointer,
 		                                             const VirtualMethodComponents methodComponents,
 		                                             llvm::ArrayRef<llvm::Value*> args) {
@@ -299,7 +299,7 @@ namespace locic {
 		
 		llvm::Value*
 		GenericVirtualCallABI::emitCall(IREmitter& irEmitter,
-		                                SEM::FunctionType functionType,
+		                                AST::FunctionType functionType,
 		                                VirtualMethodComponents methodComponents,
 		                                llvm::ArrayRef<llvm::Value*> args,
 		                                llvm::Value* const hintResultValue) {

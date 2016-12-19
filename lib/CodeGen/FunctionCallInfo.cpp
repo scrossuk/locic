@@ -1,6 +1,7 @@
 #include <cassert>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/FunctionType.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
@@ -25,7 +26,6 @@
 #include <locic/CodeGen/ValueEmitter.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
-#include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
 
@@ -50,7 +50,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType,
-		                            const AST::Function* const astFunction, const SEM::FunctionType functionType) {
+		                            const AST::Function* const astFunction, const AST::FunctionType functionType) {
 			auto& module = function.module();
 			const auto functionRefPtr = genFunctionDeclRef(module, parentType, astFunction);
 			

@@ -8,12 +8,12 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
+		class FunctionType;
 		
 	}
 	
 	namespace SEM {
 		
-		class FunctionType;
 		class TypeInstance;
 		
 	}
@@ -53,14 +53,14 @@ namespace locic {
 		
 			void
 			emitCallWithReturnVar(IREmitter& irEmitter,
-			                      const SEM::FunctionType functionType,
+			                      const AST::FunctionType functionType,
 			                      llvm::Value* returnVarPointer,
 			                      VirtualMethodComponents methodComponents,
 			                      llvm::ArrayRef<llvm::Value*> args);
 			
 			llvm::Value*
 			emitCall(IREmitter& irEmitter,
-			         SEM::FunctionType functionType,
+			         AST::FunctionType functionType,
 			         VirtualMethodComponents methodComponents,
 			         llvm::ArrayRef<llvm::Value*> args,
 			         llvm::Value* hintResultValue);

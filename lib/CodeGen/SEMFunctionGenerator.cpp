@@ -70,7 +70,7 @@ namespace locic {
 		}
 		
 		void
-		SEMFunctionGenerator::addStandardFunctionAttributes(const SEM::FunctionType type,
+		SEMFunctionGenerator::addStandardFunctionAttributes(const AST::FunctionType type,
 		                                                    llvm::Function& llvmFunction) {
 			if (!canPassByValue(module_, type.returnType())) {
 				// Class return values are allocated by the caller,
@@ -92,7 +92,7 @@ namespace locic {
 		
 		llvm::Function*
 		SEMFunctionGenerator::createNamedFunction(const String& name,
-		                                          const SEM::FunctionType type,
+		                                          const AST::FunctionType type,
 		                                          const llvm::GlobalValue::LinkageTypes linkage) {
 			const auto argInfo = getFunctionArgInfo(module_, type);
 			const auto llvmFunction = createLLVMFunction(module_, argInfo, linkage, name);
@@ -102,7 +102,7 @@ namespace locic {
 		
 		llvm::Function*
 		SEMFunctionGenerator::getNamedFunction(const String& name,
-		                                       const SEM::FunctionType type,
+		                                       const AST::FunctionType type,
 		                                       const llvm::GlobalValue::LinkageTypes linkage) {
 			const auto iterator = module_.getFunctionMap().find(name);
 			if (iterator != module_.getFunctionMap().end()) {
@@ -263,7 +263,7 @@ namespace locic {
 		llvm::Function*
 		SEMFunctionGenerator::genTemplateFunctionStub(const AST::TemplateVar* templateVar,
 		                                              const String& functionName,
-		                                              SEM::FunctionType functionType,
+		                                              AST::FunctionType functionType,
 		                                              llvm::DebugLoc debugLoc) {
 			// --- Generate function declaration.
 			const auto argInfo = getFunctionArgInfo(module_, functionType);

@@ -52,17 +52,17 @@ namespace locic {
 			getTypeLinkage(const SEM::TypeInstance& typeInstance) const;
 			
 			void
-			addStandardFunctionAttributes(SEM::FunctionType type,
+			addStandardFunctionAttributes(AST::FunctionType type,
 			                              llvm::Function& llvmFunction);
 			
 			llvm::Function*
 			createNamedFunction(const String& name,
-			                    SEM::FunctionType type,
+			                    AST::FunctionType type,
 			                    llvm::GlobalValue::LinkageTypes linkage);
 			
 			llvm::Function*
 			getNamedFunction(const String& name,
-			                 SEM::FunctionType type,
+			                 AST::FunctionType type,
 			                 llvm::GlobalValue::LinkageTypes linkage);
 			
 			/**
@@ -120,7 +120,7 @@ namespace locic {
 			llvm::Function*
 			genTemplateFunctionStub(const AST::TemplateVar* templateVar,
 			                        const String& functionName,
-			                        SEM::FunctionType functionType,
+			                        AST::FunctionType functionType,
 			                        llvm::DebugLoc debugLoc);
 			
 		private:

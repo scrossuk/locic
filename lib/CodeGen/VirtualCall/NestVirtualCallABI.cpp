@@ -196,7 +196,7 @@ namespace locic {
 		
 		llvm::Value*
 		NestVirtualCallABI::emitCall(IREmitter& irEmitter,
-		                             const SEM::FunctionType functionType,
+		                             const AST::FunctionType functionType,
 		                             const VirtualMethodComponents methodComponents,
 		                             llvm::ArrayRef<llvm::Value*> args,
 		                             llvm::Value* const hintResultValue) {

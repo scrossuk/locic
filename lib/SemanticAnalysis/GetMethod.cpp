@@ -28,7 +28,7 @@ namespace locic {
 			
 		}
 		
-		SEM::FunctionType simplifyFunctionType(Context& context, const SEM::FunctionType oldFunctionType) {
+		AST::FunctionType simplifyFunctionType(Context& context, const AST::FunctionType oldFunctionType) {
 			const bool isVarArg = oldFunctionType.attributes().isVarArg();
 			const bool isMethod = oldFunctionType.attributes().isMethod();
 			const bool isTemplated = oldFunctionType.attributes().isTemplated();
@@ -36,7 +36,7 @@ namespace locic {
 			const auto returnType = oldFunctionType.returnType();
 			const auto& argTypes = oldFunctionType.parameterTypes();
 			
-			return SEM::FunctionType(SEM::FunctionAttributes(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate)), returnType, argTypes.copy());
+			return AST::FunctionType(AST::FunctionAttributes(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate)), returnType, argTypes.copy());
 		}
 		
 		class CannotFindStaticMethodDiag: public Error {

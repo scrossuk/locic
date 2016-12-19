@@ -1,5 +1,6 @@
 #include <cassert>
 
+#include <locic/AST/FunctionType.hpp>
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -11,7 +12,6 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
-#include <locic/SEM/FunctionType.hpp>
 #include <locic/Support/Utils.hpp>
 
 namespace locic {
@@ -26,8 +26,8 @@ namespace locic {
 		}
 		
 		bool doFunctionTypesMatch(Module& module,
-		                          SEM::FunctionType firstType,
-		                          SEM::FunctionType secondType) {
+		                          AST::FunctionType firstType,
+		                          AST::FunctionType secondType) {
 			assert(firstType.attributes().isTemplated() == secondType.attributes().isTemplated());
 			
 			const auto& firstParameterTypes = firstType.parameterTypes();
@@ -47,8 +47,8 @@ namespace locic {
 		
 		llvm::Value* genTranslatedFunctionPointer(Function& functionGenerator,
 		                                          llvm::Function* function,
-		                                          SEM::FunctionType functionType,
-		                                          SEM::FunctionType translatedFunctionType) {
+		                                          AST::FunctionType functionType,
+		                                          AST::FunctionType translatedFunctionType) {
 			assert(functionType.attributes().isTemplated() == translatedFunctionType.attributes().isTemplated());
 			
 			auto& module = functionGenerator.module();
@@ -85,8 +85,8 @@ namespace locic {
 		}
 		
 		TranslatedArguments getTranslatedArguments(Function& functionGenerator,
-		                                           SEM::FunctionType functionType,
-		                                           SEM::FunctionType translatedFunctionType,
+		                                           AST::FunctionType functionType,
+		                                           AST::FunctionType translatedFunctionType,
 		                                           llvm::Value* const returnVar,
 		                                           const ArgInfo& argInfo,
 		                                           const ArgInfo& translatedArgInfo) {
@@ -138,8 +138,8 @@ namespace locic {
 		
 		llvm::Function* genFunctionTranslationStub(Module& module,
 		                                           llvm::Function* function,
-		                                           SEM::FunctionType functionType,
-		                                           SEM::FunctionType translatedFunctionType) {
+		                                           AST::FunctionType functionType,
+		                                           AST::FunctionType translatedFunctionType) {
 			const auto llvmTranslatedFunctionType = genFunctionType(module, translatedFunctionType);
 			
 			const auto stubIdPair = std::make_pair(function, llvmTranslatedFunctionType);

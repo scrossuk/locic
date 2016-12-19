@@ -114,8 +114,8 @@ namespace locic {
 				const auto returnType = oldFunctionType.returnType();
 				const auto& argTypes = oldFunctionType.parameterTypes();
 				
-				SEM::FunctionAttributes attributes(isVarArg, isMethod, isTemplated, std::move(noExceptPredicate));
-				function->setType(SEM::FunctionType(std::move(attributes), returnType, argTypes.copy()));
+				AST::FunctionAttributes attributes(isVarArg, isMethod, isTemplated, std::move(noExceptPredicate));
+				function->setType(AST::FunctionType(std::move(attributes), returnType, argTypes.copy()));
 			}
 		}
 		

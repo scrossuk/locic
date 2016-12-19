@@ -11,7 +11,7 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class FunctionType;
 		
@@ -42,7 +42,7 @@ namespace locic {
 				const SEM::Type* returnType() const;
 				const SEM::TypeArray& parameterTypes() const;
 				
-				SEM::FunctionType createFunctionType(bool isTemplated) const;
+				AST::FunctionType createFunctionType(bool isTemplated) const;
 				
 				std::size_t hash() const;
 				

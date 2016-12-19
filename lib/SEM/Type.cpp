@@ -4,6 +4,7 @@
 #include <boost/functional/hash.hpp>
 
 #include <locic/AST/Alias.hpp>
+#include <locic/AST/FunctionType.hpp>
 #include <locic/AST/TemplateVar.hpp>
 
 #include <locic/Constant.hpp>
@@ -15,7 +16,6 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/Context.hpp>
-#include <locic/SEM/FunctionType.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -654,7 +654,7 @@ namespace locic {
 			return isBuiltInVarArgFunctionPtr();
 		}
 		
-		FunctionType Type::asFunctionType() const {
+		AST::FunctionType Type::asFunctionType() const {
 			assert(isCallable());
 			if (cachedFunctionType_) {
 				return *cachedFunctionType_;
@@ -667,11 +667,13 @@ namespace locic {
 				parameterTypes.push_back(templateArguments()[i].typeRefType());
 			}
 			
-			FunctionAttributes attributes(isCallableVarArg(),
-			                              isCallableMethod(),
-			                              isCallableTemplated(),
-			                              std::move(noexceptPredicate));
-			FunctionType functionType(std::move(attributes), templateArguments()[1].typeRefType(), std::move(parameterTypes));
+			AST::FunctionAttributes attributes(isCallableVarArg(),
+			                                   isCallableMethod(),
+			                                   isCallableTemplated(),
+			                                   std::move(noexceptPredicate));
+			AST::FunctionType functionType(std::move(attributes),
+			                               templateArguments()[1].typeRefType(),
+			                               std::move(parameterTypes));
 			cachedFunctionType_ = make_optional(functionType);
 			return functionType;
 		}

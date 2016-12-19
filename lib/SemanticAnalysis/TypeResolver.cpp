@@ -199,8 +199,8 @@ namespace locic {
 					
 					const bool isVarArg = type->functionType.isVarArg;
 					
-					SEM::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplated, std::move(noexceptPredicate));
-					const SEM::FunctionType builtInFunctionType(std::move(attributes),  returnType, std::move(parameterTypes));
+					AST::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplated, std::move(noexceptPredicate));
+					const AST::FunctionType builtInFunctionType(std::move(attributes),  returnType, std::move(parameterTypes));
 					
 					return builder.getFunctionPointerType(builtInFunctionType);
 				}

@@ -1,7 +1,7 @@
 #ifndef LOCIC_CODEGEN_METHODINFO_HPP
 #define LOCIC_CODEGEN_METHODINFO_HPP
 
-#include <locic/SEM/FunctionType.hpp>
+#include <locic/AST/FunctionType.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/Support/HeapArray.hpp>
 #include <locic/Support/String.hpp>
@@ -22,11 +22,11 @@ namespace locic {
 		struct MethodInfo {
 			const SEM::Type* parentType;
 			String name;
-			SEM::FunctionType functionType;
+			AST::FunctionType functionType;
 			HeapArray<SEM::Value> templateArgs;
 			
 			MethodInfo(const SEM::Type* const argParentType, const String& argName,
-			           SEM::FunctionType argFunctionType, HeapArray<SEM::Value> argTemplateArgs)
+			           AST::FunctionType argFunctionType, HeapArray<SEM::Value> argTemplateArgs)
 			: parentType(argParentType),
 			name(argName),
 			functionType(std::move(argFunctionType)),

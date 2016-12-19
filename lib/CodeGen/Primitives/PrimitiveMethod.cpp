@@ -48,8 +48,8 @@ namespace locic {
 			const auto returnType = castToType;
 			const SEM::TypeArray parameterTypes = castFromValue != nullptr ? SEM::TypeArray{ castFromType } : SEM::TypeArray{};
 			
-			SEM::FunctionAttributes functionAttributes(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate));
-			const SEM::FunctionType functionType(std::move(functionAttributes), returnType, parameterTypes.copy());
+			AST::FunctionAttributes functionAttributes(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate));
+			const AST::FunctionType functionType(std::move(functionAttributes), returnType, parameterTypes.copy());
 			
 			MethodInfo methodInfo(castToType, targetMethodName, functionType, {});
 			

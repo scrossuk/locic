@@ -139,11 +139,11 @@ namespace locic {
 			return CanonicalizeMethodName(fullName().last());
 		}
 		
-		void Function::setType(const SEM::FunctionType pType) {
+		void Function::setType(const FunctionType pType) {
 			type_ = pType;
 		}
 		
-		const SEM::FunctionType& Function::type() const {
+		const FunctionType& Function::type() const {
 			return type_;
 		}
 		
