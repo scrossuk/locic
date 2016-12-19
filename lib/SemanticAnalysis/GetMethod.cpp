@@ -1,5 +1,6 @@
 #include <cassert>
 
+#include <locic/AST/Type.hpp>
 #include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
@@ -41,7 +42,7 @@ namespace locic {
 		
 		class CannotFindStaticMethodDiag: public Error {
 		public:
-			CannotFindStaticMethodDiag(const String name, const SEM::Type* type)
+			CannotFindStaticMethodDiag(const String name, const AST::Type* type)
 			: name_(name), typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -57,7 +58,7 @@ namespace locic {
 		
 		class CannotCallNonStaticMethodDiag: public Error {
 		public:
-			CannotCallNonStaticMethodDiag(const String name, const SEM::Type* type)
+			CannotCallNonStaticMethodDiag(const String name, const AST::Type* type)
 			: name_(name), typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -138,13 +139,13 @@ namespace locic {
 			return GetMethodWithoutResolution(context, std::move(value), type, methodName, location);
 		}
 		
-		SEM::Value GetMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* type, const String& methodName, const Debug::SourceLocation& location) {
+		SEM::Value GetMethodWithoutResolution(Context& context, SEM::Value value, const AST::Type* type, const String& methodName, const Debug::SourceLocation& location) {
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, {}, location);
 		}
 		
 		class CannotFindMethodDiag: public Error {
 		public:
-			CannotFindMethodDiag(const String name, const SEM::Type* type)
+			CannotFindMethodDiag(const String name, const AST::Type* type)
 			: name_(name), typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -160,7 +161,7 @@ namespace locic {
 		
 		class CannotAccessStaticMethodDiag: public Error {
 		public:
-			CannotAccessStaticMethodDiag(const String name, const SEM::Type* type)
+			CannotAccessStaticMethodDiag(const String name, const AST::Type* type)
 			: name_(name), typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -197,7 +198,7 @@ namespace locic {
 		
 		class InvalidMethodTemplateArgDiag: public Error {
 		public:
-			InvalidMethodTemplateArgDiag(const SEM::Type* type, const String varName,
+			InvalidMethodTemplateArgDiag(const AST::Type* type, const String varName,
 			                             const String methodName)
 			: typeString_(type->toDiagString()), varName_(varName),
 			methodName_(methodName) { }
@@ -218,7 +219,7 @@ namespace locic {
 		class CannotReferToMutatorMethodFromConstDiag: public Error {
 		public:
 			CannotReferToMutatorMethodFromConstDiag(const String name,
-			                                        const SEM::Type* type)
+			                                        const AST::Type* type)
 			: name_(name), typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -251,7 +252,7 @@ namespace locic {
 			
 		};
 		
-		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const SEM::Type* const type, const String& methodName, SEM::ValueArray templateArguments, const Debug::SourceLocation& location) {
+		SEM::Value GetTemplatedMethodWithoutResolution(Context& context, SEM::Value value, const AST::Type* const type, const String& methodName, SEM::ValueArray templateArguments, const Debug::SourceLocation& location) {
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
 			assert(type->isObjectOrTemplateVar());
 			

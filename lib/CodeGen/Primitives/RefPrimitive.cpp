@@ -11,6 +11,7 @@
 
 #include <locic/AST/Value.hpp>
 #include <locic/AST/TemplateVar.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
@@ -109,24 +110,24 @@ namespace locic {
 		
 		namespace {
 			
-			bool isVirtualnessKnown(const SEM::Type* const type) {
+			bool isVirtualnessKnown(const AST::Type* const type) {
 				// Virtual template variables may or may not be
 				// instantiated with virtual types.
 				return !type->isTemplateVar() ||
 					!type->getTemplateVar()->isVirtual();
 			}
 			
-			const SEM::Type* getRefTarget(const SEM::Type* const type) {
+			const AST::Type* getRefTarget(const AST::Type* const type) {
 				const auto refTarget = type->templateArguments().at(0).typeRefType();
 				assert(!refTarget->isAlias());
 				return refTarget;
 			}
 			
-			bool isRefVirtualnessKnown(const SEM::Type* const type) {
+			bool isRefVirtualnessKnown(const AST::Type* const type) {
 				return isVirtualnessKnown(getRefTarget(type));
 			}
 			
-			bool isRefVirtual(const SEM::Type* const type) {
+			bool isRefVirtual(const AST::Type* const type) {
 				assert(isRefVirtualnessKnown(type));
 				return getRefTarget(type)->isInterface();
 			}
@@ -139,14 +140,14 @@ namespace locic {
 				return TypeGenerator(module).getPtrType();
 			}
 			
-			llvm::Type* getRefLLVMType(Module& module, const SEM::Type* const type) {
+			llvm::Type* getRefLLVMType(Module& module, const AST::Type* const type) {
 				return isRefVirtual(type) ?
 					getVirtualRefLLVMType(module) :
 					getNotVirtualLLVMType(module);
 			}
 			
 			template <typename Fn>
-			llvm::Value* genRefPrimitiveMethodForVirtualCases(Function& function, const SEM::Type* const type, Fn f) {
+			llvm::Value* genRefPrimitiveMethodForVirtualCases(Function& function, const AST::Type* const type, Fn f) {
 				auto& module = function.module();
 				
 				IREmitter irEmitter(function);
@@ -212,16 +213,16 @@ namespace locic {
 			
 			class RefMethodOwner {
 			public:
-				static RefMethodOwner AsRef(Function& function, const SEM::Type* const type, PendingResultArray& args) {
+				static RefMethodOwner AsRef(Function& function, const AST::Type* const type, PendingResultArray& args) {
 					return RefMethodOwner(function, type, args, false);
 				}
 				
-				static RefMethodOwner AsValue(Function& function, const SEM::Type* const type, PendingResultArray& args) {
+				static RefMethodOwner AsValue(Function& function, const AST::Type* const type, PendingResultArray& args) {
 					return RefMethodOwner(function, type, args, true);
 				}
 				
 			private:
-				RefMethodOwner(Function& function, const SEM::Type* const type, PendingResultArray& args, const bool loaded)
+				RefMethodOwner(Function& function, const AST::Type* const type, PendingResultArray& args, const bool loaded)
 				: function_(function), type_(type), args_(args), loaded_(loaded), value_(nullptr) {
 					if (loaded_) {
 						// If the virtual-ness of the reference is known
@@ -258,7 +259,7 @@ namespace locic {
 				
 			private:
 				Function& function_;
-				const SEM::Type* const type_;
+				const AST::Type* const type_;
 				PendingResultArray& args_;
 				bool loaded_;
 				llvm::Value* value_;
@@ -281,7 +282,7 @@ namespace locic {
 			for (const auto& value: typeTemplateArguments) {
 				valueArray.push_back(value.copy());
 			}
-			const auto type = SEM::Type::Object(&typeInstance_,
+			const auto type = AST::Type::Object(&typeInstance_,
 			                                    std::move(valueArray));
 			
 			switch (methodID) {

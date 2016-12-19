@@ -1,6 +1,7 @@
 #include <stdexcept>
 
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -92,7 +93,7 @@ namespace locic {
 			varNode->setDebugInfo(makeVarInfo(varKind, varNode));
 		}
 		
-		const SEM::Type* getVarType(Context& context, const AST::Node<AST::Var>& astVarNode, const SEM::Type* /*initialiseType*/) {
+		const AST::Type* getVarType(Context& context, const AST::Node<AST::Var>& astVarNode, const AST::Type* /*initialiseType*/) {
 			return TypeResolver(context).resolveType(astVarNode->declType())->resolveAliases();
 		}
 		
@@ -128,7 +129,7 @@ namespace locic {
 		
 		class CannotPatternMatchNonDatatypeDiag: public Error {
 		public:
-			CannotPatternMatchNonDatatypeDiag(const SEM::Type* const type)
+			CannotPatternMatchNonDatatypeDiag(const AST::Type* const type)
 			: name_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -144,7 +145,7 @@ namespace locic {
 		class PatternMatchIncorrectVarCountDiag: public Error {
 		public:
 			PatternMatchIncorrectVarCountDiag(const size_t varCount,
-			                                  const SEM::Type* const type,
+			                                  const AST::Type* const type,
 			                                  const size_t expectedVarCount)
 			: varCount_(varCount), name_(type->toDiagString()),
 			expectedVarCount_(expectedVarCount) { }
@@ -164,7 +165,7 @@ namespace locic {
 		
 		namespace {
 			
-			const SEM::Type* CastType(Context& context, const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location, bool isTopLevel) {
+			const AST::Type* CastType(Context& context, const AST::Type* sourceType, const AST::Type* destType, const Debug::SourceLocation& location, bool isTopLevel) {
 				// Pattern matched members are restricted
 				// to format only casts.
 				const bool formatOnly = !isTopLevel;
@@ -176,7 +177,7 @@ namespace locic {
 			AST::Var*
 			ConvertInitialisedVarRecurse(Context& context,
 			                             AST::Node<AST::Var>& astVarNode,
-			                             const SEM::Type* initialiseType,
+			                             const AST::Type* initialiseType,
 			                             bool isTopLevel) {
 				const auto& location = astVarNode.location();
 				
@@ -361,7 +362,7 @@ namespace locic {
 		}
 		
 		AST::Var* ConvertInitialisedVar(Context& context, AST::Node<AST::Var>& astVarNode,
-		                                const SEM::Type* const initialiseType) {
+		                                const AST::Type* const initialiseType) {
 			const bool isTopLevel = true;
 			return ConvertInitialisedVarRecurse(context, astVarNode, initialiseType, isTopLevel);
 		}

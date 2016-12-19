@@ -24,11 +24,12 @@ namespace locic {
 	namespace SEM {
 		
 		class Context;
-		class Type;
 		
 	}
 	
 	namespace AST {
+		
+		class Type;
 		
 		class Alias final: public TemplatedObject {
 		public:
@@ -57,8 +58,8 @@ namespace locic {
 			const Name& fullName() const;
 			void setFullName(Name fullName);
 			
-			const SEM::Type* type() const;
-			void setType(const SEM::Type* type);
+			const AST::Type* type() const;
+			void setType(const AST::Type* type);
 			
 			SEM::Value selfRefValue(SEM::ValueArray templateArguments) const;
 			
@@ -79,7 +80,7 @@ namespace locic {
 			 *     SomeAlias<A, B>
 			 * 
 			 */
-			const SEM::Type* selfRefType(SEM::ValueArray templateArguments) const;
+			const AST::Type* selfRefType(SEM::ValueArray templateArguments) const;
 			SEM::ValueArray selfTemplateArgs() const;
 			
 			TemplateVarArray& templateVariables();
@@ -110,7 +111,7 @@ namespace locic {
 			FastMap<String, TemplateVar*> namedTemplateVariables_;
 			SEM::Predicate requiresPredicate_;
 			SEM::Predicate noexceptPredicate_;
-			const SEM::Type* type_;
+			const AST::Type* type_;
 			Optional<SEM::Value> value_;
 			
 		};

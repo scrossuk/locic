@@ -6,8 +6,8 @@
 #include <locic/AST/Value.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TemplateVarMap.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/Hasher.hpp>
@@ -72,7 +72,8 @@ namespace locic {
 			return predicate;
 		}
 		
-		Predicate Predicate::Satisfies(const Type* const type, const Type* const requirement) {
+		Predicate Predicate::Satisfies(const AST::Type* const type,
+		                               const AST::Type* const requirement) {
 			Predicate predicate(SATISFIES);
 			predicate.type_ = type;
 			predicate.requirement_ = requirement;
@@ -450,12 +451,12 @@ namespace locic {
 			return *right_;
 		}
 		
-		const Type* Predicate::satisfiesType() const {
+		const AST::Type* Predicate::satisfiesType() const {
 			assert(isSatisfies());
 			return type_;
 		}
 		
-		const Type* Predicate::satisfiesRequirement() const {
+		const AST::Type* Predicate::satisfiesRequirement() const {
 			assert(isSatisfies());
 			return requirement_;
 		}

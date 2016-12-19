@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/CallValue.hpp>
@@ -20,9 +21,9 @@ namespace locic {
 	
 		namespace {
 			
-			SEM::TypeArray getFilteredConstructTypes(const std::vector<AST::Var*>& variables) {
+			AST::TypeArray getFilteredConstructTypes(const std::vector<AST::Var*>& variables) {
 				assert(!variables.empty());
-				SEM::TypeArray types;
+				AST::TypeArray types;
 				types.reserve(variables.size() - 1);
 				bool isFirst = true;
 				for (const auto var: variables) {

@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>
@@ -60,8 +61,8 @@ namespace locic {
 		
 		class TemplateArgHasInvalidTypeDiag : public Error {
 		public:
-			TemplateArgHasInvalidTypeDiag(const String& name, const SEM::Type* expectedType,
-			                              const SEM::Type* actualType)
+			TemplateArgHasInvalidTypeDiag(const String& name, const AST::Type* expectedType,
+			                              const AST::Type* actualType)
 			: name_(name), expectedTypeString_(expectedType->toDiagString()),
 			actualTypeString_(actualType->toDiagString()) { }
 
@@ -271,7 +272,7 @@ namespace locic {
 			return templateArguments;
 		}
 		
-		SEM::ValueArray makeTemplateArgs(Context& context, SEM::TypeArray typeArray) {
+		SEM::ValueArray makeTemplateArgs(Context& context, AST::TypeArray typeArray) {
 			SEM::ValueArray templateArguments;
 			templateArguments.reserve(typeArray.size());
 			

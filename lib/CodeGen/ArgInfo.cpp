@@ -6,6 +6,7 @@
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
+#include <locic/AST/Type.hpp>
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -14,7 +15,6 @@
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
-#include <locic/SEM/Type.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
@@ -312,7 +312,7 @@ namespace locic {
 				noReturn() ? "true" : "false");
 		}
 		
-		bool canPassByValue(Module& module, const SEM::Type* type) {
+		bool canPassByValue(Module& module, const AST::Type* type) {
 			return TypeInfo(module).canPassByValue(type);
 		}
 		

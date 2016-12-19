@@ -2,6 +2,7 @@
 #include <llvm-abi/ABITypeInfo.hpp>
 
 #include <locic/AST/FunctionType.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/AST/Value.hpp>
 #include <locic/AST/Var.hpp>
 
@@ -20,7 +21,6 @@
 #include <locic/CodeGen/TypeGenerator.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
 #include <locic/Support/MethodID.hpp>
@@ -35,7 +35,7 @@ namespace locic {
 		llvm::Value*
 		DefaultMethodEmitter::emitMethod(const MethodID methodID,
 		                                 const bool isInnerMethod,
-		                                 const SEM::Type* const type,
+		                                 const AST::Type* const type,
 		                                 const AST::FunctionType functionType,
 		                                 PendingResultArray args,
 		                                 llvm::Value* const hintResultValue) {
@@ -98,7 +98,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitCreateConstructor(const SEM::Type* const type,
+		DefaultMethodEmitter::emitCreateConstructor(const AST::Type* const type,
 		                                            const AST::FunctionType /*functionType*/,
 		                                            PendingResultArray args,
 		                                            llvm::Value* const hintResultValue) {
@@ -137,7 +137,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitOuterDestroy(const SEM::Type* const type,
+		DefaultMethodEmitter::emitOuterDestroy(const AST::Type* const type,
 		                                       const AST::FunctionType /*functionType*/,
 		                                       PendingResultArray args) {
 			const auto& typeInstance = *(type->getObjectType());
@@ -230,7 +230,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitInnerDestroy(const SEM::Type* const /*type*/,
+		DefaultMethodEmitter::emitInnerDestroy(const AST::Type* const /*type*/,
 		                                       const AST::FunctionType /*functionType*/,
 		                                       PendingResultArray args) {
 			// Default destroy code doesn't do anything.
@@ -240,7 +240,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitOuterMoveTo(const SEM::Type* const type,
+		DefaultMethodEmitter::emitOuterMoveTo(const AST::Type* const type,
 		                                      const AST::FunctionType /*functionType*/,
 		                                      PendingResultArray args) {
 			const auto& typeInstance = *(type->getObjectType());
@@ -318,7 +318,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitInnerMoveTo(const SEM::Type* const type,
+		DefaultMethodEmitter::emitInnerMoveTo(const AST::Type* const type,
 		                                      const AST::FunctionType /*functionType*/,
 		                                      PendingResultArray args) {
 			auto& module = functionGenerator_.module();
@@ -404,7 +404,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitAlignMask(const SEM::Type* const type) {
+		DefaultMethodEmitter::emitAlignMask(const AST::Type* const type) {
 			auto& module = functionGenerator_.module();
 			const auto& typeInstance = *(type->getObjectType());
 			
@@ -423,7 +423,7 @@ namespace locic {
 				llvm::Value* maxVariantAlignMask = zero;
 				
 				for (const auto variantTypeInstance: typeInstance.variants()) {
-					const auto variantType = SEM::Type::Object(variantTypeInstance,
+					const auto variantType = AST::Type::Object(variantTypeInstance,
 					                                           type->templateArguments().copy());
 					const auto variantAlignMask = irEmitter.emitAlignMask(variantType);
 					maxVariantAlignMask = functionGenerator_.getBuilder().CreateOr(maxVariantAlignMask, variantAlignMask);
@@ -446,7 +446,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitSizeOf(const SEM::Type* const type) {
+		DefaultMethodEmitter::emitSizeOf(const AST::Type* const type) {
 			auto& module = functionGenerator_.module();
 			const auto& typeInstance = *(type->getObjectType());
 			
@@ -480,7 +480,7 @@ namespace locic {
 				llvm::Value* maxVariantSize = zero;
 				
 				for (const auto variantTypeInstance: typeInstance.variants()) {
-					const auto variantType = SEM::Type::Object(variantTypeInstance,
+					const auto variantType = AST::Type::Object(variantTypeInstance,
 					                                           type->templateArguments().copy());
 					const auto variantAlignMask = irEmitter.emitAlignMask(variantType);
 					const auto variantSize = irEmitter.emitSizeOf(variantType);
@@ -549,7 +549,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitSetDead(const SEM::Type* const type,
+		DefaultMethodEmitter::emitSetDead(const AST::Type* const type,
 		                                  const AST::FunctionType /*functionType*/,
 		                                  PendingResultArray args) {
 			auto& module = functionGenerator_.module();
@@ -603,7 +603,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitIsLive(const SEM::Type* const type,
+		DefaultMethodEmitter::emitIsLive(const AST::Type* const type,
 		                                 const AST::FunctionType functionType,
 		                                 PendingResultArray args) {
 			auto& module = functionGenerator_.module();
@@ -654,7 +654,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitImplicitCopy(const SEM::Type* const type,
+		DefaultMethodEmitter::emitImplicitCopy(const AST::Type* const type,
 		                                       const AST::FunctionType functionType,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) {
@@ -666,7 +666,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitExplicitCopy(const SEM::Type* const type,
+		DefaultMethodEmitter::emitExplicitCopy(const AST::Type* const type,
 		                                       const AST::FunctionType functionType,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) {
@@ -679,7 +679,7 @@ namespace locic {
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitCopyMethod(const MethodID methodID,
-		                                     const SEM::Type* const type,
+		                                     const AST::Type* const type,
 		                                     const AST::FunctionType /*functionType*/,
 		                                     PendingResultArray args,
 		                                     llvm::Value* const hintResultValue) {
@@ -720,7 +720,7 @@ namespace locic {
 					
 					irEmitter.selectBasicBlock(matchBB);
 					
-					const auto variantType = SEM::Type::Object(variantTypeInstance, type->templateArguments().copy());
+					const auto variantType = AST::Type::Object(variantTypeInstance, type->templateArguments().copy());
 					
 					const auto unionValuePtr = irEmitter.emitGetDatatypeVariantPtr(thisPointer,
 					                                                               type,
@@ -775,7 +775,7 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitCompare(const SEM::Type* const type,
+		DefaultMethodEmitter::emitCompare(const AST::Type* const type,
 		                                  const AST::FunctionType /*functionType*/,
 		                                  PendingResultArray args) {
 			const auto& typeInstance = *(type->getObjectType());
@@ -854,7 +854,7 @@ namespace locic {
 					
 					irEmitter.selectBasicBlock(matchBB);
 					
-					const auto variantType = SEM::Type::Object(variantTypeInstance, type->templateArguments().copy());
+					const auto variantType = AST::Type::Object(variantTypeInstance, type->templateArguments().copy());
 					
 					const auto thisValuePtr = irEmitter.emitGetDatatypeVariantPtr(thisPointer,
 					                                                              type,

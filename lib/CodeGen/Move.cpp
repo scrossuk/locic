@@ -2,6 +2,7 @@
 #include <vector>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
@@ -33,7 +34,7 @@ namespace locic {
 			                                 positionValue);
 		}
 		
-		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type) {
+		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const AST::Type* type) {
 			TypeInfo typeInfo(function.module());
 			IREmitter irEmitter(function);
 			if (typeInfo.hasCustomMove(type)) {
@@ -45,7 +46,7 @@ namespace locic {
 			}
 		}
 		
-		void genMoveStore(Function& function, llvm::Value* const value, llvm::Value* const var, const SEM::Type* type) {
+		void genMoveStore(Function& function, llvm::Value* const value, llvm::Value* const var, const AST::Type* type) {
 			assert(var->getType()->isPointerTy());
 			
 			IREmitter irEmitter(function);
@@ -86,14 +87,14 @@ namespace locic {
 			return moveBasicArgInfo(module, !typeInstance->templateVariables().empty());
 		}
 		
-		void genBasicMove(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue) {
+		void genBasicMove(Function& function, const AST::Type* type, llvm::Value* sourceValue, llvm::Value* startDestValue, llvm::Value* positionValue) {
 			IREmitter irEmitter(function);
 			const auto destValue = makeMoveDest(function, startDestValue, positionValue);
 			const auto loadedValue = irEmitter.emitBasicLoad(sourceValue, type);
 			irEmitter.emitBasicStore(loadedValue, destValue, type);
 		}
 		
-		void genMoveCall(Function& function, const SEM::Type* const type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
+		void genMoveCall(Function& function, const AST::Type* const type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
 			auto& module = function.module();
 			
 			if (type->isObject()) {

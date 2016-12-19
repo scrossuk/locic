@@ -9,7 +9,6 @@
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
 #include <locic/SEM/SwitchCase.hpp>
-#include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 #include <locic/SEM/Value.hpp>
 

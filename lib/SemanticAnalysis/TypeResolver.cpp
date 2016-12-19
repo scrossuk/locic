@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/SEM.hpp>
 
@@ -42,7 +43,7 @@ namespace locic {
 			
 		};
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeResolver::resolveObjectType(const AST::Node<AST::Symbol>& symbol) {
 			assert(!symbol->empty());
 			
@@ -57,11 +58,11 @@ namespace locic {
 				
 				assert(templateVarMap.size() == typeInstance.templateVariables().size());
 				
-				return SEM::Type::Object(&typeInstance, GetTemplateValues(templateVarMap, typeInstance.templateVariables()));
+				return AST::Type::Object(&typeInstance, GetTemplateValues(templateVarMap, typeInstance.templateVariables()));
 			} else if (searchResult.isTemplateVar()) {
 				assert(templateVarMap.empty());
 				
-				return SEM::Type::TemplateVarRef(&(searchResult.templateVar()));
+				return AST::Type::TemplateVarRef(&(searchResult.templateVar()));
 			} else if (searchResult.isAlias()) {
 				auto& alias = searchResult.alias();
 				
@@ -70,7 +71,7 @@ namespace locic {
 				auto templateValues = GetTemplateValues(templateVarMap, alias.templateVariables());
 				assert(templateValues.size() == alias.templateVariables().size());
 				
-				return SEM::Type::Alias(alias, std::move(templateValues));
+				return AST::Type::Alias(alias, std::move(templateValues));
 			} else {
 				context_.issueDiag(UnknownTypeNameDiag(name.copy()),
 				                   symbol.location());
@@ -78,7 +79,7 @@ namespace locic {
 			}
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeResolver::resolveIntegerType(AST::TypeDecl::SignedModifier signedModifier,
 		                                 const String& nameString) {
 			// Unsigned types have 'u' prefix and all integer types
@@ -89,7 +90,7 @@ namespace locic {
 			return getBuiltInType(context_, fullNameString, {});
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeResolver::resolveFloatType(const String& nameString) {
 			// All floating point types have '_t' suffix (e.g. float_t, double_t etc.).
 			const auto fullNameString = nameString + "_t";
@@ -106,12 +107,12 @@ namespace locic {
 			
 		};
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeResolver::convertType(AST::Node<AST::TypeDecl>& type) {
 			TypeBuilder builder(context_);
 			switch (type->typeEnum) {
 				case AST::TypeDecl::AUTO: {
-					return SEM::Type::Auto(context_.semContext());
+					return AST::Type::Auto(context_.semContext());
 				}
 				case AST::TypeDecl::CONST: {
 					return resolveType(type->getConstTarget())->createTransitiveConstType(SEM::Predicate::True());
@@ -174,7 +175,7 @@ namespace locic {
 					
 					const auto& astParameterTypes = type->functionType.parameterTypes;
 					
-					SEM::TypeArray parameterTypes;
+					AST::TypeArray parameterTypes;
 					parameterTypes.reserve(astParameterTypes->size());
 					
 					for (auto& astParamType: *astParameterTypes) {
@@ -209,7 +210,7 @@ namespace locic {
 			locic_unreachable("Unknown AST::TypeDecl kind.");
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeResolver::resolveType(AST::Node<AST::TypeDecl>& type) {
 			if (type->resolvedType() != nullptr) {
 				return type->resolvedType();
@@ -222,7 +223,7 @@ namespace locic {
 		
 		class PredicateAliasNotBoolDiag: public Error {
 		public:
-			PredicateAliasNotBoolDiag(const Name& name, const SEM::Type* const type)
+			PredicateAliasNotBoolDiag(const Name& name, const AST::Type* const type)
 			: name_(name.copy()), typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -283,7 +284,7 @@ namespace locic {
 			return aliasValue.makePredicate();
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeResolver::resolveTemplateVarType(AST::Node<AST::TypeDecl>& type) {
 			if (getTemplateVarTypeAlias(type) != nullptr) {
 				// If the template variable type is actually an

@@ -5,9 +5,9 @@
 
 #include <locic/AST/TemplateVarArray.hpp>
 #include <locic/AST/TemplateVarMap.hpp>
+#include <locic/AST/TypeArray.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
 
 namespace locic {
@@ -15,11 +15,12 @@ namespace locic {
 	namespace SEM {
 		
 		class Context;
-		class Type;
 		
 	}
 	
 	namespace AST {
+		
+		class Type;
 		
 		class FunctionAttributes {
 		public:
@@ -69,8 +70,8 @@ namespace locic {
 		class FunctionTypeData {
 		public:
 			FunctionTypeData(FunctionAttributes attributes,
-			                 const SEM::Type* returnType,
-			                 SEM::TypeArray parameterTypes);
+			                 const Type* returnType,
+			                 TypeArray parameterTypes);
 			
 			FunctionTypeData copy() const;
 			
@@ -78,9 +79,9 @@ namespace locic {
 			
 			const FunctionAttributes& attributes() const;
 			
-			const SEM::Type* returnType() const;
+			const Type* returnType() const;
 			
-			const SEM::TypeArray& parameterTypes() const;
+			const TypeArray& parameterTypes() const;
 			
 			std::string toString() const;
 			
@@ -96,8 +97,8 @@ namespace locic {
 			
 		private:
 			FunctionAttributes attributes_;
-			const SEM::Type* returnType_;
-			SEM::TypeArray parameterTypes_;
+			const Type* returnType_;
+			TypeArray parameterTypes_;
 			
 		};
 		
@@ -107,8 +108,8 @@ namespace locic {
 			: data_(nullptr) { }
 			
 			FunctionType(FunctionAttributes attributes,
-			             const SEM::Type* returnType,
-			             SEM::TypeArray parameterTypes);
+			             const Type* returnType,
+			             TypeArray parameterTypes);
 			
 			FunctionType(const FunctionTypeData& data)
 			: data_(&data) { }
@@ -125,11 +126,11 @@ namespace locic {
 				return attributes().isVarArg();
 			}
 			
-			const SEM::Type* returnType() const {
+			const Type* returnType() const {
 				return data_->returnType();
 			}
 			
-			const SEM::TypeArray& parameterTypes() const {
+			const TypeArray& parameterTypes() const {
 				return data_->parameterTypes();
 			}
 			

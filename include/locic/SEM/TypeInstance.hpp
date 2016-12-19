@@ -10,9 +10,9 @@
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/TemplatedObject.hpp>
 #include <locic/AST/TemplateVarArray.hpp>
+#include <locic/AST/TypeArray.hpp>
 #include <locic/Debug/TypeInstanceInfo.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TypeArray.hpp>
 #include <locic/SEM/ValueArray.hpp>
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
@@ -154,7 +154,7 @@ namespace locic {
 				 *     SomeType<A, B>
 				 * 
 				 */
-				const Type* selfType() const;
+				const AST::Type* selfType() const;
 				
 				/**
 				 * \brief Get self template arguments.
@@ -320,7 +320,7 @@ namespace locic {
 				 * 
 				 * \return Construct types.
 				 */
-				TypeArray constructTypes() const;
+				AST::TypeArray constructTypes() const;
 				
 				/**
 				 * \brief Get/set parent.
@@ -335,8 +335,8 @@ namespace locic {
 				const TypeInstance* parentTypeInstance() const;
 				void setParentTypeInstance(const TypeInstance* parent);
 				
-				const Type* parentType() const;
-				void setParentType(const Type* parent);
+				const AST::Type* parentType() const;
+				void setParentType(const AST::Type* parent);
 				
 				/**
 				 * \brief Get/set notag() set.
@@ -379,7 +379,7 @@ namespace locic {
 				Optional<Debug::TypeInstanceInfo> debugInfo_;
 				
 				const TypeInstance* parentTypeInstance_;
-				const Type* parentType_;
+				const AST::Type* parentType_;
 				
 				std::vector<TypeInstance*> variants_;
 				
@@ -395,7 +395,7 @@ namespace locic {
 				Array<AST::Function*, 8> functions_;
 				
 				AST::TemplateVarArray noTagSet_;
-				mutable const Type* cachedSelfType_;
+				mutable const AST::Type* cachedSelfType_;
 				
 		};
 		

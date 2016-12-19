@@ -11,11 +11,6 @@ namespace locic {
 		
 		class Alias;
 		class TemplateVar;
-		
-	}
-	
-	namespace SEM {
-		
 		class Type;
 		
 	}
@@ -28,17 +23,17 @@ namespace locic {
 		public:
 			TypeResolver(Context& context);
 			
-			const SEM::Type*
+			const AST::Type*
 			resolveObjectType(const AST::Node<AST::Symbol>& symbol);
 			
-			const SEM::Type*
+			const AST::Type*
 			resolveIntegerType(AST::TypeDecl::SignedModifier signedModifier,
 			                   const String& nameString);
 			
-			const SEM::Type*
+			const AST::Type*
 			resolveFloatType(const String& nameString);
 			
-			const SEM::Type*
+			const AST::Type*
 			resolveType(AST::Node<AST::TypeDecl>& typeDecl);
 			
 			AST::Alias*
@@ -48,11 +43,11 @@ namespace locic {
 			getTemplateVarTypePredicate(const AST::Node<AST::TypeDecl>& type,
 			                            const AST::TemplateVar& templateVar);
 			
-			const SEM::Type*
+			const AST::Type*
 			resolveTemplateVarType(AST::Node<AST::TypeDecl>& typeDecl);
 			
 		private:
-			const SEM::Type*
+			const AST::Type*
 			convertType(AST::Node<AST::TypeDecl>& type);
 			
 			Context& context_;

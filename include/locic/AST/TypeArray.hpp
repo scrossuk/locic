@@ -1,11 +1,11 @@
-#ifndef LOCIC_SEM_TYPEARRAY_HPP
-#define LOCIC_SEM_TYPEARRAY_HPP
+#ifndef LOCIC_AST_TYPEARRAY_HPP
+#define LOCIC_AST_TYPEARRAY_HPP
 
 #include <locic/Support/Array.hpp>
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 	
 		class Type;
 		

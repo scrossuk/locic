@@ -115,22 +115,22 @@ namespace locic {
 			isUsed_ = true;
 		}
 		
-		const SEM::Type* Var::constructType() const {
+		const AST::Type* Var::constructType() const {
 			assert(constructType_ != nullptr);
 			return constructType_;
 		}
 		
-		void Var::setConstructType(const SEM::Type* type) {
+		void Var::setConstructType(const AST::Type* type) {
 			assert(constructType_ == nullptr && type != nullptr);
 			constructType_ = type;
 		}
 		
-		const SEM::Type* Var::lvalType() const {
+		const AST::Type* Var::lvalType() const {
 			assert(lvalType_ != nullptr);
 			return lvalType_;
 		}
 		
-		void Var::setLvalType(const SEM::Type* type) {
+		void Var::setLvalType(const AST::Type* type) {
 			assert(lvalType_ == nullptr && type != nullptr);
 			lvalType_ = type;
 		}

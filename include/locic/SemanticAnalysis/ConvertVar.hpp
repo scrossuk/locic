@@ -6,7 +6,7 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Type;
 		
@@ -18,7 +18,7 @@ namespace locic {
 		
 		Debug::VarInfo makeVarInfo(Debug::VarInfo::Kind kind, const AST::Node<AST::Var>& astVarNode);
 		
-		const SEM::Type* getVarType(Context& context, const AST::Node<AST::Var>& astVarNode, const SEM::Type* initialiseType);
+		const AST::Type* getVarType(Context& context, const AST::Node<AST::Var>& astVarNode, const AST::Type* initialiseType);
 		
 		AST::Var*
 		ConvertVar(Context& context, Debug::VarInfo::Kind varKind,
@@ -27,7 +27,7 @@ namespace locic {
 		// Note that this function assumes that the variable is a local variable.
 		AST::Var*
 		ConvertInitialisedVar(Context& context, AST::Node<AST::Var>& typeVar,
-		                      const SEM::Type* initialiseType);
+		                      const AST::Type* initialiseType);
 		
 	}
 	

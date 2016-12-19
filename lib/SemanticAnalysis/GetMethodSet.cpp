@@ -6,6 +6,7 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/AST/Type.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Cast.hpp>
@@ -304,7 +305,7 @@ namespace locic {
 			                      std::move(elements));
 		}
 		
-		const MethodSet* getMethodSetForTemplateVarType(Context& context, const SEM::Type* const templateVarType, const AST::TemplatedObject& templatedObject) {
+		const MethodSet* getMethodSetForTemplateVarType(Context& context, const AST::Type* const templateVarType, const AST::TemplatedObject& templatedObject) {
 			assert(templateVarType->isTemplateVar());
 			
 			// Look in the require() predicate to see what methods this
@@ -329,7 +330,7 @@ namespace locic {
 			
 		}
 		
-		const MethodSet* getMethodSetForObjectType(Context& context, const SEM::Type* const objectType) {
+		const MethodSet* getMethodSetForObjectType(Context& context, const AST::Type* const objectType) {
 			assert(objectType->isObject());
 			
 			MethodSet::ElementSet elements;
@@ -364,7 +365,7 @@ namespace locic {
 			return MethodSet::get(context, std::move(constObjectPredicate), std::move(elements));
 		}
 		
-		const MethodSet* getTypeMethodSet(Context& context, const SEM::Type* const rawType) {
+		const MethodSet* getTypeMethodSet(Context& context, const AST::Type* const rawType) {
 			assert(context.methodSetsComplete());
 			
 			const auto type = rawType->resolveAliases();

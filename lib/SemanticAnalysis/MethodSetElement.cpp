@@ -6,6 +6,7 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/AST/Type.hpp>
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Cast.hpp>
@@ -25,8 +26,8 @@ namespace locic {
 				SEM::Predicate argNoexceptPredicate,
 				SEM::Predicate argRequirePredicate,
 				const bool argIsStatic,
-				const SEM::Type* const argReturnType,
-				SEM::TypeArray argParameterTypes
+				const AST::Type* const argReturnType,
+				AST::TypeArray argParameterTypes
 			)
 			: templateVariables_(std::move(argTemplateVariables)),
 			constPredicate_(std::move(argConstPredicate)),
@@ -77,11 +78,11 @@ namespace locic {
 			return isStatic_;
 		}
 		
-		const SEM::Type* MethodSetElement::returnType() const {
+		const AST::Type* MethodSetElement::returnType() const {
 			return returnType_;
 		}
 		
-		const SEM::TypeArray& MethodSetElement::parameterTypes() const {
+		const AST::TypeArray& MethodSetElement::parameterTypes() const {
 			return parameterTypes_;
 		}
 		

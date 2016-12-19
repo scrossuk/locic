@@ -8,6 +8,7 @@
 #include <string>
 
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
@@ -147,7 +148,7 @@ namespace locic {
 		
 		class CannotFindMemberInTypeDiag: public Error {
 		public:
-			CannotFindMemberInTypeDiag(String name, const SEM::Type* type)
+			CannotFindMemberInTypeDiag(String name, const AST::Type* type)
 			: name_(name), typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -253,8 +254,8 @@ namespace locic {
 		
 		class NonMatchingArrayLiteralTypesDiag: public Error {
 		public:
-			NonMatchingArrayLiteralTypesDiag(const SEM::Type* const firstType,
-			                                 const SEM::Type* const secondType)
+			NonMatchingArrayLiteralTypesDiag(const AST::Type* const firstType,
+			                                 const AST::Type* const secondType)
 			: firstTypeString_(firstType->toDiagString()),
 			secondTypeString_(secondType->toDiagString()) { }
 			
@@ -306,8 +307,8 @@ namespace locic {
 		
 		class ReinterpretCastOnlySupportsPointersDiag: public Error {
 		public:
-			ReinterpretCastOnlySupportsPointersDiag(const SEM::Type* sourceType,
-			                                        const SEM::Type* destType)
+			ReinterpretCastOnlySupportsPointersDiag(const AST::Type* sourceType,
+			                                        const AST::Type* destType)
 			: sourceTypeString_(sourceType->toDiagString()),
 			destTypeString_(destType->toDiagString()) { }
 			
@@ -514,7 +515,7 @@ namespace locic {
 							auto& typeInstance = typeSearchResult.typeInstance();
 							
 							auto parentTemplateArguments = GetTemplateValues(templateVarMap, typeInstance.templateVariables());
-							const auto parentType = SEM::Type::Object(&typeInstance, std::move(parentTemplateArguments));
+							const auto parentType = AST::Type::Object(&typeInstance, std::move(parentTemplateArguments));
 							
 							return SEM::Value::FunctionRef(parentType, function, std::move(functionTemplateArguments), functionType);
 						} else {
@@ -529,7 +530,7 @@ namespace locic {
 						}
 						
 						const auto typenameType = context.typeBuilder().getTypenameType();
-						const auto parentType = SEM::Type::Object(&typeInstance, GetTemplateValues(templateVarMap, typeInstance.templateVariables()));
+						const auto parentType = AST::Type::Object(&typeInstance, GetTemplateValues(templateVarMap, typeInstance.templateVariables()));
 						return SEM::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
 					} else if (searchResult.isAlias()) {
 						auto& alias = searchResult.alias();
@@ -908,7 +909,7 @@ namespace locic {
 					}
 					
 					const auto templateVarMap = GenerateTemplateVarMap(context, *thisTypeInstance, std::move(templateArgs), location);
-					const auto thisType = SEM::Type::Object(thisTypeInstance, GetTemplateValues(templateVarMap, thisTypeInstance->templateVariables()));
+					const auto thisType = AST::Type::Object(thisTypeInstance, GetTemplateValues(templateVarMap, thisTypeInstance->templateVariables()));
 					
 					if (astParameterValueNodes->size() != thisTypeInstance->variables().size()) {
 						const size_t argsGiven = astParameterValueNodes->size();

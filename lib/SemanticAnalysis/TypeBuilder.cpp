@@ -1,5 +1,7 @@
 #include <stdexcept>
 
+#include <locic/AST/Type.hpp>
+
 #include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -19,17 +21,17 @@ namespace locic {
 		cachedIntType_(nullptr), cachedSizeType_(nullptr), cachedTypenameType_(nullptr),
 		cachedMovableType_(nullptr) { }
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getPrimitiveType(PrimitiveID primitiveID,
 		                              SEM::ValueArray templateArguments) {
 			if (primitiveID == PrimitiveUByte) {
 				primitiveID = PrimitiveUInt8;
 			}
 			const auto& typeInstance = context_.semContext().getPrimitive(primitiveID);
-			return SEM::Type::Object(&typeInstance, std::move(templateArguments));
+			return AST::Type::Object(&typeInstance, std::move(templateArguments));
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getVoidType() {
 			if (cachedVoidType_ != nullptr) {
 				return cachedVoidType_;
@@ -39,7 +41,7 @@ namespace locic {
 			return cachedVoidType_;
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getBoolType() {
 			if (cachedBoolType_ != nullptr) {
 				return cachedBoolType_;
@@ -49,7 +51,7 @@ namespace locic {
 			return cachedBoolType_;
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getIntType() {
 			if (cachedIntType_ != nullptr) {
 				return cachedIntType_;
@@ -59,7 +61,7 @@ namespace locic {
 			return cachedIntType_;
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getSizeType() {
 			if (cachedSizeType_ != nullptr) {
 				return cachedSizeType_;
@@ -69,7 +71,7 @@ namespace locic {
 			return cachedSizeType_;
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getTypenameType() {
 			if (cachedTypenameType_ != nullptr) {
 				return cachedTypenameType_;
@@ -79,7 +81,7 @@ namespace locic {
 			return cachedTypenameType_;
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getMovableInterfaceType() {
 			if (cachedMovableType_ != nullptr) {
 				return cachedMovableType_;
@@ -91,15 +93,15 @@ namespace locic {
 			return cachedMovableType_;
 		}
 		
-		const SEM::Type*
-		TypeBuilder::getPointerType(const SEM::Type* const elementType) {
+		const AST::Type*
+		TypeBuilder::getPointerType(const AST::Type* const elementType) {
 			SEM::ValueArray array;
 			array.push_back(elementType->asValue());
 			return getPrimitiveType(PrimitivePtr, std::move(array));
 		}
 		
-		const SEM::Type*
-		TypeBuilder::getConstantStaticArrayType(const SEM::Type* elementType,
+		const AST::Type*
+		TypeBuilder::getConstantStaticArrayType(const AST::Type* elementType,
 		                                        const size_t arraySize,
 		                                        const Debug::SourceLocation& location) {
 			auto arraySizeValue = SEM::Value::Constant(Constant::Integer(arraySize),
@@ -111,8 +113,8 @@ namespace locic {
 		
 		class StaticArraySizeInvalidTypeDiag: public Error {
 		public:
-			StaticArraySizeInvalidTypeDiag(const SEM::Type* actualType,
-			                               const SEM::Type* expectedType)
+			StaticArraySizeInvalidTypeDiag(const AST::Type* actualType,
+			                               const AST::Type* expectedType)
 			: actualTypeString_(actualType->toDiagString()),
 			expectedTypeString_(expectedType->toDiagString()) { }
 			
@@ -128,8 +130,8 @@ namespace locic {
 			
 		};
 		
-		const SEM::Type*
-		TypeBuilder::getStaticArrayType(const SEM::Type* const elementType,
+		const AST::Type*
+		TypeBuilder::getStaticArrayType(const AST::Type* const elementType,
 		                                SEM::Value arraySize,
 		                                const Debug::SourceLocation& location) {
 			SEM::ValueArray templateArgValues;
@@ -180,7 +182,7 @@ namespace locic {
 			return templateArgs;
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getPrimitiveCallableType(const AST::FunctionType functionType,
 		                                      const char* const functionTypeName) {
 			return getBuiltInTypeWithValueArgs(context_,
@@ -192,7 +194,7 @@ namespace locic {
 			return PrimitiveID::FunctionPtr(numArguments).toCString();
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getTrivialFunctionPointerType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getFunctionPointerName(functionType.parameterTypes().size()));
@@ -202,7 +204,7 @@ namespace locic {
 			return PrimitiveID::TemplatedFunctionPtr(numArguments).toCString();
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getTemplatedFunctionPointerType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getTemplatedFunctionPointerName(functionType.parameterTypes().size()));
@@ -212,7 +214,7 @@ namespace locic {
 			return PrimitiveID::MethodFunctionPtr(numArguments).toCString();
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getMethodFunctionPointerType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getMethodFunctionPointerName(functionType.parameterTypes().size()));
@@ -222,7 +224,7 @@ namespace locic {
 			return PrimitiveID::TemplatedMethodFunctionPtr(numArguments).toCString();
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getTemplatedMethodFunctionPointerType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getTemplatedMethodFunctionPointerName(functionType.parameterTypes().size()));
@@ -232,13 +234,13 @@ namespace locic {
 			return PrimitiveID::VarArgFunctionPtr(numArguments).toCString();
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getVarArgFunctionPointerType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getVarArgFunctionPointerName(functionType.parameterTypes().size()));
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getFunctionPointerType(const AST::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
 			
@@ -263,7 +265,7 @@ namespace locic {
 			return PrimitiveID::Method(numArguments).toCString();
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getTrivialMethodType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getTrivialMethodName(functionType.parameterTypes().size()));
@@ -273,13 +275,13 @@ namespace locic {
 			return PrimitiveID::TemplatedMethod(numArguments).toCString();
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getTemplatedMethodType(const AST::FunctionType functionType) {
 			return getPrimitiveCallableType(functionType,
 			                                getTemplatedMethodName(functionType.parameterTypes().size()));
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getMethodType(const AST::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
 			assert(!attributes.isVarArg());
@@ -296,7 +298,7 @@ namespace locic {
 			return PrimitiveID::InterfaceMethod(numArguments).toCString();
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getInterfaceMethodType(const AST::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
 			(void) attributes;
@@ -311,7 +313,7 @@ namespace locic {
 			return PrimitiveID::StaticInterfaceMethod(numArguments).toCString();
 		}
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeBuilder::getStaticInterfaceMethodType(const AST::FunctionType functionType) {
 			const auto& attributes = functionType.attributes();
 			(void) attributes;

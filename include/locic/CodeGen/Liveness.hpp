@@ -35,7 +35,7 @@ namespace locic {
 		 * be in a 'dead' state, meaning that no destructors or
 		 * move operations will be performed for it.
 		 */
-		void genSetDeadState(Function& function, const SEM::Type* type, llvm::Value* const objectPointerValue);
+		void genSetDeadState(Function& function, const AST::Type* type, llvm::Value* const objectPointerValue);
 		
 		/**
 		 * \brief Generate set-invalid-state.
@@ -43,12 +43,12 @@ namespace locic {
 		 * Emits code that modifies the object pointer value to
 		 * be in an 'invalid' state.
 		 */
-		void genSetInvalidState(Function& function, const SEM::Type* type, llvm::Value* const objectPointerValue);
+		void genSetInvalidState(Function& function, const AST::Type* type, llvm::Value* const objectPointerValue);
 		
 		/**
 		 * \brief Determine whether an object is live.
 		 */
-		llvm::Value* genIsLive(Function& function, const SEM::Type* type, llvm::Value* value);
+		llvm::Value* genIsLive(Function& function, const AST::Type* type, llvm::Value* value);
 		
 		/**
 		 * \brief Get pointer to liveness byte.

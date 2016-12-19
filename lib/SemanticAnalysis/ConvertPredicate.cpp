@@ -4,6 +4,7 @@
 #include <string>
 
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/SEM.hpp>
@@ -27,7 +28,7 @@ namespace locic {
 		
 		class PredicateAliasNotBoolDiag: public Error {
 		public:
-			PredicateAliasNotBoolDiag(const Name& name, const SEM::Type* const type)
+			PredicateAliasNotBoolDiag(const Name& name, const AST::Type* const type)
 			: name_(name.copy()), typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -45,7 +46,7 @@ namespace locic {
 		
 		class PredicateTemplateVarNotBoolDiag: public Error {
 		public:
-			PredicateTemplateVarNotBoolDiag(const Name& name, const SEM::Type* const type)
+			PredicateTemplateVarNotBoolDiag(const Name& name, const AST::Type* const type)
 			: name_(name.copy()), typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -212,7 +213,7 @@ namespace locic {
 		
 		class PushAssumedSatisfies {
 		public:
-			PushAssumedSatisfies(Context& context, const SEM::Type* const checkType, const SEM::Type* const requireType)
+			PushAssumedSatisfies(Context& context, const AST::Type* const checkType, const AST::Type* const requireType)
 			: context_(context) {
 				context_.pushAssumeSatisfies(checkType, requireType);
 			}

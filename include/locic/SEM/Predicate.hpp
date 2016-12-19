@@ -11,12 +11,11 @@ namespace locic {
 		
 		class TemplateVar;
 		class TemplateVarMap;
+		class Type;
 		
 	}
 	
 	namespace SEM {
-		
-		class Type;
 		
 		/**
 		 * \brief Predicate
@@ -49,7 +48,8 @@ namespace locic {
 				
 				static Predicate Or(Predicate left, Predicate right);
 				
-				static Predicate Satisfies(const Type* type, const Type* requirement);
+				static Predicate Satisfies(const AST::Type* type,
+				                           const AST::Type* requirement);
 				
 				static Predicate Variable(AST::TemplateVar* templateVar);
 				
@@ -116,8 +116,8 @@ namespace locic {
 				const Predicate& orLeft() const;
 				const Predicate& orRight() const;
 				
-				const Type* satisfiesType() const;
-				const Type* satisfiesRequirement() const;
+				const AST::Type* satisfiesType() const;
+				const AST::Type* satisfiesRequirement() const;
 				
 				AST::TemplateVar* variableTemplateVar() const;
 				
@@ -137,8 +137,8 @@ namespace locic {
 				std::unique_ptr<Predicate> left_, right_;
 				
 				AST::TemplateVar* templateVar_;
-				const Type* type_;
-				const Type* requirement_;
+				const AST::Type* type_;
+				const AST::Type* requirement_;
 				
 		};
 		

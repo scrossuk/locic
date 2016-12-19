@@ -7,6 +7,7 @@
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
+#include <locic/AST/Type.hpp>
 #include <locic/AST/Value.hpp>
 #include <locic/AST/Var.hpp>
 
@@ -25,7 +26,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm_abi::Type genABIArgType(Module& module, const SEM::Type* type) {
+		llvm_abi::Type genABIArgType(Module& module, const AST::Type* type) {
 			if (canPassByValue(module, type)) {
 				return genABIType(module, type);
 			} else {
@@ -38,7 +39,7 @@ namespace locic {
 			auto& abiTypeBuilder = module.abiTypeBuilder();
 			
 			if (typeInstance.isPrimitive()) {
-				return getPrimitiveABIType(module, SEM::Type::Object(&typeInstance, templateArguments.copy()));
+				return getPrimitiveABIType(module, AST::Type::Object(&typeInstance, templateArguments.copy()));
 			} else {
 				if (typeInstance.isEnum()) {
 					// Enums have underlying type 'int'.
@@ -92,9 +93,9 @@ namespace locic {
 			}
 		}
 		
-		llvm_abi::Type genABIType(Module& module, const SEM::Type* type) {
+		llvm_abi::Type genABIType(Module& module, const AST::Type* type) {
 			switch (type->kind()) {
-				case SEM::Type::OBJECT: {
+				case AST::Type::OBJECT: {
 					const auto typeInstance = type->getObjectType();
 					
 					if (typeInstance->isPrimitive()) {
@@ -104,7 +105,7 @@ namespace locic {
 					return genABIObjectType(module, *typeInstance,
 					                        type->templateArguments());
 				}
-				case SEM::Type::ALIAS: {
+				case AST::Type::ALIAS: {
 					return genABIType(module, type->resolveAliases());
 				}
 				default: {

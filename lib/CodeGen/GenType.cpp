@@ -7,6 +7,7 @@
 
 #include <locic/AST/Value.hpp>
 #include <locic/AST/TemplateVar.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -25,7 +26,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Type* genArgType(Module& module, const SEM::Type* type) {
+		llvm::Type* genArgType(Module& module, const AST::Type* type) {
 			if (canPassByValue(module, type)) {
 				return genType(module, type);
 			} else {
@@ -37,7 +38,7 @@ namespace locic {
 			return getFunctionArgInfo(module, type).makeFunctionType();
 		}
 		
-		llvm::Type* genType(Module& module, const SEM::Type* type) {
+		llvm::Type* genType(Module& module, const AST::Type* type) {
 			const auto abiType = genABIType(module, type);
 			return module.abi().typeInfo().getLLVMType(abiType);
 		}
@@ -56,7 +57,7 @@ namespace locic {
 			return module.debugBuilder().createFunctionType(file, parameterTypes);
 		}
 		
-		DIType genObjectDebugType(Module& module, const SEM::Type* const type) {
+		DIType genObjectDebugType(Module& module, const AST::Type* const type) {
 			const auto objectType = type->getObjectType();
 			const auto debugInfo = objectType->debugInfo();
 			
@@ -86,30 +87,30 @@ namespace locic {
 		
 		namespace {
 			
-			bool isVirtualnessKnown(const SEM::Type* const type) {
+			bool isVirtualnessKnown(const AST::Type* const type) {
 				// Virtual template variables may or may not be
 				// instantiated with virtual types.
 				return !type->isTemplateVar() ||
 					!type->getTemplateVar()->isVirtual();
 			}
 			
-			const SEM::Type* getRefTarget(const SEM::Type* const type) {
+			const AST::Type* getRefTarget(const AST::Type* const type) {
 				const auto refTarget = type->templateArguments().at(0).typeRefType();
 				return refTarget->resolveAliases();
 			}
 			
-			bool isRefVirtualnessKnown(const SEM::Type* const type) {
+			bool isRefVirtualnessKnown(const AST::Type* const type) {
 				return isVirtualnessKnown(getRefTarget(type));
 			}
 			
-			bool isRefVirtual(const SEM::Type* const type) {
+			bool isRefVirtual(const AST::Type* const type) {
 				assert(isRefVirtualnessKnown(type));
 				return getRefTarget(type)->isInterface();
 			}
 			
 		}
 		
-		DIType genPrimitiveDebugType(Module& module, const SEM::Type* const type) {
+		DIType genPrimitiveDebugType(Module& module, const AST::Type* const type) {
 			switch (type->primitiveID()) {
 				case PrimitiveVoid:
 					return module.debugBuilder().createVoidType();
@@ -172,20 +173,20 @@ namespace locic {
 			}
 		}
 		
-		DIType genDebugType(Module& module, const SEM::Type* const type) {
+		DIType genDebugType(Module& module, const AST::Type* const type) {
 			switch (type->kind()) {
-				case SEM::Type::OBJECT: {
+				case AST::Type::OBJECT: {
 					if (type->isPrimitive()) {
 						return genPrimitiveDebugType(module, type);
 					}
 					
 					return genObjectDebugType(module, type);
 				}
-				case SEM::Type::TEMPLATEVAR: {
+				case AST::Type::TEMPLATEVAR: {
 					const auto templateVar = type->getTemplateVar();
 					return module.debugBuilder().createUnspecifiedType(templateVar->fullName().last());
 				}
-				case SEM::Type::ALIAS: {
+				case AST::Type::ALIAS: {
 					return genDebugType(module, type->resolveAliases());
 				}
 				default: {

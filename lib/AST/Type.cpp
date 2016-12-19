@@ -6,6 +6,7 @@
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/FunctionType.hpp>
 #include <locic/AST/TemplateVar.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/Constant.hpp>
 
@@ -17,13 +18,13 @@
 
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
+#include <locic/SEM/ValueArray.hpp>
 
 namespace locic {
-
-	namespace SEM {
 	
+	namespace AST {
+		
 		template <typename CheckFunction, typename PreFunction, typename PostFunction>
 		const Type* applyType(const Type* type, PreFunction preFunction, PostFunction postFunction);
 		
@@ -34,7 +35,7 @@ namespace locic {
 					return type;
 				}
 				case Type::OBJECT: {
-					ValueArray templateArgs;
+					SEM::ValueArray templateArgs;
 					templateArgs.reserve(type->templateArguments().size());
 					
 					bool changed = false;
@@ -59,7 +60,7 @@ namespace locic {
 					return Type::TemplateVarRef(type->getTemplateVar());
 				}
 				case Type::ALIAS: {
-					ValueArray templateArgs;
+					SEM::ValueArray templateArgs;
 					templateArgs.reserve(type->aliasArguments().size());
 					
 					bool changed = false;
@@ -114,13 +115,13 @@ namespace locic {
 			return postFunction(staticRefType);
 		}
 		
-		const ValueArray Type::NO_TEMPLATE_ARGS = ValueArray();
+		const SEM::ValueArray Type::NO_TEMPLATE_ARGS = SEM::ValueArray();
 		
-		const Type* Type::Auto(const Context& context) {
+		const Type* Type::Auto(const SEM::Context& context) {
 			return context.getType(Type(context, AUTO));
 		}
 		
-		const Type* Type::Alias(const AST::Alias& alias, ValueArray templateArguments) {
+		const Type* Type::Alias(const AST::Alias& alias, SEM::ValueArray templateArguments) {
 			assert(alias.templateVariables().size() == templateArguments.size());
 			auto& context = alias.context();
 			
@@ -130,7 +131,8 @@ namespace locic {
 			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::Object(const TypeInstance* const typeInstance, ValueArray templateArguments) {
+		const Type* Type::Object(const SEM::TypeInstance* const typeInstance,
+		                         SEM::ValueArray templateArguments) {
 			assert(typeInstance->templateVariables().size() == templateArguments.size());
 			auto& context = typeInstance->context();
 			
@@ -140,7 +142,7 @@ namespace locic {
 			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::TemplateVarRef(const AST::TemplateVar* const templateVar) {
+		const Type* Type::TemplateVarRef(const TemplateVar* const templateVar) {
 			assert(templateVar->type()->isObject() && templateVar->type()->isBuiltInTypename());
 			const auto templateVarRefType = templateVar->selfRefType();
 			if (templateVarRefType) {
@@ -154,14 +156,14 @@ namespace locic {
 			return context.getType(std::move(type));
 		}
 		
-		Type::Type(const Context& pContext, const Kind pKind) :
+		Type::Type(const SEM::Context& pContext, const Kind pKind) :
 			context_(pContext), kind_(pKind), isNoTag_(false),
-			isLval_(false), constPredicate_(Predicate::False()),
+			isLval_(false), constPredicate_(SEM::Predicate::False()),
 			refTarget_(nullptr), staticRefTarget_(nullptr),
 			cachedResolvedType_(nullptr),
 			cachedWithoutTagsType_(nullptr) { }
 		
-		const Context& Type::context() const {
+		const SEM::Context& Type::context() const {
 			return context_;
 		}
 		
@@ -169,7 +171,7 @@ namespace locic {
 			return kind_;
 		}
 		
-		const Predicate& Type::constPredicate() const {
+		const SEM::Predicate& Type::constPredicate() const {
 			return constPredicate_;
 		}
 		
@@ -199,7 +201,7 @@ namespace locic {
 			return staticRefTarget_;
 		}
 		
-		const Type* Type::createTransitiveConstType(const Predicate predicate) const {
+		const Type* Type::createTransitiveConstType(const SEM::Predicate predicate) const {
 			return applyType(this,
 				[] (const Type* const) {
 					return true;
@@ -216,7 +218,7 @@ namespace locic {
 				});
 		}
 		
-		const Type* Type::createConstType(Predicate predicate) const {
+		const Type* Type::createConstType(SEM::Predicate predicate) const {
 			if (constPredicate() == predicate) {
 				return this;
 			}
@@ -236,7 +238,7 @@ namespace locic {
 			Type typeCopy = copy();
 			typeCopy.isNoTag_ = true;
 			typeCopy.isLval_ = false;
-			typeCopy.constPredicate_ = Predicate::False();
+			typeCopy.constPredicate_ = SEM::Predicate::False();
 			typeCopy.refTarget_ = nullptr;
 			typeCopy.staticRefTarget_ = nullptr;
 			
@@ -384,7 +386,7 @@ namespace locic {
 			}
 			
 			Type typeCopy = copy();
-			typeCopy.constPredicate_ = Predicate::False();
+			typeCopy.constPredicate_ = SEM::Predicate::False();
 			typeCopy.isLval_ = false;
 			typeCopy.refTarget_ = nullptr;
 			typeCopy.staticRefTarget_ = nullptr;
@@ -406,7 +408,7 @@ namespace locic {
 			return *(data_.aliasType.alias);
 		}
 		
-		const ValueArray& Type::aliasArguments() const {
+		const SEM::ValueArray& Type::aliasArguments() const {
 			return valueArray_;
 		}
 		
@@ -467,7 +469,7 @@ namespace locic {
 			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveVarArgFunctionPtr0;
 		}
 		
-		const AST::TemplateVar* Type::getTemplateVar() const {
+		const TemplateVar* Type::getTemplateVar() const {
 			assert(isTemplateVar());
 			return data_.templateVarRef.templateVar;
 		}
@@ -476,17 +478,17 @@ namespace locic {
 			return kind() == OBJECT;
 		}
 		
-		const TypeInstance* Type::getObjectType() const {
+		const SEM::TypeInstance* Type::getObjectType() const {
 			assert(isObject());
 			return data_.objectType.typeInstance;
 		}
 		
-		const ValueArray& Type::templateArguments() const {
+		const SEM::ValueArray& Type::templateArguments() const {
 			assert(isObject());
 			return valueArray_;
 		}
 		
-		bool Type::isTypeInstance(const TypeInstance* typeInstance) const {
+		bool Type::isTypeInstance(const SEM::TypeInstance* typeInstance) const {
 			if (!isObject()) {
 				return false;
 			}
@@ -594,11 +596,11 @@ namespace locic {
 			return isObject() || isTemplateVar();
 		}
 		
-		AST::TemplateVarMap Type::generateTemplateVarMap() const {
+		TemplateVarMap Type::generateTemplateVarMap() const {
 			assert(isObject() || isTemplateVar());
 			
 			if (isTemplateVar()) {
-				return AST::TemplateVarMap();
+				return TemplateVarMap();
 			}
 			
 			const auto& templateVars = getObjectType()->templateVariables();
@@ -606,7 +608,7 @@ namespace locic {
 			
 			assert(templateVars.size() == templateArgs.size());
 			
-			AST::TemplateVarMap templateVarMap;
+			TemplateVarMap templateVarMap;
 			
 			for (size_t i = 0; i < templateVars.size(); i++) {
 				templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i).copy()));
@@ -654,42 +656,42 @@ namespace locic {
 			return isBuiltInVarArgFunctionPtr();
 		}
 		
-		AST::FunctionType Type::asFunctionType() const {
+		FunctionType Type::asFunctionType() const {
 			assert(isCallable());
 			if (cachedFunctionType_) {
 				return *cachedFunctionType_;
 			}
 			
-			Predicate noexceptPredicate = templateArguments()[0].makePredicate();
+			SEM::Predicate noexceptPredicate = templateArguments()[0].makePredicate();
 			
-			SEM::TypeArray parameterTypes;
+			AST::TypeArray parameterTypes;
 			for (size_t i = 2; i < templateArguments().size(); i++) {
 				parameterTypes.push_back(templateArguments()[i].typeRefType());
 			}
 			
-			AST::FunctionAttributes attributes(isCallableVarArg(),
-			                                   isCallableMethod(),
-			                                   isCallableTemplated(),
-			                                   std::move(noexceptPredicate));
-			AST::FunctionType functionType(std::move(attributes),
-			                               templateArguments()[1].typeRefType(),
-			                               std::move(parameterTypes));
+			FunctionAttributes attributes(isCallableVarArg(),
+			                              isCallableMethod(),
+			                              isCallableTemplated(),
+			                              std::move(noexceptPredicate));
+			FunctionType functionType(std::move(attributes),
+			                          templateArguments()[1].typeRefType(),
+			                          std::move(parameterTypes));
 			cachedFunctionType_ = make_optional(functionType);
 			return functionType;
 		}
 		
-		Value Type::asValue() const {
+		SEM::Value Type::asValue() const {
 			const auto typenameType = context_.getPrimitive(PrimitiveTypename).selfType();
 			return SEM::Value::TypeRef(this, typenameType->createStaticRefType(this));
 		}
 		
-		static const Type* basicSubstitute(const Type* const type, const AST::TemplateVarMap& templateVarMap) {
+		static const Type* basicSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
 			switch (type->kind()) {
 				case Type::AUTO: {
 					return type->withoutTags();
 				}
 				case Type::OBJECT: {
-					ValueArray templateArgs;
+					SEM::ValueArray templateArgs;
 					templateArgs.reserve(type->templateArguments().size());
 					
 					bool changed = false;
@@ -717,7 +719,7 @@ namespace locic {
 					}
 				}
 				case Type::ALIAS: {
-					ValueArray templateArgs;
+					SEM::ValueArray templateArgs;
 					templateArgs.reserve(type->aliasArguments().size());
 					
 					bool changed = false;
@@ -739,7 +741,7 @@ namespace locic {
 			locic_unreachable("Unknown type kind.");
 		}
 		
-		const Type* doSubstitute(const Type* const type, const AST::TemplateVarMap& templateVarMap) {
+		const Type* doSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
 			const auto basicType = basicSubstitute(type, templateVarMap);
 			
 			if (type->isNoTag()) {
@@ -769,7 +771,7 @@ namespace locic {
 			return staticRefType;
 		}
 		
-		const Type* Type::substitute(const AST::TemplateVarMap& templateVarMap) const {
+		const Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
 			if (templateVarMap.empty()) {
 				return this;
 			}
@@ -793,7 +795,7 @@ namespace locic {
 						const auto& templateVars = type->alias().templateVariables();
 						const auto& templateArgs = type->aliasArguments();
 						
-						AST::TemplateVarMap templateVarMap;
+						TemplateVarMap templateVarMap;
 						for (size_t i = 0; i < templateVars.size(); i++) {
 							templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i).copy()));
 						}
@@ -811,12 +813,12 @@ namespace locic {
 			return result;
 		}
 		
-		bool Type::dependsOn(const AST::TemplateVar* const templateVar) const {
+		bool Type::dependsOn(const TemplateVar* const templateVar) const {
 			// TODO: remove const cast.
-			return dependsOnAny({ const_cast<AST::TemplateVar*>(templateVar) });
+			return dependsOnAny({ const_cast<TemplateVar*>(templateVar) });
 		}
 		
-		bool Type::dependsOnAny(const AST::TemplateVarArray& array) const {
+		bool Type::dependsOnAny(const TemplateVarArray& array) const {
 			if (constPredicate().dependsOnAny(array)) {
 				return true;
 			}
@@ -841,7 +843,7 @@ namespace locic {
 					return false;
 				}
 				case TEMPLATEVAR: {
-					return array.contains(const_cast<AST::TemplateVar*>(getTemplateVar()));
+					return array.contains(const_cast<TemplateVar*>(getTemplateVar()));
 				}
 				case ALIAS: {
 					return resolveAliases()->dependsOnAny(array);
@@ -851,7 +853,7 @@ namespace locic {
 			locic_unreachable("Unknown type kind.");
 		}
 		
-		bool Type::dependsOnOnly(const AST::TemplateVarArray& array) const {
+		bool Type::dependsOnOnly(const TemplateVarArray& array) const {
 			if (!constPredicate().dependsOnOnly(array)) {
 				return false;
 			}
@@ -878,7 +880,7 @@ namespace locic {
 					return true;
 				}
 				case TEMPLATEVAR: {
-					return array.contains(const_cast<AST::TemplateVar*>(getTemplateVar()));
+					return array.contains(const_cast<TemplateVar*>(getTemplateVar()));
 				}
 				case ALIAS: {
 					return resolveAliases()->dependsOnOnly(array);

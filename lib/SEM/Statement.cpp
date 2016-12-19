@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/Type.hpp>
 #include <locic/AST/Value.hpp>
 #include <locic/AST/Var.hpp>
 
@@ -14,7 +15,6 @@
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
 #include <locic/SEM/SwitchCase.hpp>
-#include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
 
 namespace locic {

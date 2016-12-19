@@ -1,4 +1,5 @@
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
@@ -60,7 +61,7 @@ namespace locic {
 		class ExceptionCannotInheritNonExceptionTypeDiag: public Error {
 		public:
 			ExceptionCannotInheritNonExceptionTypeDiag(const SEM::TypeInstance& exceptionType,
-			                                           const SEM::Type* inheritType)
+			                                           const AST::Type* inheritType)
 			: exceptionType_(exceptionType), inheritType_(inheritType) { }
 			
 			std::string toString() const {
@@ -71,7 +72,7 @@ namespace locic {
 			
 		private:
 			const SEM::TypeInstance& exceptionType_;
-			const SEM::Type* inheritType_;
+			const AST::Type* inheritType_;
 			
 		};
 		

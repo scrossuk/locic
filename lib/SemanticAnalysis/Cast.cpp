@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 
+#include <locic/AST/Type.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/Support/Name.hpp>
@@ -25,14 +26,14 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 
-		static const SEM::Type*
-		ImplicitCastTypeFormatOnlyChain(Context& context, const SEM::Type* sourceType,
-		                                const SEM::Type* destType, bool hasParentConstChain,
+		static const AST::Type*
+		ImplicitCastTypeFormatOnlyChain(Context& context, const AST::Type* sourceType,
+		                                const AST::Type* destType, bool hasParentConstChain,
 		                                const Debug::SourceLocation& location, bool isTopLevel = false);
 
 		class CannotCastTemplateTypeDiag : public Error {
 		public:
-			CannotCastTemplateTypeDiag(const SEM::Type* sourceType, const SEM::Type* destType)
+			CannotCastTemplateTypeDiag(const AST::Type* sourceType, const AST::Type* destType)
 			: message_(makeString("Cannot cast from template type '%s' to template type '%s'.",
 			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
 
@@ -42,9 +43,9 @@ namespace locic {
 			std::string message_;
 		};
 
-		static const SEM::Type*
-		ImplicitCastTypeFormatOnlyChainCheckType(Context& context, const SEM::Type* sourceType,
-		                                         const SEM::Type* destType, bool hasConstChain,
+		static const AST::Type*
+		ImplicitCastTypeFormatOnlyChainCheckType(Context& context, const AST::Type* sourceType,
+		                                         const AST::Type* destType, bool hasConstChain,
 		                                         const Debug::SourceLocation& location) {
 			if (sourceType == destType) {
 				return sourceType;
@@ -62,13 +63,13 @@ namespace locic {
 			}
 			
 			switch (destType->kind()) {
-				case SEM::Type::AUTO: {
+				case AST::Type::AUTO: {
 					locic_unreachable("Source type can't be auto.");
 				}
-				case SEM::Type::ALIAS: {
+				case AST::Type::ALIAS: {
 					locic_unreachable("Aliases should already be resolved.");
 				}
-				case SEM::Type::OBJECT: {
+				case AST::Type::OBJECT: {
 					if (sourceType->getObjectType() != destType->getObjectType()) {
 						if (!sourceType->isInterface() || !destType->isInterface()) {
 							// Non-interface objects can only be cast to
@@ -119,9 +120,9 @@ namespace locic {
 						}
 					}
 					
-					return SEM::Type::Object(sourceType->getObjectType(), std::move(templateArgs));
+					return AST::Type::Object(sourceType->getObjectType(), std::move(templateArgs));
 				}
-				case SEM::Type::TEMPLATEVAR: {
+				case AST::Type::TEMPLATEVAR: {
 					if (sourceType->getTemplateVar() != destType->getTemplateVar()) {
 						context.issueDiag(CannotCastTemplateTypeDiag(sourceType, destType),
 						                  location);
@@ -134,9 +135,9 @@ namespace locic {
 			locic_unreachable("Unknown type kind.");
 		}
 
-		static const SEM::Type*
-		ImplicitCastTypeFormatOnlyChainCheckTags(Context& context, const SEM::Type* sourceType,
-		                                         const SEM::Type* destType, bool hasParentConstChain,
+		static const AST::Type*
+		ImplicitCastTypeFormatOnlyChainCheckTags(Context& context, const AST::Type* sourceType,
+		                                         const AST::Type* destType, bool hasParentConstChain,
 		                                         const Debug::SourceLocation& location, bool isTopLevel) {
 			// TODO: fix this to evaluate the const predicates.
 			const bool isSourceConst = !sourceType->constPredicate().isFalse();
@@ -173,7 +174,7 @@ namespace locic {
 				isLval = true;
 			}
 			
-			const SEM::Type* refTarget = nullptr;
+			const AST::Type* refTarget = nullptr;
 			
 			if (sourceType->isRef() || destType->isRef()) {
 				if (!(sourceType->isRef() && destType->isRef())) {
@@ -188,7 +189,7 @@ namespace locic {
 				if (refTarget == nullptr) return nullptr;
 			}
 			
-			const SEM::Type* staticRefTarget = nullptr;
+			const AST::Type* staticRefTarget = nullptr;
 			
 			if (sourceType->isStaticRef() || destType->isStaticRef()) {
 				if (!(sourceType->isStaticRef() && destType->isStaticRef())) {
@@ -227,16 +228,16 @@ namespace locic {
 			return resultType->createTransitiveConstType(SEM::Predicate::Or(sourceType->constPredicate().copy(), destType->constPredicate().copy()));
 		}
 
-		inline static const SEM::Type*
-		ImplicitCastTypeFormatOnlyChain(Context& context, const SEM::Type* sourceType,
-		                                const SEM::Type* destType, bool hasParentConstChain,
+		inline static const AST::Type*
+		ImplicitCastTypeFormatOnlyChain(Context& context, const AST::Type* sourceType,
+		                                const AST::Type* destType, bool hasParentConstChain,
 		                                const Debug::SourceLocation& location, bool isTopLevel) {
 			return ImplicitCastTypeFormatOnlyChainCheckTags(context, sourceType, destType,
 			                                                hasParentConstChain, location, isTopLevel);
 		}
 
-		const SEM::Type*
-		ImplicitCastTypeFormatOnly(Context& context, const SEM::Type* sourceType, const SEM::Type* destType,
+		const AST::Type*
+		ImplicitCastTypeFormatOnly(Context& context, const AST::Type* sourceType, const AST::Type* destType,
 		                           const Debug::SourceLocation& location) {
 			// Needed for the main format-only cast function to ensure the
 			// const chaining rule from root is followed; since this
@@ -251,7 +252,7 @@ namespace locic {
 		}
 
 		Optional<SEM::Value>
-		ImplicitCastFormatOnly(Context& context, SEM::Value value, const SEM::Type* destType,
+		ImplicitCastFormatOnly(Context& context, SEM::Value value, const AST::Type* destType,
 		                       const Debug::SourceLocation& location) {
 			auto resultType = ImplicitCastTypeFormatOnly(context, value.type(), destType, location);
 			if (resultType == nullptr) {
@@ -269,10 +270,10 @@ namespace locic {
 
 		Optional<SEM::Value>
 		ImplicitCastConvert(Context& context, std::vector<std::string>& errors, SEM::Value value,
-		                    const SEM::Type* destType, const Debug::SourceLocation& location, bool allowBind,
+		                    const AST::Type* destType, const Debug::SourceLocation& location, bool allowBind,
 		                    bool formatOnly = false);
 
-		static Optional<SEM::Value> PolyCastRefValueToType(Context& context, SEM::Value value, const SEM::Type* destType) {
+		static Optional<SEM::Value> PolyCastRefValueToType(Context& context, SEM::Value value, const AST::Type* destType) {
 			const auto sourceType = value.type();
 			assert(sourceType->isRef() && destType->isRef());
 			
@@ -287,7 +288,7 @@ namespace locic {
 				Optional<SEM::Value>();
 		}
 		
-		static Optional<SEM::Value> PolyCastStaticRefValueToType(Context& context, SEM::Value value, const SEM::Type* destType) {
+		static Optional<SEM::Value> PolyCastStaticRefValueToType(Context& context, SEM::Value value, const AST::Type* destType) {
 			const auto sourceType = value.type();
 			assert(sourceType->isStaticRef() && destType->isStaticRef());
 			
@@ -304,7 +305,7 @@ namespace locic {
 		
 		// User-defined casts.
 		static Optional<SEM::Value> ImplicitCastUser(Context& context, std::vector<std::string>& errors,
-		                                             SEM::Value rawValue, const SEM::Type* destType,
+		                                             SEM::Value rawValue, const AST::Type* destType,
 		                                             const Debug::SourceLocation& location, bool allowBind) {
 			auto value = derefValue(std::move(rawValue));
 			const auto sourceDerefType = getDerefType(value.type());
@@ -344,7 +345,7 @@ namespace locic {
 			return Optional<SEM::Value>();
 		}
 		
-		static bool isStructurallyEqual(const SEM::Type* firstType, const SEM::Type* secondType) {
+		static bool isStructurallyEqual(const AST::Type* firstType, const AST::Type* secondType) {
 			if (firstType->kind() != secondType->kind()) {
 				return false;
 			}
@@ -358,7 +359,7 @@ namespace locic {
 			}
 		}
 		
-		static bool canTreatConstantAsUnsigned(const SEM::Value& value, const SEM::Type* const destType) {
+		static bool canTreatConstantAsUnsigned(const SEM::Value& value, const AST::Type* const destType) {
 			assert(value.isConstant());
 			
 			const auto sourceType = value.type()->resolveAliases();
@@ -387,7 +388,7 @@ namespace locic {
 
 		class FormatOnlyCastFailedDiag : public Error {
 		public:
-			FormatOnlyCastFailedDiag(const SEM::Type* sourceType, const SEM::Type* destType)
+			FormatOnlyCastFailedDiag(const AST::Type* sourceType, const AST::Type* destType)
 			: message_(makeString("Format only cast failed from type %s to type %s.",
 			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
 
@@ -397,7 +398,7 @@ namespace locic {
 			std::string message_;
 		};
 
-		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, const SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool allowBind, bool formatOnly) {
+		Optional<SEM::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, const SEM::Value value, const AST::Type* destType, const Debug::SourceLocation& location, bool allowBind, bool formatOnly) {
 			{
 				// Try a format only cast first, since
 				// this requires no transformations.
@@ -585,7 +586,7 @@ namespace locic {
 
 		class CannotImplicitlyCastTypeDiag : public Error {
 		public:
-			CannotImplicitlyCastTypeDiag(const SEM::Type* sourceType, const SEM::Type* destType)
+			CannotImplicitlyCastTypeDiag(const AST::Type* sourceType, const AST::Type* destType)
 			: message_(makeString("Can't implicitly cast type '%s' to type '%s'.",
 			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
 
@@ -597,7 +598,7 @@ namespace locic {
 
 		class CannotImplicitlyCastValueToTypeDiag : public Error {
 		public:
-			CannotImplicitlyCastValueToTypeDiag(const SEM::Type* sourceType, const SEM::Type* destType)
+			CannotImplicitlyCastValueToTypeDiag(const AST::Type* sourceType, const AST::Type* destType)
 			: message_(makeString("Can't implicitly cast value of type '%s' to type '%s'.",
 			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
 
@@ -617,7 +618,7 @@ namespace locic {
 			std::string message_;
 		};
 
-		SEM::Value ImplicitCast(Context& context, SEM::Value value, const SEM::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
+		SEM::Value ImplicitCast(Context& context, SEM::Value value, const AST::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
 			std::vector<std::string> errors;
 			const auto valueKind = value.kind();
 			const auto valueType = value.type();
@@ -642,7 +643,7 @@ namespace locic {
 			}
 		}
 		
-		bool CanDoImplicitCast(Context& context, const SEM::Type* sourceType, const SEM::Type* destType, const Debug::SourceLocation& location) {
+		bool CanDoImplicitCast(Context& context, const AST::Type* sourceType, const AST::Type* destType, const Debug::SourceLocation& location) {
 			const bool allowBind = true;
 			const bool formatOnly = false;
 			std::vector<std::string> errors;
@@ -652,7 +653,7 @@ namespace locic {
 		
 		namespace {
 			
-			const SEM::Type* getUnionDatatypeParent(const SEM::Type* type) {
+			const AST::Type* getUnionDatatypeParent(const AST::Type* type) {
 				while (type->isRef()) {
 					type = type->refTarget();
 				}
@@ -670,7 +671,7 @@ namespace locic {
 			
 		}
 		
-		const SEM::Type* UnifyTypes(Context& context, const SEM::Type* first, const SEM::Type* second, const Debug::SourceLocation& location) {
+		const AST::Type* UnifyTypes(Context& context, const AST::Type* first, const AST::Type* second, const Debug::SourceLocation& location) {
 			// Try to convert both types to their parent (if any).
 			const auto firstParent = getUnionDatatypeParent(first);
 			if (firstParent != nullptr &&

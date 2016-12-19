@@ -128,12 +128,12 @@ namespace locic {
 		
 		TypeDecl::~TypeDecl() { }
 		
-		const SEM::Type*
+		const AST::Type*
 		TypeDecl::resolvedType() const {
 			return resolvedType_;
 		}
 		
-		void TypeDecl::setResolvedType(const SEM::Type* type) {
+		void TypeDecl::setResolvedType(const AST::Type* type) {
 			resolvedType_ = type;
 		}
 		

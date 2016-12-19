@@ -10,11 +10,6 @@ namespace locic {
 	namespace AST {
 		
 		class FunctionType;
-		
-	}
-	
-	namespace SEM {
-		
 		class Type;
 		
 	}
@@ -27,86 +22,86 @@ namespace locic {
 		public:
 			TypeBuilder(Context& context);
 			
-			const SEM::Type*
+			const AST::Type*
 			getPrimitiveType(PrimitiveID primitiveID,
 			                 SEM::ValueArray templateArguments = {});
 			
-			const SEM::Type*
+			const AST::Type*
 			getVoidType();
 			
-			const SEM::Type*
+			const AST::Type*
 			getBoolType();
 			
-			const SEM::Type*
+			const AST::Type*
 			getIntType();
 			
-			const SEM::Type*
+			const AST::Type*
 			getSizeType();
 			
-			const SEM::Type*
+			const AST::Type*
 			getTypenameType();
 			
-			const SEM::Type*
+			const AST::Type*
 			getMovableInterfaceType();
 			
-			const SEM::Type*
-			getPointerType(const SEM::Type* elementType);
+			const AST::Type*
+			getPointerType(const AST::Type* elementType);
 		
-			const SEM::Type*
-			getConstantStaticArrayType(const SEM::Type* elementType,
+			const AST::Type*
+			getConstantStaticArrayType(const AST::Type* elementType,
 			                           size_t arraySize,
 			                           const Debug::SourceLocation& location);
 		
-			const SEM::Type*
-			getStaticArrayType(const SEM::Type* elementType,
+			const AST::Type*
+			getStaticArrayType(const AST::Type* elementType,
 			                   SEM::Value arraySize,
 			                   const Debug::SourceLocation& location);
 			
-			const SEM::Type*
+			const AST::Type*
 			getPrimitiveCallableType(AST::FunctionType functionType,
 			                         const char* functionTypeName);
 			
-			const SEM::Type*
+			const AST::Type*
 			getTrivialFunctionPointerType(AST::FunctionType functionType);
 			
-			const SEM::Type*
+			const AST::Type*
 			getTemplatedFunctionPointerType(AST::FunctionType functionType);
 			
-			const SEM::Type*
+			const AST::Type*
 			getMethodFunctionPointerType(AST::FunctionType functionType);
 			
-			const SEM::Type*
+			const AST::Type*
 			getTemplatedMethodFunctionPointerType(AST::FunctionType functionType);
 			
-			const SEM::Type*
+			const AST::Type*
 			getVarArgFunctionPointerType(AST::FunctionType functionType);
 			
-			const SEM::Type*
+			const AST::Type*
 			getFunctionPointerType(AST::FunctionType functionType);
 			
-			const SEM::Type*
+			const AST::Type*
 			getTrivialMethodType(AST::FunctionType functionType);
 			
-			const SEM::Type*
+			const AST::Type*
 			getTemplatedMethodType(AST::FunctionType functionType);
 			
-			const SEM::Type*
+			const AST::Type*
 			getMethodType(AST::FunctionType functionType);
 			
-			const SEM::Type*
+			const AST::Type*
 			getInterfaceMethodType(AST::FunctionType functionType);
 			
-			const SEM::Type*
+			const AST::Type*
 			getStaticInterfaceMethodType(AST::FunctionType functionType);
 			
 		private:
 			Context& context_;
-			const SEM::Type* cachedVoidType_;
-			const SEM::Type* cachedBoolType_;
-			const SEM::Type* cachedIntType_;
-			const SEM::Type* cachedSizeType_;
-			const SEM::Type* cachedTypenameType_;
-			const SEM::Type* cachedMovableType_;
+			const AST::Type* cachedVoidType_;
+			const AST::Type* cachedBoolType_;
+			const AST::Type* cachedIntType_;
+			const AST::Type* cachedSizeType_;
+			const AST::Type* cachedTypenameType_;
+			const AST::Type* cachedMovableType_;
 			
 		};
 		

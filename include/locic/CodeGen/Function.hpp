@@ -27,6 +27,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Type;
 		class Var;
 		
 	}
@@ -50,11 +51,11 @@ namespace locic {
 		
 		llvm::Function* createLLVMFunction(Module& module, const ArgInfo& argInfo, llvm::GlobalValue::LinkageTypes linkage, const String& name);
 		
-		typedef std::unordered_map<const SEM::Type*, llvm::Value*> AlignMaskMap;
+		typedef std::unordered_map<const AST::Type*, llvm::Value*> AlignMaskMap;
 		typedef Map<const AST::Var*, llvm::Value*> LocalVarMap;
-		typedef std::pair<const SEM::Type*, size_t> OffsetPair;
+		typedef std::pair<const AST::Type*, size_t> OffsetPair;
 		typedef std::map<OffsetPair, llvm::Value*> MemberOffsetMap;
-		typedef std::unordered_map<const SEM::Type*, llvm::Value*> SizeOfMap;
+		typedef std::unordered_map<const AST::Type*, llvm::Value*> SizeOfMap;
 		typedef std::map<TemplateInst, llvm::Value*> TemplateGeneratorMap;
 		typedef std::vector<UnwindAction> UnwindStack;
 		

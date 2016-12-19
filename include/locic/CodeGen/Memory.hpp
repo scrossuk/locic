@@ -5,13 +5,8 @@ namespace locic {
 	
 	namespace AST {
 		
-		class Var;
-		
-	}
-	
-	namespace SEM {
-		
 		class Type;
+		class Var;
 		
 	}
 	
@@ -35,7 +30,7 @@ namespace locic {
 		 * (This is typically used to generate a pointer
 		 * passed as the context pointer to methods.)
 		 */
-		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const SEM::Type* type, llvm::Value* const hintResultValue = nullptr);
+		llvm::Value* genValuePtr(Function& function, llvm::Value* value, const AST::Type* type, llvm::Value* const hintResultValue = nullptr);
 		
 	}
 	

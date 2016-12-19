@@ -1,11 +1,11 @@
 #include <locic/AST/FunctionType.hpp>
 #include <locic/AST/Namespace.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/StableSet.hpp>
 
 #include <locic/SEM/Context.hpp>
-#include <locic/SEM/Type.hpp>
 
 namespace locic {
 
@@ -20,7 +20,7 @@ namespace locic {
 			}
 			
 			mutable StableSet<AST::FunctionTypeData> functionTypes;
-			mutable StableSet<Type> types;
+			mutable StableSet<AST::Type> types;
 			mutable const TypeInstance* primitiveTypes[PRIMITIVE_COUNT];
 		};
 		
@@ -41,7 +41,7 @@ namespace locic {
 			return AST::FunctionType(*(result.first));
 		}
 		
-		const Type* Context::getType(Type&& type) const {
+		const AST::Type* Context::getType(AST::Type&& type) const {
 			const auto result = impl_->types.insert(std::move(type));
 			return &(*(result.first));
 		}

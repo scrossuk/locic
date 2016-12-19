@@ -3,6 +3,7 @@
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/ExitStates.hpp>
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/Constant.hpp>
@@ -10,7 +11,6 @@
 #include <locic/Debug/ValueInfo.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/SEM/ValueArray.hpp>
@@ -33,12 +33,12 @@ namespace locic {
 			
 			Value::Kind kind;
 			AST::ExitStates exitStates;
-			const Type* type;
+			const AST::Type* type;
 			Optional<Debug::ValueInfo> debugInfo;
 			
 			Value value0, value1, value2;
 			Optional<Predicate> predicate;
-			TypeArray typeArray;
+			AST::TypeArray typeArray;
 			ValueArray valueArray;
 			locic::Constant constant;
 			
@@ -59,19 +59,19 @@ namespace locic {
 				} memberOffset;
 				
 				struct {
-					const Type* targetType;
+					const AST::Type* targetType;
 				} cast;
 				
 				struct {
-					const Type* targetType;
+					const AST::Type* targetType;
 				} polyCast;
 				
 				struct {
-					const Type* targetType;
+					const AST::Type* targetType;
 				} makeRef;
 				
 				struct {
-					const Type* targetType;
+					const AST::Type* targetType;
 				} makeStaticRef;
 				
 				struct {
@@ -79,7 +79,7 @@ namespace locic {
 				} memberAccess;
 				
 				struct {
-					const Type* targetType;
+					const AST::Type* targetType;
 				} typeRef;
 				
 				struct {
@@ -87,32 +87,32 @@ namespace locic {
 				} templateVarRef;
 				
 				struct {
-					const Type* parentType;
+					const AST::Type* parentType;
 					const AST::Function* function;
 				} functionRef;
 				
 				struct {
-					const Type* parentType;
+					const AST::Type* parentType;
 					String name;
-					const Type* functionType;
+					const AST::Type* functionType;
 				} templateFunctionRef;
 				
 				struct {
-					const Type* checkType;
-					const Type* capabilityType;
+					const AST::Type* checkType;
+					const AST::Type* capabilityType;
 				} capabilityTest;
 			} union_;
 		};
 		
-		Value Value::Self(const Type* const type) {
+		Value Value::Self(const AST::Type* const type) {
 			return Value(SELF, type, AST::ExitStates::Normal());
 		}
 		
-		Value Value::This(const Type* const type) {
+		Value Value::This(const AST::Type* const type) {
 			return Value(THIS, type, AST::ExitStates::Normal());
 		}
 		
-		Value Value::Constant(locic::Constant constant, const Type* const type) {
+		Value Value::Constant(locic::Constant constant, const AST::Type* const type) {
 			Value value(CONSTANT, type, AST::ExitStates::Normal());
 			value.impl_->constant = std::move(constant);
 			return value;
@@ -128,7 +128,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::PredicateExpr(Predicate predicate, const Type* const boolType) {
+		Value Value::PredicateExpr(Predicate predicate, const AST::Type* const boolType) {
 			if (predicate.isTrue()) {
 				return Value::Constant(Constant::True(), boolType);
 			} else if (predicate.isFalse()) {
@@ -142,27 +142,27 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::LocalVar(const AST::Var& var, const Type* const type) {
+		Value Value::LocalVar(const AST::Var& var, const AST::Type* const type) {
 			assert(type->isRef() && type->isBuiltInReference());
 			Value value(LOCALVAR, type, AST::ExitStates::Normal());
 			value.impl_->union_.localVar.var = &var;
 			return value;
 		}
 		
-		Value Value::UnionDataOffset(const TypeInstance* const typeInstance, const Type* const sizeType) {
+		Value Value::UnionDataOffset(const TypeInstance* const typeInstance, const AST::Type* const sizeType) {
 			Value value(UNIONDATAOFFSET, sizeType, AST::ExitStates::Normal());
 			value.impl_->union_.unionDataOffset.typeInstance = typeInstance;
 			return value;
 		}
 		
-		Value Value::MemberOffset(const TypeInstance* const typeInstance, const size_t memberIndex, const Type* const sizeType) {
+		Value Value::MemberOffset(const TypeInstance* const typeInstance, const size_t memberIndex, const AST::Type* const sizeType) {
 			Value value(MEMBEROFFSET, sizeType, AST::ExitStates::Normal());
 			value.impl_->union_.memberOffset.typeInstance = typeInstance;
 			value.impl_->union_.memberOffset.memberIndex = memberIndex;
 			return value;
 		}
 		
-		Value Value::Reinterpret(Value operand, const Type* const type) {
+		Value Value::Reinterpret(Value operand, const AST::Type* const type) {
 			Value value(REINTERPRET, type, operand.exitStates());
 			value.impl_->value0 = std::move(operand);
 			return value;
@@ -185,14 +185,14 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::Cast(const Type* const targetType, Value operand) {
+		Value Value::Cast(const AST::Type* const targetType, Value operand) {
 			Value value(CAST, targetType, operand.exitStates());
 			value.impl_->union_.cast.targetType = targetType;
 			value.impl_->value0 = std::move(operand);
 			return value;
 		}
 		
-		Value Value::PolyCast(const Type* const targetType, Value operand) {
+		Value Value::PolyCast(const AST::Type* const targetType, Value operand) {
 			Value value(POLYCAST, targetType, operand.exitStates());
 			value.impl_->union_.polyCast.targetType = targetType;
 			value.impl_->value0 = std::move(operand);
@@ -211,7 +211,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::Ref(const Type* const targetType, Value operand) {
+		Value Value::Ref(const AST::Type* const targetType, Value operand) {
 			Value value(REF, operand.type()->createRefType(targetType), operand.exitStates());
 			value.impl_->union_.makeRef.targetType = targetType;
 			value.impl_->value0 = std::move(operand);
@@ -224,7 +224,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::StaticRef(const Type* const targetType, Value operand) {
+		Value Value::StaticRef(const AST::Type* const targetType, Value operand) {
 			Value value(STATICREF, operand.type()->createStaticRefType(targetType), operand.exitStates());
 			value.impl_->union_.makeStaticRef.targetType = targetType;
 			value.impl_->value0 = std::move(operand);
@@ -237,7 +237,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::InternalConstruct(const Type* const parentType, ValueArray parameters) {
+		Value Value::InternalConstruct(const AST::Type* const parentType, ValueArray parameters) {
 			AST::ExitStates exitStates = AST::ExitStates::Normal();
 			for (const auto& param: parameters) {
 				exitStates.add(param.exitStates());
@@ -247,21 +247,21 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::MemberAccess(Value object, const AST::Var& var, const Type* const type) {
+		Value Value::MemberAccess(Value object, const AST::Var& var, const AST::Type* const type) {
 			assert(object.type()->isRef() && object.type()->isBuiltInReference());
 			assert(type->isRef() && type->isBuiltInReference());
 			// If the object type is const, then
 			// the members must also be.
 			//const auto derefType = object->type()->isRef() ? object->type()->refTarget() : object->type();
 			//const auto memberType = derefType->isConst() ? var->type()->createConstType() : var->type();
-			//SEM::Type::Reference(memberType)->createRefType(memberType)
+			//AST::Type::Reference(memberType)->createRefType(memberType)
 			Value value(MEMBERACCESS, type, object.exitStates());
 			value.impl_->value0 = std::move(object);
 			value.impl_->union_.memberAccess.memberVar = &var;
 			return value;
 		}
 		
-		Value Value::BindReference(Value operand, const Type* const type) {
+		Value Value::BindReference(Value operand, const AST::Type* const type) {
 			assert(type->isRef() && type->isBuiltInReference());
 			assert(operand.type() == type->refTarget());
 			Value value(BIND_REFERENCE, type, operand.exitStates());
@@ -269,7 +269,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::TypeRef(const Type* const targetType, const Type* const type) {
+		Value Value::TypeRef(const AST::Type* const targetType, const AST::Type* const type) {
 			assert(type->isStaticRef() && type->isBuiltInTypename());
 			
 			Value value(TYPEREF, type, AST::ExitStates::Normal());
@@ -277,7 +277,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::TemplateVarRef(const AST::TemplateVar* const targetVar, const Type* const type) {
+		Value Value::TemplateVarRef(const AST::TemplateVar* const targetVar, const AST::Type* const type) {
 			Value value(TEMPLATEVARREF, type, AST::ExitStates::Normal());
 			value.impl_->union_.templateVarRef.templateVar = targetVar;
 			return value;
@@ -303,8 +303,8 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::FunctionRef(const Type* const parentType, const AST::Function& function,
-		                         ValueArray templateArguments, const Type* const type) {
+		Value Value::FunctionRef(const AST::Type* const parentType, const AST::Function& function,
+		                         ValueArray templateArguments, const AST::Type* const type) {
 			assert(parentType == NULL || parentType->isObject());
 			assert(type != NULL && type->isCallable());
 			Value value(FUNCTIONREF, type, AST::ExitStates::Normal());
@@ -314,7 +314,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::TemplateFunctionRef(const Type* const parentType, const String& name, const Type* const functionType) {
+		Value Value::TemplateFunctionRef(const AST::Type* const parentType, const String& name, const AST::Type* const functionType) {
 			assert(parentType->isTemplateVar());
 			assert(functionType != NULL && functionType->isCallable());
 			Value value(TEMPLATEFUNCTIONREF, functionType, AST::ExitStates::Normal());
@@ -324,7 +324,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::MethodObject(Value method, Value methodOwner, const Type* const methodType) {
+		Value Value::MethodObject(Value method, Value methodOwner, const AST::Type* const methodType) {
 			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			assert(methodType->isBuiltInMethod() || methodType->isBuiltInTemplatedMethod());
@@ -335,7 +335,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::InterfaceMethodObject(Value method, Value methodOwner, const Type* const methodType) {
+		Value Value::InterfaceMethodObject(Value method, Value methodOwner, const AST::Type* const methodType) {
 			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			assert(methodOwner.type()->refTarget()->isInterface());
@@ -346,7 +346,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::StaticInterfaceMethodObject(Value method, Value methodOwner, const Type* const methodType) {
+		Value Value::StaticInterfaceMethodObject(Value method, Value methodOwner, const AST::Type* const methodType) {
 			assert(method.type()->isCallable());
 			assert(methodOwner.type()->isRef() && methodOwner.type()->isBuiltInReference());
 			assert(methodType->isBuiltInStaticInterfaceMethod());
@@ -356,9 +356,9 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::CapabilityTest(const Type* const checkType,
-		                            const Type* const capabilityType,
-		                            const Type* const boolType) {
+		Value Value::CapabilityTest(const AST::Type* const checkType,
+		                            const AST::Type* const capabilityType,
+		                            const AST::Type* const boolType) {
 			assert(boolType->isBuiltInBool());
 			Value value(CAPABILITYTEST, boolType, AST::ExitStates::Normal());
 			value.impl_->union_.capabilityTest.checkType = checkType;
@@ -366,7 +366,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::ArrayLiteral(const Type* const arrayType,
+		Value Value::ArrayLiteral(const AST::Type* const arrayType,
 		                          ValueArray values) {
 			AST::ExitStates exitStates = AST::ExitStates::Normal();
 			for (const auto& value: values) {
@@ -378,13 +378,13 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::CastDummy(const Type* type) {
+		Value Value::CastDummy(const AST::Type* type) {
 			return Value(CASTDUMMYOBJECT, type, AST::ExitStates::Normal());
 		}
 		
 		Value::Value() { }
 		
-		Value::Value(const Kind argKind, const Type* const argType, const AST::ExitStates argExitStates)
+		Value::Value(const Kind argKind, const AST::Type* const argType, const AST::ExitStates argExitStates)
 		: impl_(std::make_shared<ValueImpl>()) {
 			assert(argType != NULL);
 			assert(argExitStates.hasNormalExit() || argExitStates.hasThrowExit());
@@ -400,7 +400,7 @@ namespace locic {
 			return impl_->kind;
 		}
 		
-		const Type* Value::type() const {
+		const AST::Type* Value::type() const {
 			return impl_->type;
 		}
 		
@@ -523,7 +523,7 @@ namespace locic {
 			return kind() == CAST;
 		}
 		
-		const Type* Value::castTargetType() const {
+		const AST::Type* Value::castTargetType() const {
 			assert(isCast());
 			return impl_->union_.cast.targetType;
 		}
@@ -537,7 +537,7 @@ namespace locic {
 			return kind() == POLYCAST;
 		}
 		
-		const Type* Value::polyCastTargetType() const {
+		const AST::Type* Value::polyCastTargetType() const {
 			assert(isPolyCast());
 			return impl_->union_.polyCast.targetType;
 		}
@@ -569,7 +569,7 @@ namespace locic {
 			return kind() == REF;
 		}
 		
-		const Type* Value::makeRefTargetType() const {
+		const AST::Type* Value::makeRefTargetType() const {
 			assert(isMakeRef());
 			return impl_->union_.makeRef.targetType;
 		}
@@ -592,7 +592,7 @@ namespace locic {
 			return kind() == STATICREF;
 		}
 		
-		const Type* Value::makeStaticRefTargetType() const {
+		const AST::Type* Value::makeStaticRefTargetType() const {
 			assert(isMakeStaticRef());
 			return impl_->union_.makeStaticRef.targetType;
 		}
@@ -647,7 +647,7 @@ namespace locic {
 			return kind() == TYPEREF;
 		}
 		
-		const Type* Value::typeRefType() const {
+		const AST::Type* Value::typeRefType() const {
 			assert(isTypeRef());
 			return impl_->union_.typeRef.targetType;
 		}
@@ -679,7 +679,7 @@ namespace locic {
 			return kind() == FUNCTIONREF;
 		}
 		
-		const Type* Value::functionRefParentType() const {
+		const AST::Type* Value::functionRefParentType() const {
 			assert(isFunctionRef());
 			return impl_->union_.functionRef.parentType;
 		}
@@ -698,7 +698,7 @@ namespace locic {
 			return kind() == TEMPLATEFUNCTIONREF;
 		}
 		
-		const Type* Value::templateFunctionRefParentType() const {
+		const AST::Type* Value::templateFunctionRefParentType() const {
 			assert(isTemplateFunctionRef());
 			return impl_->union_.templateFunctionRef.parentType;
 		}
@@ -708,7 +708,7 @@ namespace locic {
 			return impl_->union_.templateFunctionRef.name;
 		}
 		
-		const Type* Value::templateFunctionRefFunctionType() const {
+		const AST::Type* Value::templateFunctionRefFunctionType() const {
 			assert(isTemplateFunctionRef());
 			return impl_->union_.templateFunctionRef.functionType;
 		}
@@ -759,12 +759,12 @@ namespace locic {
 			return kind() == CAPABILITYTEST;
 		}
 		
-		const Type* Value::capabilityTestCheckType() const {
+		const AST::Type* Value::capabilityTestCheckType() const {
 			assert(isCapabilityTest());
 			return impl_->union_.capabilityTest.checkType;
 		}
 		
-		const Type* Value::capabilityTestCapabilityType() const {
+		const AST::Type* Value::capabilityTestCapabilityType() const {
 			assert(isCapabilityTest());
 			return impl_->union_.capabilityTest.capabilityType;
 		}

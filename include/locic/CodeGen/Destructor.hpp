@@ -12,7 +12,7 @@ namespace locic {
 		
 		ArgInfo destructorArgInfo(Module& module, const SEM::TypeInstance& typeInstance);
 		
-		void scheduleDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
+		void scheduleDestructorCall(Function& function, const AST::Type* type, llvm::Value* value);
 		
 		llvm::FunctionType* destructorFunctionType(Module& module, const SEM::TypeInstance& typeInstance);
 		

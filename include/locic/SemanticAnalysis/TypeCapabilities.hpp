@@ -1,13 +1,13 @@
 #ifndef LOCIC_SEMANTICANALYSIS_TYPECAPABILITIES_HPP
 #define LOCIC_SEMANTICANALYSIS_TYPECAPABILITIES_HPP
 
-#include <locic/SEM/TypeArray.hpp>
+#include <locic/AST/TypeArray.hpp>
 
 namespace locic {
 	
 	class String;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Type;
 		
@@ -21,38 +21,38 @@ namespace locic {
 		public:
 			TypeCapabilities(Context& context);
 			
-			const SEM::Type*
+			const AST::Type*
 			getCapabilityType(String capability,
-			                  SEM::TypeArray templateArgs);
+			                  AST::TypeArray templateArgs);
 			
 			bool
-			checkCapabilityWithType(const SEM::Type* const rawType,
+			checkCapabilityWithType(const AST::Type* const rawType,
 			                        String capability,
-			                        const SEM::Type* requireType);
+			                        const AST::Type* requireType);
 			
 			bool
-			checkCapability(const SEM::Type* const rawType,
-			                String capability, SEM::TypeArray templateArgs);
+			checkCapability(const AST::Type* const rawType,
+			                String capability, AST::TypeArray templateArgs);
 			
-			bool hasCallMethod(const SEM::Type* type);
+			bool hasCallMethod(const AST::Type* type);
 			
-			bool supportsImplicitCast(const SEM::Type* type);
+			bool supportsImplicitCast(const AST::Type* type);
 			
-			bool supportsImplicitCopy(const SEM::Type* type);
+			bool supportsImplicitCopy(const AST::Type* type);
 			
-			bool supportsExplicitCopy(const SEM::Type* type);
+			bool supportsExplicitCopy(const AST::Type* type);
 			
-			bool supportsNoExceptImplicitCopy(const SEM::Type* type);
+			bool supportsNoExceptImplicitCopy(const AST::Type* type);
 			
-			bool supportsNoExceptExplicitCopy(const SEM::Type* type);
+			bool supportsNoExceptExplicitCopy(const AST::Type* type);
 			
-			bool supportsCompare(const SEM::Type* type);
+			bool supportsCompare(const AST::Type* type);
 			
-			bool supportsNoExceptCompare(const SEM::Type* type);
+			bool supportsNoExceptCompare(const AST::Type* type);
 			
-			bool supportsMove(const SEM::Type* const type);
+			bool supportsMove(const AST::Type* const type);
 			
-			bool supportsCall(const SEM::Type* const type);
+			bool supportsCall(const AST::Type* const type);
 			
 		private:
 			Context& context_;

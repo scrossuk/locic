@@ -3,6 +3,7 @@
 
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
@@ -72,7 +73,7 @@ namespace locic {
 			return nullptr;
 		}
 		
-		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack) {
+		const AST::Type* getParentFunctionReturnType(const ScopeStack& scopeStack) {
 			const auto function = lookupParentFunction(scopeStack);
 			assert(function != nullptr);
 			return function->type().returnType();
@@ -94,7 +95,7 @@ namespace locic {
 			return value.typeInstance();
 		}
 		
-		const SEM::Type* getBuiltInType(Context& context, const String& typeName, SEM::TypeArray templateArgs) {
+		const AST::Type* getBuiltInType(Context& context, const String& typeName, AST::TypeArray templateArgs) {
 			const auto& value = getBuiltInNamespaceItem(context, typeName);
 			assert(value.isTypeInstance() || value.isAlias());
 			
@@ -111,23 +112,23 @@ namespace locic {
 			
 			if (value.isTypeInstance()) {
 				assert(templateArgs.size() == value.typeInstance().templateVariables().size());
-				return SEM::Type::Object(&(value.typeInstance()), std::move(templateArgValues));
+				return AST::Type::Object(&(value.typeInstance()), std::move(templateArgValues));
 			} else {
 				assert(templateArgs.size() == value.alias().templateVariables().size());
-				return SEM::Type::Alias(value.alias(), std::move(templateArgValues));
+				return AST::Type::Alias(value.alias(), std::move(templateArgValues));
 			}
 		}
 		
-		const SEM::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, SEM::ValueArray templateArgValues) {
+		const AST::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, SEM::ValueArray templateArgValues) {
 			const auto& value = getBuiltInNamespaceItem(context, typeName);
 			assert(value.isTypeInstance() || value.isAlias());
 			
 			if (value.isTypeInstance()) {
 				assert(templateArgValues.size() == value.typeInstance().templateVariables().size());
-				return SEM::Type::Object(&(value.typeInstance()), std::move(templateArgValues));
+				return AST::Type::Object(&(value.typeInstance()), std::move(templateArgValues));
 			} else {
 				assert(templateArgValues.size() == value.alias().templateVariables().size());
-				return SEM::Type::Alias(value.alias(), std::move(templateArgValues));
+				return AST::Type::Alias(value.alias(), std::move(templateArgValues));
 			}
 		}
 		

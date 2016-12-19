@@ -9,12 +9,12 @@ namespace locic {
 		
 		class Function;
 		class FunctionType;
+		class Type;
 		
 	}
 	
 	namespace SEM {
 		
-		class Type;
 		class Value;
 		
 	}
@@ -81,7 +81,7 @@ namespace locic {
 		 * \param functionType The type of the function (as it's being used).
 		 * \return The function pointer.
 		 */
-		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType,
+		llvm::Value* genFunctionRef(Function& function, const AST::Type* parentType,
 		                            const AST::Function* astFunction, AST::FunctionType functionType);
 		
 		/**

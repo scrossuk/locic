@@ -2,6 +2,7 @@
 
 #include <locic/AST/Function.hpp>
 #include <locic/AST/ModuleScope.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/Support/ErrorHandling.hpp>
@@ -13,7 +14,6 @@
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Scope.hpp>
-#include <locic/SEM/Type.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 
 namespace locic {
@@ -125,12 +125,12 @@ namespace locic {
 			return kind() == EXCEPTION;
 		}
 		
-		const Type* TypeInstance::selfType() const {
+		const AST::Type* TypeInstance::selfType() const {
 			if (cachedSelfType_ != nullptr) {
 				return cachedSelfType_;
 			}
 			
-			cachedSelfType_ = SEM::Type::Object(this, selfTemplateArgs());
+			cachedSelfType_ = AST::Type::Object(this, selfTemplateArgs());
 			return cachedSelfType_;
 		}
 		
@@ -258,8 +258,8 @@ namespace locic {
 			return *function;
 		}
 		
-		TypeArray TypeInstance::constructTypes() const {
-			TypeArray types;
+		AST::TypeArray TypeInstance::constructTypes() const {
+			AST::TypeArray types;
 			if (isUnion()) {
 				// Unions are constructed with no arguments (zero initialised).
 				return types;
@@ -280,11 +280,11 @@ namespace locic {
 			return parentTypeInstance_;
 		}
 		
-		void TypeInstance::setParentType(const Type* const argParent) {
+		void TypeInstance::setParentType(const AST::Type* const argParent) {
 			parentType_ = argParent;
 		}
 		
-		const Type* TypeInstance::parentType() const {
+		const AST::Type* TypeInstance::parentType() const {
 			return parentType_;
 		}
 		

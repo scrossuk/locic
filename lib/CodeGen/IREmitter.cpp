@@ -1,5 +1,6 @@
 #include <locic/AST/Value.hpp>
 #include <locic/AST/TemplateVar.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
@@ -16,8 +17,6 @@
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/VirtualCallABI.hpp>
-
-#include <locic/SEM/Type.hpp>
 
 #include <locic/Support/MethodID.hpp>
 
@@ -322,17 +321,17 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		IREmitter::emitAlignMask(const SEM::Type* const type) {
+		IREmitter::emitAlignMask(const AST::Type* const type) {
 			return genAlignMask(functionGenerator_, type);
 		}
 		
 		llvm::Value*
-		IREmitter::emitSizeOf(const SEM::Type* const type) {
+		IREmitter::emitSizeOf(const AST::Type* const type) {
 			return genSizeOf(functionGenerator_, type);
 		}
 		
 		static llvm::Value*
-		genRawAlloca(IREmitter& irEmitter, const SEM::Type* const type, llvm::Value* const hintResultValue) {
+		genRawAlloca(IREmitter& irEmitter, const AST::Type* const type, llvm::Value* const hintResultValue) {
 			if (hintResultValue != nullptr) {
 				assert(hintResultValue->getType()->isPointerTy());
 				return hintResultValue;
@@ -356,7 +355,7 @@ namespace locic {
 		}
 		
 		static llvm::Value*
-		genAlloca(IREmitter& irEmitter, const SEM::Type* const type, llvm::Value* const hintResultValue) {
+		genAlloca(IREmitter& irEmitter, const AST::Type* const type, llvm::Value* const hintResultValue) {
 			auto& module = irEmitter.module();
 			const bool shouldZeroAlloca = module.buildOptions().zeroAllAllocas;
 			
@@ -376,29 +375,29 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		IREmitter::emitAlloca(const SEM::Type* const type,
+		IREmitter::emitAlloca(const AST::Type* const type,
 		                      llvm::Value* const hintResultValue) {
 			return genAlloca(*this, type, hintResultValue);
 		}
 		
 		// TODO: move this inline.
-		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const SEM::Type* type);
+		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const AST::Type* type);
 		
 		llvm::Value*
 		IREmitter::emitMoveLoad(llvm::Value* const value,
-		                        const SEM::Type* const type) {
+		                        const AST::Type* const type) {
 			return genMoveLoad(functionGenerator_,
 			                   value,
 			                   type);
 		}
 		
 		// TODO: move this inline.
-		void genMoveStore(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* type);
+		void genMoveStore(Function& function, llvm::Value* value, llvm::Value* var, const AST::Type* type);
 		
 		void
 		IREmitter::emitMoveStore(llvm::Value* const value,
 		                         llvm::Value* const memDest,
-		                         const SEM::Type* type) {
+		                         const AST::Type* type) {
 			return genMoveStore(functionGenerator_,
 			                    value,
 			                    memDest,
@@ -409,14 +408,14 @@ namespace locic {
 		IREmitter::emitMoveCall(llvm::Value* const memSource,
 		                        llvm::Value* const memDest,
 		                        llvm::Value* const destOffset,
-		                        const SEM::Type* const type) {
+		                        const AST::Type* const type) {
 			genMoveCall(functionGenerator_, type, memSource, memDest,
 			            destOffset);
 		}
 		
 		llvm::Value*
 		IREmitter::emitBasicLoad(llvm::Value* const value,
-		                         const SEM::Type* const type) {
+		                         const AST::Type* const type) {
 			assert(value->getType()->isPointerTy());
 			
 			TypeInfo typeInfo(module());
@@ -431,7 +430,7 @@ namespace locic {
 		void
 		IREmitter::emitBasicStore(llvm::Value* const value,
 		                          llvm::Value* const memDest,
-		                          const SEM::Type* const type) {
+		                          const AST::Type* const type) {
 			assert(memDest->getType()->isPointerTy());
 			
 			TypeInfo typeInfo(module());
@@ -481,8 +480,8 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::emitGetDatatypeVariantPtr(llvm::Value* const datatypePtr,
-		                                     const SEM::Type* const datatypeType,
-		                                     const SEM::Type* const variantType) {
+		                                     const AST::Type* const datatypeType,
+		                                     const AST::Type* const variantType) {
 			(void) variantType;
 			assert(datatypePtr->getType()->isPointerTy());
 			assert(datatypeType->isUnionDatatype());
@@ -509,7 +508,7 @@ namespace locic {
 		
 		void
 		IREmitter::emitDestructorCall(llvm::Value* const value,
-		                              const SEM::Type* const type) {
+		                              const AST::Type* const type) {
 			if (type->isObject()) {
 				TypeInfo typeInfo(module());
 				if (!typeInfo.hasCustomDestructor(type)) {
@@ -546,7 +545,7 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::emitImplicitCopyCall(llvm::Value* value,
-		                                const SEM::Type* type,
+		                                const AST::Type* type,
 		                                llvm::Value* hintResultValue) {
 			return emitCopyCall(METHOD_IMPLICITCOPY,
 			                    value,
@@ -556,7 +555,7 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::emitExplicitCopyCall(llvm::Value* value,
-		                                const SEM::Type* type,
+		                                const AST::Type* type,
 		                                llvm::Value* hintResultValue) {
 			return emitCopyCall(METHOD_COPY,
 			                    value,
@@ -567,7 +566,7 @@ namespace locic {
 		llvm::Value*
 		IREmitter::emitCopyCall(const MethodID methodID,
 		                        llvm::Value* value,
-		                        const SEM::Type* rawType,
+		                        const AST::Type* rawType,
 		                        llvm::Value* hintResultValue) {
 			assert(methodID == METHOD_IMPLICITCOPY ||
 			       methodID == METHOD_COPY);
@@ -602,22 +601,22 @@ namespace locic {
 			                     hintResultValue);
 		}
 		
-		static const SEM::Type*
-		createRefType(const SEM::Type* const refTargetType,
+		static const AST::Type*
+		createRefType(const AST::Type* const refTargetType,
 		              const SEM::TypeInstance& refTypeInstance,
-		              const SEM::Type* const typenameType) {
+		              const AST::Type* const typenameType) {
 			auto typeRef = SEM::Value::TypeRef(refTargetType,
 			                                   typenameType->createStaticRefType(refTargetType));
 			SEM::ValueArray templateArguments;
 			templateArguments.push_back(std::move(typeRef));
-			return SEM::Type::Object(&refTypeInstance,
+			return AST::Type::Object(&refTypeInstance,
 			                         std::move(templateArguments))->createRefType(refTargetType);
 		}
 		
 		llvm::Value*
 		IREmitter::emitCompareCall(llvm::Value* const leftValue,
 		                           llvm::Value* const rightValue,
-		                           const SEM::Type* const rawType) {
+		                           const AST::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			
 			const bool isTemplated = type->isObject() &&
@@ -655,7 +654,7 @@ namespace locic {
 		IREmitter::emitComparisonCall(const MethodID methodID,
 		                              PendingResult leftValue,
 		                              PendingResult rightValue,
-		                              const SEM::Type* const rawType) {
+		                              const AST::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			
 			const bool isTemplated = type->isObject() &&
@@ -689,7 +688,7 @@ namespace locic {
 		llvm::Value*
 		IREmitter::emitNoArgNoReturnCall(const MethodID methodID,
 		                                 llvm::Value* const value,
-		                                 const SEM::Type* const rawType) {
+		                                 const AST::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			
 			const bool isTemplated = type->isObject() &&
@@ -721,7 +720,7 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::emitIsEmptyCall(llvm::Value* const value,
-		                           const SEM::Type* const rawType) {
+		                           const AST::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			
 			const bool isTemplated = type->isObject() &&
@@ -749,8 +748,8 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::emitFrontCall(llvm::Value* const value,
-		                         const SEM::Type* const rawType,
-		                         const SEM::Type* const rawResultType,
+		                         const AST::Type* const rawType,
+		                         const AST::Type* const rawResultType,
 		                         llvm::Value* const hintResultValue) {
 			const auto type = rawType->resolveAliases();
 			const auto resultType = rawResultType->resolveAliases();
@@ -778,7 +777,7 @@ namespace locic {
 		
 		void
 		IREmitter::emitSkipFrontCall(llvm::Value* const value,
-		                             const SEM::Type* const rawType) {
+		                             const AST::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			
 			const bool isTemplated = type->isObject() &&

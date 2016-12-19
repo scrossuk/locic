@@ -1,3 +1,4 @@
+#include <locic/AST/Type.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -9,7 +10,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		llvm::Value* genPrimitiveAlignMask(Function& function, const SEM::Type* const type) {
+		llvm::Value* genPrimitiveAlignMask(Function& function, const AST::Type* const type) {
 			auto& module = function.module();
 			
 			IREmitter irEmitter(function);
@@ -22,7 +23,7 @@ namespace locic {
 			                            /*args=*/{}, /*hintResultValue=*/nullptr);
 		}
 		
-		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* const type) {
+		llvm::Value* genPrimitiveSizeOf(Function& function, const AST::Type* const type) {
 			auto& module = function.module();
 			
 			IREmitter irEmitter(function);

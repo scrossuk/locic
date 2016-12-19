@@ -19,8 +19,8 @@ namespace locic {
 	namespace CodeGen {
 		
 		bool areTypesFunctionallyEquivalent(Module& module,
-		                                    const SEM::Type* const firstType,
-		                                    const SEM::Type* const secondType) {
+		                                    const AST::Type* const firstType,
+		                                    const AST::Type* const secondType) {
 			return firstType == secondType ||
 				genArgType(module, firstType) == genArgType(module, secondType);
 		}
@@ -64,8 +64,8 @@ namespace locic {
 		
 		llvm::Value* getSingleTranslatedArgument(Function& functionGenerator,
 		                                         llvm::Value* const argValue,
-		                                         const SEM::Type* const parameterType,
-		                                         const SEM::Type* const translatedParameterType) {
+		                                         const AST::Type* const parameterType,
+		                                         const AST::Type* const translatedParameterType) {
 			auto& module = functionGenerator.module();
 			
 			// Being able to pass the inner parameter type by value must imply

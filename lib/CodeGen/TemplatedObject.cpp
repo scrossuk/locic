@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/SEM.hpp>
 
@@ -131,13 +132,13 @@ namespace locic {
 		TemplatedObject::TemplatedObject(Kind pKind)
 			: kind_(pKind) { }
 		
-		TemplateInst TemplateInst::Type(const SEM::Type* const rawType) {
+		TemplateInst TemplateInst::Type(const AST::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			assert(type->isObject());
 			return TemplateInst(TemplatedObject::TypeInstance(type->getObjectType()), arrayRef(type->templateArguments()));
 		}
 		
-		TemplateInst TemplateInst::Function(const SEM::Type* parentType,
+		TemplateInst TemplateInst::Function(const AST::Type* parentType,
 		                                    const AST::Function* function,
 		                                    llvm::ArrayRef<SEM::Value> functionArgs) {
 			if (parentType != nullptr) {

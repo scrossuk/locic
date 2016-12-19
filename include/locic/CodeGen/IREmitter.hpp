@@ -5,7 +5,7 @@ namespace locic {
 	
 	class MethodID;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Type;
 		
@@ -147,10 +147,10 @@ namespace locic {
 			               unsigned numClauses);
 			
 			llvm::Value*
-			emitAlignMask(const SEM::Type* type);
+			emitAlignMask(const AST::Type* type);
 			
 			llvm::Value*
-			emitSizeOf(const SEM::Type* type);
+			emitSizeOf(const AST::Type* type);
 			
 			/**
 			 * \brief Create a stack object.
@@ -159,7 +159,7 @@ namespace locic {
 			 * type, and return a pointer to that space.
 			 */
 			llvm::Value*
-			emitAlloca(const SEM::Type* type,
+			emitAlloca(const AST::Type* type,
 			           llvm::Value* const hintResultValue=nullptr);
 			
 			/**
@@ -171,7 +171,7 @@ namespace locic {
 			 * move method, since this means the object must be kept in memory.
 			 */
 			llvm::Value*
-			emitMoveLoad(llvm::Value* value, const SEM::Type* type);
+			emitMoveLoad(llvm::Value* value, const AST::Type* type);
 			
 			/**
 			 * \brief Move a value by storing it into a memory location.
@@ -183,7 +183,7 @@ namespace locic {
 			void
 			emitMoveStore(llvm::Value* value,
 			              llvm::Value* memDest,
-			              const SEM::Type* type);
+			              const AST::Type* type);
 			
 			/**
 			 * \brief Emit a call to a __moveto method.
@@ -192,7 +192,7 @@ namespace locic {
 			emitMoveCall(llvm::Value* memSource,
 			             llvm::Value* memDest,
 			             llvm::Value* destOffset,
-			             const SEM::Type* type);
+			             const AST::Type* type);
 			
 			/**
 			 * \brief Load a value from a memory location.
@@ -204,7 +204,7 @@ namespace locic {
 			 * handled as pointers.
 			 */
 			llvm::Value*
-			emitBasicLoad(llvm::Value* value, const SEM::Type* type);
+			emitBasicLoad(llvm::Value* value, const AST::Type* type);
 			
 			/**
 			 * \brief Store a value into a memory location.
@@ -218,7 +218,7 @@ namespace locic {
 			void
 			emitBasicStore(llvm::Value* value,
 			               llvm::Value* memDest,
-			               const SEM::Type* type);
+			               const AST::Type* type);
 			
 			llvm::Value*
 			emitLoadDatatypeTag(llvm::Value* datatypePtr);
@@ -229,21 +229,21 @@ namespace locic {
 			
 			llvm::Value*
 			emitGetDatatypeVariantPtr(llvm::Value* datatypePtr,
-			                          const SEM::Type* datatypeType,
-			                          const SEM::Type* variantType);
+			                          const AST::Type* datatypeType,
+			                          const AST::Type* variantType);
 			
 			void
 			emitDestructorCall(llvm::Value* value,
-							   const SEM::Type* type);
+							   const AST::Type* type);
 			
 			llvm::Value*
 			emitImplicitCopyCall(llvm::Value* valueRef,
-			                     const SEM::Type* type,
+			                     const AST::Type* type,
 			                     llvm::Value* hintResultValue = nullptr);
 			
 			llvm::Value*
 			emitExplicitCopyCall(llvm::Value* valueRef,
-			                     const SEM::Type* type,
+			                     const AST::Type* type,
 			                     llvm::Value* hintResultValue = nullptr);
 			
 			/**
@@ -263,38 +263,38 @@ namespace locic {
 			llvm::Value*
 			emitCopyCall(MethodID methodID,
 			             llvm::Value* valueRef,
-			             const SEM::Type* type,
+			             const AST::Type* type,
 			             llvm::Value* hintResultValue = nullptr);
 			
 			llvm::Value*
 			emitCompareCall(llvm::Value* leftValue,
 			                llvm::Value* rightValue,
-			                const SEM::Type* type);
+			                const AST::Type* type);
 			
 			llvm::Value*
 			emitComparisonCall(MethodID methodID,
 			                   PendingResult leftValue,
 			                   PendingResult rightValue,
-			                   const SEM::Type* type);
+			                   const AST::Type* type);
 			
 			llvm::Value*
 			emitNoArgNoReturnCall(MethodID methodID,
 			                      llvm::Value* value,
-			                      const SEM::Type* type);
+			                      const AST::Type* type);
 			
 			/**
 			 * \brief Emit call to empty() method.
 			 */
 			llvm::Value*
 			emitIsEmptyCall(llvm::Value* valueRef,
-			                const SEM::Type* type);
+			                const AST::Type* type);
 			
 			/**
 			 * \brief Emit call to front() method.
 			 */
 			llvm::Value*
-			emitFrontCall(llvm::Value* valueRef, const SEM::Type* type,
-			              const SEM::Type* resultType,
+			emitFrontCall(llvm::Value* valueRef, const AST::Type* type,
+			              const AST::Type* resultType,
 			              llvm::Value* hintResultValue = nullptr);
 			
 			/**
@@ -302,7 +302,7 @@ namespace locic {
 			 */
 			void
 			emitSkipFrontCall(llvm::Value* valueRef,
-			                  const SEM::Type* type);
+			                  const AST::Type* type);
 			
 			// Needed to support existing code.
 			// FIXME: Remove these.

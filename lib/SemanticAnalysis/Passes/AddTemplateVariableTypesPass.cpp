@@ -1,4 +1,5 @@
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
@@ -11,7 +12,7 @@ namespace locic {
 		class TemplateVarHasNonPrimitiveTypeDiag: public Error {
 		public:
 			TemplateVarHasNonPrimitiveTypeDiag(const String& name,
-			                                   const SEM::Type* type)
+			                                   const AST::Type* type)
 			: name_(name), typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {

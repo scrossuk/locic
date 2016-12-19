@@ -4,8 +4,8 @@
 #include <string>
 
 #include <locic/AST/TemplateVarArray.hpp>
+#include <locic/AST/TypeArray.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TypeArray.hpp>
 #include <locic/Support/Array.hpp>
 #include <locic/Support/String.hpp>
 
@@ -23,7 +23,7 @@ namespace locic {
 			public:
 				MethodSetElement(Array<AST::TemplateVar*, 8> templateVariables,
 					SEM::Predicate constPredicate, SEM::Predicate noexceptPredicate, SEM::Predicate requirePredicate,
-					bool isStatic, const SEM::Type* returnType, SEM::TypeArray parameterTypes);
+					bool isStatic, const AST::Type* returnType, AST::TypeArray parameterTypes);
 				
 				MethodSetElement(MethodSetElement&&) = default;
 				MethodSetElement& operator=(MethodSetElement&&) = default;
@@ -39,8 +39,8 @@ namespace locic {
 				const SEM::Predicate& requirePredicate() const;
 				
 				bool isStatic() const;
-				const SEM::Type* returnType() const;
-				const SEM::TypeArray& parameterTypes() const;
+				const AST::Type* returnType() const;
+				const AST::TypeArray& parameterTypes() const;
 				
 				AST::FunctionType createFunctionType(bool isTemplated) const;
 				
@@ -56,8 +56,8 @@ namespace locic {
 				SEM::Predicate noexceptPredicate_;
 				SEM::Predicate requirePredicate_;
 				bool isStatic_;
-				const SEM::Type* returnType_;
-				SEM::TypeArray parameterTypes_;
+				const AST::Type* returnType_;
+				AST::TypeArray parameterTypes_;
 				
 		};
 		

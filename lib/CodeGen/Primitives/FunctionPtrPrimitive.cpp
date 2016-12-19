@@ -9,6 +9,8 @@
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
+#include <locic/AST/Type.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -150,7 +152,7 @@ namespace locic {
 		
 		namespace {
 			
-			llvm::Value* genFunctionPtrNullMethod(Function& function, const SEM::Type* const type) {
+			llvm::Value* genFunctionPtrNullMethod(Function& function, const AST::Type* const type) {
 				auto& module = function.module();
 				
 				const auto llvmType = genType(module, type);
@@ -190,7 +192,7 @@ namespace locic {
 				return ConstantGenerator(module).getBool(true);
 			}
 			
-			llvm::Value* genFunctionPtrMoveToMethod(Function& function, const SEM::Type* const type, PendingResultArray args) {
+			llvm::Value* genFunctionPtrMoveToMethod(Function& function, const AST::Type* const type, PendingResultArray args) {
 				auto& module = function.module();
 				IREmitter irEmitter(function);
 				
@@ -206,7 +208,7 @@ namespace locic {
 				return ConstantGenerator(module).getVoidUndef();
 			}
 			
-			llvm::Value* genFunctionPtrCallMethod(Function& function, const SEM::Type* type, PendingResultArray args, llvm::Value* hintResultValue) {
+			llvm::Value* genFunctionPtrCallMethod(Function& function, const AST::Type* type, PendingResultArray args, llvm::Value* hintResultValue) {
 				const auto functionValue = args[0].resolveWithoutBind(function);
 				
 				FunctionCallInfo callInfo;
@@ -244,7 +246,7 @@ namespace locic {
 			for (const auto& value: typeTemplateArguments) {
 				valueArray.push_back(value.copy());
 			}
-			const auto type = SEM::Type::Object(&typeInstance_,
+			const auto type = AST::Type::Object(&typeInstance_,
 			                                    std::move(valueArray));
 			
 			switch (methodID) {

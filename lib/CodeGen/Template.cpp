@@ -8,6 +8,7 @@
 #include <llvm-abi/ABITypeInfo.hpp>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
@@ -34,19 +35,19 @@ namespace locic {
 		
 		bool isRootArgumentList(llvm::ArrayRef<SEM::Value> templateArguments);
 		
-		bool isRootType(const SEM::Type* const type) {
+		bool isRootType(const AST::Type* const type) {
 			switch (type->kind()) {
-				case SEM::Type::OBJECT: {
+				case AST::Type::OBJECT: {
 					// Interface type template arguments don't affect
 					// code generation in any way so they can be
 					// ignored here.
 					return type->getObjectType()->isInterface() ||
 					       isRootArgumentList(arrayRef(type->templateArguments()));
 				}
-				case SEM::Type::TEMPLATEVAR: {
+				case AST::Type::TEMPLATEVAR: {
 					return false;
 				}
-				case SEM::Type::ALIAS: {
+				case AST::Type::ALIAS: {
 					return isRootType(type->resolveAliases());
 				}
 				default: {
@@ -176,7 +177,7 @@ namespace locic {
 			return constGen.getStruct(templateGeneratorLLVMType(module), values);
 		}
 		
-		bool hasTemplateVirtualTypeArgument(llvm::ArrayRef<const SEM::Type*> arguments) {
+		bool hasTemplateVirtualTypeArgument(llvm::ArrayRef<const AST::Type*> arguments) {
 			for (size_t i = 0; i < arguments.size(); i++) {
 				if (arguments[i]->isInterface()) {
 					return true;

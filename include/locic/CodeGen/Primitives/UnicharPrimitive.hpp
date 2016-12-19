@@ -13,7 +13,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class Type;
 		class TypeInstance;
 		
 	}

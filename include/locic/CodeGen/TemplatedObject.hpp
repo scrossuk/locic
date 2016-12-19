@@ -69,9 +69,9 @@ namespace locic {
 		
 		class TemplateInst {
 			public:
-				static TemplateInst Type(const SEM::Type* type);
+				static TemplateInst Type(const AST::Type* type);
 				
-				static TemplateInst Function(const SEM::Type* parentType,
+				static TemplateInst Function(const AST::Type* parentType,
 				                             const AST::Function* function,
 				                             llvm::ArrayRef<SEM::Value> functionArgs);
 				

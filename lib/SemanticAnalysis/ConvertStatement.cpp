@@ -5,6 +5,7 @@
 #include <string>
 
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/Support/MakeArray.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/CallValue.hpp>
@@ -252,7 +253,7 @@ namespace locic {
 		
 		class SwitchTypeNotObjectDiag: public Error {
 		public:
-			SwitchTypeNotObjectDiag(const SEM::Type* type)
+			SwitchTypeNotObjectDiag(const AST::Type* type)
 			: type_(type) { }
 			
 			std::string toString() const {
@@ -261,7 +262,7 @@ namespace locic {
 			}
 			
 		private:
-			const SEM::Type* type_;
+			const AST::Type* type_;
 			
 		};
 		
@@ -342,7 +343,7 @@ namespace locic {
 		
 		class CannotCatchNonExceptionTypeDiag: public Error {
 		public:
-			CannotCatchNonExceptionTypeDiag(const SEM::Type* const type)
+			CannotCatchNonExceptionTypeDiag(const AST::Type* const type)
 			: typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -412,7 +413,7 @@ namespace locic {
 		
 		class CannotAssignToNonLvalTypeDiag: public Error {
 		public:
-			CannotAssignToNonLvalTypeDiag(const SEM::Type* type)
+			CannotAssignToNonLvalTypeDiag(const AST::Type* type)
 			: typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {
@@ -470,7 +471,7 @@ namespace locic {
 					
 					const auto switchType = getDerefType(value.type())->resolveAliases()->withoutConst();
 					
-					std::map<const SEM::TypeInstance*, const SEM::Type*> switchCaseTypes;
+					std::map<const SEM::TypeInstance*, const AST::Type*> switchCaseTypes;
 					
 					std::vector<SEM::SwitchCase*> caseList;
 					for (const auto& astCase: *(statement->switchCaseList())) {

@@ -2,6 +2,7 @@
 
 #include <locic/AST/Function.hpp>
 #include <locic/AST/FunctionType.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
@@ -26,7 +27,6 @@
 #include <locic/CodeGen/ValueEmitter.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
-#include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
 
 #include <locic/Support/MethodID.hpp>
@@ -35,7 +35,7 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Function* genFunctionDeclRef(Module& module, const SEM::Type* const parentType,
+		llvm::Function* genFunctionDeclRef(Module& module, const AST::Type* const parentType,
 		                                   const AST::Function* function) {
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			if (parentType == nullptr) {
@@ -49,7 +49,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genFunctionRef(Function& function, const SEM::Type* parentType,
+		llvm::Value* genFunctionRef(Function& function, const AST::Type* parentType,
 		                            const AST::Function* const astFunction, const AST::FunctionType functionType) {
 			auto& module = function.module();
 			const auto functionRefPtr = genFunctionDeclRef(module, parentType, astFunction);

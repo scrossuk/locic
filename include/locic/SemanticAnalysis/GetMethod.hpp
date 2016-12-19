@@ -7,6 +7,12 @@ namespace locic {
 	
 	class String;
 	
+	namespace AST {
+		
+		class Type;
+		
+	}
+	
 	namespace Debug {
 		
 		class SourceLocation;
@@ -15,7 +21,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class Type;
 		class Value;
 		
 	}
@@ -35,13 +40,13 @@ namespace locic {
 		
 		SEM::Value GetMethodWithoutResolution(Context& context,
 			SEM::Value value,
-			const SEM::Type* type,
+			const AST::Type* type,
 			const String& methodName,
 			const Debug::SourceLocation& location);
 		
 		SEM::Value GetTemplatedMethodWithoutResolution(Context& context,
 			SEM::Value value,
-			const SEM::Type* type,
+			const AST::Type* type,
 			const String& methodName,
 			SEM::ValueArray templateArguments,
 			const Debug::SourceLocation& location);

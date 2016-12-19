@@ -21,6 +21,7 @@ namespace locic {
 		class Function;
 		class TemplateVar;
 		class TemplateVarMap;
+		class Type;
 		class Var;
 		
 	}
@@ -34,7 +35,6 @@ namespace locic {
 	namespace SEM {
 		
 		class Predicate;
-		class Type;
 		class TypeInstance;
 		
 		class Value {
@@ -83,21 +83,21 @@ namespace locic {
 				 * 
 				 * A reference within a method to the parent object.
 				 */
-				static Value Self(const Type* type);
+				static Value Self(const AST::Type* type);
 				
 				/**
 				 * \brief This
 				 * 
 				 * A pointer within a method to the parent object.
 				 */
-				static Value This(const Type* type);
+				static Value This(const AST::Type* type);
 				
 				/**
 				 * \brief Constant
 				 * 
 				 * A constant value (e.g. 0, 1.2, true etc.).
 				 */
-				static Value Constant(Constant constant, const Type* type);
+				static Value Constant(Constant constant, const AST::Type* type);
 				
 				/**
 				 * \brief Alias
@@ -112,35 +112,35 @@ namespace locic {
 				 * 
 				 * A predicate value.
 				 */
-				static Value PredicateExpr(Predicate value, const Type* boolType);
+				static Value PredicateExpr(Predicate value, const AST::Type* boolType);
 				
 				/**
 				 * \brief Local Variable
 				 * 
 				 * A reference to a local variable.
 				 */
-				static Value LocalVar(const AST::Var& var, const Type* type);
+				static Value LocalVar(const AST::Var& var, const AST::Type* type);
 				
 				/**
 				 * \brief Union data offset
 				 * 
 				 * The offset of the union data (usually expected to be after the tag).
 				 */
-				static Value UnionDataOffset(const TypeInstance* typeInstance, const Type* sizeType);
+				static Value UnionDataOffset(const TypeInstance* typeInstance, const AST::Type* sizeType);
 				
 				/**
 				 * \brief Member variable offset
 				 * 
 				 * The offset of a member variable within an object.
 				 */
-				static Value MemberOffset(const TypeInstance* typeInstance, size_t memberIndex, const Type* sizeType);
+				static Value MemberOffset(const TypeInstance* typeInstance, size_t memberIndex, const AST::Type* sizeType);
 				
 				/**
 				 * \brief Reinterpret a value as a type
 				 * 
 				 * Reinterprets the given value as if it had the given type.
 				 */
-				static Value Reinterpret(Value operand, const Type* type);
+				static Value Reinterpret(Value operand, const AST::Type* type);
 				
 				/**
 				 * \brief Dereference
@@ -167,7 +167,7 @@ namespace locic {
 				 * Casts the given value to the given type (usually a no-op that
 				 * exists for type-safety purposes).
 				 */
-				static Value Cast(const Type* targetType, Value operand);
+				static Value Cast(const AST::Type* targetType, Value operand);
 				
 				/**
 				 * \brief Polymorphic Cast
@@ -176,7 +176,7 @@ namespace locic {
 				 * the target type. For example, 'Class&' could be polymorphically
 				 * cast to 'Interface&'.
 				 */
-				static Value PolyCast(const Type* targetType, Value operand);
+				static Value PolyCast(const AST::Type* targetType, Value operand);
 				
 				/**
 				 * \brief Add Lval Type Tag
@@ -204,7 +204,7 @@ namespace locic {
 				 * semantics when the value is used (e.g. methods like
 				 * 'deref' are automatically invoked).
 				 */
-				static Value Ref(const Type* targetType, Value operand);
+				static Value Ref(const AST::Type* targetType, Value operand);
 				
 				/**
 				 * \brief Remove Ref Type Tag
@@ -222,7 +222,7 @@ namespace locic {
 				 * semantics when the value is used (e.g. methods like
 				 * 'deref' are automatically invoked).
 				 */
-				static Value StaticRef(const Type* targetType, Value operand);
+				static Value StaticRef(const AST::Type* targetType, Value operand);
 				
 				/**
 				 * \brief Remove StaticRef Type Tag
@@ -238,7 +238,7 @@ namespace locic {
 				 * This creates an instance of the parent object type using
 				 * the 'internal constructor', a special auto-generated method.
 				 */
-				static Value InternalConstruct(const Type* parentType, ValueArray parameters);
+				static Value InternalConstruct(const AST::Type* parentType, ValueArray parameters);
 				
 				/**
 				 * \brief Access member variable
@@ -246,7 +246,7 @@ namespace locic {
 				 * Accesses a member variable of the given object.
 				 * This will return a reference to an lvalue type.
 				 */
-				static Value MemberAccess(Value object, const AST::Var& var, const Type* type);
+				static Value MemberAccess(Value object, const AST::Var& var, const AST::Type* type);
 				
 				/**
 				 * \brief Bind Value Reference
@@ -254,7 +254,7 @@ namespace locic {
 				 * Automatically generates an lvalue in which to store the given
 				 * rvalue and returns a reference to the value in that lvalue.
 				 */
-				static Value BindReference(Value operand, const Type* type);
+				static Value BindReference(Value operand, const AST::Type* type);
 				
 				/**
 				 * \brief Type Reference
@@ -262,14 +262,14 @@ namespace locic {
 				 * A 'typename_t' value that contains type information
 				 * for the given type.
 				 */
-				static Value TypeRef(const Type* targetType, const Type* type);
+				static Value TypeRef(const AST::Type* targetType, const AST::Type* type);
 				
 				/**
 				 * \brief Template Variable Reference
 				 * 
 				 * A reference to a template variable.
 				 */
-				static Value TemplateVarRef(const AST::TemplateVar* targetVar, const Type* type);
+				static Value TemplateVarRef(const AST::TemplateVar* targetVar, const AST::Type* type);
 				
 				/**
 				 * \brief Call
@@ -285,15 +285,15 @@ namespace locic {
 				 * The function could be a method hence the parent type should be
 				 * set, otherwise it should be NULL.
 				 */
-				static Value FunctionRef(const Type* parentType, const AST::Function& function,
-				                         ValueArray templateArguments, const Type* const type);
+				static Value FunctionRef(const AST::Type* parentType, const AST::Function& function,
+				                         ValueArray templateArguments, const AST::Type* const type);
 				
 				/**
 				 * \brief Template Function Reference
 				 * 
 				 * Refers to a static method of a templated type with the given name.
 				 */
-				static Value TemplateFunctionRef(const Type* parentType, const String& name, const Type* functionType);
+				static Value TemplateFunctionRef(const AST::Type* parentType, const String& name, const AST::Type* functionType);
 				
 				/**
 				 * \brief Method Reference
@@ -302,7 +302,7 @@ namespace locic {
 				 * reference and the parent object instance value (must be
 				 * a reference to the object).
 				 */
-				static Value MethodObject(Value method, Value methodOwner, const Type* const type);
+				static Value MethodObject(Value method, Value methodOwner, const AST::Type* const type);
 				
 				/**
 				 * \brief Interface Method Reference
@@ -311,7 +311,7 @@ namespace locic {
 				 * reference and the parent interface instance value (must be
 				 * a reference to the interface).
 				 */
-				static Value InterfaceMethodObject(Value method, Value methodOwner, const Type* const type);
+				static Value InterfaceMethodObject(Value method, Value methodOwner, const AST::Type* const type);
 				
 				/**
 				 * \brief Static Interface Method Reference
@@ -319,7 +319,7 @@ namespace locic {
 				 * Refers to a static interface method by providing the method function
 				 * reference and the parent type reference value.
 				 */
-				static Value StaticInterfaceMethodObject(Value method, Value typeRef, const Type* const type);
+				static Value StaticInterfaceMethodObject(Value method, Value typeRef, const AST::Type* const type);
 				
 				/**
 				 * \brief Capability Test
@@ -327,16 +327,16 @@ namespace locic {
 				 * Query whether a type has the capabilities (methods) specified by
 				 * another type.
 				 */
-				static Value CapabilityTest(const Type* const checkType,
-				                            const Type* const capabilityType,
-				                            const Type* const boolType);
+				static Value CapabilityTest(const AST::Type* const checkType,
+				                            const AST::Type* const capabilityType,
+				                            const AST::Type* const boolType);
 				
 				/**
 				 * \brief Array literal.
 				 * 
 				 * An array literal, e.g. { 1, 2, 3 }.
 				 */
-				static Value ArrayLiteral(const Type* arrayType,
+				static Value ArrayLiteral(const AST::Type* arrayType,
 				                          ValueArray values);
 				
 				/**
@@ -344,7 +344,7 @@ namespace locic {
 				 * 
 				 * A placeholder value for cast operations in the Semantic Analysis stage.
 				 */
-				static Value CastDummy(const Type* type);
+				static Value CastDummy(const AST::Type* type);
 				
 				Value();
 				~Value();
@@ -356,7 +356,7 @@ namespace locic {
 				
 				Value copy() const;
 				
-				const Type* type() const;
+				const AST::Type* type() const;
 				
 				AST::ExitStates exitStates() const;
 				
@@ -395,11 +395,11 @@ namespace locic {
 				const Value& ternaryIfFalse() const;
 				
 				bool isCast() const;
-				const Type* castTargetType() const;
+				const AST::Type* castTargetType() const;
 				const Value& castOperand() const;
 				
 				bool isPolyCast() const;
-				const Type* polyCastTargetType() const;
+				const AST::Type* polyCastTargetType() const;
 				const Value& polyCastOperand() const;
 				
 				bool isMakeLval() const;
@@ -409,14 +409,14 @@ namespace locic {
 				const Value& makeNoLvalOperand() const;
 				
 				bool isMakeRef() const;
-				const Type* makeRefTargetType() const;
+				const AST::Type* makeRefTargetType() const;
 				const Value& makeRefOperand() const;
 				
 				bool isMakeNoRef() const;
 				const Value& makeNoRefOperand() const;
 				
 				bool isMakeStaticRef() const;
-				const Type* makeStaticRefTargetType() const;
+				const AST::Type* makeStaticRefTargetType() const;
 				const Value& makeStaticRefOperand() const;
 				
 				bool isMakeNoStaticRef() const;
@@ -433,7 +433,7 @@ namespace locic {
 				const Value& bindReferenceOperand() const;
 				
 				bool isTypeRef() const;
-				const Type* typeRefType() const;
+				const AST::Type* typeRefType() const;
 				
 				bool isTemplateVarRef() const;
 				const AST::TemplateVar* templateVar() const;
@@ -443,14 +443,14 @@ namespace locic {
 				const ValueArray& callParameters() const;
 				
 				bool isFunctionRef() const;
-				const Type* functionRefParentType() const;
+				const AST::Type* functionRefParentType() const;
 				const AST::Function& functionRefFunction() const;
 				const ValueArray& functionRefTemplateArguments() const;
 				
 				bool isTemplateFunctionRef() const;
-				const Type* templateFunctionRefParentType() const;
+				const AST::Type* templateFunctionRefParentType() const;
 				const String& templateFunctionRefName() const;
-				const Type* templateFunctionRefFunctionType() const;
+				const AST::Type* templateFunctionRefFunctionType() const;
 				
 				bool isMethodObject() const;
 				const Value& methodObject() const;
@@ -465,8 +465,8 @@ namespace locic {
 				const Value& staticInterfaceMethodOwner() const;
 				
 				bool isCapabilityTest() const;
-				const Type* capabilityTestCheckType() const;
-				const Type* capabilityTestCapabilityType() const;
+				const AST::Type* capabilityTestCheckType() const;
+				const AST::Type* capabilityTestCapabilityType() const;
 				
 				bool isArrayLiteral() const;
 				const ValueArray& arrayLiteralValues() const;
@@ -493,7 +493,7 @@ namespace locic {
 				
 			private:
 				Value(Kind kind,
-				      const Type* type,
+				      const AST::Type* type,
 				      AST::ExitStates exitStates);
 				
 				// Non-copyable.

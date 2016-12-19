@@ -21,6 +21,7 @@ namespace locic {
 	namespace AST {
 		
 		class TemplatedObject;
+		class Type;
 		
 	}
 	
@@ -35,7 +36,6 @@ namespace locic {
 		
 		class Context;
 		class Predicate;
-		class Type;
 		class Value;
 		
 	}
@@ -84,10 +84,10 @@ namespace locic {
 				TypeBuilder& typeBuilder();
 				
 				const MethodSet* findMethodSet(const AST::TemplatedObject* templatedObject,
-				                               const SEM::Type* type) const;
+				                               const AST::Type* type) const;
 				
 				void addMethodSet(const AST::TemplatedObject* templatedObject,
-				                  const SEM::Type* type,
+				                  const AST::Type* type,
 				                  const MethodSet* methodSet);
 				
 				/**
@@ -109,9 +109,9 @@ namespace locic {
 				
 				const MethodSet* getMethodSet(MethodSet methodSet) const;
 				
-				Optional<bool> getCapability(const SEM::Type* type, const String& capability) const;
+				Optional<bool> getCapability(const AST::Type* type, const String& capability) const;
 				
-				void setCapability(const SEM::Type* type, const String& capability, bool isCapable);
+				void setCapability(const AST::Type* type, const String& capability, bool isCapable);
 				
 				// For handling cycles in method set computation.
 				bool isComputingMethodSet(const AST::TemplateVar* templateVar, const SEM::Predicate& predicate) const;
@@ -119,8 +119,8 @@ namespace locic {
 				void popComputingMethodSet();
 				
 				// For handling cycles in require predicates.
-				bool isAssumedSatisfies(const SEM::Type* checkType, const SEM::Type* requireType) const;
-				void pushAssumeSatisfies(const SEM::Type* checkType, const SEM::Type* requireType);
+				bool isAssumedSatisfies(const AST::Type* checkType, const AST::Type* requireType) const;
+				void pushAssumeSatisfies(const AST::Type* checkType, const AST::Type* requireType);
 				void popAssumeSatisfies();
 				
 			private:

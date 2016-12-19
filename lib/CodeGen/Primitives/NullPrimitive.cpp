@@ -9,6 +9,8 @@
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
+#include <locic/AST/Type.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -43,8 +45,8 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		llvm::Value* callRawCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
-				const String& targetMethodName, const SEM::Type* const castToType, llvm::Value* const hintResultValue);
+		llvm::Value* callRawCastMethod(Function& function, llvm::Value* const castFromValue, const AST::Type* const castFromType,
+				const String& targetMethodName, const AST::Type* const castToType, llvm::Value* const hintResultValue);
 		
 		NullPrimitive::NullPrimitive(const SEM::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) { }
@@ -115,7 +117,7 @@ namespace locic {
 					for (const auto& value: typeTemplateArguments) {
 						valueArray.push_back(value.copy());
 					}
-					const auto type = SEM::Type::Object(&typeInstance_,
+					const auto type = AST::Type::Object(&typeInstance_,
 					                                    std::move(valueArray));
 					const auto targetType = functionTemplateArguments.front().typeRefType();
 					return callRawCastMethod(function, nullptr, type, module.getCString("null"),

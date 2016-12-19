@@ -11,6 +11,8 @@
 
 #include <locic/Constant.hpp>
 
+#include <locic/AST/Type.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -99,7 +101,7 @@ namespace locic {
 		namespace {
 			
 			llvm::Value* getArrayIndex(IREmitter& irEmitter,
-			                           const SEM::Type* const elementType,
+			                           const AST::Type* const elementType,
 			                           llvm::Value* const arrayPtr,
 			                           llvm::Value* const elementIndex) {
 				auto& builder = irEmitter.builder();
@@ -137,7 +139,7 @@ namespace locic {
 			for (const auto& value: typeTemplateArguments) {
 				valueArray.push_back(value.copy());
 			}
-			const auto type = SEM::Type::Object(&typeInstance_,
+			const auto type = AST::Type::Object(&typeInstance_,
 			                                    std::move(valueArray));
 			const auto elementType = typeTemplateArguments.front().typeRefType();
 			const auto& elementCount = typeTemplateArguments.back();

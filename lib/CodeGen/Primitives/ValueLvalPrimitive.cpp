@@ -83,14 +83,14 @@ namespace locic {
 		
 		namespace {
 			
-			llvm::Value* genValueLvalDeadMethod(Function& functionGenerator, const SEM::Type* const targetType, llvm::Value* const hintResultValue) {
+			llvm::Value* genValueLvalDeadMethod(Function& functionGenerator, const AST::Type* const targetType, llvm::Value* const hintResultValue) {
 				IREmitter irEmitter(functionGenerator);
 				const auto objectVar = irEmitter.emitAlloca(targetType, hintResultValue);
 				genSetDeadState(functionGenerator, targetType, objectVar);
 				return irEmitter.emitMoveLoad(objectVar, targetType);
 			}
 			
-			llvm::Value* genValueLvalCreateMethod(Function& functionGenerator, const SEM::Type* const targetType,
+			llvm::Value* genValueLvalCreateMethod(Function& functionGenerator, const AST::Type* const targetType,
 			                                      PendingResultArray args, llvm::Value* const hintResultValue) {
 				IREmitter irEmitter(functionGenerator);
 				const auto objectVar = irEmitter.emitAlloca(targetType, hintResultValue);
@@ -103,7 +103,7 @@ namespace locic {
 			
 			llvm::Value* genValueLvalCopyMethod(Function& functionGenerator,
 			                                    const MethodID methodID,
-			                                    const SEM::Type* const targetType,
+			                                    const AST::Type* const targetType,
 			                                    PendingResultArray args,
 			                                    llvm::Value* const hintResultValue) {
 				IREmitter irEmitter(functionGenerator);
@@ -113,14 +113,14 @@ namespace locic {
 				                              hintResultValue);
 			}
 			
-			llvm::Value* genValueLvalSetDeadMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
+			llvm::Value* genValueLvalSetDeadMethod(Function& functionGenerator, const AST::Type* const targetType, PendingResultArray args) {
 				auto& module = functionGenerator.module();
 				const auto methodOwner = args[0].resolve(functionGenerator);
 				genSetDeadState(functionGenerator, targetType, methodOwner);
 				return ConstantGenerator(module).getVoidUndef();
 			}
 			
-			llvm::Value* genValueLvalMoveToMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
+			llvm::Value* genValueLvalMoveToMethod(Function& functionGenerator, const AST::Type* const targetType, PendingResultArray args) {
 				auto& module = functionGenerator.module();
 				
 				const auto destValue = args[1].resolve(functionGenerator);
@@ -139,14 +139,14 @@ namespace locic {
 				return args[0].resolve(functionGenerator);
 			}
 			
-			llvm::Value* genValueLvalMoveMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
+			llvm::Value* genValueLvalMoveMethod(Function& functionGenerator, const AST::Type* const targetType, PendingResultArray args) {
 				const auto methodOwner = args[0].resolve(functionGenerator);
 				
 				IREmitter irEmitter(functionGenerator);
 				return irEmitter.emitMoveLoad(methodOwner, targetType);
 			}
 			
-			llvm::Value* genValueLvalAssignMethod(Function& functionGenerator, const SEM::Type* const targetType, PendingResultArray args) {
+			llvm::Value* genValueLvalAssignMethod(Function& functionGenerator, const AST::Type* const targetType, PendingResultArray args) {
 				auto& module = functionGenerator.module();
 				
 				const auto operand = args[1].resolve(functionGenerator);

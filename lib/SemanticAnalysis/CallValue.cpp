@@ -1,3 +1,4 @@
+#include <locic/AST/Type.hpp>
 #include <locic/Constant.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/CallValue.hpp>
@@ -26,7 +27,7 @@ namespace locic {
 			}
 		
 			HeapArray<SEM::Value> CastFunctionArguments(Context& context, HeapArray<SEM::Value> arguments,
-			                                            const SEM::TypeArray& types, const Debug::SourceLocation& location) {
+			                                            const AST::TypeArray& types, const Debug::SourceLocation& location) {
 				HeapArray<SEM::Value> castValues;
 				castValues.reserve(arguments.size());
 				
@@ -53,7 +54,7 @@ namespace locic {
 		
 		class TypeNotCallableDiag: public Error {
 		public:
-			TypeNotCallableDiag(const SEM::Type* type)
+			TypeNotCallableDiag(const AST::Type* type)
 			: typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {

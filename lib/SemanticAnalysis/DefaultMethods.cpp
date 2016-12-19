@@ -2,6 +2,7 @@
 #include <vector>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/Constant.hpp>
 #include <locic/Support/MakeArray.hpp>
 #include <locic/Support/Name.hpp>
@@ -348,7 +349,7 @@ namespace locic {
 			
 			const auto sizeType = context_.typeBuilder().getSizeType();
 			
-			SEM::TypeArray argTypes;
+			AST::TypeArray argTypes;
 			argTypes.reserve(2);
 			argTypes.push_back(voidPtrType);
 			argTypes.push_back(sizeType);
@@ -457,7 +458,7 @@ namespace locic {
 			const auto argType = createReferenceType(context_, selfType->createTransitiveConstType(SEM::Predicate::True()));
 			const auto compareResultType = getBuiltInType(context_, context_.getCString("compare_result_t"), {});
 			
-			SEM::TypeArray argTypes;
+			AST::TypeArray argTypes;
 			argTypes.reserve(1);
 			argTypes.push_back(argType);
 			

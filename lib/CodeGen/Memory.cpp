@@ -38,7 +38,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genValuePtr(Function& function, llvm::Value* const value, const SEM::Type* const type,
+		llvm::Value* genValuePtr(Function& function, llvm::Value* const value, const AST::Type* const type,
 		                         llvm::Value* hintResultValue) {
 			// Members must have a pointer to the object, which
 			// may require generating a fresh 'alloca'.

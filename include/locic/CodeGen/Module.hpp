@@ -30,6 +30,7 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
+		class Type;
 		
 	}
 	
@@ -41,7 +42,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class Type;
 		class TypeInstance;
 		
 	}

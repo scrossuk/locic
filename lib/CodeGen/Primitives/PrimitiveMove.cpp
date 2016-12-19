@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <locic/AST/Type.hpp>
+
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -14,7 +16,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
+		void genPrimitiveMoveCall(Function& function, const AST::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue) {
 			assert(sourceValue->getType()->isPointerTy());
 			assert(destValue->getType()->isPointerTy());
 			assert(type->isPrimitive());

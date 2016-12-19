@@ -6,13 +6,13 @@ namespace locic {
 	namespace AST {
 		
 		class TemplateVar;
+		class Type;
 		
 	}
 	
 	namespace SEM {
 		
 		class Predicate;
-		class Type;
 		
 	}
 	
@@ -23,9 +23,9 @@ namespace locic {
 		
 		const MethodSet* getMethodSetForRequiresPredicate(AST::TemplateVar* templateVar, const SEM::Predicate& requiresPredicate);
 		
-		const MethodSet* getMethodSetForObjectType(Context& context, const SEM::Type* objectType);
+		const MethodSet* getMethodSetForObjectType(Context& context, const AST::Type* objectType);
 		
-		const MethodSet* getTypeMethodSet(Context& context, const SEM::Type* type);
+		const MethodSet* getTypeMethodSet(Context& context, const AST::Type* type);
 		
 		const MethodSet* intersectMethodSets(const MethodSet* setA, const MethodSet* setB);
 		

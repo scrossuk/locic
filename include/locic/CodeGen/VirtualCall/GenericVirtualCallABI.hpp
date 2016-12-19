@@ -44,7 +44,7 @@ namespace locic {
 			
 			llvm::Value*
 			makeArgsStruct(IREmitter& irEmitter,
-			               llvm::ArrayRef<const SEM::Type*> argTypes,
+			               llvm::ArrayRef<const AST::Type*> argTypes,
 			               llvm::ArrayRef<llvm::Value*> args);
 			
 			llvm::Constant*

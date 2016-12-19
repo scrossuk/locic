@@ -5,6 +5,7 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/AST/Type.hpp>
 #include <locic/Frontend/DiagnosticReceiver.hpp>
 #include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Debug.hpp>
@@ -68,13 +69,13 @@ namespace locic {
 			bool templateRequirementsComplete;
 			std::vector<TemplateInst> templateInstantiations;
 			mutable StableSet<MethodSet> methodSets;
-			std::unordered_map<std::pair<const SEM::Type*, String>, bool, hashPair<const SEM::Type*, String>> capabilities;
+			std::unordered_map<std::pair<const AST::Type*, String>, bool, hashPair<const AST::Type*, String>> capabilities;
 			
-			std::unordered_map<const SEM::Type*, const MethodSet*> objectMethodSetMap;
-			std::unordered_map<std::pair<const AST::TemplatedObject*, const SEM::Type*>, const MethodSet*,
-				hashPair<const AST::TemplatedObject*, const SEM::Type*>> templateVarMethodSetMap;
+			std::unordered_map<const AST::Type*, const MethodSet*> objectMethodSetMap;
+			std::unordered_map<std::pair<const AST::TemplatedObject*, const AST::Type*>, const MethodSet*,
+				hashPair<const AST::TemplatedObject*, const AST::Type*>> templateVarMethodSetMap;
 			
-			std::vector<std::pair<const SEM::Type*, const SEM::Type*>> assumedSatisfyPairs;
+			std::vector<std::pair<const AST::Type*, const AST::Type*>> assumedSatisfyPairs;
 			std::vector<std::pair<const AST::TemplateVar*, const SEM::Predicate*>> computingMethodSetTemplateVars;
 		};
 		
@@ -136,7 +137,7 @@ namespace locic {
 		}
 		
 		const MethodSet* Context::findMethodSet(const AST::TemplatedObject* const templatedObject,
-		                                        const SEM::Type* const type) const {
+		                                        const AST::Type* const type) const {
 			assert(methodSetsComplete());
 			assert(type->isObject() || type->isTemplateVar());
 			
@@ -151,7 +152,7 @@ namespace locic {
 		}
 		
 		void Context::addMethodSet(const AST::TemplatedObject* const templatedObject,
-		                           const SEM::Type* const type,
+		                           const AST::Type* const type,
 		                           const MethodSet* const methodSet) {
 			assert(methodSetsComplete());
 			assert(type->isObject() || type->isTemplateVar());
@@ -199,7 +200,7 @@ namespace locic {
 			return &(*(result.first));
 		}
 		
-		Optional<bool> Context::getCapability(const SEM::Type* const type, const String& capability) const {
+		Optional<bool> Context::getCapability(const AST::Type* const type, const String& capability) const {
 			const auto iterator = impl_->capabilities.find(std::make_pair(type, capability));
 			if (iterator != impl_->capabilities.end()) {
 				return make_optional(iterator->second);
@@ -208,7 +209,7 @@ namespace locic {
 			}
 		}
 		
-		void Context::setCapability(const SEM::Type* type, const String& capability, const bool isCapable) {
+		void Context::setCapability(const AST::Type* type, const String& capability, const bool isCapable) {
 			(void) impl_->capabilities.insert(std::make_pair(std::make_pair(type, capability), isCapable));
 		}
 		
@@ -229,7 +230,7 @@ namespace locic {
 			impl_->computingMethodSetTemplateVars.pop_back();
 		}
 		
-		bool Context::isAssumedSatisfies(const SEM::Type* const checkType, const SEM::Type* const requireType) const {
+		bool Context::isAssumedSatisfies(const AST::Type* const checkType, const AST::Type* const requireType) const {
 			const auto pair = std::make_pair(checkType, requireType);
 			for (const auto& assumedSatisfyPair: impl_->assumedSatisfyPairs) {
 				if (pair == assumedSatisfyPair) {
@@ -239,7 +240,7 @@ namespace locic {
 			return false;
 		}
 		
-		void Context::pushAssumeSatisfies(const SEM::Type* const checkType, const SEM::Type* const requireType) {
+		void Context::pushAssumeSatisfies(const AST::Type* const checkType, const AST::Type* const requireType) {
 			const auto pair = std::make_pair(checkType, requireType);
 			impl_->assumedSatisfyPairs.push_back(pair);
 		}

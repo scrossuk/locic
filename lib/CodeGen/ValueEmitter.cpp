@@ -6,6 +6,7 @@
 
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/SEM.hpp>
@@ -46,7 +47,7 @@ namespace locic {
 		namespace {
 			
 			llvm::Value* getArrayIndex(IREmitter& irEmitter,
-			                           const SEM::Type* const elementType,
+			                           const AST::Type* const elementType,
 			                           llvm::Value* const arrayPtr,
 			                           llvm::Value* const elementIndex) {
 				auto& builder = irEmitter.builder();
@@ -360,7 +361,7 @@ namespace locic {
 			}
 			
 			switch (sourceType->kind()) {
-				case SEM::Type::OBJECT: {
+				case AST::Type::OBJECT: {
 					if (sourceType->getObjectType() == destType->getObjectType()) {
 						return codeValue;
 					}
@@ -393,7 +394,7 @@ namespace locic {
 					return nullptr;
 				}
 				
-				case SEM::Type::TEMPLATEVAR: {
+				case AST::Type::TEMPLATEVAR: {
 					return codeValue;
 				}
 				

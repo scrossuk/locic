@@ -90,7 +90,7 @@ namespace locic {
 				                                  std::move(resolveInfo)));
 			}
 			
-			const SEM::Type* resolveAliasType(AST::Alias& alias) {
+			const AST::Type* resolveAliasType(AST::Alias& alias) {
 				if (alias.type() != nullptr) {
 					return alias.type();
 				}
@@ -132,7 +132,7 @@ namespace locic {
 			impl_->addAlias(alias, std::move(scopeStack));
 		}
 		
-		const SEM::Type* AliasTypeResolver::resolveAliasType(AST::Alias& alias) {
+		const AST::Type* AliasTypeResolver::resolveAliasType(AST::Alias& alias) {
 			return impl_->resolveAliasType(alias);
 		}
 		

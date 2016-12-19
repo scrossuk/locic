@@ -9,13 +9,13 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		size_t getRefCount(const SEM::Type* type);
+		size_t getRefCount(const AST::Type* type);
 		
-		const SEM::Type* getLastRefType(const SEM::Type* type);
+		const AST::Type* getLastRefType(const AST::Type* type);
 		
-		const SEM::Type* getSingleDerefType(const SEM::Type* type);
+		const AST::Type* getSingleDerefType(const AST::Type* type);
 		
-		const SEM::Type* getDerefType(const SEM::Type* type);
+		const AST::Type* getDerefType(const AST::Type* type);
 		
 		SEM::Value derefOne(SEM::Value value);
 		
@@ -23,11 +23,11 @@ namespace locic {
 		
 		SEM::Value derefAll(SEM::Value value);
 		
-		size_t getStaticRefCount(const SEM::Type* type);
+		size_t getStaticRefCount(const AST::Type* type);
 		
-		const SEM::Type* getLastStaticRefType(const SEM::Type* type);
+		const AST::Type* getLastStaticRefType(const AST::Type* type);
 		
-		const SEM::Type* getStaticDerefType(const SEM::Type* type);
+		const AST::Type* getStaticDerefType(const AST::Type* type);
 		
 		SEM::Value staticDerefOne(SEM::Value value);
 		
@@ -35,15 +35,15 @@ namespace locic {
 		
 		SEM::Value staticDerefAll(SEM::Value value);
 		
-		SEM::Value createTypeRef(Context& context, const SEM::Type* targetType);
+		SEM::Value createTypeRef(Context& context, const AST::Type* targetType);
 		
-		const SEM::Type* createReferenceType(Context& context, const SEM::Type* varType);
+		const AST::Type* createReferenceType(Context& context, const AST::Type* varType);
 		
 		SEM::Value bindReference(Context& context, SEM::Value value);
 		
 		SEM::Value derefOrBindValue(Context& context, SEM::Value value);
 		
-		SEM::Value createSelfRef(Context& context, const SEM::Type* selfType);
+		SEM::Value createSelfRef(Context& context, const AST::Type* selfType);
 		
 		SEM::Value createLocalVarRef(Context& context, const AST::Var& var);
 		

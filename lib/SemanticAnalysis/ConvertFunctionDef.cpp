@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <list>
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/Debug/Module.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -265,7 +266,7 @@ namespace locic {
 		
 		class ReturnTypeNotMovableDiag: public Error {
 		public:
-			ReturnTypeNotMovableDiag(const SEM::Type* const type,
+			ReturnTypeNotMovableDiag(const AST::Type* const type,
 			                         const Name& functionName)
 			: typeString_(type->toDiagString()),
 			functionNameString_(functionName.toString(/*addPrefix=*/false)) { }

@@ -1,5 +1,6 @@
 #include <set>
 
+#include <locic/AST/Type.hpp>
 #include <locic/Debug.hpp>
 #include <locic/SEM.hpp>
 
@@ -15,7 +16,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		bool isValidVarArgType(const SEM::Type* const type) {
+		bool isValidVarArgType(const AST::Type* const type) {
 			if (!type->isObject()) return false;
 			if (!type->getObjectType()->isPrimitive()) return false;
 			if (type->isLval() || type->isRef()) return false;
@@ -86,7 +87,7 @@ namespace locic {
 		
 		class VarArgInvalidTypeDiag: public Error {
 		public:
-			VarArgInvalidTypeDiag(const SEM::Type* const type)
+			VarArgInvalidTypeDiag(const AST::Type* const type)
 			: typeString_(type->toDiagString()) { }
 			
 			std::string toString() const {

@@ -3,9 +3,9 @@
 #include <locic/Support/String.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/TemplateVar.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/Value.hpp>
-#include <locic/SEM/Type.hpp>
 
 namespace locic {
 	
@@ -86,16 +86,16 @@ namespace locic {
 			return specType_;
 		}
 		
-		const SEM::Type* TemplateVar::type() const {
+		const Type* TemplateVar::type() const {
 			assert(type_ != nullptr);
 			return type_;
 		}
 		
-		void TemplateVar::setType(const SEM::Type* pType) {
+		void TemplateVar::setType(const Type* pType) {
 			assert(type_ == nullptr && pType != nullptr);
 			type_ = pType;
 			if (type_->isBuiltInTypename()) {
-				selfRefType_ = SEM::Type::TemplateVarRef(this);
+				selfRefType_ = Type::TemplateVarRef(this);
 				type_ = type_->createStaticRefType(selfRefType_);
 			}
 		}
@@ -116,7 +116,7 @@ namespace locic {
 			}
 		}
 		
-		const SEM::Type* TemplateVar::selfRefType() const {
+		const Type* TemplateVar::selfRefType() const {
 			assert(type()->isBuiltInTypename());
 			return selfRefType_;
 		}

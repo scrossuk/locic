@@ -3,9 +3,14 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Type;
+		
+	}
+	
+	namespace SEM {
+		
 		class TypeInstance;
 		
 	}
@@ -18,17 +23,17 @@ namespace locic {
 		public:
 			TypeInfo(Module& module);
 			
-			bool canPassByValue(const SEM::Type* type) const;
+			bool canPassByValue(const AST::Type* type) const;
 			
-			bool isSizeAlwaysKnown(const SEM::Type* type) const;
+			bool isSizeAlwaysKnown(const AST::Type* type) const;
 			
 			bool isObjectSizeAlwaysKnown(const SEM::TypeInstance& typeInstance) const;
 			
-			bool isSizeKnownInThisModule(const SEM::Type* type) const;
+			bool isSizeKnownInThisModule(const AST::Type* type) const;
 			
 			bool isObjectSizeKnownInThisModule(const SEM::TypeInstance& typeInstance) const;
 			
-			bool hasCustomDestructor(const SEM::Type* type) const;
+			bool hasCustomDestructor(const AST::Type* type) const;
 			
 			bool objectHasCustomDestructor(const SEM::TypeInstance& typeInstance) const;
 			
@@ -46,7 +51,7 @@ namespace locic {
 			 * one of their child types has a custom move method,
 			 * so this will also return true in that case.
 			 */
-			bool hasCustomMove(const SEM::Type* type) const;
+			bool hasCustomMove(const AST::Type* type) const;
 			
 			/**
 			 * \brief Query whether a type instance has a custom move operation.
@@ -74,7 +79,7 @@ namespace locic {
 			/**
 			 * \brief Query whether a type has a liveness indicator.
 			 */
-			bool hasLivenessIndicator(const SEM::Type* type) const;
+			bool hasLivenessIndicator(const AST::Type* type) const;
 			
 			/**
 			 * \brief Query whether a type instance has a liveness indicator.

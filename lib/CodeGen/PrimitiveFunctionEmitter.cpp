@@ -1,3 +1,4 @@
+#include <locic/AST/Type.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -6,7 +7,6 @@
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/PrimitiveFunctionEmitter.hpp>
 #include <locic/CodeGen/Support.hpp>
-#include <locic/SEM/Type.hpp>
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {
@@ -110,7 +110,7 @@ namespace locic {
 		
 		llvm::Value*
 		PrimitiveFunctionEmitter::emitMethod(const MethodID methodID,
-		                                     const SEM::Type* const parentType,
+		                                     const AST::Type* const parentType,
 		                                     llvm::ArrayRef<SEM::Value> functionTemplateArguments,
 		                                     PendingResultArray args,
 		                                     llvm::Value* const hintResultValue) {
@@ -125,7 +125,7 @@ namespace locic {
 		
 		llvm::Value*
 		PrimitiveFunctionEmitter::emitFunction(const MethodID methodID,
-		                                       const SEM::Type* const parentType,
+		                                       const AST::Type* const parentType,
 		                                       llvm::ArrayRef<SEM::Value> functionTemplateArguments,
 		                                       PendingResultArray args,
 		                                       llvm::Value* const hintResultValue) {

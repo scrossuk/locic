@@ -11,12 +11,12 @@ namespace locic {
 	namespace AST {
 		
 		class FunctionType;
+		class Type;
 		
 	}
 	
 	namespace SEM {
 		
-		class Type;
 		class Value;
 		
 	}

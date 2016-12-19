@@ -5,7 +5,7 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Type;
 		
@@ -59,7 +59,7 @@ namespace locic {
 		 */
 		class ValuePendingResult: public PendingResultBase {
 		public:
-			ValuePendingResult(llvm::Value* value, const SEM::Type* type);
+			ValuePendingResult(llvm::Value* value, const AST::Type* type);
 			
 			llvm::Value* generateValue(Function& function, llvm::Value* hintResultValue) const;
 			
@@ -67,7 +67,7 @@ namespace locic {
 			
 		private:
 			llvm::Value* value_;
-			const SEM::Type* type_;
+			const AST::Type* type_;
 			
 		};
 		
@@ -81,7 +81,7 @@ namespace locic {
 		 */
 		class RefPendingResult: public PendingResultBase {
 		public:
-			RefPendingResult(llvm::Value* refValue, const SEM::Type* refTargetType);
+			RefPendingResult(llvm::Value* refValue, const AST::Type* refTargetType);
 			
 			llvm::Value* generateValue(Function& function, llvm::Value* hintResultValue) const;
 			
@@ -89,7 +89,7 @@ namespace locic {
 			
 		private:
 			llvm::Value* refValue_;
-			const SEM::Type* refTargetType_;
+			const AST::Type* refTargetType_;
 			
 		};
 		
@@ -106,7 +106,7 @@ namespace locic {
 		 */
 		class ValueToRefPendingResult: public PendingResultBase {
 		public:
-			ValueToRefPendingResult(llvm::Value* value, const SEM::Type* refTargetType);
+			ValueToRefPendingResult(llvm::Value* value, const AST::Type* refTargetType);
 			
 			llvm::Value* generateValue(Function& function, llvm::Value* hintResultValue) const;
 			
@@ -114,7 +114,7 @@ namespace locic {
 			
 		private:
 			llvm::Value* value_;
-			const SEM::Type* refTargetType_;
+			const AST::Type* refTargetType_;
 			
 		};
 		

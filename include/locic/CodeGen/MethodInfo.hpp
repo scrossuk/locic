@@ -8,9 +8,14 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Type;
+		
+	}
+	
+	namespace SEM {
+		
 		class Value;
 		
 	}
@@ -20,12 +25,12 @@ namespace locic {
 		class Function;
 		
 		struct MethodInfo {
-			const SEM::Type* parentType;
+			const AST::Type* parentType;
 			String name;
 			AST::FunctionType functionType;
 			HeapArray<SEM::Value> templateArgs;
 			
-			MethodInfo(const SEM::Type* const argParentType, const String& argName,
+			MethodInfo(const AST::Type* const argParentType, const String& argName,
 			           AST::FunctionType argFunctionType, HeapArray<SEM::Value> argTemplateArgs)
 			: parentType(argParentType),
 			name(argName),

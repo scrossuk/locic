@@ -6,6 +6,8 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/AST/Type.hpp>
+
 #include <locic/Frontend/OptionalDiag.hpp>
 
 #include <locic/SEM.hpp>
@@ -193,7 +195,7 @@ namespace locic {
 		class ParamTypeMismatchDiag: public Error {
 		public:
 			ParamTypeMismatchDiag(const String name, const size_t index,
-			                      const SEM::Type* sourceType, const SEM::Type* requireType)
+			                      const AST::Type* sourceType, const AST::Type* requireType)
 			: name_(name), index_(index), sourceType_(sourceType),
 			requireType_(requireType) { }
 			
@@ -206,15 +208,15 @@ namespace locic {
 		private:
 			String name_;
 			size_t index_;
-			const SEM::Type* sourceType_;
-			const SEM::Type* requireType_;
+			const AST::Type* sourceType_;
+			const AST::Type* requireType_;
 			
 		};
 		
 		class ReturnTypeMismatchDiag: public Error {
 		public:
-			ReturnTypeMismatchDiag(const String name, const SEM::Type* sourceType,
-			                       const SEM::Type* requireType)
+			ReturnTypeMismatchDiag(const String name, const AST::Type* sourceType,
+			                       const AST::Type* requireType)
 			: name_(name), sourceType_(sourceType), requireType_(requireType) { }
 			
 			std::string toString() const {
@@ -226,8 +228,8 @@ namespace locic {
 			
 		private:
 			String name_;
-			const SEM::Type* sourceType_;
-			const SEM::Type* requireType_;
+			const AST::Type* sourceType_;
+			const AST::Type* requireType_;
 			
 		};
 		

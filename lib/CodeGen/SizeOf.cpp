@@ -4,6 +4,7 @@
 #include <llvm-abi/TypeBuilder.hpp>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/AST/Var.hpp>
 #include <locic/SEM.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
@@ -62,20 +63,20 @@ namespace locic {
 			return semFunctionGenerator.getDecl(typeInstance, function);
 		}
 		
-		llvm::Value* genAlignOf(Function& function, const SEM::Type* type) {
+		llvm::Value* genAlignOf(Function& function, const AST::Type* type) {
 			const auto alignMask = genAlignMask(function, type);
 			const auto name = makeString("alignof__%s", type->isObject() ? type->getObjectType()->fullName().last().c_str() : "");
 			return function.getBuilder().CreateAdd(alignMask, ConstantGenerator(function.module()).getSizeTValue(1), name);
 		}
 		
-		llvm::Value* genAlignMaskValue(Function& function, const SEM::Type* type) {
+		llvm::Value* genAlignMaskValue(Function& function, const AST::Type* type) {
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
 			auto& module = function.module();
 			auto& abi = module.abi();
 			
 			switch (type->kind()) {
-				case SEM::Type::OBJECT: {
+				case AST::Type::OBJECT: {
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(type)) {
 						const auto abiType = genABIType(module, type);
@@ -97,7 +98,7 @@ namespace locic {
 					return callResult;
 				}
 				
-				case SEM::Type::TEMPLATEVAR: {
+				case AST::Type::TEMPLATEVAR: {
 					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 					IREmitter irEmitter(function);
 					return module.virtualCallABI().emitCountFnCall(irEmitter,
@@ -111,7 +112,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genAlignMask(Function& function, const SEM::Type* type) {
+		llvm::Value* genAlignMask(Function& function, const AST::Type* type) {
 			const auto it = function.alignMaskMap().find(type);
 			if (it != function.alignMaskMap().end()) {
 				return it->second;
@@ -128,7 +129,7 @@ namespace locic {
 			return semFunctionGenerator.getDecl(typeInstance, function);
 		}
 		
-		llvm::Value* genSizeOfValue(Function& function, const SEM::Type* const rawType) {
+		llvm::Value* genSizeOfValue(Function& function, const AST::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
@@ -136,7 +137,7 @@ namespace locic {
 			auto& abi = module.abi();
 			
 			switch (type->kind()) {
-				case SEM::Type::OBJECT: {
+				case AST::Type::OBJECT: {
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(type)) {
 						const auto abiType = genABIType(module, type);
@@ -161,7 +162,7 @@ namespace locic {
 					return callResult;
 				}
 				
-				case SEM::Type::TEMPLATEVAR: {
+				case AST::Type::TEMPLATEVAR: {
 					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
 					IREmitter irEmitter(function);
 					return module.virtualCallABI().emitCountFnCall(irEmitter,
@@ -175,7 +176,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* genSizeOf(Function& function, const SEM::Type* const type) {
+		llvm::Value* genSizeOf(Function& function, const AST::Type* const type) {
 			const auto it = function.sizeOfMap().find(type);
 			if (it != function.sizeOfMap().end()) {
 				return it->second;
@@ -295,7 +296,7 @@ namespace locic {
 			return makeAligned(function, classSize, classAlignMask);
 		}
 		
-		llvm::Value* genMemberOffset(Function& function, const SEM::Type* const type, const size_t memberIndex) {
+		llvm::Value* genMemberOffset(Function& function, const AST::Type* const type, const size_t memberIndex) {
 			assert(type->isObject());
 			
 			auto& module = function.module();
@@ -359,7 +360,7 @@ namespace locic {
 			return callResult;
 		}
 		
-		llvm::Value* genMemberPtr(Function& function, llvm::Value* const objectPointer, const SEM::Type* const objectType, const size_t memberIndex) {
+		llvm::Value* genMemberPtr(Function& function, llvm::Value* const objectPointer, const AST::Type* const objectType, const size_t memberIndex) {
 			assert(objectType->isObject());
 			if (memberIndex == 0) {
 				return objectPointer;
@@ -382,7 +383,7 @@ namespace locic {
 			}
 		}
 		
-		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, const SEM::Type* const type, llvm::Value* const objectPtr) {
+		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, const AST::Type* const type, llvm::Value* const objectPtr) {
 			assert(type->isUnionDatatype());
 			auto& module = function.module();
 			

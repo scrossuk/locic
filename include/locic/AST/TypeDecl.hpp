@@ -11,14 +11,9 @@
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class Type;
-		
-	}
-	
 	namespace AST {
 		
+		class Type;
 		struct TypeDecl;
 		
 		typedef std::vector<Node<TypeDecl>> TypeDeclList;
@@ -398,15 +393,15 @@ namespace locic {
 				return objectType.symbol;
 			}
 			
-			const SEM::Type* resolvedType() const;
-			void setResolvedType(const SEM::Type* type);
+			const AST::Type* resolvedType() const;
+			void setResolvedType(const AST::Type* type);
 			
 			std::string toString() const;
 			
 		private:
 			explicit TypeDecl(const TypeDecl&) = default;
 			
-			const SEM::Type* resolvedType_;
+			const AST::Type* resolvedType_;
 			
 		};
 		

@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <vector>
 #include <locic/AST.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
@@ -97,7 +98,7 @@ namespace locic {
 		class FunctionTemplateHasNonPrimitiveTypeDiag: public Error {
 		public:
 			FunctionTemplateHasNonPrimitiveTypeDiag(const String& varName,
-			                                        const SEM::Type* type,
+			                                        const AST::Type* type,
 			                                        const Name& functionName)
 			: varName_(varName), type_(type),
 			functionName_(functionName.toString(/*addPrefix=*/false)) { }
@@ -110,7 +111,7 @@ namespace locic {
 			
 		private:
 			String varName_;
-			const SEM::Type* type_;
+			const AST::Type* type_;
 			std::string functionName_;
 			
 		};
@@ -200,7 +201,7 @@ namespace locic {
 			}
 		}
 		
-		bool isValidReturnType(const MethodID methodID, const SEM::Type* const type) {
+		bool isValidReturnType(const MethodID methodID, const AST::Type* const type) {
 			switch (methodID) {
 				case METHOD_MOVETO:
 					return type->isBuiltInVoid();
@@ -251,7 +252,7 @@ namespace locic {
 			}
 		}
 		
-		bool isValidArgumentTypes(const MethodID methodID, const SEM::TypeArray& types) {
+		bool isValidArgumentTypes(const MethodID methodID, const AST::TypeArray& types) {
 			switch (methodID) {
 				case METHOD_MOVETO:
 					return types[0]->isPrimitive() &&
@@ -515,7 +516,7 @@ namespace locic {
 			}
 			
 			auto& astReturnTypeNode = function->returnType();
-			const SEM::Type* semReturnType = NULL;
+			const AST::Type* semReturnType = NULL;
 			
 			if (astReturnTypeNode->typeEnum == AST::TypeDecl::AUTO) {
 				// Undefined return type means this must be a class
@@ -533,7 +534,7 @@ namespace locic {
 			std::vector<AST::Var*> parameterVars;
 			parameterVars.reserve(function->parameterDecls()->size());
 			
-			SEM::TypeArray parameterTypes;
+			AST::TypeArray parameterTypes;
 			parameterTypes.reserve(function->parameterDecls()->size());
 			
 			size_t index = 0;

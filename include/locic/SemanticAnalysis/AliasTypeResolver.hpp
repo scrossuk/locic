@@ -10,11 +10,6 @@ namespace locic {
 	namespace AST {
 		
 		class Alias;
-		
-	}
-	
-	namespace SEM {
-		
 		class Type;
 		
 	}
@@ -55,7 +50,7 @@ namespace locic {
 			void addAlias(const AST::Alias& alias,
 			              ScopeStack scopeStack);
 			
-			const SEM::Type* resolveAliasType(AST::Alias& alias);
+			const AST::Type* resolveAliasType(AST::Alias& alias);
 			
 		private:
 			std::unique_ptr<class AliasTypeResolverImpl> impl_;

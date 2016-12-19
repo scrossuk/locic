@@ -71,8 +71,8 @@ namespace locic {
 			 * If the variable itself has an 'lval' type, then the
 			 * lval type and construct type are the same.
 			 */
-			const SEM::Type* constructType() const;
-			void setConstructType(const SEM::Type* type);
+			const AST::Type* constructType() const;
+			void setConstructType(const AST::Type* type);
 			
 			/**
 			 * \brief Get lval type.
@@ -82,8 +82,8 @@ namespace locic {
 			 * If the variable itself has an 'lval' type, then the
 			 * lval type and construct type are the same.
 			 */
-			const SEM::Type* lvalType() const;
-			void setLvalType(const SEM::Type* type);
+			const AST::Type* lvalType() const;
+			void setLvalType(const AST::Type* type);
 			
 			size_t index() const;
 			void setIndex(size_t index);
@@ -114,8 +114,8 @@ namespace locic {
 			} patternVar_;
 			
 			Optional<Debug::VarInfo> debugInfo_;
-			const SEM::Type* constructType_;
-			const SEM::Type* lvalType_;
+			const AST::Type* constructType_;
+			const AST::Type* lvalType_;
 			
 		};
 		

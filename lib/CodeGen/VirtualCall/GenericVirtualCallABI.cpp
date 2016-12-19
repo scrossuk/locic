@@ -3,6 +3,7 @@
 #include <llvm-abi/Type.hpp>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/SEM.hpp>
 
@@ -90,7 +91,7 @@ namespace locic {
 		
 		llvm::Value*
 		GenericVirtualCallABI::makeArgsStruct(IREmitter& irEmitter,
-		                                      llvm::ArrayRef<const SEM::Type*> argTypes,
+		                                      llvm::ArrayRef<const AST::Type*> argTypes,
 		                                      llvm::ArrayRef<llvm::Value*> args) {
 			assert(argTypes.size() == args.size());
 			

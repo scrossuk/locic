@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/Constant.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/APInt.hpp>
@@ -231,7 +232,7 @@ namespace locic {
 			locic_unreachable("Unknown constant kind.");
 		}
 		
-		const SEM::Type* getLiteralType(Context& context, const String& specifier, const Constant& constant,
+		const AST::Type* getLiteralType(Context& context, const String& specifier, const Constant& constant,
 		                                const Debug::SourceLocation& location) {
 			switch (constant.kind()) {
 				case Constant::STRING: {

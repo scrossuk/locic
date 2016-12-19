@@ -1,16 +1,16 @@
+#include <locic/AST/Type.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/PendingResult.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
-#include <locic/SEM/Type.hpp>
 
 namespace locic {
 	
 	namespace CodeGen {
 		
 		ValuePendingResult::ValuePendingResult(llvm::Value* const value,
-		                                       const SEM::Type* const type)
+		                                       const AST::Type* const type)
 		: value_(value),
 		  type_(type) { }
 		
@@ -32,7 +32,7 @@ namespace locic {
 		}
 		
 		RefPendingResult::RefPendingResult(llvm::Value* const refValue,
-		                                   const SEM::Type* const refTargetType)
+		                                   const AST::Type* const refTargetType)
 		: refValue_(refValue),
 		refTargetType_(refTargetType) { }
 		
@@ -46,7 +46,7 @@ namespace locic {
 		}
 		
 		ValueToRefPendingResult::ValueToRefPendingResult(llvm::Value* const value,
-		                                                 const SEM::Type* const refTargetType)
+		                                                 const AST::Type* const refTargetType)
 		: value_(value), refTargetType_(refTargetType) { }
 		
 		llvm::Value* ValueToRefPendingResult::generateValue(Function& function,

@@ -3,6 +3,7 @@
 #include <llvm-abi/Type.hpp>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/SEM.hpp>
 

@@ -9,6 +9,8 @@
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
+#include <locic/AST/Type.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
@@ -85,7 +87,7 @@ namespace locic {
 		
 		class RangeElementAccess {
 		public:
-			RangeElementAccess(IREmitter& irEmitter, const SEM::Type* const targetType)
+			RangeElementAccess(IREmitter& irEmitter, const AST::Type* const targetType)
 			: irEmitter_(irEmitter), targetType_(targetType),
 			sizeValue_(nullptr) { }
 			
@@ -130,7 +132,7 @@ namespace locic {
 			
 		private:
 			IREmitter& irEmitter_;
-			const SEM::Type* targetType_;
+			const AST::Type* targetType_;
 			llvm::Value* sizeValue_;
 			
 		};
@@ -148,7 +150,7 @@ namespace locic {
 			for (const auto& value: typeTemplateArguments) {
 				valueArray.push_back(value.copy());
 			}
-			const auto type = SEM::Type::Object(&typeInstance_,
+			const auto type = AST::Type::Object(&typeInstance_,
 			                                    std::move(valueArray));
 			
 			const auto targetType = typeTemplateArguments.front().typeRefType();

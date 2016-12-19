@@ -15,6 +15,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Type;
 		class Var;
 		
 	}
@@ -25,7 +26,6 @@ namespace locic {
 		class IfClause;
 		class Scope;
 		class SwitchCase;
-		class Type;
 		
 		class Statement {
 			public:

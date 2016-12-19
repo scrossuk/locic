@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
@@ -39,14 +40,14 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* callRawCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
-				const String& targetMethodName, const SEM::Type* const castToType, llvm::Value* const hintResultValue) {
+		llvm::Value* callRawCastMethod(Function& function, llvm::Value* const castFromValue, const AST::Type* const castFromType,
+				const String& targetMethodName, const AST::Type* const castToType, llvm::Value* const hintResultValue) {
 			const bool isVarArg = false;
 			const bool isMethod = false;
 			const bool isTemplated = false;
 			auto noexceptPredicate = SEM::Predicate::True();
 			const auto returnType = castToType;
-			const SEM::TypeArray parameterTypes = castFromValue != nullptr ? SEM::TypeArray{ castFromType } : SEM::TypeArray{};
+			const AST::TypeArray parameterTypes = castFromValue != nullptr ? AST::TypeArray{ castFromType } : AST::TypeArray{};
 			
 			AST::FunctionAttributes functionAttributes(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate));
 			const AST::FunctionType functionType(std::move(functionAttributes), returnType, parameterTypes.copy());
@@ -72,8 +73,8 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const SEM::Type* const castFromType,
-				const MethodID methodID, const SEM::Type* const rawCastToType, llvm::Value* const hintResultValue) {
+		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const AST::Type* const castFromType,
+				const MethodID methodID, const AST::Type* const rawCastToType, llvm::Value* const hintResultValue) {
 			assert(castFromType->isPrimitive());
 			
 			const auto castToType = rawCastToType->resolveAliases();

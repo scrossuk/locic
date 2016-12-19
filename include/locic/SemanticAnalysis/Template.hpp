@@ -25,7 +25,7 @@ namespace locic {
 		
 		SEM::ValueArray GetTemplateValues(const AST::TemplateVarMap& templateVarMap, const AST::TemplateVarArray& templateVariables);
 		
-		SEM::ValueArray makeTemplateArgs(Context& context, SEM::TypeArray typeArray);
+		SEM::ValueArray makeTemplateArgs(Context& context, AST::TypeArray typeArray);
 		
 	}
 	

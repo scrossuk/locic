@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <string>
 
+#include <locic/AST/Type.hpp>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -17,7 +19,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		void genStorePrimitiveLval(Function& function, llvm::Value* value, llvm::Value* var, const SEM::Type* varType) {
+		void genStorePrimitiveLval(Function& function, llvm::Value* value, llvm::Value* var, const AST::Type* varType) {
 			assert(var->getType()->isPointerTy());
 			
 			IREmitter irEmitter(function);

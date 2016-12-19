@@ -2,6 +2,7 @@
 #include <llvm-abi/ABITypeInfo.hpp>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
@@ -174,7 +175,7 @@ namespace locic {
 			}
 		}
 		
-		void genSetDeadState(Function& functionGenerator, const SEM::Type* const rawType, llvm::Value* const value) {
+		void genSetDeadState(Function& functionGenerator, const AST::Type* const rawType, llvm::Value* const value) {
 			const auto type = rawType->resolveAliases();
 			auto& module = functionGenerator.module();
 			
@@ -195,7 +196,7 @@ namespace locic {
 			llvm_unreachable("Unknown __setdead value type.");
 		}
 		
-		void genSetInvalidState(Function& functionGenerator, const SEM::Type* const type, llvm::Value* const value) {
+		void genSetInvalidState(Function& functionGenerator, const AST::Type* const type, llvm::Value* const value) {
 			auto& module = functionGenerator.module();
 			
 			// Call __setinvalid method.
@@ -221,7 +222,7 @@ namespace locic {
 			return semFunctionGenerator.getDecl(typeInstance, function);
 		}
 		
-		llvm::Value* genIsLive(Function& function, const SEM::Type* const type, llvm::Value* const value) {
+		llvm::Value* genIsLive(Function& function, const AST::Type* const type, llvm::Value* const value) {
 			auto& module = function.module();
 			
 			// Call __islive method.

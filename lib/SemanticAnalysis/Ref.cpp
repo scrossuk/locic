@@ -1,3 +1,4 @@
+#include <locic/AST/Type.hpp>
 #include <locic/AST/Value.hpp>
 #include <locic/AST/Var.hpp>
 #include <locic/SEM.hpp>
@@ -11,7 +12,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		size_t getRefCount(const SEM::Type* type) {
+		size_t getRefCount(const AST::Type* type) {
 			size_t count = 0;
 			while (type->isRef()) {
 				type = type->refTarget();
@@ -20,18 +21,18 @@ namespace locic {
 			return count;
 		}
 		
-		const SEM::Type* getLastRefType(const SEM::Type* type) {
+		const AST::Type* getLastRefType(const AST::Type* type) {
 			while (getRefCount(type) > 1) {
 				type = type->refTarget();
 			}
 			return type;
 		}
 		
-		const SEM::Type* getSingleDerefType(const SEM::Type* type) {
+		const AST::Type* getSingleDerefType(const AST::Type* type) {
 			return type->isRef() ? type->refTarget() : type;
 		}
 		
-		const SEM::Type* getDerefType(const SEM::Type* type) {
+		const AST::Type* getDerefType(const AST::Type* type) {
 			while (type->isRef()) {
 				type = type->refTarget();
 			}
@@ -60,7 +61,7 @@ namespace locic {
 			return value;
 		}
 		
-		size_t getStaticRefCount(const SEM::Type* type) {
+		size_t getStaticRefCount(const AST::Type* type) {
 			size_t count = 0;
 			while (type->isStaticRef()) {
 				type = type->staticRefTarget();
@@ -69,14 +70,14 @@ namespace locic {
 			return count;
 		}
 		
-		const SEM::Type* getLastStaticRefType(const SEM::Type* type) {
+		const AST::Type* getLastStaticRefType(const AST::Type* type) {
 			while (getStaticRefCount(type) > 1) {
 				type = type->staticRefTarget();
 			}
 			return type;
 		}
 		
-		const SEM::Type* getStaticDerefType(const SEM::Type* type) {
+		const AST::Type* getStaticDerefType(const AST::Type* type) {
 			while (type->isStaticRef()) {
 				type = type->staticRefTarget();
 			}
@@ -105,12 +106,12 @@ namespace locic {
 			return value;
 		}
 		
-		SEM::Value createTypeRef(Context& context, const SEM::Type* targetType) {
+		SEM::Value createTypeRef(Context& context, const AST::Type* targetType) {
 			const auto typenameType = context.typeBuilder().getTypenameType();
 			return SEM::Value::TypeRef(targetType, typenameType->createStaticRefType(targetType));
 		}
 		
-		const SEM::Type* createReferenceType(Context& context, const SEM::Type* const varType) {
+		const AST::Type* createReferenceType(Context& context, const AST::Type* const varType) {
 			return getBuiltInType(context, context.getCString("ref_t"), { varType})->createRefType(varType);
 		}
 		
@@ -127,7 +128,7 @@ namespace locic {
 			}
 		}
 		
-		SEM::Value createSelfRef(Context& context, const SEM::Type* const selfType) {
+		SEM::Value createSelfRef(Context& context, const AST::Type* const selfType) {
 			return SEM::Value::Self(createReferenceType(context, selfType));
 		}
 		

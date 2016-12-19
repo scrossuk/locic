@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include <locic/AST/Type.hpp>
+
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -14,7 +16,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		void genPrimitiveDestructorCall(Function& function, const SEM::Type* const type, llvm::Value* value) {
+		void genPrimitiveDestructorCall(Function& function, const AST::Type* const type, llvm::Value* value) {
 			assert(value->getType()->isPointerTy());
 			assert(type->isPrimitive());
 			

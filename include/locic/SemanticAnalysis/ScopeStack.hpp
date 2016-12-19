@@ -93,7 +93,7 @@ namespace locic {
 		
 		const AST::TemplatedObject* lookupTemplatedObject(const ScopeStack& scopeStack);
 		
-		const SEM::Type* getParentFunctionReturnType(const ScopeStack& scopeStack);
+		const AST::Type* getParentFunctionReturnType(const ScopeStack& scopeStack);
 		
 		class Context;
 		
@@ -101,9 +101,9 @@ namespace locic {
 		
 		const SEM::TypeInstance& getBuiltInTypeInstance(Context& context, const String& typeName);
 		
-		const SEM::Type* getBuiltInType(Context& context, const String& typeName, SEM::TypeArray templateArgs);
+		const AST::Type* getBuiltInType(Context& context, const String& typeName, AST::TypeArray templateArgs);
 		
-		const SEM::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, SEM::ValueArray templateArgValues);
+		const AST::Type* getBuiltInTypeWithValueArgs(Context& context, const String& typeName, SEM::ValueArray templateArgValues);
 		
 	}
 	

@@ -6,7 +6,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		UnwindAction UnwindAction::Destructor(const SEM::Type* type, llvm::Value* value) {
+		UnwindAction UnwindAction::Destructor(const AST::Type* type, llvm::Value* value) {
 			UnwindAction action(UnwindAction::DESTRUCTOR);
 			action.actions_.destructorAction.type = type;
 			action.actions_.destructorAction.value = value;
@@ -90,7 +90,7 @@ namespace locic {
 			return kind() == UnwindAction::DESTROYEXCEPTION;
 		}
 		
-		const SEM::Type* UnwindAction::destructorType() const {
+		const AST::Type* UnwindAction::destructorType() const {
 			assert(isDestructor());
 			return actions_.destructorAction.type;
 		}

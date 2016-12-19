@@ -1,4 +1,5 @@
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Type.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/DefaultMethodEmitter.hpp>

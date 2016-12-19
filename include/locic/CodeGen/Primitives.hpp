@@ -14,12 +14,12 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
+		class Type;
 		
 	}
 	
 	namespace SEM {
 		
-		class Type;
 		class TypeInstance;
 		
 	}
@@ -30,23 +30,23 @@ namespace locic {
 		class Function;
 		class Module;
 		
-		void genPrimitiveMoveCall(Function& function, const SEM::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
+		void genPrimitiveMoveCall(Function& function, const AST::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
 		
-		void genPrimitiveDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value);
+		void genPrimitiveDestructorCall(Function& function, const AST::Type* type, llvm::Value* value);
 		
 		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args,
 			llvm::Value* const hintResultValue = nullptr);
 		
-		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, const SEM::Type* varType);
+		void genStorePrimitiveLval(Function& functionGenerator, llvm::Value* value, llvm::Value* var, const AST::Type* varType);
 		
-		llvm::Value* genPrimitiveAlignMask(Function& function, const SEM::Type* type);
-		llvm::Value* genPrimitiveSizeOf(Function& function, const SEM::Type* type);
+		llvm::Value* genPrimitiveAlignMask(Function& function, const AST::Type* type);
+		llvm::Value* genPrimitiveSizeOf(Function& function, const AST::Type* type);
 		
 		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveID id);
-		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* type);
+		llvm::Type* getPrimitiveType(Module& module, const AST::Type* type);
 		
 		llvm_abi::Type getBasicPrimitiveABIType(Module& module, PrimitiveID id);
-		llvm_abi::Type getPrimitiveABIType(Module& module, const SEM::Type* type);
+		llvm_abi::Type getPrimitiveABIType(Module& module, const AST::Type* type);
 		
 	}
 	

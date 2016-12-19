@@ -2,10 +2,11 @@
 
 #include <string>
 
+#include <locic/AST/Type.hpp>
+#include <locic/AST/TypeArray.hpp>
+
 #include <locic/SEM/Context.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TypeArray.hpp>
-#include <locic/SEM/Type.hpp>
 
 #include <locic/Support/Hasher.hpp>
 #include <locic/Support/MakeString.hpp>
@@ -75,8 +76,8 @@ namespace locic {
 		}
 		
 		FunctionTypeData::FunctionTypeData(FunctionAttributes argAttributes,
-		                                   const SEM::Type* const argReturnType,
-		                                   SEM::TypeArray argParameterTypes)
+		                                   const AST::Type* const argReturnType,
+		                                   AST::TypeArray argParameterTypes)
 		: attributes_(std::move(argAttributes)),
 		returnType_(argReturnType),
 		parameterTypes_(std::move(argParameterTypes)) { }
@@ -95,11 +96,11 @@ namespace locic {
 			return attributes_;
 		}
 		
-		const SEM::Type* FunctionTypeData::returnType() const {
+		const AST::Type* FunctionTypeData::returnType() const {
 			return returnType_;
 		}
 		
-		const SEM::TypeArray& FunctionTypeData::parameterTypes() const {
+		const AST::TypeArray& FunctionTypeData::parameterTypes() const {
 			return parameterTypes_;
 		}
 		
@@ -138,8 +139,8 @@ namespace locic {
 		}
 		
 		FunctionType::FunctionType(FunctionAttributes argAttributes,
-		                           const SEM::Type* const argReturnType,
-		                           SEM::TypeArray argParameterTypes)
+		                           const AST::Type* const argReturnType,
+		                           AST::TypeArray argParameterTypes)
 		: data_(nullptr) {
 			FunctionTypeData functionTypeData(std::move(argAttributes),
 			                                  argReturnType,
@@ -156,7 +157,7 @@ namespace locic {
 			
 			bool changed = (substitutedReturnType != returnType());
 			
-			SEM::TypeArray substitutedParameterTypes;
+			AST::TypeArray substitutedParameterTypes;
 			
 			for (const auto parameterType: parameterTypes()) {
 				const auto substitutedParameterType = parameterType->substitute(templateVarMap);

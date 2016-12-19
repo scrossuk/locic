@@ -6,12 +6,12 @@
 #include <locic/AST/GlobalStructure.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
+#include <locic/AST/Type.hpp>
 #include <locic/AST/Value.hpp>
 
 #include <locic/Debug/SourceLocation.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/Type.hpp>
 #include <locic/SEM/Value.hpp>
 
 namespace locic {
@@ -94,11 +94,11 @@ namespace locic {
 			fullName_ = std::move(pFullName);
 		}
 		
-		const SEM::Type* Alias::type() const {
+		const AST::Type* Alias::type() const {
 			return value_ ? value().type() : type_;
 		}
 		
-		void Alias::setType(const SEM::Type* const argType) {
+		void Alias::setType(const AST::Type* const argType) {
 			assert(type_ == nullptr && argType != nullptr);
 			type_ = argType;
 		}
@@ -113,9 +113,9 @@ namespace locic {
 			}
 		}
 		
-		const SEM::Type* Alias::selfRefType(SEM::ValueArray templateArguments) const {
+		const AST::Type* Alias::selfRefType(SEM::ValueArray templateArguments) const {
 			assert(templateArguments.size() == templateVariables().size());
-			return SEM::Type::Alias(*this, std::move(templateArguments));
+			return Type::Alias(*this, std::move(templateArguments));
 		}
 		
 		SEM::ValueArray Alias::selfTemplateArgs() const {

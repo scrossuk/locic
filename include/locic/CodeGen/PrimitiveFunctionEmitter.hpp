@@ -7,9 +7,14 @@ namespace locic {
 	
 	class MethodID;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Type;
+		
+	}
+	
+	namespace SEM {
+		
 		class Value;
 		
 	}
@@ -60,7 +65,7 @@ namespace locic {
 			 */
 			llvm::Value*
 			emitMethod(MethodID methodID,
-			           const SEM::Type* parentType,
+			           const AST::Type* parentType,
 			           llvm::ArrayRef<SEM::Value> functionTemplateArguments,
 			           PendingResultArray args,
 			           llvm::Value* hintResultValue);
@@ -76,7 +81,7 @@ namespace locic {
 			 */
 			llvm::Value*
 			emitFunction(MethodID methodID,
-			             const SEM::Type* parentType,
+			             const AST::Type* parentType,
 			             llvm::ArrayRef<SEM::Value> functionTemplateArguments,
 			             PendingResultArray args,
 			             llvm::Value* hintResultValue);

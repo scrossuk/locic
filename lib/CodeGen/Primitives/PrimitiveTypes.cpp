@@ -7,6 +7,8 @@
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
+#include <locic/AST/Type.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -26,7 +28,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		llvm::Type* getPrimitiveType(Module& module, const SEM::Type* const type) {
+		llvm::Type* getPrimitiveType(Module& module, const AST::Type* const type) {
 			const auto& primitive = module.getPrimitive(*(type->getObjectType()));
 			return primitive.getIRType(module,
 			                           TypeGenerator(module),
@@ -244,7 +246,7 @@ namespace locic {
 			}
 		}
 		
-		llvm_abi::Type getPrimitiveABIType(Module& module, const SEM::Type* const type) {
+		llvm_abi::Type getPrimitiveABIType(Module& module, const AST::Type* const type) {
 			assert(TypeInfo(module).isSizeKnownInThisModule(type));
 			
 			const auto& primitive = module.getPrimitive(*(type->getObjectType()));

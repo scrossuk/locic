@@ -1,5 +1,6 @@
 #include <cassert>
 
+#include <locic/AST/Type.hpp>
 #include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/SEM.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -19,8 +20,8 @@ namespace locic {
 		TypeCapabilities::TypeCapabilities(Context& context)
 		: context_(context) { }
 		
-		const SEM::Type*
-		TypeCapabilities::getCapabilityType(const String capability, SEM::TypeArray templateArgs) {
+		const AST::Type*
+		TypeCapabilities::getCapabilityType(const String capability, AST::TypeArray templateArgs) {
 			for (auto& arg: templateArgs) {
 				arg = arg->resolveAliases();
 			}
@@ -30,9 +31,9 @@ namespace locic {
 		}
 		
 		bool
-		TypeCapabilities::checkCapabilityWithType(const SEM::Type* const rawType,
+		TypeCapabilities::checkCapabilityWithType(const AST::Type* const rawType,
 		                                          const String capability,
-		                                          const SEM::Type* requireType) {
+		                                          const AST::Type* requireType) {
 			const auto type = rawType->resolveAliases();
 			if (!type->isObject() && !type->isTemplateVar()) {
 				return false;
@@ -53,26 +54,26 @@ namespace locic {
 		}
 		
 		bool
-		TypeCapabilities::checkCapability(const SEM::Type* const rawType, const String capability,
-		                                  SEM::TypeArray templateArgs) {
+		TypeCapabilities::checkCapability(const AST::Type* const rawType, const String capability,
+		                                  AST::TypeArray templateArgs) {
 			const auto requireType = getCapabilityType(capability, std::move(templateArgs));
 			return checkCapabilityWithType(rawType, capability, requireType);
 		}
 		
 		bool
-		TypeCapabilities::hasCallMethod(const SEM::Type* type) {
+		TypeCapabilities::hasCallMethod(const AST::Type* type) {
 			const auto methodSet = getTypeMethodSet(context_, type);
 			const auto methodIterator = methodSet->find(context_.getCString("call"));
 			return methodIterator != methodSet->end();
 		}
 		
 		bool
-		TypeCapabilities::supportsImplicitCast(const SEM::Type* type) {
+		TypeCapabilities::supportsImplicitCast(const AST::Type* type) {
 			switch (type->kind()) {
-				case SEM::Type::TEMPLATEVAR:
+				case AST::Type::TEMPLATEVAR:
 					return false;
 					
-				case SEM::Type::OBJECT: {
+				case AST::Type::OBJECT: {
 					const auto typeInstance = type->getObjectType();
 					const auto function = typeInstance->findFunction(context_.getCString("implicitcast"));
 					if (function == nullptr) return false;
@@ -98,53 +99,53 @@ namespace locic {
 		}
 		
 		bool
-		TypeCapabilities::supportsImplicitCopy(const SEM::Type* const type) {
+		TypeCapabilities::supportsImplicitCopy(const AST::Type* const type) {
 			return supportsMove(type->resolveAliases()->withoutTags()) &&
 				checkCapability(type, context_.getCString("implicit_copyable_t"),
 				                { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool
-		TypeCapabilities::supportsNoExceptImplicitCopy(const SEM::Type* const type) {
+		TypeCapabilities::supportsNoExceptImplicitCopy(const AST::Type* const type) {
 			return supportsMove(type->resolveAliases()->withoutTags()) &&
 				checkCapability(type, context_.getCString("noexcept_implicit_copyable_t"),
 				                { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool
-		TypeCapabilities::supportsExplicitCopy(const SEM::Type* const type) {
+		TypeCapabilities::supportsExplicitCopy(const AST::Type* const type) {
 			return supportsMove(type->resolveAliases()->withoutTags()) &&
 				checkCapability(type, context_.getCString("copyable_t"),
 				                { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool
-		TypeCapabilities::supportsNoExceptExplicitCopy(const SEM::Type* const type) {
+		TypeCapabilities::supportsNoExceptExplicitCopy(const AST::Type* const type) {
 			return supportsMove(type->resolveAliases()->withoutTags()) &&
 				checkCapability(type, context_.getCString("noexcept_copyable_t"),
 				                { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool
-		TypeCapabilities::supportsCompare(const SEM::Type* const type) {
+		TypeCapabilities::supportsCompare(const AST::Type* const type) {
 			return checkCapability(type, context_.getCString("comparable_t"),
 			                       { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool
-		TypeCapabilities::supportsNoExceptCompare(const SEM::Type* const type) {
+		TypeCapabilities::supportsNoExceptCompare(const AST::Type* const type) {
 			return checkCapability(type, context_.getCString("noexcept_comparable_t"),
 			                       { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool
-		TypeCapabilities::supportsMove(const SEM::Type* const type) {
+		TypeCapabilities::supportsMove(const AST::Type* const type) {
 			return checkCapabilityWithType(type, context_.getCString("movable_t"),
 			                               context_.typeBuilder().getMovableInterfaceType());
 		}
 		
 		bool
-		TypeCapabilities::supportsCall(const SEM::Type* const type) {
+		TypeCapabilities::supportsCall(const AST::Type* const type) {
 			return checkCapability(type, context_.getCString("callable"), {});
 		}
 		

@@ -31,7 +31,7 @@ namespace locic {
 			return argInfo.withNoExcept();
 		}
 		
-		void scheduleDestructorCall(Function& function, const SEM::Type* type, llvm::Value* value) {
+		void scheduleDestructorCall(Function& function, const AST::Type* type, llvm::Value* value) {
 			TypeInfo typeInfo(function.module());
 			if (!typeInfo.hasCustomDestructor(type)) {
 				return;
