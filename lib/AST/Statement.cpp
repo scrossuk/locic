@@ -4,7 +4,7 @@
 #include <locic/AST/Statement.hpp>
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/TypeDecl.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 #include <locic/Support/String.hpp>
 
@@ -12,14 +12,14 @@ namespace locic {
 	
 	namespace AST {
 		
-		Statement* Statement::ValueStmt(Node<Value> value) {
+		Statement* Statement::ValueStmt(Node<ValueDecl> value) {
 			Statement* statement = new Statement(VALUE);
 			statement->valueStmt.value = std::move(value);
 			statement->valueStmt.hasVoidCast = false;
 			return statement;
 		}
 		
-		Statement* Statement::ValueStmtVoidCast(Node<Value> value) {
+		Statement* Statement::ValueStmtVoidCast(Node<ValueDecl> value) {
 			Statement* statement = new Statement(VALUE);
 			statement->valueStmt.value = std::move(value);
 			statement->valueStmt.hasVoidCast = true;
@@ -40,7 +40,7 @@ namespace locic {
 		}
 		
 		Statement*
-		Statement::Switch(Node<Value> value, Node<SwitchCaseList> caseList,
+		Statement::Switch(Node<ValueDecl> value, Node<SwitchCaseList> caseList,
 		                  Node<DefaultCase> defaultCase) {
 			Statement* statement = new Statement(SWITCH);
 			statement->switchStmt.value = std::move(value);
@@ -50,7 +50,7 @@ namespace locic {
 		}
 		
 		Statement*
-		Statement::While(Node<Value> condition, Node<Scope> whileTrue) {
+		Statement::While(Node<ValueDecl> condition, Node<Scope> whileTrue) {
 			Statement* statement = new Statement(WHILE);
 			statement->whileStmt.condition = std::move(condition);
 			statement->whileStmt.whileTrue = std::move(whileTrue);
@@ -58,7 +58,7 @@ namespace locic {
 		}
 		
 		Statement*
-		Statement::For(Node<Var> typeVar, Node<Value> initValue, Node<Scope> scope) {
+		Statement::For(Node<Var> typeVar, Node<ValueDecl> initValue, Node<Scope> scope) {
 			Statement* statement = new Statement(FOR);
 			statement->forStmt.typeVar = std::move(typeVar);
 			statement->forStmt.initValue = std::move(initValue);
@@ -83,7 +83,7 @@ namespace locic {
 		}
 		
 		Statement*
-		Statement::VarDecl(Node<Var> typeVar, Node<Value> value) {
+		Statement::VarDecl(Node<Var> typeVar, Node<ValueDecl> value) {
 			Statement* statement = new Statement(VARDECL);
 			statement->varDecl.typeVar = std::move(typeVar);
 			statement->varDecl.value = std::move(value);
@@ -91,8 +91,8 @@ namespace locic {
 		}
 		
 		Statement*
-		Statement::Assign(AssignKind assignKind, Node<Value> var,
-		                  Node<Value> value) {
+		Statement::Assign(AssignKind assignKind, Node<ValueDecl> var,
+		                  Node<ValueDecl> value) {
 			Statement* statement = new Statement(ASSIGN);
 			statement->assignStmt.assignKind = assignKind;
 			statement->assignStmt.var = std::move(var);
@@ -100,19 +100,19 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement* Statement::Increment(Node<Value> value) {
+		Statement* Statement::Increment(Node<ValueDecl> value) {
 			Statement* statement = new Statement(INCREMENT);
 			statement->incrementStmt.value = std::move(value);
 			return statement;
 		}
 		
-		Statement* Statement::Decrement(Node<Value> value) {
+		Statement* Statement::Decrement(Node<ValueDecl> value) {
 			Statement* statement = new Statement(DECREMENT);
 			statement->decrementStmt.value = std::move(value);
 			return statement;
 		}
 		
-		Statement* Statement::Return(Node<Value> value) {
+		Statement* Statement::Return(Node<ValueDecl> value) {
 			Statement* statement = new Statement(RETURN);
 			statement->returnStmt.value = std::move(value);
 			return statement;
@@ -122,7 +122,7 @@ namespace locic {
 			return new Statement(RETURNVOID);
 		}
 		
-		Statement* Statement::Throw(Node<Value> value) {
+		Statement* Statement::Throw(Node<ValueDecl> value) {
 			Statement* statement = new Statement(THROW);
 			statement->throwStmt.value = std::move(value);
 			return statement;
@@ -140,7 +140,7 @@ namespace locic {
 			return new Statement(CONTINUE);
 		}
 		
-		Statement* Statement::Assert(Node<Value> value, const String& name) {
+		Statement* Statement::Assert(Node<ValueDecl> value, const String& name) {
 			Statement* statement = new Statement(ASSERT);
 			statement->assertStmt.value = std::move(value);
 			statement->assertStmt.name = name;
@@ -173,7 +173,7 @@ namespace locic {
 			return valueStmt.hasVoidCast;
 		}
 		
-		const Node<Value>& Statement::value() const {
+		const Node<ValueDecl>& Statement::value() const {
 			assert(isValue());
 			return valueStmt.value;
 		}
@@ -205,7 +205,7 @@ namespace locic {
 			return kind() == SWITCH;
 		}
 		
-		const Node<Value>& Statement::switchValue() const {
+		const Node<ValueDecl>& Statement::switchValue() const {
 			assert(isSwitch());
 			return switchStmt.value;
 		}
@@ -224,7 +224,7 @@ namespace locic {
 			return kind() == WHILE;
 		}
 		
-		const Node<Value>& Statement::whileCondition() const {
+		const Node<ValueDecl>& Statement::whileCondition() const {
 			assert(isWhile());
 			return whileStmt.condition;
 		}
@@ -246,7 +246,7 @@ namespace locic {
 			return forStmt.typeVar;
 		}
 		
-		const Node<Value>& Statement::forInitValue() const {
+		const Node<ValueDecl>& Statement::forInitValue() const {
 			return forStmt.initValue;
 		}
 		
@@ -296,7 +296,7 @@ namespace locic {
 			return varDecl.typeVar;
 		}
 		
-		const Node<Value>& Statement::varDeclValue() const {
+		const Node<ValueDecl>& Statement::varDeclValue() const {
 			assert(isVarDecl());
 			return varDecl.value;
 		}
@@ -310,12 +310,12 @@ namespace locic {
 			return assignStmt.assignKind;
 		}
 		
-		const Node<Value>& Statement::assignLvalue() const {
+		const Node<ValueDecl>& Statement::assignLvalue() const {
 			assert(isAssign());
 			return assignStmt.var;
 		}
 		
-		const Node<Value>& Statement::assignRvalue() const {
+		const Node<ValueDecl>& Statement::assignRvalue() const {
 			assert(isAssign());
 			return assignStmt.value;
 		}
@@ -324,7 +324,7 @@ namespace locic {
 			return kind() == INCREMENT;
 		}
 		
-		const Node<Value>& Statement::incrementValue() const {
+		const Node<ValueDecl>& Statement::incrementValue() const {
 			assert(isIncrement());
 			return incrementStmt.value;
 		}
@@ -333,7 +333,7 @@ namespace locic {
 			return kind() == DECREMENT;
 		}
 		
-		const Node<Value>& Statement::decrementValue() const {
+		const Node<ValueDecl>& Statement::decrementValue() const {
 			assert(isDecrement());
 			return decrementStmt.value;
 		}
@@ -342,7 +342,7 @@ namespace locic {
 			return kind() == RETURN;
 		}
 		
-		const Node<Value>& Statement::returnValue() const {
+		const Node<ValueDecl>& Statement::returnValue() const {
 			assert(isReturn());
 			return returnStmt.value;
 		}
@@ -355,7 +355,7 @@ namespace locic {
 			return kind() == THROW;
 		}
 		
-		const Node<Value>& Statement::throwValue() const {
+		const Node<ValueDecl>& Statement::throwValue() const {
 			assert(isThrow());
 			return throwStmt.value;
 		}
@@ -376,7 +376,7 @@ namespace locic {
 			return kind() == ASSERT;
 		}
 		
-		const Node<Value>& Statement::assertValue() const {
+		const Node<ValueDecl>& Statement::assertValue() const {
 			assert(isAssert());
 			return assertStmt.value;
 		}

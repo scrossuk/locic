@@ -533,7 +533,7 @@ namespace locic {
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isReturn());
-				EXPECT_EQ(statement->returnValue()->kind(), AST::Value::LITERAL);
+				EXPECT_EQ(statement->returnValue()->kind(), AST::ValueDecl::LITERAL);
 			});
 		}
 		
@@ -545,7 +545,7 @@ namespace locic {
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isReturn());
-				EXPECT_EQ(statement->returnValue()->kind(), AST::Value::TYPEREF);
+				EXPECT_EQ(statement->returnValue()->kind(), AST::ValueDecl::TYPEREF);
 			});
 		}
 		

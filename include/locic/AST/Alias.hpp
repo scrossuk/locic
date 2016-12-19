@@ -9,7 +9,7 @@
 #include <locic/AST/TemplatedObject.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TemplateVarArray.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 
 #include <locic/Debug/SourceLocation.hpp>
 
@@ -33,7 +33,7 @@ namespace locic {
 		
 		class Alias final: public TemplatedObject {
 		public:
-			Alias(const String& pName, AST::Node<Value> pValue,
+			Alias(const String& pName, AST::Node<ValueDecl> pValue,
 			          const Debug::SourceLocation& location);
 			~Alias();
 			
@@ -43,7 +43,7 @@ namespace locic {
 			String name() const;
 			const Node<TemplateVarList>& templateVariableDecls() const;
 			const Node<RequireSpecifier>& requireSpecifier() const;
-			const AST::Node<AST::Value>& valueDecl() const;
+			const AST::Node<AST::ValueDecl>& valueDecl() const;
 			
 			void setRequireSpecifier(Node<RequireSpecifier> pRequireSpecifier);
 			void setTemplateVariableDecls(Node<TemplateVarList> pTemplateVariables);
@@ -103,7 +103,7 @@ namespace locic {
 			String name_;
 			Node<TemplateVarList> templateVariableDecls_;
 			Node<RequireSpecifier> requireSpecifier_;
-			Node<Value> valueDecl_;
+			Node<ValueDecl> valueDecl_;
 			SEM::Context* context_;
 			Optional<GlobalStructure> parent_;
 			Name fullName_;

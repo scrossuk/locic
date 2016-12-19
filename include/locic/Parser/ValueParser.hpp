@@ -48,101 +48,101 @@ namespace locic {
 			
 			bool isValueStartToken(Token::Kind kind) const;
 			
-			AST::Node<AST::Value> parseValue(Context context = GENERIC);
+			AST::Node<AST::ValueDecl> parseValue(Context context = GENERIC);
 			
-			AST::Node<AST::Value> parseTernaryValue(Context context);
+			AST::Node<AST::ValueDecl> parseTernaryValue(Context context);
 			
-			AST::Node<AST::Value> parseLogicalOrValue(Context context);
+			AST::Node<AST::ValueDecl> parseLogicalOrValue(Context context);
 			
-			void checkLogicalOrOperand(const AST::Node<AST::Value>& operand);
+			void checkLogicalOrOperand(const AST::Node<AST::ValueDecl>& operand);
 			
-			bool isLogicalOrValueOrNext(const AST::Node<AST::Value>& operand) const;
+			bool isLogicalOrValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseLogicalAndValue(Context context);
+			AST::Node<AST::ValueDecl> parseLogicalAndValue(Context context);
 			
-			void checkLogicalAndOperand(const AST::Node<AST::Value>& operand);
+			void checkLogicalAndOperand(const AST::Node<AST::ValueDecl>& operand);
 			
-			bool isLogicalAndValueOrNext(const AST::Node<AST::Value>& operand) const;
+			bool isLogicalAndValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseBitwiseOrValue(Context context);
+			AST::Node<AST::ValueDecl> parseBitwiseOrValue(Context context);
 			
-			void checkBitwiseOrOperand(const AST::Node<AST::Value>& operand);
+			void checkBitwiseOrOperand(const AST::Node<AST::ValueDecl>& operand);
 			
-			bool isBitwiseOrValueOrNext(const AST::Node<AST::Value>& operand) const;
+			bool isBitwiseOrValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseBitwiseXorValue(Context context);
+			AST::Node<AST::ValueDecl> parseBitwiseXorValue(Context context);
 			
-			void checkBitwiseXorOperand(const AST::Node<AST::Value>& operand);
+			void checkBitwiseXorOperand(const AST::Node<AST::ValueDecl>& operand);
 			
-			bool isBitwiseXorValueOrNext(const AST::Node<AST::Value>& operand) const;
+			bool isBitwiseXorValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseBitwiseAndValue(Context context);
+			AST::Node<AST::ValueDecl> parseBitwiseAndValue(Context context);
 			
-			void checkBitwiseAndOperand(const AST::Node<AST::Value>& operand);
+			void checkBitwiseAndOperand(const AST::Node<AST::ValueDecl>& operand);
 			
-			bool isBitwiseAndValueOrNext(const AST::Node<AST::Value>& operand) const;
+			bool isBitwiseAndValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseComparisonValue(Context context);
+			AST::Node<AST::ValueDecl> parseComparisonValue(Context context);
 			
-			void checkComparisonOperand(const AST::Node<AST::Value>& operand);
+			void checkComparisonOperand(const AST::Node<AST::ValueDecl>& operand);
 			
-			bool isComparisonValueOrNext(const AST::Node<AST::Value>& operand) const;
+			bool isComparisonValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseShiftValue(Context context);
+			AST::Node<AST::ValueDecl> parseShiftValue(Context context);
 			
-			void checkShiftOperand(const AST::Node<AST::Value>& operand);
+			void checkShiftOperand(const AST::Node<AST::ValueDecl>& operand);
 			
-			AST::Node<AST::Value> parseAddOperatorValue(Context context);
+			AST::Node<AST::ValueDecl> parseAddOperatorValue(Context context);
 			
-			void checkAddOperand(const AST::Node<AST::Value>& operand);
+			void checkAddOperand(const AST::Node<AST::ValueDecl>& operand);
 			
-			bool isAddValueOrNext(const AST::Node<AST::Value>& operand) const;
+			bool isAddValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseMultiplyOperatorValue(Context context);
+			AST::Node<AST::ValueDecl> parseMultiplyOperatorValue(Context context);
 			
-			void checkMultiplyOperand(const AST::Node<AST::Value>& operand);
+			void checkMultiplyOperand(const AST::Node<AST::ValueDecl>& operand);
 			
-			bool isMultiplyValueOrNext(const AST::Node<AST::Value>& operand) const;
+			bool isMultiplyValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseUnaryValue(Context context);
+			AST::Node<AST::ValueDecl> parseUnaryValue(Context context);
 			
-			bool isUnaryValueOrNext(const AST::Node<AST::Value>& operand) const;
+			bool isUnaryValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseCallValue(Context context);
+			AST::Node<AST::ValueDecl> parseCallValue(Context context);
 			
-			bool isCallValueOrNext(const AST::Node<AST::Value>& operand) const;
+			bool isCallValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseMemberAccessExpression(AST::Node<AST::Value> value,
+			AST::Node<AST::ValueDecl> parseMemberAccessExpression(AST::Node<AST::ValueDecl> value,
 			                                                  bool isDeref,
 			                                                  const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value> parseTypeValue(Context context);
+			AST::Node<AST::ValueDecl> parseTypeValue(Context context);
 			
-			bool canInterpretValueAsType(const AST::Node<AST::Value>& value);
+			bool canInterpretValueAsType(const AST::Node<AST::ValueDecl>& value);
 			
-			AST::Node<AST::TypeDecl> interpretValueAsType(AST::Node<AST::Value> value);
+			AST::Node<AST::TypeDecl> interpretValueAsType(AST::Node<AST::ValueDecl> value);
 			
-			AST::Node<AST::Value> parseAtomicValue();
+			AST::Node<AST::ValueDecl> parseAtomicValue();
 			
-			bool isAtomicValue(const AST::Node<AST::Value>& operand) const;
+			bool isAtomicValue(const AST::Node<AST::ValueDecl>& operand) const;
 			
-			AST::Node<AST::Value> parseAtExpression(const Debug::SourcePosition& start);
+			AST::Node<AST::ValueDecl> parseAtExpression(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::ValueList> parseOptionalTemplateArguments();
+			AST::Node<AST::ValueDeclList> parseOptionalTemplateArguments();
 			
-			AST::Node<AST::Value> parseSymbolOrLiteralValue();
+			AST::Node<AST::ValueDecl> parseSymbolOrLiteralValue();
 			
-			AST::Node<AST::Value> parseLiteral(Constant constant,
+			AST::Node<AST::ValueDecl> parseLiteral(Constant constant,
 			                                   const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value> parseTypeQualifyingValue(Token::Kind kind,
+			AST::Node<AST::ValueDecl> parseTypeQualifyingValue(Token::Kind kind,
 			                                               const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value> parseArrayLiteral(const Debug::SourcePosition& start);
+			AST::Node<AST::ValueDecl> parseArrayLiteral(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::ValueList> parseValueList(Context context = GENERIC);
+			AST::Node<AST::ValueDeclList> parseValueList(Context context = GENERIC);
 			
-			AST::Node<AST::Value> parseCastValue();
+			AST::Node<AST::ValueDecl> parseCastValue();
 			
 		private:
 			TokenReader& reader_;

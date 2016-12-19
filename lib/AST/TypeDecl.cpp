@@ -3,7 +3,7 @@
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Symbol.hpp>
 #include <locic/AST/TypeDecl.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 
 namespace locic {
 	
@@ -103,7 +103,7 @@ namespace locic {
 			return type;
 		}
 		
-		TypeDecl* TypeDecl::StaticArray(Node<TypeDecl> targetType, Node<Value> arraySize) {
+		TypeDecl* TypeDecl::StaticArray(Node<TypeDecl> targetType, Node<ValueDecl> arraySize) {
 			TypeDecl* type = new TypeDecl(STATICARRAY);
 			type->staticArrayType.targetType = std::move(targetType);
 			type->staticArrayType.arraySize = std::move(arraySize);

@@ -19,7 +19,7 @@ namespace locic {
 		typedef std::vector<Node<TypeDecl>> TypeDeclList;
 		
 		class Symbol;
-		struct Value;
+		struct ValueDecl;
 		
 		struct TypeDecl {
 			enum SignedModifier {
@@ -102,7 +102,7 @@ namespace locic {
 			
 			struct {
 				Node<TypeDecl> targetType;
-				Node<Value> arraySize;
+				Node<ValueDecl> arraySize;
 			} staticArrayType;
 			
 			struct {
@@ -145,7 +145,7 @@ namespace locic {
 			
 			static TypeDecl* Pointer(Node<TypeDecl> targetType);
 			
-			static TypeDecl* StaticArray(Node<TypeDecl> targetType, Node<Value> arraySize);
+			static TypeDecl* StaticArray(Node<TypeDecl> targetType, Node<ValueDecl> arraySize);
 			
 			static TypeDecl* Function(Node<TypeDecl> returnType, Node<TypeDeclList> parameterTypes);
 			
@@ -319,7 +319,7 @@ namespace locic {
 				return staticArrayType.targetType;
 			}
 			
-			const Node<Value>& getArraySize() const {
+			const Node<ValueDecl>& getArraySize() const {
 				assert(isStaticArray());
 				return staticArrayType.arraySize;
 			}

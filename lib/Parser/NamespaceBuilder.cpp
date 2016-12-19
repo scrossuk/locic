@@ -28,7 +28,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::Alias>
-		NamespaceBuilder::makeAlias(const String name, AST::Node<AST::Value> value,
+		NamespaceBuilder::makeAlias(const String name, AST::Node<AST::ValueDecl> value,
 		                            const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			return AST::makeNode(location, new AST::Alias(name, std::move(value),

@@ -22,17 +22,17 @@ namespace locic {
 		
 		AST::Node<AST::SymbolElement>
 		SymbolBuilder::makeSymbolElement(const String name,
-		                                 AST::Node<AST::ValueList> templateArguments,
+		                                 AST::Node<AST::ValueDeclList> templateArguments,
 		                                 const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			return AST::makeNode(location, new AST::SymbolElement(name, std::move(templateArguments)));
 		}
 		
-		AST::Node<AST::ValueList>
-		SymbolBuilder::makeValueList(AST::ValueList values,
+		AST::Node<AST::ValueDeclList>
+		SymbolBuilder::makeValueList(AST::ValueDeclList values,
 		                             const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::ValueList(std::move(values)));
+			return AST::makeNode(location, new AST::ValueDeclList(std::move(values)));
 		}
 		
 	}

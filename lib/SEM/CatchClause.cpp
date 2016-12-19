@@ -2,7 +2,7 @@
 #include <map>
 #include <memory>
 
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/Support/String.hpp>

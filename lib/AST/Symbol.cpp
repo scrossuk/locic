@@ -5,13 +5,13 @@
 
 #include <locic/AST/Symbol.hpp>
 #include <locic/AST/TypeDecl.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 
 namespace locic {
 	
 	namespace AST {
 		
-		SymbolElement::SymbolElement(String n, Node<ValueList> t)
+		SymbolElement::SymbolElement(String n, Node<ValueDeclList> t)
 		: name_(std::move(n)), templateArguments_(std::move(t)) { }
 		
 		SymbolElement::~SymbolElement() { }
@@ -24,7 +24,7 @@ namespace locic {
 			return name_;
 		}
 		
-		const Node<ValueList>& SymbolElement::templateArguments() const {
+		const Node<ValueDeclList>& SymbolElement::templateArguments() const {
 			return templateArguments_;
 		}
 		

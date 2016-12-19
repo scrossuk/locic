@@ -47,7 +47,7 @@ namespace locic {
 		
 		std::unique_ptr<SEM::Scope>
 		ConvertForLoop(Context& context, AST::Node<AST::Var>& astVarNode,
-		               const AST::Node<AST::Value>& astInitValueNode,
+		               const AST::Node<AST::ValueDecl>& astInitValueNode,
 		               const AST::Node<AST::Scope>& astScopeNode) {
 			// TODO: fix this to be the correct location.
 			const auto& location = astScopeNode.location();

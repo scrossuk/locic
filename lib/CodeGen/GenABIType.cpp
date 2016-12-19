@@ -8,7 +8,7 @@
 #include <llvm-abi/TypeBuilder.hpp>
 
 #include <locic/AST/Type.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>

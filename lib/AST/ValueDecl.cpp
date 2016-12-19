@@ -1,19 +1,19 @@
 #include <string>
 
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/Support/MakeString.hpp>
 
 namespace locic {
 	
 	namespace AST {
 		
-		Value::~Value() { }
+		ValueDecl::~ValueDecl() { }
 		
-		Value::TypeEnum Value::kind() const {
+		ValueDecl::TypeEnum ValueDecl::kind() const {
 			return typeEnum;
 		}
 		
-		std::string Value::toString() const {
+		std::string ValueDecl::toString() const {
 			switch (kind()) {
 				case SELF:
 					return "self";

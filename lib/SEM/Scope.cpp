@@ -1,7 +1,7 @@
 #include <string>
 
 #include <locic/AST/ExitStates.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/Support/Array.hpp>

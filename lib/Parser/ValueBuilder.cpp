@@ -14,234 +14,234 @@ namespace locic {
 		
 		ValueBuilder::~ValueBuilder() { }
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeValueNode(AST::Value* const value,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeValueNode(AST::ValueDecl* const value,
 		                            const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			return AST::makeNode(location, value);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeTernaryValue(AST::Node<AST::Value> conditionValue,
-		                               AST::Node<AST::Value> ifTrueValue,
-		                               AST::Node<AST::Value> ifFalseValue,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeTernaryValue(AST::Node<AST::ValueDecl> conditionValue,
+		                               AST::Node<AST::ValueDecl> ifTrueValue,
+		                               AST::Node<AST::ValueDecl> ifFalseValue,
 		                               const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Ternary(std::move(conditionValue), std::move(ifTrueValue),
+			return makeValueNode(AST::ValueDecl::Ternary(std::move(conditionValue), std::move(ifTrueValue),
 			                                         std::move(ifFalseValue)), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeLogicalOrValue(AST::Node<AST::Value> leftValue,
-		                                 AST::Node<AST::Value> rightValue,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeLogicalOrValue(AST::Node<AST::ValueDecl> leftValue,
+		                                 AST::Node<AST::ValueDecl> rightValue,
 		                                 const Debug::SourcePosition& start) {
 			return makeBinaryOpValue(std::move(leftValue), std::move(rightValue),
 			                         AST::OP_LOGICALOR, start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeLogicalAndValue(AST::Node<AST::Value> leftValue,
-		                                  AST::Node<AST::Value> rightValue,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeLogicalAndValue(AST::Node<AST::ValueDecl> leftValue,
+		                                  AST::Node<AST::ValueDecl> rightValue,
 		                                  const Debug::SourcePosition& start) {
 			return makeBinaryOpValue(std::move(leftValue), std::move(rightValue),
 			                         AST::OP_LOGICALAND, start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeBitwiseOrValue(AST::Node<AST::Value> leftValue,
-		                                 AST::Node<AST::Value> rightValue,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeBitwiseOrValue(AST::Node<AST::ValueDecl> leftValue,
+		                                 AST::Node<AST::ValueDecl> rightValue,
 		                                 const Debug::SourcePosition& start) {
 			return makeBinaryOpValue(std::move(leftValue), std::move(rightValue),
 			                         AST::OP_BITWISEOR, start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeBitwiseXorValue(AST::Node<AST::Value> leftValue,
-		                                  AST::Node<AST::Value> rightValue,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeBitwiseXorValue(AST::Node<AST::ValueDecl> leftValue,
+		                                  AST::Node<AST::ValueDecl> rightValue,
 		                                  const Debug::SourcePosition& start) {
 			return makeBinaryOpValue(std::move(leftValue), std::move(rightValue),
 			                         AST::OP_BITWISEXOR, start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeBitwiseAndValue(AST::Node<AST::Value> leftValue,
-		                                  AST::Node<AST::Value> rightValue,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeBitwiseAndValue(AST::Node<AST::ValueDecl> leftValue,
+		                                  AST::Node<AST::ValueDecl> rightValue,
 		                                  const Debug::SourcePosition& start) {
 			return makeBinaryOpValue(std::move(leftValue), std::move(rightValue),
 			                         AST::OP_BITWISEAND, start);
 		}
 		
-		AST::Node<AST::Value>
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeCapabilityTest(AST::Node<AST::TypeDecl> leftType,
 		                                 AST::Node<AST::TypeDecl> rightType,
 		                                 const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::CapabilityTest(std::move(leftType), std::move(rightType)),
+			return makeValueNode(AST::ValueDecl::CapabilityTest(std::move(leftType), std::move(rightType)),
 			                     start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeBinaryOpValue(AST::Node<AST::Value> leftValue,
-		                                AST::Node<AST::Value> rightValue,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeBinaryOpValue(AST::Node<AST::ValueDecl> leftValue,
+		                                AST::Node<AST::ValueDecl> rightValue,
 		                                const AST::BinaryOpKind opKind,
 		                                const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::BinaryOp(opKind, std::move(leftValue),
+			return makeValueNode(AST::ValueDecl::BinaryOp(opKind, std::move(leftValue),
 			                                          std::move(rightValue)), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeUnaryOpValue(AST::Node<AST::Value> operand,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeUnaryOpValue(AST::Node<AST::ValueDecl> operand,
 		                               const AST::UnaryOpKind opKind,
 		                               const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::UnaryOp(opKind, std::move(operand)), start);
+			return makeValueNode(AST::ValueDecl::UnaryOp(opKind, std::move(operand)), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeCallValue(AST::Node<AST::Value> callableValue,
-		                            AST::Node<AST::ValueList> parameters,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeCallValue(AST::Node<AST::ValueDecl> callableValue,
+		                            AST::Node<AST::ValueDeclList> parameters,
 		                            const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::FunctionCall(std::move(callableValue), std::move(parameters)), start);
+			return makeValueNode(AST::ValueDecl::FunctionCall(std::move(callableValue), std::move(parameters)), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeIndexValue(AST::Node<AST::Value> value,
-		                             AST::Node<AST::Value> indexValue,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeIndexValue(AST::Node<AST::ValueDecl> value,
+		                             AST::Node<AST::ValueDecl> indexValue,
 		                             const Debug::SourcePosition& start) {
 			return makeBinaryOpValue(std::move(value), std::move(indexValue), AST::OP_INDEX, start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeDerefValue(AST::Node<AST::Value> value,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeDerefValue(AST::Node<AST::ValueDecl> value,
 		                             const Debug::SourcePosition& start) {
 			return makeUnaryOpValue(std::move(value), AST::OP_DEREF, start);
 		}
 			
-		AST::Node<AST::Value>
-		ValueBuilder::makeMemberAccess(AST::Node<AST::Value> value, String name,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeMemberAccess(AST::Node<AST::ValueDecl> value, String name,
 		                               const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::MemberAccess(std::move(value), name), start);
+			return makeValueNode(AST::ValueDecl::MemberAccess(std::move(value), name), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeTemplatedMemberAccess(AST::Node<AST::Value> value, String name,
-		                                        AST::Node<AST::ValueList> templateArguments,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeTemplatedMemberAccess(AST::Node<AST::ValueDecl> value, String name,
+		                                        AST::Node<AST::ValueDeclList> templateArguments,
 		                                        const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::TemplatedMemberAccess(std::move(value), name,
+			return makeValueNode(AST::ValueDecl::TemplatedMemberAccess(std::move(value), name,
 			                                                       std::move(templateArguments)), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeMergeValue(AST::Node<AST::Value> firstValue,
-		                             AST::Node<AST::Value> secondValue,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeMergeValue(AST::Node<AST::ValueDecl> firstValue,
+		                             AST::Node<AST::ValueDecl> secondValue,
 		                             const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Merge(std::move(firstValue), std::move(secondValue)), start);
+			return makeValueNode(AST::ValueDecl::Merge(std::move(firstValue), std::move(secondValue)), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeBracketedValue(AST::Node<AST::Value> value,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeBracketedValue(AST::Node<AST::ValueDecl> value,
 		                                 const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Bracket(std::move(value)), start);
+			return makeValueNode(AST::ValueDecl::Bracket(std::move(value)), start);
 		}
 		
-		AST::Node<AST::Value>
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeTypeValue(AST::Node<AST::TypeDecl> type,
 		                            const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::TypeRef(std::move(type)), start);
+			return makeValueNode(AST::ValueDecl::TypeRef(std::move(type)), start);
 		}
 		
-		AST::Node<AST::Value>
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeLiteralValue(const Constant constant,
 		                               const String literalSpecifier,
 		                               const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			auto constantNode = AST::makeNode(location, new Constant(constant));
-			return makeValueNode(AST::Value::Literal(literalSpecifier,
+			return makeValueNode(AST::ValueDecl::Literal(literalSpecifier,
 			                                         std::move(constantNode)), start);
 		}
 		
-		AST::Node<AST::Value>
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeRefValue(AST::Node<AST::TypeDecl> targetType,
-		                           AST::Node<AST::Value> value,
+		                           AST::Node<AST::ValueDecl> value,
 		                           const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Ref(std::move(targetType), std::move(value)), start);
+			return makeValueNode(AST::ValueDecl::Ref(std::move(targetType), std::move(value)), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeLvalValue(AST::Node<AST::Value> value,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeLvalValue(AST::Node<AST::ValueDecl> value,
 		                            const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Lval(std::move(value)), start);
+			return makeValueNode(AST::ValueDecl::Lval(std::move(value)), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeNoRefValue(AST::Node<AST::Value> value,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeNoRefValue(AST::Node<AST::ValueDecl> value,
 		                             const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::NoRef(std::move(value)), start);
+			return makeValueNode(AST::ValueDecl::NoRef(std::move(value)), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeNoLvalValue(AST::Node<AST::Value> value,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeNoLvalValue(AST::Node<AST::ValueDecl> value,
 		                              const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::NoLval(std::move(value)), start);
+			return makeValueNode(AST::ValueDecl::NoLval(std::move(value)), start);
 		}
 		
-		AST::Node<AST::Value>
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeSymbolValue(AST::Node<AST::Symbol> symbol,
 		                              const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::SymbolRef(std::move(symbol)), start);
+			return makeValueNode(AST::ValueDecl::SymbolRef(std::move(symbol)), start);
 		}
 		
-		AST::Node<AST::Value>
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeSelfValue(const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Self(), start);
+			return makeValueNode(AST::ValueDecl::Self(), start);
 		}
 		
-		AST::Node<AST::Value>
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeThisValue(const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::This(), start);
+			return makeValueNode(AST::ValueDecl::This(), start);
 		}
 		
-		AST::Node<AST::Value>
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeAlignOfValue(AST::Node<AST::TypeDecl> operand,
 		                               const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::AlignOf(std::move(operand)), start);
+			return makeValueNode(AST::ValueDecl::AlignOf(std::move(operand)), start);
 		}
 		
-		AST::Node<AST::Value>
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeSizeOfValue(AST::Node<AST::TypeDecl> operand,
 		                              const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::SizeOf(std::move(operand)), start);
+			return makeValueNode(AST::ValueDecl::SizeOf(std::move(operand)), start);
 		}
 		
-		AST::Node<AST::Value>
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeSelfMemberAccess(const String name,
 		                                   const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::MemberRef(name), start);
+			return makeValueNode(AST::ValueDecl::MemberRef(name), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeInternalConstruct(AST::Node<AST::ValueList> templateArguments,
-		                                    AST::Node<AST::ValueList> arguments,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeInternalConstruct(AST::Node<AST::ValueDeclList> templateArguments,
+		                                    AST::Node<AST::ValueDeclList> arguments,
 		                                    const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::InternalConstruct(std::move(templateArguments),
+			return makeValueNode(AST::ValueDecl::InternalConstruct(std::move(templateArguments),
 			                                                   std::move(arguments)), start);
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeArrayLiteralValue(AST::Node<AST::ValueList> values,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeArrayLiteralValue(AST::Node<AST::ValueDeclList> values,
 		                                    const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::ArrayLiteral(std::move(values)), start);
+			return makeValueNode(AST::ValueDecl::ArrayLiteral(std::move(values)), start);
 		}
 		
-		AST::Node<AST::ValueList>
-		ValueBuilder::makeValueList(AST::ValueList values,
+		AST::Node<AST::ValueDeclList>
+		ValueBuilder::makeValueList(AST::ValueDeclList values,
 		                            const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::ValueList(std::move(values)));
+			return AST::makeNode(location, new AST::ValueDeclList(std::move(values)));
 		}
 		
-		AST::Node<AST::Value>
-		ValueBuilder::makeCastValue(const AST::Value::CastKind kind, AST::Node<AST::TypeDecl> fromType,
-		                            AST::Node<AST::TypeDecl> toType, AST::Node<AST::Value> value,
+		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeCastValue(const AST::ValueDecl::CastKind kind, AST::Node<AST::TypeDecl> fromType,
+		                            AST::Node<AST::TypeDecl> toType, AST::Node<AST::ValueDecl> value,
 		                            const Debug::SourcePosition& start) {
-			return makeValueNode(AST::Value::Cast(kind, std::move(fromType), std::move(toType),
+			return makeValueNode(AST::ValueDecl::Cast(kind, std::move(fromType), std::move(toType),
 			                                      std::move(value)), start);
 		}
 		

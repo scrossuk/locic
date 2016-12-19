@@ -10,13 +10,13 @@ namespace locic {
 	namespace AST {
 	
 		class Scope;
-		struct Value;
+		struct ValueDecl;
 		
 		struct IfClause {
-			Node<Value> condition;
+			Node<ValueDecl> condition;
 			Node<Scope> scope;
 			
-			IfClause(Node<Value> pCondition, Node<Scope> pScope)
+			IfClause(Node<ValueDecl> pCondition, Node<Scope> pScope)
 			: condition(std::move(pCondition)), scope(std::move(pScope)) { }
 		};
 		

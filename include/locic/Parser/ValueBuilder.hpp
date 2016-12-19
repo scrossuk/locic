@@ -23,152 +23,152 @@ namespace locic {
 			ValueBuilder(const TokenReader& reader);
 			~ValueBuilder();
 			
-			AST::Node<AST::Value>
-			makeValueNode(AST::Value* value,
+			AST::Node<AST::ValueDecl>
+			makeValueNode(AST::ValueDecl* value,
 			              const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeTernaryValue(AST::Node<AST::Value> conditionValue,
-			                 AST::Node<AST::Value> ifTrueValue,
-			                 AST::Node<AST::Value> ifFalseValue,
+			AST::Node<AST::ValueDecl>
+			makeTernaryValue(AST::Node<AST::ValueDecl> conditionValue,
+			                 AST::Node<AST::ValueDecl> ifTrueValue,
+			                 AST::Node<AST::ValueDecl> ifFalseValue,
 			                 const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeLogicalOrValue(AST::Node<AST::Value> leftValue,
-			                   AST::Node<AST::Value> rightValue,
+			AST::Node<AST::ValueDecl>
+			makeLogicalOrValue(AST::Node<AST::ValueDecl> leftValue,
+			                   AST::Node<AST::ValueDecl> rightValue,
 			                   const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeLogicalAndValue(AST::Node<AST::Value> leftValue,
-			                    AST::Node<AST::Value> rightValue,
+			AST::Node<AST::ValueDecl>
+			makeLogicalAndValue(AST::Node<AST::ValueDecl> leftValue,
+			                    AST::Node<AST::ValueDecl> rightValue,
 			                    const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeBitwiseOrValue(AST::Node<AST::Value> leftValue,
-			                   AST::Node<AST::Value> rightValue,
+			AST::Node<AST::ValueDecl>
+			makeBitwiseOrValue(AST::Node<AST::ValueDecl> leftValue,
+			                   AST::Node<AST::ValueDecl> rightValue,
 			                   const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeBitwiseXorValue(AST::Node<AST::Value> leftValue,
-			                    AST::Node<AST::Value> rightValue,
+			AST::Node<AST::ValueDecl>
+			makeBitwiseXorValue(AST::Node<AST::ValueDecl> leftValue,
+			                    AST::Node<AST::ValueDecl> rightValue,
 			                    const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeBitwiseAndValue(AST::Node<AST::Value> leftValue,
-			                    AST::Node<AST::Value> rightValue,
+			AST::Node<AST::ValueDecl>
+			makeBitwiseAndValue(AST::Node<AST::ValueDecl> leftValue,
+			                    AST::Node<AST::ValueDecl> rightValue,
 			                    const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
+			AST::Node<AST::ValueDecl>
 			makeCapabilityTest(AST::Node<AST::TypeDecl> leftType,
 			                   AST::Node<AST::TypeDecl> rightType,
 			                   const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeBinaryOpValue(AST::Node<AST::Value> leftValue,
-			                  AST::Node<AST::Value> rightValue,
+			AST::Node<AST::ValueDecl>
+			makeBinaryOpValue(AST::Node<AST::ValueDecl> leftValue,
+			                  AST::Node<AST::ValueDecl> rightValue,
 			                  AST::BinaryOpKind opKind,
 			                  const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeUnaryOpValue(AST::Node<AST::Value> operand,
+			AST::Node<AST::ValueDecl>
+			makeUnaryOpValue(AST::Node<AST::ValueDecl> operand,
 			                 AST::UnaryOpKind opKind,
 			                 const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeCallValue(AST::Node<AST::Value> callableValue,
-			              AST::Node<AST::ValueList> parameters,
+			AST::Node<AST::ValueDecl>
+			makeCallValue(AST::Node<AST::ValueDecl> callableValue,
+			              AST::Node<AST::ValueDeclList> parameters,
 			              const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeIndexValue(AST::Node<AST::Value> value,
-			               AST::Node<AST::Value> indexValue,
+			AST::Node<AST::ValueDecl>
+			makeIndexValue(AST::Node<AST::ValueDecl> value,
+			               AST::Node<AST::ValueDecl> indexValue,
 			               const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeDerefValue(AST::Node<AST::Value> value,
+			AST::Node<AST::ValueDecl>
+			makeDerefValue(AST::Node<AST::ValueDecl> value,
 			               const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeMemberAccess(AST::Node<AST::Value> value, String name,
+			AST::Node<AST::ValueDecl>
+			makeMemberAccess(AST::Node<AST::ValueDecl> value, String name,
 			                 const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeTemplatedMemberAccess(AST::Node<AST::Value> value, String name,
-			                          AST::Node<AST::ValueList> templateArguments,
+			AST::Node<AST::ValueDecl>
+			makeTemplatedMemberAccess(AST::Node<AST::ValueDecl> value, String name,
+			                          AST::Node<AST::ValueDeclList> templateArguments,
 			                          const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeMergeValue(AST::Node<AST::Value> firstValue,
-			               AST::Node<AST::Value> secondValue,
+			AST::Node<AST::ValueDecl>
+			makeMergeValue(AST::Node<AST::ValueDecl> firstValue,
+			               AST::Node<AST::ValueDecl> secondValue,
 			               const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeBracketedValue(AST::Node<AST::Value> value,
+			AST::Node<AST::ValueDecl>
+			makeBracketedValue(AST::Node<AST::ValueDecl> value,
 			                   const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
+			AST::Node<AST::ValueDecl>
 			makeTypeValue(AST::Node<AST::TypeDecl> type,
 			              const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
+			AST::Node<AST::ValueDecl>
 			makeLiteralValue(Constant constant, String literalSpecifier,
 			                 const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
+			AST::Node<AST::ValueDecl>
 			makeRefValue(AST::Node<AST::TypeDecl> targetType,
-			             AST::Node<AST::Value> value,
+			             AST::Node<AST::ValueDecl> value,
 			             const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeLvalValue(AST::Node<AST::Value> value,
+			AST::Node<AST::ValueDecl>
+			makeLvalValue(AST::Node<AST::ValueDecl> value,
 			              const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeNoRefValue(AST::Node<AST::Value> value,
+			AST::Node<AST::ValueDecl>
+			makeNoRefValue(AST::Node<AST::ValueDecl> value,
 			               const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeNoLvalValue(AST::Node<AST::Value> value,
+			AST::Node<AST::ValueDecl>
+			makeNoLvalValue(AST::Node<AST::ValueDecl> value,
 			                const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
+			AST::Node<AST::ValueDecl>
 			makeSymbolValue(AST::Node<AST::Symbol> symbol,
 			                const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
+			AST::Node<AST::ValueDecl>
 			makeSelfValue(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
+			AST::Node<AST::ValueDecl>
 			makeThisValue(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
+			AST::Node<AST::ValueDecl>
 			makeAlignOfValue(AST::Node<AST::TypeDecl> operand,
 			                 const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
+			AST::Node<AST::ValueDecl>
 			makeSizeOfValue(AST::Node<AST::TypeDecl> operand,
 			                const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
+			AST::Node<AST::ValueDecl>
 			makeSelfMemberAccess(String name,
 			                     const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeInternalConstruct(AST::Node<AST::ValueList> templateArguments,
-			                      AST::Node<AST::ValueList> arguments,
+			AST::Node<AST::ValueDecl>
+			makeInternalConstruct(AST::Node<AST::ValueDeclList> templateArguments,
+			                      AST::Node<AST::ValueDeclList> arguments,
 			                      const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeArrayLiteralValue(AST::Node<AST::ValueList> values,
+			AST::Node<AST::ValueDecl>
+			makeArrayLiteralValue(AST::Node<AST::ValueDeclList> values,
 			                      const Debug::SourcePosition& start);
 			
-			AST::Node<AST::ValueList>
-			makeValueList(AST::ValueList values,
+			AST::Node<AST::ValueDeclList>
+			makeValueList(AST::ValueDeclList values,
 			              const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Value>
-			makeCastValue(AST::Value::CastKind kind, AST::Node<AST::TypeDecl> fromType,
-			              AST::Node<AST::TypeDecl> toType, AST::Node<AST::Value> value,
+			AST::Node<AST::ValueDecl>
+			makeCastValue(AST::ValueDecl::CastKind kind, AST::Node<AST::TypeDecl> fromType,
+			              AST::Node<AST::TypeDecl> toType, AST::Node<AST::ValueDecl> value,
 			              const Debug::SourcePosition& start);
 			
 		private:

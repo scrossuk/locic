@@ -33,7 +33,7 @@ add_library(locic-ast
 	Type.cpp
 	TypeDecl.cpp
 	TypeInstance.cpp
-	Value.cpp
+	ValueDecl.cpp
 	Var.cpp
 	${SEM_FILES}
 )

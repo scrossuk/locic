@@ -82,7 +82,7 @@ namespace locic {
 		
 		AST::Node<AST::ExceptionInitializer>
 		TypeInstanceBuilder::makeExceptionInitializer(AST::Node<AST::Symbol> symbol,
-		                                              AST::Node<AST::ValueList> valueList,
+		                                              AST::Node<AST::ValueDeclList> valueList,
 		                                              const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			return AST::makeNode(location, AST::ExceptionInitializer::Initialize(std::move(symbol), std::move(valueList)));

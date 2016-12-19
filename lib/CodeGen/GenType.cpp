@@ -5,7 +5,7 @@
 #include <llvm-abi/ABI.hpp>
 #include <llvm-abi/ABITypeInfo.hpp>
 
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/Type.hpp>
 

@@ -31,7 +31,7 @@ namespace locic {
 			                  const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Alias>
-			makeAlias(String name, AST::Node<AST::Value> value,
+			makeAlias(String name, AST::Node<AST::ValueDecl> value,
 			          const Debug::SourcePosition& start);
 			
 			AST::Node<AST::StaticAssert>

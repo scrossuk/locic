@@ -67,7 +67,7 @@ namespace locic {
 			AST::Node<AST::TypeDecl> makePointerType(AST::Node<AST::TypeDecl> targetType,
 			                                     const Debug::SourcePosition& start);
 			AST::Node<AST::TypeDecl> makeStaticArrayType(AST::Node<AST::TypeDecl> targetType,
-			                                         AST::Node<AST::Value> sizeValue,
+			                                         AST::Node<AST::ValueDecl> sizeValue,
 			                                         const Debug::SourcePosition& start);
 			
 		private:

@@ -205,11 +205,11 @@ namespace locic {
 			locic_unreachable("Invalid token kind.");
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseValue(const Context context) {
 			return parseTernaryValue(context);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseTernaryValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseTernaryValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseLogicalOrValue(context);
@@ -236,7 +236,7 @@ namespace locic {
 			                                 std::move(ifFalseValue), start);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseLogicalOrValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseLogicalOrValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseLogicalAndValue(context);
@@ -260,17 +260,17 @@ namespace locic {
 			}
 		}
 		
-		void ValueParser::checkLogicalOrOperand(const AST::Node<AST::Value>& operand) {
+		void ValueParser::checkLogicalOrOperand(const AST::Node<AST::ValueDecl>& operand) {
 			if (!isLogicalOrValueOrNext(operand)) {
 				reader_.issueDiagWithLoc(InvalidOperandDiag("logical or"), operand.location());
 			}
 		}
 		
-		bool ValueParser::isLogicalOrValueOrNext(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isLogicalOrValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			return operand->isLogicalOr() || isComparisonValueOrNext(operand);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseLogicalAndValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseLogicalAndValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseBitwiseOrValue(context);
@@ -294,17 +294,17 @@ namespace locic {
 			}
 		}
 		
-		void ValueParser::checkLogicalAndOperand(const AST::Node<AST::Value>& operand) {
+		void ValueParser::checkLogicalAndOperand(const AST::Node<AST::ValueDecl>& operand) {
 			if (!isLogicalAndValueOrNext(operand)) {
 				reader_.issueDiagWithLoc(InvalidOperandDiag("logical and"), operand.location());
 			}
 		}
 		
-		bool ValueParser::isLogicalAndValueOrNext(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isLogicalAndValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			return operand->isLogicalAnd() || isComparisonValueOrNext(operand);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseBitwiseOrValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseBitwiseOrValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseBitwiseXorValue(context);
@@ -327,17 +327,17 @@ namespace locic {
 			}
 		}
 		
-		void ValueParser::checkBitwiseOrOperand(const AST::Node<AST::Value>& operand) {
+		void ValueParser::checkBitwiseOrOperand(const AST::Node<AST::ValueDecl>& operand) {
 			if (!isBitwiseOrValueOrNext(operand)) {
 				reader_.issueDiagWithLoc(InvalidOperandDiag("bitwise or"), operand.location());
 			}
 		}
 		
-		bool ValueParser::isBitwiseOrValueOrNext(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isBitwiseOrValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			return operand->isBitwiseOr() || isUnaryValueOrNext(operand);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseBitwiseXorValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseBitwiseXorValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseBitwiseAndValue(context);
@@ -361,17 +361,17 @@ namespace locic {
 			}
 		}
 		
-		void ValueParser::checkBitwiseXorOperand(const AST::Node<AST::Value>& operand) {
+		void ValueParser::checkBitwiseXorOperand(const AST::Node<AST::ValueDecl>& operand) {
 			if (!isBitwiseXorValueOrNext(operand)) {
 				reader_.issueDiagWithLoc(InvalidOperandDiag("bitwise xor"), operand.location());
 			}
 		}
 		
-		bool ValueParser::isBitwiseXorValueOrNext(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isBitwiseXorValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			return operand->isBitwiseXor() || isUnaryValueOrNext(operand);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseBitwiseAndValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseBitwiseAndValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseComparisonValue(context);
@@ -394,17 +394,17 @@ namespace locic {
 			}
 		}
 		
-		void ValueParser::checkBitwiseAndOperand(const AST::Node<AST::Value>& operand) {
+		void ValueParser::checkBitwiseAndOperand(const AST::Node<AST::ValueDecl>& operand) {
 			if (!isBitwiseAndValueOrNext(operand)) {
 				reader_.issueDiagWithLoc(InvalidOperandDiag("bitwise and"), operand.location());
 			}
 		}
 		
-		bool ValueParser::isBitwiseAndValueOrNext(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isBitwiseAndValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			return operand->isBitwiseAnd() || isUnaryValueOrNext(operand);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseComparisonValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseComparisonValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseShiftValue(context);
@@ -469,20 +469,20 @@ namespace locic {
 			}
 		}
 		
-		void ValueParser::checkComparisonOperand(const AST::Node<AST::Value>& operand) {
+		void ValueParser::checkComparisonOperand(const AST::Node<AST::ValueDecl>& operand) {
 			if (!isAddValueOrNext(operand)) {
 				reader_.issueDiagWithLoc(InvalidOperandDiag("comparison"), operand.location());
 			}
 		}
 		
-		bool ValueParser::isComparisonValueOrNext(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isComparisonValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			// Use a unary value as the next level down to avoid conditions like
 			// 'a + b' or 'a * b'.
 			return operand->isComparison() || operand->isCapabilityTest() ||
 			       isUnaryValueOrNext(operand);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseShiftValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseShiftValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseAddOperatorValue(context);
@@ -520,13 +520,13 @@ namespace locic {
 			}
 		}
 		
-		void ValueParser::checkShiftOperand(const AST::Node<AST::Value>& operand) {
+		void ValueParser::checkShiftOperand(const AST::Node<AST::ValueDecl>& operand) {
 			if (!isUnaryValueOrNext(operand)) {
 				reader_.issueDiagWithLoc(InvalidOperandDiag("shift"), operand.location());
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseAddOperatorValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseAddOperatorValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseMultiplyOperatorValue(context);
@@ -555,17 +555,17 @@ namespace locic {
 			}
 		}
 		
-		void ValueParser::checkAddOperand(const AST::Node<AST::Value>& operand) {
+		void ValueParser::checkAddOperand(const AST::Node<AST::ValueDecl>& operand) {
 			if (!isAddValueOrNext(operand)) {
 				reader_.issueDiagWithLoc(InvalidOperandDiag("add/subtract"), operand.location());
 			}
 		}
 		
-		bool ValueParser::isAddValueOrNext(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isAddValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			return operand->isAdd() || operand->isSubtract() || isMultiplyValueOrNext(operand);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseMultiplyOperatorValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseMultiplyOperatorValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseUnaryValue(context);
@@ -597,18 +597,18 @@ namespace locic {
 			}
 		}
 		
-		void ValueParser::checkMultiplyOperand(const AST::Node<AST::Value>& operand) {
+		void ValueParser::checkMultiplyOperand(const AST::Node<AST::ValueDecl>& operand) {
 			if (!isMultiplyValueOrNext(operand)) {
 				reader_.issueDiagWithLoc(InvalidOperandDiag("multiply/subtract/divide"), operand.location());
 			}
 		}
 		
-		bool ValueParser::isMultiplyValueOrNext(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isMultiplyValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			return operand->isMultiply() || operand->isDivide() || operand->isModulo() ||
 			       isUnaryValueOrNext(operand);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseUnaryValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseUnaryValue(const Context context) {
 			const auto start = reader_.position();
 			
 			const auto token = reader_.peek();
@@ -644,11 +644,11 @@ namespace locic {
 			return builder_.makeUnaryOpValue(std::move(value), opKind, start);
 		}
 		
-		bool ValueParser::isUnaryValueOrNext(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isUnaryValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			return operand->isUnaryOp() || isCallValueOrNext(operand);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseCallValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseCallValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseTypeValue(context);
@@ -684,36 +684,36 @@ namespace locic {
 			}
 		}
 		
-		bool ValueParser::isCallValueOrNext(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isCallValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			switch (operand->kind()) {
-				case AST::Value::SELF:
-				case AST::Value::THIS:
-				case AST::Value::BRACKET:
-				case AST::Value::LITERAL:
-				case AST::Value::SYMBOLREF:
-				case AST::Value::TYPEREF:
-				case AST::Value::MEMBERREF:
-				case AST::Value::ALIGNOF:
-				case AST::Value::SIZEOF:
-				case AST::Value::CAST:
-				case AST::Value::LVAL:
-				case AST::Value::NOLVAL:
-				case AST::Value::REF:
-				case AST::Value::NOREF:
-				case AST::Value::INTERNALCONSTRUCT:
-				case AST::Value::ARRAYLITERAL:
+				case AST::ValueDecl::SELF:
+				case AST::ValueDecl::THIS:
+				case AST::ValueDecl::BRACKET:
+				case AST::ValueDecl::LITERAL:
+				case AST::ValueDecl::SYMBOLREF:
+				case AST::ValueDecl::TYPEREF:
+				case AST::ValueDecl::MEMBERREF:
+				case AST::ValueDecl::ALIGNOF:
+				case AST::ValueDecl::SIZEOF:
+				case AST::ValueDecl::CAST:
+				case AST::ValueDecl::LVAL:
+				case AST::ValueDecl::NOLVAL:
+				case AST::ValueDecl::REF:
+				case AST::ValueDecl::NOREF:
+				case AST::ValueDecl::INTERNALCONSTRUCT:
+				case AST::ValueDecl::ARRAYLITERAL:
 					assert(isAtomicValue(operand));
 					return true;
-				case AST::Value::FUNCTIONCALL:
-				case AST::Value::MEMBERACCESS:
-				case AST::Value::TEMPLATEDMEMBERACCESS:
-				case AST::Value::MERGE:
+				case AST::ValueDecl::FUNCTIONCALL:
+				case AST::ValueDecl::MEMBERACCESS:
+				case AST::ValueDecl::TEMPLATEDMEMBERACCESS:
+				case AST::ValueDecl::MERGE:
 					assert(!isAtomicValue(operand));
 					return true;
-				case AST::Value::UNARYOP:
-				case AST::Value::BINARYOP:
-				case AST::Value::TERNARY:
-				case AST::Value::CAPABILITYTEST:
+				case AST::ValueDecl::UNARYOP:
+				case AST::ValueDecl::BINARYOP:
+				case AST::ValueDecl::TERNARY:
+				case AST::ValueDecl::CAPABILITYTEST:
 					assert(!isAtomicValue(operand));
 					return operand->isIndex();
 			}
@@ -721,7 +721,7 @@ namespace locic {
 			locic_unreachable("Invalid value kind");
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseMemberAccessExpression(AST::Node<AST::Value> value,
+		AST::Node<AST::ValueDecl> ValueParser::parseMemberAccessExpression(AST::Node<AST::ValueDecl> value,
 		                                                               const bool isDeref,
 		                                                               const Debug::SourcePosition& start) {
 			const auto memberName = FunctionParser(reader_).parseFunctionNameElement();
@@ -740,7 +740,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseTypeValue(const Context context) {
+		AST::Node<AST::ValueDecl> ValueParser::parseTypeValue(const Context context) {
 			const auto start = reader_.position();
 			
 			auto value = parseAtomicValue();
@@ -786,7 +786,7 @@ namespace locic {
 						reader_.expect(Token::RSQUAREBRACKET);
 						
 						// typename_t doesn't support indexing, so this must be a type value.
-						const bool isDefinitelyType = (value->kind() == AST::Value::TYPEREF);
+						const bool isDefinitelyType = (value->kind() == AST::ValueDecl::TYPEREF);
 						
 						auto type = interpretValueAsType(isDefinitelyType ? std::move(value) : value.copy());
 						auto staticArrayType =
@@ -814,77 +814,77 @@ namespace locic {
 			}
 		}
 		
-		bool ValueParser::canInterpretValueAsType(const AST::Node<AST::Value>& value) {
+		bool ValueParser::canInterpretValueAsType(const AST::Node<AST::ValueDecl>& value) {
 			switch (value->kind()) {
-				case AST::Value::BRACKET:
+				case AST::ValueDecl::BRACKET:
 					return canInterpretValueAsType(value->bracket.value);
-				case AST::Value::SYMBOLREF:
-				case AST::Value::TYPEREF:
+				case AST::ValueDecl::SYMBOLREF:
+				case AST::ValueDecl::TYPEREF:
 					return true;
-				case AST::Value::MERGE:
+				case AST::ValueDecl::MERGE:
 					return canInterpretValueAsType(value->merge.first) ||
 					       canInterpretValueAsType(value->merge.second);
-				case AST::Value::SELF:
-				case AST::Value::THIS:
-				case AST::Value::LITERAL:
-				case AST::Value::MEMBERREF:
-				case AST::Value::ALIGNOF:
-				case AST::Value::SIZEOF:
-				case AST::Value::UNARYOP:
-				case AST::Value::BINARYOP:
-				case AST::Value::TERNARY:
-				case AST::Value::CAST:
-				case AST::Value::LVAL:
-				case AST::Value::NOLVAL:
-				case AST::Value::REF:
-				case AST::Value::NOREF:
-				case AST::Value::INTERNALCONSTRUCT:
-				case AST::Value::MEMBERACCESS:
-				case AST::Value::TEMPLATEDMEMBERACCESS:
-				case AST::Value::FUNCTIONCALL:
-				case AST::Value::CAPABILITYTEST:
-				case AST::Value::ARRAYLITERAL:
+				case AST::ValueDecl::SELF:
+				case AST::ValueDecl::THIS:
+				case AST::ValueDecl::LITERAL:
+				case AST::ValueDecl::MEMBERREF:
+				case AST::ValueDecl::ALIGNOF:
+				case AST::ValueDecl::SIZEOF:
+				case AST::ValueDecl::UNARYOP:
+				case AST::ValueDecl::BINARYOP:
+				case AST::ValueDecl::TERNARY:
+				case AST::ValueDecl::CAST:
+				case AST::ValueDecl::LVAL:
+				case AST::ValueDecl::NOLVAL:
+				case AST::ValueDecl::REF:
+				case AST::ValueDecl::NOREF:
+				case AST::ValueDecl::INTERNALCONSTRUCT:
+				case AST::ValueDecl::MEMBERACCESS:
+				case AST::ValueDecl::TEMPLATEDMEMBERACCESS:
+				case AST::ValueDecl::FUNCTIONCALL:
+				case AST::ValueDecl::CAPABILITYTEST:
+				case AST::ValueDecl::ARRAYLITERAL:
 					return false;
 			}
 			
 			locic_unreachable("Invalid value kind");
 		}
 		
-		AST::Node<AST::TypeDecl> ValueParser::interpretValueAsType(AST::Node<AST::Value> value) {
+		AST::Node<AST::TypeDecl> ValueParser::interpretValueAsType(AST::Node<AST::ValueDecl> value) {
 			switch (value->kind()) {
-				case AST::Value::BRACKET:
+				case AST::ValueDecl::BRACKET:
 					return interpretValueAsType(std::move(value->bracket.value));
-				case AST::Value::SYMBOLREF:
+				case AST::ValueDecl::SYMBOLREF:
 					return AST::makeNode(value.location(),
 					                     AST::TypeDecl::Object(std::move(value->symbolRef.symbol)));
-				case AST::Value::TYPEREF:
+				case AST::ValueDecl::TYPEREF:
 					return std::move(value->typeRef.type);
-				case AST::Value::MERGE:
+				case AST::ValueDecl::MERGE:
 					if (canInterpretValueAsType(value->merge.second)) {
 						return interpretValueAsType(std::move(value->merge.second));
 					} else {
 						return interpretValueAsType(std::move(value->merge.first));
 					}
-				case AST::Value::SELF:
-				case AST::Value::THIS:
-				case AST::Value::LITERAL:
-				case AST::Value::MEMBERREF:
-				case AST::Value::ALIGNOF:
-				case AST::Value::SIZEOF:
-				case AST::Value::UNARYOP:
-				case AST::Value::BINARYOP:
-				case AST::Value::TERNARY:
-				case AST::Value::CAST:
-				case AST::Value::LVAL:
-				case AST::Value::NOLVAL:
-				case AST::Value::REF:
-				case AST::Value::NOREF:
-				case AST::Value::INTERNALCONSTRUCT:
-				case AST::Value::MEMBERACCESS:
-				case AST::Value::TEMPLATEDMEMBERACCESS:
-				case AST::Value::FUNCTIONCALL:
-				case AST::Value::CAPABILITYTEST:
-				case AST::Value::ARRAYLITERAL: {
+				case AST::ValueDecl::SELF:
+				case AST::ValueDecl::THIS:
+				case AST::ValueDecl::LITERAL:
+				case AST::ValueDecl::MEMBERREF:
+				case AST::ValueDecl::ALIGNOF:
+				case AST::ValueDecl::SIZEOF:
+				case AST::ValueDecl::UNARYOP:
+				case AST::ValueDecl::BINARYOP:
+				case AST::ValueDecl::TERNARY:
+				case AST::ValueDecl::CAST:
+				case AST::ValueDecl::LVAL:
+				case AST::ValueDecl::NOLVAL:
+				case AST::ValueDecl::REF:
+				case AST::ValueDecl::NOREF:
+				case AST::ValueDecl::INTERNALCONSTRUCT:
+				case AST::ValueDecl::MEMBERACCESS:
+				case AST::ValueDecl::TEMPLATEDMEMBERACCESS:
+				case AST::ValueDecl::FUNCTIONCALL:
+				case AST::ValueDecl::CAPABILITYTEST:
+				case AST::ValueDecl::ARRAYLITERAL: {
 					reader_.issueDiagWithLoc(CannotInterpretValueAsType(),
 					                         value.location());
 					return AST::makeNode(value.location(),
@@ -895,7 +895,7 @@ namespace locic {
 			locic_unreachable("Invalid value kind");
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseAtomicValue() {
+		AST::Node<AST::ValueDecl> ValueParser::parseAtomicValue() {
 			const auto start = reader_.position();
 			
 			const auto token = reader_.peek();
@@ -989,40 +989,40 @@ namespace locic {
 			                                 start);
 		}
 		
-		bool ValueParser::isAtomicValue(const AST::Node<AST::Value>& operand) const {
+		bool ValueParser::isAtomicValue(const AST::Node<AST::ValueDecl>& operand) const {
 			switch (operand->kind()) {
-				case AST::Value::SELF:
-				case AST::Value::THIS:
-				case AST::Value::BRACKET:
-				case AST::Value::LITERAL:
-				case AST::Value::SYMBOLREF:
-				case AST::Value::TYPEREF:
-				case AST::Value::MEMBERREF:
-				case AST::Value::ALIGNOF:
-				case AST::Value::SIZEOF:
-				case AST::Value::CAST:
-				case AST::Value::LVAL:
-				case AST::Value::NOLVAL:
-				case AST::Value::REF:
-				case AST::Value::NOREF:
-				case AST::Value::INTERNALCONSTRUCT:
-				case AST::Value::ARRAYLITERAL:
+				case AST::ValueDecl::SELF:
+				case AST::ValueDecl::THIS:
+				case AST::ValueDecl::BRACKET:
+				case AST::ValueDecl::LITERAL:
+				case AST::ValueDecl::SYMBOLREF:
+				case AST::ValueDecl::TYPEREF:
+				case AST::ValueDecl::MEMBERREF:
+				case AST::ValueDecl::ALIGNOF:
+				case AST::ValueDecl::SIZEOF:
+				case AST::ValueDecl::CAST:
+				case AST::ValueDecl::LVAL:
+				case AST::ValueDecl::NOLVAL:
+				case AST::ValueDecl::REF:
+				case AST::ValueDecl::NOREF:
+				case AST::ValueDecl::INTERNALCONSTRUCT:
+				case AST::ValueDecl::ARRAYLITERAL:
 					return true;
-				case AST::Value::UNARYOP:
-				case AST::Value::BINARYOP:
-				case AST::Value::TERNARY:
-				case AST::Value::MEMBERACCESS:
-				case AST::Value::TEMPLATEDMEMBERACCESS:
-				case AST::Value::FUNCTIONCALL:
-				case AST::Value::CAPABILITYTEST:
-				case AST::Value::MERGE:
+				case AST::ValueDecl::UNARYOP:
+				case AST::ValueDecl::BINARYOP:
+				case AST::ValueDecl::TERNARY:
+				case AST::ValueDecl::MEMBERACCESS:
+				case AST::ValueDecl::TEMPLATEDMEMBERACCESS:
+				case AST::ValueDecl::FUNCTIONCALL:
+				case AST::ValueDecl::CAPABILITYTEST:
+				case AST::ValueDecl::MERGE:
 					return false;
 			}
 			
 			locic_unreachable("Invalid value kind");
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseAtExpression(const Debug::SourcePosition& start) {
+		AST::Node<AST::ValueDecl> ValueParser::parseAtExpression(const Debug::SourcePosition& start) {
 			const auto token = reader_.peek();
 			if (token.kind() == Token::NAME) {
 				reader_.consume();
@@ -1038,11 +1038,11 @@ namespace locic {
 			                                      std::move(arguments), start);
 		}
 		
-		AST::Node<AST::ValueList> ValueParser::parseOptionalTemplateArguments() {
+		AST::Node<AST::ValueDeclList> ValueParser::parseOptionalTemplateArguments() {
 			const auto start = reader_.position();
 			
 			if (reader_.peek().kind() != Token::LTRIBRACKET) {
-				return builder_.makeValueList(AST::ValueList(), start);
+				return builder_.makeValueList(AST::ValueDeclList(), start);
 			}
 			
 			reader_.consume();
@@ -1052,7 +1052,7 @@ namespace locic {
 			return valueList;
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseSymbolOrLiteralValue() {
+		AST::Node<AST::ValueDecl> ValueParser::parseSymbolOrLiteralValue() {
 			const auto start = reader_.position();
 			
 			const auto firstToken = reader_.peek(/*offset=*/0);
@@ -1076,7 +1076,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseLiteral(const Constant constant,
+		AST::Node<AST::ValueDecl> ValueParser::parseLiteral(const Constant constant,
 		                                                const Debug::SourcePosition& start) {
 			String specifier;
 			
@@ -1091,7 +1091,7 @@ namespace locic {
 			return builder_.makeLiteralValue(constant, specifier, start);
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseTypeQualifyingValue(const Token::Kind kind,
+		AST::Node<AST::ValueDecl> ValueParser::parseTypeQualifyingValue(const Token::Kind kind,
 		                                                            const Debug::SourcePosition& start) {
 			switch (kind) {
 				case Token::REF: {
@@ -1138,16 +1138,16 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseArrayLiteral(const Debug::SourcePosition& start) {
+		AST::Node<AST::ValueDecl> ValueParser::parseArrayLiteral(const Debug::SourcePosition& start) {
 			auto valueList = parseValueList();
 			reader_.expect(Token::RCURLYBRACKET);
 			return builder_.makeArrayLiteralValue(std::move(valueList), start);
 		}
 		
-		AST::Node<AST::ValueList> ValueParser::parseValueList(const Context context) {
+		AST::Node<AST::ValueDeclList> ValueParser::parseValueList(const Context context) {
 			const auto start = reader_.position();
 			
-			AST::ValueList valueList;
+			AST::ValueDeclList valueList;
 			valueList.reserve(8);
 			
 			while (true) {
@@ -1171,7 +1171,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Value> ValueParser::parseCastValue() {
+		AST::Node<AST::ValueDecl> ValueParser::parseCastValue() {
 			const auto start = reader_.position();
 			
 			auto tokens = {
@@ -1180,18 +1180,18 @@ namespace locic {
 				Token::REINTERPRET_CAST
 			};
 			
-			auto kind = AST::Value::CAST_CONST;
+			auto kind = AST::ValueDecl::CAST_CONST;
 			
 			const auto token = reader_.expectOneOf(tokens);
 			switch (token.kind()) {
 				case Token::CONST_CAST:
-					kind = AST::Value::CAST_CONST;
+					kind = AST::ValueDecl::CAST_CONST;
 					break;
 				case Token::DYNAMIC_CAST:
-					kind = AST::Value::CAST_DYNAMIC;
+					kind = AST::ValueDecl::CAST_DYNAMIC;
 					break;
 				case Token::REINTERPRET_CAST:
-					kind = AST::Value::CAST_REINTERPRET;
+					kind = AST::ValueDecl::CAST_REINTERPRET;
 					break;
 				default:
 					break;

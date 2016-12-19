@@ -7,7 +7,7 @@
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Type.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 
 #include <locic/Debug/SourceLocation.hpp>
 
@@ -18,7 +18,7 @@ namespace locic {
 	
 	namespace AST {
 		
-		Alias::Alias(const String& pName, AST::Node<Value> pValue,
+		Alias::Alias(const String& pName, AST::Node<ValueDecl> pValue,
 		             const Debug::SourceLocation& pLocation)
 		: location_(pLocation), name_(pName),
 		templateVariableDecls_(makeDefaultNode<TemplateVarList>()),
@@ -50,7 +50,7 @@ namespace locic {
 			return requireSpecifier_;
 		}
 		
-		const AST::Node<AST::Value>& Alias::valueDecl() const {
+		const AST::Node<AST::ValueDecl>& Alias::valueDecl() const {
 			return valueDecl_;
 		}
 		

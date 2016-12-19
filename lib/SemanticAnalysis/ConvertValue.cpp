@@ -467,26 +467,26 @@ namespace locic {
 			
 		};
 		
-		SEM::Value ConvertValueData(Context& context, const AST::Node<AST::Value>& astValueNode) {
+		SEM::Value ConvertValueData(Context& context, const AST::Node<AST::ValueDecl>& astValueNode) {
 			assert(astValueNode.get() != nullptr);
 			const auto& location = astValueNode.location();
 			
 			switch (astValueNode->typeEnum) {
-				case AST::Value::BRACKET: {
+				case AST::ValueDecl::BRACKET: {
 					return ConvertValue(context, astValueNode->bracket.value);
 				}
-				case AST::Value::SELF: {
+				case AST::ValueDecl::SELF: {
 					return getSelfValue(context, location);
 				}
-				case AST::Value::THIS: {
+				case AST::ValueDecl::THIS: {
 					return getThisValue(context, location);
 				}
-				case AST::Value::LITERAL: {
+				case AST::ValueDecl::LITERAL: {
 					const auto& specifier = astValueNode->literal.specifier;
 					auto& constant = *(astValueNode->literal.constant);
 					return getLiteralValue(context, specifier, constant, location);
 				}
-				case AST::Value::SYMBOLREF: {
+				case AST::ValueDecl::SYMBOLREF: {
 					const auto& astSymbolNode = astValueNode->symbolRef.symbol;
 					const Name name = astSymbolNode->createName();
 					
@@ -554,12 +554,12 @@ namespace locic {
 					
 					locic_unreachable("Unknown search result kind.");
 				}
-				case AST::Value::TYPEREF: {
+				case AST::ValueDecl::TYPEREF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->typeRef.type);
 					const auto typenameType = context.typeBuilder().getTypenameType();
 					return SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
 				}
-				case AST::Value::MEMBERREF: {
+				case AST::ValueDecl::MEMBERREF: {
 					const auto& memberName = astValueNode->memberRef.name;
 					auto selfValue = getSelfValue(context, location);
 					
@@ -577,7 +577,7 @@ namespace locic {
 					
 					return createMemberVarRef(context, std::move(selfValue), *(variableIterator->second));
 				}
-				case AST::Value::ALIGNOF: {
+				case AST::ValueDecl::ALIGNOF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->alignOf.type);
 					const auto typenameType = context.typeBuilder().getTypenameType();
 					auto typeRefValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
@@ -591,7 +591,7 @@ namespace locic {
 					auto oneValue = SEM::Value::Constant(Constant::Integer(1), sizeType);
 					return CallValue(context, std::move(alignMaskValueAddMethod), makeHeapArray( std::move(oneValue) ), location);
 				}
-				case AST::Value::SIZEOF: {
+				case AST::ValueDecl::SIZEOF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->sizeOf.type);
 					const auto typenameType = context.typeBuilder().getTypenameType();
 					auto typeRefValue = SEM::Value::TypeRef(type, typenameType->createStaticRefType(type));
@@ -599,7 +599,7 @@ namespace locic {
 					auto sizeOfMethod = GetStaticMethod(context, std::move(typeRefValue), context.getCString("__sizeof"), location);
 					return CallValue(context, std::move(sizeOfMethod), {}, location);
 				}
-				case AST::Value::UNARYOP: {
+				case AST::ValueDecl::UNARYOP: {
 					const auto unaryOp = astValueNode->unaryOp.kind;
 					auto operand = ConvertValue(context, astValueNode->unaryOp.operand);
 					
@@ -632,7 +632,7 @@ namespace locic {
 					
 					locic_unreachable("Unknown op kind.");
 				}
-				case AST::Value::BINARYOP: {
+				case AST::ValueDecl::BINARYOP: {
 					const auto binaryOp = astValueNode->binaryOp.kind;
 					auto leftOperand = ConvertValue(context, astValueNode->binaryOp.leftOperand);
 					auto rightOperand = ConvertValue(context, astValueNode->binaryOp.rightOperand);
@@ -780,7 +780,7 @@ namespace locic {
 					
 					locic_unreachable("Unknown op kind.");
 				}
-				case AST::Value::TERNARY: {
+				case AST::ValueDecl::TERNARY: {
 					auto cond = ConvertValue(context, astValueNode->ternary.condition);
 					
 					const auto boolType = context.typeBuilder().getBoolType();
@@ -796,19 +796,19 @@ namespace locic {
 					
 					return SEM::Value::Ternary(std::move(boolValue), std::move(castIfTrue), std::move(castIfFalse));
 				}
-				case AST::Value::CAST: {
+				case AST::ValueDecl::CAST: {
 					auto sourceValue = ConvertValue(context, astValueNode->cast.value);
 					const auto sourceType = TypeResolver(context).resolveType(astValueNode->cast.sourceType);
 					const auto targetType = TypeResolver(context).resolveType(astValueNode->cast.targetType);
 					
 					switch(astValueNode->cast.castKind) {
-						case AST::Value::CAST_CONST:
+						case AST::ValueDecl::CAST_CONST:
 							context.issueDiag(ConstCastNotImplementedDiag(), location);
 							throw SkipException();
-						case AST::Value::CAST_DYNAMIC:
+						case AST::ValueDecl::CAST_DYNAMIC:
 							context.issueDiag(DynamicCastNotImplementedDiag(), location);
 							throw SkipException();
-						case AST::Value::CAST_REINTERPRET:
+						case AST::ValueDecl::CAST_REINTERPRET:
 							if (!sourceType->isPrimitive() || sourceType->getObjectType()->fullName().last() != "ptr_t"
 								|| !targetType->isPrimitive() || targetType->getObjectType()->fullName().last() != "ptr_t") {
 								context.issueDiag(ReinterpretCastOnlySupportsPointersDiag(sourceType, targetType),
@@ -820,7 +820,7 @@ namespace locic {
 					
 					locic_unreachable("Unknown cast kind.");
 				}
-				case AST::Value::LVAL: {
+				case AST::ValueDecl::LVAL: {
 					auto sourceValue = ConvertValue(context, astValueNode->makeLval.value);
 					
 					if (sourceValue.type()->isLval()) {
@@ -835,7 +835,7 @@ namespace locic {
 					
 					return SEM::Value::Lval(std::move(sourceValue));
 				}
-				case AST::Value::NOLVAL: {
+				case AST::ValueDecl::NOLVAL: {
 					auto sourceValue = ConvertValue(context, astValueNode->makeNoLval.value);
 					
 					if (!getDerefType(sourceValue.type())->isLval()) {
@@ -845,7 +845,7 @@ namespace locic {
 					
 					return SEM::Value::NoLval(std::move(sourceValue));
 				}
-				case AST::Value::REF: {
+				case AST::ValueDecl::REF: {
 					auto sourceValue = ConvertValue(context, astValueNode->makeRef.value);
 					
 					if (sourceValue.type()->isLval()) {
@@ -861,7 +861,7 @@ namespace locic {
 					const auto targetType = TypeResolver(context).resolveType(astValueNode->makeRef.targetType);
 					return SEM::Value::Ref(targetType, std::move(sourceValue));
 				}
-				case AST::Value::NOREF: {
+				case AST::ValueDecl::NOREF: {
 					auto sourceValue = ConvertValue(context, astValueNode->makeNoRef.value);
 					
 					if (!sourceValue.type()->isRef()) {
@@ -871,7 +871,7 @@ namespace locic {
 					
 					return SEM::Value::NoRef(std::move(sourceValue));
 				}
-				case AST::Value::INTERNALCONSTRUCT: {
+				case AST::ValueDecl::INTERNALCONSTRUCT: {
 					const auto& astTemplateArgs = astValueNode->internalConstruct.templateArgs;
 					const auto& astParameterValueNodes = astValueNode->internalConstruct.parameters;
 					
@@ -937,13 +937,13 @@ namespace locic {
 					
 					return SEM::Value::InternalConstruct(thisType, std::move(semValues));
 				}
-				case AST::Value::MEMBERACCESS: {
+				case AST::ValueDecl::MEMBERACCESS: {
 					const auto& memberName = astValueNode->memberAccess.memberName;
 					
 					auto object = ConvertValue(context, astValueNode->memberAccess.object);
 					return MakeMemberAccess(context, std::move(object), memberName, astValueNode.location());
 				}
-				case AST::Value::TEMPLATEDMEMBERACCESS: {
+				case AST::ValueDecl::TEMPLATEDMEMBERACCESS: {
 					const auto& memberName = astValueNode->templatedMemberAccess.memberName;
 					auto object = ConvertValue(context, astValueNode->templatedMemberAccess.object);
 					
@@ -956,7 +956,7 @@ namespace locic {
 					
 					return GetTemplatedMethod(context, std::move(object), memberName, std::move(templateArguments), astValueNode.location());
 				}
-				case AST::Value::FUNCTIONCALL: {
+				case AST::ValueDecl::FUNCTIONCALL: {
 					auto functionValue = ConvertValue(context, astValueNode->functionCall.functionValue);
 					
 					HeapArray<SEM::Value> argumentValues;
@@ -967,7 +967,7 @@ namespace locic {
 					
 					return CallValue(context, std::move(functionValue), std::move(argumentValues), location);
 				}
-				case AST::Value::CAPABILITYTEST: {
+				case AST::ValueDecl::CAPABILITYTEST: {
 					const auto checkType = TypeResolver(context).resolveType(astValueNode->capabilityTest.checkType);
 					if (checkType->isAlias() &&
 					    !checkType->alias().type()->isBuiltInTypename()) {
@@ -987,7 +987,7 @@ namespace locic {
 					                                  capabilityType,
 					                                  boolType);
 				}
-				case AST::Value::ARRAYLITERAL: {
+				case AST::ValueDecl::ARRAYLITERAL: {
 					SEM::ValueArray elementValues;
 					for (const auto& astElementValueNode: *(astValueNode->arrayLiteral.values)) {
 						elementValues.push_back(ConvertValue(context, astElementValueNode));
@@ -1017,14 +1017,14 @@ namespace locic {
 					return SEM::Value::ArrayLiteral(arrayType,
 					                                std::move(elementValues));
 				}
-				case AST::Value::MERGE: {
+				case AST::ValueDecl::MERGE: {
 					// The parser wasn't able to resolve an ambiguity,
 					// so it merged two values.
 					const auto& first = astValueNode->merge.first;
 					const auto& second = astValueNode->merge.second;
 					
-					const auto isFirstType = (first->kind() == AST::Value::TYPEREF);
-					const auto isSecondType = (second->kind() == AST::Value::TYPEREF);
+					const auto isFirstType = (first->kind() == AST::ValueDecl::TYPEREF);
+					const auto isSecondType = (second->kind() == AST::ValueDecl::TYPEREF);
 					(void) isSecondType;
 					
 					// We're expecting to see an ambiguity
@@ -1057,13 +1057,13 @@ namespace locic {
 			locic_unreachable("Unknown value kind.");
 		}
 		
-		Debug::ValueInfo makeValueInfo(const AST::Node<AST::Value>& astValueNode) {
+		Debug::ValueInfo makeValueInfo(const AST::Node<AST::ValueDecl>& astValueNode) {
 			Debug::ValueInfo valueInfo;
 			valueInfo.location = astValueNode.location();
 			return valueInfo;
 		}
 		
-		SEM::Value ConvertValue(Context& context, const AST::Node<AST::Value>& astValueNode) {
+		SEM::Value ConvertValue(Context& context, const AST::Node<AST::ValueDecl>& astValueNode) {
 			auto semValue = ConvertValueData(context, astValueNode);
 			semValue.setDebugInfo(makeValueInfo(astValueNode));
 			return semValue;

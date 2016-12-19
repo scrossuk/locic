@@ -11,8 +11,8 @@ namespace locic {
 	namespace AST {
 	
 		class Symbol;
-		struct Value;
-		typedef std::vector<Node<Value>> ValueList;
+		struct ValueDecl;
+		typedef std::vector<Node<ValueDecl>> ValueDeclList;
 		
 		struct ExceptionInitializer {
 			enum Kind {
@@ -21,12 +21,12 @@ namespace locic {
 			} kind;
 			
 			Node<Symbol> symbol;
-			Node<ValueList> valueList;
+			Node<ValueDeclList> valueList;
 			
 			static ExceptionInitializer* None();
 			
 			static ExceptionInitializer*
-			Initialize(Node<Symbol> symbol, Node<ValueList> valueList);
+			Initialize(Node<Symbol> symbol, Node<ValueDeclList> valueList);
 			
 			std::string toString() const;
 			

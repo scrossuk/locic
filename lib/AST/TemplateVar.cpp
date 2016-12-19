@@ -5,7 +5,7 @@
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeDecl.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 
 namespace locic {
 	

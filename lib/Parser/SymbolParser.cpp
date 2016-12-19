@@ -43,7 +43,7 @@ namespace locic {
 			return builder_.makeSymbolElement(name, std::move(templateArguments), start);
 		}
 		
-		AST::Node<AST::ValueList> SymbolParser::parseSymbolTemplateArgumentList(const Context context) {
+		AST::Node<AST::ValueDeclList> SymbolParser::parseSymbolTemplateArgumentList(const Context context) {
 			const auto start = reader_.position();
 			
 			if (!isNowAtTemplateArgumentList(context)) {
@@ -52,7 +52,7 @@ namespace locic {
 			
 			reader_.consume();
 			
-			AST::ValueList valueList;
+			AST::ValueDeclList valueList;
 			valueList.reserve(8);
 			
 			while (true) {

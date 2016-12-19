@@ -5,7 +5,7 @@
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 #include <locic/AST/Type.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/SEM.hpp>

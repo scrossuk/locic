@@ -110,7 +110,7 @@ namespace locic {
 		
 		AST::Node<AST::TypeDecl>
 		TypeBuilder::makeStaticArrayType(AST::Node<AST::TypeDecl> targetType,
-		                                 AST::Node<AST::Value> sizeValue,
+		                                 AST::Node<AST::ValueDecl> sizeValue,
 		                                 const Debug::SourcePosition& start) {
 			return makeTypeNode(AST::TypeDecl::StaticArray(std::move(targetType),
 			                                           std::move(sizeValue)), start);

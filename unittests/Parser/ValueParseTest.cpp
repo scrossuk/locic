@@ -22,8 +22,8 @@ namespace locic {
 		}
 		
 		void testPrimitiveTypeValue(const Array<Token::Kind, 16>& tokenKinds, const PrimitiveID primitiveID) {
-			testParseValue(tokenKinds, [=](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokenKinds, [=](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				ASSERT_TRUE(value->typeRef.type->isPrimitive());
 				EXPECT_EQ(value->typeRef.type->primitiveID(), primitiveID);
 			});
@@ -78,28 +78,28 @@ namespace locic {
 		}
 		
 		TEST(ValueParseTest, Literal) {
-			testParseValue({ Token::CONSTANT }, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::LITERAL);
+			testParseValue({ Token::CONSTANT }, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::LITERAL);
 			});
 		}
 		
 		TEST(ValueParseTest, Null) {
-			testParseValue({ Token::NULLVAL }, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::LITERAL);
+			testParseValue({ Token::NULLVAL }, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::LITERAL);
 				EXPECT_EQ(*(value->literal.constant), Constant::Null());
 			});
 		}
 		
 		TEST(ValueParseTest, True) {
-			testParseValue({ Token::TRUEVAL }, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::LITERAL);
+			testParseValue({ Token::TRUEVAL }, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::LITERAL);
 				EXPECT_EQ(*(value->literal.constant), Constant::True());
 			});
 		}
 		
 		TEST(ValueParseTest, False) {
-			testParseValue({ Token::FALSEVAL }, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::LITERAL);
+			testParseValue({ Token::FALSEVAL }, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::LITERAL);
 				EXPECT_EQ(*(value->literal.constant), Constant::False());
 			});
 		}
@@ -111,8 +111,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::ALIGNOF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::ALIGNOF);
 				EXPECT_TRUE(value->alignOf.type->isObjectType());
 			});
 		}
@@ -124,8 +124,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::SIZEOF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::SIZEOF);
 				EXPECT_TRUE(value->sizeOf.type->isObjectType());
 			});
 		}
@@ -139,24 +139,24 @@ namespace locic {
 				Token::STAR,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_MULTIPLY);
 				const auto& leftOperand = value->binaryOp.leftOperand;
-				ASSERT_EQ(leftOperand->kind(), AST::Value::SIZEOF);
+				ASSERT_EQ(leftOperand->kind(), AST::ValueDecl::SIZEOF);
 				EXPECT_TRUE(leftOperand->sizeOf.type->isObjectType());
 			});
 		}
 		
 		TEST(ValueParseTest, Self) {
-			testParseValue({ Token::SELF }, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::SELF);
+			testParseValue({ Token::SELF }, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::SELF);
 			});
 		}
 		
 		TEST(ValueParseTest, This) {
-			testParseValue({ Token::THIS }, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::THIS);
+			testParseValue({ Token::THIS }, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::THIS);
 			});
 		}
 		
@@ -165,8 +165,8 @@ namespace locic {
 				Token::PLUS,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::UNARYOP);
 				EXPECT_EQ(value->unaryOp.kind, AST::OP_PLUS);
 			});
 		}
@@ -176,8 +176,8 @@ namespace locic {
 				Token::MINUS,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::UNARYOP);
 				EXPECT_EQ(value->unaryOp.kind, AST::OP_MINUS);
 			});
 		}
@@ -187,8 +187,8 @@ namespace locic {
 				Token::EXCLAIMMARK,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::UNARYOP);
 				EXPECT_EQ(value->unaryOp.kind, AST::OP_NOT);
 			});
 		}
@@ -198,8 +198,8 @@ namespace locic {
 				Token::AMPERSAND,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::UNARYOP);
 				EXPECT_EQ(value->unaryOp.kind, AST::OP_ADDRESS);
 			});
 		}
@@ -209,8 +209,8 @@ namespace locic {
 				Token::STAR,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::UNARYOP);
 				EXPECT_EQ(value->unaryOp.kind, AST::OP_DEREF);
 			});
 		}
@@ -220,8 +220,8 @@ namespace locic {
 				Token::MOVE,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::UNARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::UNARYOP);
 				EXPECT_EQ(value->unaryOp.kind, AST::OP_MOVE);
 			});
 		}
@@ -232,8 +232,8 @@ namespace locic {
 				Token::LROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::INTERNALCONSTRUCT);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::INTERNALCONSTRUCT);
 				EXPECT_EQ(value->internalConstruct.templateArgs->size(), 0);
 				EXPECT_EQ(value->internalConstruct.parameters->size(), 0);
 			});
@@ -246,8 +246,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::INTERNALCONSTRUCT);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::INTERNALCONSTRUCT);
 				EXPECT_EQ(value->internalConstruct.templateArgs->size(), 0);
 				EXPECT_EQ(value->internalConstruct.parameters->size(), 1);
 			});
@@ -262,8 +262,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::INTERNALCONSTRUCT);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::INTERNALCONSTRUCT);
 				EXPECT_EQ(value->internalConstruct.templateArgs->size(), 0);
 				EXPECT_EQ(value->internalConstruct.parameters->size(), 2);
 			});
@@ -278,8 +278,8 @@ namespace locic {
 				Token::LROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::INTERNALCONSTRUCT);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::INTERNALCONSTRUCT);
 				EXPECT_EQ(value->internalConstruct.templateArgs->size(), 1);
 				EXPECT_EQ(value->internalConstruct.parameters->size(), 0);
 			});
@@ -296,8 +296,8 @@ namespace locic {
 				Token::LROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::INTERNALCONSTRUCT);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::INTERNALCONSTRUCT);
 				EXPECT_EQ(value->internalConstruct.templateArgs->size(), 2);
 				EXPECT_EQ(value->internalConstruct.parameters->size(), 0);
 			});
@@ -308,8 +308,8 @@ namespace locic {
 				Token::NAME,
 				Token::STAR
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				ASSERT_TRUE(value->typeRef.type->isPointer());
 				EXPECT_TRUE(value->typeRef.type->getPointerTarget()->isObjectType());
 			});
@@ -320,8 +320,8 @@ namespace locic {
 				Token::NAME,
 				Token::AMPERSAND
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				ASSERT_TRUE(value->typeRef.type->isReference());
 				EXPECT_TRUE(value->typeRef.type->getReferenceTarget()->isObjectType());
 			});
@@ -338,8 +338,8 @@ namespace locic {
 				Token::LROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				ASSERT_TRUE(value->typeRef.type->isFunction());
 				EXPECT_TRUE(value->typeRef.type->functionReturnType()->isObjectType());
 			});
@@ -350,8 +350,8 @@ namespace locic {
 				Token::LVAL,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				EXPECT_TRUE(value->typeRef.type->isLval());
 			});
 		}
@@ -364,8 +364,8 @@ namespace locic {
 				Token::RTRIBRACKET,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				EXPECT_TRUE(value->typeRef.type->isRef());
 			});
 		}
@@ -378,8 +378,8 @@ namespace locic {
 				Token::RTRIBRACKET,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				EXPECT_TRUE(value->typeRef.type->isStaticRef());
 			});
 		}
@@ -390,11 +390,11 @@ namespace locic {
 				Token::LTRIBRACKET,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_LESSTHAN);
-				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::SYMBOLREF);
-				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::ValueDecl::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::ValueDecl::SYMBOLREF);
 			});
 		}
 		
@@ -404,11 +404,11 @@ namespace locic {
 				Token::RTRIBRACKET,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_GREATERTHAN);
-				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::SYMBOLREF);
-				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::ValueDecl::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::ValueDecl::SYMBOLREF);
 			});
 		}
 		
@@ -418,11 +418,11 @@ namespace locic {
 				Token::DOUBLE_LTRIBRACKET,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_LEFTSHIFT);
-				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::SYMBOLREF);
-				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::ValueDecl::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::ValueDecl::SYMBOLREF);
 			});
 		}
 		
@@ -433,11 +433,11 @@ namespace locic {
 				Token::RTRIBRACKET,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_RIGHTSHIFT);
-				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::SYMBOLREF);
-				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::ValueDecl::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::ValueDecl::SYMBOLREF);
 			});
 		}
 		
@@ -447,8 +447,8 @@ namespace locic {
 				Token::PLUS,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_ADD);
 			});
 		}
@@ -461,12 +461,12 @@ namespace locic {
 				Token::PLUS,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_ADD);
-				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.leftOperand->binaryOp.kind, AST::OP_ADD);
-				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::ValueDecl::SYMBOLREF);
 			});
 		}
 		
@@ -476,8 +476,8 @@ namespace locic {
 				Token::STAR,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_MULTIPLY);
 			});
 		}
@@ -490,12 +490,12 @@ namespace locic {
 				Token::PLUS,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_ADD);
-				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.leftOperand->binaryOp.kind, AST::OP_MULTIPLY);
-				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::Value::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::ValueDecl::SYMBOLREF);
 			});
 		}
 		
@@ -507,11 +507,11 @@ namespace locic {
 				Token::STAR,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_ADD);
-				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::SYMBOLREF);
-				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::ValueDecl::SYMBOLREF);
+				EXPECT_EQ(value->binaryOp.rightOperand->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.rightOperand->binaryOp.kind, AST::OP_MULTIPLY);
 			});
 		}
@@ -522,8 +522,8 @@ namespace locic {
 				Token::DOUBLE_COLON,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::SYMBOLREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::SYMBOLREF);
 				EXPECT_EQ(value->symbolRef.symbol->size(), 2);
 				EXPECT_EQ(value->symbolRef.symbol->at(0)->templateArguments()->size(), 0);
 				EXPECT_EQ(value->symbolRef.symbol->at(1)->templateArguments()->size(), 0);
@@ -538,8 +538,8 @@ namespace locic {
 				Token::DOUBLE_COLON,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::SYMBOLREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::SYMBOLREF);
 				EXPECT_EQ(value->symbolRef.symbol->size(), 3);
 				EXPECT_EQ(value->symbolRef.symbol->at(0)->templateArguments()->size(), 0);
 				EXPECT_EQ(value->symbolRef.symbol->at(1)->templateArguments()->size(), 0);
@@ -556,8 +556,8 @@ namespace locic {
 				Token::NAME,
 				Token::RTRIBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::SYMBOLREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::SYMBOLREF);
 				EXPECT_EQ(value->symbolRef.symbol->size(), 2);
 				EXPECT_EQ(value->symbolRef.symbol->at(0)->templateArguments()->size(), 0);
 				EXPECT_EQ(value->symbolRef.symbol->at(1)->templateArguments()->size(), 1);
@@ -573,8 +573,8 @@ namespace locic {
 				Token::DOUBLE_COLON,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::SYMBOLREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::SYMBOLREF);
 				EXPECT_EQ(value->symbolRef.symbol->size(), 2);
 				EXPECT_EQ(value->symbolRef.symbol->at(0)->templateArguments()->size(), 1);
 				EXPECT_EQ(value->symbolRef.symbol->at(1)->templateArguments()->size(), 0);
@@ -589,9 +589,9 @@ namespace locic {
 				Token::LROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::FUNCTIONCALL);
-				ASSERT_EQ(value->functionCall.functionValue->kind(), AST::Value::MEMBERACCESS);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::FUNCTIONCALL);
+				ASSERT_EQ(value->functionCall.functionValue->kind(), AST::ValueDecl::MEMBERACCESS);
 				const auto& object = value->functionCall.functionValue->memberAccess.object;
 				EXPECT_TRUE(object->isLiteral());
 			});
@@ -606,8 +606,8 @@ namespace locic {
 				Token::LROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::FUNCTIONCALL);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::FUNCTIONCALL);
 				ASSERT_TRUE(value->functionCall.functionValue->isSymbol());
 				const auto& symbol = value->functionCall.functionValue->symbol();
 				ASSERT_EQ(symbol->size(), 1);
@@ -623,11 +623,11 @@ namespace locic {
 				Token::LROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::FUNCTIONCALL);
-				ASSERT_EQ(value->functionCall.functionValue->kind(), AST::Value::MEMBERACCESS);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::FUNCTIONCALL);
+				ASSERT_EQ(value->functionCall.functionValue->kind(), AST::ValueDecl::MEMBERACCESS);
 				const auto& object = value->functionCall.functionValue->memberAccess.object;
-				ASSERT_EQ(object->kind(), AST::Value::UNARYOP);
+				ASSERT_EQ(object->kind(), AST::ValueDecl::UNARYOP);
 				EXPECT_TRUE(object->unaryOp.operand->isSymbol());
 			});
 		}
@@ -645,13 +645,13 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::FUNCTIONCALL);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::FUNCTIONCALL);
 				EXPECT_TRUE(value->functionCall.functionValue->isSymbol());
 				const auto& parameters = value->functionCall.parameters;
 				ASSERT_EQ(parameters->size(), 2);
-				EXPECT_EQ(parameters->at(0)->kind(), AST::Value::BINARYOP);
-				EXPECT_EQ(parameters->at(1)->kind(), AST::Value::BINARYOP);
+				EXPECT_EQ(parameters->at(0)->kind(), AST::ValueDecl::BINARYOP);
+				EXPECT_EQ(parameters->at(1)->kind(), AST::ValueDecl::BINARYOP);
 			});
 		}
 		
@@ -670,12 +670,12 @@ namespace locic {
 				Token::RROUNDBRACKET,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::FUNCTIONCALL);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::FUNCTIONCALL);
 				EXPECT_TRUE(value->functionCall.functionValue->isSymbol());
 				const auto& parameters = value->functionCall.parameters;
 				ASSERT_EQ(parameters->size(), 1);
-				EXPECT_EQ(parameters->at(0)->kind(), AST::Value::FUNCTIONCALL);
+				EXPECT_EQ(parameters->at(0)->kind(), AST::ValueDecl::FUNCTIONCALL);
 			});
 		}
 		
@@ -686,13 +686,13 @@ namespace locic {
 				Token::NAME,
 				Token::RSQUAREBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::MERGE);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::MERGE);
 				
-				ASSERT_EQ(value->merge.first->kind(), AST::Value::BINARYOP);
+				ASSERT_EQ(value->merge.first->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->merge.first->binaryOp.kind, AST::OP_INDEX);
 				
-				ASSERT_EQ(value->merge.second->kind(), AST::Value::TYPEREF);
+				ASSERT_EQ(value->merge.second->kind(), AST::ValueDecl::TYPEREF);
 				ASSERT_TRUE(value->merge.second->typeRef.type->isStaticArray());
 				EXPECT_TRUE(value->merge.second->typeRef.type->getStaticArrayTarget()->isObjectType());
 			});
@@ -708,19 +708,19 @@ namespace locic {
 				Token::NAME,
 				Token::RSQUAREBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::MERGE);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::MERGE);
 				
 				const auto& first = value->merge.first;
-				ASSERT_EQ(first->kind(), AST::Value::BINARYOP);
-				ASSERT_EQ(first->binaryOp.leftOperand->kind(), AST::Value::MERGE);
-				ASSERT_EQ(first->binaryOp.leftOperand->merge.first->kind(), AST::Value::BINARYOP);
+				ASSERT_EQ(first->kind(), AST::ValueDecl::BINARYOP);
+				ASSERT_EQ(first->binaryOp.leftOperand->kind(), AST::ValueDecl::MERGE);
+				ASSERT_EQ(first->binaryOp.leftOperand->merge.first->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(first->binaryOp.leftOperand->merge.first->binaryOp.kind, AST::OP_INDEX);
-				ASSERT_EQ(first->binaryOp.leftOperand->merge.second->kind(), AST::Value::TYPEREF);
+				ASSERT_EQ(first->binaryOp.leftOperand->merge.second->kind(), AST::ValueDecl::TYPEREF);
 				EXPECT_TRUE(first->binaryOp.leftOperand->merge.second->typeRef.type->isStaticArray());
 				
 				const auto& second = value->merge.second;
-				ASSERT_EQ(second->kind(), AST::Value::TYPEREF);
+				ASSERT_EQ(second->kind(), AST::ValueDecl::TYPEREF);
 				ASSERT_TRUE(second->typeRef.type->isStaticArray());
 				EXPECT_TRUE(second->typeRef.type->getStaticArrayTarget()->isStaticArray());
 			});
@@ -735,10 +735,10 @@ namespace locic {
 				Token::NAME,
 				Token::RSQUAREBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_INDEX);
-				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::Value::FUNCTIONCALL);
+				EXPECT_EQ(value->binaryOp.leftOperand->kind(), AST::ValueDecl::FUNCTIONCALL);
 			});
 		}
 		
@@ -749,8 +749,8 @@ namespace locic {
 				Token::NAME,
 				Token::RSQUAREBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				ASSERT_TRUE(value->typeRef.type->isStaticArray());
 				EXPECT_TRUE(value->typeRef.type->getStaticArrayTarget()->isPrimitive());
 			});
@@ -764,8 +764,8 @@ namespace locic {
 				Token::NAME,
 				Token::RSQUAREBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				ASSERT_TRUE(value->typeRef.type->isStaticArray());
 				EXPECT_TRUE(value->typeRef.type->getStaticArrayTarget()->isPointer());
 			});
@@ -779,8 +779,8 @@ namespace locic {
 				Token::NAME,
 				Token::RSQUAREBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				ASSERT_TRUE(value->typeRef.type->isStaticArray());
 				EXPECT_TRUE(value->typeRef.type->getStaticArrayTarget()->isReference());
 			});
@@ -794,8 +794,8 @@ namespace locic {
 				Token::COLON,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TERNARY);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TERNARY);
 				EXPECT_TRUE(value->ternary.condition->isSymbol());
 				EXPECT_TRUE(value->ternary.ifTrue->isSymbol());
 				EXPECT_TRUE(value->ternary.ifFalse->isSymbol());
@@ -808,8 +808,8 @@ namespace locic {
 				Token::COLON,
 				Token::NAME
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::CAPABILITYTEST);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::CAPABILITYTEST);
 				EXPECT_TRUE(value->capabilityTest.checkType->isObjectType());
 				EXPECT_TRUE(value->capabilityTest.capabilityType->isObjectType());
 			});
@@ -822,8 +822,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::TYPEREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
 				EXPECT_TRUE(value->typeRef.type->isNoTag());
 			});
 		}
@@ -840,9 +840,9 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::CAST);
-				EXPECT_EQ(value->cast.castKind, AST::Value::CAST_CONST);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::CAST);
+				EXPECT_EQ(value->cast.castKind, AST::ValueDecl::CAST_CONST);
 			});
 		}
 		
@@ -858,9 +858,9 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::CAST);
-				EXPECT_EQ(value->cast.castKind, AST::Value::CAST_DYNAMIC);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::CAST);
+				EXPECT_EQ(value->cast.castKind, AST::ValueDecl::CAST_DYNAMIC);
 			});
 		}
 		
@@ -876,9 +876,9 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::CAST);
-				EXPECT_EQ(value->cast.castKind, AST::Value::CAST_REINTERPRET);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::CAST);
+				EXPECT_EQ(value->cast.castKind, AST::ValueDecl::CAST_REINTERPRET);
 			});
 		}
 		
@@ -892,8 +892,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::REF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::REF);
 			});
 		}
 		
@@ -904,8 +904,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::NOREF);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::NOREF);
 			});
 		}
 		
@@ -916,8 +916,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::LVAL);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::LVAL);
 			});
 		}
 		
@@ -928,8 +928,8 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				EXPECT_EQ(value->kind(), AST::Value::NOLVAL);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				EXPECT_EQ(value->kind(), AST::ValueDecl::NOLVAL);
 			});
 		}
 		
@@ -945,11 +945,11 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_LOGICALAND);
 				const auto& leftOperand = value->binaryOp.leftOperand;
-				ASSERT_EQ(leftOperand->kind(), AST::Value::BINARYOP);
+				ASSERT_EQ(leftOperand->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(leftOperand->binaryOp.kind, AST::OP_LESSTHAN);
 			});
 		}
@@ -966,11 +966,11 @@ namespace locic {
 				Token::NAME,
 				Token::RROUNDBRACKET
 			};
-			testParseValue(tokens, [](const AST::Node<AST::Value>& value) {
-				ASSERT_EQ(value->kind(), AST::Value::BINARYOP);
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(value->binaryOp.kind, AST::OP_LOGICALOR);
 				const auto& leftOperand = value->binaryOp.leftOperand;
-				ASSERT_EQ(leftOperand->kind(), AST::Value::BINARYOP);
+				ASSERT_EQ(leftOperand->kind(), AST::ValueDecl::BINARYOP);
 				EXPECT_EQ(leftOperand->binaryOp.kind, AST::OP_LESSTHAN);
 			});
 		}

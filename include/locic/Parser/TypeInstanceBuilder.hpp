@@ -63,7 +63,7 @@ namespace locic {
 			
 			AST::Node<AST::ExceptionInitializer>
 			makeExceptionInitializer(AST::Node<AST::Symbol> symbol,
-			                         AST::Node<AST::ValueList> valueList,
+			                         AST::Node<AST::ValueDeclList> valueList,
 			                         const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstance>

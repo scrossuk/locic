@@ -9,7 +9,7 @@
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/Type.hpp>
 

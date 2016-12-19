@@ -28,7 +28,7 @@ namespace locic {
 			
 			AST::Node<AST::SymbolElement> parseSymbolElement(Context context);
 			
-			AST::Node<AST::ValueList>
+			AST::Node<AST::ValueDeclList>
 			parseSymbolTemplateArgumentList(Context context = GENERIC);
 			
 			bool isNowAtTemplateArgumentList(Context context);

@@ -5,7 +5,7 @@
 #include <locic/AST/IfClause.hpp>
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/TypeDecl.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 #include <locic/Support/String.hpp>
 
@@ -50,37 +50,37 @@ namespace locic {
 				UNREACHABLE
 			};
 			
-			static Statement* ValueStmt(Node<Value> value);
+			static Statement* ValueStmt(Node<ValueDecl> value);
 			
-			static Statement* ValueStmtVoidCast(Node<Value> value);
+			static Statement* ValueStmtVoidCast(Node<ValueDecl> value);
 			
 			static Statement* ScopeStmt(Node<Scope> scope);
 			
 			static Statement* If(Node<IfClauseList> clauseList, Node<Scope> elseScope);
 			
-			static Statement* Switch(Node<Value> value, Node<SwitchCaseList> caseList, Node<DefaultCase> defaultCase);
+			static Statement* Switch(Node<ValueDecl> value, Node<SwitchCaseList> caseList, Node<DefaultCase> defaultCase);
 			
-			static Statement* While(Node<Value> condition, Node<Scope> whileTrue);
+			static Statement* While(Node<ValueDecl> condition, Node<Scope> whileTrue);
 			
-			static Statement* For(Node<Var> typeVar, Node<Value> initValue, Node<Scope> scope);
+			static Statement* For(Node<Var> typeVar, Node<ValueDecl> initValue, Node<Scope> scope);
 			
 			static Statement* Try(Node<Scope> scope, Node<CatchClauseList> catchList);
 			
 			static Statement* ScopeExit(const String& state, Node<Scope> scope);
 			
-			static Statement* VarDecl(Node<Var> typeVar, Node<Value> value);
+			static Statement* VarDecl(Node<Var> typeVar, Node<ValueDecl> value);
 			
-			static Statement* Assign(AssignKind assignKind, Node<Value> var, Node<Value> value);
+			static Statement* Assign(AssignKind assignKind, Node<ValueDecl> var, Node<ValueDecl> value);
 			
-			static Statement* Increment(Node<Value> value);
+			static Statement* Increment(Node<ValueDecl> value);
 			
-			static Statement* Decrement(Node<Value> value);
+			static Statement* Decrement(Node<ValueDecl> value);
 			
-			static Statement* Return(Node<Value> value);
+			static Statement* Return(Node<ValueDecl> value);
 			
 			static Statement* ReturnVoid();
 			
-			static Statement* Throw(Node<Value> value);
+			static Statement* Throw(Node<ValueDecl> value);
 			
 			static Statement* Rethrow();
 			
@@ -88,7 +88,7 @@ namespace locic {
 			
 			static Statement* Continue();
 			
-			static Statement* Assert(Node<Value> value, const String& name);
+			static Statement* Assert(Node<ValueDecl> value, const String& name);
 			
 			static Statement* AssertNoExcept(Node<Scope> scope);
 			
@@ -100,7 +100,7 @@ namespace locic {
 			
 			bool isUnusedResultValue() const;
 			
-			const Node<Value>& value() const;
+			const Node<ValueDecl>& value() const;
 			
 			bool isScope() const;
 			
@@ -114,7 +114,7 @@ namespace locic {
 			
 			bool isSwitch() const;
 			
-			const Node<Value>& switchValue() const;
+			const Node<ValueDecl>& switchValue() const;
 			
 			const Node<SwitchCaseList>& switchCaseList() const;
 			
@@ -122,7 +122,7 @@ namespace locic {
 			
 			bool isWhile() const;
 			
-			const Node<Value>& whileCondition() const;
+			const Node<ValueDecl>& whileCondition() const;
 			
 			const Node<Scope>& whileScope() const;
 			
@@ -131,7 +131,7 @@ namespace locic {
 			Node<Var>& forVar();
 			const Node<Var>& forVar() const;
 			
-			const Node<Value>& forInitValue() const;
+			const Node<ValueDecl>& forInitValue() const;
 			
 			const Node<Scope>& forInitScope() const;
 			
@@ -152,33 +152,33 @@ namespace locic {
 			Node<Var>& varDeclVar();
 			const Node<Var>& varDeclVar() const;
 			
-			const Node<Value>& varDeclValue() const;
+			const Node<ValueDecl>& varDeclValue() const;
 			
 			bool isAssign() const;
 			
 			AssignKind assignKind() const;
 			
-			const Node<Value>& assignLvalue() const;
+			const Node<ValueDecl>& assignLvalue() const;
 			
-			const Node<Value>& assignRvalue() const;
+			const Node<ValueDecl>& assignRvalue() const;
 			
 			bool isIncrement() const;
 			
-			const Node<Value>& incrementValue() const;
+			const Node<ValueDecl>& incrementValue() const;
 			
 			bool isDecrement() const;
 			
-			const Node<Value>& decrementValue() const;
+			const Node<ValueDecl>& decrementValue() const;
 			
 			bool isReturn() const;
 			
-			const Node<Value>& returnValue() const;
+			const Node<ValueDecl>& returnValue() const;
 			
 			bool isReturnVoid() const;
 			
 			bool isThrow() const;
 			
-			const Node<Value>& throwValue() const;
+			const Node<ValueDecl>& throwValue() const;
 			
 			bool isRethrow() const;
 			
@@ -188,7 +188,7 @@ namespace locic {
 			
 			bool isAssert() const;
 			
-			const Node<Value>& assertValue() const;
+			const Node<ValueDecl>& assertValue() const;
 			
 			const String& assertName() const;
 			
@@ -204,7 +204,7 @@ namespace locic {
 			Kind kind_;
 			
 			struct {
-				Node<Value> value;
+				Node<ValueDecl> value;
 				bool hasVoidCast;
 			} valueStmt;
 			
@@ -218,19 +218,19 @@ namespace locic {
 			} ifStmt;
 			
 			struct {
-				Node<Value> value;
+				Node<ValueDecl> value;
 				Node<SwitchCaseList> caseList;
 				Node<DefaultCase> defaultCase;
 			} switchStmt;
 			
 			struct {
-				Node<Value> condition;
+				Node<ValueDecl> condition;
 				Node<Scope> whileTrue;
 			} whileStmt;
 			
 			struct {
 				Node<Var> typeVar;
-				Node<Value> initValue;
+				Node<ValueDecl> initValue;
 				Node<Scope> scope;
 			} forStmt;
 			
@@ -246,33 +246,33 @@ namespace locic {
 			
 			struct {
 				Node<Var> typeVar;
-				Node<Value> value;
+				Node<ValueDecl> value;
 			} varDecl;
 			
 			struct {
 				AssignKind assignKind;
-				Node<Value> var;
-				Node<Value> value;
+				Node<ValueDecl> var;
+				Node<ValueDecl> value;
 			} assignStmt;
 			
 			struct {
-				Node<Value> value;
+				Node<ValueDecl> value;
 			} incrementStmt;
 			
 			struct {
-				Node<Value> value;
+				Node<ValueDecl> value;
 			} decrementStmt;
 			
 			struct {
-				Node<Value> value;
+				Node<ValueDecl> value;
 			} returnStmt;
 			
 			struct {
-				Node<Value> value;
+				Node<ValueDecl> value;
 			} throwStmt;
 			
 			struct {
-				Node<Value> value;
+				Node<ValueDecl> value;
 				String name;
 			} assertStmt;
 			

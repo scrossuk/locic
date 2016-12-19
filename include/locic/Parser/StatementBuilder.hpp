@@ -41,12 +41,12 @@ namespace locic {
 			                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::IfClause>
-			makeIfClause(AST::Node<AST::Value> value,
+			makeIfClause(AST::Node<AST::ValueDecl> value,
 			             AST::Node<AST::Scope> scope,
 			             const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeSwitchStatement(AST::Node<AST::Value> value,
+			makeSwitchStatement(AST::Node<AST::ValueDecl> value,
 			                    AST::Node<AST::SwitchCaseList> switchCaseList,
 			                    AST::Node<AST::DefaultCase> defaultCase,
 			                    const Debug::SourcePosition& start);
@@ -68,13 +68,13 @@ namespace locic {
 			                      const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeWhileStatement(AST::Node<AST::Value> condition,
+			makeWhileStatement(AST::Node<AST::ValueDecl> condition,
 			                   AST::Node<AST::Scope> scope,
 			                   const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
 			makeForStatement(AST::Node<AST::Var> var,
-			                 AST::Node<AST::Value> value,
+			                 AST::Node<AST::ValueDecl> value,
 			                 AST::Node<AST::Scope> scope,
 			                 const Debug::SourcePosition& start);
 			
@@ -101,42 +101,42 @@ namespace locic {
 			                            const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeAssertStatement(AST::Node<AST::Value> value, String name,
+			makeAssertStatement(AST::Node<AST::ValueDecl> value, String name,
 			                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
 			makeVarDeclStatement(AST::Node<AST::Var> var,
-			                     AST::Node<AST::Value> value,
+			                     AST::Node<AST::ValueDecl> value,
 			                     const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeIncrementStatement(AST::Node<AST::Value> value,
+			makeIncrementStatement(AST::Node<AST::ValueDecl> value,
 			                       const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeDecrementStatement(AST::Node<AST::Value> value,
+			makeDecrementStatement(AST::Node<AST::ValueDecl> value,
 			                       const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeValueStatement(AST::Node<AST::Value> value,
+			makeValueStatement(AST::Node<AST::ValueDecl> value,
 			                       const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeUnusedResultValueStatement(AST::Node<AST::Value> value,
+			makeUnusedResultValueStatement(AST::Node<AST::ValueDecl> value,
 			                               const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
 			makeReturnVoidStatement(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeReturnStatement(AST::Node<AST::Value> value,
+			makeReturnStatement(AST::Node<AST::ValueDecl> value,
 			                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
 			makeRethrowStatement(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeThrowStatement(AST::Node<AST::Value> value,
+			makeThrowStatement(AST::Node<AST::ValueDecl> value,
 			                   const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
@@ -149,8 +149,8 @@ namespace locic {
 			makeUnreachableStatement(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::Statement>
-			makeAssignStatement(AST::Node<AST::Value> lvalue,
-			                    AST::Node<AST::Value> rvalue,
+			makeAssignStatement(AST::Node<AST::ValueDecl> lvalue,
+			                    AST::Node<AST::ValueDecl> rvalue,
 			                    AST::AssignKind kind,
 			                    const Debug::SourcePosition& start);
 			

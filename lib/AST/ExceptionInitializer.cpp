@@ -6,7 +6,7 @@
 #include <locic/AST/ExceptionInitializer.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Symbol.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 
 namespace locic {
 
@@ -16,7 +16,7 @@ namespace locic {
 			return new ExceptionInitializer(NONE);
 		}
 		
-		ExceptionInitializer* ExceptionInitializer::Initialize(Node<Symbol> symbol, Node<ValueList> valueList) {
+		ExceptionInitializer* ExceptionInitializer::Initialize(Node<Symbol> symbol, Node<ValueDeclList> valueList) {
 			auto initializer = new ExceptionInitializer(INITIALIZE);
 			initializer->symbol = std::move(symbol);
 			initializer->valueList = std::move(valueList);

@@ -3,7 +3,7 @@
 #include <locic/Support/String.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/TypeDecl.hpp>
-#include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 
 namespace locic {
