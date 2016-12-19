@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/ExitStates.hpp>
 #include <locic/Debug/StatementInfo.hpp>
-#include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Value.hpp>
 #include <locic/Support/Optional.hpp>
 #include <locic/Support/String.hpp>
@@ -92,7 +92,7 @@ namespace locic {
 				
 				Kind kind() const;
 				
-				ExitStates exitStates() const;
+				AST::ExitStates exitStates() const;
 				
 				bool isValueStatement() const;
 				
@@ -182,13 +182,13 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				Statement(Kind kind, ExitStates exitStates);
+				Statement(Kind kind, AST::ExitStates exitStates);
 				
 				Statement(const Statement&) = delete;
 				Statement& operator=(const Statement&) = delete;
 					
 				Kind kind_;
-				ExitStates exitStates_;
+				AST::ExitStates exitStates_;
 				Optional<Debug::StatementInfo> debugInfo_;
 				
 				struct {

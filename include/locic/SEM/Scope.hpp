@@ -4,10 +4,10 @@
 #include <memory>
 #include <string>
 
+#include <locic/AST/ExitStates.hpp>
 #include <locic/Support/Array.hpp>
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/String.hpp>
-#include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Statement.hpp>
 
 namespace locic {
@@ -28,7 +28,7 @@ namespace locic {
 				Scope(Scope&&) = default;
 				Scope& operator=(Scope&&) = default;
 				
-				ExitStates exitStates() const;
+				AST::ExitStates exitStates() const;
 				
 				Array<AST::Var*, 10>& variables();
 				const Array<AST::Var*, 10>& variables() const;

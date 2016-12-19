@@ -4,8 +4,8 @@
 #include <locic/SEM/Predicate.hpp>
 
 namespace locic {
-
-	namespace SEM {
+	
+	namespace AST {
 		
 		/**
 		 * \brief Exit States
@@ -48,14 +48,14 @@ namespace locic {
 				return ExitStates(StateContinue);
 			}
 			
-			static ExitStates Throw(Predicate noexceptPredicate) {
+			static ExitStates Throw(SEM::Predicate noexceptPredicate) {
 				ExitStates exitStates(StateThrow);
 				exitStates.noexceptPredicate_ = std::move(noexceptPredicate);
 				return exitStates;
 			}
 			
 			static ExitStates ThrowAlways() {
-				return ExitStates::Throw(Predicate::False());
+				return ExitStates::Throw(SEM::Predicate::False());
 			}
 			
 			static ExitStates Rethrow() {
@@ -120,7 +120,7 @@ namespace locic {
 				return test(StateRethrow);
 			}
 			
-			const Predicate& noexceptPredicate() const {
+			const SEM::Predicate& noexceptPredicate() const {
 				return noexceptPredicate_;
 			}
 			
@@ -159,16 +159,16 @@ namespace locic {
 			ExitStates operator&(const ExitStates& other) const {
 				ExitStates newStates;
 				newStates.states_ = states_ & other.states_;
-				newStates.noexceptPredicate_ = Predicate::Or(noexceptPredicate_.copy(),
-				                                             other.noexceptPredicate_.copy());
+				newStates.noexceptPredicate_ = SEM::Predicate::Or(noexceptPredicate_.copy(),
+				                                                  other.noexceptPredicate_.copy());
 				return newStates;
 			}
 			
 			ExitStates operator|(const ExitStates& other) const {
 				ExitStates newStates;
 				newStates.states_ = states_ | other.states_;
-				newStates.noexceptPredicate_ = Predicate::And(noexceptPredicate_.copy(),
-				                                              other.noexceptPredicate_.copy());
+				newStates.noexceptPredicate_ = SEM::Predicate::And(noexceptPredicate_.copy(),
+				                                                   other.noexceptPredicate_.copy());
 				return newStates;
 			}
 			
@@ -178,7 +178,7 @@ namespace locic {
 			
 			void remove(const ExitStates& other) {
 				if (hasThrowExit() && other.hasThrowExit()) {
-					noexceptPredicate_ = Predicate::True();
+					noexceptPredicate_ = SEM::Predicate::True();
 				}
 				states_ &= ~(other.states_);
 			}
@@ -211,18 +211,18 @@ namespace locic {
 			
 			ExitStates()
 			: states_(0),
-			noexceptPredicate_(Predicate::True()) { }
+			noexceptPredicate_(SEM::Predicate::True()) { }
 			
 			explicit ExitStates(const State state)
 			: states_(static_cast<unsigned char>(1u << static_cast<unsigned int>(state))),
-			noexceptPredicate_(Predicate::True()) { }
+			noexceptPredicate_(SEM::Predicate::True()) { }
 			
 			bool test(const unsigned int index) const {
 				return ((states_ >> index) & 0x01) == 0x01;
 			}
 			
 			unsigned char states_;
-			Predicate noexceptPredicate_;
+			SEM::Predicate noexceptPredicate_;
 			
 		};
 		

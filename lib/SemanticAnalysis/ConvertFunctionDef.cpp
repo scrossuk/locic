@@ -182,7 +182,7 @@ namespace locic {
 					isNormalBlocked = true;
 				}
 				
-				if (exitStates.hasAnyStates(SEM::ExitStates::AllExceptNormal())) {
+				if (exitStates.hasAnyStates(AST::ExitStates::AllExceptNormal())) {
 					// TODO: only the most recent
 					// scope(exit) will be reached!
 					

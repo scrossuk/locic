@@ -43,7 +43,7 @@ namespace locic {
 		Statement Statement::If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope) {
 			assert(elseScope != nullptr);
 			
-			ExitStates exitStates = ExitStates::None();
+			AST::ExitStates exitStates = AST::ExitStates::None();
 			
 			for (const auto& ifClause: ifClauses) {
 				const auto conditionExitStates = ifClause->condition().exitStates();
@@ -61,7 +61,7 @@ namespace locic {
 		}
 		
 		Statement Statement::Switch(Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
-			ExitStates exitStates = ExitStates::None();
+			AST::ExitStates exitStates = AST::ExitStates::None();
 			exitStates.add(value.exitStates().throwingStates());
 			
 			for (const auto& switchCase: caseList) {
@@ -82,17 +82,17 @@ namespace locic {
 		Statement Statement::Loop(Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope) {
 			// If the loop condition can be exited normally then the loop
 			// can be exited normally (i.e. because the condition can be false).
-			ExitStates exitStates = condition.exitStates();
+			AST::ExitStates exitStates = condition.exitStates();
 			
 			auto iterationScopeExitStates = iterationScope->exitStates();
 			
 			// Block any 'continue' exit state.
-			iterationScopeExitStates.remove(ExitStates::Continue());
+			iterationScopeExitStates.remove(AST::ExitStates::Continue());
 			
 			// A 'break' exit state means a normal return from the loop.
 			if (iterationScopeExitStates.hasBreakExit()) {
-				exitStates.add(ExitStates::Normal());
-				iterationScopeExitStates.remove(ExitStates::Break());
+				exitStates.add(AST::ExitStates::Normal());
+				iterationScopeExitStates.remove(AST::ExitStates::Break());
 			}
 			
 			exitStates.add(iterationScopeExitStates);
@@ -102,7 +102,7 @@ namespace locic {
 			
 			// Block 'normal' exit from advance scope, since this just
 			// goes back to the beginning of the loop.
-			advanceScopeExitStates.remove(ExitStates::Normal());
+			advanceScopeExitStates.remove(AST::ExitStates::Normal());
 			
 			exitStates.add(advanceScopeExitStates);
 			
@@ -121,17 +121,17 @@ namespace locic {
 			       !exitStates.hasReturnExit());
 			
 			// Normal exit from the init value means executing the loop.
-			exitStates.remove(ExitStates::Normal());
+			exitStates.remove(AST::ExitStates::Normal());
 			
 			auto scopeExitStates = scope->exitStates();
 			
 			// Block any 'continue' exit state.
-			scopeExitStates.remove(ExitStates::Continue());
+			scopeExitStates.remove(AST::ExitStates::Continue());
 			
 			// A 'break' exit state means a normal return from the loop.
 			if (scopeExitStates.hasBreakExit()) {
-				exitStates.add(ExitStates::Normal());
-				scopeExitStates.remove(ExitStates::Break());
+				exitStates.add(AST::ExitStates::Normal());
+				scopeExitStates.remove(AST::ExitStates::Break());
 			}
 			
 			exitStates.add(scopeExitStates);
@@ -144,7 +144,7 @@ namespace locic {
 		}
 		
 		Statement Statement::Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList) {
-			ExitStates exitStates = ExitStates::None();
+			AST::ExitStates exitStates = AST::ExitStates::None();
 			
 			exitStates.add(scope->exitStates());
 			
@@ -153,8 +153,8 @@ namespace locic {
 				
 				// Turn 'rethrow' into 'throw'.
 				if (catchExitStates.hasRethrowExit()) {
-					exitStates.add(ExitStates::ThrowAlways());
-					catchExitStates.remove(ExitStates::Rethrow());
+					exitStates.add(AST::ExitStates::ThrowAlways());
+					catchExitStates.remove(AST::ExitStates::Rethrow());
 				}
 				
 				exitStates.add(catchExitStates);
@@ -170,20 +170,20 @@ namespace locic {
 			// The exit actions here is for when we first visit this statement,
 			// which itself actually has no effect; the effect occurs on unwinding
 			// and so this is handled by the owning scope.
-			Statement statement(SCOPEEXIT, ExitStates::Normal());
+			Statement statement(SCOPEEXIT, AST::ExitStates::Normal());
 			statement.scopeExitStmt_.state = state;
 			statement.scopeExitStmt_.scope = std::move(scope);
 			return statement;
 		}
 		
 		Statement Statement::ReturnVoid() {
-			return Statement(RETURNVOID, ExitStates::Return());
+			return Statement(RETURNVOID, AST::ExitStates::Return());
 		}
 		
 		Statement Statement::Return(Value value) {
 			assert(value.exitStates().onlyHasNormalOrThrowingStates());
 			
-			ExitStates exitStates = ExitStates::Return();
+			AST::ExitStates exitStates = AST::ExitStates::Return();
 			exitStates.add(value.exitStates().throwingStates());
 			
 			Statement statement(RETURN, exitStates);
@@ -192,21 +192,21 @@ namespace locic {
 		}
 		
 		Statement Statement::Throw(Value value) {
-			Statement statement(THROW, ExitStates::ThrowAlways());
+			Statement statement(THROW, AST::ExitStates::ThrowAlways());
 			statement.throwStmt_.value = std::move(value);
 			return statement;
 		}
 		
 		Statement Statement::Rethrow() {
-			return Statement(RETHROW, ExitStates::Rethrow());
+			return Statement(RETHROW, AST::ExitStates::Rethrow());
 		}
 		
 		Statement Statement::Break() {
-			return Statement(BREAK, ExitStates::Break());
+			return Statement(BREAK, AST::ExitStates::Break());
 		}
 		
 		Statement Statement::Continue() {
-			return Statement(CONTINUE, ExitStates::Continue());
+			return Statement(CONTINUE, AST::ExitStates::Continue());
 		}
 		
 		Statement Statement::Assert(Value value, const String& name) {
@@ -217,8 +217,8 @@ namespace locic {
 		}
 		
 		Statement Statement::AssertNoExcept(std::unique_ptr<Scope> scope) {
-			ExitStates exitStates = scope->exitStates();
-			exitStates.remove(ExitStates::AllThrowing());
+			AST::ExitStates exitStates = scope->exitStates();
+			exitStates.remove(AST::ExitStates::AllThrowing());
 			
 			Statement statement(ASSERTNOEXCEPT, exitStates);
 			statement.assertNoExceptStmt_.scope = std::move(scope);
@@ -226,17 +226,17 @@ namespace locic {
 		}
 		
 		Statement Statement::Unreachable() {
-			return Statement(UNREACHABLE, ExitStates::None());
+			return Statement(UNREACHABLE, AST::ExitStates::None());
 		}
 		
-		Statement::Statement(const Kind argKind, const ExitStates argExitStates)
+		Statement::Statement(const Kind argKind, const AST::ExitStates argExitStates)
 		: kind_(argKind), exitStates_(argExitStates) { }
 			
 		Statement::Kind Statement::kind() const {
 			return kind_;
 		}
 		
-		ExitStates Statement::exitStates() const {
+		AST::ExitStates Statement::exitStates() const {
 			return exitStates_;
 		}
 		

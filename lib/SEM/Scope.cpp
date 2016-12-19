@@ -1,12 +1,12 @@
 #include <string>
 
+#include <locic/AST/ExitStates.hpp>
 #include <locic/AST/Value.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/Support/Array.hpp>
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/ExitStates.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
 
@@ -20,15 +20,15 @@ namespace locic {
 		
 		Scope::Scope() { }
 		
-		ExitStates Scope::exitStates() const {
+		AST::ExitStates Scope::exitStates() const {
 			// TODO: precompute this!
 			const auto& statementList = statements();
 			
 			if (statementList.empty()) {
-				return ExitStates::Normal();
+				return AST::ExitStates::Normal();
 			}
 			
-			ExitStates scopeExitStates = ExitStates::None();
+			auto scopeExitStates = AST::ExitStates::None();
 			
 			// All states that aren't an exception state can be
 			// blocked by a scope(success) block that always throws.
@@ -36,7 +36,7 @@ namespace locic {
 			
 			// The pending states for scope(success) that occur if
 			// we have a no-throw exit.
-			ExitStates scopeSuccessPendingStates = ExitStates::None();
+			auto scopeSuccessPendingStates = AST::ExitStates::None();
 			
 			bool isNormalBlocked = false;
 			
@@ -55,12 +55,12 @@ namespace locic {
 				
 				// Block 'normal' exit state until we
 				// reach the end of the scope.
-				statementExitStates.remove(ExitStates::Normal());
+				statementExitStates.remove(AST::ExitStates::Normal());
 				
 				// Add pending scope(success) exit states if there's
 				// a no-throw exit state from this statement (which
 				// isn't just continuing to the next statement).
-				if (!statementExitStates.onlyHasStates(ExitStates::AllThrowing() | ExitStates::Normal())) {
+				if (!statementExitStates.onlyHasStates(AST::ExitStates::AllThrowing() | AST::ExitStates::Normal())) {
 					scopeExitStates.add(scopeSuccessPendingStates);
 				}
 				
@@ -78,7 +78,7 @@ namespace locic {
 				// In this case the only way to leave the scope
 				// is by throwing an exception.
 				if (isBlockedByAlwaysThrowingScopeSuccess) {
-					statementExitStates.remove(ExitStates::AllNonThrowing());
+					statementExitStates.remove(AST::ExitStates::AllNonThrowing());
 				}
 				
 				assert(!statementExitStates.hasNormalExit());
@@ -117,7 +117,7 @@ namespace locic {
 			}
 			
 			if (isBlockedByAlwaysThrowingScopeSuccess) {
-				lastStatementExitStates.remove(ExitStates::AllNonThrowing());
+				lastStatementExitStates.remove(AST::ExitStates::AllNonThrowing());
 			}
 			
 			scopeExitStates.add(lastStatementExitStates);

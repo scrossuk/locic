@@ -17,6 +17,7 @@ namespace locic {
 	namespace AST {
 		
 		class Alias;
+		class ExitStates;
 		class Function;
 		class TemplateVar;
 		class TemplateVarMap;
@@ -32,7 +33,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class ExitStates;
 		class Predicate;
 		class Type;
 		class TypeInstance;
@@ -358,7 +358,7 @@ namespace locic {
 				
 				const Type* type() const;
 				
-				ExitStates exitStates() const;
+				AST::ExitStates exitStates() const;
 				
 				bool isSelf() const;
 				bool isThis() const;
@@ -494,7 +494,7 @@ namespace locic {
 			private:
 				Value(Kind kind,
 				      const Type* type,
-				      ExitStates exitStates);
+				      AST::ExitStates exitStates);
 				
 				// Non-copyable.
 				Value(const Value&) = delete;
