@@ -20,6 +20,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Context;
 		class TemplatedObject;
 		class Type;
 		class Value;
@@ -35,7 +36,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class Context;
 		class Predicate;
 		
 	}
@@ -51,7 +51,7 @@ namespace locic {
 		class Context {
 			public:
 				Context(const SharedMaps& sharedMaps, Debug::Module& debugModule,
-				        SEM::Context& semContext, DiagnosticReceiver& diagReceiver);
+				        AST::Context& semContext, DiagnosticReceiver& diagReceiver);
 				~Context();
 				
 				DiagnosticReceiver& diagnosticReceiver();
@@ -79,7 +79,7 @@ namespace locic {
 				ScopeStack& scopeStack();
 				const ScopeStack& scopeStack() const;
 				
-				SEM::Context& semContext();
+				AST::Context& semContext();
 				
 				TypeBuilder& typeBuilder();
 				

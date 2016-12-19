@@ -1,3 +1,4 @@
+#include <locic/AST/Context.hpp>
 #include <locic/AST/FunctionType.hpp>
 #include <locic/AST/Namespace.hpp>
 #include <locic/AST/Type.hpp>
@@ -5,12 +6,10 @@
 #include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/StableSet.hpp>
 
-#include <locic/SEM/Context.hpp>
-
 namespace locic {
-
-	namespace SEM {
 	
+	namespace AST {
+		
 		class ContextImpl {
 		public:
 			ContextImpl() {
@@ -19,9 +18,9 @@ namespace locic {
 				}
 			}
 			
-			mutable StableSet<AST::FunctionTypeData> functionTypes;
-			mutable StableSet<AST::Type> types;
-			mutable const TypeInstance* primitiveTypes[PRIMITIVE_COUNT];
+			mutable StableSet<FunctionTypeData> functionTypes;
+			mutable StableSet<Type> types;
+			mutable const SEM::TypeInstance* primitiveTypes[PRIMITIVE_COUNT];
 		};
 		
 		// Allocate a large amount of space up-front for
@@ -36,12 +35,12 @@ namespace locic {
 		Context::~Context() {
 		}
 		
-		AST::FunctionType Context::getFunctionType(AST::FunctionTypeData functionType) const {
+		FunctionType Context::getFunctionType(FunctionTypeData functionType) const {
 			const auto result = impl_->functionTypes.insert(std::move(functionType));
-			return AST::FunctionType(*(result.first));
+			return FunctionType(*(result.first));
 		}
 		
-		const AST::Type* Context::getType(AST::Type&& type) const {
+		const Type* Context::getType(Type&& type) const {
 			const auto result = impl_->types.insert(std::move(type));
 			return &(*(result.first));
 		}
@@ -52,7 +51,8 @@ namespace locic {
 			impl_->primitiveTypes[primitiveID] = &typeInstance;
 		}
 		
-		const TypeInstance& Context::getPrimitive(const PrimitiveID primitiveID) const {
+		const SEM::TypeInstance&
+		Context::getPrimitive(const PrimitiveID primitiveID) const {
 			assert(impl_->primitiveTypes[primitiveID] != nullptr);
 			return *(impl_->primitiveTypes[primitiveID]);
 			

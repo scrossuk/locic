@@ -62,12 +62,12 @@ namespace locic {
 			templateVariableDecls_ = std::move(pTemplateVariables);
 		}
 		
-		SEM::Context& Alias::context() const {
+		AST::Context& Alias::context() const {
 			assert(context_ != nullptr);
 			return *context_;
 		}
 		
-		void Alias::setContext(SEM::Context& pContext) {
+		void Alias::setContext(AST::Context& pContext) {
 			assert(context_ == nullptr);
 			context_ = &pContext;
 		}

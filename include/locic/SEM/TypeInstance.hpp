@@ -24,6 +24,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Context;
 		class Function;
 		class TemplateVar;
 		class Var;
@@ -31,8 +32,6 @@ namespace locic {
 	}
 	
 	namespace SEM {
-	
-		class Context;
 		
 		/**
 		 * \brief Type Instance
@@ -67,7 +66,8 @@ namespace locic {
 					EXCEPTION
 				};
 				
-				TypeInstance(Context& c, AST::GlobalStructure parent,
+				TypeInstance(AST::Context& context,
+				             AST::GlobalStructure parent,
 				             Name name, Kind kind,
 				             AST::ModuleScope moduleScope);
 				
@@ -80,7 +80,7 @@ namespace locic {
 				 * 
 				 * \return The SEM context.
 				 */
-				Context& context() const;
+				AST::Context& context() const;
 				
 				AST::GlobalStructure& parent();
 				const AST::GlobalStructure& parent() const;
@@ -370,7 +370,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				Context& context_;
+				AST::Context& context_;
 				AST::GlobalStructure parent_;
 				Name name_;
 				Kind kind_;

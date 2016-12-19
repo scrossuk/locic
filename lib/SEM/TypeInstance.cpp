@@ -11,7 +11,7 @@
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/Context.hpp>
+#include <locic/AST/Context.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Scope.hpp>
 #include <locic/SEM/TypeInstance.hpp>
@@ -20,7 +20,7 @@ namespace locic {
 
 	namespace SEM {
 	
-		TypeInstance::TypeInstance(Context& c, AST::GlobalStructure p,
+		TypeInstance::TypeInstance(AST::Context& c, AST::GlobalStructure p,
 		                           Name n, Kind k, AST::ModuleScope m)
 			: context_(c),
 			parent_(std::move(p)),
@@ -33,7 +33,7 @@ namespace locic {
 			noexceptPredicate_(Predicate::False()),
 			cachedSelfType_(nullptr) { }
 		
-		Context& TypeInstance::context() const {
+		AST::Context& TypeInstance::context() const {
 			return context_;
 		}
 		

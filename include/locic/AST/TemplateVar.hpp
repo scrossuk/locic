@@ -11,14 +11,9 @@
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class Context;
-		
-	}
-	
 	namespace AST {
 		
+		class Context;
 		class Type;
 		class Value;
 		
@@ -33,8 +28,8 @@ namespace locic {
 			
 			TemplateVar();
 			
-			SEM::Context& context() const;
-			void setContext(SEM::Context& context);
+			Context& context() const;
+			void setContext(Context& context);
 			
 			String name() const;
 			
@@ -56,7 +51,7 @@ namespace locic {
 			bool isVirtual() const;
 			void setVirtual(bool isVirtual);
 			
-			AST::Value selfRefValue() const;
+			Value selfRefValue() const;
 			const Type* selfRefType() const;
 			
 			void setDebugInfo(Debug::TemplateVarInfo debugInfo);
@@ -65,7 +60,7 @@ namespace locic {
 			std::string toString() const;
 			
 		private:
-			SEM::Context* context_;
+			Context* context_;
 			Node<TypeDecl> typeDecl_;
 			const Type* type_;
 			const Type* selfRefType_;

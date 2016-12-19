@@ -8,24 +8,23 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Context;
 		class Namespace;
 		
 	}
 	
 	namespace SEM {
 		
-		class Context;
-		
 		class Module {
 			public:
-				Module(Context& context);
+				Module(AST::Context& context);
 				~Module();
 				
 				Module(Module&&) = default;
 				Module& operator=(Module&&) = default;
 				
-				Context& context();
-				const Context& context() const;
+				AST::Context& context();
+				const AST::Context& context() const;
 				
 				AST::Namespace& rootNamespace();
 				const AST::Namespace& rootNamespace() const;
@@ -33,7 +32,7 @@ namespace locic {
 				std::string toString() const;
 				
 			private:
-				Context& context_;
+				AST::Context& context_;
 				std::unique_ptr<AST::Namespace> rootNamespace_;
 				
 		};

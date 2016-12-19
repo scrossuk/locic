@@ -5,7 +5,7 @@
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeArray.hpp>
 
-#include <locic/SEM/Context.hpp>
+#include <locic/AST/Context.hpp>
 #include <locic/SEM/Predicate.hpp>
 
 #include <locic/Support/Hasher.hpp>
@@ -88,7 +88,7 @@ namespace locic {
 			                        parameterTypes().copy());
 		}
 		
-		const SEM::Context& FunctionTypeData::context() const {
+		const AST::Context& FunctionTypeData::context() const {
 			return returnType()->context();
 		}
 		

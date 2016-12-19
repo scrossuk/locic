@@ -12,14 +12,9 @@
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class Context;
-		
-	}
-	
 	namespace AST {
 		
+		class Context;
 		class Type;
 		
 		class FunctionAttributes {
@@ -75,7 +70,7 @@ namespace locic {
 			
 			FunctionTypeData copy() const;
 			
-			const SEM::Context& context() const;
+			const AST::Context& context() const;
 			
 			const FunctionAttributes& attributes() const;
 			
@@ -114,7 +109,7 @@ namespace locic {
 			FunctionType(const FunctionTypeData& data)
 			: data_(&data) { }
 			
-			const SEM::Context& context() const {
+			const AST::Context& context() const {
 				return data_->context();
 			}
 			

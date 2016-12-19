@@ -3,7 +3,7 @@
 
 #include <locic/AST.hpp>
 #include <locic/Debug.hpp>
-#include <locic/SEM/Context.hpp>
+#include <locic/AST/Context.hpp>
 #include <locic/Support/SharedMaps.hpp>
 
 #include <locic/SemanticAnalysis/Analysis.hpp>

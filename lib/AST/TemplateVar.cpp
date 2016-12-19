@@ -36,12 +36,12 @@ namespace locic {
 		: context_(nullptr), type_(nullptr), selfRefType_(nullptr),
 		index_(-1), isVirtual_(false) { }
 		
-		SEM::Context& TemplateVar::context() const {
+		AST::Context& TemplateVar::context() const {
 			assert(context_ != nullptr);
 			return *context_;
 		}
 		
-		void TemplateVar::setContext(SEM::Context& pContext) {
+		void TemplateVar::setContext(AST::Context& pContext) {
 			assert(context_ == nullptr);
 			context_ = &pContext;
 		}

@@ -32,7 +32,7 @@ namespace locic {
 		class ContextImpl {
 		public:
 			ContextImpl(Context& context, const SharedMaps& argSharedMaps,
-			            Debug::Module& pDebugModule, SEM::Context& pSemContext,
+			            Debug::Module& pDebugModule, AST::Context& pSemContext,
 			            DiagnosticReceiver& argDiagReceiver)
 			: aliasTypeResolver(context),
 			sharedMaps(argSharedMaps),
@@ -62,7 +62,7 @@ namespace locic {
 			const StringHost& stringHost;
 			Debug::Module& debugModule;
 			ScopeStack scopeStack;
-			SEM::Context& semContext;
+			AST::Context& semContext;
 			DiagnosticReceiver* diagReceiver;
 			TypeBuilder typeBuilder;
 			bool methodSetsComplete;
@@ -80,7 +80,7 @@ namespace locic {
 		};
 		
 		Context::Context(const SharedMaps& argSharedMaps, Debug::Module& argDebugModule,
-		                 SEM::Context& argSemContext, DiagnosticReceiver& diagReceiver)
+		                 AST::Context& argSemContext, DiagnosticReceiver& diagReceiver)
 		: impl_(new ContextImpl(*this, argSharedMaps, argDebugModule, argSemContext,
 		                        diagReceiver)) { }
 		
@@ -128,7 +128,7 @@ namespace locic {
 			return impl_->scopeStack;
 		}
 		
-		SEM::Context& Context::semContext() {
+		AST::Context& Context::semContext() {
 			return impl_->semContext;
 		}
 		

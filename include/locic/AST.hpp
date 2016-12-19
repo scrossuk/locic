@@ -4,6 +4,7 @@
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/CatchClause.hpp>
 #include <locic/AST/ConstSpecifier.hpp>
+#include <locic/AST/Context.hpp>
 #include <locic/AST/ExceptionInitializer.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/IfClause.hpp>

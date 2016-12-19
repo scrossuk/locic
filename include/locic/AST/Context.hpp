@@ -1,5 +1,5 @@
-#ifndef LOCIC_SEM_CONTEXT_HPP
-#define LOCIC_SEM_CONTEXT_HPP
+#ifndef LOCIC_AST_CONTEXT_HPP
+#define LOCIC_AST_CONTEXT_HPP
 
 #include <memory>
 
@@ -7,32 +7,33 @@ namespace locic {
 	
 	class PrimitiveID;
 	
+	namespace SEM {
+		
+		class TypeInstance;
+		
+	}
+	
 	namespace AST {
 		
 		class FunctionType;
 		class FunctionTypeData;
 		class Type;
 		
-	}
-	
-	namespace SEM {
-		
-		class TypeInstance;
-		
 		class Context {
 			public:
 				Context();
 				~Context();
 				
-				AST::FunctionType
-				getFunctionType(AST::FunctionTypeData functionType) const;
+				FunctionType
+				getFunctionType(FunctionTypeData functionType) const;
 				
-				const AST::Type* getType(AST::Type&& type) const;
+				const Type* getType(Type&& type) const;
 				
 				void setPrimitive(PrimitiveID primitiveID,
 				                  const SEM::TypeInstance& typeInstance);
 				
-				const TypeInstance& getPrimitive(PrimitiveID primitiveID) const;
+				const SEM::TypeInstance&
+				getPrimitive(PrimitiveID primitiveID) const;
 				
 			private:
 				// Non-copyable.

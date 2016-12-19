@@ -562,7 +562,7 @@ int main(int argc, char* argv[]) {
 	// Debug information.
 	Debug::Module debugModule;
 	
-	SEM::Context semContext;
+	AST::Context semContext;
 	SEM::Module semModule(semContext);
 	
 	const auto semaResult =

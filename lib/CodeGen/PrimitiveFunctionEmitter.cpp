@@ -1,3 +1,4 @@
+#include <locic/AST/Context.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/InternalContext.hpp>

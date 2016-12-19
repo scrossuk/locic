@@ -11,7 +11,7 @@ namespace locic {
 	class String;
 	class StringHost;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Context;
 		
@@ -23,7 +23,7 @@ namespace locic {
 		
 		class InternalContext {
 			public:
-				InternalContext(const SEM::Context& semContext,
+				InternalContext(const AST::Context& semContext,
 				                const SharedMaps& sharedMaps,
 				                const TargetOptions& targetOptions);
 				~InternalContext();
@@ -34,7 +34,7 @@ namespace locic {
 				
 				PrimitiveID getPrimitiveID(const String& name) const;
 				
-				const SEM::Context& semContext() const;
+				const AST::Context& semContext() const;
 				
 				llvm::LLVMContext& llvmContext();
 				
@@ -47,7 +47,7 @@ namespace locic {
 				llvm::DataLayout dataLayout() const;
 				
 			private:
-				const SEM::Context& semContext_;
+				const AST::Context& semContext_;
 				const SharedMaps& sharedMaps_;
 				llvm::LLVMContext llvmContext_;
 				llvm::Triple targetTriple_;

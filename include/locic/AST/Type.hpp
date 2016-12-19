@@ -19,7 +19,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class Context;
 		class TypeInstance;
 		
 	}
@@ -27,6 +26,7 @@ namespace locic {
 	namespace AST {
 		
 		class Alias;
+		class Context;
 		class FunctionType;
 		class TemplateVar;
 		class Type;
@@ -42,12 +42,12 @@ namespace locic {
 				
 				static const AST::ValueArray NO_TEMPLATE_ARGS;
 				
-				static const Type* Auto(const SEM::Context& context);
+				static const Type* Auto(const AST::Context& context);
 				static const Type* Alias(const AST::Alias& alias, AST::ValueArray templateArguments);
 				static const Type* Object(const SEM::TypeInstance* typeInstance, AST::ValueArray templateArguments);
 				static const Type* TemplateVarRef(const TemplateVar* templateVar);
 				
-				const SEM::Context& context() const;
+				const AST::Context& context() const;
 				Kind kind() const;
 				
 				const SEM::Predicate& constPredicate() const;
@@ -154,11 +154,11 @@ namespace locic {
 				}
 				
 			private:
-				Type(const SEM::Context& pContext, Kind pKind);
+				Type(const AST::Context& pContext, Kind pKind);
 				
 				Type copy() const;
 				
-				const SEM::Context& context_;
+				const AST::Context& context_;
 				Kind kind_;
 				bool isNoTag_;
 				bool isLval_;

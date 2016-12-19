@@ -2,7 +2,7 @@
 
 #include <locic/AST/Namespace.hpp>
 
-#include <locic/SEM/Context.hpp>
+#include <locic/AST/Context.hpp>
 #include <locic/SEM/Module.hpp>
 
 #include <locic/Support/MakeString.hpp>
@@ -11,16 +11,16 @@ namespace locic {
 	
 	namespace SEM {
 		
-		Module::Module(Context& pContext)
+		Module::Module(AST::Context& pContext)
 		: context_(pContext), rootNamespace_(new AST::Namespace()) { }
 		
 		Module::~Module() { }
 		
-		Context& Module::context() {
+		AST::Context& Module::context() {
 			return context_;
 		}
 		
-		const Context& Module::context() const {
+		const AST::Context& Module::context() const {
 			return context_;
 		}
 		

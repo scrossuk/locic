@@ -2,7 +2,6 @@
 #define LOCIC_SEM_HPP
 
 #include <locic/SEM/CatchClause.hpp>
-#include <locic/SEM/Context.hpp>
 #include <locic/SEM/IfClause.hpp>
 #include <locic/SEM/Module.hpp>
 #include <locic/SEM/Predicate.hpp>

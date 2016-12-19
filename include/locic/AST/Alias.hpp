@@ -9,31 +9,26 @@
 #include <locic/AST/TemplatedObject.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TemplateVarArray.hpp>
+#include <locic/AST/Value.hpp>
 #include <locic/AST/ValueDecl.hpp>
 
 #include <locic/Debug/SourceLocation.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/AST/Value.hpp>
 
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class Context;
-		
-	}
-	
 	namespace AST {
 		
+		class Context;
 		class Type;
 		
 		class Alias final: public TemplatedObject {
 		public:
-			Alias(const String& pName, AST::Node<ValueDecl> pValue,
+			Alias(const String& pName, Node<ValueDecl> pValue,
 			          const Debug::SourceLocation& location);
 			~Alias();
 			
@@ -43,13 +38,13 @@ namespace locic {
 			String name() const;
 			const Node<TemplateVarList>& templateVariableDecls() const;
 			const Node<RequireSpecifier>& requireSpecifier() const;
-			const AST::Node<AST::ValueDecl>& valueDecl() const;
+			const Node<ValueDecl>& valueDecl() const;
 			
 			void setRequireSpecifier(Node<RequireSpecifier> pRequireSpecifier);
 			void setTemplateVariableDecls(Node<TemplateVarList> pTemplateVariables);
 			
-			SEM::Context& context() const;
-			void setContext(SEM::Context& context);
+			Context& context() const;
+			void setContext(Context& context);
 			
 			GlobalStructure& parent();
 			const GlobalStructure& parent() const;
@@ -58,10 +53,10 @@ namespace locic {
 			const Name& fullName() const;
 			void setFullName(Name fullName);
 			
-			const AST::Type* type() const;
-			void setType(const AST::Type* type);
+			const Type* type() const;
+			void setType(const Type* type);
 			
-			AST::Value selfRefValue(AST::ValueArray templateArguments) const;
+			Value selfRefValue(ValueArray templateArguments) const;
 			
 			/**
 			 * \brief Get type of 'self'.
@@ -80,8 +75,8 @@ namespace locic {
 			 *     SomeAlias<A, B>
 			 * 
 			 */
-			const AST::Type* selfRefType(AST::ValueArray templateArguments) const;
-			AST::ValueArray selfTemplateArgs() const;
+			const Type* selfRefType(ValueArray templateArguments) const;
+			ValueArray selfTemplateArgs() const;
 			
 			TemplateVarArray& templateVariables();
 			const TemplateVarArray& templateVariables() const;
@@ -93,8 +88,8 @@ namespace locic {
 			
 			const SEM::Predicate& noexceptPredicate() const;
 			
-			const AST::Value& value() const;
-			void setValue(AST::Value value);
+			const Value& value() const;
+			void setValue(Value value);
 			
 			std::string toString() const;
 			
@@ -104,15 +99,15 @@ namespace locic {
 			Node<TemplateVarList> templateVariableDecls_;
 			Node<RequireSpecifier> requireSpecifier_;
 			Node<ValueDecl> valueDecl_;
-			SEM::Context* context_;
+			Context* context_;
 			Optional<GlobalStructure> parent_;
 			Name fullName_;
 			TemplateVarArray templateVars_;
 			FastMap<String, TemplateVar*> namedTemplateVariables_;
 			SEM::Predicate requiresPredicate_;
 			SEM::Predicate noexceptPredicate_;
-			const AST::Type* type_;
-			Optional<AST::Value> value_;
+			const Type* type_;
+			Optional<Value> value_;
 			
 		};
 		

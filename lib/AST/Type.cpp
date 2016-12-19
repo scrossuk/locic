@@ -16,7 +16,7 @@
 #include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/Context.hpp>
+#include <locic/AST/Context.hpp>
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/TypeInstance.hpp>
 #include <locic/AST/ValueArray.hpp>
@@ -117,7 +117,7 @@ namespace locic {
 		
 		const AST::ValueArray Type::NO_TEMPLATE_ARGS = AST::ValueArray();
 		
-		const Type* Type::Auto(const SEM::Context& context) {
+		const Type* Type::Auto(const AST::Context& context) {
 			return context.getType(Type(context, AUTO));
 		}
 		
@@ -156,14 +156,14 @@ namespace locic {
 			return context.getType(std::move(type));
 		}
 		
-		Type::Type(const SEM::Context& pContext, const Kind pKind) :
+		Type::Type(const AST::Context& pContext, const Kind pKind) :
 			context_(pContext), kind_(pKind), isNoTag_(false),
 			isLval_(false), constPredicate_(SEM::Predicate::False()),
 			refTarget_(nullptr), staticRefTarget_(nullptr),
 			cachedResolvedType_(nullptr),
 			cachedWithoutTagsType_(nullptr) { }
 		
-		const SEM::Context& Type::context() const {
+		const AST::Context& Type::context() const {
 			return context_;
 		}
 		

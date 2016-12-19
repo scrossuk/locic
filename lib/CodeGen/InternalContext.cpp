@@ -116,7 +116,7 @@ namespace locic {
 			}
 		}
 		
-		InternalContext::InternalContext(const SEM::Context& argSEMContext,
+		InternalContext::InternalContext(const AST::Context& argSEMContext,
 		                                 const SharedMaps& argSharedMaps,
 		                                 const TargetOptions& targetOptions)
 		: semContext_(argSEMContext), sharedMaps_(argSharedMaps),
@@ -175,7 +175,7 @@ namespace locic {
 			return sharedMaps_.primitiveIDMap().getPrimitiveID(name);
 		}
 		
-		const SEM::Context& InternalContext::semContext() const {
+		const AST::Context& InternalContext::semContext() const {
 			return semContext_;
 		}
 		

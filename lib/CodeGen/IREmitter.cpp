@@ -1,3 +1,4 @@
+#include <locic/AST/Context.hpp>
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/Type.hpp>

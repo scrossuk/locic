@@ -7,7 +7,7 @@ namespace locic {
 	
 	class SharedMaps;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Context;
 		
@@ -20,7 +20,7 @@ namespace locic {
 		
 		class Context {
 			public:
-				Context(const SEM::Context& semContext,
+				Context(const AST::Context& semContext,
 				        const SharedMaps& sharedMaps,
 				        const TargetOptions& targetOptions);
 				~Context();
