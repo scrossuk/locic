@@ -7,6 +7,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class CatchClause;
 		class Scope;
 		class Value;
 		class Var;
@@ -15,7 +16,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class CatchClause;
 		class IfClause;
 		class Statement;
 		class SwitchClause;
@@ -58,7 +58,7 @@ namespace locic {
 			void emitReturn(const AST::Value& value);
 			
 			void emitTry(const AST::Scope& scope,
-			             const std::vector<SEM::CatchClause*>& catchClauses);
+			             const std::vector<AST::CatchClause*>& catchClauses);
 			
 			void emitThrow(const AST::Value& value);
 			

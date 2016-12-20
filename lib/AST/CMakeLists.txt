@@ -1,5 +1,4 @@
 set(SEM_FILES
-	../SEM/CatchClause.cpp
 	../SEM/IfClause.cpp
 	../SEM/Predicate.cpp
 	../SEM/Statement.cpp
@@ -8,6 +7,7 @@ set(SEM_FILES
 
 add_library(locic-ast
 	Alias.cpp
+	CatchClause.cpp
 	ConstSpecifier.cpp
 	Context.cpp
 	ExceptionInitializer.cpp

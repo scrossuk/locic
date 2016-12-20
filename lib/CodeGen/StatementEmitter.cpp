@@ -615,7 +615,7 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitTry(const AST::Scope& scope,
-		                               const std::vector<SEM::CatchClause*>& catchClauses) {
+		                               const std::vector<AST::CatchClause*>& catchClauses) {
 			assert(!catchClauses.empty());
 			
 			auto& function = irEmitter_.function();
@@ -626,7 +626,7 @@ namespace locic {
 			llvm::SmallVector<llvm::Constant*, 5> catchTypeList;
 			
 			for (const auto catchClause: catchClauses) {
-				catchTypeList.push_back(genCatchInfo(module, catchClause->var().constructType()->getObjectType()));
+				catchTypeList.push_back(genCatchInfo(module, catchClause->var()->constructType()->getObjectType()));
 			}
 			
 			assert(catchTypeList.size() == catchClauses.size());
@@ -689,8 +689,9 @@ namespace locic {
 					exceptionPtrValue->setDoesNotAccessMemory();
 					exceptionPtrValue->setDoesNotThrow();
 					
-					assert(catchClause->var().isNamed());
-					function.getLocalVarMap().forceInsert(&(catchClause->var()), exceptionPtrValue);
+					assert(catchClause->var()->isNamed());
+					function.getLocalVarMap().forceInsert(catchClause->var().get(),
+					                                      exceptionPtrValue);
 					
 					{
 						ScopeLifetime catchScopeLifetime(function);
@@ -705,7 +706,7 @@ namespace locic {
 						// will turn the state to 'throw').
 						function.pushUnwindAction(UnwindAction::DestroyException(exceptionPtrValue));
 						
-						ScopeEmitter(irEmitter_).emitScope(catchClause->scope());
+						ScopeEmitter(irEmitter_).emitScope(*(catchClause->scope()));
 					}
 					
 					// Exception was handled, so re-commence normal execution.

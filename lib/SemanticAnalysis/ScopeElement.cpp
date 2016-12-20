@@ -45,7 +45,7 @@ namespace locic {
 			return element;
 		}
 		
-		ScopeElement ScopeElement::CatchClause(SEM::CatchClause& catchClause) {
+		ScopeElement ScopeElement::CatchClause(AST::CatchClause& catchClause) {
 			ScopeElement element(CATCHCLAUSE);
 			element.data_.catchClause = &catchClause;
 			return element;
@@ -147,7 +147,7 @@ namespace locic {
 			return *(data_.switchCase);
 		}
 		
-		SEM::CatchClause& ScopeElement::catchClause() const {
+		AST::CatchClause& ScopeElement::catchClause() const {
 			assert(isCatchClause());
 			return *(data_.catchClause);
 		}

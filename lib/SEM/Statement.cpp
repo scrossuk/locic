@@ -3,19 +3,19 @@
 #include <string>
 #include <vector>
 
+#include <locic/AST/CatchClause.hpp>
+#include <locic/AST/Scope.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/Value.hpp>
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/CatchClause.hpp>
 #include <locic/SEM/IfClause.hpp>
-#include <locic/AST/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
 #include <locic/SEM/SwitchCase.hpp>
-#include <locic/AST/Value.hpp>
 
 namespace locic {
 
@@ -143,13 +143,13 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Try(AST::Node<AST::Scope> scope, const std::vector<CatchClause*>& catchList) {
+		Statement Statement::Try(AST::Node<AST::Scope> scope, const std::vector<AST::CatchClause*>& catchList) {
 			AST::ExitStates exitStates = AST::ExitStates::None();
 			
 			exitStates.add(scope->exitStates());
 			
 			for (const auto& catchClause: catchList) {
-				auto catchExitStates = catchClause->scope().exitStates();
+				auto catchExitStates = catchClause->scope()->exitStates();
 				
 				// Turn 'rethrow' into 'throw'.
 				if (catchExitStates.hasRethrowExit()) {
@@ -352,7 +352,7 @@ namespace locic {
 			return *(tryStmt_.scope);
 		}
 		
-		const std::vector<CatchClause*>& Statement::getTryCatchList() const {
+		const std::vector<AST::CatchClause*>& Statement::getTryCatchList() const {
 			assert(isTryStatement());
 			return tryStmt_.catchList;
 		}

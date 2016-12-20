@@ -133,7 +133,7 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performInnerCatchClauseSearch(SEM::CatchClause* catchClause, const Name& name) {
+		SearchResult performInnerCatchClauseSearch(AST::CatchClause* catchClause, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
 			const auto iterator = catchClause->namedVariables().find(name.at(0));

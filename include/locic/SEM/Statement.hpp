@@ -16,6 +16,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class CatchClause;
 		class Scope;
 		class Type;
 		class Var;
@@ -23,8 +24,7 @@ namespace locic {
 	}
 	
 	namespace SEM {
-	
-		class CatchClause;
+		
 		class IfClause;
 		class SwitchCase;
 		
@@ -70,7 +70,7 @@ namespace locic {
 				                     AST::Node<AST::Scope> scope);
 				
 				static Statement Try(AST::Node<AST::Scope> scope,
-				                     const std::vector<CatchClause*>& catchList);
+				                     const std::vector<AST::CatchClause*>& catchList);
 				
 				static Statement ScopeExit(const String& state,
 				                           AST::Node<AST::Scope> scope);
@@ -148,7 +148,8 @@ namespace locic {
 				
 				AST::Scope& getTryScope() const;
 				
-				const std::vector<CatchClause*>& getTryCatchList() const;
+				const std::vector<AST::CatchClause*>&
+				getTryCatchList() const;
 				
 				bool isScopeExitStatement() const;
 				
@@ -235,7 +236,7 @@ namespace locic {
 				
 				struct {
 					AST::Node<AST::Scope> scope;
-					std::vector<CatchClause*> catchList;
+					std::vector<AST::CatchClause*> catchList;
 				} tryStmt_;
 				
 				struct {

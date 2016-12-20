@@ -582,34 +582,29 @@ namespace locic {
 						}
 					}
 					
-					std::vector<SEM::CatchClause*> catchList;
+					std::vector<AST::CatchClause*> catchList;
 					
-					for (const auto& astCatch: *(statement->tryCatchList())) {
-						std::unique_ptr<SEM::CatchClause> semCatch(new SEM::CatchClause());
+					for (auto& catchNode: *(statement->tryCatchList())) {
+						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::CatchClause(*catchNode));
 						
-						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::CatchClause(*semCatch));
-						
-						auto& astVar = astCatch->var;
-						
-						if (!astVar->isNamed()) {
+						if (!catchNode->var()->isNamed()) {
 							context.issueDiag(CatchClauseCannotUsePatternMatchingDiag(),
-							                  astVar.location());
+							                  catchNode->var().location());
 						}
 						
-						auto var = ConvertVar(context, Debug::VarInfo::VAR_EXCEPTION_CATCH, astVar);
-						assert(var == astVar.get());
-						semCatch->setVar(*var);
+						auto var = ConvertVar(context, Debug::VarInfo::VAR_EXCEPTION_CATCH, catchNode->var());
+						assert(var == catchNode->var().get());
+						(void) var;
 						
-						const auto varType = semCatch->var().constructType();
+						const auto varType = catchNode->var()->constructType();
 						if (!varType->isException()) {
 							context.issueDiag(CannotCatchNonExceptionTypeDiag(varType),
-							                  astVar.location());
+							                  catchNode->var().location());
 						}
 						
-						ConvertScope(context, astCatch->scope);
-						semCatch->setScope(std::move(astCatch->scope));
+						ConvertScope(context, catchNode->scope());
 						
-						catchList.push_back(semCatch.release());
+						catchList.push_back(catchNode.get());
 					}
 					
 					return SEM::Statement::Try(std::move(tryScope), catchList);

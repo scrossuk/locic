@@ -819,7 +819,7 @@ namespace locic {
 				ASSERT_TRUE(statement->isTry());
 				EXPECT_EQ(statement->tryScope()->statementDecls()->size(), 0);
 				ASSERT_EQ(statement->tryCatchList()->size(), 1);
-				EXPECT_EQ(statement->tryCatchList()->at(0)->scope->statementDecls()->size(), 0);
+				EXPECT_EQ(statement->tryCatchList()->at(0)->scope()->statementDecls()->size(), 0);
 			});
 		}
 		
@@ -849,8 +849,8 @@ namespace locic {
 				ASSERT_TRUE(statement->isTry());
 				EXPECT_EQ(statement->tryScope()->statementDecls()->size(), 0);
 				ASSERT_EQ(statement->tryCatchList()->size(), 2);
-				EXPECT_EQ(statement->tryCatchList()->at(0)->scope->statementDecls()->size(), 0);
-				EXPECT_EQ(statement->tryCatchList()->at(1)->scope->statementDecls()->size(), 0);
+				EXPECT_EQ(statement->tryCatchList()->at(0)->scope()->statementDecls()->size(), 0);
+				EXPECT_EQ(statement->tryCatchList()->at(1)->scope()->statementDecls()->size(), 0);
 			});
 		}
 		
