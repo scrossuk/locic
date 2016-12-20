@@ -14,11 +14,12 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		void CreateEnumConstructorMethod(Context& context, const AST::TypeInstance& typeInstance,
+		void CreateEnumConstructorMethod(Context& context,
+		                                 const AST::Node<AST::TypeInstance>& typeInstanceNode,
 		                                 AST::Function& function, const size_t value) {
-			assert(typeInstance.isEnum());
+			assert(typeInstanceNode->isEnum());
 			
-			if (function.hasGeneratedScope()) {
+			if (function.hasScope()) {
 				// Function already has a scope; this can happen when
 				// the user has given duplicate enum constructors, in
 				// which case we will have issued an error but continued
@@ -26,7 +27,7 @@ namespace locic {
 				return;
 			}
 			
-			auto functionScope = SEM::Scope::Create();
+			auto functionScope = AST::Scope::Create(typeInstanceNode.location());
 			
 			HeapArray<AST::Value> constructValues;
 			
@@ -34,7 +35,7 @@ namespace locic {
 			const auto intType = getBuiltInType(context, context.getCString("int_t"), {});
 			constructValues.push_back(AST::Value::Constant(intConstant, intType));
 			
-			auto internalConstructedValue = AST::Value::InternalConstruct(typeInstance.selfType(), std::move(constructValues));
+			auto internalConstructedValue = AST::Value::InternalConstruct(typeInstanceNode->selfType(), std::move(constructValues));
 			functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
 			
 			function.setScope(std::move(functionScope));
@@ -62,7 +63,7 @@ namespace locic {
 				// Generate enum constructors.
 				for (const auto& constructorName: *(typeInstanceNode->constructors)) {
 					const auto canonicalMethodName = CanonicalizeMethodName(constructorName);
-					CreateEnumConstructorMethod(context, *typeInstanceNode,
+					CreateEnumConstructorMethod(context, typeInstanceNode,
 						typeInstanceNode->getFunction(canonicalMethodName), enumValue++);
 				}
 			}

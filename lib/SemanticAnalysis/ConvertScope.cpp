@@ -44,22 +44,21 @@ namespace locic {
 			
 		};
 		
-		std::unique_ptr<SEM::Scope> ConvertScope(Context& context, const AST::Node<AST::Scope>& astScope) {
-			assert(astScope.get() != nullptr);
+		void ConvertScope(Context& context, AST::Node<AST::Scope>& scopeNode) {
+			assert(scopeNode.get() != nullptr);
 			
-			auto semScope = SEM::Scope::Create();
-			semScope->statements().reserve(astScope->statements()->size());
+			scopeNode->statements().reserve(scopeNode->statementDecls()->size());
 			
-			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Scope(*semScope));
+			PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Scope(*scopeNode));
 			
 			// Go through each syntactic statement, and create a corresponding semantic statement.
-			for (const auto& astStatementNode: *(astScope->statements())) {
-				semScope->statements().push_back(ConvertStatement(context, astStatementNode));
+			for (const auto& astStatementNode: *(scopeNode->statementDecls())) {
+				scopeNode->statements().push_back(ConvertStatement(context, astStatementNode));
 			}
 			
 			// Check all variables are either used and not marked unused,
 			// or are unused and marked as such.
-			for (const auto& varPair: semScope->namedVariables()) {
+			for (const auto& varPair: scopeNode->namedVariables()) {
 				const auto& varName = varPair.first;
 				const auto& var = varPair.second;
 				if (var->isUsed() && var->isMarkedUnused()) {
@@ -76,8 +75,6 @@ namespace locic {
 					                  location);
 				}
 			}
-			
-			return semScope;
 		}
 		
 	}

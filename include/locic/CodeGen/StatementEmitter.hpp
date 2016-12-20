@@ -7,6 +7,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Scope;
 		class Value;
 		class Var;
 		
@@ -16,7 +17,6 @@ namespace locic {
 		
 		class CatchClause;
 		class IfClause;
-		class Scope;
 		class Statement;
 		class SwitchClause;
 		
@@ -34,30 +34,30 @@ namespace locic {
 			
 			void emitValue(const AST::Value& value);
 			
-			void emitScope(const SEM::Scope& scope);
+			void emitScope(const AST::Scope& scope);
 			
 			void emitInitialise(AST::Var& var,
 			                    const AST::Value& value);
 			
 			void emitIf(const std::vector<SEM::IfClause*>& ifClauseList,
-			            const SEM::Scope& elseScope);
+			            const AST::Scope& elseScope);
 			
 			void emitSwitch(const AST::Value& switchValue,
 			                const std::vector<SEM::SwitchCase*>& switchCases,
-			                const SEM::Scope* defaultScope);
+			                const AST::Scope* defaultScope);
 			
 			void emitLoop(const AST::Value& condition,
-			              const SEM::Scope& iterationScope,
-			              const SEM::Scope& advanceScope);
+			              const AST::Scope& iterationScope,
+			              const AST::Scope& advanceScope);
 			
 			void emitFor(AST::Var& var, const AST::Value& initValue,
-			             const SEM::Scope& scope);
+			             const AST::Scope& scope);
 			
 			void emitReturnVoid();
 			
 			void emitReturn(const AST::Value& value);
 			
-			void emitTry(const SEM::Scope& scope,
+			void emitTry(const AST::Scope& scope,
 			             const std::vector<SEM::CatchClause*>& catchClauses);
 			
 			void emitThrow(const AST::Value& value);
@@ -65,7 +65,7 @@ namespace locic {
 			void emitRethrow();
 			
 			void emitScopeExit(const String& stateString,
-			                   SEM::Scope& scope);
+			                   AST::Scope& scope);
 			
 			void emitBreak();
 			
@@ -74,7 +74,7 @@ namespace locic {
 			void emitAssert(const AST::Value& value,
 			                const String& assertName);
 			
-			void emitAssertNoExcept(const SEM::Scope& scope);
+			void emitAssertNoExcept(const AST::Scope& scope);
 			
 			void emitUnreachable();
 			

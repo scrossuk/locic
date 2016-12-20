@@ -104,12 +104,14 @@ namespace locic {
 			
 			bool isScope() const;
 			
+			Node<Scope>& scope();
 			const Node<Scope>& scope() const;
 			
 			bool isIf() const;
 			
 			const Node<IfClauseList>& ifClauseList() const;
 			
+			Node<Scope>& ifElseScope();
 			const Node<Scope>& ifElseScope() const;
 			
 			bool isSwitch() const;
@@ -124,6 +126,7 @@ namespace locic {
 			
 			const Node<ValueDecl>& whileCondition() const;
 			
+			Node<Scope>& whileScope();
 			const Node<Scope>& whileScope() const;
 			
 			bool isFor() const;
@@ -133,10 +136,12 @@ namespace locic {
 			
 			const Node<ValueDecl>& forInitValue() const;
 			
+			Node<Scope>& forInitScope();
 			const Node<Scope>& forInitScope() const;
 			
 			bool isTry() const;
 			
+			Node<Scope>& tryScope();
 			const Node<Scope>& tryScope() const;
 			
 			const Node<CatchClauseList>& tryCatchList() const;
@@ -145,6 +150,7 @@ namespace locic {
 			
 			const String& scopeExitState() const;
 			
+			Node<Scope>& scopeExitScope();
 			const Node<Scope>& scopeExitScope() const;
 			
 			bool isVarDecl() const;
@@ -194,6 +200,7 @@ namespace locic {
 			
 			bool isAssertNoExcept() const;
 			
+			Node<Scope>& assertNoExceptScope();
 			const Node<Scope>& assertNoExceptScope() const;
 			
 			bool isUnreachable() const;

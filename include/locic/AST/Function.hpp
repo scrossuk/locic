@@ -12,7 +12,6 @@
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
-#include <locic/AST/Scope.hpp>
 #include <locic/AST/Symbol.hpp>
 #include <locic/AST/TemplatedObject.hpp>
 #include <locic/AST/TemplateVar.hpp>
@@ -25,15 +24,10 @@
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class Scope;
-		
-	}
-	
 	namespace AST {
 		
 		class Namespace;
+		class Scope;
 		class TemplateVar;
 		
 		/**
@@ -140,13 +134,10 @@ namespace locic {
 			const std::vector<Var*>& parameters() const;
 			void setParameters(std::vector<Var*> parameters);
 			
-			bool hasScopeDecl() const;
-			const Node<Scope>& scopeDecl() const;
-			void setScopeDecl(Node<Scope> scopeDecl);
-			
-			bool hasGeneratedScope() const;
-			const SEM::Scope& scope() const;
-			void setScope(std::unique_ptr<SEM::Scope> scope);
+			bool hasScope() const;
+			Node<Scope>& scope();
+			const Node<Scope>& scope() const;
+			void setScope(Node<Scope> scope);
 			
 			const Node<ConstSpecifier>& constSpecifier() const;
 			void setConstSpecifier(Node<ConstSpecifier> constSpecifier);
@@ -204,8 +195,7 @@ namespace locic {
 			std::vector<Var*> parameters_;
 			FastMap<String, Var*> namedVariables_;
 			
-			Node<Scope> scopeDecl_;
-			std::unique_ptr<SEM::Scope> scope_;
+			Node<Scope> scope_;
 			
 			Node<ConstSpecifier> constSpecifier_;
 			SEM::Predicate constPredicate_;

@@ -459,7 +459,7 @@ namespace locic {
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isAssertNoExcept());
-				EXPECT_EQ(statement->assertNoExceptScope()->size(), 1);
+				EXPECT_EQ(statement->assertNoExceptScope()->statementDecls()->size(), 1);
 			});
 		}
 		
@@ -563,8 +563,8 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isIf());
 				ASSERT_EQ(statement->ifClauseList()->size(), 1);
-				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->size(), 1);
-				EXPECT_EQ(statement->ifElseScope()->size(), 0);
+				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->statementDecls()->size(), 1);
+				EXPECT_EQ(statement->ifElseScope()->statementDecls()->size(), 0);
 			});
 		}
 		
@@ -591,9 +591,9 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isIf());
 				ASSERT_EQ(statement->ifClauseList()->size(), 2);
-				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->size(), 1);
-				EXPECT_EQ(statement->ifClauseList()->at(1)->scope->size(), 1);
-				EXPECT_EQ(statement->ifElseScope()->size(), 0);
+				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->statementDecls()->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(1)->scope->statementDecls()->size(), 1);
+				EXPECT_EQ(statement->ifElseScope()->statementDecls()->size(), 0);
 			});
 		}
 		
@@ -631,10 +631,10 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isIf());
 				ASSERT_EQ(statement->ifClauseList()->size(), 3);
-				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->size(), 1);
-				EXPECT_EQ(statement->ifClauseList()->at(1)->scope->size(), 1);
-				EXPECT_EQ(statement->ifClauseList()->at(2)->scope->size(), 1);
-				EXPECT_EQ(statement->ifElseScope()->size(), 0);
+				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->statementDecls()->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(1)->scope->statementDecls()->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(2)->scope->statementDecls()->size(), 1);
+				EXPECT_EQ(statement->ifElseScope()->statementDecls()->size(), 0);
 			});
 		}
 		
@@ -657,8 +657,8 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isIf());
 				ASSERT_EQ(statement->ifClauseList()->size(), 1);
-				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->size(), 1);
-				EXPECT_EQ(statement->ifElseScope()->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->statementDecls()->size(), 1);
+				EXPECT_EQ(statement->ifElseScope()->statementDecls()->size(), 1);
 			});
 		}
 		
@@ -692,9 +692,9 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isIf());
 				ASSERT_EQ(statement->ifClauseList()->size(), 2);
-				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->size(), 1);
-				EXPECT_EQ(statement->ifClauseList()->at(1)->scope->size(), 1);
-				EXPECT_EQ(statement->ifElseScope()->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(0)->scope->statementDecls()->size(), 1);
+				EXPECT_EQ(statement->ifClauseList()->at(1)->scope->statementDecls()->size(), 1);
+				EXPECT_EQ(statement->ifElseScope()->statementDecls()->size(), 1);
 			});
 		}
 		
@@ -712,7 +712,7 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isWhile());
 				EXPECT_TRUE(statement->whileCondition()->isSymbol());
-				EXPECT_EQ(statement->whileScope()->size(), 1);
+				EXPECT_EQ(statement->whileScope()->statementDecls()->size(), 1);
 			});
 		}
 		
@@ -733,7 +733,7 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isFor());
 				EXPECT_TRUE(statement->forInitValue()->isSymbol());
-				EXPECT_EQ(statement->forInitScope()->size(), 1);
+				EXPECT_EQ(statement->forInitScope()->statementDecls()->size(), 1);
 			});
 		}
 		
@@ -751,7 +751,7 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isScopeExit());
 				EXPECT_EQ(statement->scopeExitState().asStdString(), "test");
-				EXPECT_EQ(statement->scopeExitScope()->size(), 1);
+				EXPECT_EQ(statement->scopeExitScope()->statementDecls()->size(), 1);
 			});
 		}
 		
@@ -817,9 +817,9 @@ namespace locic {
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isTry());
-				EXPECT_EQ(statement->tryScope()->size(), 0);
+				EXPECT_EQ(statement->tryScope()->statementDecls()->size(), 0);
 				ASSERT_EQ(statement->tryCatchList()->size(), 1);
-				EXPECT_EQ(statement->tryCatchList()->at(0)->scope->size(), 0);
+				EXPECT_EQ(statement->tryCatchList()->at(0)->scope->statementDecls()->size(), 0);
 			});
 		}
 		
@@ -847,10 +847,10 @@ namespace locic {
 			};
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isTry());
-				EXPECT_EQ(statement->tryScope()->size(), 0);
+				EXPECT_EQ(statement->tryScope()->statementDecls()->size(), 0);
 				ASSERT_EQ(statement->tryCatchList()->size(), 2);
-				EXPECT_EQ(statement->tryCatchList()->at(0)->scope->size(), 0);
-				EXPECT_EQ(statement->tryCatchList()->at(1)->scope->size(), 0);
+				EXPECT_EQ(statement->tryCatchList()->at(0)->scope->statementDecls()->size(), 0);
+				EXPECT_EQ(statement->tryCatchList()->at(1)->scope->statementDecls()->size(), 0);
 			});
 		}
 		

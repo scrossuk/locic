@@ -43,7 +43,7 @@ namespace locic {
 				
 				static UnwindAction ControlFlow(llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock);
 				
-				static UnwindAction ScopeExit(ScopeExitState state, SEM::Scope* scope);
+				static UnwindAction ScopeExit(ScopeExitState state, AST::Scope* scope);
 				
 				static UnwindAction RethrowScope();
 				
@@ -94,7 +94,7 @@ namespace locic {
 				
 				ScopeExitState scopeExitState() const;
 				
-				SEM::Scope* scopeExitScope() const;
+				AST::Scope* scopeExitScope() const;
 				
 				llvm::Value* destroyExceptionValue() const;
 				
@@ -146,7 +146,7 @@ namespace locic {
 					
 					struct ScopeExitAction {
 						ScopeExitState state;
-						SEM::Scope* scope;
+						AST::Scope* scope;
 					} scopeExitAction;
 					
 					struct DestroyExceptionAction {

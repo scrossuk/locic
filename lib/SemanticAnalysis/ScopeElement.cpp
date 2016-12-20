@@ -33,7 +33,7 @@ namespace locic {
 			return element;
 		}
 		
-		ScopeElement ScopeElement::Scope(SEM::Scope& scope) {
+		ScopeElement ScopeElement::Scope(AST::Scope& scope) {
 			ScopeElement element(SCOPE);
 			element.data_.scope = &scope;
 			return element;
@@ -137,7 +137,7 @@ namespace locic {
 			return *(data_.function);
 		}
 		
-		SEM::Scope& ScopeElement::scope() const {
+		AST::Scope& ScopeElement::scope() const {
 			assert(isScope());
 			return *(data_.scope);
 		}

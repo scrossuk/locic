@@ -448,7 +448,8 @@ namespace locic {
 					}
 				}
 				case AST::Statement::SCOPE: {
-					return SEM::Statement::ScopeStmt(ConvertScope(context, statement->scope()));
+					ConvertScope(context, statement->scope());
+					return SEM::Statement::ScopeStmt(std::move(statement->scope()));
 				}
 				case AST::Statement::IF: {
 					const auto boolType = context.typeBuilder().getBoolType();
@@ -457,13 +458,13 @@ namespace locic {
 					for (const auto& astIfClause: *(statement->ifClauseList())) {
 						auto condition = ConvertValue(context, astIfClause->condition);
 						auto boolValue = ImplicitCast(context, std::move(condition), boolType, location);
-						auto ifTrueScope = ConvertScope(context, astIfClause->scope);
-						clauseList.push_back(new SEM::IfClause(std::move(boolValue), std::move(ifTrueScope)));
+						ConvertScope(context, astIfClause->scope);
+						clauseList.push_back(new SEM::IfClause(std::move(boolValue), std::move(astIfClause->scope)));
 					}
 					
-					auto elseScope = ConvertScope(context, statement->ifElseScope());
+					ConvertScope(context, statement->ifElseScope());
 					
-					return SEM::Statement::If(std::move(clauseList), std::move(elseScope));
+					return SEM::Statement::If(std::move(clauseList), std::move(statement->ifElseScope()));
 				}
 				case AST::Statement::SWITCH: {
 					auto value = tryDissolveValue(context, ConvertValue(context, statement->switchValue()),
@@ -482,7 +483,8 @@ namespace locic {
 							
 							auto var = ConvertVar(context, Debug::VarInfo::VAR_LOCAL, astCase->var);
 							semCase->setVar(*var);
-							semCase->setScope(ConvertScope(context, astCase->scope));
+							ConvertScope(context, astCase->scope);
+							semCase->setScope(std::move(astCase->scope));
 						}
 						
 						const auto caseType = semCase->var().constructType();
@@ -543,10 +545,10 @@ namespace locic {
 					                              statement->switchValue().location());
 					
 					if (hasDefaultCase) {
-						auto defaultScope = ConvertScope(context, astDefaultCase->scope);
-						return SEM::Statement::Switch(std::move(castValue), caseList, std::move(defaultScope));
+						ConvertScope(context, astDefaultCase->scope);
+						return SEM::Statement::Switch(std::move(castValue), caseList, std::move(astDefaultCase->scope));
 					} else {
-						return SEM::Statement::Switch(std::move(castValue), caseList, nullptr);
+						return SEM::Statement::Switch(std::move(castValue), caseList, AST::Node<AST::Scope>());
 					}
 				}
 				case AST::Statement::WHILE: {
@@ -554,10 +556,10 @@ namespace locic {
 					
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Loop());
 					
-					auto iterationScope = ConvertScope(context, statement->whileScope());
-					auto advanceScope = SEM::Scope::Create();
+					ConvertScope(context, statement->whileScope());
+					auto advanceScope = AST::Scope::Create(statement.location());
 					auto loopCondition = ImplicitCast(context, std::move(condition), context.typeBuilder().getBoolType(), location);
-					return SEM::Statement::Loop(std::move(loopCondition), std::move(iterationScope), std::move(advanceScope));
+					return SEM::Statement::Loop(std::move(loopCondition), std::move(statement->whileScope()), std::move(advanceScope));
 				}
 				case AST::Statement::FOR: {
 					auto loopScope = ConvertForLoop(context, statement->forVar(),
@@ -566,11 +568,12 @@ namespace locic {
 					return SEM::Statement::ScopeStmt(std::move(loopScope));
 				}
 				case AST::Statement::TRY: {
-					std::unique_ptr<SEM::Scope> tryScope;
+					AST::Node<AST::Scope> tryScope;
 					
 					{
 						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TryScope());
-						tryScope = ConvertScope(context, statement->tryScope());
+						ConvertScope(context, statement->tryScope());
+						tryScope = std::move(statement->tryScope());
 						
 						const auto exitStates = tryScope->exitStates();
 						if (!exitStates.hasAnyThrowingStates()) {
@@ -603,7 +606,8 @@ namespace locic {
 							                  astVar.location());
 						}
 						
-						semCatch->setScope(ConvertScope(context, astCatch->scope));
+						ConvertScope(context, astCatch->scope);
+						semCatch->setScope(std::move(astCatch->scope));
 						
 						catchList.push_back(semCatch.release());
 					}
@@ -620,8 +624,8 @@ namespace locic {
 					
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::ScopeAction(scopeExitState));
 					
-					auto scopeExitScope = ConvertScope(context, statement->scopeExitScope());
-					const auto exitStates = scopeExitScope->exitStates();
+					ConvertScope(context, statement->scopeExitScope());
+					const auto exitStates = statement->scopeExitScope()->exitStates();
 					
 					// scope(success) is allowed to throw.
 					if (scopeExitState != "success" && exitStates.hasThrowExit()) {
@@ -630,7 +634,8 @@ namespace locic {
 						                  location);
 					}
 					
-					return SEM::Statement::ScopeExit(scopeExitState, std::move(scopeExitScope));
+					return SEM::Statement::ScopeExit(scopeExitState,
+					                                 std::move(statement->scopeExitScope()));
 				}
 				case AST::Statement::VARDECL: {
 					auto& astVarNode = statement->varDeclVar();
@@ -869,14 +874,14 @@ namespace locic {
 				case AST::Statement::ASSERTNOEXCEPT: {
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::AssertNoExcept());
 					
-					auto scope = ConvertScope(context, statement->assertNoExceptScope());
-					const auto scopeExitStates = scope->exitStates();
+					ConvertScope(context, statement->assertNoExceptScope());
+					const auto scopeExitStates = statement->assertNoExceptScope()->exitStates();
 					if (!scopeExitStates.hasThrowExit() && !scopeExitStates.hasRethrowExit()) {
 						context.issueDiag(AssertNoExceptAroundNoexceptScopeDiag(),
 						                  location);
 					}
 					
-					return SEM::Statement::AssertNoExcept(std::move(scope));
+					return SEM::Statement::AssertNoExcept(std::move(statement->assertNoExceptScope()));
 				}
 				case AST::Statement::UNREACHABLE: {
 					return SEM::Statement::Unreachable();

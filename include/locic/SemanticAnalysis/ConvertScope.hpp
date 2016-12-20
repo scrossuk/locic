@@ -8,10 +8,10 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 
 namespace locic {
-
-	namespace SemanticAnalysis {
 	
-		std::unique_ptr<SEM::Scope> ConvertScope(Context& context, const AST::Node<AST::Scope>& astScopeNode);
+	namespace SemanticAnalysis {
+		
+		void ConvertScope(Context& context, AST::Node<AST::Scope>& astScopeNode);
 		
 	}
 	

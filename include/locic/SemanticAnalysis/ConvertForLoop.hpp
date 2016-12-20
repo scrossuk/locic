@@ -6,13 +6,13 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 
 namespace locic {
-
-	namespace SemanticAnalysis {
 	
-		std::unique_ptr<SEM::Scope>
+	namespace SemanticAnalysis {
+		
+		AST::Node<AST::Scope>
 		ConvertForLoop(Context& context, AST::Node<AST::Var>& astVarNode,
 		               const AST::Node<AST::ValueDecl>& astInitValueNode,
-		               const AST::Node<AST::Scope>& astScopeNode);
+		               AST::Node<AST::Scope>& astScopeNode);
 		
 	}
 	

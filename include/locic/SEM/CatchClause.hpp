@@ -4,6 +4,8 @@
 #include <memory>
 #include <string>
 
+#include <locic/AST/Node.hpp>
+
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/String.hpp>
 
@@ -11,13 +13,12 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Scope;
 		class Var;
 		
 	}
 	
 	namespace SEM {
-		
-		class Scope;
 		
 		class CatchClause {
 			public:
@@ -25,7 +26,7 @@ namespace locic {
 				
 				void setVar(AST::Var& var);
 				
-				void setScope(std::unique_ptr<Scope> scope);
+				void setScope(AST::Node<AST::Scope> scope);
 				
 				AST::Var& var();
 				const AST::Var& var() const;
@@ -33,14 +34,14 @@ namespace locic {
 				FastMap<String, AST::Var*>& namedVariables();
 				const FastMap<String, AST::Var*>& namedVariables() const;
 				
-				Scope& scope() const;
+				AST::Scope& scope() const;
 				
 				std::string toString() const;
 				
 			private:
 				AST::Var* var_;
 				FastMap<String, AST::Var*> namedVariables_;
-				std::unique_ptr<Scope> scope_;
+				AST::Node<AST::Scope> scope_;
 				
 		};
 		

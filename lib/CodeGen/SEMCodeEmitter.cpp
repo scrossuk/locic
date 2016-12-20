@@ -193,7 +193,7 @@ namespace locic {
 			}
 			
 			IREmitter irEmitter(functionGenerator_);
-			ScopeEmitter(irEmitter).emitScope(function.scope());
+			ScopeEmitter(irEmitter).emitScope(*(function.scope()));
 		}
 		
 	}

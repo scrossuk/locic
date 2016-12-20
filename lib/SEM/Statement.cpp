@@ -12,7 +12,7 @@
 
 #include <locic/SEM/CatchClause.hpp>
 #include <locic/SEM/IfClause.hpp>
-#include <locic/SEM/Scope.hpp>
+#include <locic/AST/Scope.hpp>
 #include <locic/SEM/Statement.hpp>
 #include <locic/SEM/SwitchCase.hpp>
 #include <locic/AST/Value.hpp>
@@ -27,7 +27,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::ScopeStmt(std::unique_ptr<Scope> scope) {
+		Statement Statement::ScopeStmt(AST::Node<AST::Scope> scope) {
 			Statement statement(SCOPE, scope->exitStates());
 			statement.scopeStmt_.scope = std::move(scope);
 			return statement;
@@ -40,8 +40,8 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::If(const std::vector<IfClause*>& ifClauses, std::unique_ptr<Scope> elseScope) {
-			assert(elseScope != nullptr);
+		Statement Statement::If(const std::vector<IfClause*>& ifClauses, AST::Node<AST::Scope> elseScope) {
+			assert(elseScope.get() != nullptr);
 			
 			AST::ExitStates exitStates = AST::ExitStates::None();
 			
@@ -60,7 +60,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Switch(AST::Value value, const std::vector<SwitchCase*>& caseList, std::unique_ptr<Scope> defaultScope) {
+		Statement Statement::Switch(AST::Value value, const std::vector<SwitchCase*>& caseList, AST::Node<AST::Scope> defaultScope) {
 			AST::ExitStates exitStates = AST::ExitStates::None();
 			exitStates.add(value.exitStates().throwingStates());
 			
@@ -79,7 +79,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Loop(AST::Value condition, std::unique_ptr<Scope> iterationScope, std::unique_ptr<Scope> advanceScope) {
+		Statement Statement::Loop(AST::Value condition, AST::Node<AST::Scope> iterationScope, AST::Node<AST::Scope> advanceScope) {
 			// If the loop condition can be exited normally then the loop
 			// can be exited normally (i.e. because the condition can be false).
 			AST::ExitStates exitStates = condition.exitStates();
@@ -114,7 +114,7 @@ namespace locic {
 		}
 		
 		Statement Statement::For(AST::Var& var, AST::Value initValue,
-		                         std::unique_ptr<Scope> scope) {
+		                         AST::Node<AST::Scope> scope) {
 			// TODO: get exit states of skip_front() method.
 			auto exitStates = initValue.exitStates();
 			assert(!exitStates.hasBreakExit() && !exitStates.hasContinueExit() &&
@@ -143,7 +143,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Try(std::unique_ptr<Scope> scope, const std::vector<CatchClause*>& catchList) {
+		Statement Statement::Try(AST::Node<AST::Scope> scope, const std::vector<CatchClause*>& catchList) {
 			AST::ExitStates exitStates = AST::ExitStates::None();
 			
 			exitStates.add(scope->exitStates());
@@ -166,7 +166,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::ScopeExit(const String& state, std::unique_ptr<Scope> scope) {
+		Statement Statement::ScopeExit(const String& state, AST::Node<AST::Scope> scope) {
 			// The exit actions here is for when we first visit this statement,
 			// which itself actually has no effect; the effect occurs on unwinding
 			// and so this is handled by the owning scope.
@@ -216,7 +216,7 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::AssertNoExcept(std::unique_ptr<Scope> scope) {
+		Statement Statement::AssertNoExcept(AST::Node<AST::Scope> scope) {
 			AST::ExitStates exitStates = scope->exitStates();
 			exitStates.remove(AST::ExitStates::AllThrowing());
 			
@@ -253,7 +253,7 @@ namespace locic {
 			return kind() == SCOPE;
 		}
 		
-		Scope& Statement::getScope() const {
+		AST::Scope& Statement::getScope() const {
 			assert(isScope());
 			return *(scopeStmt_.scope);
 		}
@@ -281,7 +281,7 @@ namespace locic {
 			return ifStmt_.clauseList;
 		}
 		
-		Scope& Statement::getIfElseScope() const {
+		AST::Scope& Statement::getIfElseScope() const {
 			assert(isIfStatement());
 			return *(ifStmt_.elseScope);
 		}
@@ -300,7 +300,7 @@ namespace locic {
 			return switchStmt_.caseList;
 		}
 		
-		Scope* Statement::getSwitchDefaultScope() const {
+		AST::Scope* Statement::getSwitchDefaultScope() const {
 			assert(isSwitchStatement());
 			return switchStmt_.defaultScope.get();
 		}
@@ -314,12 +314,12 @@ namespace locic {
 			return loopStmt_.condition;
 		}
 		
-		Scope& Statement::getLoopIterationScope() const {
+		AST::Scope& Statement::getLoopIterationScope() const {
 			assert(isLoopStatement());
 			return *(loopStmt_.iterationScope);
 		}
 		
-		Scope& Statement::getLoopAdvanceScope() const {
+		AST::Scope& Statement::getLoopAdvanceScope() const {
 			assert(isLoopStatement());
 			return *(loopStmt_.advanceScope);
 		}
@@ -338,7 +338,7 @@ namespace locic {
 			return forStmt_.initValue;
 		}
 		
-		Scope& Statement::getForScope() const {
+		AST::Scope& Statement::getForScope() const {
 			assert(isFor());
 			return *(forStmt_.scope);
 		}
@@ -347,7 +347,7 @@ namespace locic {
 			return kind() == TRY;
 		}
 		
-		Scope& Statement::getTryScope() const {
+		AST::Scope& Statement::getTryScope() const {
 			assert(isTryStatement());
 			return *(tryStmt_.scope);
 		}
@@ -366,7 +366,7 @@ namespace locic {
 			return scopeExitStmt_.state;
 		}
 		
-		Scope& Statement::getScopeExitScope() const {
+		AST::Scope& Statement::getScopeExitScope() const {
 			assert(isScopeExitStatement());
 			return *(scopeExitStmt_.scope);
 		}
@@ -419,7 +419,7 @@ namespace locic {
 			return kind() == ASSERTNOEXCEPT;
 		}
 		
-		const Scope& Statement::getAssertNoExceptScope() const {
+		const AST::Scope& Statement::getAssertNoExceptScope() const {
 			assert(isAssertNoExceptStatement());
 			return *(assertNoExceptStmt_.scope);
 		}
@@ -464,7 +464,7 @@ namespace locic {
 					return makeString("SwitchStatement(value: %s, caseList: %s, defaultScope: %s)",
 						switchStmt_.value.toString().c_str(),
 						makeArrayPtrString(switchStmt_.caseList).c_str(),
-						switchStmt_.defaultScope != nullptr ?
+						switchStmt_.defaultScope.get() != nullptr ?
 							switchStmt_.defaultScope->toString().c_str() :
 							"[NONE]");
 				}

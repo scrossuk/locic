@@ -182,6 +182,11 @@ namespace locic {
 			return kind() == SCOPE;
 		}
 		
+		Node<Scope>& Statement::scope() {
+			assert(isScope());
+			return scopeStmt.scope;
+		}
+		
 		const Node<Scope>& Statement::scope() const {
 			assert(isScope());
 			return scopeStmt.scope;
@@ -194,6 +199,11 @@ namespace locic {
 		const Node<IfClauseList>& Statement::ifClauseList() const {
 			assert(isIf());
 			return ifStmt.clauseList;
+		}
+		
+		Node<Scope>& Statement::ifElseScope() {
+			assert(isIf());
+			return ifStmt.elseScope;
 		}
 		
 		const Node<Scope>& Statement::ifElseScope() const {
@@ -229,6 +239,11 @@ namespace locic {
 			return whileStmt.condition;
 		}
 		
+		Node<Scope>& Statement::whileScope() {
+			assert(isWhile());
+			return whileStmt.whileTrue;
+		}
+		
 		const Node<Scope>& Statement::whileScope() const {
 			assert(isWhile());
 			return whileStmt.whileTrue;
@@ -250,12 +265,21 @@ namespace locic {
 			return forStmt.initValue;
 		}
 		
+		Node<Scope>& Statement::forInitScope() {
+			return forStmt.scope;
+		}
+		
 		const Node<Scope>& Statement::forInitScope() const {
 			return forStmt.scope;
 		}
 		
 		bool Statement::isTry() const {
 			return kind() == TRY;
+		}
+		
+		Node<Scope>& Statement::tryScope() {
+			assert(isTry());
+			return tryStmt.scope;
 		}
 		
 		const Node<Scope>& Statement::tryScope() const {
@@ -275,6 +299,11 @@ namespace locic {
 		const String& Statement::scopeExitState() const {
 			assert(isScopeExit());
 			return scopeExitStmt.state;
+		}
+		
+		Node<Scope>& Statement::scopeExitScope() {
+			assert(isScopeExit());
+			return scopeExitStmt.scope;
 		}
 		
 		const Node<Scope>& Statement::scopeExitScope() const {
@@ -388,6 +417,11 @@ namespace locic {
 		
 		bool Statement::isAssertNoExcept() const {
 			return kind() == ASSERTNOEXCEPT;
+		}
+		
+		Node<Scope>& Statement::assertNoExceptScope() {
+			assert(isAssertNoExcept());
+			return assertNoExceptStmt.scope;
 		}
 		
 		const Node<Scope>& Statement::assertNoExceptScope() const {

@@ -2,6 +2,7 @@
 
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Scope.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/SEM.hpp>
 
@@ -110,7 +111,7 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performInnerScopeSearch(SEM::Scope* scope, const Name& name) {
+		SearchResult performInnerScopeSearch(AST::Scope* scope, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
 			const auto iterator = scope->namedVariables().find(name.at(0));

@@ -45,14 +45,14 @@ namespace locic {
 		 * }
 		 */
 		
-		std::unique_ptr<SEM::Scope>
+		AST::Node<AST::Scope>
 		ConvertForLoop(Context& context, AST::Node<AST::Var>& astVarNode,
 		               const AST::Node<AST::ValueDecl>& astInitValueNode,
-		               const AST::Node<AST::Scope>& astScopeNode) {
+		               AST::Node<AST::Scope>& scopeNode) {
 			// TODO: fix this to be the correct location.
-			const auto& location = astScopeNode.location();
+			const auto location = scopeNode.location();
 			
-			auto outerScope = SEM::Scope::Create();
+			auto outerScope = AST::Scope::Create(location);
 			
 			{
 				PushScopeElement pushOuterScope(context.scopeStack(), ScopeElement::Scope(*outerScope));
@@ -80,7 +80,7 @@ namespace locic {
 					auto isNotEmpty = CallValue(context, GetMethod(context, std::move(isEmpty), context.getCString("not"), location), {}, location);
 					auto loopCondition = ImplicitCast(context, std::move(isNotEmpty), context.typeBuilder().getBoolType(), location);
 					
-					auto iterationScope = SEM::Scope::Create();
+					auto iterationScope = AST::Scope::Create(location);
 					
 					{
 						PushScopeElement pushIterationScope(context.scopeStack(), ScopeElement::Scope(*iterationScope));
@@ -93,11 +93,11 @@ namespace locic {
 						iterationScope->statements().push_back(SEM::Statement::InitialiseStmt(*loopVar,
 							ImplicitCast(context, std::move(currentValue), loopVar->constructType(), location)));
 						
-						auto innerScope = ConvertScope(context, astScopeNode);
-						iterationScope->statements().push_back(SEM::Statement::ScopeStmt(std::move(innerScope)));
+						ConvertScope(context, scopeNode);
+						iterationScope->statements().push_back(SEM::Statement::ScopeStmt(std::move(scopeNode)));
 					}
 					
-					auto advanceScope = SEM::Scope::Create();
+					auto advanceScope = AST::Scope::Create(location);
 					auto advanceCurrentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, *initVar), context.getCString("skipfront"), location), {}, location);
 					advanceScope->statements().push_back(SEM::Statement::ValueStmt(std::move(advanceCurrentValue)));
 					

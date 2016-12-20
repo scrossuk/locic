@@ -4,6 +4,7 @@
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
+#include <locic/AST/Scope.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
@@ -180,7 +181,7 @@ namespace locic {
 			(void) valueEmitter.emitValue(value);
 		}
 		
-		void StatementEmitter::emitScope(const SEM::Scope& scope) {
+		void StatementEmitter::emitScope(const AST::Scope& scope) {
 			ScopeEmitter(irEmitter_).emitScope(scope);
 		}
 		
@@ -195,7 +196,7 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitIf(const std::vector<SEM::IfClause*>& ifClauseList,
-		                              const SEM::Scope& elseScope) {
+		                              const AST::Scope& elseScope) {
 			assert(!ifClauseList.empty());
 			
 			auto& function = irEmitter_.function();
@@ -315,7 +316,7 @@ namespace locic {
 		
 		void StatementEmitter::emitSwitch(const AST::Value& switchValue,
 		                                  const std::vector<SEM::SwitchCase*>& switchCases,
-		                                  const SEM::Scope* defaultScope) {
+		                                  const AST::Scope* defaultScope) {
 			assert(switchValue.type()->isUnionDatatype() ||
 			       (switchValue.type()->isRef() &&
 			        switchValue.type()->isBuiltInReference()));
@@ -409,8 +410,8 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitLoop(const AST::Value& condition,
-		                                const SEM::Scope& iterationScope,
-		                                const SEM::Scope& advanceScope) {
+		                                const AST::Scope& iterationScope,
+		                                const AST::Scope& advanceScope) {
 			auto& function = irEmitter_.function();
 			ValueEmitter valueEmitter(irEmitter_);
 			
@@ -466,7 +467,7 @@ namespace locic {
 		
 		void StatementEmitter::emitFor(AST::Var& var,
 		                               const AST::Value& initValue,
-		                               const SEM::Scope& scope) {
+		                               const AST::Scope& scope) {
 			/**
 			 * This code converts:
 			 * for (type value_var: initValue) {
@@ -613,7 +614,7 @@ namespace locic {
 			}
 		}
 		
-		void StatementEmitter::emitTry(const SEM::Scope& scope,
+		void StatementEmitter::emitTry(const AST::Scope& scope,
 		                               const std::vector<SEM::CatchClause*>& catchClauses) {
 			assert(!catchClauses.empty());
 			
@@ -826,7 +827,7 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitScopeExit(const String& stateString,
-		                                     SEM::Scope& scope) {
+		                                     AST::Scope& scope) {
 			auto& function = irEmitter_.function();
 			
 			ScopeExitState state = SCOPEEXIT_ALWAYS;
@@ -891,7 +892,7 @@ namespace locic {
 			irEmitter_.selectBasicBlock(successBB);
 		}
 		
-		void StatementEmitter::emitAssertNoExcept(const SEM::Scope& scope) {
+		void StatementEmitter::emitAssertNoExcept(const AST::Scope& scope) {
 			// Basically a no-op.
 			ScopeEmitter(irEmitter_).emitScope(scope);
 		}

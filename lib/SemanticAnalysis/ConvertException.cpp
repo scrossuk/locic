@@ -150,7 +150,7 @@ namespace locic {
 			
 			auto returnValue = AST::Value::InternalConstruct(typeInstanceNode->selfType(), std::move(constructValues));
 			
-			std::unique_ptr<SEM::Scope> scope(new SEM::Scope());
+			auto scope = AST::Scope::Create(location);
 			scope->statements().push_back(SEM::Statement::Return(std::move(returnValue)));
 			function.setScope(std::move(scope));
 		}

@@ -52,7 +52,7 @@ namespace locic {
 			function->setConstSpecifier(std::move(constSpecifier));
 			function->setNoexceptSpecifier(std::move(noexceptSpecifier));
 			function->setRequireSpecifier(std::move(requireSpecifier));
-			function->setScopeDecl(std::move(scope));
+			function->setScope(std::move(scope));
 			return AST::makeNode(location, function.release());
 			
 		}
@@ -79,7 +79,7 @@ namespace locic {
 			function->setReturnType(AST::makeNode(scope.location(),
 			                                      AST::TypeDecl::Void()));
 			function->setParameterDecls(AST::makeDefaultNode<AST::VarList>());
-			function->setScopeDecl(std::move(scope));
+			function->setScope(std::move(scope));
 			return AST::makeNode(location, function.release());
 		}
 		

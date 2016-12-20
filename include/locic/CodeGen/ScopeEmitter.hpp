@@ -3,7 +3,7 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Scope;
 		
@@ -17,7 +17,7 @@ namespace locic {
 		public:
 			ScopeEmitter(IREmitter& irEmitter);
 			
-			void emitScope(const SEM::Scope& scope);
+			void emitScope(const AST::Scope& scope);
 			
 		private:
 			IREmitter& irEmitter_;

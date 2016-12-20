@@ -1,4 +1,4 @@
-#include <locic/SEM/Scope.hpp>
+#include <locic/AST/Scope.hpp>
 
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenVar.hpp>
@@ -14,7 +14,7 @@ namespace locic {
 		ScopeEmitter::ScopeEmitter(IREmitter& irEmitter)
 		: irEmitter_(irEmitter) { }
 		
-		void ScopeEmitter::emitScope(const SEM::Scope& scope) {
+		void ScopeEmitter::emitScope(const AST::Scope& scope) {
 			auto& function = irEmitter_.function();
 			
 			StatementEmitter statementEmitter(irEmitter_);

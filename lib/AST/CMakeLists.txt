@@ -2,7 +2,6 @@ set(SEM_FILES
 	../SEM/CatchClause.cpp
 	../SEM/IfClause.cpp
 	../SEM/Predicate.cpp
-	../SEM/Scope.cpp
 	../SEM/Statement.cpp
 	../SEM/SwitchCase.cpp
 )

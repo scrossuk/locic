@@ -180,8 +180,6 @@ namespace locic {
 				templateVarNode->setType(semVarType);
 				function->templateVariables().push_back(templateVarNode.get());
 			}
-			
-			assert(!function->hasGeneratedScope());
 		}
 		
 		bool isValidLifetimeMethod(const MethodID methodID) {
@@ -523,7 +521,7 @@ namespace locic {
 				// constructor, with no return type specified (i.e.
 				// the return type will be the parent class type).
 				assert(thisTypeInstance != nullptr);
-				assert(function->hasScopeDecl());
+				assert(function->hasScope());
 				assert(function->isStatic());
 				
 				semReturnType = thisTypeInstance->selfType();

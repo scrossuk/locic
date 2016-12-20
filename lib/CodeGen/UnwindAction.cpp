@@ -37,7 +37,7 @@ namespace locic {
 			return action;
 		}
 		
-		UnwindAction UnwindAction::ScopeExit(ScopeExitState state, SEM::Scope* scope) {
+		UnwindAction UnwindAction::ScopeExit(ScopeExitState state, AST::Scope* scope) {
 			UnwindAction action(UnwindAction::SCOPEEXIT);
 			action.actions_.scopeExitAction.state = state;
 			action.actions_.scopeExitAction.scope = scope;
@@ -130,7 +130,7 @@ namespace locic {
 			return actions_.scopeExitAction.state;
 		}
 		
-		SEM::Scope* UnwindAction::scopeExitScope() const {
+		AST::Scope* UnwindAction::scopeExitScope() const {
 			assert(isScopeExit());
 			return actions_.scopeExitAction.scope;
 		}

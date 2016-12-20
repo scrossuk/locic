@@ -7,7 +7,7 @@
 
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/Scope.hpp>
+#include <locic/AST/Scope.hpp>
 #include <locic/SEM/SwitchCase.hpp>
 
 namespace locic {
@@ -17,7 +17,7 @@ namespace locic {
 		SwitchCase::SwitchCase()
 		: var_(nullptr) { }
 		
-		SwitchCase::SwitchCase(AST::Var& pVar, std::unique_ptr<Scope> pScope)
+		SwitchCase::SwitchCase(AST::Var& pVar, AST::Node<AST::Scope> pScope)
 		: var_(&pVar), scope_(std::move(pScope)) { }
 		
 		void SwitchCase::setVar(AST::Var& pVar) {
@@ -25,7 +25,7 @@ namespace locic {
 			var_ = &pVar;
 		}
 		
-		void SwitchCase::setScope(std::unique_ptr<Scope> pScope) {
+		void SwitchCase::setScope(AST::Node<AST::Scope> pScope) {
 			assert(scope_.get() == nullptr);
 			assert(pScope.get() != nullptr);
 			scope_ = std::move(pScope);
@@ -47,7 +47,7 @@ namespace locic {
 			return namedVariables_;
 		}
 		
-		Scope& SwitchCase::scope() const {
+		AST::Scope& SwitchCase::scope() const {
 			return *scope_;
 		}
 		

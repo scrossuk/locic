@@ -8,7 +8,7 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/CatchClause.hpp>
-#include <locic/SEM/Scope.hpp>
+#include <locic/AST/Scope.hpp>
 
 namespace locic {
 
@@ -21,7 +21,7 @@ namespace locic {
 			var_ = &pVar;
 		}
 		
-		void CatchClause::setScope(std::unique_ptr<Scope> pScope) {
+		void CatchClause::setScope(AST::Node<AST::Scope> pScope) {
 			assert(scope_.get() == nullptr);
 			assert(pScope.get() != nullptr);
 			scope_ = std::move(pScope);
@@ -43,7 +43,7 @@ namespace locic {
 			return namedVariables_;
 		}
 		
-		Scope& CatchClause::scope() const {
+		AST::Scope& CatchClause::scope() const {
 			return *scope_;
 		}
 		

@@ -4,27 +4,33 @@
 #include <memory>
 #include <string>
 
+#include <locic/AST/Node.hpp>
 #include <locic/AST/Value.hpp>
 
 namespace locic {
-
-	namespace SEM {
 	
+	namespace AST {
+		
 		class Scope;
+		
+	}
+	
+	namespace SEM {
 		
 		class IfClause {
 			public:
-				IfClause(AST::Value condition, std::unique_ptr<Scope> scope);
+				IfClause(AST::Value condition,
+				         AST::Node<AST::Scope> scope);
 				
 				const AST::Value& condition() const;
 				
-				Scope& scope() const;
+				AST::Scope& scope() const;
 				
 				std::string toString() const;
 				
 			private:
 				AST::Value condition_;
-				std::unique_ptr<Scope> scope_;
+				AST::Node<AST::Scope> scope_;
 				
 		};
 		

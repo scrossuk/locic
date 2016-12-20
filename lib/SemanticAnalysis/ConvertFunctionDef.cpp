@@ -19,7 +19,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		void DeadCodeSearchScope(Context& context, const SEM::Scope& scope);
+		void DeadCodeSearchScope(Context& context, const AST::Scope& scope);
 		
 		static void DeadCodeSearchStatement(Context& context, const SEM::Statement& statement) {
 			switch(statement.kind()) {
@@ -122,7 +122,7 @@ namespace locic {
 			
 		};
 		
-		void DeadCodeSearchScope(Context& context, const SEM::Scope& scope) {
+		void DeadCodeSearchScope(Context& context, const AST::Scope& scope) {
 			const SEM::Statement* lastScopeExit = nullptr;
 			const SEM::Statement* lastScopeFailure = nullptr;
 			const SEM::Statement* lastScopeSuccess = nullptr;
@@ -322,8 +322,6 @@ namespace locic {
 		};
 		
 		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& function) {
-			assert(!function->hasGeneratedScope());
-			
 			const auto functionType = function->type();
 			
 			if (!TypeCapabilities(context).supportsMove(functionType.returnType())) {
@@ -339,30 +337,32 @@ namespace locic {
 				return;
 			}
 			
-			if (!function->hasScopeDecl()) {
+			if (!function->hasScope()) {
 				// Only a declaration.
 				return;
 			}
 			
+			assert(function->scope()->statements().empty());
+			
 			// Generate the outer function scope.
 			// (which will then generate its contents etc.)
-			auto semScope = ConvertScope(context, function->scopeDecl());
+			ConvertScope(context, function->scope());
 			
 			const auto returnType = functionType.returnType();
-			const auto exitStates = semScope->exitStates();
+			const auto exitStates = function->scope()->exitStates();
 			
 			if (exitStates.hasNormalExit()) {
 				if (!returnType->isBuiltInVoid()) {
 					// Functions with non-void return types must return a value.
 					context.issueDiag(MissingReturnStatementDiag(function->fullName()),
-					                  function->scopeDecl().location());
+					                  function->scope().location());
 				} else {
 					// Need to add a void return statement if the program didn't.
-					semScope->statements().push_back(SEM::Statement::ReturnVoid());
+					function->scope()->statements().push_back(SEM::Statement::ReturnVoid());
 				}
 			}
 			
-			DeadCodeSearchScope(context, *semScope);
+			DeadCodeSearchScope(context, *(function->scope()));
 			
 			const auto actualNoexceptPredicate = reducePredicate(context, exitStates.noexceptPredicate().copy());
 			const auto declaredNoexceptPredicate = reducePredicate(context, functionType.attributes().noExceptPredicate().copy());
@@ -381,8 +381,6 @@ namespace locic {
 					                  location);
 				}
 			}
-			
-			function->setScope(std::move(semScope));
 			
 			// Check all variables are either used and not marked unused,
 			// or are unused and marked as such.
