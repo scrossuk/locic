@@ -369,10 +369,10 @@ public:
 	}
 	
 	bool runSemanticAnalysis(const AST::NamespaceList& astRootNamespaceList,
-	                         SEM::Module& semModule, Debug::Module& debugModule) {
+	                         AST::Module& astModule, Debug::Module& debugModule) {
 		Timer timer;
 		SemanticAnalysis::Run(sharedMaps_, astRootNamespaceList,
-		                      semModule, debugModule, diagArray_);
+		                      astModule, debugModule, diagArray_);
 		
 		if (options_.timingsEnabled) {
 			printf("Semantic Analysis: %f seconds.\n", timer.getTime());
@@ -380,18 +380,18 @@ public:
 		
 		if (!options_.semDebugFileName.empty()) {
 			// If requested, dump SEM information.
-			dumpSEM(semModule);
+			dumpSEM(astModule);
 		}
 		
 		return !diagArray_.anyErrors();
 	}
 	
-	void dumpSEM(const SEM::Module& semModule) {
+	void dumpSEM(const AST::Module& astModule) {
 		Timer timer;
 		
 		// If requested, dump SEM tree information.
 		std::ofstream ofs(options_.semDebugFileName.c_str(), std::ios_base::binary);
-		ofs << formatMessage(semModule.rootNamespace().toString());
+		ofs << formatMessage(astModule.rootNamespace().toString());
 		
 		if (options_.timingsEnabled) {
 			printf("Dump SEM: %f seconds.\n", timer.getTime());
@@ -413,7 +413,7 @@ public:
 	}
 	
 	CodeGen::ModulePtr
-	runCodeGen(CodeGen::Context& codeGenContext, SEM::Module& semModule,
+	runCodeGen(CodeGen::Context& codeGenContext, AST::Module& astModule,
 	           Debug::Module& debugModule) {
 		CodeGen::BuildOptions buildOptions;
 		buildOptions.unsafe = options_.unsafe;
@@ -430,7 +430,7 @@ public:
 		
 		{
 			Timer timer;
-			codeGenerator.genNamespace(&(semModule.rootNamespace()));
+			codeGenerator.genNamespace(&(astModule.rootNamespace()));
 			
 			if (options_.timingsEnabled) {
 				printf("Code Generation: %f seconds.\n", timer.getTime());
@@ -562,12 +562,12 @@ int main(int argc, char* argv[]) {
 	// Debug information.
 	Debug::Module debugModule;
 	
-	AST::Context semContext;
-	SEM::Module semModule(semContext);
+	AST::Context astContext;
+	AST::Module astModule(astContext);
 	
 	const auto semaResult =
 		driver.runSemanticAnalysis(astRootNamespaceList,
-		                           semModule, debugModule);
+		                           astModule, debugModule);
 	driver.printDiagnostics();
 	if (!semaResult) {
 		return options->verifying ? EXIT_SUCCESS : EXIT_FAILURE;
@@ -577,10 +577,10 @@ int main(int argc, char* argv[]) {
 		return EXIT_SUCCESS;
 	}
 	
-	CodeGen::Context codeGenContext(semContext, driver.sharedMaps(),
+	CodeGen::Context codeGenContext(astContext, driver.sharedMaps(),
 	                                driver.getTargetOptions());
 	
-	auto irModule = driver.runCodeGen(codeGenContext, semModule,
+	auto irModule = driver.runCodeGen(codeGenContext, astModule,
 	                                  debugModule);
 	
 	if (options->timingsEnabled) {

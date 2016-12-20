@@ -1,7 +1,6 @@
 set(SEM_FILES
 	../SEM/CatchClause.cpp
 	../SEM/IfClause.cpp
-	../SEM/Module.cpp
 	../SEM/Predicate.cpp
 	../SEM/Scope.cpp
 	../SEM/Statement.cpp
@@ -17,6 +16,7 @@ add_library(locic-ast
 	Function.cpp
 	FunctionType.cpp
 	GlobalStructure.cpp
+	Module.cpp
 	ModuleScope.cpp
 	ModuleScopeDecl.cpp
 	Namespace.cpp

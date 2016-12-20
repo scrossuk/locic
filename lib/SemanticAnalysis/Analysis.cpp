@@ -2,8 +2,8 @@
 #include <cstdio>
 
 #include <locic/AST.hpp>
-#include <locic/Debug.hpp>
 #include <locic/AST/Context.hpp>
+#include <locic/Debug.hpp>
 #include <locic/Support/SharedMaps.hpp>
 
 #include <locic/SemanticAnalysis/Analysis.hpp>
@@ -18,7 +18,7 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void Run(const SharedMaps& sharedMaps, const AST::NamespaceList& rootASTNamespaces,
-		         SEM::Module& semModule, Debug::Module& debugModule, DiagnosticReceiver& diagReceiver) {
+		         AST::Module& semModule, Debug::Module& debugModule, DiagnosticReceiver& diagReceiver) {
 			try {
 				// Create 'context' to hold information about code structures.
 				Context context(sharedMaps, debugModule, semModule.context(),

@@ -8,6 +8,7 @@
 #include <locic/AST/ExceptionInitializer.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/IfClause.hpp>
+#include <locic/AST/Module.hpp>
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/AST/ModuleScopeDecl.hpp>
 #include <locic/AST/Namespace.hpp>
