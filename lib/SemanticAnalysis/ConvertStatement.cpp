@@ -477,20 +477,16 @@ namespace locic {
 					
 					std::map<const AST::TypeInstance*, const AST::Type*> switchCaseTypes;
 					
-					std::vector<SEM::SwitchCase*> caseList;
-					for (const auto& astCase: *(statement->switchCaseList())) {
-						std::unique_ptr<SEM::SwitchCase> semCase(new SEM::SwitchCase());
-						
+					std::vector<AST::SwitchCase*> caseList;
+					for (const auto& caseNode: *(statement->switchCaseList())) {
 						{
-							PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::SwitchCase(*semCase));
+							PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::SwitchCase(*caseNode));
 							
-							auto var = ConvertVar(context, Debug::VarInfo::VAR_LOCAL, astCase->var);
-							semCase->setVar(*var);
-							ConvertScope(context, astCase->scope);
-							semCase->setScope(std::move(astCase->scope));
+							(void) ConvertVar(context, Debug::VarInfo::VAR_LOCAL, caseNode->var());
+							ConvertScope(context, caseNode->scope());
 						}
 						
-						const auto caseType = semCase->var().constructType();
+						const auto caseType = caseNode->var()->constructType();
 						
 						// Check that all switch cases are based
 						// on the same union datatype.
@@ -498,7 +494,7 @@ namespace locic {
 						    caseType->getObjectType()->parentTypeInstance() != switchType->getObjectType()) {
 							context.issueDiag(SwitchCaseTypeNotMemberOfDatatype(*(caseType->getObjectType()),
 							                                                    *(switchType->getObjectType())),
-							                  astCase->var.location());
+							                  caseNode->var().location());
 						}
 						
 						const auto insertResult = switchCaseTypes.insert(std::make_pair(caseType->getObjectType(), caseType));
@@ -506,14 +502,13 @@ namespace locic {
 						// Check for duplicate cases.
 						if (!insertResult.second) {
 							context.issueDiag(DuplicateCaseDiag(*(caseType->getObjectType())),
-							                  astCase.location());
+							                  caseNode.location());
 						}
 						
-						caseList.push_back(semCase.release());
+						caseList.push_back(caseNode.get());
 					}
 					
-					const auto& astDefaultCase = statement->defaultCase();
-					const bool hasDefaultCase = astDefaultCase->hasScope;
+					const auto& defaultCaseNode = statement->defaultCase();
 					
 					if (switchType->isObject()) {
 						// Check whether all cases are handled.
@@ -527,10 +522,10 @@ namespace locic {
 							}
 						}
 						
-						if (hasDefaultCase) {
+						if (defaultCaseNode->hasScope()) {
 							if (unhandledCases.empty()) {
 								context.issueDiag(UnnecessaryDefaultCaseDiag(),
-								                  astDefaultCase.location());
+								                  defaultCaseNode.location());
 							}
 						} else {
 							if (!unhandledCases.empty()) {
@@ -547,12 +542,11 @@ namespace locic {
 					auto castValue = ImplicitCast(context, std::move(value), switchType,
 					                              statement->switchValue().location());
 					
-					if (hasDefaultCase) {
-						ConvertScope(context, astDefaultCase->scope);
-						return SEM::Statement::Switch(std::move(castValue), caseList, std::move(astDefaultCase->scope));
-					} else {
-						return SEM::Statement::Switch(std::move(castValue), caseList, AST::Node<AST::Scope>());
+					if (defaultCaseNode->hasScope()) {
+						ConvertScope(context, defaultCaseNode->scope());
 					}
+					
+					return SEM::Statement::Switch(std::move(castValue), caseList, *defaultCaseNode);
 				}
 				case AST::Statement::WHILE: {
 					auto condition = ConvertValue(context, statement->whileCondition());

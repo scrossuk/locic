@@ -122,7 +122,7 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performInnerSwitchCaseSearch(SEM::SwitchCase* switchCase, const Name& name) {
+		SearchResult performInnerSwitchCaseSearch(AST::SwitchCase* switchCase, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
 			const auto iterator = switchCase->namedVariables().find(name.at(0));

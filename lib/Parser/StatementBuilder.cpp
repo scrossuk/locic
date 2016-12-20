@@ -88,7 +88,7 @@ namespace locic {
 		StatementBuilder::makeDefaultSwitchCase(AST::Node<AST::Scope> scope,
 		                                        const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, AST::DefaultCase::Scope(std::move(scope)));
+			return AST::makeNode(location, AST::DefaultCase::ScopeCase(std::move(scope)));
 		}
 		
 		AST::Node<AST::Statement>

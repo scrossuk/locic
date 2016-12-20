@@ -773,7 +773,7 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isSwitch());
 				EXPECT_EQ(statement->switchCaseList()->size(), 1);
-				EXPECT_TRUE(statement->defaultCase()->isEmpty());
+				EXPECT_FALSE(statement->defaultCase()->hasScope());
 			});
 		}
 		
@@ -798,7 +798,7 @@ namespace locic {
 			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
 				ASSERT_TRUE(statement->isSwitch());
 				EXPECT_EQ(statement->switchCaseList()->size(), 1);
-				EXPECT_FALSE(statement->defaultCase()->isEmpty());
+				EXPECT_TRUE(statement->defaultCase()->hasScope());
 			});
 		}
 		

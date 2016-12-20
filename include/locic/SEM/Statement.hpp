@@ -17,16 +17,16 @@ namespace locic {
 	namespace AST {
 		
 		class CatchClause;
+		class DefaultCase;
 		class IfClause;
 		class Scope;
+		class SwitchCase;
 		class Type;
 		class Var;
 		
 	}
 	
 	namespace SEM {
-		
-		class SwitchCase;
 		
 		class Statement {
 			public:
@@ -60,8 +60,8 @@ namespace locic {
 				static Statement If(const std::vector<AST::IfClause*>& ifClauses,
 				                    AST::Node<AST::Scope> elseScope);
 				
-				static Statement Switch(AST::Value value, const std::vector<SwitchCase*>& caseList,
-				                        AST::Node<AST::Scope> defaultScope);
+				static Statement Switch(AST::Value value, const std::vector<AST::SwitchCase*>& caseList,
+				                        AST::DefaultCase& defaultCase);
 				
 				static Statement Loop(AST::Value condition, AST::Node<AST::Scope> iterationScope,
 				                      AST::Node<AST::Scope> advanceScope);
@@ -125,9 +125,10 @@ namespace locic {
 				
 				const AST::Value& getSwitchValue() const;
 				
-				const std::vector<SwitchCase*>& getSwitchCaseList() const;
+				const std::vector<AST::SwitchCase*>&
+				getSwitchCaseList() const;
 				
-				AST::Scope* getSwitchDefaultScope() const;
+				AST::DefaultCase& getSwitchDefaultCase() const;
 				
 				bool isLoopStatement() const;
 				
@@ -219,8 +220,8 @@ namespace locic {
 				
 				struct {
 					AST::Value value;
-					std::vector<SwitchCase*> caseList;
-					AST::Node<AST::Scope> defaultScope;
+					std::vector<AST::SwitchCase*> caseList;
+					AST::DefaultCase* defaultCase;
 				} switchStmt_;
 				
 				struct {

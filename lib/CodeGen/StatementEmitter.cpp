@@ -106,7 +106,7 @@ namespace locic {
 				case SEM::Statement::SWITCH: {
 					emitSwitch(statement.getSwitchValue(),
 					           statement.getSwitchCaseList(),
-					           statement.getSwitchDefaultScope());
+					           statement.getSwitchDefaultCase());
 					return;
 				}
 				case SEM::Statement::LOOP: {
@@ -315,8 +315,8 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitSwitch(const AST::Value& switchValue,
-		                                  const std::vector<SEM::SwitchCase*>& switchCases,
-		                                  const AST::Scope* defaultScope) {
+		                                  const std::vector<AST::SwitchCase*>& switchCases,
+		                                  const AST::DefaultCase& defaultCase) {
 			assert(switchValue.type()->isUnionDatatype() ||
 			       (switchValue.type()->isRef() &&
 			        switchValue.type()->isBuiltInReference()));
@@ -354,7 +354,7 @@ namespace locic {
 			bool allTerminate = true;
 			
 			for (auto switchCase: switchCases) {
-				const auto caseType = switchCase->var().constructType();
+				const auto caseType = switchCase->var()->constructType();
 				
 				// Start from 1 so 0 can represent 'empty'.
 				uint8_t tag = 1;
@@ -376,11 +376,11 @@ namespace locic {
 				
 				{
 					ScopeLifetime switchCaseLifetime(function);
-					genVarAlloca(function, &(switchCase->var()));
-					genVarInitialise(function, &(switchCase->var()),
+					genVarAlloca(function, switchCase->var().get());
+					genVarInitialise(function, switchCase->var().get(),
 						irEmitter_.emitMoveLoad(unionDatatypePointers.second,
-						                        switchCase->var().constructType()));
-					ScopeEmitter(irEmitter_).emitScope(switchCase->scope());
+						                        switchCase->var()->constructType()));
+					ScopeEmitter(irEmitter_).emitScope(*(switchCase->scope()));
 				}
 				
 				if (!irEmitter_.lastInstructionTerminates()) {
@@ -391,8 +391,8 @@ namespace locic {
 			
 			irEmitter_.selectBasicBlock(defaultBB);
 			
-			if (defaultScope != nullptr) {
-				ScopeEmitter(irEmitter_).emitScope(*defaultScope);
+			if (defaultCase.hasScope()) {
+				ScopeEmitter(irEmitter_).emitScope(*(defaultCase.scope()));
 				
 				if (!irEmitter_.lastInstructionTerminates()) {
 					allTerminate = false;

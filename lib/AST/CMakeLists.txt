@@ -1,7 +1,6 @@
 set(SEM_FILES
 	../SEM/Predicate.cpp
 	../SEM/Statement.cpp
-	../SEM/SwitchCase.cpp
 )
 
 add_library(locic-ast
@@ -24,6 +23,7 @@ add_library(locic-ast
 	Scope.cpp
 	Statement.cpp
 	StaticAssert.cpp
+	SwitchCase.cpp
 	Symbol.cpp
 	TemplateVar.cpp
 	TemplateVarMap.cpp

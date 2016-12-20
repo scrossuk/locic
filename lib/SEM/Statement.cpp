@@ -6,6 +6,7 @@
 #include <locic/AST/CatchClause.hpp>
 #include <locic/AST/IfClause.hpp>
 #include <locic/AST/Scope.hpp>
+#include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/Value.hpp>
 #include <locic/AST/ValueDecl.hpp>
@@ -15,7 +16,6 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/Statement.hpp>
-#include <locic/SEM/SwitchCase.hpp>
 
 namespace locic {
 
@@ -61,22 +61,25 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Switch(AST::Value value, const std::vector<SwitchCase*>& caseList, AST::Node<AST::Scope> defaultScope) {
+		Statement
+		Statement::Switch(AST::Value value,
+		                  const std::vector<AST::SwitchCase*>& caseList,
+		                  AST::DefaultCase& defaultCase) {
 			AST::ExitStates exitStates = AST::ExitStates::None();
 			exitStates.add(value.exitStates().throwingStates());
 			
 			for (const auto& switchCase: caseList) {
-				exitStates.add(switchCase->scope().exitStates());
+				exitStates.add(switchCase->scope()->exitStates());
 			}
 			
-			if (defaultScope.get() != nullptr) {
-				exitStates.add(defaultScope->exitStates());
+			if (defaultCase.hasScope()) {
+				exitStates.add(defaultCase.scope()->exitStates());
 			}
 			
 			Statement statement(SWITCH, exitStates);
 			statement.switchStmt_.value = std::move(value);
 			statement.switchStmt_.caseList = caseList;
-			statement.switchStmt_.defaultScope = std::move(defaultScope);
+			statement.switchStmt_.defaultCase = &defaultCase;
 			return statement;
 		}
 		
@@ -297,14 +300,15 @@ namespace locic {
 			return switchStmt_.value;
 		}
 		
-		const std::vector<SwitchCase*>& Statement::getSwitchCaseList() const {
+		const std::vector<AST::SwitchCase*>&
+		Statement::getSwitchCaseList() const {
 			assert(isSwitchStatement());
 			return switchStmt_.caseList;
 		}
 		
-		AST::Scope* Statement::getSwitchDefaultScope() const {
+		AST::DefaultCase& Statement::getSwitchDefaultCase() const {
 			assert(isSwitchStatement());
-			return switchStmt_.defaultScope.get();
+			return *(switchStmt_.defaultCase);
 		}
 		
 		bool Statement::isLoopStatement() const {
@@ -463,11 +467,11 @@ namespace locic {
 				}
 				
 				case SWITCH: {
-					return makeString("SwitchStatement(value: %s, caseList: %s, defaultScope: %s)",
+					return makeString("SwitchStatement(value: %s, caseList: %s, defaultCase: %s)",
 						switchStmt_.value.toString().c_str(),
 						makeArrayPtrString(switchStmt_.caseList).c_str(),
-						switchStmt_.defaultScope.get() != nullptr ?
-							switchStmt_.defaultScope->toString().c_str() :
+						switchStmt_.defaultCase->hasScope() ?
+							switchStmt_.defaultCase->scope()->toString().c_str() :
 							"[NONE]");
 				}
 				

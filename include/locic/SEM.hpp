@@ -3,7 +3,6 @@
 
 #include <locic/SEM/Predicate.hpp>
 #include <locic/SEM/Statement.hpp>
-#include <locic/SEM/SwitchCase.hpp>
 #include <locic/AST/TypeInstance.hpp>
 
 #endif

@@ -39,7 +39,7 @@ namespace locic {
 			return element;
 		}
 		
-		ScopeElement ScopeElement::SwitchCase(SEM::SwitchCase& switchCase) {
+		ScopeElement ScopeElement::SwitchCase(AST::SwitchCase& switchCase) {
 			ScopeElement element(SWITCHCASE);
 			element.data_.switchCase = &switchCase;
 			return element;
@@ -142,7 +142,7 @@ namespace locic {
 			return *(data_.scope);
 		}
 		
-		SEM::SwitchCase& ScopeElement::switchCase() const {
+		AST::SwitchCase& ScopeElement::switchCase() const {
 			assert(isSwitchCase());
 			return *(data_.switchCase);
 		}

@@ -49,7 +49,7 @@ namespace locic {
 				}
 				case SEM::Statement::SWITCH: {
 					for (auto switchCase: statement.getSwitchCaseList()) {
-						DeadCodeSearchScope(context, switchCase->scope());
+						DeadCodeSearchScope(context, *(switchCase->scope()));
 					}
 					return;
 				}

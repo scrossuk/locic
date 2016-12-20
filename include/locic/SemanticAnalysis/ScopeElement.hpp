@@ -12,13 +12,8 @@ namespace locic {
 		class Function;
 		class Namespace;
 		class Scope;
-		class TypeInstance;
-		
-	}
-	
-	namespace SEM {
-		
 		class SwitchCase;
+		class TypeInstance;
 		
 	}
 	
@@ -50,7 +45,7 @@ namespace locic {
 				
 				static ScopeElement Scope(AST::Scope& scope);
 				
-				static ScopeElement SwitchCase(SEM::SwitchCase& switchCase);
+				static ScopeElement SwitchCase(AST::SwitchCase& switchCase);
 				
 				static ScopeElement CatchClause(AST::CatchClause& catchClause);
 				
@@ -81,7 +76,7 @@ namespace locic {
 				AST::TypeInstance& typeInstance() const;
 				AST::Function& function() const;
 				AST::Scope& scope() const;
-				SEM::SwitchCase& switchCase() const;
+				AST::SwitchCase& switchCase() const;
 				AST::CatchClause& catchClause() const;
 				const String& scopeActionState() const;
 				
@@ -100,7 +95,7 @@ namespace locic {
 					AST::TypeInstance* typeInstance;
 					AST::Function* function;
 					AST::Scope* scope;
-					SEM::SwitchCase* switchCase;
+					AST::SwitchCase* switchCase;
 					AST::CatchClause* catchClause;
 					String scopeActionState;
 				} data_;

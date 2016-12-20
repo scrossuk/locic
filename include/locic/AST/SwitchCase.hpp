@@ -5,6 +5,9 @@
 
 #include <locic/AST/Node.hpp>
 
+#include <locic/Support/FastMap.hpp>
+#include <locic/Support/String.hpp>
+
 namespace locic {
 
 	namespace AST {
@@ -12,34 +15,45 @@ namespace locic {
 		class Scope;
 		class Var;
 		
-		struct SwitchCase {
-			Node<Var> var;
-			Node<Scope> scope;
+		class SwitchCase {
+		public:
+			SwitchCase(Node<Var> var, Node<Scope> scope);
 			
-			SwitchCase(Node<Var> pVar, Node<Scope> pScope)
-			: var(std::move(pVar)), scope(std::move(pScope)) { }
+			Node<Var>& var();
+			const Node<Var>& var() const;
+			
+			Node<Scope>& scope();
+			const Node<Scope>& scope() const;
+			
+			FastMap<String, Var*>& namedVariables();
+			const FastMap<String, Var*>& namedVariables() const;
+			
+			std::string toString() const;
+			
+		private:
+			Node<Var> var_;
+			Node<Scope> scope_;
+			FastMap<String, Var*> namedVariables_;
+			
 		};
 		
 		typedef std::vector<Node<SwitchCase>> SwitchCaseList;
 		
-		struct DefaultCase {
-			bool hasScope;
-			Node<AST::Scope> scope;
+		class DefaultCase {
+		public:
+			static DefaultCase* Empty();
 			
-			static DefaultCase* Empty() {
-				return new DefaultCase(false, makeDefaultNode<AST::Scope>());
-			}
+			static DefaultCase* ScopeCase(Node<Scope> scope);
 			
-			static DefaultCase* Scope(Node<AST::Scope> scope) {
-				return new DefaultCase(true, std::move(scope));
-			}
+			bool hasScope() const;
 			
-			bool isEmpty() const {
-				return !hasScope;
-			}
+			Node<Scope>& scope();
+			const Node<Scope>& scope() const;
 			
-			DefaultCase(bool pHasScope, Node<AST::Scope> pScope)
-			: hasScope(pHasScope), scope(std::move(pScope)) { }
+		private:
+			DefaultCase(Node<Scope> pScope);
+			
+			Node<Scope> scope_;
 		};
 		
 	}

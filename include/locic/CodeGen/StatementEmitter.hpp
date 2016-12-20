@@ -8,8 +8,10 @@ namespace locic {
 	namespace AST {
 		
 		class CatchClause;
+		class DefaultCase;
 		class IfClause;
 		class Scope;
+		class SwitchClause;
 		class Value;
 		class Var;
 		
@@ -18,7 +20,6 @@ namespace locic {
 	namespace SEM {
 		
 		class Statement;
-		class SwitchClause;
 		
 	}
 	
@@ -43,8 +44,8 @@ namespace locic {
 			            const AST::Scope& elseScope);
 			
 			void emitSwitch(const AST::Value& switchValue,
-			                const std::vector<SEM::SwitchCase*>& switchCases,
-			                const AST::Scope* defaultScope);
+			                const std::vector<AST::SwitchCase*>& switchCases,
+			                const AST::DefaultCase& defaultCase);
 			
 			void emitLoop(const AST::Value& condition,
 			              const AST::Scope& iterationScope,
