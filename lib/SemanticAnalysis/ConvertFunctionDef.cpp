@@ -41,7 +41,7 @@ namespace locic {
 				}
 				case SEM::Statement::IF: {
 					for (const auto ifClause: statement.getIfClauseList()) {
-						DeadCodeSearchScope(context, ifClause->scope());
+						DeadCodeSearchScope(context, *(ifClause->scope()));
 					}
 					
 					DeadCodeSearchScope(context, statement.getIfElseScope());

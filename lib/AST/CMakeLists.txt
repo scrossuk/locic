@@ -1,5 +1,4 @@
 set(SEM_FILES
-	../SEM/IfClause.cpp
 	../SEM/Predicate.cpp
 	../SEM/Statement.cpp
 	../SEM/SwitchCase.cpp
@@ -14,6 +13,7 @@ add_library(locic-ast
 	Function.cpp
 	FunctionType.cpp
 	GlobalStructure.cpp
+	IfClause.cpp
 	Module.cpp
 	ModuleScope.cpp
 	ModuleScopeDecl.cpp

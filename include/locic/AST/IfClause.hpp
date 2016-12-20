@@ -1,9 +1,11 @@
 #ifndef LOCIC_AST_IFCLAUSE_HPP
 #define LOCIC_AST_IFCLAUSE_HPP
 
+#include <string>
 #include <vector>
 
 #include <locic/AST/Node.hpp>
+#include <locic/AST/Value.hpp>
 
 namespace locic {
 
@@ -12,12 +14,28 @@ namespace locic {
 		class Scope;
 		struct ValueDecl;
 		
-		struct IfClause {
-			Node<ValueDecl> condition;
-			Node<Scope> scope;
+		class IfClause {
+		public:
+			IfClause(Node<ValueDecl> condition,
+			         Node<Scope> scope);
+			~IfClause();
 			
-			IfClause(Node<ValueDecl> pCondition, Node<Scope> pScope)
-			: condition(std::move(pCondition)), scope(std::move(pScope)) { }
+			Node<ValueDecl>& conditionDecl();
+			const Node<ValueDecl>& conditionDecl() const;
+			
+			Node<Scope>& scope();
+			const Node<Scope>& scope() const;
+			
+			const Value& condition() const;
+			void setCondition(Value value);
+			
+			std::string toString() const;
+			
+		private:
+			Node<ValueDecl> conditionDecl_;
+			Node<Scope> scope_;
+			Value condition_;
+			
 		};
 		
 		typedef std::vector<Node<IfClause>> IfClauseList;

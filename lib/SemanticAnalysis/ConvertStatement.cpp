@@ -454,12 +454,15 @@ namespace locic {
 				case AST::Statement::IF: {
 					const auto boolType = context.typeBuilder().getBoolType();
 					
-					std::vector<SEM::IfClause*> clauseList;
-					for (const auto& astIfClause: *(statement->ifClauseList())) {
-						auto condition = ConvertValue(context, astIfClause->condition);
+					std::vector<AST::IfClause*> clauseList;
+					for (const auto& ifClauseNode: *(statement->ifClauseList())) {
+						auto condition = ConvertValue(context, ifClauseNode->conditionDecl());
 						auto boolValue = ImplicitCast(context, std::move(condition), boolType, location);
-						ConvertScope(context, astIfClause->scope);
-						clauseList.push_back(new SEM::IfClause(std::move(boolValue), std::move(astIfClause->scope)));
+						ifClauseNode->setCondition(std::move(boolValue));
+						
+						ConvertScope(context, ifClauseNode->scope());
+						
+						clauseList.push_back(ifClauseNode.get());
 					}
 					
 					ConvertScope(context, statement->ifElseScope());

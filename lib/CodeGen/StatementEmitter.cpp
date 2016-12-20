@@ -195,7 +195,7 @@ namespace locic {
 			genVarInitialise(irEmitter_.function(), &var, valueIR);
 		}
 		
-		void StatementEmitter::emitIf(const std::vector<SEM::IfClause*>& ifClauseList,
+		void StatementEmitter::emitIf(const std::vector<AST::IfClause*>& ifClauseList,
 		                              const AST::Scope& elseScope) {
 			assert(!ifClauseList.empty());
 			
@@ -248,7 +248,7 @@ namespace locic {
 					
 					// Create 'then'.
 					irEmitter_.selectBasicBlock(thenBB);
-					ScopeEmitter(irEmitter_).emitScope(ifClause->scope());
+					ScopeEmitter(irEmitter_).emitScope(*(ifClause->scope()));
 					
 					if (irEmitter_.lastInstructionTerminates()) {
 						thenClauseTerminated = true;

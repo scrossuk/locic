@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <locic/AST/CatchClause.hpp>
+#include <locic/AST/IfClause.hpp>
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/Value.hpp>
@@ -13,7 +14,6 @@
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/IfClause.hpp>
 #include <locic/SEM/Statement.hpp>
 #include <locic/SEM/SwitchCase.hpp>
 
@@ -40,7 +40,8 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::If(const std::vector<IfClause*>& ifClauses, AST::Node<AST::Scope> elseScope) {
+		Statement Statement::If(const std::vector<AST::IfClause*>& ifClauses,
+		                        AST::Node<AST::Scope> elseScope) {
 			assert(elseScope.get() != nullptr);
 			
 			AST::ExitStates exitStates = AST::ExitStates::None();
@@ -49,7 +50,7 @@ namespace locic {
 				const auto conditionExitStates = ifClause->condition().exitStates();
 				assert(conditionExitStates.onlyHasNormalOrThrowingStates());
 				exitStates.add(conditionExitStates.throwingStates());
-				exitStates.add(ifClause->scope().exitStates());
+				exitStates.add(ifClause->scope()->exitStates());
 			}
 			
 			exitStates.add(elseScope->exitStates());
@@ -276,7 +277,8 @@ namespace locic {
 			return kind() == IF;
 		}
 		
-		const std::vector<IfClause*>& Statement::getIfClauseList() const {
+		const std::vector<AST::IfClause*>&
+		Statement::getIfClauseList() const {
 			assert(isIfStatement());
 			return ifStmt_.clauseList;
 		}

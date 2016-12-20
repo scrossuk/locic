@@ -17,6 +17,7 @@ namespace locic {
 	namespace AST {
 		
 		class CatchClause;
+		class IfClause;
 		class Scope;
 		class Type;
 		class Var;
@@ -25,7 +26,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class IfClause;
 		class SwitchCase;
 		
 		class Statement {
@@ -57,7 +57,7 @@ namespace locic {
 				
 				static Statement InitialiseStmt(AST::Var& var, AST::Value value);
 				
-				static Statement If(const std::vector<IfClause*>& ifClauses,
+				static Statement If(const std::vector<AST::IfClause*>& ifClauses,
 				                    AST::Node<AST::Scope> elseScope);
 				
 				static Statement Switch(AST::Value value, const std::vector<SwitchCase*>& caseList,
@@ -116,7 +116,8 @@ namespace locic {
 				
 				bool isIfStatement() const;
 				
-				const std::vector<IfClause*>& getIfClauseList() const;
+				const std::vector<AST::IfClause*>&
+				getIfClauseList() const;
 				
 				AST::Scope& getIfElseScope() const;
 				
@@ -212,7 +213,7 @@ namespace locic {
 				} initialiseStmt_;
 				
 				struct {
-					std::vector<IfClause*> clauseList;
+					std::vector<AST::IfClause*> clauseList;
 					AST::Node<AST::Scope> elseScope;
 				} ifStmt_;
 				

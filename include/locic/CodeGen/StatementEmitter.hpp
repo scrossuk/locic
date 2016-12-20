@@ -8,6 +8,7 @@ namespace locic {
 	namespace AST {
 		
 		class CatchClause;
+		class IfClause;
 		class Scope;
 		class Value;
 		class Var;
@@ -16,7 +17,6 @@ namespace locic {
 	
 	namespace SEM {
 		
-		class IfClause;
 		class Statement;
 		class SwitchClause;
 		
@@ -39,7 +39,7 @@ namespace locic {
 			void emitInitialise(AST::Var& var,
 			                    const AST::Value& value);
 			
-			void emitIf(const std::vector<SEM::IfClause*>& ifClauseList,
+			void emitIf(const std::vector<AST::IfClause*>& ifClauseList,
 			            const AST::Scope& elseScope);
 			
 			void emitSwitch(const AST::Value& switchValue,
