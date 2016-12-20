@@ -30,17 +30,15 @@ namespace locic {
 					return;
 				}
 				
-				auto& semTypeInstance = searchResult.typeInstance();
+				auto& typeInstance = searchResult.typeInstance();
 				
-				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semTypeInstance));
+				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(typeInstance));
 				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*function));
 				ConvertFunctionDef(context, function);
 			}
 		}
 		
 		void ConvertNamespaceData(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
-			auto& semNamespace = context.scopeStack().back().nameSpace();
-			
 			for (const auto& function: astNamespaceDataNode->functions) {
 				ConvertNamespaceFunctionDef(context, function);
 			}
@@ -56,19 +54,15 @@ namespace locic {
 				ConvertNamespaceData(context, astNamespaceNode->data());
 			}
 			
-			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+			for (auto& typeInstanceNode: astNamespaceDataNode->typeInstances) {
 				{
-					auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
-					
-					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-					ConvertTypeInstance(context, astTypeInstanceNode);
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*typeInstanceNode));
+					ConvertTypeInstance(context, typeInstanceNode);
 				}
 				
-				for (const auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-					auto& semVariantTypeInstance = semNamespace.items().at(astVariantNode->name).typeInstance();
-					
-					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semVariantTypeInstance));
-					ConvertTypeInstance(context, astTypeInstanceNode);
+				for (auto& variantNode: *(typeInstanceNode->variantDecls)) {
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*variantNode));
+					ConvertTypeInstance(context, variantNode);
 				}
 			}
 		}

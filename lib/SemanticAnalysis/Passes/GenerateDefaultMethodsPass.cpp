@@ -8,7 +8,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		void GenerateTypeDefaultMethods(Context& context, SEM::TypeInstance& typeInstance) {
+		void GenerateTypeDefaultMethods(Context& context, AST::TypeInstance& typeInstance) {
 			if (typeInstance.isInterface() || typeInstance.isPrimitive()) {
 				// Skip interfaces and primitives since default
 				// method generation doesn't apply to them.
@@ -73,7 +73,7 @@ namespace locic {
 					// for other types just add a default constructor.
 					auto methodDecl =
 						typeInstance.isException() ?
-							CreateExceptionConstructorDecl(context, &typeInstance) :
+							CreateExceptionConstructorDecl(context, typeInstance) :
 							defaultMethods.createDefaultConstructorDecl(&typeInstance,
 							                                            typeInstance.fullName() + context.getCString("create"));
 					typeInstance.attachFunction(std::move(methodDecl));
@@ -107,17 +107,15 @@ namespace locic {
 				GenerateNamespaceDefaultMethods(context, astNamespaceNode->data());
 			}
 			
-			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
+			for (const auto& typeInstanceNode: astNamespaceDataNode->typeInstances) {
 				{
-					auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
-					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-					GenerateTypeDefaultMethods(context, semChildTypeInstance);
+					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(*typeInstanceNode));
+					GenerateTypeDefaultMethods(context, *typeInstanceNode);
 				}
 				
-				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-					auto& semChildTypeInstance = astVariantNode->semTypeInstance();
-					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-					GenerateTypeDefaultMethods(context, semChildTypeInstance);
+				for (auto& variantNode: *(typeInstanceNode->variantDecls)) {
+					PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(*variantNode));
+					GenerateTypeDefaultMethods(context, *variantNode);
 				}
 			}
 		}

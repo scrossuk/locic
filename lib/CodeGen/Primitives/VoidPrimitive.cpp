@@ -43,7 +43,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		VoidPrimitive::VoidPrimitive(const SEM::TypeInstance& typeInstance)
+		VoidPrimitive::VoidPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) {
 			(void) typeInstance_;
 		}

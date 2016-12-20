@@ -21,7 +21,7 @@
 #include <locic/CodeGen/TypeGenerator.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TypeInstance.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 #include <locic/Support/MethodID.hpp>
 

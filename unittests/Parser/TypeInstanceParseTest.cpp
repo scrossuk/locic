@@ -29,9 +29,9 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDECL);
-				EXPECT_EQ(typeInstance->functions->size(), 0);
-				EXPECT_EQ(typeInstance->variables->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDECL);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 0);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 0);
 			});
 		}
 		
@@ -48,9 +48,9 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDECL);
-				EXPECT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_EQ(typeInstance->variables->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDECL);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 0);
 			});
 		}
 		
@@ -67,9 +67,9 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDECL);
-				EXPECT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_EQ(typeInstance->variables->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDECL);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 0);
 			});
 		}
 		
@@ -89,9 +89,9 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDECL);
-				EXPECT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_EQ(typeInstance->variables->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDECL);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 0);
 			});
 		}
 		
@@ -115,9 +115,9 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDECL);
-				EXPECT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_EQ(typeInstance->variables->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDECL);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 0);
 			});
 		}
 		
@@ -131,9 +131,9 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
-				EXPECT_EQ(typeInstance->functions->size(), 0);
-				EXPECT_EQ(typeInstance->variables->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDEF);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 0);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 0);
 			});
 		}
 		
@@ -153,9 +153,9 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
-				EXPECT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_EQ(typeInstance->variables->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDEF);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 0);
 			});
 		}
 		
@@ -183,9 +183,9 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
-				EXPECT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_EQ(typeInstance->variables->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDEF);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 0);
 			});
 		}
 		
@@ -201,9 +201,9 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
-				EXPECT_EQ(typeInstance->functions->size(), 0);
-				EXPECT_EQ(typeInstance->variables->size(), 1);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDEF);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 0);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 1);
 			});
 		}
 		
@@ -222,9 +222,9 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
-				EXPECT_EQ(typeInstance->functions->size(), 0);
-				EXPECT_EQ(typeInstance->variables->size(), 2);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDEF);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 0);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 2);
 			});
 		}
 		
@@ -243,10 +243,10 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
-				ASSERT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_TRUE(typeInstance->functions->at(0)->isStatic());
-				EXPECT_TRUE(typeInstance->functions->at(0)->isAutoGenerated());
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDEF);
+				ASSERT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_TRUE(typeInstance->functionDecls->at(0)->isStatic());
+				EXPECT_TRUE(typeInstance->functionDecls->at(0)->isAutoGenerated());
 			});
 		}
 		
@@ -264,10 +264,10 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
-				ASSERT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_FALSE(typeInstance->functions->at(0)->isStatic());
-				EXPECT_TRUE(typeInstance->functions->at(0)->isAutoGenerated());
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDEF);
+				ASSERT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_FALSE(typeInstance->functionDecls->at(0)->isStatic());
+				EXPECT_TRUE(typeInstance->functionDecls->at(0)->isAutoGenerated());
 			});
 		}
 		
@@ -287,11 +287,11 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
-				ASSERT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_TRUE(typeInstance->functions->at(0)->isStatic());
-				EXPECT_FALSE(typeInstance->functions->at(0)->isAutoGenerated());
-				EXPECT_TRUE(typeInstance->functions->at(0)->returnType()->isAuto());
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDEF);
+				ASSERT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_TRUE(typeInstance->functionDecls->at(0)->isStatic());
+				EXPECT_FALSE(typeInstance->functionDecls->at(0)->isAutoGenerated());
+				EXPECT_TRUE(typeInstance->functionDecls->at(0)->returnType()->isAuto());
 			});
 		}
 		
@@ -311,11 +311,11 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
-				ASSERT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_TRUE(typeInstance->functions->at(0)->isStatic());
-				EXPECT_FALSE(typeInstance->functions->at(0)->isAutoGenerated());
-				EXPECT_TRUE(typeInstance->functions->at(0)->returnType()->isAuto());
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDEF);
+				ASSERT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_TRUE(typeInstance->functionDecls->at(0)->isStatic());
+				EXPECT_FALSE(typeInstance->functionDecls->at(0)->isAutoGenerated());
+				EXPECT_TRUE(typeInstance->functionDecls->at(0)->returnType()->isAuto());
 			});
 		}
 		
@@ -332,10 +332,10 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::CLASSDEF);
-				ASSERT_EQ(typeInstance->functions->size(), 1);
-				EXPECT_FALSE(typeInstance->functions->at(0)->isStatic());
-				EXPECT_TRUE(typeInstance->functions->at(0)->returnType()->isVoid());
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::CLASSDEF);
+				ASSERT_EQ(typeInstance->functionDecls->size(), 1);
+				EXPECT_FALSE(typeInstance->functionDecls->at(0)->isStatic());
+				EXPECT_TRUE(typeInstance->functionDecls->at(0)->returnType()->isVoid());
 			});
 		}
 		
@@ -347,8 +347,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::INTERFACE);
-				EXPECT_EQ(typeInstance->functions->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::INTERFACE);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 0);
 			});
 		}
 		
@@ -365,8 +365,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::INTERFACE);
-				EXPECT_EQ(typeInstance->functions->size(), 1);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::INTERFACE);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 1);
 			});
 		}
 		
@@ -390,8 +390,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::INTERFACE);
-				EXPECT_EQ(typeInstance->functions->size(), 1);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::INTERFACE);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 1);
 			});
 		}
 		
@@ -403,8 +403,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::PRIMITIVE);
-				EXPECT_EQ(typeInstance->functions->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::PRIMITIVE);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 0);
 			});
 		}
 		
@@ -421,8 +421,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::PRIMITIVE);
-				EXPECT_EQ(typeInstance->functions->size(), 1);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::PRIMITIVE);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 1);
 			});
 		}
 		
@@ -446,8 +446,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::PRIMITIVE);
-				EXPECT_EQ(typeInstance->functions->size(), 1);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::PRIMITIVE);
+				EXPECT_EQ(typeInstance->functionDecls->size(), 1);
 			});
 		}
 		
@@ -459,7 +459,7 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::ENUM);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::ENUM);
 				EXPECT_EQ(typeInstance->constructors->size(), 0);
 			});
 		}
@@ -473,7 +473,7 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::ENUM);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::ENUM);
 				EXPECT_EQ(typeInstance->constructors->size(), 1);
 			});
 		}
@@ -489,7 +489,7 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::ENUM);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::ENUM);
 				EXPECT_EQ(typeInstance->constructors->size(), 2);
 			});
 		}
@@ -502,8 +502,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::STRUCT);
-				EXPECT_EQ(typeInstance->variables->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::STRUCT);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 0);
 			});
 		}
 		
@@ -518,8 +518,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::STRUCT);
-				EXPECT_EQ(typeInstance->variables->size(), 1);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::STRUCT);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 1);
 			});
 		}
 		
@@ -537,8 +537,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::STRUCT);
-				EXPECT_EQ(typeInstance->variables->size(), 2);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::STRUCT);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 2);
 			});
 		}
 		
@@ -550,8 +550,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::UNION);
-				EXPECT_EQ(typeInstance->variables->size(), 0);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::UNION);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 0);
 			});
 		}
 		
@@ -566,8 +566,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::UNION);
-				EXPECT_EQ(typeInstance->variables->size(), 1);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::UNION);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 1);
 			});
 		}
 		
@@ -585,8 +585,8 @@ namespace locic {
 				Token::RCURLYBRACKET
 			};
 			testParseTypeInstance(tokens, [](const AST::Node<AST::TypeInstance>& typeInstance) {
-				EXPECT_EQ(typeInstance->kind, AST::TypeInstance::UNION);
-				EXPECT_EQ(typeInstance->variables->size(), 2);
+				EXPECT_EQ(typeInstance->kind(), AST::TypeInstance::UNION);
+				EXPECT_EQ(typeInstance->variableDecls->size(), 2);
 			});
 		}
 		

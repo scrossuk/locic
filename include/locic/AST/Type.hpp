@@ -17,12 +17,6 @@ namespace locic {
 	class PrimitiveID;
 	class String;
 	
-	namespace SEM {
-		
-		class TypeInstance;
-		
-	}
-	
 	namespace AST {
 		
 		class Alias;
@@ -30,6 +24,7 @@ namespace locic {
 		class FunctionType;
 		class TemplateVar;
 		class Type;
+		class TypeInstance;
 		
 		class Type {
 			public:
@@ -44,7 +39,7 @@ namespace locic {
 				
 				static const Type* Auto(const AST::Context& context);
 				static const Type* Alias(const AST::Alias& alias, AST::ValueArray templateArguments);
-				static const Type* Object(const SEM::TypeInstance* typeInstance, AST::ValueArray templateArguments);
+				static const Type* Object(const AST::TypeInstance* typeInstance, AST::ValueArray templateArguments);
 				static const Type* TemplateVarRef(const TemplateVar* templateVar);
 				
 				const AST::Context& context() const;
@@ -96,13 +91,13 @@ namespace locic {
 				bool isBuiltInVarArgFunctionPtr() const;
 				
 				bool isObject() const;
-				const SEM::TypeInstance* getObjectType() const;
+				const AST::TypeInstance* getObjectType() const;
 				const AST::ValueArray& templateArguments() const;
 				
 				bool isTemplateVar() const;
 				const TemplateVar* getTemplateVar() const;
 				
-				bool isTypeInstance(const SEM::TypeInstance* typeInstance) const;
+				bool isTypeInstance(const AST::TypeInstance* typeInstance) const;
 				
 				bool isClassDecl() const;
 				bool isClassDef() const;
@@ -175,7 +170,7 @@ namespace locic {
 					} aliasType;
 					
 					struct {
-						const SEM::TypeInstance* typeInstance;
+						const AST::TypeInstance* typeInstance;
 					} objectType;
 					
 					struct {

@@ -23,7 +23,6 @@ namespace locic {
 	namespace SEM {
 		
 		class Predicate;
-		class TypeInstance;
 		
 	}
 	
@@ -35,6 +34,7 @@ namespace locic {
 		class TemplateVar;
 		class TemplateVarMap;
 		class Type;
+		class TypeInstance;
 		class Var;
 		
 		class Value {
@@ -127,14 +127,14 @@ namespace locic {
 				 * 
 				 * The offset of the union data (usually expected to be after the tag).
 				 */
-				static Value UnionDataOffset(const SEM::TypeInstance* typeInstance, const Type* sizeType);
+				static Value UnionDataOffset(const TypeInstance* typeInstance, const Type* sizeType);
 				
 				/**
 				 * \brief Member variable offset
 				 * 
 				 * The offset of a member variable within an object.
 				 */
-				static Value MemberOffset(const SEM::TypeInstance* typeInstance, size_t memberIndex, const Type* sizeType);
+				static Value MemberOffset(const TypeInstance* typeInstance, size_t memberIndex, const Type* sizeType);
 				
 				/**
 				 * \brief Reinterpret a value as a type
@@ -378,10 +378,10 @@ namespace locic {
 				const Var& localVar() const;
 				
 				bool isUnionDataOffset() const;
-				const SEM::TypeInstance* unionDataOffsetTypeInstance() const;
+				const TypeInstance* unionDataOffsetTypeInstance() const;
 				
 				bool isMemberOffset() const;
-				const SEM::TypeInstance* memberOffsetTypeInstance() const;
+				const TypeInstance* memberOffsetTypeInstance() const;
 				size_t memberOffsetMemberIndex() const;
 				
 				bool isReinterpret() const;

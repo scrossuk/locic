@@ -15,11 +15,6 @@ namespace locic {
 		
 		class Function;
 		class Type;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
 		
 	}

@@ -21,7 +21,7 @@
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/VirtualCallABI.hpp>
-#include <locic/SEM/TypeInstance.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 namespace locic {
 	
@@ -83,7 +83,7 @@ namespace locic {
 			
 		}
 		
-		ArgInfo moveArgInfo(Module& module, const SEM::TypeInstance* typeInstance) {
+		ArgInfo moveArgInfo(Module& module, const AST::TypeInstance* typeInstance) {
 			return moveBasicArgInfo(module, !typeInstance->templateVariables().empty());
 		}
 		
@@ -134,7 +134,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Function* genVTableMoveFunction(Module& module, const SEM::TypeInstance* const typeInstance) {
+		llvm::Function* genVTableMoveFunction(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto moveFunction = genMoveFunctionDecl(module, typeInstance);
 			
 			if (!typeInstance->templateVariables().empty()) {
@@ -174,7 +174,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genMoveFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
+		llvm::Function* genMoveFunctionDecl(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto iterator = module.getMoveFunctionMap().find(typeInstance);
 			
 			if (iterator != module.getMoveFunctionMap().end()) {
@@ -199,7 +199,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		void genCallUserMoveFunction(Function& functionGenerator, const SEM::TypeInstance& typeInstance,
+		void genCallUserMoveFunction(Function& functionGenerator, const AST::TypeInstance& typeInstance,
 				llvm::Value* const sourceValue, llvm::Value* const destValue, llvm::Value* const positionValue) {
 			auto& module = functionGenerator.module();
 			

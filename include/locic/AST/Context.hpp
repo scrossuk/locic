@@ -7,17 +7,12 @@ namespace locic {
 	
 	class PrimitiveID;
 	
-	namespace SEM {
-		
-		class TypeInstance;
-		
-	}
-	
 	namespace AST {
 		
 		class FunctionType;
 		class FunctionTypeData;
 		class Type;
+		class TypeInstance;
 		
 		class Context {
 			public:
@@ -30,9 +25,9 @@ namespace locic {
 				const Type* getType(Type&& type) const;
 				
 				void setPrimitive(PrimitiveID primitiveID,
-				                  const SEM::TypeInstance& typeInstance);
+				                  const TypeInstance& typeInstance);
 				
-				const SEM::TypeInstance&
+				const TypeInstance&
 				getPrimitive(PrimitiveID primitiveID) const;
 				
 			private:

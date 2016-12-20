@@ -11,7 +11,7 @@
 #include <locic/Support/String.hpp>
 
 #include <locic/SEM/Scope.hpp>
-#include <locic/SEM/TypeInstance.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 namespace locic {
 	
@@ -35,9 +35,9 @@ namespace locic {
 			return item;
 		}
 		
-		NamespaceItem NamespaceItem::TypeInstance(std::unique_ptr<SEM::TypeInstance> typeInstance) {
+		NamespaceItem NamespaceItem::TypeInstance(AST::TypeInstance& typeInstance) {
 			NamespaceItem item(TYPEINSTANCE);
-			item.data_.typeInstance = typeInstance.release();
+			item.data_.typeInstance = &typeInstance;
 			return item;
 		}
 		
@@ -93,7 +93,7 @@ namespace locic {
 			return *(data_.nameSpace);
 		}
 		
-		SEM::TypeInstance& NamespaceItem::typeInstance() const {
+		AST::TypeInstance& NamespaceItem::typeInstance() const {
 			assert(isTypeInstance());
 			return *(data_.typeInstance);
 		}

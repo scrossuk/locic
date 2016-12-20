@@ -20,7 +20,7 @@ namespace locic {
 			
 			mutable StableSet<FunctionTypeData> functionTypes;
 			mutable StableSet<Type> types;
-			mutable const SEM::TypeInstance* primitiveTypes[PRIMITIVE_COUNT];
+			mutable const TypeInstance* primitiveTypes[PRIMITIVE_COUNT];
 		};
 		
 		// Allocate a large amount of space up-front for
@@ -46,12 +46,12 @@ namespace locic {
 		}
 		
 		void Context::setPrimitive(const PrimitiveID primitiveID,
-		                           const SEM::TypeInstance& typeInstance) {
+		                           const TypeInstance& typeInstance) {
 			assert(impl_->primitiveTypes[primitiveID] == nullptr);
 			impl_->primitiveTypes[primitiveID] = &typeInstance;
 		}
 		
-		const SEM::TypeInstance&
+		const TypeInstance&
 		Context::getPrimitive(const PrimitiveID primitiveID) const {
 			assert(impl_->primitiveTypes[primitiveID] != nullptr);
 			return *(impl_->primitiveTypes[primitiveID]);

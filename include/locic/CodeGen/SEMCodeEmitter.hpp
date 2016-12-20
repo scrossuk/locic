@@ -10,11 +10,6 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
 		
 	}
@@ -27,19 +22,19 @@ namespace locic {
 		public:
 			SEMCodeEmitter(Function& functionGenerator);
 			
-			void emitFunctionCode(const SEM::TypeInstance* typeInstance,
+			void emitFunctionCode(const AST::TypeInstance* typeInstance,
 			                      const AST::Function& function,
 			                      bool isInnerMethod);
 			
 			llvm::Value*
 			emitBuiltInFunctionContents(MethodID methodID,
 			                            bool isInnerMethod,
-			                            const SEM::TypeInstance* typeInstance,
+			                            const AST::TypeInstance* typeInstance,
 			                            const AST::Function& function,
 			                            PendingResultArray args,
 			                            llvm::Value* hintResultValue);
 			
-			void emitBuiltInFunctionCode(const SEM::TypeInstance* typeInstance,
+			void emitBuiltInFunctionCode(const AST::TypeInstance* typeInstance,
 			                             const AST::Function& function,
 			                             bool isInnerMethod);
 			

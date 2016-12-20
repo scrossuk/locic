@@ -11,11 +11,6 @@ namespace locic {
 	namespace AST {
 		
 		class Type;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
 		
 	}
@@ -30,7 +25,7 @@ namespace locic {
 		 */
 		llvm::Value* makeMoveDest(Function& function, llvm::Value* startDestValue, llvm::Value* positionValue);
 		
-		ArgInfo moveArgInfo(Module& module, const SEM::TypeInstance* typeInstance);
+		ArgInfo moveArgInfo(Module& module, const AST::TypeInstance* typeInstance);
 		
 		void genBasicMove(Function& function,
 		                  const AST::Type* type,
@@ -40,19 +35,19 @@ namespace locic {
 		
 		void genMoveCall(Function& function, const AST::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
 		
-		void genUnionMove(Function& function, const SEM::TypeInstance* typeInstance);
+		void genUnionMove(Function& function, const AST::TypeInstance* typeInstance);
 		
 		void genCallUserMoveFunction(Function& functionGenerator,
-		                             const SEM::TypeInstance& typeInstance,
+		                             const AST::TypeInstance& typeInstance,
 		                             llvm::Value* const sourceValue,
 		                             llvm::Value* const destValue,
 		                             llvm::Value* const positionValue);
 		
-		llvm::Function* genVTableMoveFunction(Module& module, const SEM::TypeInstance* typeInstance);
+		llvm::Function* genVTableMoveFunction(Module& module, const AST::TypeInstance* typeInstance);
 		
-		llvm::Function* genMoveFunctionDecl(Module& module, const SEM::TypeInstance* typeInstance);
+		llvm::Function* genMoveFunctionDecl(Module& module, const AST::TypeInstance* typeInstance);
 		
-		llvm::Function* genMoveFunctionDef(Module& module, const SEM::TypeInstance* typeInstance);
+		llvm::Function* genMoveFunctionDef(Module& module, const AST::TypeInstance* typeInstance);
 		
 	}
 	

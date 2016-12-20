@@ -5,16 +5,11 @@ namespace locic {
 	
 	class Name;
 	
-	namespace SEM {
-		
-		class TypeInstance;
-		
-	}
-	
 	namespace AST {
 		
 		class Alias;
 		class Namespace;
+		class TypeInstance;
 		
 		class GlobalStructure {
 			public:
@@ -28,7 +23,7 @@ namespace locic {
 				
 				static GlobalStructure Namespace(AST::Namespace& nameSpace);
 				
-				static GlobalStructure TypeInstance(SEM::TypeInstance& typeInstance);
+				static GlobalStructure TypeInstance(AST::TypeInstance& typeInstance);
 				
 				GlobalStructure(GlobalStructure&&) = default;
 				GlobalStructure& operator=(GlobalStructure&&) = default;
@@ -50,8 +45,8 @@ namespace locic {
 				AST::Namespace& nameSpace();
 				const AST::Namespace& nameSpace() const;
 				
-				SEM::TypeInstance& typeInstance();
-				const SEM::TypeInstance& typeInstance() const;
+				AST::TypeInstance& typeInstance();
+				const AST::TypeInstance& typeInstance() const;
 				
 				AST::Namespace& nextNamespace();
 				const AST::Namespace& nextNamespace() const;
@@ -70,7 +65,7 @@ namespace locic {
 					void* ptr;
 					AST::Alias* alias;
 					AST::Namespace* nameSpace;
-					SEM::TypeInstance* typeInstance;
+					AST::TypeInstance* typeInstance;
 				} data_;
 				
 		};

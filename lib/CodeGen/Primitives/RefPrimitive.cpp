@@ -47,7 +47,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		RefPrimitive::RefPrimitive(const SEM::TypeInstance& typeInstance)
+		RefPrimitive::RefPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) { }
 		
 		bool RefPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,

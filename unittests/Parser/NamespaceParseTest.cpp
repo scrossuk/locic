@@ -57,8 +57,8 @@ namespace locic {
 			};
 			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
 				ASSERT_EQ(nameSpace->data()->typeInstances.size(), 1);
-				EXPECT_EQ(nameSpace->data()->typeInstances[0]->variables->size(), 0);
-				EXPECT_EQ(nameSpace->data()->typeInstances[0]->functions->size(), 0);
+				EXPECT_EQ(nameSpace->data()->typeInstances[0]->variableDecls->size(), 0);
+				EXPECT_EQ(nameSpace->data()->typeInstances[0]->functionDecls->size(), 0);
 			});
 		}
 		
@@ -77,8 +77,8 @@ namespace locic {
 			};
 			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
 				ASSERT_EQ(nameSpace->data()->typeInstances.size(), 1);
-				EXPECT_EQ(nameSpace->data()->typeInstances[0]->variables->size(), 0);
-				EXPECT_EQ(nameSpace->data()->typeInstances[0]->functions->size(), 0);
+				EXPECT_EQ(nameSpace->data()->typeInstances[0]->variableDecls->size(), 0);
+				EXPECT_EQ(nameSpace->data()->typeInstances[0]->functionDecls->size(), 0);
 			});
 		}
 		
@@ -207,7 +207,7 @@ namespace locic {
 			};
 			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
 				ASSERT_EQ(nameSpace->data()->typeInstances.size(), 1);
-				EXPECT_EQ(nameSpace->data()->typeInstances[0]->kind, AST::TypeInstance::PRIMITIVE);
+				EXPECT_EQ(nameSpace->data()->typeInstances[0]->kind(), AST::TypeInstance::PRIMITIVE);
 			});
 		}
 		

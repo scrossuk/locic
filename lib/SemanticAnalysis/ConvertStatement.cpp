@@ -219,7 +219,7 @@ namespace locic {
 		
 		class DuplicateCaseDiag: public Error {
 		public:
-			DuplicateCaseDiag(const SEM::TypeInstance& typeInstance)
+			DuplicateCaseDiag(const AST::TypeInstance& typeInstance)
 			: typeInstance_(typeInstance) { }
 			
 			std::string toString() const {
@@ -228,14 +228,14 @@ namespace locic {
 			}
 			
 		private:
-			const SEM::TypeInstance& typeInstance_;
+			const AST::TypeInstance& typeInstance_;
 			
 		};
 		
 		class SwitchCaseTypeNotMemberOfDatatype: public Error {
 		public:
-			SwitchCaseTypeNotMemberOfDatatype(const SEM::TypeInstance& caseTypeInstance,
-			                                  const SEM::TypeInstance& switchTypeInstance)
+			SwitchCaseTypeNotMemberOfDatatype(const AST::TypeInstance& caseTypeInstance,
+			                                  const AST::TypeInstance& switchTypeInstance)
 			: caseTypeInstance_(caseTypeInstance),
 			switchTypeInstance_(switchTypeInstance) { }
 			
@@ -246,8 +246,8 @@ namespace locic {
 			}
 			
 		private:
-			const SEM::TypeInstance& caseTypeInstance_;
-			const SEM::TypeInstance& switchTypeInstance_;
+			const AST::TypeInstance& caseTypeInstance_;
+			const AST::TypeInstance& switchTypeInstance_;
 			
 		};
 		
@@ -270,7 +270,7 @@ namespace locic {
 		
 		class SwitchCasesNotHandledDiag: public Error {
 		public:
-			SwitchCasesNotHandledDiag(const Array<const SEM::TypeInstance*, 8>& unhandledCases) {
+			SwitchCasesNotHandledDiag(const Array<const AST::TypeInstance*, 8>& unhandledCases) {
 				assert(!unhandledCases.empty());
 				for (size_t i = 0; i < std::min<size_t>(unhandledCases.size(), MAX_DIAG_LIST_SIZE); i++) {
 					if (i > 0) casesNotHandled_ += ", ";
@@ -471,7 +471,7 @@ namespace locic {
 					
 					const auto switchType = getDerefType(value.type())->resolveAliases()->withoutConst();
 					
-					std::map<const SEM::TypeInstance*, const AST::Type*> switchCaseTypes;
+					std::map<const AST::TypeInstance*, const AST::Type*> switchCaseTypes;
 					
 					std::vector<SEM::SwitchCase*> caseList;
 					for (const auto& astCase: *(statement->switchCaseList())) {
@@ -515,7 +515,7 @@ namespace locic {
 						const auto switchTypeInstance = switchType->getObjectType();
 						assert(switchTypeInstance != nullptr);
 						
-						Array<const SEM::TypeInstance*, 8> unhandledCases;
+						Array<const AST::TypeInstance*, 8> unhandledCases;
 						for (auto variantTypeInstance: switchTypeInstance->variants()) {
 							if (switchCaseTypes.find(variantTypeInstance) == switchCaseTypes.end()) {
 								unhandledCases.push_back(variantTypeInstance);

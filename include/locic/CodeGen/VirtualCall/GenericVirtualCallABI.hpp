@@ -9,11 +9,6 @@ namespace locic {
 		
 		class Function;
 		class FunctionType;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
 		
 	}
@@ -48,7 +43,7 @@ namespace locic {
 			               llvm::ArrayRef<llvm::Value*> args);
 			
 			llvm::Constant*
-			emitVTableSlot(const SEM::TypeInstance& typeInstance,
+			emitVTableSlot(const AST::TypeInstance& typeInstance,
 			               llvm::ArrayRef<AST::Function*> methods);
 		
 			void

@@ -30,7 +30,7 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performTypeInstanceSearch(SEM::TypeInstance& typeInstance, const Name& name, size_t pos) {
+		SearchResult performTypeInstanceSearch(AST::TypeInstance& typeInstance, const Name& name, size_t pos) {
 			const auto size = name.size() - pos;
 			
 			if (size == 0) return SearchResult::TypeInstance(typeInstance);
@@ -99,7 +99,7 @@ namespace locic {
 			return SearchResult::None();
 		}
 		
-		SearchResult performInnerTypeInstanceSearch(SEM::TypeInstance& typeInstance, const Name& name) {
+		SearchResult performInnerTypeInstanceSearch(AST::TypeInstance& typeInstance, const Name& name) {
 			if (name.size() != 1 || name.isAbsolute()) return SearchResult::None();
 			
 			const auto iterator = typeInstance.namedTemplateVariables().find(name.at(0));

@@ -136,7 +136,7 @@ namespace locic {
 			return moveFunctionMap_;
 		}
 		
-		const Primitive& Module::getPrimitive(const SEM::TypeInstance& typeInstance) const {
+		const Primitive& Module::getPrimitive(const AST::TypeInstance& typeInstance) const {
 			return primitiveMap_.getPrimitive(typeInstance);
 		}
 		

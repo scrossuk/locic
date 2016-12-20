@@ -3,7 +3,7 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class TypeInstance;
 		
@@ -17,7 +17,7 @@ namespace locic {
 		/**
 		 * \brief Get liveness indicator for type.
 		 */
-		LivenessIndicator getLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance);
+		LivenessIndicator getLivenessIndicator(Module& module, const AST::TypeInstance& typeInstance);
 		
 		/**
 		 * \brief Set outer live state.
@@ -26,7 +26,7 @@ namespace locic {
 		 * state; note that this doesn't set any of the member
 		 * values into a live state.
 		 */
-		void setOuterLiveState(Function& function, const SEM::TypeInstance& typeInstance, llvm::Value* const objectPointerValue);
+		void setOuterLiveState(Function& function, const AST::TypeInstance& typeInstance, llvm::Value* const objectPointerValue);
 		
 		/**
 		 * \brief Generate set-dead-state.
@@ -54,7 +54,7 @@ namespace locic {
 		 * \brief Get pointer to liveness byte.
 		 */
 		llvm::Value* getLivenessBytePtr(Function& function,
-		                                const SEM::TypeInstance& typeInstance,
+		                                const AST::TypeInstance& typeInstance,
 		                                LivenessIndicator livenessIndicator,
 		                                llvm::Value* objectPointerValue);
 		

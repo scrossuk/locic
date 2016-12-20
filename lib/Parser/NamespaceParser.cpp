@@ -142,16 +142,16 @@ namespace locic {
 		                                                 const Debug::SourcePosition& start) {
 			auto typeInstance = TypeInstanceParser(reader_).parseTypeInstance();
 			
-			typeInstance->setTemplateVariables(templateInfo.extractTemplateVariables());
+			typeInstance->templateVariableDecls = templateInfo.extractTemplateVariables();
 			
 			if (templateInfo.hasRequireSpecifier()) {
-				typeInstance->setRequireSpecifier(templateInfo.extractRequireSpecifier());
+				typeInstance->requireSpecifier = templateInfo.extractRequireSpecifier();
 			}
 			if (templateInfo.hasMoveSpecifier()) {
-				typeInstance->setMoveSpecifier(templateInfo.extractMoveSpecifier());
+				typeInstance->moveSpecifier = templateInfo.extractMoveSpecifier();
 			}
 			if (templateInfo.hasNoTagSet()) {
-				typeInstance->setNoTagSet(templateInfo.extractNoTagSet());
+				typeInstance->noTagSetDecl = templateInfo.extractNoTagSet();
 			}
 			
 			typeInstance.setLocation(reader_.locationWithRangeFrom(start));

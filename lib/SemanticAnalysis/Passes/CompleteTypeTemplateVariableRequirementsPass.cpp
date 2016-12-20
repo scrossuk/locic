@@ -44,23 +44,21 @@ namespace locic {
 			alias.setRequiresPredicate(std::move(predicate));
 		}
 		
-		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
-			auto& typeInstance = context.scopeStack().back().typeInstance();
-			
+		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& typeInstanceNode) {
 			// Add any requirements in move() specifier, if any is provided.
 			auto movePredicate =
-				(!astTypeInstanceNode->moveSpecifier.isNull() && astTypeInstanceNode->moveSpecifier->isExpr()) ?
-					make_optional(ConvertRequireSpecifier(context, astTypeInstanceNode->moveSpecifier)) :
+				(!typeInstanceNode->moveSpecifier.isNull() && typeInstanceNode->moveSpecifier->isExpr()) ?
+					make_optional(ConvertRequireSpecifier(context, typeInstanceNode->moveSpecifier)) :
 					None;
 			
 			// Add any requirements in require() specifier.
 			auto requirePredicate =
-				(!astTypeInstanceNode->requireSpecifier.isNull()) ?
-					ConvertRequireSpecifier(context, astTypeInstanceNode->requireSpecifier) :
+				(!typeInstanceNode->requireSpecifier.isNull()) ?
+					ConvertRequireSpecifier(context, typeInstanceNode->requireSpecifier) :
 					SEM::Predicate::True();
 			
 			// Add requirements specified inline for template variables.
-			for (const auto& templateVarNode: *(astTypeInstanceNode->templateVariables)) {
+			for (const auto& templateVarNode: *(typeInstanceNode->templateVariableDecls)) {
 				TypeResolver typeResolver(context);
 				auto templateVarTypePredicate =
 					typeResolver.getTemplateVarTypePredicate(templateVarNode->typeDecl(),
@@ -83,7 +81,7 @@ namespace locic {
 			}
 			
 			// Copy requires predicate to all variant types.
-			for (const auto variantTypeInstance: typeInstance.variants()) {
+			for (const auto variantTypeInstance: typeInstanceNode->variants()) {
 				if (movePredicate) {
 					variantTypeInstance->setMovePredicate(movePredicate->copy());
 				}
@@ -91,9 +89,9 @@ namespace locic {
 			}
 			
 			if (movePredicate) {
-				typeInstance.setMovePredicate(std::move(*movePredicate));
+				typeInstanceNode->setMovePredicate(std::move(*movePredicate));
 			}
-			typeInstance.setRequiresPredicate(std::move(requirePredicate));
+			typeInstanceNode->setRequiresPredicate(std::move(requirePredicate));
 		}
 		
 		void CompleteNamespaceDataTypeTemplateVariableRequirements(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
@@ -114,11 +112,9 @@ namespace locic {
 				CompleteAliasTemplateVariableRequirements(context, aliasNode);
 			}
 			
-			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
-				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				CompleteTypeInstanceTemplateVariableRequirements(context, astTypeInstanceNode);
+			for (const auto& typeInstanceNode: astNamespaceDataNode->typeInstances) {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*typeInstanceNode));
+				CompleteTypeInstanceTemplateVariableRequirements(context,typeInstanceNode);
 			}
 		}
 		

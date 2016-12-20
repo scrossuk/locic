@@ -48,7 +48,7 @@ namespace locic {
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const AST::Type* const castFromType,
 				MethodID methodID, const AST::Type* const rawCastToType, llvm::Value* const hintResultValue);
 		
-		SignedIntegerPrimitive::SignedIntegerPrimitive(const SEM::TypeInstance& typeInstance)
+		SignedIntegerPrimitive::SignedIntegerPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) { }
 		
 		bool SignedIntegerPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,

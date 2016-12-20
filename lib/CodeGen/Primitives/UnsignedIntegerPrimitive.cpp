@@ -48,7 +48,7 @@ namespace locic {
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const AST::Type* const castFromType,
 				MethodID methodID, const AST::Type* const rawCastToType, llvm::Value* const hintResultValue);
 		
-		UnsignedIntegerPrimitive::UnsignedIntegerPrimitive(const SEM::TypeInstance& typeInstance)
+		UnsignedIntegerPrimitive::UnsignedIntegerPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) { }
 		
 		bool UnsignedIntegerPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,

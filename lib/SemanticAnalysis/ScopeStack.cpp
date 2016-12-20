@@ -30,7 +30,7 @@ namespace locic {
 			return name;
 		}
 		
-		SEM::TypeInstance* lookupParentType(const ScopeStack& scopeStack) {
+		AST::TypeInstance* lookupParentType(const ScopeStack& scopeStack) {
 			for (size_t i = 0; i < scopeStack.size(); i++) {
 				const auto pos = scopeStack.size() - i - 1;
 				const auto& element = scopeStack[pos];
@@ -89,7 +89,7 @@ namespace locic {
 			return iterator->second;
 		}
 		
-		const SEM::TypeInstance& getBuiltInTypeInstance(Context& context, const String& typeName) {
+		const AST::TypeInstance& getBuiltInTypeInstance(Context& context, const String& typeName) {
 			const auto& value = getBuiltInNamespaceItem(context, typeName);
 			assert(value.isTypeInstance());
 			return value.typeInstance();

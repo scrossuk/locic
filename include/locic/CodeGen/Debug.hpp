@@ -16,13 +16,8 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
-		class Value;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
+		class Value;
 		
 	}
 	
@@ -109,7 +104,7 @@ namespace locic {
 		                              bool isDefinition);
 		
 		Optional<DISubprogram> genDebugFunctionInfo(Module& module,
-		                                            const SEM::TypeInstance* parentType,
+		                                            const AST::TypeInstance* parentType,
 		                                            const AST::Function& function,
 		                                            llvm::Function* llvmFunction);
 		

@@ -42,9 +42,9 @@ namespace locic {
 			}
 		}
 		
-		void AddTypeInstanceTemplateVariableTypes(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
+		void AddTypeInstanceTemplateVariableTypes(Context& context, const AST::Node<AST::TypeInstance>& typeInstanceNode) {
 			// Add types of template variables.
-			for (const auto& templateVarNode: *(astTypeInstanceNode->templateVariables)) {
+			for (const auto& templateVarNode: *(typeInstanceNode->templateVariableDecls)) {
 				auto& astVarType = templateVarNode->typeDecl();
 				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
 				
@@ -75,11 +75,9 @@ namespace locic {
 				AddAliasTemplateVariableTypes(context, aliasNode);
 			}
 			
-			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
-				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				AddTypeInstanceTemplateVariableTypes(context, astTypeInstanceNode);
+			for (const auto& typeInstanceNode: astNamespaceDataNode->typeInstances) {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*typeInstanceNode));
+				AddTypeInstanceTemplateVariableTypes(context, typeInstanceNode);
 			}
 		}
 		

@@ -33,21 +33,21 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		ArgInfo alignMaskArgInfo(Module& module, const SEM::TypeInstance* const typeInstance) {
+		ArgInfo alignMaskArgInfo(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto argInfo = !typeInstance->templateVariables().empty() ?
 				ArgInfo::TemplateOnly(module, sizeTypePair(module)) :
 				ArgInfo::Basic(module, sizeTypePair(module), {});
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
-		ArgInfo sizeOfArgInfo(Module& module, const SEM::TypeInstance* const typeInstance) {
+		ArgInfo sizeOfArgInfo(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto argInfo = !typeInstance->templateVariables().empty() ?
 				ArgInfo::TemplateOnly(module, sizeTypePair(module)) :
 				ArgInfo::Basic(module, sizeTypePair(module), {});
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
-		ArgInfo memberOffsetArgInfo(Module& module, const SEM::TypeInstance* typeInstance) {
+		ArgInfo memberOffsetArgInfo(Module& module, const AST::TypeInstance* typeInstance) {
 			std::vector<TypePair> argTypes;
 			argTypes.push_back(sizeTypePair(module));
 			
@@ -57,7 +57,7 @@ namespace locic {
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
-		llvm::Function* genAlignMaskFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
+		llvm::Function* genAlignMaskFunctionDecl(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto& function = typeInstance->getFunction(module.getCString("__alignmask"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			return semFunctionGenerator.getDecl(typeInstance, function);
@@ -123,7 +123,7 @@ namespace locic {
 			return alignMaskValue;
 		}
 		
-		llvm::Function* genSizeOfFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
+		llvm::Function* genSizeOfFunctionDecl(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto& function = typeInstance->getFunction(module.getCString("__sizeof"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			return semFunctionGenerator.getDecl(typeInstance, function);
@@ -207,7 +207,7 @@ namespace locic {
 		 *     return makeAligned(offset, memberAlignMask(memberIndex));
 		 * }
 		 */
-		llvm::Value* genMemberOffsetFunction(Module& module, const SEM::TypeInstance* const typeInstance) {
+		llvm::Value* genMemberOffsetFunction(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto iterator = module.memberOffsetFunctionMap().find(typeInstance);
 			if (iterator != module.memberOffsetFunctionMap().end()) {
 				return iterator->second;
@@ -267,7 +267,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Value* genSuffixByteOffset(Function& function, const SEM::TypeInstance& typeInstance) {
+		llvm::Value* genSuffixByteOffset(Function& function, const AST::TypeInstance& typeInstance) {
 			auto& module = function.module();
 			
 			const auto zero = ConstantGenerator(module).getSizeTValue(0);

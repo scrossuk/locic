@@ -49,7 +49,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		StaticArrayPrimitive::StaticArrayPrimitive(const SEM::TypeInstance& typeInstance)
+		StaticArrayPrimitive::StaticArrayPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) { }
 		
 		bool StaticArrayPrimitive::isSizeAlwaysKnown(const TypeInfo& typeInfo,

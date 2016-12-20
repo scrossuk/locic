@@ -14,9 +14,9 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		void CreateEnumConstructorMethod(Context& context, SEM::TypeInstance* const typeInstance,
+		void CreateEnumConstructorMethod(Context& context, const AST::TypeInstance& typeInstance,
 		                                 AST::Function& function, const size_t value) {
-			assert(typeInstance->isEnum());
+			assert(typeInstance.isEnum());
 			
 			if (function.hasGeneratedScope()) {
 				// Function already has a scope; this can happen when
@@ -34,15 +34,15 @@ namespace locic {
 			const auto intType = getBuiltInType(context, context.getCString("int_t"), {});
 			constructValues.push_back(AST::Value::Constant(intConstant, intType));
 			
-			auto internalConstructedValue = AST::Value::InternalConstruct(typeInstance->selfType(), std::move(constructValues));
+			auto internalConstructedValue = AST::Value::InternalConstruct(typeInstance.selfType(), std::move(constructValues));
 			functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
 			
 			function.setScope(std::move(functionScope));
 		}
 		
-		void CreateDefaultMethodOrRemove(Context& context, SEM::TypeInstance* const typeInstance,
+		void CreateDefaultMethodOrRemove(Context& context, AST::TypeInstance& typeInstance,
 		                                 AST::Function& function, const Debug::SourceLocation& location) {
-			const bool created = DefaultMethods(context).createDefaultMethod(typeInstance, function,
+			const bool created = DefaultMethods(context).createDefaultMethod(&typeInstance, function,
 			                                                                 location);
 			if (!created) {
 				// Make sure that the require predicate is false so
@@ -51,55 +51,53 @@ namespace locic {
 			}
 		}
 		
-		void ConvertTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
-			auto& semTypeInstance = context.scopeStack().back().typeInstance();
-			
-			for (const auto& function: *(astTypeInstanceNode->functions)) {
+		void ConvertTypeInstance(Context& context, AST::Node<AST::TypeInstance>& typeInstanceNode) {
+			for (const auto& function: *(typeInstanceNode->functionDecls)) {
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Function(*function));
 				ConvertFunctionDef(context, function);
 			}
 			
-			if (semTypeInstance.isEnum()) {
+			if (typeInstanceNode->isEnum()) {
 				size_t enumValue = 0;
 				// Generate enum constructors.
-				for (const auto& constructorName: *(astTypeInstanceNode->constructors)) {
+				for (const auto& constructorName: *(typeInstanceNode->constructors)) {
 					const auto canonicalMethodName = CanonicalizeMethodName(constructorName);
-					CreateEnumConstructorMethod(context, &semTypeInstance,
-						semTypeInstance.getFunction(canonicalMethodName), enumValue++);
+					CreateEnumConstructorMethod(context, *typeInstanceNode,
+						typeInstanceNode->getFunction(canonicalMethodName), enumValue++);
 				}
 			}
 			
 			// Generate default constructor for applicable types.
-			if (semTypeInstance.isException()) {
-				CreateExceptionConstructor(context, astTypeInstanceNode, &semTypeInstance,
-				                           semTypeInstance.getFunction(context.getCString("create")));
-			} else if (semTypeInstance.isDatatype() || semTypeInstance.isStruct() || semTypeInstance.isUnion()) {
-				(void) DefaultMethods(context).createDefaultMethod(&semTypeInstance,
-				                                                   semTypeInstance.getFunction(context.getCString("create")),
-				                                                   astTypeInstanceNode.location());
+			if (typeInstanceNode->isException()) {
+				CreateExceptionConstructor(context, typeInstanceNode,
+				                           typeInstanceNode->getFunction(context.getCString("create")));
+			} else if (typeInstanceNode->isDatatype() || typeInstanceNode->isStruct() || typeInstanceNode->isUnion()) {
+				(void) DefaultMethods(context).createDefaultMethod(typeInstanceNode.get(),
+				                                                   typeInstanceNode->getFunction(context.getCString("create")),
+				                                                   typeInstanceNode.location());
 			}
 			
 			// Generate default implicitCopy if relevant.
-			if (semTypeInstance.isEnum() || semTypeInstance.isStruct() || semTypeInstance.isDatatype() ||
-					semTypeInstance.isUnionDatatype() || semTypeInstance.isUnion()) {
-				const auto existingFunction = semTypeInstance.findFunction(context.getCString("implicitcopy"));
+			if (typeInstanceNode->isEnum() || typeInstanceNode->isStruct() || typeInstanceNode->isDatatype() ||
+					typeInstanceNode->isUnionDatatype() || typeInstanceNode->isUnion()) {
+				const auto existingFunction = typeInstanceNode->findFunction(context.getCString("implicitcopy"));
 				if (existingFunction != nullptr) {
-					CreateDefaultMethodOrRemove(context, &semTypeInstance, *existingFunction,
-					                            astTypeInstanceNode.location());
+					CreateDefaultMethodOrRemove(context, *typeInstanceNode, *existingFunction,
+					                            typeInstanceNode.location());
 				}
 			}
 			
 			// Generate default compare if relevant.
-			if (semTypeInstance.isEnum() || semTypeInstance.isStruct() || semTypeInstance.isDatatype() || semTypeInstance.isUnionDatatype()) {
-				const auto existingFunction = semTypeInstance.findFunction(context.getCString("compare"));
+			if (typeInstanceNode->isEnum() || typeInstanceNode->isStruct() || typeInstanceNode->isDatatype() || typeInstanceNode->isUnionDatatype()) {
+				const auto existingFunction = typeInstanceNode->findFunction(context.getCString("compare"));
 				if (existingFunction != nullptr) {
-					CreateDefaultMethodOrRemove(context, &semTypeInstance, *existingFunction,
-					                            astTypeInstanceNode.location());
+					CreateDefaultMethodOrRemove(context, *typeInstanceNode, *existingFunction,
+					                            typeInstanceNode.location());
 				}
 			}
 			
 			// Simplify all predicates to avoid confusing CodeGen.
-			for (auto& function: semTypeInstance.functions()) {
+			for (auto& function: typeInstanceNode->functions()) {
 				PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*function));
 				function->setConstPredicate(reducePredicate(context, function->constPredicate().copy()));
 				function->setRequiresPredicate(reducePredicate(context, function->requiresPredicate().copy()));

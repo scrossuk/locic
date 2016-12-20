@@ -18,7 +18,7 @@
 
 #include <locic/AST/Context.hpp>
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TypeInstance.hpp>
+#include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/ValueArray.hpp>
 
 namespace locic {
@@ -131,7 +131,7 @@ namespace locic {
 			return context.getType(std::move(type));
 		}
 		
-		const Type* Type::Object(const SEM::TypeInstance* const typeInstance,
+		const Type* Type::Object(const AST::TypeInstance* const typeInstance,
 		                         AST::ValueArray templateArguments) {
 			assert(typeInstance->templateVariables().size() == templateArguments.size());
 			auto& context = typeInstance->context();
@@ -478,7 +478,7 @@ namespace locic {
 			return kind() == OBJECT;
 		}
 		
-		const SEM::TypeInstance* Type::getObjectType() const {
+		const AST::TypeInstance* Type::getObjectType() const {
 			assert(isObject());
 			return data_.objectType.typeInstance;
 		}
@@ -488,7 +488,7 @@ namespace locic {
 			return valueArray_;
 		}
 		
-		bool Type::isTypeInstance(const SEM::TypeInstance* typeInstance) const {
+		bool Type::isTypeInstance(const AST::TypeInstance* typeInstance) const {
 			if (!isObject()) {
 				return false;
 			}

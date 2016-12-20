@@ -25,7 +25,7 @@ namespace locic {
 			
 		};
 		
-		bool hasInheritanceCycle(const SEM::TypeInstance& typeInstance) {
+		bool hasInheritanceCycle(const AST::TypeInstance& typeInstance) {
 			auto parentType = typeInstance.parentType();
 			while (parentType != nullptr && parentType->isException()) {
 				if (parentType->getObjectType() == &typeInstance) {
@@ -38,7 +38,7 @@ namespace locic {
 			return false;
 		}
 		
-		void checkForInheritanceCycle(Context& context, const SEM::TypeInstance& rootTypeInstance) {
+		void checkForInheritanceCycle(Context& context, const AST::TypeInstance& rootTypeInstance) {
 			auto typeInstance = &rootTypeInstance;
 			while (true) {
 				if (hasInheritanceCycle(*typeInstance)) {
@@ -60,7 +60,7 @@ namespace locic {
 		
 		class ExceptionCannotInheritNonExceptionTypeDiag: public Error {
 		public:
-			ExceptionCannotInheritNonExceptionTypeDiag(const SEM::TypeInstance& exceptionType,
+			ExceptionCannotInheritNonExceptionTypeDiag(const AST::TypeInstance& exceptionType,
 			                                           const AST::Type* inheritType)
 			: exceptionType_(exceptionType), inheritType_(inheritType) { }
 			
@@ -71,7 +71,7 @@ namespace locic {
 			}
 			
 		private:
-			const SEM::TypeInstance& exceptionType_;
+			const AST::TypeInstance& exceptionType_;
 			const AST::Type* inheritType_;
 			
 		};
@@ -87,27 +87,25 @@ namespace locic {
 		};
 		
 		// Fill in type instance structures with member variable information.
-		void AddTypeInstanceMemberVariables(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
-				std::vector<SEM::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
-			auto& semTypeInstance = context.scopeStack().back().typeInstance();
+		void AddTypeInstanceMemberVariables(Context& context, const AST::Node<AST::TypeInstance>& typeInstanceNode,
+				std::vector<AST::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
+			assert(typeInstanceNode->variables().empty());
+			assert(typeInstanceNode->constructTypes().empty());
 			
-			assert(semTypeInstance.variables().empty());
-			assert(semTypeInstance.constructTypes().empty());
-			
-			if (semTypeInstance.isException()) {
+			if (typeInstanceNode->isException()) {
 				// Add exception type parent using initializer.
-				const auto& astInitializerNode = astTypeInstanceNode->initializer;
+				const auto& astInitializerNode = typeInstanceNode->initializer;
 				if (astInitializerNode->kind == AST::ExceptionInitializer::INITIALIZE) {
 					const auto semType = TypeResolver(context).resolveObjectType(astInitializerNode->symbol);
 					
 					if (!semType->isException()) {
-						context.issueDiag(ExceptionCannotInheritNonExceptionTypeDiag(semTypeInstance, semType),
+						context.issueDiag(ExceptionCannotInheritNonExceptionTypeDiag(*typeInstanceNode, semType),
 						                  astInitializerNode->symbol.location());
 					}
 					
-					semTypeInstance.setParentType(semType);
+					typeInstanceNode->setParentType(semType);
 					
-					checkForInheritanceCycle(context, semTypeInstance);
+					checkForInheritanceCycle(context, *typeInstanceNode);
 					
 					// Also add parent as first member variable.
 					// FIXME: We shouldn't be creating an AST::Var here; the solution
@@ -117,28 +115,28 @@ namespace locic {
 					                                    String());
 					parentVar->setConstructType(semType);
 					parentVar->setLvalType(semType);
-					semTypeInstance.attachVariable(*parentVar);
+					typeInstanceNode->attachVariable(*parentVar);
 				}
 			}
 			
-			for (auto& astVarNode: *(astTypeInstanceNode->variables)) {
+			for (auto& astVarNode: *(typeInstanceNode->variableDecls)) {
 				if (!astVarNode->isNamed()) {
 					context.issueDiag(PatternMemberVarsNotSupportedDiag(),
 					                  astVarNode.location());
 				}
 				
 				auto var = ConvertVar(context, Debug::VarInfo::VAR_MEMBER, astVarNode);
-				semTypeInstance.attachVariable(*var);
+				typeInstanceNode->attachVariable(*var);
 			}
 			
-			if (astTypeInstanceNode->noTagSet.isNull() && !semTypeInstance.isPrimitive()) {
+			if (typeInstanceNode->noTagSetDecl.isNull() && !typeInstanceNode->isPrimitive()) {
 				// No tag set was specified so generate one from member variables.
-				typeInstancesToGenerateNoTagSets.push_back(&semTypeInstance);
+				typeInstancesToGenerateNoTagSets.push_back(typeInstanceNode.get());
 			}
 		}
 		
 		void AddNamespaceDataTypeMemberVariables(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode,
-				std::vector<SEM::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
+				std::vector<AST::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
 				auto& semChildNamespace = astChildNamespaceNode->nameSpace();
 				
@@ -151,26 +149,22 @@ namespace locic {
 				                                    typeInstancesToGenerateNoTagSets);
 			}
 			
-			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
-				
+			for (const auto& typeInstanceNode: astNamespaceDataNode->typeInstances) {
 				{
-					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-					AddTypeInstanceMemberVariables(context, astTypeInstanceNode, typeInstancesToGenerateNoTagSets);
+					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*typeInstanceNode));
+					AddTypeInstanceMemberVariables(context, typeInstanceNode, typeInstancesToGenerateNoTagSets);
 				}
 				
-				if (semChildTypeInstance.isUnionDatatype()) {
-					for (const auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-						auto& semVariantTypeInstance = astVariantNode->semTypeInstance();
-						
-						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semVariantTypeInstance));
-						AddTypeInstanceMemberVariables(context, astVariantNode, typeInstancesToGenerateNoTagSets);
+				if (typeInstanceNode->isUnionDatatype()) {
+					for (const auto& variantNode: *(typeInstanceNode->variantDecls)) {
+						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*variantNode));
+						AddTypeInstanceMemberVariables(context, variantNode, typeInstancesToGenerateNoTagSets);
 					}
 				}
 			}
 		}
 		
-		const AST::TemplateVarArray& GetTypeInstanceNoTagSet(SEM::TypeInstance& typeInstance) {
+		const AST::TemplateVarArray& GetTypeInstanceNoTagSet(AST::TypeInstance& typeInstance) {
 			if (!typeInstance.noTagSet().empty()) {
 				return typeInstance.noTagSet();
 			}
@@ -199,7 +193,7 @@ namespace locic {
 		}
 		
 		void AddTypeMemberVariablesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
-			std::vector<SEM::TypeInstance*> typeInstancesToGenerateNoTagSets;
+			std::vector<AST::TypeInstance*> typeInstancesToGenerateNoTagSets;
 			for (const auto& astNamespaceNode: rootASTNamespaces) {
 				AddNamespaceDataTypeMemberVariables(context, astNamespaceNode->data(), typeInstancesToGenerateNoTagSets);
 			}

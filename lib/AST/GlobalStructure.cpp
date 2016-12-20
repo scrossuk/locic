@@ -2,7 +2,7 @@
 #include <locic/AST/GlobalStructure.hpp>
 #include <locic/AST/Namespace.hpp>
 
-#include <locic/SEM/TypeInstance.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 #include <locic/Support/Name.hpp>
 
@@ -22,7 +22,7 @@ namespace locic {
 			return globalStructure;
 		}
 		
-		GlobalStructure GlobalStructure::TypeInstance(SEM::TypeInstance& typeInstance) {
+		GlobalStructure GlobalStructure::TypeInstance(AST::TypeInstance& typeInstance) {
 			GlobalStructure globalStructure(TYPEINSTANCE);
 			globalStructure.data_.typeInstance = &typeInstance;
 			return globalStructure;
@@ -99,11 +99,11 @@ namespace locic {
 			return *(data_.nameSpace);
 		}
 		
-		SEM::TypeInstance& GlobalStructure::typeInstance() {
+		AST::TypeInstance& GlobalStructure::typeInstance() {
 			return *(data_.typeInstance);
 		}
 		
-		const SEM::TypeInstance& GlobalStructure::typeInstance() const {
+		const AST::TypeInstance& GlobalStructure::typeInstance() const {
 			return *(data_.typeInstance);
 		}
 		

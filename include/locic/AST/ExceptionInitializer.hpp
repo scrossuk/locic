@@ -5,13 +5,13 @@
 #include <vector>
 
 #include <locic/AST/Node.hpp>
+#include <locic/AST/ValueDecl.hpp>
 
 namespace locic {
 
 	namespace AST {
 	
 		class Symbol;
-		struct ValueDecl;
 		typedef std::vector<Node<ValueDecl>> ValueDeclList;
 		
 		struct ExceptionInitializer {

@@ -11,11 +11,6 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
 		
 	}
@@ -29,9 +24,9 @@ namespace locic {
 					FUNCTION
 				};
 				
-				static TemplatedObject TypeInstance(const SEM::TypeInstance* typeInstance);
+				static TemplatedObject TypeInstance(const AST::TypeInstance* typeInstance);
 				
-				static TemplatedObject Function(const SEM::TypeInstance* parentTypeInstance,
+				static TemplatedObject Function(const AST::TypeInstance* parentTypeInstance,
 				                                const AST::Function* function);
 				
 				Kind kind() const;
@@ -39,9 +34,9 @@ namespace locic {
 				bool isTypeInstance() const;
 				bool isFunction() const;
 				
-				const SEM::TypeInstance* typeInstance() const;
+				const AST::TypeInstance* typeInstance() const;
 				
-				const SEM::TypeInstance* parentTypeInstance() const;
+				const AST::TypeInstance* parentTypeInstance() const;
 				const AST::Function* function() const;
 				
 				AST::TemplateVarArray templateVariables() const;
@@ -58,9 +53,9 @@ namespace locic {
 				Kind kind_;
 				
 				union {
-					const SEM::TypeInstance* typeInstance;
+					const AST::TypeInstance* typeInstance;
 					struct {
-						const SEM::TypeInstance* parentTypeInstance;
+						const AST::TypeInstance* parentTypeInstance;
 						const AST::Function* function;
 					} functionPair;
 				} data_;

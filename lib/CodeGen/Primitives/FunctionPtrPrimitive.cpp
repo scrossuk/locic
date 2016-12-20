@@ -45,7 +45,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		FunctionPtrPrimitive::FunctionPtrPrimitive(const SEM::TypeInstance& typeInstance)
+		FunctionPtrPrimitive::FunctionPtrPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) { }
 		
 		bool FunctionPtrPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,

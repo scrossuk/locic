@@ -7,11 +7,6 @@ namespace locic {
 		
 		class Function;
 		class FunctionType;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
 		
 	}
@@ -33,7 +28,7 @@ namespace locic {
 			 * will have to emit a conflict resolution stub.
 			 */
 			virtual llvm::Constant*
-			emitVTableSlot(const SEM::TypeInstance& typeInstance,
+			emitVTableSlot(const AST::TypeInstance& typeInstance,
 			               llvm::ArrayRef<AST::Function*> methods) = 0;
 			
 			/**

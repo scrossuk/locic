@@ -20,35 +20,6 @@ namespace locic {
 			return templateVarInfo;
 		}
 		
-		SEM::TypeInstance::Kind ConvertTypeInstanceKind(AST::TypeInstance::Kind kind) {
-			switch (kind) {
-				case AST::TypeInstance::PRIMITIVE:
-					return SEM::TypeInstance::PRIMITIVE;
-				case AST::TypeInstance::ENUM:
-					return SEM::TypeInstance::ENUM;
-				case AST::TypeInstance::STRUCT:
-					return SEM::TypeInstance::STRUCT;
-				case AST::TypeInstance::OPAQUE_STRUCT:
-					return SEM::TypeInstance::OPAQUE_STRUCT;
-				case AST::TypeInstance::UNION:
-					return SEM::TypeInstance::UNION;
-				case AST::TypeInstance::CLASSDECL:
-					return SEM::TypeInstance::CLASSDECL;
-				case AST::TypeInstance::CLASSDEF:
-					return SEM::TypeInstance::CLASSDEF;
-				case AST::TypeInstance::DATATYPE:
-					return SEM::TypeInstance::DATATYPE;
-				case AST::TypeInstance::UNION_DATATYPE:
-					return SEM::TypeInstance::UNION_DATATYPE;
-				case AST::TypeInstance::INTERFACE:
-					return SEM::TypeInstance::INTERFACE;
-				case AST::TypeInstance::EXCEPTION:
-					return SEM::TypeInstance::EXCEPTION;
-			}
-			
-			locic_unreachable("Unknown type instance kind.");
-		}
-		
 		class TypeInstanceClashesWithExistingNameDiag: public Error {
 		public:
 			TypeInstanceClashesWithExistingNameDiag(const Name& name)
@@ -155,11 +126,11 @@ namespace locic {
 			
 		};
 		
-		SEM::TypeInstance* AddTypeInstance(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
-		                                   const AST::ModuleScope& moduleScope) {
+		void AddTypeInstance(Context& context, AST::Node<AST::TypeInstance>& typeInstanceNode,
+		                     const AST::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
 			
-			const auto& typeInstanceName = astTypeInstanceNode->name;
+			const auto typeInstanceName = typeInstanceNode->name();
 			
 			const Name fullTypeName = parentNamespace.name() + typeInstanceName;
 			
@@ -169,53 +140,48 @@ namespace locic {
 				const auto& location = iterator->second.location();
 				OptionalDiag previousDefinedDiag(PreviousDefinedDiag(), location);
 				context.issueDiag(TypeInstanceClashesWithExistingNameDiag(fullTypeName),
-				                  astTypeInstanceNode.location(),
+				                  typeInstanceNode.location(),
 				                  std::move(previousDefinedDiag));
 			}
 			
-			const auto typeInstanceKind = ConvertTypeInstanceKind(astTypeInstanceNode->kind);
+			typeInstanceNode->setContext(context.semContext());
+			typeInstanceNode->setParent(AST::GlobalStructure::Namespace(parentNamespace));
+			typeInstanceNode->setFullName(fullTypeName.copy());
+			typeInstanceNode->setModuleScope(moduleScope.copy());
 			
-			// Create a placeholder type instance.
-			std::unique_ptr<SEM::TypeInstance> semTypeInstance(new SEM::TypeInstance(context.semContext(),
-			                                                                         AST::GlobalStructure::Namespace(parentNamespace),
-			                                                                         fullTypeName.copy(),
-			                                                                         typeInstanceKind,
-			                                                                         moduleScope.copy()));
-			astTypeInstanceNode->setSEMTypeInstance(*semTypeInstance);
-			
-			if (semTypeInstance->isPrimitive()) {
-				semTypeInstance->setPrimitiveID(context.sharedMaps().primitiveIDMap().getPrimitiveID(typeInstanceName));
+			if (typeInstanceNode->isPrimitive()) {
+				typeInstanceNode->setPrimitiveID(context.sharedMaps().primitiveIDMap().getPrimitiveID(typeInstanceName));
 			}
 			
 			switch (moduleScope.kind()) {
 				case AST::ModuleScope::INTERNAL: {
-					if (semTypeInstance->isClassDecl()) {
+					if (typeInstanceNode->isClassDecl()) {
 						context.issueDiag(DefinitionRequiredForInternalClassDiag(fullTypeName.copy()),
-						                  astTypeInstanceNode.location());
+						                  typeInstanceNode.location());
 					}
 					break;
 				}
 				case AST::ModuleScope::IMPORT: {
-					if (semTypeInstance->isClassDef()) {
+					if (typeInstanceNode->isClassDef()) {
 						context.issueDiag(CannotDefineImportedClassDiag(fullTypeName.copy()),
-						                  astTypeInstanceNode.location());
+						                  typeInstanceNode.location());
 					}
 					break;
 				}
 				case AST::ModuleScope::EXPORT: {
-					if (semTypeInstance->isClassDecl()) {
+					if (typeInstanceNode->isClassDecl()) {
 						context.issueDiag(DefinitionRequiredForExportedClassDiag(fullTypeName.copy()),
-						                  astTypeInstanceNode.location());
+						                  typeInstanceNode.location());
 					}
 					break;
 				}
 			}
 			
-			semTypeInstance->setDebugInfo(Debug::TypeInstanceInfo(astTypeInstanceNode.location()));
+			typeInstanceNode->setDebugInfo(Debug::TypeInstanceInfo(typeInstanceNode.location()));
 			
 			// Add template variables.
 			size_t templateVarIndex = 0;
-			for (auto& templateVarNode: *(astTypeInstanceNode->templateVariables)) {
+			for (auto& templateVarNode: *(typeInstanceNode->templateVariableDecls)) {
 				const auto templateVarName = templateVarNode->name();
 				
 				templateVarNode->setContext(context.semContext());
@@ -227,9 +193,9 @@ namespace locic {
 				
 				templateVarNode->setIndex(templateVarIndex++);
 				
-				const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(templateVarName);
-				if (templateVarIterator == semTypeInstance->namedTemplateVariables().end()) {
-					semTypeInstance->namedTemplateVariables().insert(std::make_pair(templateVarName, templateVarNode.get()));
+				const auto templateVarIterator = typeInstanceNode->namedTemplateVariables().find(templateVarName);
+				if (templateVarIterator == typeInstanceNode->namedTemplateVariables().end()) {
+					typeInstanceNode->namedTemplateVariables().insert(std::make_pair(templateVarName, templateVarNode.get()));
 				} else {
 					context.issueDiag(ShadowsTemplateParameterDiag(templateVarName),
 					                  templateVarNode.location());
@@ -237,41 +203,37 @@ namespace locic {
 				
 				templateVarNode->setDebugInfo(makeTemplateVarInfo(templateVarNode));
 				
-				semTypeInstance->templateVariables().push_back(templateVarNode.get());
+				typeInstanceNode->templateVariables().push_back(templateVarNode.get());
 			}
 			
-			if (semTypeInstance->isUnionDatatype()) {
-				for (auto& astVariantNode: *(astTypeInstanceNode->variants)) {
-					const auto variantTypeInstance = AddTypeInstance(context, astVariantNode, moduleScope);
-					variantTypeInstance->setParentTypeInstance(semTypeInstance.get());
-					variantTypeInstance->templateVariables() = semTypeInstance->templateVariables().copy();
-					variantTypeInstance->namedTemplateVariables() = semTypeInstance->namedTemplateVariables().copy();
-					semTypeInstance->variants().push_back(variantTypeInstance);
+			if (typeInstanceNode->isUnionDatatype()) {
+				for (auto& variantNode: *(typeInstanceNode->variantDecls)) {
+					AddTypeInstance(context, variantNode, moduleScope);
+					variantNode->setParentTypeInstance(typeInstanceNode.get());
+					variantNode->templateVariables() = typeInstanceNode->templateVariables().copy();
+					variantNode->namedTemplateVariables() = typeInstanceNode->namedTemplateVariables().copy();
+					typeInstanceNode->variants().push_back(variantNode.get());
 				}
 			}
 			
-			if (!astTypeInstanceNode->noTagSet.isNull()) {
+			if (!typeInstanceNode->noTagSetDecl.isNull()) {
 				AST::TemplateVarArray noTagSet;
 				
-				for (const auto& astNoTagName: *(astTypeInstanceNode->noTagSet)) {
-					const auto templateVarIterator = semTypeInstance->namedTemplateVariables().find(astNoTagName);
-					if (templateVarIterator == semTypeInstance->namedTemplateVariables().end()) {
+				for (const auto& astNoTagName: *(typeInstanceNode->noTagSetDecl)) {
+					const auto templateVarIterator = typeInstanceNode->namedTemplateVariables().find(astNoTagName);
+					if (templateVarIterator == typeInstanceNode->namedTemplateVariables().end()) {
 						context.issueDiag(UnknownTemplateVariableInNoTagSetDiag(astNoTagName, fullTypeName.copy()),
-						                  astTypeInstanceNode->noTagSet.location());
+						                  typeInstanceNode->noTagSetDecl.location());
 						continue;
 					}
 					
 					noTagSet.push_back(templateVarIterator->second);
 				}
 				
-				semTypeInstance->setNoTagSet(std::move(noTagSet));
+				typeInstanceNode->setNoTagSet(std::move(noTagSet));
 			}
 			
-			const auto typeInstancePtr = semTypeInstance.get();
-			
-			parentNamespace.items().insert(std::make_pair(typeInstanceName, AST::NamespaceItem::TypeInstance(std::move(semTypeInstance))));
-			
-			return typeInstancePtr;
+			parentNamespace.items().insert(std::make_pair(typeInstanceName, AST::NamespaceItem::TypeInstance(*typeInstanceNode)));
 		}
 		
 		class CannotNestModuleScopesDiag: public Error {
@@ -392,8 +354,8 @@ namespace locic {
 				uniquedNamespace.items().insert(std::make_pair(aliasName, AST::NamespaceItem::Alias(*aliasNode)));
 			}
 			
-			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				(void) AddTypeInstance(context, astTypeInstanceNode, moduleScope);
+			for (auto& typeInstanceNode: astNamespaceDataNode->typeInstances) {
+				AddTypeInstance(context, typeInstanceNode, moduleScope);
 			}
 		}
 		

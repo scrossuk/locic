@@ -368,25 +368,23 @@ namespace locic {
 			
 		};
 		
-		void AddEnumConstructorDecls(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode) {
-			auto& semTypeInstance = context.scopeStack().back().typeInstance();
-			
-			for (const auto& constructorName: *(astTypeInstanceNode->constructors)) {
+		void AddEnumConstructorDecls(Context& context, const AST::Node<AST::TypeInstance>& typeInstanceNode) {
+			for (const auto& constructorName: *(typeInstanceNode->constructors)) {
 				const auto canonicalMethodName = CanonicalizeMethodName(constructorName);
-				auto fullName = semTypeInstance.fullName() + constructorName;
+				auto fullName = typeInstanceNode->fullName() + constructorName;
 				
-				const auto existingFunction = semTypeInstance.findFunction(canonicalMethodName);
+				const auto existingFunction = typeInstanceNode->findFunction(canonicalMethodName);
 				if (existingFunction != nullptr) {
 					context.issueDiag(EnumConstructorClashesWithExistingNameDiag(fullName),
-					                  astTypeInstanceNode->constructors.location());
+					                  typeInstanceNode->constructors.location());
 				}
 				
 				std::unique_ptr<AST::Function> function(new AST::Function());
-				function->setParent(AST::GlobalStructure::TypeInstance(semTypeInstance));
+				function->setParent(AST::GlobalStructure::TypeInstance(*typeInstanceNode));
 				function->setFullName(std::move(fullName));
-				function->setModuleScope(semTypeInstance.moduleScope().copy());
+				function->setModuleScope(typeInstanceNode->moduleScope().copy());
 				
-				function->setDebugInfo(makeDefaultFunctionInfo(semTypeInstance, *function));
+				function->setDebugInfo(makeDefaultFunctionInfo(*typeInstanceNode, *function));
 				
 				function->setMethod(true);
 				function->setIsStatic(true);
@@ -395,11 +393,11 @@ namespace locic {
 				const bool isDynamicMethod = false;
 				const bool isTemplatedMethod = false;
 				auto noExceptPredicate = SEM::Predicate::True();
-				const auto returnType = semTypeInstance.selfType();
+				const auto returnType = typeInstanceNode->selfType();
 				
 				AST::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
 				function->setType(AST::FunctionType(std::move(attributes), returnType, {}));
-				semTypeInstance.attachFunction(*function);
+				typeInstanceNode->attachFunction(*function);
 				
 				// TODO: memory leak!
 				(void) function.release();
@@ -424,16 +422,14 @@ namespace locic {
 				AddNamespaceDataFunctionDecls(context, astNamespaceNode->data(), moduleScope);
 			}
 			
-			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
-				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				for (auto& astFunctionNode: *(astTypeInstanceNode->functions)) {
-					AddTypeInstanceFunctionDecl(context, astFunctionNode, moduleScope);
+			for (const auto& typeInstanceNode: astNamespaceDataNode->typeInstances) {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*typeInstanceNode));
+				for (auto& functionNode: *(typeInstanceNode->functionDecls)) {
+					AddTypeInstanceFunctionDecl(context, functionNode, moduleScope);
 				}
 				
-				if (semChildTypeInstance.isEnum()) {
-					AddEnumConstructorDecls(context, astTypeInstanceNode);
+				if (typeInstanceNode->isEnum()) {
+					AddEnumConstructorDecls(context, typeInstanceNode);
 				}
 			}
 		}

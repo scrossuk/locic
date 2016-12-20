@@ -8,7 +8,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		llvm::Value* genVTable(Module& module, const SEM::TypeInstance* typeInstance);
+		llvm::Value* genVTable(Module& module, const AST::TypeInstance* typeInstance);
 		
 	}
 	

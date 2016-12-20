@@ -23,27 +23,39 @@ namespace locic {
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeClassDecl(String name, AST::Node<AST::FunctionList> methods,
 		                                   const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::ClassDecl(name, std::move(methods)), start);
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::CLASSDECL),
+			                                 start);
+			node->functionDecls = std::move(methods);
+			return node;
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeClassDef(String name, AST::Node<AST::VarList> variables,
 		                                  AST::Node<AST::FunctionList> methods,
 		                                  const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::ClassDef(name, std::move(variables),
-			                                                        std::move(methods)), start);
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::CLASSDEF),
+			                                 start);
+			node->variableDecls = std::move(variables);
+			node->functionDecls = std::move(methods);
+			return node;
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeDatatype(String name, AST::Node<AST::VarList> variables,
 		                                  const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Datatype(name, std::move(variables)), start);
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::DATATYPE),
+			                                 start);
+			node->variableDecls = std::move(variables);
+			return node;
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeUnionDatatype(String name, AST::Node<AST::TypeInstanceList> variants,
 		                                       const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::UnionDatatype(name, std::move(variants)), start);
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::UNION_DATATYPE),
+			                                 start);
+			node->variantDecls = std::move(variants);
+			return node;
 		}
 		
 		AST::Node<AST::TypeInstanceList>
@@ -56,7 +68,10 @@ namespace locic {
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeEnum(String name, AST::Node<AST::StringList> constructorList,
 		                              const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Enum(name, std::move(constructorList)), start);
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::ENUM),
+			                                 start);
+			node->constructors = std::move(constructorList);
+			return node;
 		}
 		
 		AST::Node<AST::StringList>
@@ -70,8 +85,11 @@ namespace locic {
 		TypeInstanceBuilder::makeException(String name, AST::Node<AST::VarList> variables,
 		                                   AST::Node<AST::ExceptionInitializer> initializer,
 		                                   const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Exception(name, std::move(variables),
-			                                                         std::move(initializer)), start);
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::EXCEPTION),
+			                                 start);
+			node->variableDecls = std::move(variables);
+			node->initializer = std::move(initializer);
+			return node;
 		}
 		
 		AST::Node<AST::ExceptionInitializer>
@@ -91,30 +109,43 @@ namespace locic {
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeInterface(String name, AST::Node<AST::FunctionList> methods,
 		                                   const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Interface(name, std::move(methods)), start);
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::INTERFACE),
+			                                 start);
+			node->functionDecls = std::move(methods);
+			return node;
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makePrimitive(String name, AST::Node<AST::FunctionList> methods,
 		                                   const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Primitive(name, std::move(methods)), start);
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::PRIMITIVE),
+			                                 start);
+			node->functionDecls = std::move(methods);
+			return node;
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeOpaqueStruct(String name, const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::OpaqueStruct(name), start);
+			return makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::OPAQUE_STRUCT),
+			                            start);
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeStruct(String name, AST::Node<AST::VarList> variables,
 		                                const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Struct(name, std::move(variables)), start);
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::STRUCT),
+			                                 start);
+			node->variableDecls = std::move(variables);
+			return node;
 		}
 		
 		AST::Node<AST::TypeInstance>
 		TypeInstanceBuilder::makeUnion(String name, AST::Node<AST::VarList> variables,
 		                               const Debug::SourcePosition& start) {
-			return makeTypeInstanceNode(AST::TypeInstance::Union(name, std::move(variables)), start);
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::UNION),
+			                                 start);
+			node->variableDecls = std::move(variables);
+			return node;
 		}
 		
 		AST::Node<AST::FunctionList>

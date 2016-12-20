@@ -45,11 +45,9 @@ namespace locic {
 				AddNamespaceDataFunctionTypes(context, astNamespaceNode->data());
 			}
 			
-			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
-				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				for (auto& function: *(astTypeInstanceNode->functions)) {
+			for (const auto& typeInstanceNode: astNamespaceDataNode->typeInstances) {
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*typeInstanceNode));
+				for (auto& function: *(typeInstanceNode->functionDecls)) {
 					ConvertFunctionDeclType(context, function);
 				}
 			}

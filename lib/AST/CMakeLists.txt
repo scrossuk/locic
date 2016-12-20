@@ -5,7 +5,6 @@ set(SEM_FILES
 	../SEM/Scope.cpp
 	../SEM/Statement.cpp
 	../SEM/SwitchCase.cpp
-	../SEM/TypeInstance.cpp
 )
 
 add_library(locic-ast

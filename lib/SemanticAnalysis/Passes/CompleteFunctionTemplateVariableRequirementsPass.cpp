@@ -91,13 +91,11 @@ namespace locic {
 				CompleteNamespaceDataFunctionTemplateVariableRequirements(context, astNamespaceNode->data());
 			}
 			
-			for (const auto& astTypeInstanceNode: astNamespaceDataNode->typeInstances) {
-				auto& semChildTypeInstance = astTypeInstanceNode->semTypeInstance();
-				
-				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(semChildTypeInstance));
-				for (auto& function: *(astTypeInstanceNode->functions)) {
+			for (const auto& typeInstanceNode: astNamespaceDataNode->typeInstances) {
+				PushScopeElement pushTypeInstance(context.scopeStack(), ScopeElement::TypeInstance(*typeInstanceNode));
+				for (auto& function: *(typeInstanceNode->functionDecls)) {
 					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*function));
-					CompleteFunctionTemplateVariableRequirements(context, function, semChildTypeInstance.requiresPredicate());
+					CompleteFunctionTemplateVariableRequirements(context, function, typeInstanceNode->requiresPredicate());
 				}
 			}
 		}

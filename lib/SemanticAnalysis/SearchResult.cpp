@@ -29,7 +29,7 @@ namespace locic {
 			return element;
 		}
 		
-		SearchResult SearchResult::TypeInstance(SEM::TypeInstance& typeInstance) {
+		SearchResult SearchResult::TypeInstance(AST::TypeInstance& typeInstance) {
 			SearchResult element(TYPEINSTANCE);
 			element.data_.typeInstance = &typeInstance;
 			return element;
@@ -84,7 +84,7 @@ namespace locic {
 			return *(data_.templateVar);
 		}
 		
-		SEM::TypeInstance& SearchResult::typeInstance() const {
+		AST::TypeInstance& SearchResult::typeInstance() const {
 			assert(isTypeInstance());
 			return *(data_.typeInstance);
 		}

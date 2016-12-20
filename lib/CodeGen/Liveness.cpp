@@ -20,14 +20,14 @@
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
-#include <locic/SEM/TypeInstance.hpp>
+#include <locic/AST/TypeInstance.hpp>
 #include <locic/Support/Utils.hpp>
 
 namespace locic {
 	
 	namespace CodeGen {
 		
-		Optional<LivenessIndicator> getCustomLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
+		Optional<LivenessIndicator> getCustomLivenessIndicator(Module& module, const AST::TypeInstance& typeInstance) {
 			// Check if we have custom __islive and __setdead methods.
 			const auto& isLiveMethod = typeInstance.getFunction(module.getCString("__islive"));
 			const auto& setDeadMethod = typeInstance.getFunction(module.getCString("__setdead"));
@@ -40,7 +40,7 @@ namespace locic {
 			return None;
 		}	
 		
-		Optional<LivenessIndicator> getMemberLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
+		Optional<LivenessIndicator> getMemberLivenessIndicator(Module& module, const AST::TypeInstance& typeInstance) {
 			// See if one of the member variables has an invalid state we can use.
 			for (const auto& var: typeInstance.variables()) {
 				const auto type = var->constructType();
@@ -62,7 +62,7 @@ namespace locic {
 			return None;
 		}
 		
-		Optional<LivenessIndicator> getGapByteLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
+		Optional<LivenessIndicator> getGapByteLivenessIndicator(Module& module, const AST::TypeInstance& typeInstance) {
 			size_t currentOffset = 0;
 			TypeInfo typeInfo(module);
 			for (const auto& var: typeInstance.variables()) {
@@ -89,7 +89,7 @@ namespace locic {
 			return None;
 		}
 		
-		LivenessIndicator getLivenessIndicator(Module& module, const SEM::TypeInstance& typeInstance) {
+		LivenessIndicator getLivenessIndicator(Module& module, const AST::TypeInstance& typeInstance) {
 			TypeInfo typeInfo(module);
 			if (!typeInfo.objectHasLivenessIndicator(typeInstance)) {
 				// Only classes need liveness indicators because only they
@@ -119,13 +119,13 @@ namespace locic {
 			return LivenessIndicator::SuffixByte();
 		}
 		
-		llvm::Function* genSetDeadFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
+		llvm::Function* genSetDeadFunctionDecl(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto& function = typeInstance->getFunction(module.getCString("__setdead"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			return semFunctionGenerator.getDecl(typeInstance, function);
 		}
 		
-		llvm::Value* getLivenessByteOffset(Function& function, const SEM::TypeInstance& typeInstance, const LivenessIndicator livenessIndicator) {
+		llvm::Value* getLivenessByteOffset(Function& function, const AST::TypeInstance& typeInstance, const LivenessIndicator livenessIndicator) {
 			if (livenessIndicator.isSuffixByte()) {
 				return genSuffixByteOffset(function, typeInstance);
 			} else if (livenessIndicator.isGapByte()) {
@@ -135,7 +135,7 @@ namespace locic {
 			}
 		}
 		
-		llvm::Value* getLivenessBytePtr(Function& function, const SEM::TypeInstance& typeInstance,
+		llvm::Value* getLivenessBytePtr(Function& function, const AST::TypeInstance& typeInstance,
 				const LivenessIndicator livenessIndicator, llvm::Value* const objectPointerValue) {
 			IREmitter irEmitter(function);
 			const auto byteOffsetValue = getLivenessByteOffset(function, typeInstance, livenessIndicator);
@@ -144,7 +144,7 @@ namespace locic {
 			                                 byteOffsetValue);
 		}
 		
-		void setOuterLiveState(Function& functionGenerator, const SEM::TypeInstance& typeInstance, llvm::Value* const objectPointerValue) {
+		void setOuterLiveState(Function& functionGenerator, const AST::TypeInstance& typeInstance, llvm::Value* const objectPointerValue) {
 			auto& module = functionGenerator.module();
 			
 			const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
@@ -216,7 +216,7 @@ namespace locic {
 			llvm_unreachable("Unknown __setinvalid value type.");
 		}
 		
-		llvm::Function* genIsLiveFunctionDecl(Module& module, const SEM::TypeInstance* const typeInstance) {
+		llvm::Function* genIsLiveFunctionDecl(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto& function = typeInstance->getFunction(module.getCString("__islive"));
 			auto& semFunctionGenerator = module.semFunctionGenerator();
 			return semFunctionGenerator.getDecl(typeInstance, function);

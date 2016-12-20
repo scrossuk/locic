@@ -13,7 +13,7 @@
 #include <locic/Debug/ValueInfo.hpp>
 
 #include <locic/SEM/Predicate.hpp>
-#include <locic/SEM/TypeInstance.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
@@ -50,11 +50,11 @@ namespace locic {
 				} localVar;
 				
 				struct {
-					const SEM::TypeInstance* typeInstance;
+					const AST::TypeInstance* typeInstance;
 				} unionDataOffset;
 				
 				struct {
-					const SEM::TypeInstance* typeInstance;
+					const AST::TypeInstance* typeInstance;
 					size_t memberIndex;
 				} memberOffset;
 				
@@ -149,13 +149,13 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::UnionDataOffset(const SEM::TypeInstance* const typeInstance, const Type* const sizeType) {
+		Value Value::UnionDataOffset(const AST::TypeInstance* const typeInstance, const Type* const sizeType) {
 			Value value(UNIONDATAOFFSET, sizeType, ExitStates::Normal());
 			value.impl_->union_.unionDataOffset.typeInstance = typeInstance;
 			return value;
 		}
 		
-		Value Value::MemberOffset(const SEM::TypeInstance* const typeInstance, const size_t memberIndex, const Type* const sizeType) {
+		Value Value::MemberOffset(const AST::TypeInstance* const typeInstance, const size_t memberIndex, const Type* const sizeType) {
 			Value value(MEMBEROFFSET, sizeType, ExitStates::Normal());
 			value.impl_->union_.memberOffset.typeInstance = typeInstance;
 			value.impl_->union_.memberOffset.memberIndex = memberIndex;
@@ -463,7 +463,7 @@ namespace locic {
 			return kind() == UNIONDATAOFFSET;
 		}
 		
-		const SEM::TypeInstance* Value::unionDataOffsetTypeInstance() const {
+		const AST::TypeInstance* Value::unionDataOffsetTypeInstance() const {
 			assert(isUnionDataOffset());
 			return impl_->union_.unionDataOffset.typeInstance;
 		}
@@ -472,7 +472,7 @@ namespace locic {
 			return kind() == MEMBEROFFSET;
 		}
 		
-		const SEM::TypeInstance* Value::memberOffsetTypeInstance() const {
+		const AST::TypeInstance* Value::memberOffsetTypeInstance() const {
 			assert(isMemberOffset());
 			return impl_->union_.memberOffset.typeInstance;
 		}

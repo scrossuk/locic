@@ -23,7 +23,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		Debug::FunctionInfo makeDefaultFunctionInfo(const SEM::TypeInstance& parentType,
+		Debug::FunctionInfo makeDefaultFunctionInfo(const AST::TypeInstance& parentType,
 		                                            const AST::Function& function) {
 			Debug::FunctionInfo functionInfo;
 			functionInfo.name = function.fullName().copy();
@@ -32,7 +32,7 @@ namespace locic {
 			return functionInfo;
 		}
 		
-		SEM::Predicate getDefaultSizedTypePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+		SEM::Predicate getDefaultSizedTypePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			auto requirePredicate = SEM::Predicate::True();
 			
 			const auto sizedType = getBuiltInType(context, context.getCString("sized_type_t"), {});
@@ -52,7 +52,7 @@ namespace locic {
 			return requirePredicate;
 		}
 		
-		SEM::Predicate getAutoDefaultMovePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+		SEM::Predicate getAutoDefaultMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			auto requirePredicate = SEM::Predicate::True();
 			
 			const auto movableType = context.typeBuilder().getMovableInterfaceType();
@@ -72,7 +72,7 @@ namespace locic {
 			return requirePredicate;
 		}
 		
-		SEM::Predicate getDefaultMovePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+		SEM::Predicate getDefaultMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			if (typeInstance->movePredicate()) {
 				// Use a user-provided move predicate if available.
 				return typeInstance->movePredicate()->copy();
@@ -83,7 +83,7 @@ namespace locic {
 		}
 		
 		// A similar version of the move predicate but uses notag() to get non-const type.
-		SEM::Predicate getDefaultCopyMovePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+		SEM::Predicate getDefaultCopyMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			auto requirePredicate = SEM::Predicate::True();
 			
 			const auto movableType = context.typeBuilder().getMovableInterfaceType();
@@ -103,7 +103,7 @@ namespace locic {
 			return requirePredicate;
 		}
 		
-		SEM::Predicate getDefaultCopyPredicate(Context& context, const SEM::TypeInstance* const typeInstance, const String& propertyName) {
+		SEM::Predicate getDefaultCopyPredicate(Context& context, const AST::TypeInstance* const typeInstance, const String& propertyName) {
 			// Types must be movable to be copyable.
 			auto predicate = getDefaultCopyMovePredicate(context, typeInstance);
 			
@@ -124,23 +124,23 @@ namespace locic {
 			return predicate;
 		}
 		
-		SEM::Predicate getDefaultImplicitCopyNoExceptPredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+		SEM::Predicate getDefaultImplicitCopyNoExceptPredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			return getDefaultCopyPredicate(context, typeInstance, context.getCString("noexcept_implicit_copyable_t"));
 		}
 		
-		SEM::Predicate getDefaultImplicitCopyRequirePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+		SEM::Predicate getDefaultImplicitCopyRequirePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			return getDefaultCopyPredicate(context, typeInstance, context.getCString("implicit_copyable_t"));
 		}
 		
-		SEM::Predicate getDefaultExplicitCopyNoExceptPredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+		SEM::Predicate getDefaultExplicitCopyNoExceptPredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			return getDefaultCopyPredicate(context, typeInstance, context.getCString("noexcept_copyable_t"));
 		}
 		
-		SEM::Predicate getDefaultExplicitCopyRequirePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+		SEM::Predicate getDefaultExplicitCopyRequirePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			return getDefaultCopyPredicate(context, typeInstance, context.getCString("copyable_t"));
 		}
 		
-		SEM::Predicate getDefaultComparePredicate(Context& context, const SEM::TypeInstance* const typeInstance, const String& propertyName) {
+		SEM::Predicate getDefaultComparePredicate(Context& context, const AST::TypeInstance* const typeInstance, const String& propertyName) {
 			auto predicate = SEM::Predicate::True();
 			
 			// All member variables need to be copyable.
@@ -160,12 +160,12 @@ namespace locic {
 			return predicate;
 		}
 		
-		SEM::Predicate getDefaultCompareNoExceptPredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+		SEM::Predicate getDefaultCompareNoExceptPredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			const auto propertyName = context.getCString("noexcept_comparable_t");
 			return getDefaultComparePredicate(context, typeInstance, propertyName);
 		}
 		
-		SEM::Predicate getDefaultCompareRequirePredicate(Context& context, const SEM::TypeInstance* const typeInstance) {
+		SEM::Predicate getDefaultCompareRequirePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			const auto propertyName = context.getCString("comparable_t");
 			return getDefaultComparePredicate(context, typeInstance, propertyName);
 		}
@@ -174,7 +174,7 @@ namespace locic {
 		: context_(context) { }
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createAutoGeneratedDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createAutoGeneratedDecl(AST::TypeInstance* typeInstance,
 		                                        const Name& name, bool isStatic) {
 			std::unique_ptr<AST::Function> function(new AST::Function());
 			function->setParent(AST::GlobalStructure::TypeInstance(*typeInstance));
@@ -192,7 +192,7 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createDefaultConstructorDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultConstructorDecl(AST::TypeInstance* typeInstance,
 		                                             const Name& name) {
 			auto function = createAutoGeneratedDecl(typeInstance, name,
 			                                        /*isStatic=*/true);
@@ -203,7 +203,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::completeDefaultConstructorDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultConstructorDecl(AST::TypeInstance* typeInstance,
 		                                               AST::Function& function) {
 			// This method requires move, so add the move predicate.
 			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
@@ -228,7 +228,7 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createDefaultAlignMaskDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultAlignMaskDecl(AST::TypeInstance* typeInstance,
 		                                           const Name& name) {
 			auto function = createAutoGeneratedDecl(typeInstance, name,
 			                                        /*isStatic=*/true);
@@ -239,7 +239,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::completeDefaultAlignMaskDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultAlignMaskDecl(AST::TypeInstance* typeInstance,
 		                                             AST::Function& function) {
 			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultSizedTypePredicate(context_, typeInstance)));
@@ -259,7 +259,7 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createDefaultSizeOfDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultSizeOfDecl(AST::TypeInstance* typeInstance,
 		                                        const Name& name) {
 			auto function = createAutoGeneratedDecl(typeInstance, name,
 			                                        /*isStatic=*/true);
@@ -270,7 +270,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::completeDefaultSizeOfDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultSizeOfDecl(AST::TypeInstance* typeInstance,
 		                                          AST::Function& function) {
 			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultSizedTypePredicate(context_, typeInstance)));
@@ -290,7 +290,7 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createDefaultDestroyDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultDestroyDecl(AST::TypeInstance* typeInstance,
 		                                         const Name& name) {
 			auto function = createAutoGeneratedDecl(typeInstance, name,
 			                                        /*isStatic=*/false);
@@ -301,7 +301,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::completeDefaultDestroyDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultDestroyDecl(AST::TypeInstance* typeInstance,
 		                                           AST::Function& function) {
 			function.setRequiresPredicate(typeInstance->requiresPredicate().copy());
 			
@@ -321,7 +321,7 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createDefaultMoveDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultMoveDecl(AST::TypeInstance* typeInstance,
 		                                      const Name& name) {
 			auto function = createAutoGeneratedDecl(typeInstance, name,
 			                                        /*isStatic=*/false);
@@ -332,7 +332,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::completeDefaultMoveDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultMoveDecl(AST::TypeInstance* typeInstance,
 		                                        AST::Function& function) {
 			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultMovePredicate(context_, typeInstance)));
@@ -362,7 +362,7 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultImplicitCopyDecl(AST::TypeInstance* typeInstance,
 		                                              const Name& name) {
 			auto function = createAutoGeneratedDecl(typeInstance, name,
 			                                        /*isStatic=*/false);
@@ -373,7 +373,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::completeDefaultImplicitCopyDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultImplicitCopyDecl(AST::TypeInstance* typeInstance,
 		                                                AST::Function& function) {
 			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultImplicitCopyRequirePredicate(context_, typeInstance)));
@@ -395,7 +395,7 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createDefaultExplicitCopyDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultExplicitCopyDecl(AST::TypeInstance* typeInstance,
 		                                              const Name& name) {
 			auto function = createAutoGeneratedDecl(typeInstance, name,
 			                                        /*isStatic=*/false);
@@ -406,7 +406,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::completeDefaultExplicitCopyDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultExplicitCopyDecl(AST::TypeInstance* typeInstance,
 		                                                AST::Function& function) {
 			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultExplicitCopyRequirePredicate(context_, typeInstance)));
@@ -428,7 +428,7 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createDefaultCompareDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultCompareDecl(AST::TypeInstance* typeInstance,
 		                                         const Name& name) {
 			auto function = createAutoGeneratedDecl(typeInstance, name,
 			                                        /*isStatic=*/false);
@@ -439,7 +439,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::completeDefaultCompareDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultCompareDecl(AST::TypeInstance* typeInstance,
 		                                           AST::Function& function) {
 			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultCompareRequirePredicate(context_, typeInstance)));
@@ -471,7 +471,7 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createDefaultSetDeadDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultSetDeadDecl(AST::TypeInstance* typeInstance,
 		                                         const Name& name) {
 			auto function = createAutoGeneratedDecl(typeInstance, name,
 			                                        /*isStatic=*/false);
@@ -482,7 +482,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::completeDefaultSetDeadDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultSetDeadDecl(AST::TypeInstance* typeInstance,
 		                                           AST::Function& function) {
 			const bool isVarArg = false;
 			const bool isDynamicMethod = true;
@@ -497,7 +497,7 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		DefaultMethods::createDefaultIsLiveDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultIsLiveDecl(AST::TypeInstance* typeInstance,
 		                                        const Name& name) {
 			auto function = createAutoGeneratedDecl(typeInstance, name,
 			                                        /*isStatic=*/false);
@@ -508,7 +508,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::completeDefaultIsLiveDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultIsLiveDecl(AST::TypeInstance* typeInstance,
 		                                          AST::Function& function) {
 			function.setConstPredicate(SEM::Predicate::True());
 			
@@ -573,7 +573,7 @@ namespace locic {
 		};
 		
 		void
-		DefaultMethods::completeDefaultMethodDecl(SEM::TypeInstance* typeInstance,
+		DefaultMethods::completeDefaultMethodDecl(AST::TypeInstance* typeInstance,
 		                                          AST::Node<AST::Function>& function) {
 			assert(!typeInstance->isClassDecl());
 			assert(!typeInstance->isInterface());
@@ -654,7 +654,7 @@ namespace locic {
 		}
 		
 		bool
-		DefaultMethods::hasDefaultConstructor(SEM::TypeInstance* const typeInstance) {
+		DefaultMethods::hasDefaultConstructor(AST::TypeInstance* const typeInstance) {
 			return typeInstance->isDatatype() ||
 				typeInstance->isException() ||
 				typeInstance->isStruct() ||
@@ -662,7 +662,7 @@ namespace locic {
 		}
 		
 		bool
-		DefaultMethods::hasDefaultAlignMask(SEM::TypeInstance* const typeInstance) {
+		DefaultMethods::hasDefaultAlignMask(AST::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
@@ -672,7 +672,7 @@ namespace locic {
 			return !typeInstance->hasFunction(context_.getCString("__alignmask"));
 		}
 		
-		bool DefaultMethods::hasDefaultSizeOf(SEM::TypeInstance* const typeInstance) {
+		bool DefaultMethods::hasDefaultSizeOf(AST::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
@@ -682,7 +682,7 @@ namespace locic {
 			return !typeInstance->hasFunction(context_.getCString("__sizeof"));
 		}
 		
-		bool DefaultMethods::hasDefaultDestroy(SEM::TypeInstance* const typeInstance) {
+		bool DefaultMethods::hasDefaultDestroy(AST::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
@@ -693,7 +693,7 @@ namespace locic {
 		}
 		
 		bool
-		DefaultMethods::hasDefaultMove(SEM::TypeInstance* const typeInstance) {
+		DefaultMethods::hasDefaultMove(AST::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
@@ -704,7 +704,7 @@ namespace locic {
 		}
 		
 		bool
-		DefaultMethods::hasDefaultImplicitCopy(SEM::TypeInstance* const typeInstance) {
+		DefaultMethods::hasDefaultImplicitCopy(AST::TypeInstance* const typeInstance) {
 			return typeInstance->isClassDef() ||
 				typeInstance->isDatatype() ||
 				typeInstance->isEnum() ||
@@ -715,7 +715,7 @@ namespace locic {
 		}
 		
 		bool
-		DefaultMethods::hasDefaultExplicitCopy(SEM::TypeInstance* const typeInstance) {
+		DefaultMethods::hasDefaultExplicitCopy(AST::TypeInstance* const typeInstance) {
 			return typeInstance->isClassDef() ||
 				typeInstance->isDatatype() ||
 				typeInstance->isEnum() ||
@@ -726,7 +726,7 @@ namespace locic {
 		}
 		
 		bool
-		DefaultMethods::hasDefaultCompare(SEM::TypeInstance* const typeInstance) {
+		DefaultMethods::hasDefaultCompare(AST::TypeInstance* const typeInstance) {
 			return typeInstance->isClassDef() ||
 				typeInstance->isDatatype() ||
 				typeInstance->isEnum() ||
@@ -736,7 +736,7 @@ namespace locic {
 		}
 		
 		bool
-		DefaultMethods::hasDefaultSetDead(SEM::TypeInstance* const typeInstance) {
+		DefaultMethods::hasDefaultSetDead(AST::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
@@ -747,7 +747,7 @@ namespace locic {
 		}
 		
 		bool
-		DefaultMethods::hasDefaultIsLive(SEM::TypeInstance* const typeInstance) {
+		DefaultMethods::hasDefaultIsLive(AST::TypeInstance* const typeInstance) {
 			if (typeInstance->isInterface() || typeInstance->isPrimitive()) {
 				return false;
 			}
@@ -758,7 +758,7 @@ namespace locic {
 		}
 		
 		void
-		DefaultMethods::createDefaultConstructor(SEM::TypeInstance* const typeInstance,
+		DefaultMethods::createDefaultConstructor(AST::TypeInstance* const typeInstance,
 		                                         AST::Function& /*function*/,
 		                                         const Debug::SourceLocation& /*location*/) {
 			(void) typeInstance;
@@ -778,7 +778,7 @@ namespace locic {
 		};
 		
 		bool
-		DefaultMethods::createDefaultImplicitCopy(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultImplicitCopy(AST::TypeInstance* typeInstance,
 		                                          AST::Function& /*function*/,
 		                                          const Debug::SourceLocation& location) {
 			if (!TypeCapabilities(context_).supportsImplicitCopy(typeInstance->selfType())) {
@@ -803,7 +803,7 @@ namespace locic {
 		};
 		
 		bool
-		DefaultMethods::createDefaultExplicitCopy(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultExplicitCopy(AST::TypeInstance* typeInstance,
 		                                          AST::Function& /*function*/,
 		                                          const Debug::SourceLocation& location) {
 			if (!TypeCapabilities(context_).supportsExplicitCopy(typeInstance->selfType())) {
@@ -828,7 +828,7 @@ namespace locic {
 		};
 		
 		bool
-		DefaultMethods::createDefaultCompare(SEM::TypeInstance* typeInstance,
+		DefaultMethods::createDefaultCompare(AST::TypeInstance* typeInstance,
 		                                     AST::Function& /*function*/,
 		                                     const Debug::SourceLocation& location) {
 			assert(!typeInstance->isUnion());
@@ -844,7 +844,7 @@ namespace locic {
 		}
 		
 		bool
-		DefaultMethods::createDefaultMethod(SEM::TypeInstance* const typeInstance,
+		DefaultMethods::createDefaultMethod(AST::TypeInstance* const typeInstance,
 		                                    AST::Function& function,
 		                                    const Debug::SourceLocation& location) {
 			assert(!typeInstance->isClassDecl() && !typeInstance->isInterface());

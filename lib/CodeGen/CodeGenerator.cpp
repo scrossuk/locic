@@ -38,7 +38,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		void genTypeInstanceFunctions(Module& module, const SEM::TypeInstance& typeInstance) {
+		void genTypeInstanceFunctions(Module& module, const AST::TypeInstance& typeInstance) {
 			if (typeInstance.isInterface()) {
 				// Can't generate interface types.
 				return;

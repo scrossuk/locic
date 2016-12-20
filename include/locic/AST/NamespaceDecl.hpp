@@ -17,7 +17,7 @@ namespace locic {
 		class Namespace;
 		class NamespaceDecl;
 		class StaticAssert;
-		struct TypeInstance;
+		class TypeInstance;
 		
 		struct NamespaceData {
 			std::vector<Node<Alias>> aliases;

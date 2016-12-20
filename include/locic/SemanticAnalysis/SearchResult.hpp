@@ -8,13 +8,8 @@ namespace locic {
 		class Alias;
 		class Function;
 		class TemplateVar;
-		class Var;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
+		class Var;
 		
 	}
 	
@@ -39,7 +34,7 @@ namespace locic {
 				
 				static SearchResult TemplateVar(AST::TemplateVar& templateVar);
 				
-				static SearchResult TypeInstance(SEM::TypeInstance& typeInstance);
+				static SearchResult TypeInstance(AST::TypeInstance& typeInstance);
 				
 				static SearchResult Var(AST::Var& var);
 				
@@ -55,7 +50,7 @@ namespace locic {
 				AST::Alias& alias() const;
 				AST::Function& function() const;
 				AST::TemplateVar& templateVar() const;
-				SEM::TypeInstance& typeInstance() const;
+				AST::TypeInstance& typeInstance() const;
 				AST::Var& var() const;
 				
 			private:
@@ -68,7 +63,7 @@ namespace locic {
 					AST::Alias* alias;
 					AST::Function* function;
 					AST::TemplateVar* templateVar;
-					SEM::TypeInstance* typeInstance;
+					AST::TypeInstance* typeInstance;
 					AST::Var* var;
 				} data_;
 				

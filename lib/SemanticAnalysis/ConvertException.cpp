@@ -67,60 +67,60 @@ namespace locic {
 		}
 		
 		std::unique_ptr<AST::Function>
-		CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* const semTypeInstance) {
-			if (semTypeInstance->parentType() == nullptr) {
+		CreateExceptionConstructorDecl(Context& context, AST::TypeInstance& typeInstance) {
+			if (typeInstance.parentType() == nullptr) {
 				// No parent, so just create a normal default constructor.
-				return DefaultMethods(context).createDefaultConstructorDecl(semTypeInstance,
-				                                                            semTypeInstance->fullName() + context.getCString("create"));
+				return DefaultMethods(context).createDefaultConstructorDecl(&typeInstance,
+				                                                            typeInstance.fullName() + context.getCString("create"));
 			}
 			
 			std::unique_ptr<AST::Function> function(new AST::Function());
-			function->setParent(AST::GlobalStructure::TypeInstance(*semTypeInstance));
-			function->setFullName(semTypeInstance->fullName() + context.getCString("create"));
-			function->setModuleScope(semTypeInstance->moduleScope().copy());
+			function->setParent(AST::GlobalStructure::TypeInstance(typeInstance));
+			function->setFullName(typeInstance.fullName() + context.getCString("create"));
+			function->setModuleScope(typeInstance.moduleScope().copy());
 			
-			function->setDebugInfo(makeDefaultFunctionInfo(*semTypeInstance, *function));
+			function->setDebugInfo(makeDefaultFunctionInfo(typeInstance, *function));
 			
-			function->setRequiresPredicate(semTypeInstance->requiresPredicate().copy());
+			function->setRequiresPredicate(typeInstance.requiresPredicate().copy());
 			
 			function->setMethod(true);
 			function->setIsStatic(true);
 			
 			const bool isVarArg = false;
 			const bool isDynamicMethod = false;
-			const bool isTemplatedMethod = !semTypeInstance->templateVariables().empty();
+			const bool isTemplatedMethod = !typeInstance.templateVariables().empty();
 			auto noExceptPredicate = SEM::Predicate::False();
 			
 			// Filter out first variable from construct types
 			// since the first variable will store the parent.
-			auto constructTypes = getFilteredConstructTypes(semTypeInstance->variables());
-			function->setParameters(getParameters(semTypeInstance->variables()));
+			auto constructTypes = getFilteredConstructTypes(typeInstance.variables());
+			function->setParameters(getParameters(typeInstance.variables()));
 			
 			AST::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
-			function->setType(AST::FunctionType(std::move(attributes), semTypeInstance->selfType(), std::move(constructTypes)));
+			function->setType(AST::FunctionType(std::move(attributes), typeInstance.selfType(), std::move(constructTypes)));
 			return function;
 		}
 		
-		void CreateExceptionConstructor(Context& context, const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
-		                                SEM::TypeInstance* semTypeInstance, AST::Function& function) {
-			assert(semTypeInstance->isException());
+		void CreateExceptionConstructor(Context& context, AST::Node<AST::TypeInstance>& typeInstanceNode,
+		                                AST::Function& function) {
+			assert(typeInstanceNode->isException());
 			
-			const auto& initializerNode = astTypeInstanceNode->initializer;
-			const auto& location = astTypeInstanceNode.location();
+			const auto& initializerNode = typeInstanceNode->initializer;
+			const auto& location = typeInstanceNode.location();
 			
 			const bool hasParent = (initializerNode->kind == AST::ExceptionInitializer::INITIALIZE);
 			
 			if (!hasParent) {
-				assert(semTypeInstance->parentType() == nullptr);
+				assert(typeInstanceNode->parentType() == nullptr);
 				
 				// No parent, so just create a normal default constructor.
-				DefaultMethods(context).createDefaultConstructor(semTypeInstance,
+				DefaultMethods(context).createDefaultConstructor(typeInstanceNode.get(),
 				                                                 function,
 				                                                 location);
 				return;
 			}
 			
-			assert(semTypeInstance->parentType() != nullptr);
+			assert(typeInstanceNode->parentType() != nullptr);
 			
 			// Attach parameters to the function.
 			attachParameters(function);
@@ -137,7 +137,7 @@ namespace locic {
 			constructValues.reserve(1 + function.parameters().size());
 			
 			// Call parent constructor.
-			auto typeRefValue = createTypeRef(context, semTypeInstance->parentType());
+			auto typeRefValue = createTypeRef(context, typeInstanceNode->parentType());
 			constructValues.push_back(CallValue(context, GetStaticMethod(context, std::move(typeRefValue), context.getCString("create"), location), std::move(parentArguments), location));
 			
 			for (const auto var: function.parameters()) {
@@ -148,7 +148,7 @@ namespace locic {
 				constructValues.push_back(CallValue(context, GetSpecialMethod(context, derefValue(std::move(varValue)), context.getCString("move"), location), {}, location));
 			}
 			
-			auto returnValue = AST::Value::InternalConstruct(semTypeInstance->selfType(), std::move(constructValues));
+			auto returnValue = AST::Value::InternalConstruct(typeInstanceNode->selfType(), std::move(constructValues));
 			
 			std::unique_ptr<SEM::Scope> scope(new SEM::Scope());
 			scope->statements().push_back(SEM::Statement::Return(std::move(returnValue)));

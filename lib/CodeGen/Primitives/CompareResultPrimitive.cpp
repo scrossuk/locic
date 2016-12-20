@@ -43,7 +43,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		CompareResultPrimitive::CompareResultPrimitive(const SEM::TypeInstance& typeInstance)
+		CompareResultPrimitive::CompareResultPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) {
 			(void) typeInstance_;
 		}

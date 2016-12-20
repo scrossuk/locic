@@ -21,7 +21,7 @@ namespace locic {
 			return element;
 		}
 		
-		ScopeElement ScopeElement::TypeInstance(SEM::TypeInstance& typeInstance) {
+		ScopeElement ScopeElement::TypeInstance(AST::TypeInstance& typeInstance) {
 			ScopeElement element(TYPEINSTANCE);
 			element.data_.typeInstance = &typeInstance;
 			return element;
@@ -127,7 +127,7 @@ namespace locic {
 			return *(data_.alias);
 		}
 		
-		SEM::TypeInstance& ScopeElement::typeInstance() const {
+		AST::TypeInstance& ScopeElement::typeInstance() const {
 			assert(isTypeInstance());
 			return *(data_.typeInstance);
 		}

@@ -46,7 +46,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		RangePrimitive::RangePrimitive(const SEM::TypeInstance& typeInstance)
+		RangePrimitive::RangePrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) { }
 		
 		bool RangePrimitive::isSizeAlwaysKnown(const TypeInfo& typeInfo,

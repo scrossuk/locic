@@ -604,7 +604,7 @@ namespace locic {
 		
 		static const AST::Type*
 		createRefType(const AST::Type* const refTargetType,
-		              const SEM::TypeInstance& refTypeInstance,
+		              const AST::TypeInstance& refTypeInstance,
 		              const AST::Type* const typenameType) {
 			auto typeRef = AST::Value::TypeRef(refTargetType,
 			                                   typenameType->createStaticRefType(refTargetType));

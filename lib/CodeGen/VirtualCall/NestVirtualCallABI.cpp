@@ -60,7 +60,7 @@ namespace locic {
 		}
 		
 		llvm::Constant*
-		NestVirtualCallABI::emitVTableSlot(const SEM::TypeInstance& typeInstance,
+		NestVirtualCallABI::emitVTableSlot(const AST::TypeInstance& typeInstance,
 		                                      llvm::ArrayRef<AST::Function*> methods) {
 			ConstantGenerator constGen(module_);
 			TypeGenerator typeGen(module_);

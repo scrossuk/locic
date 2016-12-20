@@ -11,7 +11,7 @@ namespace locic {
 	class PrimitiveID;
 	class String;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class TypeInstance;
 		
@@ -21,7 +21,7 @@ namespace locic {
 		
 		class PtrLvalPrimitive: public Primitive {
 		public:
-			PtrLvalPrimitive(const SEM::TypeInstance& typeInstance);
+			PtrLvalPrimitive(const AST::TypeInstance& typeInstance);
 			
 			bool isSizeAlwaysKnown(const TypeInfo& typeInfo,
 			                       llvm::ArrayRef<AST::Value> templateVariables) const;
@@ -50,7 +50,7 @@ namespace locic {
 			                        llvm::Value* hintResultValue) const;
 			
 		private:
-			const SEM::TypeInstance& typeInstance_;
+			const AST::TypeInstance& typeInstance_;
 			
 		};
 		

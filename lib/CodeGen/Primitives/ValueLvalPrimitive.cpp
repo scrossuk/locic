@@ -44,7 +44,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		ValueLvalPrimitive::ValueLvalPrimitive(const SEM::TypeInstance& typeInstance)
+		ValueLvalPrimitive::ValueLvalPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) {
 			(void) typeInstance_;
 		}

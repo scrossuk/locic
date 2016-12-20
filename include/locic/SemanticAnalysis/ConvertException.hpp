@@ -10,11 +10,6 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
 		
 	}
@@ -24,11 +19,11 @@ namespace locic {
 		class Context;
 		
 		std::unique_ptr<AST::Function>
-		CreateExceptionConstructorDecl(Context& context, SEM::TypeInstance* semTypeInstance);
+		CreateExceptionConstructorDecl(Context& context,
+		                               AST::TypeInstance& typeInstance);
 		
 		void CreateExceptionConstructor(Context& context,
-		                                const AST::Node<AST::TypeInstance>& astTypeInstanceNode,
-		                                SEM::TypeInstance* semTypeInstance,
+		                                AST::Node<AST::TypeInstance>& typeInstanceNode,
 		                                AST::Function& function);
 		
 	}

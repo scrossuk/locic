@@ -44,7 +44,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		PtrPrimitive::PtrPrimitive(const SEM::TypeInstance& typeInstance)
+		PtrPrimitive::PtrPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) {
 			(void) typeInstance_;
 		}

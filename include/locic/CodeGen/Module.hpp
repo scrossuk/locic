@@ -31,18 +31,13 @@ namespace locic {
 		
 		class Function;
 		class Type;
+		class TypeInstance;
 		
 	}
 	
 	namespace Debug {
 		
 		class Module;
-		
-	}
-	
-	namespace SEM {
-		
-		class TypeInstance;
 		
 	}
 	
@@ -79,18 +74,18 @@ namespace locic {
 		
 		typedef FastMap<AttributeKind, llvm::AttributeSet> AttributeMap;
 		typedef std::unordered_map<TemplateBuilder*, llvm::GlobalAlias*> BitsRequiredGlobalMap;
-		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> DestructorMap;
+		typedef std::unordered_map<const AST::TypeInstance*, llvm::Function*> DestructorMap;
 		typedef FastMap<String, llvm::Function*> FunctionMap;
 		typedef FastMap<std::pair<llvm::Function*, llvm::FunctionType*>, llvm::Function*> FunctionPtrStubMap;
 		typedef std::unordered_map<const AST::Function*, llvm::Function*> FunctionDeclMap;
 		typedef std::unordered_map<std::pair<String, Name>, String, hashPair<String, Name>> MangledNameMap;
-		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
-		typedef std::unordered_map<const SEM::TypeInstance*, llvm::Function*> MoveFunctionMap;
+		typedef std::unordered_map<const AST::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
+		typedef std::unordered_map<const AST::TypeInstance*, llvm::Function*> MoveFunctionMap;
 		typedef FastMap<StandardTypeKind, TypePair> StandardTypeMap;
 		typedef FastMap<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
 		typedef FastMap<TemplateInst, llvm::Function*> TemplateRootFunctionMap;
 		typedef FastMap<String, llvm::StructType*> TypeMap;
-		typedef std::unordered_map<const SEM::TypeInstance*, llvm::StructType*> TypeInstanceMap;
+		typedef std::unordered_map<const AST::TypeInstance*, llvm::StructType*> TypeInstanceMap;
 		
 		class InternalContext;
 		class Primitive;
@@ -145,7 +140,7 @@ namespace locic {
 				
 				MoveFunctionMap& getMoveFunctionMap();
 				
-				const Primitive& getPrimitive(const SEM::TypeInstance& typeInstance) const;
+				const Primitive& getPrimitive(const AST::TypeInstance& typeInstance) const;
 				
 				StandardTypeMap& standardTypeMap();
 				

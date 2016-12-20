@@ -8,11 +8,6 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
 		
 	}
@@ -45,11 +40,11 @@ namespace locic {
 			 *   * Giving other imported/exported External linkage.
 			 */
 			llvm::GlobalValue::LinkageTypes
-			getLinkage(const SEM::TypeInstance* typeInstance,
+			getLinkage(const AST::TypeInstance* typeInstance,
 			           const AST::Function& function) const;
 			
 			llvm::GlobalValue::LinkageTypes
-			getTypeLinkage(const SEM::TypeInstance& typeInstance) const;
+			getTypeLinkage(const AST::TypeInstance& typeInstance) const;
 			
 			void
 			addStandardFunctionAttributes(AST::FunctionType type,
@@ -72,7 +67,7 @@ namespace locic {
 			 * given SEM function.
 			 */
 			llvm::Function*
-			getDecl(const SEM::TypeInstance* typeInstance,
+			getDecl(const AST::TypeInstance* typeInstance,
 			        const AST::Function& function,
 			        bool isInnerMethod = false);
 			
@@ -80,7 +75,7 @@ namespace locic {
 			 * \brief Query whether definition should be generated.
 			 */
 			bool
-			hasDef(const SEM::TypeInstance* typeInstance,
+			hasDef(const AST::TypeInstance* typeInstance,
 			       const AST::Function& function);
 			
 			/**
@@ -90,7 +85,7 @@ namespace locic {
 			 * pointer to the generated LLVM function.
 			 */
 			llvm::Function*
-			genDef(const SEM::TypeInstance* typeInstance,
+			genDef(const AST::TypeInstance* typeInstance,
 			       const AST::Function& function,
 			       bool isInnerMethod = false);
 			

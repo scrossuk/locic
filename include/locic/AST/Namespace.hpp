@@ -13,17 +13,12 @@
 
 namespace locic {
 	
-	namespace SEM {
-		
-		class TypeInstance;
-		
-	}
-	
 	namespace AST {
 		
 		class Alias;
 		class Function;
 		class Namespace;
+		class TypeInstance;
 		
 		class NamespaceItem {
 			public:
@@ -40,7 +35,7 @@ namespace locic {
 				
 				static NamespaceItem Namespace(std::unique_ptr<AST::Namespace> nameSpace);
 				
-				static NamespaceItem TypeInstance(std::unique_ptr<SEM::TypeInstance> typeInstance);
+				static NamespaceItem TypeInstance(AST::TypeInstance& typeInstance);
 				
 				NamespaceItem(NamespaceItem&&) = default;
 				NamespaceItem& operator=(NamespaceItem&) = default;
@@ -57,7 +52,7 @@ namespace locic {
 				AST::Alias& alias() const;
 				AST::Function& function() const;
 				AST::Namespace& nameSpace() const;
-				SEM::TypeInstance& typeInstance() const;
+				AST::TypeInstance& typeInstance() const;
 				
 				Debug::SourceLocation location() const;
 				
@@ -76,7 +71,7 @@ namespace locic {
 					AST::Alias* alias;
 					AST::Function* function;
 					AST::Namespace* nameSpace;
-					SEM::TypeInstance* typeInstance;
+					AST::TypeInstance* typeInstance;
 				} data_;
 				
 		};

@@ -10,6 +10,7 @@ namespace locic {
 		class Alias;
 		class Function;
 		class Namespace;
+		class TypeInstance;
 		
 	}
 	
@@ -18,7 +19,6 @@ namespace locic {
 		class CatchClause;
 		class Scope;
 		class SwitchCase;
-		class TypeInstance;
 		
 	}
 	
@@ -44,7 +44,7 @@ namespace locic {
 				
 				static ScopeElement Alias(AST::Alias& alias);
 				
-				static ScopeElement TypeInstance(SEM::TypeInstance& typeInstance);
+				static ScopeElement TypeInstance(AST::TypeInstance& typeInstance);
 				
 				static ScopeElement Function(AST::Function& function);
 				
@@ -78,7 +78,7 @@ namespace locic {
 				
 				AST::Namespace& nameSpace() const;
 				AST::Alias& alias() const;
-				SEM::TypeInstance& typeInstance() const;
+				AST::TypeInstance& typeInstance() const;
 				AST::Function& function() const;
 				SEM::Scope& scope() const;
 				SEM::SwitchCase& switchCase() const;
@@ -97,7 +97,7 @@ namespace locic {
 					void* ptr;
 					AST::Namespace* nameSpace;
 					AST::Alias* alias;
-					SEM::TypeInstance* typeInstance;
+					AST::TypeInstance* typeInstance;
 					AST::Function* function;
 					SEM::Scope* scope;
 					SEM::SwitchCase* switchCase;

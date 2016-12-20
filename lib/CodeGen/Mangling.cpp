@@ -81,7 +81,7 @@ namespace locic {
 			return mangleName(module, module.getCString("F"), name);
 		}
 		
-		String mangleMethodName(Module& module, const SEM::TypeInstance* const typeInstance, const String& methodName) {
+		String mangleMethodName(Module& module, const AST::TypeInstance* const typeInstance, const String& methodName) {
 			std::string s = "M";
 			s.reserve(10 + methodName.size());
 			s += mangleObjectType(module, typeInstance).asStdString();
@@ -89,15 +89,15 @@ namespace locic {
 			return module.getString(std::move(s));
 		}
 		
-		String mangleMoveName(Module& module, const SEM::TypeInstance* typeInstance) {
+		String mangleMoveName(Module& module, const AST::TypeInstance* typeInstance) {
 			return mangleMethodName(module, typeInstance, module.getCString("__moveto"));
 		}
 		
-		String mangleDestructorName(Module& module, const SEM::TypeInstance* typeInstance) {
+		String mangleDestructorName(Module& module, const AST::TypeInstance* typeInstance) {
 			return mangleMethodName(module, typeInstance, module.getCString("__destroy"));
 		}
 		
-		String mangleObjectType(Module& module, const SEM::TypeInstance* const typeInstance) {
+		String mangleObjectType(Module& module, const AST::TypeInstance* const typeInstance) {
 			assert(typeInstance != nullptr);
 			return mangleTypeName(module, typeInstance->fullName());
 		}

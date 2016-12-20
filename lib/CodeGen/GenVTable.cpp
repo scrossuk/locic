@@ -19,7 +19,7 @@ namespace locic {
 
 	namespace CodeGen {
 	
-		Map<MethodHash, AST::Function*> CreateFunctionHashMap(const SEM::TypeInstance* const typeInstance) {
+		Map<MethodHash, AST::Function*> CreateFunctionHashMap(const AST::TypeInstance* const typeInstance) {
 			Map<MethodHash, AST::Function*> hashMap;
 			
 			const auto& functions = typeInstance->functions();
@@ -50,7 +50,7 @@ namespace locic {
 			return hashArray;
 		}
 		
-		llvm::Value* genVTable(Module& module, const SEM::TypeInstance* const typeInstance) {
+		llvm::Value* genVTable(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto llvmVtableType = vtableType(module);
 			
 			if (typeInstance->isInterface()) {

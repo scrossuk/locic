@@ -125,7 +125,7 @@ namespace locic {
 		}
 		
 		llvm::Constant*
-		GenericVirtualCallABI::emitVTableSlot(const SEM::TypeInstance& typeInstance,
+		GenericVirtualCallABI::emitVTableSlot(const AST::TypeInstance& typeInstance,
 		                                      llvm::ArrayRef<AST::Function*> methods) {
 			ConstantGenerator constGen(module_);
 			TypeGenerator typeGen(module_);

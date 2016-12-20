@@ -6,11 +6,6 @@ namespace locic {
 	namespace AST {
 		
 		class Type;
-		
-	}
-	
-	namespace SEM {
-		
 		class TypeInstance;
 		
 	}
@@ -27,17 +22,17 @@ namespace locic {
 			
 			bool isSizeAlwaysKnown(const AST::Type* type) const;
 			
-			bool isObjectSizeAlwaysKnown(const SEM::TypeInstance& typeInstance) const;
+			bool isObjectSizeAlwaysKnown(const AST::TypeInstance& typeInstance) const;
 			
 			bool isSizeKnownInThisModule(const AST::Type* type) const;
 			
-			bool isObjectSizeKnownInThisModule(const SEM::TypeInstance& typeInstance) const;
+			bool isObjectSizeKnownInThisModule(const AST::TypeInstance& typeInstance) const;
 			
 			bool hasCustomDestructor(const AST::Type* type) const;
 			
-			bool objectHasCustomDestructor(const SEM::TypeInstance& typeInstance) const;
+			bool objectHasCustomDestructor(const AST::TypeInstance& typeInstance) const;
 			
-			bool objectHasCustomDestructorMethod(const SEM::TypeInstance& typeInstance) const;
+			bool objectHasCustomDestructorMethod(const AST::TypeInstance& typeInstance) const;
 			
 			/**
 			 * \brief Query whether a type has a custom move operation.
@@ -65,7 +60,7 @@ namespace locic {
 			 * one of their child types has a custom move method, so
 			 * this will also return true in that case.
 			 */
-			bool objectHasCustomMove(const SEM::TypeInstance& typeInstance) const;
+			bool objectHasCustomMove(const AST::TypeInstance& typeInstance) const;
 			
 			/**
 			 * \brief Query whether a type instance has a custom move method.
@@ -74,7 +69,7 @@ namespace locic {
 			 * it doesn't check whether any of the member values have custom
 			 * move methods.
 			 */
-			bool objectHasCustomMoveMethod(const SEM::TypeInstance& typeInstance) const;
+			bool objectHasCustomMoveMethod(const AST::TypeInstance& typeInstance) const;
 			
 			/**
 			 * \brief Query whether a type has a liveness indicator.
@@ -84,7 +79,7 @@ namespace locic {
 			/**
 			 * \brief Query whether a type instance has a liveness indicator.
 			 */
-			bool objectHasLivenessIndicator(const SEM::TypeInstance& typeInstance) const;
+			bool objectHasLivenessIndicator(const AST::TypeInstance& typeInstance) const;
 			
 		private:
 			Module& module_;

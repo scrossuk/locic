@@ -232,7 +232,7 @@ namespace locic {
 		}
 		
 		Optional<DISubprogram> genDebugFunctionInfo(Module& module,
-		                                            const SEM::TypeInstance* parentType,
+		                                            const AST::TypeInstance* parentType,
 		                                            const AST::Function& function,
 		                                            llvm::Function* const llvmFunction) {
 			const auto& debugInfo = function.debugInfo();

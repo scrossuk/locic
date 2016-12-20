@@ -17,7 +17,7 @@
 #include <locic/CodeGen/SEMCodeEmitter.hpp>
 #include <locic/CodeGen/Support.hpp>
 
-#include <locic/SEM/TypeInstance.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 #include <locic/Support/MethodID.hpp>
 
@@ -29,7 +29,7 @@ namespace locic {
 		: functionGenerator_(functionGenerator) { }
 		
 		void
-		SEMCodeEmitter::emitFunctionCode(const SEM::TypeInstance* const typeInstance,
+		SEMCodeEmitter::emitFunctionCode(const AST::TypeInstance* const typeInstance,
 		                                 const AST::Function& function,
 		                                 const bool isInnerMethod) {
 			// TODO: remove this horrible code...
@@ -48,7 +48,7 @@ namespace locic {
 		llvm::Value*
 		SEMCodeEmitter::emitBuiltInFunctionContents(const MethodID methodID,
 		                                            const bool isInnerMethod,
-		                                            const SEM::TypeInstance* const typeInstance,
+		                                            const AST::TypeInstance* const typeInstance,
 		                                            const AST::Function& function,
 		                                            PendingResultArray args,
 		                                            llvm::Value* const hintResultValue) {
@@ -80,7 +80,7 @@ namespace locic {
 		}
 		
 		void
-		SEMCodeEmitter::emitBuiltInFunctionCode(const SEM::TypeInstance* const typeInstance,
+		SEMCodeEmitter::emitBuiltInFunctionCode(const AST::TypeInstance* const typeInstance,
 		                                        const AST::Function& function,
 		                                        const bool isInnerMethod) {
 			auto& module = functionGenerator_.module();

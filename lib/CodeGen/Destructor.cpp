@@ -25,7 +25,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		ArgInfo destructorArgInfo(Module& module, const SEM::TypeInstance& typeInstance) {
+		ArgInfo destructorArgInfo(Module& module, const AST::TypeInstance& typeInstance) {
 			const bool hasTemplateArgs = !typeInstance.templateVariables().empty();
 			const auto argInfo = hasTemplateArgs ? ArgInfo::VoidTemplateAndContext(module) : ArgInfo::VoidContextOnly(module);
 			return argInfo.withNoExcept();
@@ -40,7 +40,7 @@ namespace locic {
 			function.pushUnwindAction(UnwindAction::Destructor(type, value));
 		}
 		
-		Debug::SourcePosition getDebugDestructorPosition(Module& module, const SEM::TypeInstance& typeInstance) {
+		Debug::SourcePosition getDebugDestructorPosition(Module& module, const AST::TypeInstance& typeInstance) {
 			const auto function = typeInstance.findFunction(module.getCString("__destroy"));
 			if (function != nullptr) {
 				return function->debugInfo()->scopeLocation.range().end();
@@ -49,7 +49,7 @@ namespace locic {
 			}
 		}
 		
-		DISubprogram genDebugDestructorFunction(Module& module, const SEM::TypeInstance& typeInstance, llvm::Function* const function) {
+		DISubprogram genDebugDestructorFunction(Module& module, const AST::TypeInstance& typeInstance, llvm::Function* const function) {
 			const auto& typeInstanceInfo = *(typeInstance.debugInfo());
 			
 			const auto position = getDebugDestructorPosition(module, typeInstance);
@@ -91,7 +91,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genVTableDestructorFunction(Module& module, const SEM::TypeInstance& typeInstance) {
+		llvm::Function* genVTableDestructorFunction(Module& module, const AST::TypeInstance& typeInstance) {
 			TypeInfo typeInfo(module);
 			if (!typeInfo.objectHasCustomDestructor(typeInstance)) {
 				return getNullDestructorFunction(module);
@@ -122,7 +122,7 @@ namespace locic {
 			return llvmFunction;
 		}
 		
-		llvm::Function* genDestructorFunctionDecl(Module& module, const SEM::TypeInstance& typeInstance) {
+		llvm::Function* genDestructorFunctionDecl(Module& module, const AST::TypeInstance& typeInstance) {
 			const auto iterator = module.getDestructorMap().find(&typeInstance);
 			
 			if (iterator != module.getDestructorMap().end()) {

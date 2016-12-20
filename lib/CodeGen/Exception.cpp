@@ -243,7 +243,7 @@ namespace locic {
 			return constGen.getGetElementPtr(typeNameType, typeNameGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}
 		
-		llvm::Constant* genCatchInfo(Module& module, const SEM::TypeInstance* const catchTypeInstance) {
+		llvm::Constant* genCatchInfo(Module& module, const AST::TypeInstance* const catchTypeInstance) {
 			assert(catchTypeInstance->isException());
 			
 			const auto typeName = catchTypeInstance->fullName().genString();
@@ -257,7 +257,7 @@ namespace locic {
 			
 			// Calculate offset to check based on number of parents.
 			size_t offset = 0;
-			const SEM::TypeInstance* currentInstance = catchTypeInstance;
+			const AST::TypeInstance* currentInstance = catchTypeInstance;
 			while (currentInstance->parentType() != nullptr) {
 				offset++;
 				currentInstance = currentInstance->parentType()->getObjectType();
@@ -271,13 +271,13 @@ namespace locic {
 			return constGen.getGetElementPtr(typeInfoType, typeInfoGlobal, std::vector<llvm::Constant*> {constGen.getI32(0), constGen.getI32(0)});
 		}
 		
-		llvm::Constant* genThrowInfo(Module& module,const  SEM::TypeInstance* const throwTypeInstance) {
+		llvm::Constant* genThrowInfo(Module& module,const  AST::TypeInstance* const throwTypeInstance) {
 			assert(throwTypeInstance->isException());
 			
 			Array<String, 10> typeNames;
 			
 			// Add type names in REVERSE order.
-			const SEM::TypeInstance* currentInstance = throwTypeInstance;
+			const AST::TypeInstance* currentInstance = throwTypeInstance;
 			while (currentInstance != nullptr) {
 				typeNames.push_back(currentInstance->fullName().genString());
 				currentInstance = currentInstance->parentType() != nullptr ?

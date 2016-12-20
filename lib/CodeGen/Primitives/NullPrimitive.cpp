@@ -48,7 +48,7 @@ namespace locic {
 		llvm::Value* callRawCastMethod(Function& function, llvm::Value* const castFromValue, const AST::Type* const castFromType,
 				const String& targetMethodName, const AST::Type* const castToType, llvm::Value* const hintResultValue);
 		
-		NullPrimitive::NullPrimitive(const SEM::TypeInstance& typeInstance)
+		NullPrimitive::NullPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) { }
 		
 		bool NullPrimitive::isSizeAlwaysKnown(const TypeInfo& /*typeInfo*/,

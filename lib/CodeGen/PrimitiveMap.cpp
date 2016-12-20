@@ -20,7 +20,7 @@
 #include <locic/CodeGen/Primitives/ValueLvalPrimitive.hpp>
 #include <locic/CodeGen/Primitives/VoidPrimitive.hpp>
 
-#include <locic/SEM/TypeInstance.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 #include <locic/Support/PrimitiveID.hpp>
 
@@ -28,7 +28,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		Primitive* createPrimitive(const SEM::TypeInstance& typeInstance) {
+		Primitive* createPrimitive(const AST::TypeInstance& typeInstance) {
 			const auto primitiveID = typeInstance.primitiveID();
 			switch (primitiveID) {
 				case PrimitiveVoid: {
@@ -124,7 +124,7 @@ namespace locic {
 		PrimitiveMap::~PrimitiveMap() { }
 		
 		const Primitive&
-		PrimitiveMap::getPrimitive(const SEM::TypeInstance& typeInstance) const {
+		PrimitiveMap::getPrimitive(const AST::TypeInstance& typeInstance) const {
 			const auto iterator = primitives_.find(&typeInstance);
 			if (iterator != primitives_.end()) {
 				return *(iterator->second);

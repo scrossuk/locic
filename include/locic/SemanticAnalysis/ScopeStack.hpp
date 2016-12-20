@@ -87,7 +87,7 @@ namespace locic {
 		
 		Name getCurrentName(const ScopeStack& scopeStack);
 		
-		SEM::TypeInstance* lookupParentType(const ScopeStack& scopeStack);
+		AST::TypeInstance* lookupParentType(const ScopeStack& scopeStack);
 		
 		AST::Function* lookupParentFunction(const ScopeStack& scopeStack);
 		
@@ -99,7 +99,7 @@ namespace locic {
 		
 		const AST::NamespaceItem& getBuiltInNamespaceItem(Context& context, const String& typeName);
 		
-		const SEM::TypeInstance& getBuiltInTypeInstance(Context& context, const String& typeName);
+		const AST::TypeInstance& getBuiltInTypeInstance(Context& context, const String& typeName);
 		
 		const AST::Type* getBuiltInType(Context& context, const String& typeName, AST::TypeArray templateArgs);
 		

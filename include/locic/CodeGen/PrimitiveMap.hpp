@@ -8,7 +8,7 @@
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class TypeInstance;
 		
@@ -23,11 +23,11 @@ namespace locic {
 			PrimitiveMap();
 			~PrimitiveMap();
 			
-			const Primitive& getPrimitive(const SEM::TypeInstance& typeInstance) const;
+			const Primitive& getPrimitive(const AST::TypeInstance& typeInstance) const;
 			
 		private:
 			// TODO: avoid heap allocations here.
-			mutable std::unordered_map<const SEM::TypeInstance*, std::unique_ptr<Primitive>> primitives_;
+			mutable std::unordered_map<const AST::TypeInstance*, std::unique_ptr<Primitive>> primitives_;
 			
 		};
 		

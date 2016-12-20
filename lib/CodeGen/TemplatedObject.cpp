@@ -13,14 +13,14 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		TemplatedObject TemplatedObject::TypeInstance(const SEM::TypeInstance* const typeInstance) {
+		TemplatedObject TemplatedObject::TypeInstance(const AST::TypeInstance* const typeInstance) {
 			assert(typeInstance != nullptr);
 			TemplatedObject object(TYPEINSTANCE);
 			object.data_.typeInstance = typeInstance;
 			return object;
 		}
 		
-		TemplatedObject TemplatedObject::Function(const SEM::TypeInstance* const parentTypeInstance,
+		TemplatedObject TemplatedObject::Function(const AST::TypeInstance* const parentTypeInstance,
 		                                          const AST::Function* const function) {
 			TemplatedObject object(FUNCTION);
 			object.data_.functionPair.parentTypeInstance = parentTypeInstance;
@@ -40,12 +40,12 @@ namespace locic {
 			return kind_ == FUNCTION;
 		}
 		
-		const SEM::TypeInstance* TemplatedObject::typeInstance() const {
+		const AST::TypeInstance* TemplatedObject::typeInstance() const {
 			assert(isTypeInstance());
 			return data_.typeInstance;
 		}
 		
-		const SEM::TypeInstance* TemplatedObject::parentTypeInstance() const {
+		const AST::TypeInstance* TemplatedObject::parentTypeInstance() const {
 			assert(isFunction());
 			return data_.functionPair.parentTypeInstance;
 		}

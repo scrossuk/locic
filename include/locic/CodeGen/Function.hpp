@@ -28,14 +28,8 @@ namespace locic {
 	namespace AST {
 		
 		class Type;
-		class Var;
-		
-	}
-	
-	namespace SEM {
-		
-		class Type;
 		class TypeInstance;
+		class Var;
 		
 	}
 	
