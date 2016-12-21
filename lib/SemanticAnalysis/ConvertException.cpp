@@ -2,7 +2,7 @@
 #include <locic/AST.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/Support/Name.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertException.hpp>
@@ -151,7 +151,7 @@ namespace locic {
 			auto returnValue = AST::Value::InternalConstruct(typeInstanceNode->selfType(), std::move(constructValues));
 			
 			auto scope = AST::Scope::Create(location);
-			scope->statements().push_back(SEM::Statement::Return(std::move(returnValue)));
+			scope->statements().push_back(AST::Statement::Return(std::move(returnValue)));
 			function.setScope(std::move(scope));
 		}
 		

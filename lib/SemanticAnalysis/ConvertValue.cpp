@@ -11,7 +11,7 @@
 #include <locic/AST/Type.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Support/MakeArray.hpp>
-#include <locic/SEM.hpp>
+
 
 #include <locic/Frontend/DiagnosticArray.hpp>
 

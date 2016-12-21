@@ -6,7 +6,7 @@
 
 #include <locic/AST/ModuleScope.hpp>
 #include <locic/Support/Name.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/Support/String.hpp>
 #include <locic/Support/Version.hpp>
 

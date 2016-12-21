@@ -10,7 +10,7 @@
 
 #include <locic/Frontend/OptionalDiag.hpp>
 
-#include <locic/SEM.hpp>
+
 
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>

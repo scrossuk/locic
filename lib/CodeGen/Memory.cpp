@@ -2,7 +2,7 @@
 
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>

@@ -2,8 +2,10 @@
 #include <vector>
 
 #include <locic/AST/Function.hpp>
+#include <locic/AST/TypeInstance.hpp>
+
 #include <locic/CodeGen/LLVMIncludes.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>

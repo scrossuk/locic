@@ -5,8 +5,9 @@
 
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/Var.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>

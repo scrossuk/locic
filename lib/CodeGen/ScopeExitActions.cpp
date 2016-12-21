@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include <locic/SEM.hpp>
+
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>

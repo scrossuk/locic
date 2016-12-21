@@ -8,6 +8,7 @@
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Debug.hpp>

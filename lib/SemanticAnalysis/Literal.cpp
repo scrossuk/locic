@@ -12,7 +12,7 @@
 #include <locic/Debug.hpp>
 #include <locic/Support/APInt.hpp>
 #include <locic/Support/MakeArray.hpp>
-#include <locic/SEM.hpp>
+
 
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>

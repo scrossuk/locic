@@ -1,4 +1,4 @@
-#include <locic/SEM.hpp>
+
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 

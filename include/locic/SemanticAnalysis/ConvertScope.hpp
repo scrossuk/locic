@@ -4,7 +4,7 @@
 #include <memory>
 
 #include <locic/AST.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/Context.hpp>
 
 namespace locic {

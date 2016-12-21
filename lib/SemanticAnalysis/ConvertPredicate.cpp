@@ -7,7 +7,7 @@
 #include <locic/AST/Type.hpp>
 #include <locic/Debug.hpp>
 #include <locic/Frontend/OptionalDiag.hpp>
-#include <locic/SEM.hpp>
+
 
 #include <locic/SemanticAnalysis/AliasTypeResolver.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>

@@ -3,13 +3,12 @@
 
 #include <locic/AST/ExitStates.hpp>
 #include <locic/AST/Node.hpp>
+#include <locic/AST/Statement.hpp>
 #include <locic/AST/StatementDecl.hpp>
 
 #include <locic/Support/Array.hpp>
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/String.hpp>
-
-#include <locic/SEM/Statement.hpp>
 
 namespace locic {
 
@@ -36,8 +35,8 @@ namespace locic {
 			FastMap<String, Var*>& namedVariables();
 			const FastMap<String, Var*>& namedVariables() const;
 			
-			Array<SEM::Statement, 10>& statements();
-			const Array<SEM::Statement, 10>& statements() const;
+			Array<Statement, 10>& statements();
+			const Array<Statement, 10>& statements() const;
 			
 			std::string toString() const;
 			
@@ -45,7 +44,7 @@ namespace locic {
 			Node<StatementDeclList> statementDecls_;
 			Array<Var*, 10> variables_;
 			FastMap<String, Var*> namedVariables_;
-			Array<SEM::Statement, 10> statements_;
+			Array<Statement, 10> statements_;
 			
 		};
 		

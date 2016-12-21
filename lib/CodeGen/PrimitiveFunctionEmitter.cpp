@@ -1,5 +1,7 @@
 #include <locic/AST/Context.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/TypeInstance.hpp>
+
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -8,6 +10,7 @@
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/PrimitiveFunctionEmitter.hpp>
 #include <locic/CodeGen/Support.hpp>
+
 #include <locic/Support/MethodID.hpp>
 
 namespace locic {

@@ -2,8 +2,7 @@
 
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Type.hpp>
-
-#include <locic/SEM.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Support.hpp>

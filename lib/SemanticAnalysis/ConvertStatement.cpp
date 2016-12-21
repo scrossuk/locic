@@ -7,7 +7,7 @@
 #include <locic/AST.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/Support/MakeArray.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -426,7 +426,7 @@ namespace locic {
 			
 		};
 		
-		static SEM::Statement ConvertStatementData(Context& context, const AST::Node<AST::StatementDecl>& statement) {
+		static AST::Statement ConvertStatementData(Context& context, const AST::Node<AST::StatementDecl>& statement) {
 			const auto& location = statement.location();
 			
 			switch (statement->kind()) {
@@ -438,18 +438,18 @@ namespace locic {
 							                  location);
 						}
 						const auto voidType = context.typeBuilder().getVoidType();
-						return SEM::Statement::ValueStmt(AST::Value::Cast(voidType, std::move(value)));
+						return AST::Statement::ValueStmt(AST::Value::Cast(voidType, std::move(value)));
 					} else {
 						if (!value.type()->isBuiltInVoid()) {
 							context.issueDiag(NonVoidNotExplicitlyIgnoredDiag(),
 							                  location);
 						}
-						return SEM::Statement::ValueStmt(std::move(value));
+						return AST::Statement::ValueStmt(std::move(value));
 					}
 				}
 				case AST::StatementDecl::SCOPE: {
 					ConvertScope(context, statement->scope());
-					return SEM::Statement::ScopeStmt(std::move(statement->scope()));
+					return AST::Statement::ScopeStmt(std::move(statement->scope()));
 				}
 				case AST::StatementDecl::IF: {
 					const auto boolType = context.typeBuilder().getBoolType();
@@ -467,7 +467,7 @@ namespace locic {
 					
 					ConvertScope(context, statement->ifElseScope());
 					
-					return SEM::Statement::If(std::move(clauseList), std::move(statement->ifElseScope()));
+					return AST::Statement::If(std::move(clauseList), std::move(statement->ifElseScope()));
 				}
 				case AST::StatementDecl::SWITCH: {
 					auto value = tryDissolveValue(context, ConvertValue(context, statement->switchValue()),
@@ -546,7 +546,7 @@ namespace locic {
 						ConvertScope(context, defaultCaseNode->scope());
 					}
 					
-					return SEM::Statement::Switch(std::move(castValue), caseList, *defaultCaseNode);
+					return AST::Statement::Switch(std::move(castValue), caseList, *defaultCaseNode);
 				}
 				case AST::StatementDecl::WHILE: {
 					auto condition = ConvertValue(context, statement->whileCondition());
@@ -556,13 +556,13 @@ namespace locic {
 					ConvertScope(context, statement->whileScope());
 					auto advanceScope = AST::Scope::Create(statement.location());
 					auto loopCondition = ImplicitCast(context, std::move(condition), context.typeBuilder().getBoolType(), location);
-					return SEM::Statement::Loop(std::move(loopCondition), std::move(statement->whileScope()), std::move(advanceScope));
+					return AST::Statement::Loop(std::move(loopCondition), std::move(statement->whileScope()), std::move(advanceScope));
 				}
 				case AST::StatementDecl::FOR: {
 					auto loopScope = ConvertForLoop(context, statement->forVar(),
 					                                statement->forInitValue(),
 					                                statement->forInitScope());
-					return SEM::Statement::ScopeStmt(std::move(loopScope));
+					return AST::Statement::ScopeStmt(std::move(loopScope));
 				}
 				case AST::StatementDecl::TRY: {
 					AST::Node<AST::Scope> tryScope;
@@ -604,7 +604,7 @@ namespace locic {
 						catchList.push_back(catchNode.get());
 					}
 					
-					return SEM::Statement::Try(std::move(tryScope), catchList);
+					return AST::Statement::Try(std::move(tryScope), catchList);
 				}
 				case AST::StatementDecl::SCOPEEXIT: {
 					auto scopeExitState = statement->scopeExitState();
@@ -626,7 +626,7 @@ namespace locic {
 						                  location);
 					}
 					
-					return SEM::Statement::ScopeExit(scopeExitState,
+					return AST::Statement::ScopeExit(scopeExitState,
 					                                 std::move(statement->scopeExitScope()));
 				}
 				case AST::StatementDecl::VARDECL: {
@@ -651,7 +651,7 @@ namespace locic {
 					semScope.variables().push_back(var);
 					
 					// Generate the initialise statement.
-					return SEM::Statement::InitialiseStmt(*var, std::move(semInitialiseValue));
+					return AST::Statement::InitialiseStmt(*var, std::move(semInitialiseValue));
 				}
 				case AST::StatementDecl::ASSIGN: {
 					const auto assignKind = statement->assignKind();
@@ -661,13 +661,13 @@ namespace locic {
 					if (!getDerefType(semVarValue.type())->isLval()) {
 						context.issueDiag(CannotAssignToNonLvalTypeDiag(semVarValue.type()),
 						                  statement->assignLvalue().location());
-						return SEM::Statement::ValueStmt(std::move(semOperandValue));
+						return AST::Statement::ValueStmt(std::move(semOperandValue));
 					}
 					
 					// TODO: fix this to not copy the value!
 					auto semAssignValue = GetAssignValue(context, assignKind, semVarValue.copy(), std::move(semOperandValue), location);
 					auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(semVarValue)), context.getCString("assign"), location);
-					return SEM::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeHeapArray(std::move(semAssignValue)), location));
+					return AST::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeHeapArray(std::move(semAssignValue)), location));
 				}
 				case AST::StatementDecl::INCREMENT: {
 					auto semOperandValue = ConvertValue(context, statement->incrementValue());
@@ -675,12 +675,12 @@ namespace locic {
 					auto opResult = CallValue(context, std::move(opMethod), { }, location);
 					
 					if (opResult.type()->isBuiltInVoid()) {
-						return SEM::Statement::ValueStmt(std::move(opResult));
+						return AST::Statement::ValueStmt(std::move(opResult));
 					} else {
 						// Automatically cast to void if necessary.
 						const auto voidType = context.typeBuilder().getVoidType();
 						auto voidCastedValue = AST::Value::Cast(voidType, std::move(opResult));
-						return SEM::Statement::ValueStmt(std::move(voidCastedValue));
+						return AST::Statement::ValueStmt(std::move(voidCastedValue));
 					}
 				}
 				case AST::StatementDecl::DECREMENT: {
@@ -689,12 +689,12 @@ namespace locic {
 					auto opResult = CallValue(context, std::move(opMethod), { }, location);
 					
 					if (opResult.type()->isBuiltInVoid()) {
-						return SEM::Statement::ValueStmt(std::move(opResult));
+						return AST::Statement::ValueStmt(std::move(opResult));
 					} else {
 						// Automatically cast to void if necessary.
 						const auto voidType = context.typeBuilder().getVoidType();
 						auto voidCastedValue = AST::Value::Cast(voidType, std::move(opResult));
-						return SEM::Statement::ValueStmt(std::move(voidCastedValue));
+						return AST::Statement::ValueStmt(std::move(voidCastedValue));
 					}
 				}
 				case AST::StatementDecl::RETURNVOID: {
@@ -705,7 +705,7 @@ namespace locic {
 						                  location);
 					}
 					
-					return SEM::Statement::ReturnVoid();
+					return AST::Statement::ReturnVoid();
 				}
 				case AST::StatementDecl::RETURN: {
 					assert(statement->returnValue().get() != nullptr);
@@ -731,7 +731,7 @@ namespace locic {
 						const auto& name = lookupParentFunction(context.scopeStack())->fullName();
 						context.issueDiag(CannotReturnNonVoidInVoidFunctionDiag(name),
 						                  location);
-						return SEM::Statement::Return(std::move(semValue));
+						return AST::Statement::Return(std::move(semValue));
 					}
 					
 					if (!functionIsVoid && valueIsVoid) {
@@ -739,13 +739,13 @@ namespace locic {
 						const auto& name = lookupParentFunction(context.scopeStack())->fullName();
 						context.issueDiag(CannotReturnVoidInNonVoidFunctionDiag(name),
 						                  location);
-						return SEM::Statement::Return(std::move(semValue));
+						return AST::Statement::Return(std::move(semValue));
 					}
 					
 					// Cast the return value to the function's
 					// specified return type.
 					auto castValue = ImplicitCast(context, std::move(semValue), getParentFunctionReturnType(context.scopeStack()), location);
-					return SEM::Statement::Return(std::move(castValue));
+					return AST::Statement::Return(std::move(castValue));
 				}
 				case AST::StatementDecl::THROW: {
 					// Check this is not being used inside a scope action
@@ -769,7 +769,7 @@ namespace locic {
 						context.issueDiag(ThrowNonExceptionValueDiag(semValue.type()->toString()),
 						                  location);
 					}
-					return SEM::Statement::Throw(std::move(semValue));
+					return AST::Statement::Throw(std::move(semValue));
 				}
 				case AST::StatementDecl::RETHROW: {
 					// Check this is being used inside a catch clause, and
@@ -807,7 +807,7 @@ namespace locic {
 						                  location);
 					}
 					
-					return SEM::Statement::Rethrow();
+					return AST::Statement::Rethrow();
 				}
 				case AST::StatementDecl::BREAK: {
 					// Check this is being used inside a loop, and
@@ -830,7 +830,7 @@ namespace locic {
 						                  location);
 					}
 					
-					return SEM::Statement::Break();
+					return AST::Statement::Break();
 				}
 				case AST::StatementDecl::CONTINUE: {
 					// Check this is being used inside a loop, and
@@ -853,7 +853,7 @@ namespace locic {
 						                  location);
 					}
 					
-					return SEM::Statement::Continue();
+					return AST::Statement::Continue();
 				}
 				case AST::StatementDecl::ASSERT: {
 					assert(statement->assertValue().get() != nullptr);
@@ -861,7 +861,7 @@ namespace locic {
 					const auto boolType = context.typeBuilder().getBoolType();
 					auto condition = ConvertValue(context, statement->assertValue());
 					auto boolValue = ImplicitCast(context, std::move(condition), boolType, location);
-					return SEM::Statement::Assert(std::move(boolValue), statement->assertName());
+					return AST::Statement::Assert(std::move(boolValue), statement->assertName());
 				}
 				case AST::StatementDecl::ASSERTNOEXCEPT: {
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::AssertNoExcept());
@@ -873,10 +873,10 @@ namespace locic {
 						                  location);
 					}
 					
-					return SEM::Statement::AssertNoExcept(std::move(statement->assertNoExceptScope()));
+					return AST::Statement::AssertNoExcept(std::move(statement->assertNoExceptScope()));
 				}
 				case AST::StatementDecl::UNREACHABLE: {
-					return SEM::Statement::Unreachable();
+					return AST::Statement::Unreachable();
 				}
 			}
 			
@@ -889,7 +889,7 @@ namespace locic {
 			return statementInfo;
 		}
 		
-		SEM::Statement ConvertStatement(Context& context, const AST::Node<AST::StatementDecl>& astStatementNode) {
+		AST::Statement ConvertStatement(Context& context, const AST::Node<AST::StatementDecl>& astStatementNode) {
 			auto semStatement = ConvertStatementData(context, astStatementNode);
 			semStatement.setDebugInfo(makeStatementInfo(astStatementNode));
 			return semStatement;

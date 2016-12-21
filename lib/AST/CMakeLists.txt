@@ -1,7 +1,3 @@
-set(SEM_FILES
-	../SEM/Statement.cpp
-)
-
 add_library(locic-ast
 	Alias.cpp
 	CatchClause.cpp
@@ -21,6 +17,7 @@ add_library(locic-ast
 	PredicateDecl.cpp
 	RequireSpecifier.cpp
 	Scope.cpp
+	Statement.cpp
 	StatementDecl.cpp
 	StaticAssert.cpp
 	SwitchCase.cpp
@@ -33,6 +30,4 @@ add_library(locic-ast
 	Value.cpp
 	ValueDecl.cpp
 	Var.cpp
-	${SEM_FILES}
 )
-

@@ -11,15 +11,10 @@ namespace locic {
 		class DefaultCase;
 		class IfClause;
 		class Scope;
+		class Statement;
 		class SwitchClause;
 		class Value;
 		class Var;
-		
-	}
-	
-	namespace SEM {
-		
-		class Statement;
 		
 	}
 	
@@ -31,7 +26,7 @@ namespace locic {
 		public:
 			StatementEmitter(IREmitter& irEmitter);
 			
-			void emitStatement(const SEM::Statement& statement);
+			void emitStatement(const AST::Statement& statement);
 			
 			void emitValue(const AST::Value& value);
 			

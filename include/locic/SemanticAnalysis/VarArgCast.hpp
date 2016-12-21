@@ -2,7 +2,7 @@
 #define LOCIC_SEMANTICANALYSIS_VARARGCAST_HPP
 
 #include <locic/Debug.hpp>
-#include <locic/SEM.hpp>
+
 
 #include <locic/SemanticAnalysis/Context.hpp>
 

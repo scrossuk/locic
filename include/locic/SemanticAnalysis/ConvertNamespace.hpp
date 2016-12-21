@@ -2,7 +2,7 @@
 #define LOCIC_SEMANTICANALYSIS_CONVERTNAMESPACE_HPP
 
 #include <locic/AST.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/Context.hpp>
 
 namespace locic {

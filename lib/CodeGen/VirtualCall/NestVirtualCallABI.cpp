@@ -5,7 +5,7 @@
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Type.hpp>
 
-#include <locic/SEM.hpp>
+
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>

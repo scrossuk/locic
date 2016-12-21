@@ -7,9 +7,8 @@
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/Var.hpp>
-
-#include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>

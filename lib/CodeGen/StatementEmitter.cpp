@@ -6,10 +6,9 @@
 
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
-
-#include <locic/SEM.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/ControlFlow.hpp>
@@ -77,7 +76,7 @@ namespace locic {
 		StatementEmitter::StatementEmitter(IREmitter& irEmitter)
 		: irEmitter_(irEmitter) { }
 		
-		void StatementEmitter::emitStatement(const SEM::Statement& statement) {
+		void StatementEmitter::emitStatement(const AST::Statement& statement) {
 			const auto& debugInfo = statement.debugInfo();
 			if (debugInfo) {
 				irEmitter_.function().setDebugPosition(
@@ -85,88 +84,88 @@ namespace locic {
 			}
 			
 			switch (statement.kind()) {
-				case SEM::Statement::VALUE: {
+				case AST::Statement::VALUE: {
 					emitValue(statement.getValue());
 					return;
 				}
-				case SEM::Statement::SCOPE: {
+				case AST::Statement::SCOPE: {
 					emitScope(statement.getScope());
 					return;
 				}
-				case SEM::Statement::INITIALISE: {
+				case AST::Statement::INITIALISE: {
 					emitInitialise(statement.getInitialiseVar(),
 					               statement.getInitialiseValue());
 					return;
 				}
-				case SEM::Statement::IF: {
+				case AST::Statement::IF: {
 					emitIf(statement.getIfClauseList(),
 					       statement.getIfElseScope());
 					return;
 				}
-				case SEM::Statement::SWITCH: {
+				case AST::Statement::SWITCH: {
 					emitSwitch(statement.getSwitchValue(),
 					           statement.getSwitchCaseList(),
 					           statement.getSwitchDefaultCase());
 					return;
 				}
-				case SEM::Statement::LOOP: {
+				case AST::Statement::LOOP: {
 					emitLoop(statement.getLoopCondition(),
 					         statement.getLoopIterationScope(),
 					         statement.getLoopAdvanceScope());
 					return;
 				}
-				case SEM::Statement::FOR: {
+				case AST::Statement::FOR: {
 					emitFor(statement.getForVar(),
 					        statement.getForInitValue(),
 					        statement.getForScope());
 					return;
 				}
-				case SEM::Statement::RETURNVOID: {
+				case AST::Statement::RETURNVOID: {
 					emitReturnVoid();
 					return;
 				}
-				case SEM::Statement::RETURN: {
+				case AST::Statement::RETURN: {
 					emitReturn(statement.getReturnValue());
 					return;
 				}
-				case SEM::Statement::TRY: {
+				case AST::Statement::TRY: {
 					emitTry(statement.getTryScope(),
 					        statement.getTryCatchList());
 					return;
 				}
-				case SEM::Statement::THROW: {
+				case AST::Statement::THROW: {
 					emitThrow(statement.getThrowValue());
 					return;
 				}
-				case SEM::Statement::RETHROW: {
+				case AST::Statement::RETHROW: {
 					emitRethrow();
 					return;
 				}
-				case SEM::Statement::SCOPEEXIT: {
+				case AST::Statement::SCOPEEXIT: {
 					emitScopeExit(statement.getScopeExitState(),
 					              statement.getScopeExitScope());
 					return;
 				}
-				case SEM::Statement::BREAK: {
+				case AST::Statement::BREAK: {
 					emitBreak();
 					return;
 				}
-				case SEM::Statement::CONTINUE: {
+				case AST::Statement::CONTINUE: {
 					emitContinue();
 					return;
 				}
-				case SEM::Statement::ASSERT: {
+				case AST::Statement::ASSERT: {
 					emitAssert(statement.getAssertValue(),
 					           statement.getAssertName());
 					return;
 				}
 				
-				case SEM::Statement::ASSERTNOEXCEPT: {
+				case AST::Statement::ASSERTNOEXCEPT: {
 					emitAssertNoExcept(statement.getAssertNoExceptScope());
 					return;
 				}
 				
-				case SEM::Statement::UNREACHABLE: {
+				case AST::Statement::UNREACHABLE: {
 					emitUnreachable();
 					return;
 				}

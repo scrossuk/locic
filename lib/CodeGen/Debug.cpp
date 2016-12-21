@@ -7,7 +7,9 @@
 #include <llvm-abi/ABITypeInfo.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Function.hpp>
+
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>

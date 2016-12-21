@@ -8,9 +8,11 @@
 
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Namespace.hpp>
+#include <locic/AST/TypeInstance.hpp>
+
 #include <locic/Debug.hpp>
+
 #include <locic/Support/Map.hpp>
-#include <locic/SEM.hpp>
 #include <locic/Support/String.hpp>
 
 #include <locic/CodeGen/CodeGenerator.hpp>

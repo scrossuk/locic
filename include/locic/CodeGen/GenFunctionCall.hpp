@@ -15,12 +15,6 @@ namespace locic {
 		
 	}
 	
-	namespace SEM {
-		
-		class Value;
-		
-	}
-	
 	namespace CodeGen {
 		
 		class Function;

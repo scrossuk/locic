@@ -1,6 +1,6 @@
 #include <cassert>
 #include <locic/AST.hpp>
-#include <locic/SEM.hpp>
+
 
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertException.hpp>
@@ -36,7 +36,7 @@ namespace locic {
 			constructValues.push_back(AST::Value::Constant(intConstant, intType));
 			
 			auto internalConstructedValue = AST::Value::InternalConstruct(typeInstanceNode->selfType(), std::move(constructValues));
-			functionScope->statements().push_back(SEM::Statement::Return(std::move(internalConstructedValue)));
+			functionScope->statements().push_back(AST::Statement::Return(std::move(internalConstructedValue)));
 			
 			function.setScope(std::move(functionScope));
 		}

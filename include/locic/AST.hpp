@@ -18,6 +18,7 @@
 #include <locic/AST/PredicateDecl.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Scope.hpp>
+#include <locic/AST/Statement.hpp>
 #include <locic/AST/StatementDecl.hpp>
 #include <locic/AST/StaticAssert.hpp>
 #include <locic/AST/StringList.hpp>

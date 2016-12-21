@@ -2,7 +2,7 @@
 #define LOCIC_SEMANTICANALYSIS_CONVERTVALUE_HPP
 
 #include <locic/AST.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/Support/String.hpp>

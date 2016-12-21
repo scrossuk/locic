@@ -5,15 +5,20 @@
 #include <bitset>
 #include <vector>
 
-#include <locic/SEM.hpp>
-
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/UnwindState.hpp>
 
 namespace locic {
-
-	namespace CodeGen {
 	
+	namespace AST {
+		
+		class Scope;
+		class Type;
+		
+	}
+	
+	namespace CodeGen {
+		
 		enum ScopeExitState {
 			SCOPEEXIT_ALWAYS,
 			SCOPEEXIT_SUCCESS,

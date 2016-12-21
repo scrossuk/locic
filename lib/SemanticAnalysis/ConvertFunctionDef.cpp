@@ -4,7 +4,7 @@
 #include <locic/AST.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/Debug/Module.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertFunctionDef.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
@@ -21,25 +21,25 @@ namespace locic {
 	
 		void DeadCodeSearchScope(Context& context, const AST::Scope& scope);
 		
-		static void DeadCodeSearchStatement(Context& context, const SEM::Statement& statement) {
+		static void DeadCodeSearchStatement(Context& context, const AST::Statement& statement) {
 			switch(statement.kind()) {
-				case SEM::Statement::VALUE:
-				case SEM::Statement::INITIALISE:
-				case SEM::Statement::RETURN:
-				case SEM::Statement::RETURNVOID:
-				case SEM::Statement::THROW:
-				case SEM::Statement::RETHROW:
-				case SEM::Statement::BREAK:
-				case SEM::Statement::CONTINUE:
-				case SEM::Statement::ASSERT:
-				case SEM::Statement::UNREACHABLE: {
+				case AST::Statement::VALUE:
+				case AST::Statement::INITIALISE:
+				case AST::Statement::RETURN:
+				case AST::Statement::RETURNVOID:
+				case AST::Statement::THROW:
+				case AST::Statement::RETHROW:
+				case AST::Statement::BREAK:
+				case AST::Statement::CONTINUE:
+				case AST::Statement::ASSERT:
+				case AST::Statement::UNREACHABLE: {
 					return;
 				}
-				case SEM::Statement::SCOPE: {
+				case AST::Statement::SCOPE: {
 					DeadCodeSearchScope(context, statement.getScope());
 					return;
 				}
-				case SEM::Statement::IF: {
+				case AST::Statement::IF: {
 					for (const auto ifClause: statement.getIfClauseList()) {
 						DeadCodeSearchScope(context, *(ifClause->scope()));
 					}
@@ -47,33 +47,33 @@ namespace locic {
 					DeadCodeSearchScope(context, statement.getIfElseScope());
 					return;
 				}
-				case SEM::Statement::SWITCH: {
+				case AST::Statement::SWITCH: {
 					for (auto switchCase: statement.getSwitchCaseList()) {
 						DeadCodeSearchScope(context, *(switchCase->scope()));
 					}
 					return;
 				}
-				case SEM::Statement::LOOP: {
+				case AST::Statement::LOOP: {
 					DeadCodeSearchScope(context, statement.getLoopIterationScope());
 					DeadCodeSearchScope(context, statement.getLoopAdvanceScope());
 					return;
 				}
-				case SEM::Statement::FOR: {
+				case AST::Statement::FOR: {
 					DeadCodeSearchScope(context, statement.getForScope());
 					return;
 				}
-				case SEM::Statement::TRY: {
+				case AST::Statement::TRY: {
 					DeadCodeSearchScope(context, statement.getTryScope());
 					for (auto catchClause: statement.getTryCatchList()) {
 						DeadCodeSearchScope(context, *(catchClause->scope()));
 					}
 					return;
 				}
-				case SEM::Statement::SCOPEEXIT: {
+				case AST::Statement::SCOPEEXIT: {
 					DeadCodeSearchScope(context, statement.getScopeExitScope());
 					return;
 				}
-				case SEM::Statement::ASSERTNOEXCEPT: {
+				case AST::Statement::ASSERTNOEXCEPT: {
 					DeadCodeSearchScope(context, statement.getAssertNoExceptScope());
 					return;
 				}
@@ -123,9 +123,9 @@ namespace locic {
 		};
 		
 		void DeadCodeSearchScope(Context& context, const AST::Scope& scope) {
-			const SEM::Statement* lastScopeExit = nullptr;
-			const SEM::Statement* lastScopeFailure = nullptr;
-			const SEM::Statement* lastScopeSuccess = nullptr;
+			const AST::Statement* lastScopeExit = nullptr;
+			const AST::Statement* lastScopeFailure = nullptr;
+			const AST::Statement* lastScopeSuccess = nullptr;
 			
 			bool isNormalBlocked = false;
 			for (const auto& statement: scope.statements()) {
@@ -358,7 +358,7 @@ namespace locic {
 					                  function->scope().location());
 				} else {
 					// Need to add a void return statement if the program didn't.
-					function->scope()->statements().push_back(SEM::Statement::ReturnVoid());
+					function->scope()->statements().push_back(AST::Statement::ReturnVoid());
 				}
 			}
 			

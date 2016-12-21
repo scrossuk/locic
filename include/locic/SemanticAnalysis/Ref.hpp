@@ -1,7 +1,7 @@
 #ifndef LOCIC_SEMANTICANALYSIS_REF_HPP
 #define LOCIC_SEMANTICANALYSIS_REF_HPP
 
-#include <locic/SEM.hpp>
+
 
 #include <locic/SemanticAnalysis/Context.hpp>
 

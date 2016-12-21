@@ -1,7 +1,7 @@
 #ifndef LOCIC_CODEGEN_DESTRUCTOR_HPP
 #define LOCIC_CODEGEN_DESTRUCTOR_HPP
 
-#include <locic/SEM.hpp>
+
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Module.hpp>

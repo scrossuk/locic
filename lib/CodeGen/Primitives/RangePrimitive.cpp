@@ -10,6 +10,7 @@
 #include <llvm-abi/TypeBuilder.hpp>
 
 #include <locic/AST/Type.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>

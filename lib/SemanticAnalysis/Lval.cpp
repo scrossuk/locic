@@ -2,7 +2,7 @@
 
 #include <locic/AST/Type.hpp>
 #include <locic/Debug.hpp>
-#include <locic/SEM.hpp>
+
 
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>

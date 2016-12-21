@@ -4,7 +4,7 @@
 #include <vector>
 #include <locic/AST.hpp>
 #include <locic/AST/Type.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/ConvertVar.hpp>

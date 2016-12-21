@@ -1,4 +1,4 @@
-#include <assert.h>
+#include <cassert>
 
 #include <string>
 #include <vector>
@@ -6,6 +6,7 @@
 #include <locic/AST/CatchClause.hpp>
 #include <locic/AST/IfClause.hpp>
 #include <locic/AST/Scope.hpp>
+#include <locic/AST/Statement.hpp>
 #include <locic/AST/SwitchCase.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/Value.hpp>
@@ -15,36 +16,34 @@
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/String.hpp>
 
-#include <locic/SEM/Statement.hpp>
-
 namespace locic {
-
-	namespace SEM {
 	
-		Statement Statement::ValueStmt(AST::Value value) {
+	namespace AST {
+		
+		Statement Statement::ValueStmt(Value value) {
 			Statement statement(VALUE, value.exitStates());
 			statement.valueStmt_.value = std::move(value);
 			return statement;
 		}
 		
-		Statement Statement::ScopeStmt(AST::Node<AST::Scope> scope) {
+		Statement Statement::ScopeStmt(Node<Scope> scope) {
 			Statement statement(SCOPE, scope->exitStates());
 			statement.scopeStmt_.scope = std::move(scope);
 			return statement;
 		}
 		
-		Statement Statement::InitialiseStmt(AST::Var& var, AST::Value value) {
+		Statement Statement::InitialiseStmt(Var& var, Value value) {
 			Statement statement(INITIALISE, value.exitStates());
 			statement.initialiseStmt_.var = &var;
 			statement.initialiseStmt_.value = std::move(value);
 			return statement;
 		}
 		
-		Statement Statement::If(const std::vector<AST::IfClause*>& ifClauses,
-		                        AST::Node<AST::Scope> elseScope) {
+		Statement Statement::If(const std::vector<IfClause*>& ifClauses,
+		                        Node<Scope> elseScope) {
 			assert(elseScope.get() != nullptr);
 			
-			AST::ExitStates exitStates = AST::ExitStates::None();
+			ExitStates exitStates = ExitStates::None();
 			
 			for (const auto& ifClause: ifClauses) {
 				const auto conditionExitStates = ifClause->condition().exitStates();
@@ -62,10 +61,10 @@ namespace locic {
 		}
 		
 		Statement
-		Statement::Switch(AST::Value value,
-		                  const std::vector<AST::SwitchCase*>& caseList,
-		                  AST::DefaultCase& defaultCase) {
-			AST::ExitStates exitStates = AST::ExitStates::None();
+		Statement::Switch(Value value,
+		                  const std::vector<SwitchCase*>& caseList,
+		                  DefaultCase& defaultCase) {
+			ExitStates exitStates = ExitStates::None();
 			exitStates.add(value.exitStates().throwingStates());
 			
 			for (const auto& switchCase: caseList) {
@@ -83,20 +82,20 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Loop(AST::Value condition, AST::Node<AST::Scope> iterationScope, AST::Node<AST::Scope> advanceScope) {
+		Statement Statement::Loop(Value condition, Node<Scope> iterationScope, Node<Scope> advanceScope) {
 			// If the loop condition can be exited normally then the loop
 			// can be exited normally (i.e. because the condition can be false).
-			AST::ExitStates exitStates = condition.exitStates();
+			ExitStates exitStates = condition.exitStates();
 			
 			auto iterationScopeExitStates = iterationScope->exitStates();
 			
 			// Block any 'continue' exit state.
-			iterationScopeExitStates.remove(AST::ExitStates::Continue());
+			iterationScopeExitStates.remove(ExitStates::Continue());
 			
 			// A 'break' exit state means a normal return from the loop.
 			if (iterationScopeExitStates.hasBreakExit()) {
-				exitStates.add(AST::ExitStates::Normal());
-				iterationScopeExitStates.remove(AST::ExitStates::Break());
+				exitStates.add(ExitStates::Normal());
+				iterationScopeExitStates.remove(ExitStates::Break());
 			}
 			
 			exitStates.add(iterationScopeExitStates);
@@ -106,7 +105,7 @@ namespace locic {
 			
 			// Block 'normal' exit from advance scope, since this just
 			// goes back to the beginning of the loop.
-			advanceScopeExitStates.remove(AST::ExitStates::Normal());
+			advanceScopeExitStates.remove(ExitStates::Normal());
 			
 			exitStates.add(advanceScopeExitStates);
 			
@@ -117,25 +116,25 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::For(AST::Var& var, AST::Value initValue,
-		                         AST::Node<AST::Scope> scope) {
+		Statement Statement::For(Var& var, Value initValue,
+		                         Node<Scope> scope) {
 			// TODO: get exit states of skip_front() method.
 			auto exitStates = initValue.exitStates();
 			assert(!exitStates.hasBreakExit() && !exitStates.hasContinueExit() &&
 			       !exitStates.hasReturnExit());
 			
 			// Normal exit from the init value means executing the loop.
-			exitStates.remove(AST::ExitStates::Normal());
+			exitStates.remove(ExitStates::Normal());
 			
 			auto scopeExitStates = scope->exitStates();
 			
 			// Block any 'continue' exit state.
-			scopeExitStates.remove(AST::ExitStates::Continue());
+			scopeExitStates.remove(ExitStates::Continue());
 			
 			// A 'break' exit state means a normal return from the loop.
 			if (scopeExitStates.hasBreakExit()) {
-				exitStates.add(AST::ExitStates::Normal());
-				scopeExitStates.remove(AST::ExitStates::Break());
+				exitStates.add(ExitStates::Normal());
+				scopeExitStates.remove(ExitStates::Break());
 			}
 			
 			exitStates.add(scopeExitStates);
@@ -147,8 +146,8 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Try(AST::Node<AST::Scope> scope, const std::vector<AST::CatchClause*>& catchList) {
-			AST::ExitStates exitStates = AST::ExitStates::None();
+		Statement Statement::Try(Node<Scope> scope, const std::vector<CatchClause*>& catchList) {
+			ExitStates exitStates = ExitStates::None();
 			
 			exitStates.add(scope->exitStates());
 			
@@ -157,8 +156,8 @@ namespace locic {
 				
 				// Turn 'rethrow' into 'throw'.
 				if (catchExitStates.hasRethrowExit()) {
-					exitStates.add(AST::ExitStates::ThrowAlways());
-					catchExitStates.remove(AST::ExitStates::Rethrow());
+					exitStates.add(ExitStates::ThrowAlways());
+					catchExitStates.remove(ExitStates::Rethrow());
 				}
 				
 				exitStates.add(catchExitStates);
@@ -170,24 +169,24 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::ScopeExit(const String& state, AST::Node<AST::Scope> scope) {
+		Statement Statement::ScopeExit(const String& state, Node<Scope> scope) {
 			// The exit actions here is for when we first visit this statement,
 			// which itself actually has no effect; the effect occurs on unwinding
 			// and so this is handled by the owning scope.
-			Statement statement(SCOPEEXIT, AST::ExitStates::Normal());
+			Statement statement(SCOPEEXIT, ExitStates::Normal());
 			statement.scopeExitStmt_.state = state;
 			statement.scopeExitStmt_.scope = std::move(scope);
 			return statement;
 		}
 		
 		Statement Statement::ReturnVoid() {
-			return Statement(RETURNVOID, AST::ExitStates::Return());
+			return Statement(RETURNVOID, ExitStates::Return());
 		}
 		
-		Statement Statement::Return(AST::Value value) {
+		Statement Statement::Return(Value value) {
 			assert(value.exitStates().onlyHasNormalOrThrowingStates());
 			
-			AST::ExitStates exitStates = AST::ExitStates::Return();
+			ExitStates exitStates = ExitStates::Return();
 			exitStates.add(value.exitStates().throwingStates());
 			
 			Statement statement(RETURN, exitStates);
@@ -195,34 +194,34 @@ namespace locic {
 			return statement;
 		}
 		
-		Statement Statement::Throw(AST::Value value) {
-			Statement statement(THROW, AST::ExitStates::ThrowAlways());
+		Statement Statement::Throw(Value value) {
+			Statement statement(THROW, ExitStates::ThrowAlways());
 			statement.throwStmt_.value = std::move(value);
 			return statement;
 		}
 		
 		Statement Statement::Rethrow() {
-			return Statement(RETHROW, AST::ExitStates::Rethrow());
+			return Statement(RETHROW, ExitStates::Rethrow());
 		}
 		
 		Statement Statement::Break() {
-			return Statement(BREAK, AST::ExitStates::Break());
+			return Statement(BREAK, ExitStates::Break());
 		}
 		
 		Statement Statement::Continue() {
-			return Statement(CONTINUE, AST::ExitStates::Continue());
+			return Statement(CONTINUE, ExitStates::Continue());
 		}
 		
-		Statement Statement::Assert(AST::Value value, const String& name) {
+		Statement Statement::Assert(Value value, const String& name) {
 			Statement statement(ASSERT, value.exitStates());
 			statement.assertStmt_.value = std::move(value);
 			statement.assertStmt_.name = name;
 			return statement;
 		}
 		
-		Statement Statement::AssertNoExcept(AST::Node<AST::Scope> scope) {
-			AST::ExitStates exitStates = scope->exitStates();
-			exitStates.remove(AST::ExitStates::AllThrowing());
+		Statement Statement::AssertNoExcept(Node<Scope> scope) {
+			ExitStates exitStates = scope->exitStates();
+			exitStates.remove(ExitStates::AllThrowing());
 			
 			Statement statement(ASSERTNOEXCEPT, exitStates);
 			statement.assertNoExceptStmt_.scope = std::move(scope);
@@ -230,17 +229,17 @@ namespace locic {
 		}
 		
 		Statement Statement::Unreachable() {
-			return Statement(UNREACHABLE, AST::ExitStates::None());
+			return Statement(UNREACHABLE, ExitStates::None());
 		}
 		
-		Statement::Statement(const Kind argKind, const AST::ExitStates argExitStates)
+		Statement::Statement(const Kind argKind, const ExitStates argExitStates)
 		: kind_(argKind), exitStates_(argExitStates) { }
 			
 		Statement::Kind Statement::kind() const {
 			return kind_;
 		}
 		
-		AST::ExitStates Statement::exitStates() const {
+		ExitStates Statement::exitStates() const {
 			return exitStates_;
 		}
 		
@@ -248,7 +247,7 @@ namespace locic {
 			return kind() == VALUE;
 		}
 		
-		const AST::Value& Statement::getValue() const {
+		const Value& Statement::getValue() const {
 			assert(isValueStatement());
 			return valueStmt_.value;
 		}
@@ -257,7 +256,7 @@ namespace locic {
 			return kind() == SCOPE;
 		}
 		
-		AST::Scope& Statement::getScope() const {
+		Scope& Statement::getScope() const {
 			assert(isScope());
 			return *(scopeStmt_.scope);
 		}
@@ -266,12 +265,12 @@ namespace locic {
 			return kind() == INITIALISE;
 		}
 		
-		AST::Var& Statement::getInitialiseVar() const {
+		Var& Statement::getInitialiseVar() const {
 			assert(isInitialiseStatement());
 			return *(initialiseStmt_.var);
 		}
 		
-		const AST::Value& Statement::getInitialiseValue() const {
+		const Value& Statement::getInitialiseValue() const {
 			assert(isInitialiseStatement());
 			return initialiseStmt_.value;
 		}
@@ -280,13 +279,13 @@ namespace locic {
 			return kind() == IF;
 		}
 		
-		const std::vector<AST::IfClause*>&
+		const std::vector<IfClause*>&
 		Statement::getIfClauseList() const {
 			assert(isIfStatement());
 			return ifStmt_.clauseList;
 		}
 		
-		AST::Scope& Statement::getIfElseScope() const {
+		Scope& Statement::getIfElseScope() const {
 			assert(isIfStatement());
 			return *(ifStmt_.elseScope);
 		}
@@ -295,18 +294,18 @@ namespace locic {
 			return kind() == SWITCH;
 		}
 		
-		const AST::Value& Statement::getSwitchValue() const {
+		const Value& Statement::getSwitchValue() const {
 			assert(isSwitchStatement());
 			return switchStmt_.value;
 		}
 		
-		const std::vector<AST::SwitchCase*>&
+		const std::vector<SwitchCase*>&
 		Statement::getSwitchCaseList() const {
 			assert(isSwitchStatement());
 			return switchStmt_.caseList;
 		}
 		
-		AST::DefaultCase& Statement::getSwitchDefaultCase() const {
+		DefaultCase& Statement::getSwitchDefaultCase() const {
 			assert(isSwitchStatement());
 			return *(switchStmt_.defaultCase);
 		}
@@ -315,17 +314,17 @@ namespace locic {
 			return kind() == LOOP;
 		}
 		
-		const AST::Value& Statement::getLoopCondition() const {
+		const Value& Statement::getLoopCondition() const {
 			assert(isLoopStatement());
 			return loopStmt_.condition;
 		}
 		
-		AST::Scope& Statement::getLoopIterationScope() const {
+		Scope& Statement::getLoopIterationScope() const {
 			assert(isLoopStatement());
 			return *(loopStmt_.iterationScope);
 		}
 		
-		AST::Scope& Statement::getLoopAdvanceScope() const {
+		Scope& Statement::getLoopAdvanceScope() const {
 			assert(isLoopStatement());
 			return *(loopStmt_.advanceScope);
 		}
@@ -334,17 +333,17 @@ namespace locic {
 			return kind() == FOR;
 		}
 		
-		AST::Var& Statement::getForVar() const {
+		Var& Statement::getForVar() const {
 			assert(isFor());
 			return *(forStmt_.var);
 		}
 		
-		const AST::Value& Statement::getForInitValue() const {
+		const Value& Statement::getForInitValue() const {
 			assert(isFor());
 			return forStmt_.initValue;
 		}
 		
-		AST::Scope& Statement::getForScope() const {
+		Scope& Statement::getForScope() const {
 			assert(isFor());
 			return *(forStmt_.scope);
 		}
@@ -353,12 +352,12 @@ namespace locic {
 			return kind() == TRY;
 		}
 		
-		AST::Scope& Statement::getTryScope() const {
+		Scope& Statement::getTryScope() const {
 			assert(isTryStatement());
 			return *(tryStmt_.scope);
 		}
 		
-		const std::vector<AST::CatchClause*>& Statement::getTryCatchList() const {
+		const std::vector<CatchClause*>& Statement::getTryCatchList() const {
 			assert(isTryStatement());
 			return tryStmt_.catchList;
 		}
@@ -372,7 +371,7 @@ namespace locic {
 			return scopeExitStmt_.state;
 		}
 		
-		AST::Scope& Statement::getScopeExitScope() const {
+		Scope& Statement::getScopeExitScope() const {
 			assert(isScopeExitStatement());
 			return *(scopeExitStmt_.scope);
 		}
@@ -381,7 +380,7 @@ namespace locic {
 			return kind() == RETURN;
 		}
 		
-		const AST::Value& Statement::getReturnValue() const {
+		const Value& Statement::getReturnValue() const {
 			assert(isReturnStatement());
 			return returnStmt_.value;
 		}
@@ -390,7 +389,7 @@ namespace locic {
 			return kind() == THROW;
 		}
 		
-		const AST::Value& Statement::getThrowValue() const {
+		const Value& Statement::getThrowValue() const {
 			assert(isThrowStatement());
 			return throwStmt_.value;
 		}
@@ -411,7 +410,7 @@ namespace locic {
 			return kind() == ASSERT;
 		}
 		
-		const AST::Value& Statement::getAssertValue() const {
+		const Value& Statement::getAssertValue() const {
 			assert(isAssertStatement());
 			return assertStmt_.value;
 		}
@@ -425,7 +424,7 @@ namespace locic {
 			return kind() == ASSERTNOEXCEPT;
 		}
 		
-		const AST::Scope& Statement::getAssertNoExceptScope() const {
+		const Scope& Statement::getAssertNoExceptScope() const {
 			assert(isAssertNoExceptStatement());
 			return *(assertNoExceptStmt_.scope);
 		}
@@ -543,7 +542,7 @@ namespace locic {
 				}
 			}
 			
-			locic_unreachable("Unknown SEM::Statement kind.");
+			locic_unreachable("Unknown AST::Statement kind.");
 		}
 		
 	}

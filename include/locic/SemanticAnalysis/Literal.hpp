@@ -5,7 +5,7 @@
 
 #include <locic/Constant.hpp>
 #include <locic/Debug.hpp>
-#include <locic/SEM.hpp>
+
 
 #include <locic/SemanticAnalysis/Context.hpp>
 

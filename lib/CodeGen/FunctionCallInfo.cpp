@@ -3,6 +3,7 @@
 #include <locic/AST/Function.hpp>
 #include <locic/AST/FunctionType.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/Value.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
@@ -26,8 +27,6 @@
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/ValueEmitter.hpp>
 #include <locic/CodeGen/VTable.hpp>
-
-#include <locic/AST/Value.hpp>
 
 #include <locic/Support/MethodID.hpp>
 

@@ -12,7 +12,7 @@
 #include <locic/Debug.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/Support/PrimitiveID.hpp>
-#include <locic/SEM.hpp>
+
 
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/InternalContext.hpp>

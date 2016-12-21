@@ -3,11 +3,10 @@
 #include <locic/AST/ExitStates.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Scope.hpp>
+#include <locic/AST/Statement.hpp>
 #include <locic/AST/StatementDecl.hpp>
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
-
-#include <locic/SEM/Statement.hpp>
 
 #include <locic/Support/Array.hpp>
 #include <locic/Support/String.hpp>
@@ -101,7 +100,7 @@ namespace locic {
 				
 				// Handle scope(success) specially, since these statements can
 				// be run in a 'normal' state
-				if (statement.kind() == SEM::Statement::SCOPEEXIT &&
+				if (statement.kind() == Statement::SCOPEEXIT &&
 				    statement.getScopeExitState() == "success") {
 					const auto scopeSuccessStates = statement.getScopeExitScope().exitStates();
 					
@@ -156,11 +155,11 @@ namespace locic {
 			return namedVariables_;
 		}
 		
-		Array<SEM::Statement, 10>& Scope::statements() {
+		Array<Statement, 10>& Scope::statements() {
 			return statements_;
 		}
 		
-		const Array<SEM::Statement, 10>& Scope::statements() const {
+		const Array<Statement, 10>& Scope::statements() const {
 			return statements_;
 		}
 		

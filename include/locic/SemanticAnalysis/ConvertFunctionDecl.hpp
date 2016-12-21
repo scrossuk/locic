@@ -3,11 +3,11 @@
 
 #include <memory>
 
-#include <locic/AST.hpp>
+#include <locic/AST/Node.hpp>
 
 namespace locic {
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Function;
 		

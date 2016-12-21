@@ -4,7 +4,7 @@
 #include <llvm-abi/ABI.hpp>
 #include <llvm-abi/Type.hpp>
 
-#include <locic/SEM.hpp>
+
 
 #include <locic/CodeGen/Module.hpp>
 

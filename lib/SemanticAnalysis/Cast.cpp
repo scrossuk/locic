@@ -7,7 +7,7 @@
 #include <locic/Frontend/OptionalDiag.hpp>
 #include <locic/Support/Name.hpp>
 #include <locic/Support/String.hpp>
-#include <locic/SEM.hpp>
+
 
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>

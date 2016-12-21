@@ -1,7 +1,7 @@
 #ifndef LOCIC_CODEGEN_SIZEOF_HPP
 #define LOCIC_CODEGEN_SIZEOF_HPP
 
-#include <locic/SEM.hpp>
+
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Function.hpp>

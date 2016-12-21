@@ -1,6 +1,6 @@
 #include <locic/AST/Type.hpp>
 #include <locic/Constant.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>

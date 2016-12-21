@@ -1,7 +1,8 @@
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Namespace.hpp>
-#include <locic/SEM.hpp>
+#include <locic/AST/TypeInstance.hpp>
+
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/Support/String.hpp>
 

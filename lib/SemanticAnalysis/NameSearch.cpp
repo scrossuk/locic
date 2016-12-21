@@ -3,8 +3,9 @@
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Scope.hpp>
+#include <locic/AST/TypeInstance.hpp>
+
 #include <locic/Support/Name.hpp>
-#include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>

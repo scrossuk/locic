@@ -1,6 +1,6 @@
 #include <locic/AST.hpp>
 #include <locic/AST/Type.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
@@ -71,7 +71,7 @@ namespace locic {
 				
 				outerScope->variables().push_back(initVar);
 				
-				outerScope->statements().push_back(SEM::Statement::InitialiseStmt(*initVar, ImplicitCast(context, std::move(initValue), initVarType, location)));
+				outerScope->statements().push_back(AST::Statement::InitialiseStmt(*initVar, ImplicitCast(context, std::move(initValue), initVarType, location)));
 				
 				{
 					PushScopeElement pushLoop(context.scopeStack(), ScopeElement::Loop());
@@ -90,18 +90,18 @@ namespace locic {
 						auto loopVar = ConvertInitialisedVar(context, astVarNode, currentValue.type());
 						iterationScope->variables().push_back(loopVar);
 						
-						iterationScope->statements().push_back(SEM::Statement::InitialiseStmt(*loopVar,
+						iterationScope->statements().push_back(AST::Statement::InitialiseStmt(*loopVar,
 							ImplicitCast(context, std::move(currentValue), loopVar->constructType(), location)));
 						
 						ConvertScope(context, scopeNode);
-						iterationScope->statements().push_back(SEM::Statement::ScopeStmt(std::move(scopeNode)));
+						iterationScope->statements().push_back(AST::Statement::ScopeStmt(std::move(scopeNode)));
 					}
 					
 					auto advanceScope = AST::Scope::Create(location);
 					auto advanceCurrentValue = CallValue(context, GetMethod(context, createLocalVarRef(context, *initVar), context.getCString("skipfront"), location), {}, location);
-					advanceScope->statements().push_back(SEM::Statement::ValueStmt(std::move(advanceCurrentValue)));
+					advanceScope->statements().push_back(AST::Statement::ValueStmt(std::move(advanceCurrentValue)));
 					
-					outerScope->statements().push_back(SEM::Statement::Loop(std::move(loopCondition), std::move(iterationScope), std::move(advanceScope)));
+					outerScope->statements().push_back(AST::Statement::Loop(std::move(loopCondition), std::move(iterationScope), std::move(advanceScope)));
 				}
 			}
 			

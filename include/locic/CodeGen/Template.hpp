@@ -3,7 +3,7 @@
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
-#include <locic/SEM.hpp>
+
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Module.hpp>

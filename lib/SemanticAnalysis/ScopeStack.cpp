@@ -4,9 +4,10 @@
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/TypeInstance.hpp>
+
 #include <locic/Debug.hpp>
 #include <locic/Support/Name.hpp>
-#include <locic/SEM.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>

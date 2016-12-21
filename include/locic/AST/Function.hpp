@@ -16,6 +16,7 @@
 #include <locic/AST/TemplatedObject.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TypeDecl.hpp>
+#include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 
 #include <locic/Debug/FunctionInfo.hpp>

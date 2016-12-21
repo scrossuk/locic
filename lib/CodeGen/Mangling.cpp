@@ -2,7 +2,8 @@
 
 #include <locic/AST/Function.hpp>
 #include <locic/AST/ModuleScope.hpp>
-#include <locic/SEM.hpp>
+#include <locic/AST/TypeInstance.hpp>
+
 #include <locic/Support/String.hpp>
 
 #include <locic/CodeGen/Mangling.hpp>

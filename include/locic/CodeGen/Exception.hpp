@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <locic/SEM.hpp>
+
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/UnwindState.hpp>

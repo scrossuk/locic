@@ -5,7 +5,7 @@
 #include <locic/AST.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/Support/Map.hpp>
-#include <locic/SEM.hpp>
+
 
 #include <locic/SemanticAnalysis/AliasTypeResolver.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>

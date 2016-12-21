@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <list>
 #include <locic/AST.hpp>
-#include <locic/SEM.hpp>
+
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertFunctionDef.hpp>
 #include <locic/SemanticAnalysis/ConvertNamespace.hpp>
