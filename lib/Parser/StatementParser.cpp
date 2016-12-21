@@ -41,7 +41,7 @@ namespace locic {
 		
 		StatementParser::~StatementParser() { }
 		
-		AST::Node<AST::Statement> StatementParser::parseStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseStatement() {
 			const auto start = reader_.position();
 			
 			const auto token = reader_.peek();
@@ -134,13 +134,13 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Statement> StatementParser::parseScopeStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseScopeStatement() {
 			const auto start = reader_.position();
 			auto scope = ScopeParser(reader_).parseScope();
 			return builder_.makeScopeStatement(std::move(scope), start);
 		}
 		
-		AST::Node<AST::Statement> StatementParser::parseIfStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseIfStatement() {
 			const auto start = reader_.position();
 			
 			AST::IfClauseList ifClauseList;
@@ -175,7 +175,7 @@ namespace locic {
 			return builder_.makeIfClause(std::move(value), std::move(scope), start);
 		}
 		
-		AST::Node<AST::Statement> StatementParser::parseSwitchStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseSwitchStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::SWITCH);
 			reader_.expect(Token::LROUNDBRACKET);
@@ -231,7 +231,7 @@ namespace locic {
 			return builder_.makeDefaultSwitchCase(std::move(scope), start);
 		}
 		
-		AST::Node<AST::Statement> StatementParser::parseWhileStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseWhileStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::WHILE);
 			reader_.expect(Token::LROUNDBRACKET);
@@ -241,7 +241,7 @@ namespace locic {
 			return builder_.makeWhileStatement(std::move(value), std::move(scope), start);
 		}
 		
-		AST::Node<AST::Statement> StatementParser::parseForStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseForStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::FOR);
 			reader_.expect(Token::LROUNDBRACKET);
@@ -254,7 +254,7 @@ namespace locic {
 			                                 std::move(scope), start);
 		}
 		
-		AST::Node<AST::Statement> StatementParser::parseTryStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseTryStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::TRY);
 			auto scope = ScopeParser(reader_).parseScope();
@@ -291,7 +291,7 @@ namespace locic {
 			return builder_.makeCatchClause(std::move(var), std::move(scope), start);
 		}
 		
-		AST::Node<AST::Statement> StatementParser::parseScopeExitStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseScopeExitStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::SCOPE);
 			
@@ -329,7 +329,7 @@ namespace locic {
 			return std::string(data.data());
 		}
 		
-		AST::Node<AST::Statement> StatementParser::parseAssertStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseAssertStatement() {
 			const auto start = reader_.position();
 			reader_.expect(Token::ASSERT);
 			
@@ -375,7 +375,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Statement> StatementParser::parseVarDeclStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseVarDeclStatement() {
 			const auto start = reader_.position();
 			
 			(void) reader_.consumeIfPresent(Token::LET);
@@ -387,7 +387,7 @@ namespace locic {
 			return builder_.makeVarDeclStatement(std::move(var), std::move(value), start);
 		}
 		
-		AST::Node<AST::Statement> StatementParser::parseValueOrVarDeclStatement() {
+		AST::Node<AST::StatementDecl> StatementParser::parseValueOrVarDeclStatement() {
 			const auto start = reader_.position();
 			
 			auto value = ValueParser(reader_).parseValue(ValueParser::IN_TYPEDECL);

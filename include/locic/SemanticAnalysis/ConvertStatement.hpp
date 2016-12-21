@@ -9,7 +9,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 	
-		SEM::Statement ConvertStatement(Context& context, const AST::Node<AST::Statement>& statement);
+		SEM::Statement ConvertStatement(Context& context, const AST::Node<AST::StatementDecl>& statement);
 		
 	}
 	

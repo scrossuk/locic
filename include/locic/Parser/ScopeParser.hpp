@@ -16,7 +16,7 @@ namespace locic {
 			
 			AST::Node<AST::Scope> parseScope();
 			
-			AST::Node<AST::StatementList> parseStatementList();
+			AST::Node<AST::StatementDeclList> parseStatementList();
 			
 		private:
 			TokenReader& reader_;

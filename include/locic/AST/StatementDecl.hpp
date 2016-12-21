@@ -1,5 +1,5 @@
-#ifndef LOCIC_AST_STATEMENT_HPP
-#define LOCIC_AST_STATEMENT_HPP
+#ifndef LOCIC_AST_STATEMENTDECL_HPP
+#define LOCIC_AST_STATEMENTDECL_HPP
 
 #include <locic/AST/CatchClause.hpp>
 #include <locic/AST/IfClause.hpp>
@@ -7,6 +7,7 @@
 #include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
+
 #include <locic/Support/String.hpp>
 
 namespace locic {
@@ -24,7 +25,7 @@ namespace locic {
 			ASSIGN_MOD
 		};
 		
-		class Statement {
+		class StatementDecl {
 		public:
 			enum Kind {
 				VALUE,
@@ -50,49 +51,49 @@ namespace locic {
 				UNREACHABLE
 			};
 			
-			static Statement* ValueStmt(Node<ValueDecl> value);
+			static StatementDecl* ValueStmt(Node<ValueDecl> value);
 			
-			static Statement* ValueStmtVoidCast(Node<ValueDecl> value);
+			static StatementDecl* ValueStmtVoidCast(Node<ValueDecl> value);
 			
-			static Statement* ScopeStmt(Node<Scope> scope);
+			static StatementDecl* ScopeStmt(Node<Scope> scope);
 			
-			static Statement* If(Node<IfClauseList> clauseList, Node<Scope> elseScope);
+			static StatementDecl* If(Node<IfClauseList> clauseList, Node<Scope> elseScope);
 			
-			static Statement* Switch(Node<ValueDecl> value, Node<SwitchCaseList> caseList, Node<DefaultCase> defaultCase);
+			static StatementDecl* Switch(Node<ValueDecl> value, Node<SwitchCaseList> caseList, Node<DefaultCase> defaultCase);
 			
-			static Statement* While(Node<ValueDecl> condition, Node<Scope> whileTrue);
+			static StatementDecl* While(Node<ValueDecl> condition, Node<Scope> whileTrue);
 			
-			static Statement* For(Node<Var> typeVar, Node<ValueDecl> initValue, Node<Scope> scope);
+			static StatementDecl* For(Node<Var> typeVar, Node<ValueDecl> initValue, Node<Scope> scope);
 			
-			static Statement* Try(Node<Scope> scope, Node<CatchClauseList> catchList);
+			static StatementDecl* Try(Node<Scope> scope, Node<CatchClauseList> catchList);
 			
-			static Statement* ScopeExit(const String& state, Node<Scope> scope);
+			static StatementDecl* ScopeExit(const String& state, Node<Scope> scope);
 			
-			static Statement* VarDecl(Node<Var> typeVar, Node<ValueDecl> value);
+			static StatementDecl* VarDecl(Node<Var> typeVar, Node<ValueDecl> value);
 			
-			static Statement* Assign(AssignKind assignKind, Node<ValueDecl> var, Node<ValueDecl> value);
+			static StatementDecl* Assign(AssignKind assignKind, Node<ValueDecl> var, Node<ValueDecl> value);
 			
-			static Statement* Increment(Node<ValueDecl> value);
+			static StatementDecl* Increment(Node<ValueDecl> value);
 			
-			static Statement* Decrement(Node<ValueDecl> value);
+			static StatementDecl* Decrement(Node<ValueDecl> value);
 			
-			static Statement* Return(Node<ValueDecl> value);
+			static StatementDecl* Return(Node<ValueDecl> value);
 			
-			static Statement* ReturnVoid();
+			static StatementDecl* ReturnVoid();
 			
-			static Statement* Throw(Node<ValueDecl> value);
+			static StatementDecl* Throw(Node<ValueDecl> value);
 			
-			static Statement* Rethrow();
+			static StatementDecl* Rethrow();
 			
-			static Statement* Break();
+			static StatementDecl* Break();
 			
-			static Statement* Continue();
+			static StatementDecl* Continue();
 			
-			static Statement* Assert(Node<ValueDecl> value, const String& name);
+			static StatementDecl* Assert(Node<ValueDecl> value, const String& name);
 			
-			static Statement* AssertNoExcept(Node<Scope> scope);
+			static StatementDecl* AssertNoExcept(Node<Scope> scope);
 			
-			static Statement* Unreachable();
+			static StatementDecl* Unreachable();
 			
 			Kind kind() const;
 			
@@ -206,7 +207,7 @@ namespace locic {
 			bool isUnreachable() const;
 			
 		private:
-			Statement(Kind kind);
+			StatementDecl(Kind kind);
 			
 			Kind kind_;
 			
@@ -289,7 +290,7 @@ namespace locic {
 			
 		};
 		
-		typedef std::vector<Node<Statement>> StatementList;
+		typedef std::vector<Node<StatementDecl>> StatementDeclList;
 		
 	}
 	

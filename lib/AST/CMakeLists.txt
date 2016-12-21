@@ -21,7 +21,7 @@ add_library(locic-ast
 	PredicateDecl.cpp
 	RequireSpecifier.cpp
 	Scope.cpp
-	Statement.cpp
+	StatementDecl.cpp
 	StaticAssert.cpp
 	SwitchCase.cpp
 	Symbol.cpp

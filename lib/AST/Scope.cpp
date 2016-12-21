@@ -3,7 +3,7 @@
 #include <locic/AST/ExitStates.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/Scope.hpp>
-#include <locic/AST/Statement.hpp>
+#include <locic/AST/StatementDecl.hpp>
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 
@@ -22,16 +22,16 @@ namespace locic {
 		}
 		
 		Scope::Scope()
-		: statementDecls_(makeDefaultNode<StatementList>()) { }
+		: statementDecls_(makeDefaultNode<StatementDeclList>()) { }
 		
-		Scope::Scope(Node<StatementList> s)
+		Scope::Scope(Node<StatementDeclList> s)
 		: statementDecls_(std::move(s)) { }
 		
-		Node<StatementList>& Scope::statementDecls() {
+		Node<StatementDeclList>& Scope::statementDecls() {
 			return statementDecls_;
 		}
 		
-		const Node<StatementList>& Scope::statementDecls() const {
+		const Node<StatementDeclList>& Scope::statementDecls() const {
 			return statementDecls_;
 		}
 		

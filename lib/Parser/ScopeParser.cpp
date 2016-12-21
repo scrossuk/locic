@@ -23,10 +23,10 @@ namespace locic {
 			return AST::makeNode(location, new AST::Scope(std::move(statementList)));
 		}
 		
-		AST::Node<AST::StatementList> ScopeParser::parseStatementList() {
+		AST::Node<AST::StatementDeclList> ScopeParser::parseStatementList() {
 			const auto start = reader_.position();
 			
-			AST::StatementList statementList;
+			AST::StatementDeclList statementList;
 			statementList.reserve(16);
 			
 			while (!reader_.isEnd()) {
@@ -43,7 +43,7 @@ namespace locic {
 			}
 			
 			const auto location = reader_.locationWithRangeFrom(start);
-			return AST::makeNode(location, new AST::StatementList(std::move(statementList)));
+			return AST::makeNode(location, new AST::StatementDeclList(std::move(statementList)));
 		}
 		
 	}

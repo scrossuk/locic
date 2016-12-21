@@ -16,15 +16,15 @@ namespace locic {
 			StatementParser(TokenReader& reader);
 			~StatementParser();
 			
-			AST::Node<AST::Statement> parseStatement();
+			AST::Node<AST::StatementDecl> parseStatement();
 			
-			AST::Node<AST::Statement> parseScopeStatement();
+			AST::Node<AST::StatementDecl> parseScopeStatement();
 			
-			AST::Node<AST::Statement> parseIfStatement();
+			AST::Node<AST::StatementDecl> parseIfStatement();
 			
 			AST::Node<AST::IfClause> parseIfClause();
 			
-			AST::Node<AST::Statement> parseSwitchStatement();
+			AST::Node<AST::StatementDecl> parseSwitchStatement();
 			
 			AST::Node<AST::SwitchCaseList> parseSwitchCaseList();
 			
@@ -32,25 +32,25 @@ namespace locic {
 			
 			AST::Node<AST::DefaultCase> parseSwitchDefaultCase();
 			
-			AST::Node<AST::Statement> parseWhileStatement();
+			AST::Node<AST::StatementDecl> parseWhileStatement();
 			
-			AST::Node<AST::Statement> parseForStatement();
+			AST::Node<AST::StatementDecl> parseForStatement();
 			
-			AST::Node<AST::Statement> parseTryStatement();
+			AST::Node<AST::StatementDecl> parseTryStatement();
 			
 			AST::Node<AST::CatchClauseList> parseCatchClauseList();
 			
 			AST::Node<AST::CatchClause> parseCatchClause();
 			
-			AST::Node<AST::Statement> parseScopeExitStatement();
+			AST::Node<AST::StatementDecl> parseScopeExitStatement();
 			
-			AST::Node<AST::Statement> parseAssertStatement();
+			AST::Node<AST::StatementDecl> parseAssertStatement();
 			
 			bool isVarDeclStartToken(Token::Kind kind);
 			
-			AST::Node<AST::Statement> parseVarDeclStatement();
+			AST::Node<AST::StatementDecl> parseVarDeclStatement();
 			
-			AST::Node<AST::Statement> parseValueOrVarDeclStatement();
+			AST::Node<AST::StatementDecl> parseValueOrVarDeclStatement();
 			
 		private:
 			TokenReader& reader_;

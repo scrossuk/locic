@@ -3,7 +3,7 @@
 
 #include <locic/AST/ExitStates.hpp>
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Statement.hpp>
+#include <locic/AST/StatementDecl.hpp>
 
 #include <locic/Support/Array.hpp>
 #include <locic/Support/FastMap.hpp>
@@ -21,12 +21,12 @@ namespace locic {
 			Create(const Debug::SourceLocation& location);
 			
 			Scope();
-			Scope(Node<StatementList> s);
+			Scope(Node<StatementDeclList> s);
 			Scope(Scope&&) = default;
 			Scope& operator=(Scope&&) = default;
 			
-			Node<StatementList>& statementDecls();
-			const Node<StatementList>& statementDecls() const;
+			Node<StatementDeclList>& statementDecls();
+			const Node<StatementDeclList>& statementDecls() const;
 			
 			ExitStates exitStates() const;
 			
@@ -42,7 +42,7 @@ namespace locic {
 			std::string toString() const;
 			
 		private:
-			Node<StatementList> statementDecls_;
+			Node<StatementDeclList> statementDecls_;
 			Array<Var*, 10> variables_;
 			FastMap<String, Var*> namedVariables_;
 			Array<SEM::Statement, 10> statements_;

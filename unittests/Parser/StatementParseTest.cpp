@@ -26,7 +26,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isValue());
 				EXPECT_TRUE(statement->value()->isSymbol());
 				EXPECT_FALSE(statement->isUnusedResultValue());
@@ -38,7 +38,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isValue());
 				EXPECT_TRUE(statement->value()->isLiteral());
 				EXPECT_FALSE(statement->isUnusedResultValue());
@@ -51,7 +51,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isValue());
 				EXPECT_TRUE(statement->value()->isSymbol());
 				EXPECT_TRUE(statement->isUnusedResultValue());
@@ -64,7 +64,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isValue());
 				EXPECT_TRUE(statement->value()->isLiteral());
 				EXPECT_TRUE(statement->isUnusedResultValue());
@@ -77,7 +77,7 @@ namespace locic {
 				Token::DOUBLE_PLUS,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isIncrement());
 				EXPECT_TRUE(statement->incrementValue()->isSymbol());
 			});
@@ -89,7 +89,7 @@ namespace locic {
 				Token::DOUBLE_MINUS,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isDecrement());
 				EXPECT_TRUE(statement->decrementValue()->isSymbol());
 			});
@@ -102,7 +102,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isAssign());
 				EXPECT_EQ(statement->assignKind(), AST::ASSIGN_DIRECT);
 				EXPECT_TRUE(statement->assignLvalue()->isSymbol());
@@ -117,7 +117,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isAssign());
 				EXPECT_EQ(statement->assignKind(), AST::ASSIGN_ADD);
 				EXPECT_TRUE(statement->assignLvalue()->isSymbol());
@@ -132,7 +132,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isAssign());
 				EXPECT_EQ(statement->assignKind(), AST::ASSIGN_SUB);
 				EXPECT_TRUE(statement->assignLvalue()->isSymbol());
@@ -147,7 +147,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isAssign());
 				EXPECT_EQ(statement->assignKind(), AST::ASSIGN_MUL);
 				EXPECT_TRUE(statement->assignLvalue()->isSymbol());
@@ -162,7 +162,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isAssign());
 				EXPECT_EQ(statement->assignKind(), AST::ASSIGN_DIV);
 				EXPECT_TRUE(statement->assignLvalue()->isSymbol());
@@ -177,7 +177,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isAssign());
 				EXPECT_EQ(statement->assignKind(), AST::ASSIGN_MOD);
 				EXPECT_TRUE(statement->assignLvalue()->isSymbol());
@@ -193,7 +193,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isNamed());
 				EXPECT_TRUE(statement->varDeclVar()->declType()->isObjectType());
@@ -212,7 +212,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				const auto& var = statement->varDeclVar();
 				ASSERT_TRUE(var->isNamed());
@@ -232,7 +232,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isNamed());
 				ASSERT_TRUE(statement->varDeclVar()->declType()->isPointer());
@@ -251,7 +251,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isNamed());
 				ASSERT_TRUE(statement->varDeclVar()->declType()->isPointer());
@@ -269,7 +269,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isNamed());
 				ASSERT_TRUE(statement->varDeclVar()->declType()->isPointer());
@@ -288,7 +288,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
 				EXPECT_EQ(statement->varDeclVar()->varList()->size(), 0);
@@ -307,7 +307,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
 				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 1);
@@ -330,7 +330,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
 				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 2);
@@ -350,7 +350,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
 				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 1);
@@ -372,7 +372,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
 				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 2);
@@ -392,7 +392,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
 				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 1);
@@ -413,7 +413,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isVarDecl());
 				ASSERT_TRUE(statement->varDeclVar()->isPattern());
 				ASSERT_EQ(statement->varDeclVar()->varList()->size(), 2);
@@ -428,7 +428,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isAssert());
 				EXPECT_TRUE(statement->assertValue()->isSymbol());
 			});
@@ -442,7 +442,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isAssert());
 				EXPECT_TRUE(statement->assertValue()->isBinaryOp());
 			});
@@ -457,7 +457,7 @@ namespace locic {
 				Token::SEMICOLON,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isAssertNoExcept());
 				EXPECT_EQ(statement->assertNoExceptScope()->statementDecls()->size(), 1);
 			});
@@ -468,7 +468,7 @@ namespace locic {
 				Token::BREAK,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				EXPECT_TRUE(statement->isBreak());
 			});
 		}
@@ -478,7 +478,7 @@ namespace locic {
 				Token::CONTINUE,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				EXPECT_TRUE(statement->isContinue());
 			});
 		}
@@ -488,7 +488,7 @@ namespace locic {
 				Token::UNREACHABLE,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				EXPECT_TRUE(statement->isUnreachable());
 			});
 		}
@@ -498,7 +498,7 @@ namespace locic {
 				Token::THROW,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				EXPECT_TRUE(statement->isRethrow());
 			});
 		}
@@ -509,7 +509,7 @@ namespace locic {
 				Token::NAME,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isThrow());
 				EXPECT_TRUE(statement->throwValue()->isSymbol());
 			});
@@ -520,7 +520,7 @@ namespace locic {
 				Token::RETURN,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				EXPECT_TRUE(statement->isReturnVoid());
 			});
 		}
@@ -531,7 +531,7 @@ namespace locic {
 				Token::CONSTANT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isReturn());
 				EXPECT_EQ(statement->returnValue()->kind(), AST::ValueDecl::LITERAL);
 			});
@@ -543,7 +543,7 @@ namespace locic {
 				Token::INT,
 				Token::SEMICOLON
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isReturn());
 				EXPECT_EQ(statement->returnValue()->kind(), AST::ValueDecl::TYPEREF);
 			});
@@ -560,7 +560,7 @@ namespace locic {
 				Token::SEMICOLON,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isIf());
 				ASSERT_EQ(statement->ifClauseList()->size(), 1);
 				EXPECT_EQ(statement->ifClauseList()->at(0)->scope()->statementDecls()->size(), 1);
@@ -588,7 +588,7 @@ namespace locic {
 				Token::SEMICOLON,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isIf());
 				ASSERT_EQ(statement->ifClauseList()->size(), 2);
 				EXPECT_EQ(statement->ifClauseList()->at(0)->scope()->statementDecls()->size(), 1);
@@ -628,7 +628,7 @@ namespace locic {
 				Token::SEMICOLON,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isIf());
 				ASSERT_EQ(statement->ifClauseList()->size(), 3);
 				EXPECT_EQ(statement->ifClauseList()->at(0)->scope()->statementDecls()->size(), 1);
@@ -654,7 +654,7 @@ namespace locic {
 				Token::SEMICOLON,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isIf());
 				ASSERT_EQ(statement->ifClauseList()->size(), 1);
 				EXPECT_EQ(statement->ifClauseList()->at(0)->scope()->statementDecls()->size(), 1);
@@ -689,7 +689,7 @@ namespace locic {
 				Token::SEMICOLON,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isIf());
 				ASSERT_EQ(statement->ifClauseList()->size(), 2);
 				EXPECT_EQ(statement->ifClauseList()->at(0)->scope()->statementDecls()->size(), 1);
@@ -709,7 +709,7 @@ namespace locic {
 				Token::SEMICOLON,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isWhile());
 				EXPECT_TRUE(statement->whileCondition()->isSymbol());
 				EXPECT_EQ(statement->whileScope()->statementDecls()->size(), 1);
@@ -730,7 +730,7 @@ namespace locic {
 				Token::SEMICOLON,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isFor());
 				EXPECT_TRUE(statement->forInitValue()->isSymbol());
 				EXPECT_EQ(statement->forInitScope()->statementDecls()->size(), 1);
@@ -748,7 +748,7 @@ namespace locic {
 				Token::SEMICOLON,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isScopeExit());
 				EXPECT_EQ(statement->scopeExitState().asStdString(), "test");
 				EXPECT_EQ(statement->scopeExitScope()->statementDecls()->size(), 1);
@@ -770,7 +770,7 @@ namespace locic {
 				Token::RCURLYBRACKET,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isSwitch());
 				EXPECT_EQ(statement->switchCaseList()->size(), 1);
 				EXPECT_FALSE(statement->defaultCase()->hasScope());
@@ -795,7 +795,7 @@ namespace locic {
 				Token::RCURLYBRACKET,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isSwitch());
 				EXPECT_EQ(statement->switchCaseList()->size(), 1);
 				EXPECT_TRUE(statement->defaultCase()->hasScope());
@@ -815,7 +815,7 @@ namespace locic {
 				Token::LCURLYBRACKET,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isTry());
 				EXPECT_EQ(statement->tryScope()->statementDecls()->size(), 0);
 				ASSERT_EQ(statement->tryCatchList()->size(), 1);
@@ -845,7 +845,7 @@ namespace locic {
 				Token::LCURLYBRACKET,
 				Token::RCURLYBRACKET
 			};
-			testParseStatement(tokens, [](const AST::Node<AST::Statement>& statement) {
+			testParseStatement(tokens, [](const AST::Node<AST::StatementDecl>& statement) {
 				ASSERT_TRUE(statement->isTry());
 				EXPECT_EQ(statement->tryScope()->statementDecls()->size(), 0);
 				ASSERT_EQ(statement->tryCatchList()->size(), 2);
