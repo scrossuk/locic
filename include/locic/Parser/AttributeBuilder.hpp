@@ -27,7 +27,7 @@ namespace locic {
 			makeAlwaysConstSpecifier(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::ConstSpecifier>
-			makePredicateConstSpecifier(AST::Node<AST::Predicate> predicate,
+			makePredicateConstSpecifier(AST::Node<AST::PredicateDecl> predicate,
 			                            const Debug::SourcePosition& start);
 			
 			AST::Node<AST::RequireSpecifier>
@@ -37,7 +37,7 @@ namespace locic {
 			makeAlwaysRequireSpecifier(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::RequireSpecifier>
-			makePredicateRequireSpecifier(AST::Node<AST::Predicate> predicate,
+			makePredicateRequireSpecifier(AST::Node<AST::PredicateDecl> predicate,
 			                              const Debug::SourcePosition& start);
 			
 			AST::Node<AST::StringList>

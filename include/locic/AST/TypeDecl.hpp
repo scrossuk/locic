@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Predicate.hpp>
+#include <locic/AST/PredicateDecl.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 #include <locic/Support/String.hpp>
 
@@ -53,7 +53,7 @@ namespace locic {
 			} constType;
 			
 			struct {
-				Node<Predicate> predicate;
+				Node<PredicateDecl> predicate;
 				Node<TypeDecl> targetType;
 			} constPredicateType;
 			
@@ -123,7 +123,7 @@ namespace locic {
 			
 			static TypeDecl* Const(Node<TypeDecl> targetType);
 			
-			static TypeDecl* ConstPredicate(Node<Predicate> predicate, Node<TypeDecl> targetType);
+			static TypeDecl* ConstPredicate(Node<PredicateDecl> predicate, Node<TypeDecl> targetType);
 			
 			static TypeDecl* NoTag(Node<TypeDecl> targetType);
 			
@@ -186,7 +186,7 @@ namespace locic {
 				return typeEnum == CONSTPREDICATE;
 			}
 			
-			const Node<Predicate>& getConstPredicate() const {
+			const Node<PredicateDecl>& getConstPredicate() const {
 				assert(isConstPredicate());
 				return constPredicateType.predicate;
 			}

@@ -185,7 +185,7 @@ namespace locic {
 			};
 			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isConstPredicate());
-				EXPECT_EQ(type->getConstPredicate()->kind(), AST::Predicate::TRUE);
+				EXPECT_EQ(type->getConstPredicate()->kind(), AST::PredicateDecl::TRUE);
 				EXPECT_TRUE(type->getConstPredicateTarget()->isObjectType());
 			});
 		}
@@ -200,7 +200,7 @@ namespace locic {
 			};
 			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isConstPredicate());
-				EXPECT_EQ(type->getConstPredicate()->kind(), AST::Predicate::FALSE);
+				EXPECT_EQ(type->getConstPredicate()->kind(), AST::PredicateDecl::FALSE);
 				EXPECT_TRUE(type->getConstPredicateTarget()->isObjectType());
 			});
 		}
@@ -217,7 +217,7 @@ namespace locic {
 			};
 			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
 				ASSERT_TRUE(type->isConstPredicate());
-				EXPECT_EQ(type->getConstPredicate()->kind(), AST::Predicate::AND);
+				EXPECT_EQ(type->getConstPredicate()->kind(), AST::PredicateDecl::AND);
 				EXPECT_TRUE(type->getConstPredicateTarget()->isObjectType());
 			});
 		}

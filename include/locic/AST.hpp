@@ -14,7 +14,7 @@
 #include <locic/AST/Namespace.hpp>
 #include <locic/AST/NamespaceDecl.hpp>
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Predicate.hpp>
+#include <locic/AST/PredicateDecl.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/Scope.hpp>
 #include <locic/AST/Statement.hpp>

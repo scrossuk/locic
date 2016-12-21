@@ -325,7 +325,7 @@ namespace locic {
 			};
 			testParseGlobalNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
 				ASSERT_EQ(nameSpace->data()->staticAsserts.size(), 1);
-				EXPECT_EQ(nameSpace->data()->staticAsserts[0]->expression()->kind(), AST::Predicate::SYMBOL);
+				EXPECT_EQ(nameSpace->data()->staticAsserts[0]->expression()->kind(), AST::PredicateDecl::SYMBOL);
 			});
 		}
 		

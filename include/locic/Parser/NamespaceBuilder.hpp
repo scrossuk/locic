@@ -35,7 +35,7 @@ namespace locic {
 			          const Debug::SourcePosition& start);
 			
 			AST::Node<AST::StaticAssert>
-			makeStaticAssert(AST::Node<AST::Predicate> predicate,
+			makeStaticAssert(AST::Node<AST::PredicateDecl> predicate,
 			                 const Debug::SourcePosition& start);
 			
 			AST::Node<AST::ModuleScopeDecl>

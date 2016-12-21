@@ -1,5 +1,5 @@
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Predicate.hpp>
+#include <locic/AST/PredicateDecl.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
@@ -16,7 +16,7 @@ namespace locic {
 			return new RequireSpecifier(NOPREDICATE);
 		}
 		
-		RequireSpecifier* RequireSpecifier::Expr(Node<Predicate> predicate) {
+		RequireSpecifier* RequireSpecifier::Expr(Node<PredicateDecl> predicate) {
 			RequireSpecifier* requireSpecifier = new RequireSpecifier(EXPR);
 			requireSpecifier->predicate_ = std::move(predicate);
 			return requireSpecifier;
@@ -38,7 +38,7 @@ namespace locic {
 			return kind() == EXPR;
 		}
 		
-		const Node<Predicate>& RequireSpecifier::expr() const {
+		const Node<PredicateDecl>& RequireSpecifier::expr() const {
 			assert(kind() == EXPR);
 			return predicate_;
 		}

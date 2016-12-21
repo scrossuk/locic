@@ -1,6 +1,6 @@
 #include <locic/AST/ConstSpecifier.hpp>
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Predicate.hpp>
+#include <locic/AST/PredicateDecl.hpp>
 
 namespace locic {
 
@@ -18,7 +18,7 @@ namespace locic {
 			return new ConstSpecifier(MUTABLE);
 		}
 		
-		ConstSpecifier* ConstSpecifier::Expr(Node<Predicate> predicate) {
+		ConstSpecifier* ConstSpecifier::Expr(Node<PredicateDecl> predicate) {
 			const auto constSpecifier = new ConstSpecifier(EXPR);
 			constSpecifier->predicate_ = std::move(predicate);
 			return constSpecifier;
@@ -46,7 +46,7 @@ namespace locic {
 			return kind() == EXPR;
 		}
 		
-		const Node<Predicate>& ConstSpecifier::predicate() const {
+		const Node<PredicateDecl>& ConstSpecifier::predicate() const {
 			assert(kind() == EXPR);
 			return predicate_;;
 		}

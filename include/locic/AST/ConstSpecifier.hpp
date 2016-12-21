@@ -4,7 +4,7 @@
 #include <string>
 
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Predicate.hpp>
+#include <locic/AST/PredicateDecl.hpp>
 
 namespace locic {
 
@@ -25,7 +25,7 @@ namespace locic {
 				
 				static ConstSpecifier* Mutable();
 				
-				static ConstSpecifier* Expr(Node<Predicate> predicate);
+				static ConstSpecifier* Expr(Node<PredicateDecl> predicate);
 				
 				~ConstSpecifier();
 				
@@ -36,11 +36,11 @@ namespace locic {
 				bool isMutable() const;
 				bool isExpr() const;
 				
-				const Node<Predicate>& predicate() const;
+				const Node<PredicateDecl>& predicate() const;
 				
 			private:
 				Kind kind_;
-				Node<AST::Predicate> predicate_;
+				Node<PredicateDecl> predicate_;
 			
 				ConstSpecifier(const Kind pKind) : kind_(pKind) { }
 		};

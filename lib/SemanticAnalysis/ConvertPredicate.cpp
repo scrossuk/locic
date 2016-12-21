@@ -92,20 +92,20 @@ namespace locic {
 			
 		};
 		
-		SEM::Predicate ConvertPredicate(Context& context, const AST::Node<AST::Predicate>& astPredicateNode) {
+		SEM::Predicate ConvertPredicate(Context& context, const AST::Node<AST::PredicateDecl>& astPredicateNode) {
 			const auto& location = astPredicateNode.location();
 			
 			switch (astPredicateNode->kind()) {
-				case AST::Predicate::TRUE: {
+				case AST::PredicateDecl::TRUE: {
 					return SEM::Predicate::True();
 				}
-				case AST::Predicate::FALSE: {
+				case AST::PredicateDecl::FALSE: {
 					return SEM::Predicate::False();
 				}
-				case AST::Predicate::BRACKET: {
+				case AST::PredicateDecl::BRACKET: {
 					return ConvertPredicate(context, astPredicateNode->bracketExpr());
 				}
-				case AST::Predicate::TYPESPEC: {
+				case AST::PredicateDecl::TYPESPEC: {
 					auto& typeSpecType = astPredicateNode->typeSpecType();
 					auto& typeSpecRequireType = astPredicateNode->typeSpecRequireType();
 					
@@ -115,7 +115,7 @@ namespace locic {
 					
 					return SEM::Predicate::Satisfies(semType, semRequireType);
 				}
-				case AST::Predicate::SYMBOL: {
+				case AST::PredicateDecl::SYMBOL: {
 					const auto& astSymbolNode = astPredicateNode->symbol();
 					const Name name = astSymbolNode->createName();
 					
@@ -152,12 +152,12 @@ namespace locic {
 						return SEM::Predicate::False();
 					}
 				}
-				case AST::Predicate::AND: {
+				case AST::PredicateDecl::AND: {
 					auto leftExpr = ConvertPredicate(context, astPredicateNode->andLeft());
 					auto rightExpr = ConvertPredicate(context, astPredicateNode->andRight());
 					return SEM::Predicate::And(std::move(leftExpr), std::move(rightExpr));
 				}
-				case AST::Predicate::OR: {
+				case AST::PredicateDecl::OR: {
 					auto leftExpr = ConvertPredicate(context, astPredicateNode->orLeft());
 					auto rightExpr = ConvertPredicate(context, astPredicateNode->orRight());
 					return SEM::Predicate::Or(std::move(leftExpr), std::move(rightExpr));

@@ -37,7 +37,7 @@ namespace locic {
 			                                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeDecl>
-			makeConstPredicateType(AST::Node<AST::Predicate> predicate,
+			makeConstPredicateType(AST::Node<AST::PredicateDecl> predicate,
 			                       AST::Node<AST::TypeDecl> targetType,
 			                       const Debug::SourcePosition& start);
 			

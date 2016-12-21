@@ -9,18 +9,18 @@ namespace locic {
 	
 	namespace AST {
 		
-		class Predicate;
+		class PredicateDecl;
 		
 		class StaticAssert {
 		public:
-			StaticAssert(Node<Predicate> expr);
+			StaticAssert(Node<PredicateDecl> expr);
 			
-			const Node<Predicate>& expression() const;
+			const Node<PredicateDecl>& expression() const;
 			
 			std::string toString() const;
 			
 		private:
-			Node<Predicate> expression_;
+			Node<PredicateDecl> expression_;
 			
 		};
 		

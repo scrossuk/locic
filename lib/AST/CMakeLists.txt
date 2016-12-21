@@ -18,7 +18,7 @@ add_library(locic-ast
 	ModuleScopeDecl.cpp
 	Namespace.cpp
 	NamespaceDecl.cpp
-	Predicate.cpp
+	PredicateDecl.cpp
 	RequireSpecifier.cpp
 	Scope.cpp
 	Statement.cpp

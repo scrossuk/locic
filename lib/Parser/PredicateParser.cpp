@@ -16,11 +16,11 @@ namespace locic {
 		
 		PredicateParser::~PredicateParser() { }
 		
-		AST::Node<AST::Predicate> PredicateParser::parsePredicate() {
+		AST::Node<AST::PredicateDecl> PredicateParser::parsePredicate() {
 			return parseBinaryPredicate();
 		}
 		
-		AST::Node<AST::Predicate> PredicateParser::parseBinaryPredicate() {
+		AST::Node<AST::PredicateDecl> PredicateParser::parseBinaryPredicate() {
 			const auto start = reader_.position();
 			
 			auto predicate = parseAtomPredicate();
@@ -49,7 +49,7 @@ namespace locic {
 			}
 		}
 		
-		AST::Node<AST::Predicate> PredicateParser::parseAtomPredicate() {
+		AST::Node<AST::PredicateDecl> PredicateParser::parseAtomPredicate() {
 			const auto start = reader_.position();
 			
 			switch (reader_.peek().kind()) {

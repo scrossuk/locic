@@ -36,7 +36,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::StaticAssert>
-		NamespaceBuilder::makeStaticAssert(AST::Node<AST::Predicate> predicate,
+		NamespaceBuilder::makeStaticAssert(AST::Node<AST::PredicateDecl> predicate,
 		                                   const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			return AST::makeNode(location, new AST::StaticAssert(std::move(predicate)));

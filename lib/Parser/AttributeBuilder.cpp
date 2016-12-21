@@ -25,7 +25,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::ConstSpecifier>
-		AttributeBuilder::makePredicateConstSpecifier(AST::Node<AST::Predicate> predicate,
+		AttributeBuilder::makePredicateConstSpecifier(AST::Node<AST::PredicateDecl> predicate,
 		                                              const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			return AST::makeNode(location, AST::ConstSpecifier::Expr(std::move(predicate)));
@@ -44,7 +44,7 @@ namespace locic {
 		}
 		
 		AST::Node<AST::RequireSpecifier>
-		AttributeBuilder::makePredicateRequireSpecifier(AST::Node<AST::Predicate> predicate,
+		AttributeBuilder::makePredicateRequireSpecifier(AST::Node<AST::PredicateDecl> predicate,
 		                                                const Debug::SourcePosition& start) {
 			const auto location = reader_.locationWithRangeFrom(start);
 			return AST::makeNode(location, AST::RequireSpecifier::Expr(std::move(predicate)));

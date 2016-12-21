@@ -21,11 +21,11 @@ namespace locic {
 			PredicateParser(TokenReader& reader);
 			~PredicateParser();
 			
-			AST::Node<AST::Predicate> parsePredicate();
+			AST::Node<AST::PredicateDecl> parsePredicate();
 			
-			AST::Node<AST::Predicate> parseBinaryPredicate();
+			AST::Node<AST::PredicateDecl> parseBinaryPredicate();
 			
-			AST::Node<AST::Predicate> parseAtomPredicate();
+			AST::Node<AST::PredicateDecl> parseAtomPredicate();
 			
 		private:
 			TokenReader& reader_;

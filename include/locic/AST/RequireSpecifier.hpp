@@ -4,7 +4,7 @@
 #include <string>
 
 #include <locic/AST/Node.hpp>
-#include <locic/AST/Predicate.hpp>
+#include <locic/AST/PredicateDecl.hpp>
 
 namespace locic {
 
@@ -25,7 +25,7 @@ namespace locic {
 				static RequireSpecifier* NoPredicate();
 				
 				// Specified with a predicate.
-				static RequireSpecifier* Expr(Node<Predicate> expr);
+				static RequireSpecifier* Expr(Node<PredicateDecl> expr);
 				
 				Kind kind() const;
 				
@@ -35,13 +35,13 @@ namespace locic {
 				
 				bool isExpr() const;
 				
-				const Node<Predicate>& expr() const;
+				const Node<PredicateDecl>& expr() const;
 				
 				std::string toString() const;
 				
 			private:
 				Kind kind_;
-				Node<Predicate> predicate_;
+				Node<PredicateDecl> predicate_;
 			
 				RequireSpecifier(const Kind pKind) : kind_(pKind) { }
 		};

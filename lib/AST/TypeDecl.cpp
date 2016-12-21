@@ -33,7 +33,7 @@ namespace locic {
 			return type;
 		}
 		
-		TypeDecl* TypeDecl::ConstPredicate(Node<Predicate> predicate, Node<TypeDecl> targetType) {
+		TypeDecl* TypeDecl::ConstPredicate(Node<PredicateDecl> predicate, Node<TypeDecl> targetType) {
 			TypeDecl* type = new TypeDecl(CONSTPREDICATE);
 			type->constPredicateType.predicate = std::move(predicate);
 			type->constPredicateType.targetType = std::move(targetType);

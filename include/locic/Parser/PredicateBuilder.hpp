@@ -20,37 +20,37 @@ namespace locic {
 			PredicateBuilder(const TokenReader& reader);
 			~PredicateBuilder();
 			
-			AST::Node<AST::Predicate>
-			makePredicateNode(AST::Predicate* predicate,
+			AST::Node<AST::PredicateDecl>
+			makePredicateNode(AST::PredicateDecl* predicate,
 			                  const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Predicate>
+			AST::Node<AST::PredicateDecl>
 			makeTruePredicate(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Predicate>
+			AST::Node<AST::PredicateDecl>
 			makeFalsePredicate(const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Predicate>
-			makeBracketPredicate(AST::Node<AST::Predicate> predicate,
+			AST::Node<AST::PredicateDecl>
+			makeBracketPredicate(AST::Node<AST::PredicateDecl> predicate,
 			                     const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Predicate>
+			AST::Node<AST::PredicateDecl>
 			makeTypeSpecPredicate(AST::Node<AST::TypeDecl> type,
 			                      AST::Node<AST::TypeDecl> capabilityType,
 			                      const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Predicate>
+			AST::Node<AST::PredicateDecl>
 			makeSymbolPredicate(AST::Node<AST::Symbol> symbol,
 			                    const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Predicate>
-			makeAndPredicate(AST::Node<AST::Predicate> leftPredicate,
-			                 AST::Node<AST::Predicate> rightPredicate,
+			AST::Node<AST::PredicateDecl>
+			makeAndPredicate(AST::Node<AST::PredicateDecl> leftPredicate,
+			                 AST::Node<AST::PredicateDecl> rightPredicate,
 			                 const Debug::SourcePosition& start);
 			
-			AST::Node<AST::Predicate>
-			makeOrPredicate(AST::Node<AST::Predicate> leftPredicate,
-			                AST::Node<AST::Predicate> rightPredicate,
+			AST::Node<AST::PredicateDecl>
+			makeOrPredicate(AST::Node<AST::PredicateDecl> leftPredicate,
+			                AST::Node<AST::PredicateDecl> rightPredicate,
 			                const Debug::SourcePosition& start);
 			
 		private:
