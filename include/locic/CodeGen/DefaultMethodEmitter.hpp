@@ -21,7 +21,7 @@ namespace locic {
 		/**
 		 * \brief Default Method Emitter
 		 * 
-		 * This class emits code for methods marked in SEM as 'default';
+		 * This class emits code for methods marked in AST as 'default';
 		 * these are both automatically created methods (e.g. implicit
 		 * copy methods for datatypes) and user requested default
 		 * methods (via '= default' syntax).

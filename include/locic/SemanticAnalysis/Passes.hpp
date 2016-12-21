@@ -11,9 +11,6 @@ namespace locic {
 		
 		/**
 		 * \brief Add global structures.
-		 * 
-		 * This pass builds the initial SEM tree structure by adding
-		 * namespaces, type instances and aliases.
 		 */
 		void AddGlobalStructuresPass(Context& context, const AST::NamespaceList& rootASTNamespaces);
 				

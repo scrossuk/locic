@@ -633,19 +633,19 @@ namespace locic {
 					auto& astVarNode = statement->varDeclVar();
 					const auto& astInitialValueNode = statement->varDeclValue();
 					
-					auto semValue = ConvertValue(context, astInitialValueNode);
+					auto astValue = ConvertValue(context, astInitialValueNode);
 					
-					const auto varDeclType = getVarType(context, astVarNode, semValue.type());
+					const auto varDeclType = getVarType(context, astVarNode, astValue.type());
 					
 					// Cast the initialise value to the variable's type.
-					auto semInitialiseValue = ImplicitCast(context, std::move(semValue), varDeclType, location);
+					auto semInitialiseValue = ImplicitCast(context, std::move(astValue), varDeclType, location);
 					
 					// Convert the AST type var.
 					const auto varType = semInitialiseValue.type();
 					auto var = ConvertInitialisedVar(context, astVarNode, varType);
 					assert(!var->isAny());
 					
-					// Add the variable to the SEM scope.
+					// Add the variable to the scope.
 					auto& semScope = context.scopeStack().back().scope();
 					
 					semScope.variables().push_back(var);
@@ -721,17 +721,17 @@ namespace locic {
 						}
 					}
 					
-					auto semValue = ConvertValue(context, statement->returnValue());
+					auto astValue = ConvertValue(context, statement->returnValue());
 					
 					const bool functionIsVoid = getParentFunctionReturnType(context.scopeStack())->isBuiltInVoid();
-					const bool valueIsVoid = semValue.type()->isBuiltInVoid();
+					const bool valueIsVoid = astValue.type()->isBuiltInVoid();
 					
 					if (functionIsVoid && !valueIsVoid) {
 						// Can't return in a function that returns void.
 						const auto& name = lookupParentFunction(context.scopeStack())->fullName();
 						context.issueDiag(CannotReturnNonVoidInVoidFunctionDiag(name),
 						                  location);
-						return AST::Statement::Return(std::move(semValue));
+						return AST::Statement::Return(std::move(astValue));
 					}
 					
 					if (!functionIsVoid && valueIsVoid) {
@@ -739,12 +739,12 @@ namespace locic {
 						const auto& name = lookupParentFunction(context.scopeStack())->fullName();
 						context.issueDiag(CannotReturnVoidInNonVoidFunctionDiag(name),
 						                  location);
-						return AST::Statement::Return(std::move(semValue));
+						return AST::Statement::Return(std::move(astValue));
 					}
 					
 					// Cast the return value to the function's
 					// specified return type.
-					auto castValue = ImplicitCast(context, std::move(semValue), getParentFunctionReturnType(context.scopeStack()), location);
+					auto castValue = ImplicitCast(context, std::move(astValue), getParentFunctionReturnType(context.scopeStack()), location);
 					return AST::Statement::Return(std::move(castValue));
 				}
 				case AST::StatementDecl::THROW: {
@@ -764,12 +764,12 @@ namespace locic {
 						}
 					}
 					
-					auto semValue = ConvertValue(context, statement->throwValue());
-					if (!semValue.type()->isObject() || !semValue.type()->getObjectType()->isException()) {
-						context.issueDiag(ThrowNonExceptionValueDiag(semValue.type()->toString()),
+					auto astValue = ConvertValue(context, statement->throwValue());
+					if (!astValue.type()->isObject() || !astValue.type()->getObjectType()->isException()) {
+						context.issueDiag(ThrowNonExceptionValueDiag(astValue.type()->toString()),
 						                  location);
 					}
-					return AST::Statement::Throw(std::move(semValue));
+					return AST::Statement::Throw(std::move(astValue));
 				}
 				case AST::StatementDecl::RETHROW: {
 					// Check this is being used inside a catch clause, and
@@ -890,9 +890,9 @@ namespace locic {
 		}
 		
 		AST::Statement ConvertStatement(Context& context, const AST::Node<AST::StatementDecl>& astStatementNode) {
-			auto semStatement = ConvertStatementData(context, astStatementNode);
-			semStatement.setDebugInfo(makeStatementInfo(astStatementNode));
-			return semStatement;
+			auto astStatement = ConvertStatementData(context, astStatementNode);
+			astStatement.setDebugInfo(makeStatementInfo(astStatementNode));
+			return astStatement;
 		}
 		
 	}

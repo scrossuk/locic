@@ -622,7 +622,7 @@ namespace locic {
 				return genTrivialFunctionCall(function, semCallValue, arrayRef(semArgumentValues), hintResultValue);
 			}
 			
-			return genSEMFunctionCall(function, semCallValue, arrayRef(semArgumentValues), hintResultValue);
+			return genASTFunctionCall(function, semCallValue, arrayRef(semArgumentValues), hintResultValue);
 		}
 		
 		llvm::Value*

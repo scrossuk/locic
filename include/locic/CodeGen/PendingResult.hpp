@@ -76,7 +76,7 @@ namespace locic {
 		 * 
 		 * A pending result where the LLVM value given is a reference
 		 * (i.e. a pointer) and hence the type given is the reference's
-		 * target type. This is useful to avoid needing to create a SEM
+		 * target type. This is useful to avoid needing to create an AST
 		 * reference type.
 		 */
 		class RefPendingResult: public PendingResultBase {

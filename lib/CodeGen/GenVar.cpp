@@ -51,7 +51,7 @@ namespace locic {
 				}
 				
 				// Add this to the local variable map, so that
-				// any SEM vars can be mapped to the actual value.
+				// any AST vars can be mapped to the actual value.
 				function.getLocalVarMap().insert(var, stackObject);
 			} else if (var->isPattern()) {
 				for (const auto& childVar: *(var->varList())) {

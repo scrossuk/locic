@@ -35,8 +35,8 @@ namespace locic {
 
 	namespace CodeGen {
 		
-		llvm::Value* genSEMFunctionCall(Function& function,
-		                                const AST::Value& semCallValue,
+		llvm::Value* genASTFunctionCall(Function& function,
+		                                const AST::Value& astCallValue,
 		                                llvm::ArrayRef<AST::Value> args,
 		                                llvm::Value* const hintResultValue) {
 			auto& module = function.module();
@@ -44,7 +44,7 @@ namespace locic {
 			IREmitter irEmitter(function);
 			ValueEmitter valueEmitter(irEmitter);
 			
-			const auto functionType = semCallValue.type()->asFunctionType();
+			const auto functionType = astCallValue.type()->asFunctionType();
 			
 			llvm::SmallVector<llvm_abi::TypedValue, 10> parameters;
 			parameters.reserve(args.size());
@@ -58,7 +58,7 @@ namespace locic {
 				                                          abiType));
 			}
 			
-			const auto callInfo = genFunctionCallInfo(function, semCallValue);
+			const auto callInfo = genFunctionCallInfo(function, astCallValue);
 			return genFunctionCall(function, functionType, callInfo,
 			                       parameters, hintResultValue);
 		}

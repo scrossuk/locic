@@ -22,11 +22,11 @@ namespace locic {
 		struct MethodInfo;
 		
 		/**
-		 * \brief Generate SEM function call.
+		 * \brief Generate AST function call.
 		 * 
 		 * Calls the given function with the AST::Value arguments.
 		 */
-		llvm::Value* genSEMFunctionCall(Function& function,
+		llvm::Value* genASTFunctionCall(Function& function,
 		                                const AST::Value& callValue,
 		                                llvm::ArrayRef<AST::Value> args,
 		                                llvm::Value* hintResultValue = nullptr);

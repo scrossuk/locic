@@ -37,7 +37,7 @@ namespace locic {
 				case AST::Type::ALIAS:
 					return isSizeAlwaysKnown(type->resolveAliases());
 				default:
-					llvm_unreachable("Unknown SEM type kind enum.");
+					llvm_unreachable("Unknown AST type kind enum.");
 			}
 		}
 		
@@ -82,7 +82,7 @@ namespace locic {
 				case AST::Type::ALIAS:
 					return isSizeKnownInThisModule(type->resolveAliases());
 				default:
-					llvm_unreachable("Unknown SEM type kind enum.");
+					llvm_unreachable("Unknown AST type kind enum.");
 			}
 		}
 		

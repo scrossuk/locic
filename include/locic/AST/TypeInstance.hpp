@@ -107,10 +107,10 @@ namespace locic {
 				 * \brief Get/set context.
 				 * 
 				 * The context is primarily for 'uniquifying'
-				 * SEM objects and hence known by the type
+				 * AST objects and hence known by the type
 				 * instance so that it can built such objects.
 				 * 
-				 * \return The SEM context.
+				 * \return The AST context.
 				 */
 				Context& context() const;
 				void setContext(Context& context);

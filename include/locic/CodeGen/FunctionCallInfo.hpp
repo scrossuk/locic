@@ -72,7 +72,7 @@ namespace locic {
 		 * 
 		 * \param function The current function generator (may need to generate a pointer cast).
 		 * \param parentType The parent type of the function (or NULL if none).
-		 * \param semFunction The SEM function to which we're getting a pointer.
+		 * \param astFunction The AST function to which we're getting a pointer.
 		 * \param functionType The type of the function (as it's being used).
 		 * \return The function pointer.
 		 */
@@ -93,7 +93,7 @@ namespace locic {
 		 * front-end can then simply emit an 'ADD' instruction instead.
 		 * 
 		 * \param module The current module.
-		 * \param value The SEM value which may be a trivial function.
+		 * \param value The AST value which may be a trivial function.
 		 * \return Whether the value is a trivial function.
 		 */
 		bool isTrivialFunction(Module& module, const AST::Value& value);
@@ -106,8 +106,8 @@ namespace locic {
 		 * function will actually then be generated inline.
 		 * 
 		 * \param function The current function generator.
-		 * \param value The function SEM value.
-		 * \param args The SEM value arguments.
+		 * \param value The function AST value.
+		 * \param args The AST value arguments.
 		 * \param hintResultValue A result pointer (to avoid unnecessary allocs/moves) or null if none available.
 		 * \return The result of the function call.
 		 */
