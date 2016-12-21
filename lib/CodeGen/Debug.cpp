@@ -1,5 +1,6 @@
-#include <assert.h>
+#include <locic/CodeGen/Debug.hpp>
 
+#include <cassert>
 #include <string>
 #include <vector>
 
@@ -9,14 +10,14 @@
 
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Function.hpp>
+#include <locic/AST/Value.hpp>
 
-#include <locic/CodeGen/Debug.hpp>
+#include <locic/CodeGen/ASTFunctionGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/SEMFunctionGenerator.hpp>
-#include <locic/AST/Value.hpp>
+
 #include <locic/Support/Name.hpp>
 #include <locic/Support/Optional.hpp>
 
@@ -243,7 +244,7 @@ namespace locic {
 				const auto debugSubprogramType = genDebugFunctionType(module, function.type());
 				const auto& functionInfo = *debugInfo;
 				const bool isInternal = function.moduleScope().isInternal();
-				const bool isDefinition = SEMFunctionGenerator(module).hasDef(parentType,
+				const bool isDefinition = ASTFunctionGenerator(module).hasDef(parentType,
 				                                                              function);
 				return make_optional(genDebugFunction(module, functionInfo, debugSubprogramType, llvmFunction, isInternal, isDefinition));
 			} else {

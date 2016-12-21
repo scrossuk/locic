@@ -18,9 +18,9 @@ namespace locic {
 		
 		class Function;
 		
-		class SEMCodeEmitter {
+		class ASTCodeEmitter {
 		public:
-			SEMCodeEmitter(Function& functionGenerator);
+			ASTCodeEmitter(Function& functionGenerator);
 			
 			void emitFunctionCode(const AST::TypeInstance* typeInstance,
 			                      const AST::Function& function,

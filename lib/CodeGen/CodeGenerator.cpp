@@ -1,4 +1,6 @@
-#include <assert.h>
+#include <locic/CodeGen/CodeGenerator.hpp>
+
+#include <cassert>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -15,6 +17,7 @@
 #include <locic/Support/Map.hpp>
 #include <locic/Support/String.hpp>
 
+#include <locic/CodeGen/ASTFunctionGenerator.hpp>
 #include <locic/CodeGen/CodeGenerator.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Context.hpp>
@@ -29,7 +32,6 @@
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Optimisations.hpp>
 #include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>

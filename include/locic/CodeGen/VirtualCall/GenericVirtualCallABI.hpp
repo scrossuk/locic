@@ -9,12 +9,14 @@ namespace locic {
 		
 		class Function;
 		class FunctionType;
+		class Type;
 		class TypeInstance;
 		
 	}
 	
 	namespace CodeGen {
 		
+		class ArgInfo;
 		class IREmitter;
 		class Module;
 		struct VirtualMethodComponents;

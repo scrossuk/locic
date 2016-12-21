@@ -189,7 +189,7 @@ namespace locic {
 			return context_.getPrimitiveID(name);
 		}
 		
-		SEMFunctionGenerator& Module::semFunctionGenerator() {
+		ASTFunctionGenerator& Module::semFunctionGenerator() {
 			return semFunctionGenerator_;
 		}
 		

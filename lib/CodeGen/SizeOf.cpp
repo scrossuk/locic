@@ -1,3 +1,5 @@
+#include <locic/CodeGen/SizeOf.hpp>
+
 #include <llvm-abi/ABI.hpp>
 #include <llvm-abi/ABITypeInfo.hpp>
 #include <llvm-abi/Type.hpp>
@@ -8,6 +10,7 @@
 #include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/Var.hpp>
 
+#include <locic/CodeGen/ASTFunctionGenerator.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
@@ -21,13 +24,12 @@
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/SEMFunctionGenerator.hpp>
-#include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/VirtualCallABI.hpp>
+
 #include <locic/Support/Utils.hpp>
 
 namespace locic {

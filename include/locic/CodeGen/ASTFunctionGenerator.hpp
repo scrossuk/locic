@@ -8,6 +8,8 @@ namespace locic {
 	namespace AST {
 		
 		class Function;
+		class FunctionType;
+		class TemplateVar;
 		class TypeInstance;
 		
 	}
@@ -22,9 +24,9 @@ namespace locic {
 		 * This class generates LLVM IR functions that correspond to
 		 * SEM functions.
 		 */
-		class SEMFunctionGenerator {
+		class ASTFunctionGenerator {
 		public:
-			SEMFunctionGenerator(Module& module);
+			ASTFunctionGenerator(Module& module);
 			
 			/**
 			 * \brief Get function linkage.

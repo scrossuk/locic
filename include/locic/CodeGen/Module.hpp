@@ -11,11 +11,11 @@
 
 #include <llvm-abi/ABI.hpp>
 
+#include <locic/CodeGen/ASTFunctionGenerator.hpp>
 #include <locic/CodeGen/BuildOptions.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/PrimitiveMap.hpp>
 #include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
 #include <locic/CodeGen/VirtualCallABI.hpp>
 
@@ -166,7 +166,7 @@ namespace locic {
 				
 				PrimitiveID primitiveID(const String& name) const;
 				
-				SEMFunctionGenerator& semFunctionGenerator();
+				ASTFunctionGenerator& semFunctionGenerator();
 				
 				void verify() const;
 				
@@ -193,7 +193,7 @@ namespace locic {
 				DebugBuilder debugBuilder_;
 				Debug::Module& debugModule_;
 				BuildOptions buildOptions_;
-				SEMFunctionGenerator semFunctionGenerator_;
+				ASTFunctionGenerator semFunctionGenerator_;
 				
 		};
 		

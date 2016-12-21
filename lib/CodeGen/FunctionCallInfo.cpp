@@ -1,3 +1,5 @@
+#include <locic/CodeGen/FunctionCallInfo.hpp>
+
 #include <cassert>
 
 #include <locic/AST/Function.hpp>
@@ -5,10 +7,10 @@
 #include <locic/AST/Type.hpp>
 #include <locic/AST/Value.hpp>
 
+#include <locic/CodeGen/ASTFunctionGenerator.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/FunctionTranslationStub.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -20,7 +22,6 @@
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/PrimitiveFunctionEmitter.hpp>
 #include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>

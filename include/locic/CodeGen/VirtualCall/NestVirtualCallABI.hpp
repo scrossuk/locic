@@ -9,6 +9,7 @@ namespace locic {
 		
 		class Function;
 		class FunctionType;
+		class Type;
 		class TypeInstance;
 		
 	}

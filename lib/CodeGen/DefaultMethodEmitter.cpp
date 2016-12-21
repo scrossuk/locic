@@ -1,3 +1,5 @@
+#include <locic/CodeGen/DefaultMethodEmitter.hpp>
+
 #include <llvm-abi/ABI.hpp>
 #include <llvm-abi/ABITypeInfo.hpp>
 
@@ -7,7 +9,6 @@
 #include <locic/AST/Var.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
-#include <locic/CodeGen/DefaultMethodEmitter.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>

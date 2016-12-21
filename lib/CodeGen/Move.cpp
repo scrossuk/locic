@@ -1,8 +1,13 @@
+#include <locic/CodeGen/Move.hpp>
+
 #include <stdexcept>
 #include <vector>
 
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/TypeInstance.hpp>
+
+#include <locic/CodeGen/ASTFunctionGenerator.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
@@ -12,16 +17,13 @@
 #include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
-#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/VirtualCallABI.hpp>
-#include <locic/AST/TypeInstance.hpp>
 
 namespace locic {
 	

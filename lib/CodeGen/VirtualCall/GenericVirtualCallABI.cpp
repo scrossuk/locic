@@ -1,3 +1,5 @@
+#include <locic/CodeGen/VirtualCall/GenericVirtualCallABI.hpp>
+
 #include <vector>
 
 #include <llvm-abi/Type.hpp>
@@ -5,9 +7,8 @@
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Type.hpp>
 
-
-
 #include <locic/CodeGen/ArgInfo.hpp>
+#include <locic/CodeGen/ASTFunctionGenerator.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
@@ -19,12 +20,10 @@
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
-#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
-#include <locic/CodeGen/VirtualCall/GenericVirtualCallABI.hpp>
 #include <locic/CodeGen/VirtualCallABI.hpp>
 #include <locic/CodeGen/VTable.hpp>
 

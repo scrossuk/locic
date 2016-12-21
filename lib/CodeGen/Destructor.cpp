@@ -1,3 +1,5 @@
+#include <locic/CodeGen/Destructor.hpp>
+
 #include <stdexcept>
 #include <vector>
 
@@ -6,8 +8,8 @@
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
+#include <locic/CodeGen/ASTFunctionGenerator.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -16,7 +18,6 @@
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
-#include <locic/CodeGen/SEMFunctionGenerator.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>

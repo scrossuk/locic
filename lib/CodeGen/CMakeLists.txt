@@ -2,6 +2,8 @@ include_directories(SYSTEM ${LLVMABI_INCLUDE_DIRS})
 
 add_library(locic-codegen
 	ArgInfo.cpp
+	ASTCodeEmitter.cpp
+	ASTFunctionGenerator.cpp
 	CodeGenerator.cpp
 	ConstantGenerator.cpp
 	Context.cpp
@@ -61,8 +63,6 @@ add_library(locic-codegen
 	Routines.cpp
 	ScopeEmitter.cpp
 	ScopeExitActions.cpp
-	SEMCodeEmitter.cpp
-	SEMFunctionGenerator.cpp
 	SizeOf.cpp
 	StatementEmitter.cpp
 	Support.cpp

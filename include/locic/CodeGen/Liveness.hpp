@@ -5,12 +5,14 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Type;
 		class TypeInstance;
 		
 	}
 	
 	namespace CodeGen {
 		
+		class Function;
 		class LivenessIndicator;
 		class Module;
 		
