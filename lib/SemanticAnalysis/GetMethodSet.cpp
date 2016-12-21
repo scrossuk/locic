@@ -47,8 +47,8 @@ namespace locic {
 		 * that case no functionality can be assumed about the
 		 * template variable (not handled here).
 		 */
-		SEM::Predicate getPredicateForSatisfyRequirements(Context& /*context*/, const MethodSet* const checkSet, const MethodSet* const requireSet) {
-			auto predicate = SEM::Predicate::True();
+		AST::Predicate getPredicateForSatisfyRequirements(Context& /*context*/, const MethodSet* const checkSet, const MethodSet* const requireSet) {
+			auto predicate = AST::Predicate::True();
 			
 			auto checkIterator = checkSet->begin();
 			auto requireIterator = requireSet->begin();
@@ -58,7 +58,7 @@ namespace locic {
 				
 				if (checkIterator == checkSet->end()) {
 					// Method set can't be satisfied (method is missing!), so can't obtain any information from this.
-					return SEM::Predicate::False();
+					return AST::Predicate::False();
 				}
 				
 				const auto& checkFunctionName = checkIterator->first;
@@ -68,7 +68,7 @@ namespace locic {
 					continue;
 				}
 				
-				predicate = SEM::Predicate::And(std::move(predicate), checkFunctionElement.requirePredicate().copy());
+				predicate = AST::Predicate::And(std::move(predicate), checkFunctionElement.requirePredicate().copy());
 				
 				++requireIterator;
 			}
@@ -78,7 +78,7 @@ namespace locic {
 		
 		class PushComputingMethodSet {
 		public:
-			PushComputingMethodSet(Context& context, const AST::TemplateVar* const templateVar, const SEM::Predicate& predicate)
+			PushComputingMethodSet(Context& context, const AST::TemplateVar* const templateVar, const AST::Predicate& predicate)
 			: context_(context) {
 				context_.pushComputingMethodSet(templateVar, predicate);
 			}
@@ -114,7 +114,7 @@ namespace locic {
 		 * and hence determine that template variable 'T' must
 		 * have the method 'customMethod' inside the function.
 		 */
-		const MethodSet* getMethodSetForRequiresPredicate(Context& context, const AST::TemplateVar* const templateVar, const SEM::Predicate& requiresPredicate) {
+		const MethodSet* getMethodSetForRequiresPredicate(Context& context, const AST::TemplateVar* const templateVar, const AST::Predicate& requiresPredicate) {
 			// Avoid cycles such as:
 			// 
 			// template <typename A, typename B, typename C>
@@ -134,25 +134,25 @@ namespace locic {
 			PushComputingMethodSet pushComputingMethodSet(context, templateVar, requiresPredicate);
 			
 			switch (requiresPredicate.kind()) {
-				case SEM::Predicate::TRUE:
-				case SEM::Predicate::FALSE:
-				case SEM::Predicate::VARIABLE:
+				case AST::Predicate::TRUE:
+				case AST::Predicate::FALSE:
+				case AST::Predicate::VARIABLE:
 				{
 					return MethodSet::getEmpty(context);
 				}
-				case SEM::Predicate::AND:
+				case AST::Predicate::AND:
 				{
 					const auto leftMethodSet = getMethodSetForRequiresPredicate(context, templateVar, requiresPredicate.andLeft());
 					const auto rightMethodSet = getMethodSetForRequiresPredicate(context, templateVar, requiresPredicate.andRight());
 					return unionMethodSets(leftMethodSet, rightMethodSet);
 				}
-				case SEM::Predicate::OR:
+				case AST::Predicate::OR:
 				{
 					const auto leftMethodSet = getMethodSetForRequiresPredicate(context, templateVar, requiresPredicate.orLeft());
 					const auto rightMethodSet = getMethodSetForRequiresPredicate(context, templateVar, requiresPredicate.orRight());
 					return intersectMethodSets(leftMethodSet, rightMethodSet);
 				}
-				case SEM::Predicate::SATISFIES:
+				case AST::Predicate::SATISFIES:
 				{
 					if (requiresPredicate.satisfiesType()->isTemplateVar()) {
 						// The case of 'T : SomeRequirement', where T is a template
@@ -251,7 +251,7 @@ namespace locic {
 		 */
 		const MethodSet* getMethodSetWithNoExceptSet(const MethodSet* methodSet,
 		                                             const MethodSet* noexceptMethodSet,
-		                                             const SEM::Predicate& outerNoexceptPredicate) {
+		                                             const AST::Predicate& outerNoexceptPredicate) {
 			if (noexceptMethodSet->empty()) {
 				// Try to avoid doing unnecessary work in common
 				// cases such as noexcept(true|false).
@@ -278,9 +278,9 @@ namespace locic {
 					// predicate could be noexcept. If we use the
 					// latter we also have to require that the
 					// outer noexcept predicate is true.
-					auto ifNoexceptPredicate = SEM::Predicate::And(outerNoexceptPredicate.copy(),
+					auto ifNoexceptPredicate = AST::Predicate::And(outerNoexceptPredicate.copy(),
 					                                               noexceptIterator->second.noexceptPredicate().copy());
-					auto newPredicate = SEM::Predicate::Or(element.noexceptPredicate().copy(),
+					auto newPredicate = AST::Predicate::Or(element.noexceptPredicate().copy(),
 					                                       std::move(ifNoexceptPredicate));
 					auto newElement = element.withNoExceptPredicate(std::move(newPredicate));
 					elements.push_back(std::make_pair(iterator->first, std::move(newElement)));
@@ -413,7 +413,7 @@ namespace locic {
 			// Ignore any methods left over, since we're only concerned
 			// about methods that exist in both sets.
 			
-			auto constObjectPredicate = SEM::Predicate::Or(setA->constPredicate().copy(), setB->constPredicate().copy());
+			auto constObjectPredicate = AST::Predicate::Or(setA->constPredicate().copy(), setB->constPredicate().copy());
 			return MethodSet::get(setA->context(), std::move(constObjectPredicate), std::move(elements));
 		}
 		
@@ -453,7 +453,7 @@ namespace locic {
 				++addIterator;
 			}
 			
-			auto constObjectPredicate = SEM::Predicate::Or(setA->constPredicate().copy(), setB->constPredicate().copy());
+			auto constObjectPredicate = AST::Predicate::Or(setA->constPredicate().copy(), setB->constPredicate().copy());
 			return MethodSet::get(setA->context(), std::move(constObjectPredicate), std::move(elements));
 		}
 		

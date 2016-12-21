@@ -10,8 +10,6 @@
 #include <locic/AST/TypeDecl.hpp>
 #include <locic/AST/Var.hpp>
 
-#include <locic/AST/Scope.hpp>
-
 namespace locic {
 
 	namespace AST {
@@ -21,8 +19,8 @@ namespace locic {
 		isStatic_(false), isImported_(false), isExported_(false),
 		isPrimitive_(false), isVarArg_(false),
 		templateVariableDecls_(makeDefaultNode<TemplateVarList>()),
-		constPredicate_(SEM::Predicate::False()),
-		requiresPredicate_(SEM::Predicate::True()),
+		constPredicate_(Predicate::False()),
+		requiresPredicate_(Predicate::True()),
 		moduleScope_(ModuleScope::Internal()) { }
 		
 		Function::~Function() { }
@@ -215,11 +213,11 @@ namespace locic {
 			constSpecifier_ = std::move(pConstSpecifier);
 		}
 		
-		const SEM::Predicate& Function::constPredicate() const {
+		const Predicate& Function::constPredicate() const {
 			return constPredicate_;
 		}
 		
-		void Function::setConstPredicate(SEM::Predicate predicate) {
+		void Function::setConstPredicate(Predicate predicate) {
 			constPredicate_ = std::move(predicate);
 		}
 		
@@ -231,7 +229,7 @@ namespace locic {
 			noexceptSpecifier_ = std::move(pNoexceptSpecifier);
 		}
 		
-		const SEM::Predicate& Function::noexceptPredicate() const {
+		const Predicate& Function::noexceptPredicate() const {
 			return type().attributes().noExceptPredicate();
 		}
 		
@@ -243,11 +241,11 @@ namespace locic {
 			requireSpecifier_ = std::move(pRequireSpecifier);
 		}
 		
-		const SEM::Predicate& Function::requiresPredicate() const {
+		const Predicate& Function::requiresPredicate() const {
 			return requiresPredicate_;
 		}
 		
-		void Function::setRequiresPredicate(SEM::Predicate predicate) {
+		void Function::setRequiresPredicate(Predicate predicate) {
 			requiresPredicate_ = std::move(predicate);
 		}
 		

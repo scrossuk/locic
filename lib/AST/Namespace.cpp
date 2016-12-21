@@ -5,13 +5,12 @@
 #include <locic/AST/Alias.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Namespace.hpp>
+#include <locic/AST/Scope.hpp>
+#include <locic/AST/TypeInstance.hpp>
 
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/String.hpp>
-
-#include <locic/AST/Scope.hpp>
-#include <locic/AST/TypeInstance.hpp>
 
 namespace locic {
 	

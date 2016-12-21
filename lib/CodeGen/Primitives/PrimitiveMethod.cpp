@@ -45,7 +45,7 @@ namespace locic {
 			const bool isVarArg = false;
 			const bool isMethod = false;
 			const bool isTemplated = false;
-			auto noexceptPredicate = SEM::Predicate::True();
+			auto noexceptPredicate = AST::Predicate::True();
 			const auto returnType = castToType;
 			const AST::TypeArray parameterTypes = castFromValue != nullptr ? AST::TypeArray{ castFromType } : AST::TypeArray{};
 			

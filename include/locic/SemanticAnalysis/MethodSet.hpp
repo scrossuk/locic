@@ -4,7 +4,7 @@
 #include <string>
 
 #include <locic/AST/TemplateVarArray.hpp>
-#include <locic/SEM/Predicate.hpp>
+#include <locic/AST/Predicate.hpp>
 #include <locic/SemanticAnalysis/MethodSetElement.hpp>
 #include <locic/Support/Array.hpp>
 #include <locic/Support/String.hpp>
@@ -25,17 +25,17 @@ namespace locic {
 				
 				static const MethodSet* getEmpty(const Context& context);
 				
-				static const MethodSet* get(const Context& context, SEM::Predicate constPredicate, ElementSet elements);
+				static const MethodSet* get(const Context& context, AST::Predicate constPredicate, ElementSet elements);
 				
 				MethodSet(MethodSet&&) = default;
 				MethodSet& operator=(MethodSet&&) = default;
 				
 				const Context& context() const;
 				
-				const MethodSet* withConstPredicate(SEM::Predicate constPredicate) const;
-				const MethodSet* withRequirement(SEM::Predicate requirement) const;
+				const MethodSet* withConstPredicate(AST::Predicate constPredicate) const;
+				const MethodSet* withRequirement(AST::Predicate requirement) const;
 				
-				const SEM::Predicate& constPredicate() const;
+				const AST::Predicate& constPredicate() const;
 				
 				iterator begin() const;
 				iterator end() const;
@@ -58,10 +58,10 @@ namespace locic {
 				MethodSet(const MethodSet&) = delete;
 				MethodSet& operator=(const MethodSet&) = delete;
 				
-				MethodSet(const Context& context, SEM::Predicate constPredicate, ElementSet elements);
+				MethodSet(const Context& context, AST::Predicate constPredicate, ElementSet elements);
 				
 				const Context& context_;
-				SEM::Predicate constPredicate_;
+				AST::Predicate constPredicate_;
 				ElementSet elements_;
 				mutable Optional<size_t> cachedHashValue_;
 				

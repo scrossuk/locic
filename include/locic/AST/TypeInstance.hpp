@@ -20,7 +20,7 @@
 
 #include <locic/Debug/TypeInstanceInfo.hpp>
 
-#include <locic/SEM/Predicate.hpp>
+#include <locic/AST/Predicate.hpp>
 
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/Name.hpp>
@@ -249,8 +249,8 @@ namespace locic {
 				 * 
 				 * \return Move predicate if available or none.
 				 */
-				const Optional<SEM::Predicate>& movePredicate() const;
-				void setMovePredicate(SEM::Predicate predicate);
+				const Optional<Predicate>& movePredicate() const;
+				void setMovePredicate(Predicate predicate);
 				
 				/**
 				 * \brief Get require predicate.
@@ -262,8 +262,8 @@ namespace locic {
 				 * 
 				 * \return Require predicate.
 				 */
-				const SEM::Predicate& requiresPredicate() const;
-				void setRequiresPredicate(SEM::Predicate predicate);
+				const Predicate& requiresPredicate() const;
+				void setRequiresPredicate(Predicate predicate);
 				
 				/**
 				 * \brief Get noexcept predicate.
@@ -275,7 +275,7 @@ namespace locic {
 				 * 
 				 * \return Noexcept predicate.
 				 */
-				const SEM::Predicate& noexceptPredicate() const;
+				const Predicate& noexceptPredicate() const;
 				
 				/**
 				 * \brief Get name to member variable mapping.
@@ -420,9 +420,9 @@ namespace locic {
 				
 				TemplateVarArray templateVariables_;
 				FastMap<String, TemplateVar*> namedTemplateVariables_;
-				Optional<SEM::Predicate> movePredicate_;
-				SEM::Predicate requiresPredicate_;
-				SEM::Predicate noexceptPredicate_;
+				Optional<Predicate> movePredicate_;
+				Predicate requiresPredicate_;
+				Predicate noexceptPredicate_;
 				
 				std::vector<Var*> variables_;
 				FastMap<String, Var*> namedVariables_;

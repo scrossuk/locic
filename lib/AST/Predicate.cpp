@@ -3,20 +3,21 @@
 #include <memory>
 #include <string>
 
-#include <locic/AST/ValueDecl.hpp>
+#include <locic/AST/Predicate.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/TemplateVarMap.hpp>
 #include <locic/AST/Type.hpp>
-#include <locic/SEM/Predicate.hpp>
 #include <locic/AST/Value.hpp>
+#include <locic/AST/ValueDecl.hpp>
+
 #include <locic/Support/ErrorHandling.hpp>
 #include <locic/Support/Hasher.hpp>
 #include <locic/Support/MakeString.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
-
-	namespace SEM {
+	
+	namespace AST {
 		
 		Predicate Predicate::FromBool(const bool boolValue) {
 			return boolValue ? True() : False();
@@ -72,15 +73,15 @@ namespace locic {
 			return predicate;
 		}
 		
-		Predicate Predicate::Satisfies(const AST::Type* const type,
-		                               const AST::Type* const requirement) {
+		Predicate Predicate::Satisfies(const Type* const type,
+		                               const Type* const requirement) {
 			Predicate predicate(SATISFIES);
 			predicate.type_ = type;
 			predicate.requirement_ = requirement;
 			return predicate;
 		}
 		
-		Predicate Predicate::Variable(AST::TemplateVar* templateVar) {
+		Predicate Predicate::Variable(TemplateVar* templateVar) {
 			Predicate predicate(VARIABLE);
 			predicate.templateVar_ = templateVar;
 			return predicate;
@@ -119,7 +120,7 @@ namespace locic {
 			locic_unreachable("Unknown predicate kind.");
 		}
 		
-		Predicate Predicate::substitute(const AST::TemplateVarMap& templateVarMap) const {
+		Predicate Predicate::substitute(const TemplateVarMap& templateVarMap) const {
 			switch (kind()) {
 				case TRUE:
 				{
@@ -245,7 +246,7 @@ namespace locic {
 			
 		}*/
 		
-		bool Predicate::dependsOn(const AST::TemplateVar* const templateVar) const {
+		bool Predicate::dependsOn(const TemplateVar* const templateVar) const {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:
@@ -273,7 +274,7 @@ namespace locic {
 			locic_unreachable("Unknown predicate kind.");
 		}
 		
-		bool Predicate::dependsOnAny(const AST::TemplateVarArray& array) const {
+		bool Predicate::dependsOnAny(const TemplateVarArray& array) const {
 			for (const auto& templateVar: array) {
 				if (dependsOn(templateVar)) {
 					return true;
@@ -282,7 +283,7 @@ namespace locic {
 			return false;
 		}
 		
-		bool Predicate::dependsOnOnly(const AST::TemplateVarArray& array) const {
+		bool Predicate::dependsOnOnly(const TemplateVarArray& array) const {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:
@@ -310,7 +311,7 @@ namespace locic {
 			locic_unreachable("Unknown predicate kind.");
 		}
 		
-		Predicate Predicate::reduceToDependencies(const AST::TemplateVarArray& array, const bool conservativeDefault) const {
+		Predicate Predicate::reduceToDependencies(const TemplateVarArray& array, const bool conservativeDefault) const {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:
@@ -346,7 +347,7 @@ namespace locic {
 			locic_unreachable("Unknown predicate kind.");
 		}
 		
-		bool Predicate::implies(const SEM::Predicate& other) const {
+		bool Predicate::implies(const AST::Predicate& other) const {
 			switch (kind()) {
 				case TRUE:
 					// Drop through.
@@ -451,17 +452,17 @@ namespace locic {
 			return *right_;
 		}
 		
-		const AST::Type* Predicate::satisfiesType() const {
+		const Type* Predicate::satisfiesType() const {
 			assert(isSatisfies());
 			return type_;
 		}
 		
-		const AST::Type* Predicate::satisfiesRequirement() const {
+		const Type* Predicate::satisfiesRequirement() const {
 			assert(isSatisfies());
 			return requirement_;
 		}
 		
-		AST::TemplateVar* Predicate::variableTemplateVar() const {
+		TemplateVar* Predicate::variableTemplateVar() const {
 			assert(isVariable());
 			return templateVar_;
 		}

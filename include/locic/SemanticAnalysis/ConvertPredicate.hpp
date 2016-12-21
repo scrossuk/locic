@@ -10,13 +10,8 @@ namespace locic {
 	
 	namespace AST {
 		
-		class TemplateVarMap;
-		
-	}
-	
-	namespace SEM {
-		
 		class Predicate;
+		class TemplateVarMap;
 		
 	}
 	
@@ -24,14 +19,14 @@ namespace locic {
 		
 		class Context;
 		
-		SEM::Predicate ConvertPredicate(Context& context, const AST::Node<AST::PredicateDecl>& astPredicateNode);
+		AST::Predicate ConvertPredicate(Context& context, const AST::Node<AST::PredicateDecl>& astPredicateNode);
 		
-		SEM::Predicate ConvertConstSpecifier(Context& context, const AST::Node<AST::ConstSpecifier>& astConstSpecifierNode);
+		AST::Predicate ConvertConstSpecifier(Context& context, const AST::Node<AST::ConstSpecifier>& astConstSpecifierNode);
 		
-		SEM::Predicate ConvertPredicateSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode,
+		AST::Predicate ConvertPredicateSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode,
 			bool noneValue, bool noPredicateValue);
 		
-		inline SEM::Predicate ConvertNoExceptSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode) {
+		inline AST::Predicate ConvertNoExceptSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode) {
 			// Noexcept predicates are 'false' if not specified.
 			const bool noneValue = false;
 			
@@ -41,7 +36,7 @@ namespace locic {
 			return ConvertPredicateSpecifier(context, astRequireSpecifierNode, noneValue, noPredicateValue);
 		}
 		
-		inline SEM::Predicate ConvertRequireSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode) {
+		inline AST::Predicate ConvertRequireSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode) {
 			// Require predicates are 'true' if not specified.
 			const bool noneValue = true;
 			
@@ -52,11 +47,11 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		evaluatePredicate(Context& context, const SEM::Predicate& predicate, const AST::TemplateVarMap& variableAssignments);
+		evaluatePredicate(Context& context, const AST::Predicate& predicate, const AST::TemplateVarMap& variableAssignments);
 		
-		bool doesPredicateImplyPredicate(Context& context, const SEM::Predicate& firstPredicate, const SEM::Predicate& secondPredicate);
+		bool doesPredicateImplyPredicate(Context& context, const AST::Predicate& firstPredicate, const AST::Predicate& secondPredicate);
 		
-		SEM::Predicate reducePredicate(Context& context, SEM::Predicate predicate);
+		AST::Predicate reducePredicate(Context& context, AST::Predicate predicate);
 		
 	}
 	

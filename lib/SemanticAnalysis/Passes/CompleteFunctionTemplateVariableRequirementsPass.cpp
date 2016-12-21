@@ -12,19 +12,19 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void CompleteFunctionTemplateVariableRequirements(Context& context, AST::Node<AST::Function>& astFunctionNode,
-		                                                  const SEM::Predicate& parentRequiresPredicate) {
+		                                                  const AST::Predicate& parentRequiresPredicate) {
 			auto& function = context.scopeStack().back().function();
 			
 			// Add any requirements specified by parent.
 			auto predicate = parentRequiresPredicate.copy();
 			
 			// Add previous requirements added by default methods.
-			predicate = SEM::Predicate::And(std::move(predicate),
+			predicate = AST::Predicate::And(std::move(predicate),
 			                                function.requiresPredicate().copy());
 			
 			// Add any requirements in require() specifier.
 			if (!astFunctionNode->requireSpecifier().isNull()) {
-				predicate = SEM::Predicate::And(std::move(predicate), ConvertRequireSpecifier(context, astFunctionNode->requireSpecifier()));
+				predicate = AST::Predicate::And(std::move(predicate), ConvertRequireSpecifier(context, astFunctionNode->requireSpecifier()));
 			}
 			
 			// Add requirements specified inline for template variables.
@@ -34,7 +34,7 @@ namespace locic {
 				auto templateVarTypePredicate =
 					typeResolver.getTemplateVarTypePredicate(templateVarNode->typeDecl(),
 					                                         *templateVarNode);
-				predicate = SEM::Predicate::And(std::move(predicate),
+				predicate = AST::Predicate::And(std::move(predicate),
 				                                std::move(templateVarTypePredicate));
 				
 				auto& astSpecType = templateVarNode->specType();
@@ -47,8 +47,8 @@ namespace locic {
 				const auto semSpecType = typeResolver.resolveType(astSpecType);
 				
 				// Add the satisfies requirement to the predicate.
-				auto inlinePredicate = SEM::Predicate::Satisfies(templateVarNode->selfRefType(), semSpecType);
-				predicate = SEM::Predicate::And(std::move(predicate), std::move(inlinePredicate));
+				auto inlinePredicate = AST::Predicate::Satisfies(templateVarNode->selfRefType(), semSpecType);
+				predicate = AST::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
 			
 			function.setRequiresPredicate(std::move(predicate));
@@ -61,7 +61,7 @@ namespace locic {
 				
 				if (name->size() == 1) {
 					PushScopeElement pushFunction(context.scopeStack(), ScopeElement::Function(*function));
-					CompleteFunctionTemplateVariableRequirements(context, function, SEM::Predicate::True());
+					CompleteFunctionTemplateVariableRequirements(context, function, AST::Predicate::True());
 				} else {
 					const auto searchResult = performSearch(context, name->getPrefix());
 					if (!searchResult.isTypeInstance()) {

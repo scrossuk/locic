@@ -12,7 +12,7 @@
 
 #include <locic/Debug/ValueInfo.hpp>
 
-#include <locic/SEM/Predicate.hpp>
+#include <locic/AST/Predicate.hpp>
 #include <locic/AST/TypeInstance.hpp>
 
 #include <locic/Support/ErrorHandling.hpp>
@@ -37,7 +37,7 @@ namespace locic {
 			Optional<Debug::ValueInfo> debugInfo;
 			
 			Value value0, value1, value2;
-			Optional<SEM::Predicate> predicate;
+			Optional<Predicate> predicate;
 			TypeArray typeArray;
 			ValueArray valueArray;
 			locic::Constant constant;
@@ -50,11 +50,11 @@ namespace locic {
 				} localVar;
 				
 				struct {
-					const AST::TypeInstance* typeInstance;
+					const TypeInstance* typeInstance;
 				} unionDataOffset;
 				
 				struct {
-					const AST::TypeInstance* typeInstance;
+					const TypeInstance* typeInstance;
 					size_t memberIndex;
 				} memberOffset;
 				
@@ -128,7 +128,7 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::PredicateExpr(SEM::Predicate predicate, const Type* const boolType) {
+		Value Value::PredicateExpr(Predicate predicate, const Type* const boolType) {
 			if (predicate.isTrue()) {
 				return Value::Constant(Constant::True(), boolType);
 			} else if (predicate.isFalse()) {
@@ -149,13 +149,13 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::UnionDataOffset(const AST::TypeInstance* const typeInstance, const Type* const sizeType) {
+		Value Value::UnionDataOffset(const TypeInstance* const typeInstance, const Type* const sizeType) {
 			Value value(UNIONDATAOFFSET, sizeType, ExitStates::Normal());
 			value.impl_->union_.unionDataOffset.typeInstance = typeInstance;
 			return value;
 		}
 		
-		Value Value::MemberOffset(const AST::TypeInstance* const typeInstance, const size_t memberIndex, const Type* const sizeType) {
+		Value Value::MemberOffset(const TypeInstance* const typeInstance, const size_t memberIndex, const Type* const sizeType) {
 			Value value(MEMBEROFFSET, sizeType, ExitStates::Normal());
 			value.impl_->union_.memberOffset.typeInstance = typeInstance;
 			value.impl_->union_.memberOffset.memberIndex = memberIndex;
@@ -445,7 +445,7 @@ namespace locic {
 			return kind() == PREDICATE;
 		}
 		
-		const SEM::Predicate& Value::predicate() const {
+		const Predicate& Value::predicate() const {
 			assert(isPredicate());
 			return *(impl_->predicate);
 		}
@@ -463,7 +463,7 @@ namespace locic {
 			return kind() == UNIONDATAOFFSET;
 		}
 		
-		const AST::TypeInstance* Value::unionDataOffsetTypeInstance() const {
+		const TypeInstance* Value::unionDataOffsetTypeInstance() const {
 			assert(isUnionDataOffset());
 			return impl_->union_.unionDataOffset.typeInstance;
 		}
@@ -472,7 +472,7 @@ namespace locic {
 			return kind() == MEMBEROFFSET;
 		}
 		
-		const AST::TypeInstance* Value::memberOffsetTypeInstance() const {
+		const TypeInstance* Value::memberOffsetTypeInstance() const {
 			assert(isMemberOffset());
 			return impl_->union_.memberOffset.typeInstance;
 		}
@@ -1061,7 +1061,7 @@ namespace locic {
 					                      ternaryIfFalse().substitute(templateVarMap));
 				}
 				case TYPEREF:
-					return AST::Value::TypeRef(typeRefType()->substitute(templateVarMap), type()->substitute(templateVarMap));
+					return Value::TypeRef(typeRefType()->substitute(templateVarMap), type()->substitute(templateVarMap));
 				case TEMPLATEVARREF: {
 					const auto iterator = templateVarMap.find(templateVar());
 					if (iterator != templateVarMap.end()) {
@@ -1104,11 +1104,11 @@ namespace locic {
 			}
 		}
 		
-		SEM::Predicate Value::makePredicate() const {
+		Predicate Value::makePredicate() const {
 			switch (kind()) {
 				case CONSTANT:
 					assert(constant().kind() == Constant::BOOLEAN);
-					return constant().boolValue() ? SEM::Predicate::True() : SEM::Predicate::False();
+					return constant().boolValue() ? Predicate::True() : Predicate::False();
 				case ALIAS: {
 					TemplateVarMap assignments(alias().templateVariables().copy(),
 					                                aliasTemplateArguments().copy());
@@ -1117,17 +1117,17 @@ namespace locic {
 				case PREDICATE:
 					return predicate().copy();
 				case TEMPLATEVARREF: {
-					return SEM::Predicate::Variable(const_cast<TemplateVar*>(templateVar()));
+					return Predicate::Variable(const_cast<TemplateVar*>(templateVar()));
 				}
 				case TERNARY: {
 					// TODO: Remove this, because it isn't entirely correct.
-					return SEM::Predicate::Or(SEM::Predicate::And(ternaryCondition().makePredicate(),
-					                                              ternaryIfTrue().makePredicate()),
-					                          ternaryIfFalse().makePredicate());
+					return Predicate::Or(Predicate::And(ternaryCondition().makePredicate(),
+					                                    ternaryIfTrue().makePredicate()),
+					                     ternaryIfFalse().makePredicate());
 				}
 				case CAPABILITYTEST: {
-					return SEM::Predicate::Satisfies(capabilityTestCheckType(),
-					                                 capabilityTestCapabilityType());
+					return Predicate::Satisfies(capabilityTestCheckType(),
+					                            capabilityTestCapabilityType());
 				}
 				default:
 					locic_unreachable("Invalid value kind for makePredicate().");

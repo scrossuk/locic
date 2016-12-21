@@ -15,19 +15,19 @@ namespace locic {
 	namespace AST {
 	
 		ModuleScopeDecl*
-		ModuleScopeDecl::Import(AST::Node<NamespaceData> pData) {
+		ModuleScopeDecl::Import(Node<NamespaceData> pData) {
 			return new ModuleScopeDecl(IMPORT, false, std::move(pData));
 		}
 		
 		ModuleScopeDecl*
-		ModuleScopeDecl::Export(AST::Node<NamespaceData> pData) {
+		ModuleScopeDecl::Export(Node<NamespaceData> pData) {
 			return new ModuleScopeDecl(EXPORT, false, std::move(pData));
 		}
 		
 		ModuleScopeDecl*
-		ModuleScopeDecl::NamedImport(AST::Node<StringList> moduleName,
-		                             AST::Node<Version> version,
-		                             AST::Node<NamespaceData> pData) {
+		ModuleScopeDecl::NamedImport(Node<StringList> moduleName,
+		                             Node<Version> version,
+		                             Node<NamespaceData> pData) {
 			const auto moduleScope = new ModuleScopeDecl(IMPORT, true,
 			                                             std::move(pData));
 			moduleScope->moduleName_ = std::move(moduleName);
@@ -36,9 +36,9 @@ namespace locic {
 		}
 		
 		ModuleScopeDecl*
-		ModuleScopeDecl::NamedExport(AST::Node<StringList> moduleName,
-		                             AST::Node<Version> version,
-		                             AST::Node<NamespaceData> pData) {
+		ModuleScopeDecl::NamedExport(Node<StringList> moduleName,
+		                             Node<Version> version,
+		                             Node<NamespaceData> pData) {
 			const auto moduleScope = new ModuleScopeDecl(EXPORT, true,
 			                                             std::move(pData));
 			moduleScope->moduleName_ =std::move( moduleName);
@@ -47,7 +47,7 @@ namespace locic {
 		}
 		
 		ModuleScopeDecl::ModuleScopeDecl(Kind pKind, bool pIsNamed,
-		                                 AST::Node<NamespaceData> pData)
+		                                 Node<NamespaceData> pData)
 		: kind_(pKind), isNamed_(pIsNamed), data_(std::move(pData)) { }
 		
 		ModuleScopeDecl::Kind ModuleScopeDecl::kind() const {
@@ -66,17 +66,17 @@ namespace locic {
 			return kind() == EXPORT;
 		}
 		
-		const AST::Node<StringList>& ModuleScopeDecl::moduleName() const {
+		const Node<StringList>& ModuleScopeDecl::moduleName() const {
 			assert(isImport() || isExport());
 			return moduleName_;
 		}
 		
-		const AST::Node<Version>& ModuleScopeDecl::moduleVersion() const {
+		const Node<Version>& ModuleScopeDecl::moduleVersion() const {
 			assert(isImport() || isExport());
 			return moduleVersion_;
 		}
 		
-		const AST::Node<NamespaceData>& ModuleScopeDecl::data() const {
+		const Node<NamespaceData>& ModuleScopeDecl::data() const {
 			return data_;
 		}
 		
@@ -88,7 +88,7 @@ namespace locic {
 					return "Export";
 			}
 			
-			locic_unreachable("Unknown AST::ModuleScopeDecl kind.");
+			locic_unreachable("Unknown ModuleScopeDecl kind.");
 		}
 		
 		std::string ModuleScopeDecl::toString() const {

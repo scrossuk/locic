@@ -392,7 +392,7 @@ namespace locic {
 				const bool isVarArg = false;
 				const bool isDynamicMethod = false;
 				const bool isTemplatedMethod = false;
-				auto noExceptPredicate = SEM::Predicate::True();
+				auto noExceptPredicate = AST::Predicate::True();
 				const auto returnType = typeInstanceNode->selfType();
 				
 				AST::FunctionAttributes attributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));

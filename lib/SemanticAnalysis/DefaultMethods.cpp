@@ -32,47 +32,47 @@ namespace locic {
 			return functionInfo;
 		}
 		
-		SEM::Predicate getDefaultSizedTypePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
-			auto requirePredicate = SEM::Predicate::True();
+		AST::Predicate getDefaultSizedTypePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+			auto requirePredicate = AST::Predicate::True();
 			
 			const auto sizedType = getBuiltInType(context, context.getCString("sized_type_t"), {});
 			
 			// All member variables need to be sized.
 			for (const auto& var: typeInstance->variables()) {
 				const auto varType = var->constructType();
-				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, sizedType));
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, sizedType));
 			}
 			
 			// All variants need to be sized.
 			for (const auto& variantTypeInstance: typeInstance->variants()) {
 				const auto varType = variantTypeInstance->selfType();
-				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, sizedType));
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, sizedType));
 			}
 			
 			return requirePredicate;
 		}
 		
-		SEM::Predicate getAutoDefaultMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
-			auto requirePredicate = SEM::Predicate::True();
+		AST::Predicate getAutoDefaultMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+			auto requirePredicate = AST::Predicate::True();
 			
 			const auto movableType = context.typeBuilder().getMovableInterfaceType();
 			
 			// All member variables need to be movable.
 			for (const auto& var: typeInstance->variables()) {
 				const auto varType = var->constructType();
-				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, movableType));
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
 			}
 			
 			// All variants need to be movable.
 			for (const auto& variantTypeInstance: typeInstance->variants()) {
 				const auto varType = variantTypeInstance->selfType();
-				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, movableType));
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
 			}
 			
 			return requirePredicate;
 		}
 		
-		SEM::Predicate getDefaultMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+		AST::Predicate getDefaultMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			if (typeInstance->movePredicate()) {
 				// Use a user-provided move predicate if available.
 				return typeInstance->movePredicate()->copy();
@@ -83,27 +83,27 @@ namespace locic {
 		}
 		
 		// A similar version of the move predicate but uses notag() to get non-const type.
-		SEM::Predicate getDefaultCopyMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
-			auto requirePredicate = SEM::Predicate::True();
+		AST::Predicate getDefaultCopyMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+			auto requirePredicate = AST::Predicate::True();
 			
 			const auto movableType = context.typeBuilder().getMovableInterfaceType();
 			
 			// All member variables need to be movable.
 			for (const auto& var: typeInstance->variables()) {
 				const auto varType = var->constructType()->createNoTagType();
-				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, movableType));
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
 			}
 			
 			// All variants need to be movable.
 			for (const auto& variantTypeInstance: typeInstance->variants()) {
 				const auto varType = variantTypeInstance->selfType()->createNoTagType();
-				requirePredicate = SEM::Predicate::And(std::move(requirePredicate), SEM::Predicate::Satisfies(varType, movableType));
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
 			}
 			
 			return requirePredicate;
 		}
 		
-		SEM::Predicate getDefaultCopyPredicate(Context& context, const AST::TypeInstance* const typeInstance, const String& propertyName) {
+		AST::Predicate getDefaultCopyPredicate(Context& context, const AST::TypeInstance* const typeInstance, const String& propertyName) {
 			// Types must be movable to be copyable.
 			auto predicate = getDefaultCopyMovePredicate(context, typeInstance);
 			
@@ -111,61 +111,61 @@ namespace locic {
 			for (const auto& var: typeInstance->variables()) {
 				const auto varType = var->constructType()->withoutTags();
 				const auto copyableType = getBuiltInType(context, propertyName, { varType });
-				predicate = SEM::Predicate::And(std::move(predicate), SEM::Predicate::Satisfies(varType, copyableType));
+				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
 			}
 			
 			// All variants need to be copyable.
 			for (const auto& variantTypeInstance: typeInstance->variants()) {
 				const auto varType = variantTypeInstance->selfType();
 				const auto copyableType = getBuiltInType(context, propertyName, { varType });
-				predicate = SEM::Predicate::And(std::move(predicate), SEM::Predicate::Satisfies(varType, copyableType));
+				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
 			}
 			
 			return predicate;
 		}
 		
-		SEM::Predicate getDefaultImplicitCopyNoExceptPredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+		AST::Predicate getDefaultImplicitCopyNoExceptPredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			return getDefaultCopyPredicate(context, typeInstance, context.getCString("noexcept_implicit_copyable_t"));
 		}
 		
-		SEM::Predicate getDefaultImplicitCopyRequirePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+		AST::Predicate getDefaultImplicitCopyRequirePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			return getDefaultCopyPredicate(context, typeInstance, context.getCString("implicit_copyable_t"));
 		}
 		
-		SEM::Predicate getDefaultExplicitCopyNoExceptPredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+		AST::Predicate getDefaultExplicitCopyNoExceptPredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			return getDefaultCopyPredicate(context, typeInstance, context.getCString("noexcept_copyable_t"));
 		}
 		
-		SEM::Predicate getDefaultExplicitCopyRequirePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+		AST::Predicate getDefaultExplicitCopyRequirePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			return getDefaultCopyPredicate(context, typeInstance, context.getCString("copyable_t"));
 		}
 		
-		SEM::Predicate getDefaultComparePredicate(Context& context, const AST::TypeInstance* const typeInstance, const String& propertyName) {
-			auto predicate = SEM::Predicate::True();
+		AST::Predicate getDefaultComparePredicate(Context& context, const AST::TypeInstance* const typeInstance, const String& propertyName) {
+			auto predicate = AST::Predicate::True();
 			
 			// All member variables need to be copyable.
 			for (const auto& var: typeInstance->variables()) {
 				const auto varType = var->constructType()->withoutTags();
 				const auto copyableType = getBuiltInType(context, propertyName, { varType });
-				predicate = SEM::Predicate::And(std::move(predicate), SEM::Predicate::Satisfies(varType, copyableType));
+				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
 			}
 			
 			// All variants need to be copyable.
 			for (const auto& variantTypeInstance: typeInstance->variants()) {
 				const auto varType = variantTypeInstance->selfType();
 				const auto copyableType = getBuiltInType(context, propertyName, { varType });
-				predicate = SEM::Predicate::And(std::move(predicate), SEM::Predicate::Satisfies(varType, copyableType));
+				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
 			}
 			
 			return predicate;
 		}
 		
-		SEM::Predicate getDefaultCompareNoExceptPredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+		AST::Predicate getDefaultCompareNoExceptPredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			const auto propertyName = context.getCString("noexcept_comparable_t");
 			return getDefaultComparePredicate(context, typeInstance, propertyName);
 		}
 		
-		SEM::Predicate getDefaultCompareRequirePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+		AST::Predicate getDefaultCompareRequirePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			const auto propertyName = context.getCString("comparable_t");
 			return getDefaultComparePredicate(context, typeInstance, propertyName);
 		}
@@ -206,7 +206,7 @@ namespace locic {
 		DefaultMethods::completeDefaultConstructorDecl(AST::TypeInstance* typeInstance,
 		                                               AST::Function& function) {
 			// This method requires move, so add the move predicate.
-			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			function.setRequiresPredicate(AST::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultMovePredicate(context_, typeInstance)));
 			
 			const bool isVarArg = false;
@@ -215,7 +215,7 @@ namespace locic {
 			
 			// Default constructor only moves, and since moves never
 			// throw the constructor never throws.
-			auto noExceptPredicate = SEM::Predicate::True();
+			auto noExceptPredicate = AST::Predicate::True();
 			
 			auto constructTypes = typeInstance->constructTypes();
 			
@@ -241,7 +241,7 @@ namespace locic {
 		void
 		DefaultMethods::completeDefaultAlignMaskDecl(AST::TypeInstance* typeInstance,
 		                                             AST::Function& function) {
-			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			function.setRequiresPredicate(AST::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultSizedTypePredicate(context_, typeInstance)));
 			
 			const bool isVarArg = false;
@@ -249,7 +249,7 @@ namespace locic {
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// alignmask never throws.
-			auto noExceptPredicate = SEM::Predicate::True();
+			auto noExceptPredicate = AST::Predicate::True();
 			
 			const auto sizeType = context_.typeBuilder().getSizeType();
 			function.setType(AST::FunctionType(AST::FunctionAttributes(isVarArg, isDynamicMethod,
@@ -272,7 +272,7 @@ namespace locic {
 		void
 		DefaultMethods::completeDefaultSizeOfDecl(AST::TypeInstance* typeInstance,
 		                                          AST::Function& function) {
-			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			function.setRequiresPredicate(AST::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultSizedTypePredicate(context_, typeInstance)));
 			
 			const bool isVarArg = false;
@@ -280,7 +280,7 @@ namespace locic {
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// sizeof never throws.
-			auto noExceptPredicate = SEM::Predicate::True();
+			auto noExceptPredicate = AST::Predicate::True();
 			
 			const auto sizeType = context_.typeBuilder().getSizeType();
 			function.setType(AST::FunctionType(AST::FunctionAttributes(isVarArg, isDynamicMethod,
@@ -310,7 +310,7 @@ namespace locic {
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// Destructor never throws.
-			auto noExceptPredicate = SEM::Predicate::True();
+			auto noExceptPredicate = AST::Predicate::True();
 			
 			const auto voidType = context_.typeBuilder().getVoidType();
 			
@@ -334,7 +334,7 @@ namespace locic {
 		void
 		DefaultMethods::completeDefaultMoveDecl(AST::TypeInstance* typeInstance,
 		                                        AST::Function& function) {
-			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			function.setRequiresPredicate(AST::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultMovePredicate(context_, typeInstance)));
 			
 			const bool isVarArg = false;
@@ -342,7 +342,7 @@ namespace locic {
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// Move never throws.
-			auto noExceptPredicate = SEM::Predicate::True();
+			auto noExceptPredicate = AST::Predicate::True();
 			
 			const auto voidType = context_.typeBuilder().getVoidType();
 			const auto voidPtrType = getBuiltInType(context_, context_.getCString("ptr_t"), { voidType });
@@ -375,10 +375,10 @@ namespace locic {
 		void
 		DefaultMethods::completeDefaultImplicitCopyDecl(AST::TypeInstance* typeInstance,
 		                                                AST::Function& function) {
-			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			function.setRequiresPredicate(AST::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultImplicitCopyRequirePredicate(context_, typeInstance)));
 			
-			function.setConstPredicate(SEM::Predicate::True());
+			function.setConstPredicate(AST::Predicate::True());
 			
 			const bool isVarArg = false;
 			const bool isDynamicMethod = true;
@@ -408,10 +408,10 @@ namespace locic {
 		void
 		DefaultMethods::completeDefaultExplicitCopyDecl(AST::TypeInstance* typeInstance,
 		                                                AST::Function& function) {
-			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			function.setRequiresPredicate(AST::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultExplicitCopyRequirePredicate(context_, typeInstance)));
 			
-			function.setConstPredicate(SEM::Predicate::True());
+			function.setConstPredicate(AST::Predicate::True());
 			
 			const bool isVarArg = false;
 			const bool isDynamicMethod = true;
@@ -441,10 +441,10 @@ namespace locic {
 		void
 		DefaultMethods::completeDefaultCompareDecl(AST::TypeInstance* typeInstance,
 		                                           AST::Function& function) {
-			function.setRequiresPredicate(SEM::Predicate::And(typeInstance->requiresPredicate().copy(),
+			function.setRequiresPredicate(AST::Predicate::And(typeInstance->requiresPredicate().copy(),
 			                                                  getDefaultCompareRequirePredicate(context_, typeInstance)));
 			
-			function.setConstPredicate(SEM::Predicate::True());
+			function.setConstPredicate(AST::Predicate::True());
 			
 			const bool isVarArg = false;
 			const bool isDynamicMethod =true;
@@ -455,7 +455,7 @@ namespace locic {
 			auto noExceptPredicate = getDefaultCompareNoExceptPredicate(context_, typeInstance);
 			
 			const auto selfType = typeInstance->selfType();
-			const auto argType = createReferenceType(context_, selfType->createTransitiveConstType(SEM::Predicate::True()));
+			const auto argType = createReferenceType(context_, selfType->createTransitiveConstType(AST::Predicate::True()));
 			const auto compareResultType = getBuiltInType(context_, context_.getCString("compare_result_t"), {});
 			
 			AST::TypeArray argTypes;
@@ -489,7 +489,7 @@ namespace locic {
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// Never throws.
-			auto noExceptPredicate = SEM::Predicate::True();
+			auto noExceptPredicate = AST::Predicate::True();
 			
 			const auto voidType = context_.typeBuilder().getVoidType();
 			
@@ -510,14 +510,14 @@ namespace locic {
 		void
 		DefaultMethods::completeDefaultIsLiveDecl(AST::TypeInstance* typeInstance,
 		                                          AST::Function& function) {
-			function.setConstPredicate(SEM::Predicate::True());
+			function.setConstPredicate(AST::Predicate::True());
 			
 			const bool isVarArg = false;
 			const bool isDynamicMethod =true;
 			const bool isTemplatedMethod = !typeInstance->templateVariables().empty();
 			
 			// Never throws.
-			auto noExceptPredicate = SEM::Predicate::True();
+			auto noExceptPredicate = AST::Predicate::True();
 			
 			const auto boolType = context_.typeBuilder().getBoolType();
 			

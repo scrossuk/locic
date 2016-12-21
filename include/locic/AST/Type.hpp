@@ -4,12 +4,12 @@
 #include <string>
 
 #include <locic/AST/FunctionType.hpp>
+#include <locic/AST/Predicate.hpp>
 #include <locic/AST/TemplateVarArray.hpp>
 #include <locic/AST/TemplateVarMap.hpp>
 #include <locic/AST/TypeArray.hpp>
-
-#include <locic/SEM/Predicate.hpp>
 #include <locic/AST/ValueArray.hpp>
+
 #include <locic/Support/Optional.hpp>
 
 namespace locic {
@@ -35,17 +35,17 @@ namespace locic {
 					TEMPLATEVAR
 				};
 				
-				static const AST::ValueArray NO_TEMPLATE_ARGS;
+				static const ValueArray NO_TEMPLATE_ARGS;
 				
-				static const Type* Auto(const AST::Context& context);
-				static const Type* Alias(const AST::Alias& alias, AST::ValueArray templateArguments);
-				static const Type* Object(const AST::TypeInstance* typeInstance, AST::ValueArray templateArguments);
+				static const Type* Auto(const Context& context);
+				static const Type* Alias(const AST::Alias& alias, ValueArray templateArguments);
+				static const Type* Object(const TypeInstance* typeInstance, ValueArray templateArguments);
 				static const Type* TemplateVarRef(const TemplateVar* templateVar);
 				
-				const AST::Context& context() const;
+				const Context& context() const;
 				Kind kind() const;
 				
-				const SEM::Predicate& constPredicate() const;
+				const Predicate& constPredicate() const;
 				
 				bool isNoTag() const;
 				bool isLval() const;
@@ -55,8 +55,8 @@ namespace locic {
 				const Type* refTarget() const;
 				const Type* staticRefTarget() const;
 				
-				const Type* createTransitiveConstType(SEM::Predicate predicate) const;
-				const Type* createConstType(SEM::Predicate predicate) const;
+				const Type* createTransitiveConstType(Predicate predicate) const;
+				const Type* createConstType(Predicate predicate) const;
 				
 				const Type* createNoTagType() const;
 				const Type* createLvalType() const;
@@ -72,7 +72,7 @@ namespace locic {
 				bool isAlias() const;
 				
 				const AST::Alias& alias() const;
-				const AST::ValueArray& aliasArguments() const;
+				const ValueArray& aliasArguments() const;
 				
 				PrimitiveID primitiveID() const;
 				
@@ -91,13 +91,13 @@ namespace locic {
 				bool isBuiltInVarArgFunctionPtr() const;
 				
 				bool isObject() const;
-				const AST::TypeInstance* getObjectType() const;
-				const AST::ValueArray& templateArguments() const;
+				const TypeInstance* getObjectType() const;
+				const ValueArray& templateArguments() const;
 				
 				bool isTemplateVar() const;
 				const TemplateVar* getTemplateVar() const;
 				
-				bool isTypeInstance(const AST::TypeInstance* typeInstance) const;
+				bool isTypeInstance(const TypeInstance* typeInstance) const;
 				
 				bool isClassDecl() const;
 				bool isClassDef() const;
@@ -124,7 +124,7 @@ namespace locic {
 				bool isCallableVarArg() const;
 				
 				FunctionType asFunctionType() const;
-				AST::Value asValue() const;
+				Value asValue() const;
 				
 				const Type* substitute(const TemplateVarMap& templateVarMap) const;
 				const Type* resolveAliases() const;
@@ -149,20 +149,20 @@ namespace locic {
 				}
 				
 			private:
-				Type(const AST::Context& pContext, Kind pKind);
+				Type(const Context& pContext, Kind pKind);
 				
 				Type copy() const;
 				
-				const AST::Context& context_;
+				const Context& context_;
 				Kind kind_;
 				bool isNoTag_;
 				bool isLval_;
-				SEM::Predicate constPredicate_;
+				Predicate constPredicate_;
 				const Type* refTarget_;
 				const Type* staticRefTarget_;
 				
 				TypeArray typeArray_;
-				AST::ValueArray valueArray_;
+				ValueArray valueArray_;
 				
 				union {
 					struct {
@@ -170,7 +170,7 @@ namespace locic {
 					} aliasType;
 					
 					struct {
-						const AST::TypeInstance* typeInstance;
+						const TypeInstance* typeInstance;
 					} objectType;
 					
 					struct {

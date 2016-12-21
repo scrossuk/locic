@@ -35,15 +35,15 @@ namespace locic {
 			return statementDecls_;
 		}
 		
-		AST::ExitStates Scope::exitStates() const {
+		ExitStates Scope::exitStates() const {
 			// TODO: precompute this!
 			const auto& statementList = statements();
 			
 			if (statementList.empty()) {
-				return AST::ExitStates::Normal();
+				return ExitStates::Normal();
 			}
 			
-			auto scopeExitStates = AST::ExitStates::None();
+			auto scopeExitStates = ExitStates::None();
 			
 			// All states that aren't an exception state can be
 			// blocked by a scope(success) block that always throws.
@@ -51,7 +51,7 @@ namespace locic {
 			
 			// The pending states for scope(success) that occur if
 			// we have a no-throw exit.
-			auto scopeSuccessPendingStates = AST::ExitStates::None();
+			auto scopeSuccessPendingStates = ExitStates::None();
 			
 			bool isNormalBlocked = false;
 			
@@ -70,12 +70,12 @@ namespace locic {
 				
 				// Block 'normal' exit state until we
 				// reach the end of the scope.
-				statementExitStates.remove(AST::ExitStates::Normal());
+				statementExitStates.remove(ExitStates::Normal());
 				
 				// Add pending scope(success) exit states if there's
 				// a no-throw exit state from this statement (which
 				// isn't just continuing to the next statement).
-				if (!statementExitStates.onlyHasStates(AST::ExitStates::AllThrowing() | AST::ExitStates::Normal())) {
+				if (!statementExitStates.onlyHasStates(ExitStates::AllThrowing() | ExitStates::Normal())) {
 					scopeExitStates.add(scopeSuccessPendingStates);
 				}
 				
@@ -93,7 +93,7 @@ namespace locic {
 				// In this case the only way to leave the scope
 				// is by throwing an exception.
 				if (isBlockedByAlwaysThrowingScopeSuccess) {
-					statementExitStates.remove(AST::ExitStates::AllNonThrowing());
+					statementExitStates.remove(ExitStates::AllNonThrowing());
 				}
 				
 				assert(!statementExitStates.hasNormalExit());
@@ -132,7 +132,7 @@ namespace locic {
 			}
 			
 			if (isBlockedByAlwaysThrowingScopeSuccess) {
-				lastStatementExitStates.remove(AST::ExitStates::AllNonThrowing());
+				lastStatementExitStates.remove(ExitStates::AllNonThrowing());
 			}
 			
 			scopeExitStates.add(lastStatementExitStates);

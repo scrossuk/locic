@@ -1,5 +1,4 @@
 set(SEM_FILES
-	../SEM/Predicate.cpp
 	../SEM/Statement.cpp
 )
 
@@ -18,6 +17,7 @@ add_library(locic-ast
 	ModuleScopeDecl.cpp
 	Namespace.cpp
 	NamespaceDecl.cpp
+	Predicate.cpp
 	PredicateDecl.cpp
 	RequireSpecifier.cpp
 	Scope.cpp

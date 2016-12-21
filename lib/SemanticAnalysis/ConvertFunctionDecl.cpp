@@ -272,7 +272,7 @@ namespace locic {
 			}
 		}
 		
-		bool isValidConstness(const MethodID methodID, const SEM::Predicate& constPredicate) {
+		bool isValidConstness(const MethodID methodID, const AST::Predicate& constPredicate) {
 			switch (methodID) {
 				case METHOD_MOVETO:
 					return constPredicate.isFalse();
@@ -429,7 +429,7 @@ namespace locic {
 		
 		void validateFunctionType(Context& context, const Name& functionFullName,
 		                          const AST::FunctionType& functionType,
-		                          const SEM::Predicate& constPredicate,
+		                          const AST::Predicate& constPredicate,
 		                          const Debug::SourceLocation& location) {
 			const auto& name = functionFullName.last();
 			if (!name.starts_with("__")) {
@@ -558,13 +558,13 @@ namespace locic {
 			auto noExceptPredicate = ConvertNoExceptSpecifier(context, function->noexceptSpecifier());
 			if (function->fullName().last() == "__destroy") {
 				// Destructors are always noexcept.
-				noExceptPredicate = SEM::Predicate::True();
+				noExceptPredicate = AST::Predicate::True();
 			}
 			
 			if (!noExceptPredicate.isTrue() && function->fullName().last().starts_with("__")) {
 				context.issueDiag(LifetimeMethodNotNoExceptDiag(function->fullName().toString()),
 				                  function.location());
-				noExceptPredicate = SEM::Predicate::True();
+				noExceptPredicate = AST::Predicate::True();
 			}
 			
 			const bool isDynamicMethod = function->isMethod() && !function->isStatic();

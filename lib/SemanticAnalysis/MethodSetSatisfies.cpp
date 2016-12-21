@@ -38,7 +38,7 @@ namespace locic {
 						auto value = AST::Value::Constant(chosenConstant, selfRefValue.type());
 						templateVarMap.insert(std::make_pair(templateVar, std::move(value)));
 					} else if (requireElement.constPredicate().isVariable()) {
-						auto value = AST::Value::PredicateExpr(SEM::Predicate::False(), selfRefValue.type());
+						auto value = AST::Value::PredicateExpr(AST::Predicate::False(), selfRefValue.type());
 						templateVarMap.insert(std::make_pair(templateVar, std::move(value)));
 					} else {
 						auto value = AST::Value::PredicateExpr(requireElement.constPredicate().copy(), selfRefValue.type());
@@ -91,8 +91,8 @@ namespace locic {
 		
 		class ParentConstPredicateImplicationFailedDiag: public Error {
 		public:
-			ParentConstPredicateImplicationFailedDiag(const String name, const SEM::Predicate& parentPredicate,
-			                                          const SEM::Predicate& methodPredicate)
+			ParentConstPredicateImplicationFailedDiag(const String name, const AST::Predicate& parentPredicate,
+			                                          const AST::Predicate& methodPredicate)
 			: name_(name), parentPredicateString_(parentPredicate.toString()),
 			methodPredicateString_(methodPredicate.toString()) { }
 			
@@ -111,8 +111,8 @@ namespace locic {
 		
 		class ConstPredicateImplicationFailedDiag: public Error {
 		public:
-			ConstPredicateImplicationFailedDiag(const String name, const SEM::Predicate& requirePredicate,
-			                                    const SEM::Predicate& sourcePredicate)
+			ConstPredicateImplicationFailedDiag(const String name, const AST::Predicate& requirePredicate,
+			                                    const AST::Predicate& sourcePredicate)
 			: name_(name), requirePredicateString_(requirePredicate.toString()),
 			sourcePredicateString_(sourcePredicate.toString()) { }
 			
@@ -132,8 +132,8 @@ namespace locic {
 		
 		class RequirePredicateImplicationFailedDiag: public Error {
 		public:
-			RequirePredicateImplicationFailedDiag(const String name, const SEM::Predicate& requirePredicate,
-			                                      const SEM::Predicate& sourcePredicate)
+			RequirePredicateImplicationFailedDiag(const String name, const AST::Predicate& requirePredicate,
+			                                      const AST::Predicate& sourcePredicate)
 			: name_(name), requirePredicateString_(requirePredicate.toString()),
 			sourcePredicateString_(sourcePredicate.toString()) { }
 			
@@ -153,8 +153,8 @@ namespace locic {
 		
 		class NoexceptPredicateImplicationFailedDiag: public Error {
 		public:
-			NoexceptPredicateImplicationFailedDiag(const String name, const SEM::Predicate& requirePredicate,
-			                                       const SEM::Predicate& sourcePredicate)
+			NoexceptPredicateImplicationFailedDiag(const String name, const AST::Predicate& requirePredicate,
+			                                       const AST::Predicate& sourcePredicate)
 			: name_(name), requirePredicateString_(requirePredicate.toString()),
 			sourcePredicateString_(sourcePredicate.toString()) { }
 			
@@ -237,7 +237,7 @@ namespace locic {
 		constexpr bool DEBUG_METHOD_SET = false;
 		
 		OptionalDiag
-		methodSetElementSatisfiesRequirement(Context& context, const SEM::Predicate& checkConstPredicate,
+		methodSetElementSatisfiesRequirement(Context& context, const AST::Predicate& checkConstPredicate,
 		                                     const String& functionName, const MethodSetElement& checkFunctionElement,
 		                                     const MethodSetElement& requireFunctionElement) {
 			const auto satisfyTemplateVarMap = generateSatisfyTemplateVarMap(checkFunctionElement, requireFunctionElement);

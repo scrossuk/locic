@@ -92,15 +92,15 @@ namespace locic {
 			
 		};
 		
-		SEM::Predicate ConvertPredicate(Context& context, const AST::Node<AST::PredicateDecl>& astPredicateNode) {
+		AST::Predicate ConvertPredicate(Context& context, const AST::Node<AST::PredicateDecl>& astPredicateNode) {
 			const auto& location = astPredicateNode.location();
 			
 			switch (astPredicateNode->kind()) {
 				case AST::PredicateDecl::TRUE: {
-					return SEM::Predicate::True();
+					return AST::Predicate::True();
 				}
 				case AST::PredicateDecl::FALSE: {
-					return SEM::Predicate::False();
+					return AST::Predicate::False();
 				}
 				case AST::PredicateDecl::BRACKET: {
 					return ConvertPredicate(context, astPredicateNode->bracketExpr());
@@ -113,7 +113,7 @@ namespace locic {
 					const auto semType = typeResolver.resolveType(typeSpecType);
 					const auto semRequireType = typeResolver.resolveType(typeSpecRequireType);
 					
-					return SEM::Predicate::Satisfies(semType, semRequireType);
+					return AST::Predicate::Satisfies(semType, semRequireType);
 				}
 				case AST::PredicateDecl::SYMBOL: {
 					const auto& astSymbolNode = astPredicateNode->symbol();
@@ -130,7 +130,7 @@ namespace locic {
 						if (!aliasValue.type()->isBuiltInBool()) {
 							context.issueDiag(PredicateAliasNotBoolDiag(name, aliasValue.type()),
 							                  location);
-							return SEM::Predicate::False();
+							return AST::Predicate::False();
 						}
 						
 						return aliasValue.makePredicate();
@@ -140,44 +140,44 @@ namespace locic {
 						if (!templateVar.type()->isBuiltInBool()) {
 							context.issueDiag(PredicateTemplateVarNotBoolDiag(name, templateVar.type()),
 							                  location);
-							return SEM::Predicate::False();
+							return AST::Predicate::False();
 						}
 						
-						return SEM::Predicate::Variable(&templateVar);
+						return AST::Predicate::Variable(&templateVar);
 					} else if (!searchResult.isNone()) {
 						context.issueDiag(InvalidSymbolInPredicateDiag(name), location);
-						return SEM::Predicate::False();
+						return AST::Predicate::False();
 					} else {
 						context.issueDiag(UnknownSymbolInPredicateDiag(name), location);
-						return SEM::Predicate::False();
+						return AST::Predicate::False();
 					}
 				}
 				case AST::PredicateDecl::AND: {
 					auto leftExpr = ConvertPredicate(context, astPredicateNode->andLeft());
 					auto rightExpr = ConvertPredicate(context, astPredicateNode->andRight());
-					return SEM::Predicate::And(std::move(leftExpr), std::move(rightExpr));
+					return AST::Predicate::And(std::move(leftExpr), std::move(rightExpr));
 				}
 				case AST::PredicateDecl::OR: {
 					auto leftExpr = ConvertPredicate(context, astPredicateNode->orLeft());
 					auto rightExpr = ConvertPredicate(context, astPredicateNode->orRight());
-					return SEM::Predicate::Or(std::move(leftExpr), std::move(rightExpr));
+					return AST::Predicate::Or(std::move(leftExpr), std::move(rightExpr));
 				}
 			}
 			
 			locic_unreachable("Unknown AST Predicate kind.");
 		}
 		
-		SEM::Predicate ConvertConstSpecifier(Context& context, const AST::Node<AST::ConstSpecifier>& astConstSpecifierNode) {
+		AST::Predicate ConvertConstSpecifier(Context& context, const AST::Node<AST::ConstSpecifier>& astConstSpecifierNode) {
 			switch (astConstSpecifierNode->kind()) {
 				case AST::ConstSpecifier::NONE:
 					// No specifier means it's false (i.e. always not const).
-					return SEM::Predicate::False();
+					return AST::Predicate::False();
 				case AST::ConstSpecifier::CONST:
 					// 'const' means it's true (i.e. always const).
-					return SEM::Predicate::True();
+					return AST::Predicate::True();
 				case AST::ConstSpecifier::MUTABLE:
 					// 'mutable' means it's false (i.e. always not const).
-					return SEM::Predicate::False();
+					return AST::Predicate::False();
 				case AST::ConstSpecifier::EXPR:
 				{
 					return ConvertPredicate(context, astConstSpecifierNode->predicate());
@@ -187,20 +187,20 @@ namespace locic {
 			locic_unreachable("Unknown AST ConstSpecifier kind.");
 		}
 		
-		SEM::Predicate ConvertPredicateSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode,
+		AST::Predicate ConvertPredicateSpecifier(Context& context, const AST::Node<AST::RequireSpecifier>& astRequireSpecifierNode,
 				const bool noneValue, const bool noPredicateValue) {
 			if (astRequireSpecifierNode.isNull()) {
-				return SEM::Predicate::FromBool(noneValue);
+				return AST::Predicate::FromBool(noneValue);
 			}
 			
 			switch (astRequireSpecifierNode->kind()) {
 				case AST::RequireSpecifier::NONE:
 				{
-					return SEM::Predicate::FromBool(noneValue);
+					return AST::Predicate::FromBool(noneValue);
 				}
 				case AST::RequireSpecifier::NOPREDICATE:
 				{
-					return SEM::Predicate::FromBool(noPredicateValue);
+					return AST::Predicate::FromBool(noPredicateValue);
 				}
 				case AST::RequireSpecifier::EXPR:
 				{
@@ -253,17 +253,17 @@ namespace locic {
 		};
 		
 		OptionalDiag
-		evaluatePredicate(Context& context, const SEM::Predicate& predicate, const AST::TemplateVarMap& variableAssignments) {
+		evaluatePredicate(Context& context, const AST::Predicate& predicate, const AST::TemplateVarMap& variableAssignments) {
 			switch (predicate.kind()) {
-				case SEM::Predicate::TRUE:
+				case AST::Predicate::TRUE:
 				{
 					return OptionalDiag();
 				}
-				case SEM::Predicate::FALSE:
+				case AST::Predicate::FALSE:
 				{
 					return OptionalDiag(PredicateHasLiteralFalseDiag());
 				}
-				case SEM::Predicate::AND:
+				case AST::Predicate::AND:
 				{
 					auto leftResult = evaluatePredicate(context, predicate.andLeft(), variableAssignments);
 					if (!leftResult) {
@@ -272,7 +272,7 @@ namespace locic {
 					
 					return evaluatePredicate(context, predicate.andRight(), variableAssignments);
 				}
-				case SEM::Predicate::OR:
+				case AST::Predicate::OR:
 				{
 					auto leftResult = evaluatePredicate(context, predicate.orLeft(), variableAssignments);
 					if (leftResult) {
@@ -286,7 +286,7 @@ namespace locic {
 					
 					return leftResult;
 				}
-				case SEM::Predicate::SATISFIES:
+				case AST::Predicate::SATISFIES:
 				{
 					const auto checkType = predicate.satisfiesType();
 					const auto requireType = predicate.satisfiesRequirement();
@@ -323,7 +323,7 @@ namespace locic {
 					
 					return methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
 				}
-				case SEM::Predicate::VARIABLE:
+				case AST::Predicate::VARIABLE:
 				{
 					const auto templateVar = predicate.variableTemplateVar();
 					const auto iterator = variableAssignments.find(templateVar);
@@ -342,7 +342,7 @@ namespace locic {
 			locic_unreachable("Unknown predicate kind.");
 		}
 		
-		bool doesPredicateImplyPredicate(Context& /*context*/, const SEM::Predicate& firstPredicate, const SEM::Predicate& secondPredicate) {
+		bool doesPredicateImplyPredicate(Context& /*context*/, const AST::Predicate& firstPredicate, const AST::Predicate& secondPredicate) {
 			// TODO: actually prove in the general case that one implies the other.
 			
 			if (firstPredicate == secondPredicate) {
@@ -357,26 +357,26 @@ namespace locic {
 			}
 		}
 		
-		SEM::Predicate reducePredicate(Context& context, SEM::Predicate predicate) {
+		AST::Predicate reducePredicate(Context& context, AST::Predicate predicate) {
 			switch (predicate.kind()) {
-				case SEM::Predicate::TRUE:
-				case SEM::Predicate::FALSE:
+				case AST::Predicate::TRUE:
+				case AST::Predicate::FALSE:
 				{
 					return predicate;
 				}
-				case SEM::Predicate::AND:
+				case AST::Predicate::AND:
 				{
 					auto left = reducePredicate(context, predicate.andLeft().copy());
 					auto right = reducePredicate(context, predicate.andRight().copy());
-					return SEM::Predicate::And(std::move(left), std::move(right));
+					return AST::Predicate::And(std::move(left), std::move(right));
 				}
-				case SEM::Predicate::OR:
+				case AST::Predicate::OR:
 				{
 					auto left = reducePredicate(context, predicate.orLeft().copy());
 					auto right = reducePredicate(context, predicate.orRight().copy());
-					return SEM::Predicate::Or(std::move(left), std::move(right));
+					return AST::Predicate::Or(std::move(left), std::move(right));
 				}
-				case SEM::Predicate::SATISFIES:
+				case AST::Predicate::SATISFIES:
 				{
 					const auto checkType = predicate.satisfiesType();
 					const auto requireType = predicate.satisfiesRequirement();
@@ -393,7 +393,7 @@ namespace locic {
 					// this is being used to compute whether it is itself true
 					// and a cyclic dependency like this is acceptable).
 					if (context.isAssumedSatisfies(checkType, requireType)) {
-						return SEM::Predicate::True();
+						return AST::Predicate::True();
 					}
 					
 					PushAssumedSatisfies assumedSatisfies(context, checkType, requireType);
@@ -401,7 +401,7 @@ namespace locic {
 					if (checkType->isAuto()) {
 						// Presumably this is OK...
 						// TODO: remove auto from here.
-						return SEM::Predicate::True();
+						return AST::Predicate::True();
 					}
 					
 					const auto sourceMethodSet = getTypeMethodSet(context, checkType);
@@ -415,7 +415,7 @@ namespace locic {
 						// type satisfies the requirement,
 						// but a false result might just
 						// be a lack of information.
-						return SEM::Predicate::True();
+						return AST::Predicate::True();
 					}
 					
 					if (!checkType->dependsOnOnly({}) || !requireType->dependsOnOnly({})) {
@@ -423,9 +423,9 @@ namespace locic {
 						return predicate;
 					}
 					
-					return SEM::Predicate::False();
+					return AST::Predicate::False();
 				}
-				case SEM::Predicate::VARIABLE:
+				case AST::Predicate::VARIABLE:
 				{
 					return predicate;
 				}

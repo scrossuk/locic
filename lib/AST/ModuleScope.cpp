@@ -64,7 +64,7 @@ namespace locic {
 					return "Export";
 			}
 			
-			locic_unreachable("Unknown AST::ModuleScope kind.");
+			locic_unreachable("Unknown ModuleScope kind.");
 		}
 		
 		std::string ModuleScope::toString() const {

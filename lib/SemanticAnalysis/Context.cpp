@@ -9,7 +9,7 @@
 #include <locic/Frontend/DiagnosticReceiver.hpp>
 #include <locic/Frontend/Diagnostics.hpp>
 #include <locic/Debug.hpp>
-#include <locic/SEM/Predicate.hpp>
+#include <locic/AST/Predicate.hpp>
 #include <locic/Support/Array.hpp>
 #include <locic/Support/SharedMaps.hpp>
 #include <locic/Support/StableSet.hpp>
@@ -76,7 +76,7 @@ namespace locic {
 				hashPair<const AST::TemplatedObject*, const AST::Type*>> templateVarMethodSetMap;
 			
 			std::vector<std::pair<const AST::Type*, const AST::Type*>> assumedSatisfyPairs;
-			std::vector<std::pair<const AST::TemplateVar*, const SEM::Predicate*>> computingMethodSetTemplateVars;
+			std::vector<std::pair<const AST::TemplateVar*, const AST::Predicate*>> computingMethodSetTemplateVars;
 		};
 		
 		Context::Context(const SharedMaps& argSharedMaps, Debug::Module& argDebugModule,
@@ -213,7 +213,7 @@ namespace locic {
 			(void) impl_->capabilities.insert(std::make_pair(std::make_pair(type, capability), isCapable));
 		}
 		
-		bool Context::isComputingMethodSet(const AST::TemplateVar* const templateVar, const SEM::Predicate& predicate) const {
+		bool Context::isComputingMethodSet(const AST::TemplateVar* const templateVar, const AST::Predicate& predicate) const {
 			for (const auto& computingMethodSetPair: impl_->computingMethodSetTemplateVars) {
 				if (templateVar == computingMethodSetPair.first && predicate == *(computingMethodSetPair.second)) {
 					return true;
@@ -222,7 +222,7 @@ namespace locic {
 			return false;
 		}
 		
-		void Context::pushComputingMethodSet(const AST::TemplateVar* const  templateVar, const SEM::Predicate& predicate) {
+		void Context::pushComputingMethodSet(const AST::TemplateVar* const  templateVar, const AST::Predicate& predicate) {
 			impl_->computingMethodSetTemplateVars.push_back(std::make_pair(templateVar, &predicate));
 		}
 		

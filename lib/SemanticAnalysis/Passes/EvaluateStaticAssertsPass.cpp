@@ -1,6 +1,6 @@
 #include <locic/AST.hpp>
 #include <locic/Frontend/OptionalDiag.hpp>
-#include <locic/SEM/Predicate.hpp>
+#include <locic/AST/Predicate.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>

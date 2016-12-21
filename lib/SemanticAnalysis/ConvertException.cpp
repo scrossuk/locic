@@ -89,7 +89,7 @@ namespace locic {
 			const bool isVarArg = false;
 			const bool isDynamicMethod = false;
 			const bool isTemplatedMethod = !typeInstance.templateVariables().empty();
-			auto noExceptPredicate = SEM::Predicate::False();
+			auto noExceptPredicate = AST::Predicate::False();
 			
 			// Filter out first variable from construct types
 			// since the first variable will store the parent.

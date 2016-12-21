@@ -5,6 +5,7 @@
 
 #include <locic/AST/GlobalStructure.hpp>
 #include <locic/AST/Node.hpp>
+#include <locic/AST/Predicate.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/TemplatedObject.hpp>
 #include <locic/AST/TemplateVar.hpp>
@@ -13,8 +14,6 @@
 #include <locic/AST/ValueDecl.hpp>
 
 #include <locic/Debug/SourceLocation.hpp>
-
-#include <locic/SEM/Predicate.hpp>
 
 #include <locic/Support/FastMap.hpp>
 #include <locic/Support/String.hpp>
@@ -83,10 +82,10 @@ namespace locic {
 			
 			FastMap<String, TemplateVar*>& namedTemplateVariables();
 			
-			const SEM::Predicate& requiresPredicate() const;
-			void setRequiresPredicate(SEM::Predicate predicate);
+			const Predicate& requiresPredicate() const;
+			void setRequiresPredicate(Predicate predicate);
 			
-			const SEM::Predicate& noexceptPredicate() const;
+			const Predicate& noexceptPredicate() const;
 			
 			const Value& value() const;
 			void setValue(Value value);
@@ -104,8 +103,8 @@ namespace locic {
 			Name fullName_;
 			TemplateVarArray templateVars_;
 			FastMap<String, TemplateVar*> namedTemplateVariables_;
-			SEM::Predicate requiresPredicate_;
-			SEM::Predicate noexceptPredicate_;
+			Predicate requiresPredicate_;
+			Predicate noexceptPredicate_;
 			const Type* type_;
 			Optional<Value> value_;
 			

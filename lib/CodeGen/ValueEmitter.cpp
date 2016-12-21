@@ -712,7 +712,7 @@ namespace locic {
 			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/false,
 			                                   /*isTemplated=*/false,
-			                                   /*noExceptPredicate=*/SEM::Predicate::True());
+			                                   /*noExceptPredicate=*/AST::Predicate::True());
 			AST::FunctionType functionType(std::move(attributes),
 			                               /*returnType=*/value.type(),
 			                               /*parameterTypes=*/{});

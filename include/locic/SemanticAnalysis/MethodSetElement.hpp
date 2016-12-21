@@ -5,7 +5,7 @@
 
 #include <locic/AST/TemplateVarArray.hpp>
 #include <locic/AST/TypeArray.hpp>
-#include <locic/SEM/Predicate.hpp>
+#include <locic/AST/Predicate.hpp>
 #include <locic/Support/Array.hpp>
 #include <locic/Support/String.hpp>
 
@@ -22,7 +22,7 @@ namespace locic {
 		class MethodSetElement {
 			public:
 				MethodSetElement(Array<AST::TemplateVar*, 8> templateVariables,
-					SEM::Predicate constPredicate, SEM::Predicate noexceptPredicate, SEM::Predicate requirePredicate,
+					AST::Predicate constPredicate, AST::Predicate noexceptPredicate, AST::Predicate requirePredicate,
 					bool isStatic, const AST::Type* returnType, AST::TypeArray parameterTypes);
 				
 				MethodSetElement(MethodSetElement&&) = default;
@@ -30,13 +30,13 @@ namespace locic {
 				
 				MethodSetElement copy() const;
 				
-				MethodSetElement withRequirement(SEM::Predicate requirement) const;
-				MethodSetElement withNoExceptPredicate(SEM::Predicate newNoExceptPredicate) const;
+				MethodSetElement withRequirement(AST::Predicate requirement) const;
+				MethodSetElement withNoExceptPredicate(AST::Predicate newNoExceptPredicate) const;
 				
 				const AST::TemplateVarArray& templateVariables() const;
-				const SEM::Predicate& constPredicate() const;
-				const SEM::Predicate& noexceptPredicate() const;
-				const SEM::Predicate& requirePredicate() const;
+				const AST::Predicate& constPredicate() const;
+				const AST::Predicate& noexceptPredicate() const;
+				const AST::Predicate& requirePredicate() const;
 				
 				bool isStatic() const;
 				const AST::Type* returnType() const;
@@ -52,9 +52,9 @@ namespace locic {
 				
 			private:
 				AST::TemplateVarArray templateVariables_;
-				SEM::Predicate constPredicate_;
-				SEM::Predicate noexceptPredicate_;
-				SEM::Predicate requirePredicate_;
+				AST::Predicate constPredicate_;
+				AST::Predicate noexceptPredicate_;
+				AST::Predicate requirePredicate_;
 				bool isStatic_;
 				const AST::Type* returnType_;
 				AST::TypeArray parameterTypes_;

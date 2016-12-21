@@ -115,7 +115,7 @@ namespace locic {
 					return AST::Type::Auto(context_.semContext());
 				}
 				case AST::TypeDecl::CONST: {
-					return resolveType(type->getConstTarget())->createTransitiveConstType(SEM::Predicate::True());
+					return resolveType(type->getConstTarget())->createTransitiveConstType(AST::Predicate::True());
 				}
 				case AST::TypeDecl::CONSTPREDICATE: {
 					auto constPredicate = ConvertPredicate(context_, type->getConstPredicate());
@@ -196,7 +196,7 @@ namespace locic {
 					const bool isTemplated = false;
 					
 					// Currently no syntax exists to express a type with 'noexcept'.
-					auto noexceptPredicate = SEM::Predicate::False();
+					auto noexceptPredicate = AST::Predicate::False();
 					
 					const bool isVarArg = type->functionType.isVarArg;
 					
@@ -257,12 +257,12 @@ namespace locic {
 			return &alias;
 		}
 		
-		SEM::Predicate
+		AST::Predicate
 		TypeResolver::getTemplateVarTypePredicate(const AST::Node<AST::TypeDecl>& type,
 		                                          const AST::TemplateVar& templateVar) {
 			const auto alias = getTemplateVarTypeAlias(type);
 			if (alias == nullptr) {
-				return SEM::Predicate::True();
+				return AST::Predicate::True();
 			}
 			
 			(void) context_.aliasTypeResolver().resolveAliasType(*alias);
@@ -278,7 +278,7 @@ namespace locic {
 				context_.issueDiag(PredicateAliasNotBoolDiag(type->symbol()->createName(),
 				                                             aliasValue.type()),
 				                   type.location());
-				return SEM::Predicate::True();
+				return AST::Predicate::True();
 			}
 			
 			return aliasValue.makePredicate();

@@ -22,32 +22,32 @@ namespace locic {
 			};
 			
 			static ModuleScopeDecl*
-			Import(AST::Node<NamespaceData> data);
+			Import(Node<NamespaceData> data);
 			
 			static ModuleScopeDecl*
-			Export(AST::Node<NamespaceData> data);
+			Export(Node<NamespaceData> data);
 			
 			static ModuleScopeDecl*
-			NamedImport(AST::Node<StringList> moduleName,
-			            AST::Node<Version> version,
-			            AST::Node<NamespaceData> data);
+			NamedImport(Node<StringList> moduleName,
+			            Node<Version> version,
+			            Node<NamespaceData> data);
 			
 			static ModuleScopeDecl*
-			NamedExport(AST::Node<StringList> moduleName,
-			            AST::Node<Version> version,
-			            AST::Node<NamespaceData> data);
+			NamedExport(Node<StringList> moduleName,
+			            Node<Version> version,
+			            Node<NamespaceData> data);
 			
 			ModuleScopeDecl(Kind kind, bool isNamed,
-			            AST::Node<NamespaceData> data);
+			            Node<NamespaceData> data);
 			
 			Kind kind() const;
 			bool isNamed() const;
 			bool isImport() const;
 			bool isExport() const;
 			
-			const AST::Node<StringList>& moduleName() const;
-			const AST::Node<Version>& moduleVersion() const;
-			const AST::Node<NamespaceData>& data() const;
+			const Node<StringList>& moduleName() const;
+			const Node<Version>& moduleVersion() const;
+			const Node<NamespaceData>& data() const;
 			
 			std::string kindString() const;
 			std::string toString() const;
@@ -55,9 +55,9 @@ namespace locic {
 		private:
 			Kind kind_;
 			bool isNamed_;
-			AST::Node<StringList> moduleName_;
-			AST::Node<Version> moduleVersion_;
-			AST::Node<NamespaceData> data_;
+			Node<StringList> moduleName_;
+			Node<Version> moduleVersion_;
+			Node<NamespaceData> data_;
 			
 		};
 		

@@ -142,19 +142,19 @@ namespace locic {
 			const Node<ConstSpecifier>& constSpecifier() const;
 			void setConstSpecifier(Node<ConstSpecifier> constSpecifier);
 			
-			const SEM::Predicate& constPredicate() const;
-			void setConstPredicate(SEM::Predicate predicate);
+			const Predicate& constPredicate() const;
+			void setConstPredicate(Predicate predicate);
 			
 			const Node<RequireSpecifier>& noexceptSpecifier() const;
 			void setNoexceptSpecifier(Node<RequireSpecifier> noexceptSpecifier);
 			
-			const SEM::Predicate& noexceptPredicate() const;
+			const Predicate& noexceptPredicate() const;
 			
 			const Node<RequireSpecifier>& requireSpecifier() const;
 			void setRequireSpecifier(Node<RequireSpecifier> requireSpecifier);
 			
-			const SEM::Predicate& requiresPredicate() const;
-			void setRequiresPredicate(SEM::Predicate predicate);
+			const Predicate& requiresPredicate() const;
+			void setRequiresPredicate(Predicate predicate);
 			
 			const Node<TemplateVarList>& templateVariableDecls() const;
 			void setTemplateVariableDecls(Node<TemplateVarList> templateVariables);
@@ -198,12 +198,12 @@ namespace locic {
 			Node<Scope> scope_;
 			
 			Node<ConstSpecifier> constSpecifier_;
-			SEM::Predicate constPredicate_;
+			Predicate constPredicate_;
 			
 			Node<RequireSpecifier> noexceptSpecifier_;
 			
 			Node<RequireSpecifier> requireSpecifier_;
-			SEM::Predicate requiresPredicate_;
+			Predicate requiresPredicate_;
 			
 			Optional<Debug::FunctionInfo> debugInfo_;
 			

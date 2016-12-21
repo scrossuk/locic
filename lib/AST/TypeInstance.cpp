@@ -7,14 +7,13 @@
 #include <locic/AST/ExceptionInitializer.hpp>
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Node.hpp>
+#include <locic/AST/Predicate.hpp>
 #include <locic/AST/RequireSpecifier.hpp>
 #include <locic/AST/StringList.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/Var.hpp>
-
-#include <locic/SEM/Predicate.hpp>
 
 namespace locic {
 	
@@ -30,8 +29,8 @@ namespace locic {
 		name_(pName), kind_(pKind), context_(nullptr),
 		moduleScope_(ModuleScope::Internal()),
 		parentTypeInstance_(nullptr), parentType_(nullptr),
-		requiresPredicate_(SEM::Predicate::True()),
-		noexceptPredicate_(SEM::Predicate::False()),
+		requiresPredicate_(Predicate::True()),
+		noexceptPredicate_(Predicate::False()),
 		cachedSelfType_(nullptr) { }
 		
 		TypeInstance::~TypeInstance() { }
@@ -187,23 +186,23 @@ namespace locic {
 			return namedTemplateVariables_;
 		}
 		
-		const Optional<SEM::Predicate>& TypeInstance::movePredicate() const {
+		const Optional<Predicate>& TypeInstance::movePredicate() const {
 			return movePredicate_;
 		}
 		
-		void TypeInstance::setMovePredicate(SEM::Predicate predicate) {
+		void TypeInstance::setMovePredicate(Predicate predicate) {
 			movePredicate_ = make_optional(std::move(predicate));
 		}
 		
-		const SEM::Predicate& TypeInstance::requiresPredicate() const {
+		const Predicate& TypeInstance::requiresPredicate() const {
 			return requiresPredicate_;
 		}
 		
-		void TypeInstance::setRequiresPredicate(SEM::Predicate predicate) {
+		void TypeInstance::setRequiresPredicate(Predicate predicate) {
 			requiresPredicate_ = std::move(predicate);
 		}
 		
-		const SEM::Predicate& TypeInstance::noexceptPredicate() const {
+		const Predicate& TypeInstance::noexceptPredicate() const {
 			return noexceptPredicate_;
 		}
 		

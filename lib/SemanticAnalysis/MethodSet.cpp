@@ -20,15 +20,15 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		const MethodSet* MethodSet::getEmpty(const Context& context) {
-			return MethodSet::get(context, SEM::Predicate::False(), {});
+			return MethodSet::get(context, AST::Predicate::False(), {});
 		}
 		
-		const MethodSet* MethodSet::get(const Context& context, SEM::Predicate constPredicate, ElementSet elements) {
+		const MethodSet* MethodSet::get(const Context& context, AST::Predicate constPredicate, ElementSet elements) {
 			return context.getMethodSet(MethodSet(context, std::move(constPredicate), std::move(elements)));
 		}
 		
-		const MethodSet* MethodSet::withConstPredicate(SEM::Predicate addConstPredicate) const {
-			auto newConstPredicate = SEM::Predicate::Or(constPredicate().copy(), std::move(addConstPredicate));
+		const MethodSet* MethodSet::withConstPredicate(AST::Predicate addConstPredicate) const {
+			auto newConstPredicate = AST::Predicate::Or(constPredicate().copy(), std::move(addConstPredicate));
 			if (constPredicate() == newConstPredicate) {
 				return this;
 			}
@@ -36,7 +36,7 @@ namespace locic {
 			return MethodSet::get(context(), std::move(newConstPredicate), elements_.copy());
 		}
 		
-		const MethodSet* MethodSet::withRequirement(const SEM::Predicate requirement) const {
+		const MethodSet* MethodSet::withRequirement(const AST::Predicate requirement) const {
 			ElementSet newElements;
 			newElements.reserve(size());
 			
@@ -49,7 +49,7 @@ namespace locic {
 			return MethodSet::get(context(), constPredicate().copy(), std::move(newElements));
 		}
 		
-		MethodSet::MethodSet(const Context& pContext, SEM::Predicate argConstPredicate, ElementSet argElements)
+		MethodSet::MethodSet(const Context& pContext, AST::Predicate argConstPredicate, ElementSet argElements)
 			: context_(pContext), constPredicate_(std::move(argConstPredicate)),
 			elements_(std::move(argElements)) { }
 		
@@ -57,7 +57,7 @@ namespace locic {
 			return context_;
 		}
 		
-		const SEM::Predicate& MethodSet::constPredicate() const {
+		const AST::Predicate& MethodSet::constPredicate() const {
 			return constPredicate_;
 		}
 		

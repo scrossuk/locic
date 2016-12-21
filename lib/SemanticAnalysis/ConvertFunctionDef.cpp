@@ -300,8 +300,8 @@ namespace locic {
 		class NoExceptPredicateIsntImpliedDiag: public Error {
 		public:
 			NoExceptPredicateIsntImpliedDiag(const Name& functionName,
-			                                 const SEM::Predicate& noexceptPredicate,
-			                                 const SEM::Predicate& declaredNoexceptPredicate)
+			                                 const AST::Predicate& noexceptPredicate,
+			                                 const AST::Predicate& declaredNoexceptPredicate)
 			: functionNameString_(functionName.toString(/*addPrefix=*/false)),
 			noexceptPredicateString_(noexceptPredicate.toString()),
 			declaredNoexceptPredicateString_(declaredNoexceptPredicate.toString()) { }

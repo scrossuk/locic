@@ -3,11 +3,10 @@
 
 #include <string>
 
+#include <locic/AST/Predicate.hpp>
 #include <locic/AST/TemplateVarArray.hpp>
 #include <locic/AST/TemplateVarMap.hpp>
 #include <locic/AST/TypeArray.hpp>
-
-#include <locic/SEM/Predicate.hpp>
 #include <locic/AST/ValueArray.hpp>
 
 namespace locic {
@@ -21,7 +20,7 @@ namespace locic {
 		public:
 			FunctionAttributes(bool isVarArg, bool isMethod,
 			                   bool isTemplated,
-			                   SEM::Predicate noExceptPredicate);
+			                   Predicate noExceptPredicate);
 			
 			FunctionAttributes copy() const;
 			
@@ -43,7 +42,7 @@ namespace locic {
 			 */
 			bool isTemplated() const;
 			
-			const SEM::Predicate& noExceptPredicate() const;
+			const Predicate& noExceptPredicate() const;
 			
 			std::string toString() const;
 			
@@ -58,7 +57,7 @@ namespace locic {
 			bool isVarArg_;
 			bool isMethod_;
 			bool isTemplated_;
-			SEM::Predicate noExceptPredicate_;
+			Predicate noExceptPredicate_;
 			
 		};
 		
@@ -70,7 +69,7 @@ namespace locic {
 			
 			FunctionTypeData copy() const;
 			
-			const AST::Context& context() const;
+			const Context& context() const;
 			
 			const FunctionAttributes& attributes() const;
 			
@@ -109,7 +108,7 @@ namespace locic {
 			FunctionType(const FunctionTypeData& data)
 			: data_(&data) { }
 			
-			const AST::Context& context() const {
+			const Context& context() const {
 				return data_->context();
 			}
 			

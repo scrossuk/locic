@@ -48,7 +48,7 @@ namespace locic {
 			if (!created) {
 				// Make sure that the require predicate is false so
 				// CodeGen understands not to generate this function.
-				function.setRequiresPredicate(SEM::Predicate::False());
+				function.setRequiresPredicate(AST::Predicate::False());
 			}
 		}
 		

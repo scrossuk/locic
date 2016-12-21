@@ -21,6 +21,7 @@ namespace locic {
 	namespace AST {
 		
 		class Context;
+		class Predicate;
 		class TemplatedObject;
 		class Type;
 		class Value;
@@ -31,12 +32,6 @@ namespace locic {
 		
 		class Module;
 		class SourceLocation;
-		
-	}
-	
-	namespace SEM {
-		
-		class Predicate;
 		
 	}
 	
@@ -114,8 +109,8 @@ namespace locic {
 				void setCapability(const AST::Type* type, const String& capability, bool isCapable);
 				
 				// For handling cycles in method set computation.
-				bool isComputingMethodSet(const AST::TemplateVar* templateVar, const SEM::Predicate& predicate) const;
-				void pushComputingMethodSet(const AST::TemplateVar* templateVar, const SEM::Predicate& predicate);
+				bool isComputingMethodSet(const AST::TemplateVar* templateVar, const AST::Predicate& predicate) const;
+				void pushComputingMethodSet(const AST::TemplateVar* templateVar, const AST::Predicate& predicate);
 				void popComputingMethodSet();
 				
 				// For handling cycles in require predicates.

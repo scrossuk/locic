@@ -22,9 +22,9 @@ namespace locic {
 		
 		MethodSetElement::MethodSetElement(
 				AST::TemplateVarArray argTemplateVariables,
-				SEM::Predicate argConstPredicate,
-				SEM::Predicate argNoexceptPredicate,
-				SEM::Predicate argRequirePredicate,
+				AST::Predicate argConstPredicate,
+				AST::Predicate argNoexceptPredicate,
+				AST::Predicate argRequirePredicate,
 				const bool argIsStatic,
 				const AST::Type* const argReturnType,
 				AST::TypeArray argParameterTypes
@@ -44,14 +44,14 @@ namespace locic {
 				isStatic(), returnType(), parameterTypes().copy());
 		}
 		
-		MethodSetElement MethodSetElement::withRequirement(SEM::Predicate requirement) const {
+		MethodSetElement MethodSetElement::withRequirement(AST::Predicate requirement) const {
 			return MethodSetElement(templateVariables().copy(), constPredicate().copy(),
 				noexceptPredicate().copy(),
-				SEM::Predicate::And(requirePredicate().copy(), std::move(requirement)),
+				AST::Predicate::And(requirePredicate().copy(), std::move(requirement)),
 				isStatic(), returnType(), parameterTypes().copy());
 		}
 		
-		MethodSetElement MethodSetElement::withNoExceptPredicate(SEM::Predicate newNoExceptPredicate) const {
+		MethodSetElement MethodSetElement::withNoExceptPredicate(AST::Predicate newNoExceptPredicate) const {
 			return MethodSetElement(templateVariables().copy(), constPredicate().copy(),
 				std::move(newNoExceptPredicate),
 				requirePredicate().copy(),
@@ -62,15 +62,15 @@ namespace locic {
 			return templateVariables_;
 		}
 		
-		const SEM::Predicate& MethodSetElement::constPredicate() const {
+		const AST::Predicate& MethodSetElement::constPredicate() const {
 			return constPredicate_;
 		}
 		
-		const SEM::Predicate& MethodSetElement::noexceptPredicate() const {
+		const AST::Predicate& MethodSetElement::noexceptPredicate() const {
 			return noexceptPredicate_;
 		}
 		
-		const SEM::Predicate& MethodSetElement::requirePredicate() const {
+		const AST::Predicate& MethodSetElement::requirePredicate() const {
 			return requirePredicate_;
 		}
 		

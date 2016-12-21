@@ -20,17 +20,12 @@ namespace locic {
 		
 	}
 	
-	namespace SEM {
-		
-		class Predicate;
-		
-	}
-	
 	namespace AST {
 		
 		class Alias;
 		class ExitStates;
 		class Function;
+		class Predicate;
 		class TemplateVar;
 		class TemplateVarMap;
 		class Type;
@@ -112,7 +107,7 @@ namespace locic {
 				 * 
 				 * A predicate value.
 				 */
-				static Value PredicateExpr(SEM::Predicate value,
+				static Value PredicateExpr(Predicate value,
 				                           const Type* boolType);
 				
 				/**
@@ -372,7 +367,7 @@ namespace locic {
 				const ValueArray& aliasTemplateArguments() const;
 				
 				bool isPredicate() const;
-				const SEM::Predicate& predicate() const;
+				const Predicate& predicate() const;
 				
 				bool isLocalVarRef() const;
 				const Var& localVar() const;
@@ -487,7 +482,7 @@ namespace locic {
 				bool dependsOnOnly(const TemplateVarArray& array) const;
 				
 				Value substitute(const TemplateVarMap& templateVarMap) const;
-				SEM::Predicate makePredicate() const;
+				Predicate makePredicate() const;
 				
 				std::string toString() const;
 				std::string toDiagString() const;

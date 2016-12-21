@@ -393,15 +393,15 @@ namespace locic {
 				return objectType.symbol;
 			}
 			
-			const AST::Type* resolvedType() const;
-			void setResolvedType(const AST::Type* type);
+			const Type* resolvedType() const;
+			void setResolvedType(const Type* type);
 			
 			std::string toString() const;
 			
 		private:
 			explicit TypeDecl(const TypeDecl&) = default;
 			
-			const AST::Type* resolvedType_;
+			const Type* resolvedType_;
 			
 		};
 		

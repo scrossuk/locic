@@ -6,7 +6,7 @@
 #include <locic/AST/TypeArray.hpp>
 
 #include <locic/AST/Context.hpp>
-#include <locic/SEM/Predicate.hpp>
+#include <locic/AST/Predicate.hpp>
 
 #include <locic/Support/Hasher.hpp>
 #include <locic/Support/MakeString.hpp>
@@ -18,7 +18,7 @@ namespace locic {
 		FunctionAttributes::FunctionAttributes(const bool argIsVarArg,
 		                                       const bool argIsMethod,
 		                                       const bool argIsTemplated,
-		                                       SEM::Predicate argNoExceptPredicate)
+		                                       Predicate argNoExceptPredicate)
 		: isVarArg_(argIsVarArg),
 		isMethod_(argIsMethod),
 		isTemplated_(argIsTemplated),
@@ -43,7 +43,7 @@ namespace locic {
 			return isTemplated_;
 		}
 		
-		const SEM::Predicate& FunctionAttributes::noExceptPredicate() const {
+		const Predicate& FunctionAttributes::noExceptPredicate() const {
 			return noExceptPredicate_;
 		}
 		
@@ -76,8 +76,8 @@ namespace locic {
 		}
 		
 		FunctionTypeData::FunctionTypeData(FunctionAttributes argAttributes,
-		                                   const AST::Type* const argReturnType,
-		                                   AST::TypeArray argParameterTypes)
+		                                   const Type* const argReturnType,
+		                                   TypeArray argParameterTypes)
 		: attributes_(std::move(argAttributes)),
 		returnType_(argReturnType),
 		parameterTypes_(std::move(argParameterTypes)) { }
@@ -88,7 +88,7 @@ namespace locic {
 			                        parameterTypes().copy());
 		}
 		
-		const AST::Context& FunctionTypeData::context() const {
+		const Context& FunctionTypeData::context() const {
 			return returnType()->context();
 		}
 		
@@ -96,11 +96,11 @@ namespace locic {
 			return attributes_;
 		}
 		
-		const AST::Type* FunctionTypeData::returnType() const {
+		const Type* FunctionTypeData::returnType() const {
 			return returnType_;
 		}
 		
-		const AST::TypeArray& FunctionTypeData::parameterTypes() const {
+		const TypeArray& FunctionTypeData::parameterTypes() const {
 			return parameterTypes_;
 		}
 		
@@ -139,8 +139,8 @@ namespace locic {
 		}
 		
 		FunctionType::FunctionType(FunctionAttributes argAttributes,
-		                           const AST::Type* const argReturnType,
-		                           AST::TypeArray argParameterTypes)
+		                           const Type* const argReturnType,
+		                           TypeArray argParameterTypes)
 		: data_(nullptr) {
 			FunctionTypeData functionTypeData(std::move(argAttributes),
 			                                  argReturnType,
@@ -157,7 +157,7 @@ namespace locic {
 			
 			bool changed = (substitutedReturnType != returnType());
 			
-			AST::TypeArray substitutedParameterTypes;
+			TypeArray substitutedParameterTypes;
 			
 			for (const auto parameterType: parameterTypes()) {
 				const auto substitutedParameterType = parameterType->substitute(templateVarMap);

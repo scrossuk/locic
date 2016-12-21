@@ -23,7 +23,7 @@ namespace locic {
 		
 		TemplateVar*
 		TemplateVar::WithSpec(Node<TypeDecl> pType, const String& pName,
-		                          Node<TypeDecl> pSpecType) {
+		                      Node<TypeDecl> pSpecType) {
 			assert(!pSpecType.isNull());
 			TemplateVar* typeVar = new TemplateVar();
 			typeVar->typeDecl_ = std::move(pType);
@@ -36,12 +36,12 @@ namespace locic {
 		: context_(nullptr), type_(nullptr), selfRefType_(nullptr),
 		index_(-1), isVirtual_(false) { }
 		
-		AST::Context& TemplateVar::context() const {
+		Context& TemplateVar::context() const {
 			assert(context_ != nullptr);
 			return *context_;
 		}
 		
-		void TemplateVar::setContext(AST::Context& pContext) {
+		void TemplateVar::setContext(Context& pContext) {
 			assert(context_ == nullptr);
 			context_ = &pContext;
 		}
@@ -108,11 +108,11 @@ namespace locic {
 			isVirtual_ = pIsVirtual;
 		}
 		
-		AST::Value TemplateVar::selfRefValue() const {
+		Value TemplateVar::selfRefValue() const {
 			if (type()->isBuiltInTypename()) {
-				return AST::Value::TypeRef(selfRefType(), type());
+				return Value::TypeRef(selfRefType(), type());
 			} else {
-				return AST::Value::TemplateVarRef(this, type());
+				return Value::TemplateVarRef(this, type());
 			}
 		}
 		

@@ -5,14 +5,9 @@ namespace locic {
 	
 	namespace AST {
 		
+		class Predicate;
 		class TemplateVar;
 		class Type;
-		
-	}
-	
-	namespace SEM {
-		
-		class Predicate;
 		
 	}
 	
@@ -21,7 +16,7 @@ namespace locic {
 		class Context;
 		class MethodSet;
 		
-		const MethodSet* getMethodSetForRequiresPredicate(AST::TemplateVar* templateVar, const SEM::Predicate& requiresPredicate);
+		const MethodSet* getMethodSetForRequiresPredicate(AST::TemplateVar* templateVar, const AST::Predicate& requiresPredicate);
 		
 		const MethodSet* getMethodSetForObjectType(Context& context, const AST::Type* objectType);
 		

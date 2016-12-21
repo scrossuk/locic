@@ -9,13 +9,9 @@ namespace locic {
 	
 	class Name;
 	
-	namespace SEM {
+	namespace AST {
 		
 		class Predicate;
-		
-	}
-	
-	namespace AST {
 		
 		class TemplatedObject {
 			public:
@@ -25,9 +21,9 @@ namespace locic {
 				
 				virtual const TemplateVarArray& templateVariables() const = 0;
 				
-				virtual const SEM::Predicate& requiresPredicate() const = 0;
+				virtual const Predicate& requiresPredicate() const = 0;
 				
-				virtual const SEM::Predicate& noexceptPredicate() const = 0;
+				virtual const Predicate& noexceptPredicate() const = 0;
 				
 			protected:
 				~TemplatedObject() { }

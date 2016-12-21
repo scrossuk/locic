@@ -236,7 +236,7 @@ namespace locic {
 		
 		class TemplateArgsDoNotSatisfyMethodRequirePredicateDiag : public Error {
 		public:
-			TemplateArgsDoNotSatisfyMethodRequirePredicateDiag(const SEM::Predicate& requirePredicate,
+			TemplateArgsDoNotSatisfyMethodRequirePredicateDiag(const AST::Predicate& requirePredicate,
 			                                                   const String& name)
 			: requirePredicateString_(requirePredicate.toString()), name_(name) { }
 

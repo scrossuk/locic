@@ -580,7 +580,7 @@ namespace locic {
 			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
-			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
 			AST::FunctionType functionType(std::move(attributes),
 			                               type,
@@ -626,7 +626,7 @@ namespace locic {
 			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
-			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
 			const auto compareResultType = module().context().semContext().getPrimitive(PrimitiveCompareResult).selfType();
 			const auto typenameType = module().context().semContext().getPrimitive(PrimitiveTypename).selfType();
@@ -664,7 +664,7 @@ namespace locic {
 			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
-			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
 			const auto boolType = module().context().semContext().getPrimitive(PrimitiveBool).selfType();
 			const auto typenameType = module().context().semContext().getPrimitive(PrimitiveTypename).selfType();
@@ -698,7 +698,7 @@ namespace locic {
 			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
-			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
 			const auto voidType = module().context().semContext().getPrimitive(PrimitiveVoid).selfType();
 			
@@ -730,7 +730,7 @@ namespace locic {
 			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
-			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
 			const auto boolType = module().context().semContext().getPrimitive(PrimitiveBool).selfType();
 			
@@ -761,7 +761,7 @@ namespace locic {
 			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
-			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
 			AST::FunctionType functionType(std::move(attributes),
 			                               resultType, {});
@@ -787,7 +787,7 @@ namespace locic {
 			AST::FunctionAttributes attributes(/*isVarArg=*/false,
 			                                   /*isMethod=*/true,
 			                                   isTemplated,
-			                                   /*noExceptPredicate=*/SEM::Predicate::False());
+			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
 			const auto voidType = module().context().semContext().getPrimitive(PrimitiveVoid).selfType();
 			

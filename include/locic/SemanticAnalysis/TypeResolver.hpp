@@ -39,7 +39,7 @@ namespace locic {
 			AST::Alias*
 			getTemplateVarTypeAlias(const AST::Node<AST::TypeDecl>& type);
 			
-			SEM::Predicate
+			AST::Predicate
 			getTemplateVarTypePredicate(const AST::Node<AST::TypeDecl>& type,
 			                            const AST::TemplateVar& templateVar);
 			
