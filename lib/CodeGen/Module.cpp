@@ -28,7 +28,7 @@ namespace locic {
 			  abi_(llvm_abi::createABI(*module_, context_.targetTriple())),
 			  virtualCallABI_(new GenericVirtualCallABI(*this)),
 			  debugBuilder_(*this), debugModule_(pDebugModule), buildOptions_(pBuildOptions),
-			  semFunctionGenerator_(*this) {
+			  astFunctionGenerator_(*this) {
 			
 			module_->setDataLayout(context_.dataLayout().getStringRepresentation());
 			module_->setTargetTriple(context_.targetTriple().getTriple());
@@ -189,8 +189,8 @@ namespace locic {
 			return context_.getPrimitiveID(name);
 		}
 		
-		ASTFunctionGenerator& Module::semFunctionGenerator() {
-			return semFunctionGenerator_;
+		ASTFunctionGenerator& Module::astFunctionGenerator() {
+			return astFunctionGenerator_;
 		}
 		
 		void Module::verify() const {

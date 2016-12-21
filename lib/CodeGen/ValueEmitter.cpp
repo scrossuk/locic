@@ -599,30 +599,30 @@ namespace locic {
 		                       llvm::Value* const hintResultValue) {
 			auto& module = irEmitter_.module();
 			auto& function = irEmitter_.function();
-			const auto& semCallValue = value.callValue();
-			const auto& semArgumentValues = value.callParameters();
+			const auto& astCallValue = value.callValue();
+			const auto& astArgumentValues = value.callParameters();
 			
-			if (semCallValue.type()->isBuiltInInterfaceMethod() || semCallValue.type()->isBuiltInStaticInterfaceMethod()) {
-				const auto methodComponents = genVirtualMethodComponents(function, semCallValue);
+			if (astCallValue.type()->isBuiltInInterfaceMethod() || astCallValue.type()->isBuiltInStaticInterfaceMethod()) {
+				const auto methodComponents = genVirtualMethodComponents(function, astCallValue);
 				
 				llvm::SmallVector<llvm::Value*, 10> llvmArgs;
-				for (const auto& arg: semArgumentValues) {
+				for (const auto& arg: astArgumentValues) {
 					llvmArgs.push_back(emitValue(arg, /*hintResultValue=*/nullptr));
 				}
 				
 				return module.virtualCallABI().emitCall(irEmitter_,
-				                                        semCallValue.type()->asFunctionType(),
+				                                        astCallValue.type()->asFunctionType(),
 				                                        methodComponents,
 				                                        llvmArgs,
 				                                        hintResultValue);
 			}
 			
 			// TODO: merge this with the call below.
-			if (isTrivialFunction(module, semCallValue)) {
-				return genTrivialFunctionCall(function, semCallValue, arrayRef(semArgumentValues), hintResultValue);
+			if (isTrivialFunction(module, astCallValue)) {
+				return genTrivialFunctionCall(function, astCallValue, arrayRef(astArgumentValues), hintResultValue);
 			}
 			
-			return genASTFunctionCall(function, semCallValue, arrayRef(semArgumentValues), hintResultValue);
+			return genASTFunctionCall(function, astCallValue, arrayRef(astArgumentValues), hintResultValue);
 		}
 		
 		llvm::Value*

@@ -62,8 +62,8 @@ namespace locic {
 		
 		llvm::Function* genAlignMaskFunctionDecl(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto& function = typeInstance->getFunction(module.getCString("__alignmask"));
-			auto& semFunctionGenerator = module.semFunctionGenerator();
-			return semFunctionGenerator.getDecl(typeInstance, function);
+			auto& astFunctionGenerator = module.astFunctionGenerator();
+			return astFunctionGenerator.getDecl(typeInstance, function);
 		}
 		
 		llvm::Value* genAlignOf(Function& function, const AST::Type* type) {
@@ -128,8 +128,8 @@ namespace locic {
 		
 		llvm::Function* genSizeOfFunctionDecl(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto& function = typeInstance->getFunction(module.getCString("__sizeof"));
-			auto& semFunctionGenerator = module.semFunctionGenerator();
-			return semFunctionGenerator.getDecl(typeInstance, function);
+			auto& astFunctionGenerator = module.astFunctionGenerator();
+			return astFunctionGenerator.getDecl(typeInstance, function);
 		}
 		
 		llvm::Value* genSizeOfValue(Function& function, const AST::Type* const rawType) {
@@ -219,9 +219,9 @@ namespace locic {
 			const auto mangledName = mangleMethodName(module, typeInstance, module.getCString("__memberoffset"));
 			const auto argInfo = memberOffsetArgInfo(module, typeInstance);
 			
-			auto& semFunctionGenerator = module.semFunctionGenerator();
+			auto& astFunctionGenerator = module.astFunctionGenerator();
 			const auto llvmFunction = createLLVMFunction(module, argInfo,
-			                                             semFunctionGenerator.getTypeLinkage(*typeInstance),
+			                                             astFunctionGenerator.getTypeLinkage(*typeInstance),
 			                                             mangledName);
 			
 			module.memberOffsetFunctionMap().insert(std::make_pair(typeInstance, llvmFunction));

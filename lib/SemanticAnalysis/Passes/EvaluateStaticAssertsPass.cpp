@@ -23,9 +23,9 @@ namespace locic {
 		void EvaluateNamespaceStaticAsserts(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			for (const auto& astStaticAssertNode: astNamespaceDataNode->staticAsserts) {
 				const auto& astPredicateNode = astStaticAssertNode->expression();
-				const auto semPredicate = ConvertPredicate(context, astPredicateNode);
+				const auto astPredicate = ConvertPredicate(context, astPredicateNode);
 				
-				auto evaluateResult = evaluatePredicate(context, semPredicate, AST::TemplateVarMap());
+				auto evaluateResult = evaluatePredicate(context, astPredicate, AST::TemplateVarMap());
 				if (!evaluateResult) {
 					context.issueDiag(StaticAssertPredicateIsFalseDiag(),
 					                  astPredicateNode.location(),
@@ -34,9 +34,9 @@ namespace locic {
 			}
 			
 			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = astNamespaceNode->nameSpace();
+				auto& astChildNamespace = astNamespaceNode->nameSpace();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(astChildNamespace));
 				EvaluateNamespaceStaticAsserts(context, astNamespaceNode->data());
 			}
 		}

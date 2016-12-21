@@ -1,5 +1,5 @@
-#ifndef LOCIC_CODEGEN_SEMFUNCTIONGENERATOR_HPP
-#define LOCIC_CODEGEN_SEMFUNCTIONGENERATOR_HPP
+#ifndef LOCIC_CODEGEN_ASTFUNCTIONGENERATOR_HPP
+#define LOCIC_CODEGEN_ASTFUNCTIONGENERATOR_HPP
 
 namespace locic {
 	
@@ -19,10 +19,10 @@ namespace locic {
 		class Module;
 		
 		/**
-		 * \brief SEM Function Generator
+		 * \brief AST Function Generator
 		 * 
-		 * This class generates LLVM IR functions that correspond to
-		 * SEM functions.
+		 * This class generates LLVM IR functions that correspond to AST
+		 * functions.
 		 */
 		class ASTFunctionGenerator {
 		public:
@@ -63,10 +63,10 @@ namespace locic {
 			                 llvm::GlobalValue::LinkageTypes linkage);
 			
 			/**
-			 * \brief Get LLVM function for SEM function.
+			 * \brief Get LLVM function for AST function.
 			 * 
 			 * This gets the LLVM function that corresponds to the
-			 * given SEM function.
+			 * given AST function.
 			 */
 			llvm::Function*
 			getDecl(const AST::TypeInstance* typeInstance,

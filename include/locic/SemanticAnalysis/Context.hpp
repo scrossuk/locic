@@ -46,7 +46,7 @@ namespace locic {
 		class Context {
 			public:
 				Context(const SharedMaps& sharedMaps, Debug::Module& debugModule,
-				        AST::Context& semContext, DiagnosticReceiver& diagReceiver);
+				        AST::Context& astContext, DiagnosticReceiver& diagReceiver);
 				~Context();
 				
 				DiagnosticReceiver& diagnosticReceiver();
@@ -74,7 +74,7 @@ namespace locic {
 				ScopeStack& scopeStack();
 				const ScopeStack& scopeStack() const;
 				
-				AST::Context& semContext();
+				AST::Context& astContext();
 				
 				TypeBuilder& typeBuilder();
 				

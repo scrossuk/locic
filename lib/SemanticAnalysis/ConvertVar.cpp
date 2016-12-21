@@ -241,25 +241,27 @@ namespace locic {
 						
 						astVarNode->setConstructType(varType);
 						
-						const auto& astChildVars = astVarNode->varList();
-						const auto& typeChildVars = varType->getObjectType()->variables();
+						const auto& patternChildVarNodes = astVarNode->varList();
+						const auto& objectChildVars = varType->getObjectType()->variables();
 						
-						if (astChildVars->size() != typeChildVars.size()) {
-							context.issueDiag(PatternMatchIncorrectVarCountDiag(astChildVars->size(),
-							                                                    varType, typeChildVars.size()),
+						if (patternChildVarNodes->size() != objectChildVars.size()) {
+							context.issueDiag(PatternMatchIncorrectVarCountDiag(patternChildVarNodes->size(),
+							                                                    varType, objectChildVars.size()),
 							                  location);
 						}
 						
 						const auto templateVarMap = varType->generateTemplateVarMap();
 						
-						const size_t numUsableVars = std::min(astChildVars->size(), typeChildVars.size());
+						const size_t numUsableVars = std::min(patternChildVarNodes->size(), objectChildVars.size());
 						for (size_t i = 0; i < numUsableVars; i++) {
-							auto& astVar = astChildVars->at(i);
-							const auto& semVar = typeChildVars.at(i);
+							auto& patternChildVarNode = patternChildVarNodes->at(i);
+							const auto& objectChildVar = objectChildVars.at(i);
 							
-							const auto childInitialiseType = semVar->constructType()->substitute(templateVarMap);
+							const auto childInitialiseType = objectChildVar->constructType()->substitute(templateVarMap);
 							const bool childIsTopLevel = false;
-							(void) ConvertInitialisedVarRecurse(context, astVar, childInitialiseType, childIsTopLevel);
+							(void) ConvertInitialisedVarRecurse(context, patternChildVarNode,
+							                                    childInitialiseType,
+							                                    childIsTopLevel);
 						}
 						
 						return astVarNode.get();

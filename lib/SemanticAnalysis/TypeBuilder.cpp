@@ -27,7 +27,7 @@ namespace locic {
 			if (primitiveID == PrimitiveUByte) {
 				primitiveID = PrimitiveUInt8;
 			}
-			const auto& typeInstance = context_.semContext().getPrimitive(primitiveID);
+			const auto& typeInstance = context_.astContext().getPrimitive(primitiveID);
 			return AST::Type::Object(&typeInstance, std::move(templateArguments));
 		}
 		

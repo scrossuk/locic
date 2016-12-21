@@ -38,7 +38,7 @@ namespace locic {
 			sharedMaps(argSharedMaps),
 			stringHost(sharedMaps.stringHost()),
 			debugModule(pDebugModule),
-			semContext(pSemContext),
+			astContext(pSemContext),
 			diagReceiver(&argDiagReceiver),
 			typeBuilder(context),
 			methodSetsComplete(false),
@@ -62,7 +62,7 @@ namespace locic {
 			const StringHost& stringHost;
 			Debug::Module& debugModule;
 			ScopeStack scopeStack;
-			AST::Context& semContext;
+			AST::Context& astContext;
 			DiagnosticReceiver* diagReceiver;
 			TypeBuilder typeBuilder;
 			bool methodSetsComplete;
@@ -128,8 +128,8 @@ namespace locic {
 			return impl_->scopeStack;
 		}
 		
-		AST::Context& Context::semContext() {
-			return impl_->semContext;
+		AST::Context& Context::astContext() {
+			return impl_->astContext;
 		}
 		
 		TypeBuilder& Context::typeBuilder() {

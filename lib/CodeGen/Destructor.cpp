@@ -134,8 +134,8 @@ namespace locic {
 			
 			const auto& function = typeInstance.getFunction(module.getCString("__destroy"));
 			
-			auto& semFunctionGenerator = module.semFunctionGenerator();
-			const auto llvmFunction = semFunctionGenerator.getDecl(&typeInstance,
+			auto& astFunctionGenerator = module.astFunctionGenerator();
+			const auto llvmFunction = astFunctionGenerator.getDecl(&typeInstance,
 			                                                       function);
 			
 			const auto argInfo = destructorArgInfo(module, typeInstance);

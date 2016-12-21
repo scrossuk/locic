@@ -110,10 +110,10 @@ namespace locic {
 					auto& typeSpecRequireType = astPredicateNode->typeSpecRequireType();
 					
 					TypeResolver typeResolver(context);
-					const auto semType = typeResolver.resolveType(typeSpecType);
-					const auto semRequireType = typeResolver.resolveType(typeSpecRequireType);
+					const auto astType = typeResolver.resolveType(typeSpecType);
+					const auto astRequireType = typeResolver.resolveType(typeSpecRequireType);
 					
-					return AST::Predicate::Satisfies(semType, semRequireType);
+					return AST::Predicate::Satisfies(astType, astRequireType);
 				}
 				case AST::PredicateDecl::SYMBOL: {
 					const auto& astSymbolNode = astPredicateNode->symbol();

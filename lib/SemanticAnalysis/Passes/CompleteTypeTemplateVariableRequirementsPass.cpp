@@ -10,8 +10,6 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void CompleteAliasTemplateVariableRequirements(Context& context, const AST::Node<AST::Alias>& aliasNode) {
-			auto& alias = context.scopeStack().back().alias();
-			
 			// Add any requirements in require() specifier.
 			auto predicate =
 				(!aliasNode->requireSpecifier().isNull()) ?
@@ -27,21 +25,21 @@ namespace locic {
 				predicate = AST::Predicate::And(std::move(predicate),
 				                                std::move(templateVarTypePredicate));
 				
-				auto& astSpecType = templateVarNode->specType();
+				auto& specTypeDecl = templateVarNode->specType();
 				
-				if (astSpecType->isVoid()) {
+				if (specTypeDecl->isVoid()) {
 					// No requirement specified.
 					continue;
 				}
 				
-				const auto semSpecType = typeResolver.resolveType(astSpecType);
+				const auto specType = typeResolver.resolveType(specTypeDecl);
 				
 				// Add the satisfies requirement to the predicate.
-				auto inlinePredicate = AST::Predicate::Satisfies(templateVarNode->selfRefType(), semSpecType);
+				auto inlinePredicate = AST::Predicate::Satisfies(templateVarNode->selfRefType(), specType);
 				predicate = AST::Predicate::And(std::move(predicate), std::move(inlinePredicate));
 			}
 			
-			alias.setRequiresPredicate(std::move(predicate));
+			aliasNode->setRequiresPredicate(std::move(predicate));
 		}
 		
 		void CompleteTypeInstanceTemplateVariableRequirements(Context& context, const AST::Node<AST::TypeInstance>& typeInstanceNode) {
@@ -66,17 +64,17 @@ namespace locic {
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate),
 				                                       std::move(templateVarTypePredicate));
 				
-				auto& astSpecType = templateVarNode->specType();
+				auto& specTypeDecl = templateVarNode->specType();
 				
-				if (astSpecType->isVoid()) {
+				if (specTypeDecl->isVoid()) {
 					// No requirement specified.
 					continue;
 				}
 				
-				const auto semSpecType = typeResolver.resolveType(astSpecType);
+				const auto specType = typeResolver.resolveType(specTypeDecl);
 			 	
 			 	// Add the satisfies requirement to the predicate.
-				auto inlinePredicate = AST::Predicate::Satisfies(templateVarNode->selfRefType(), semSpecType);
+				auto inlinePredicate = AST::Predicate::Satisfies(templateVarNode->selfRefType(), specType);
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate), std::move(inlinePredicate));
 			}
 			
@@ -101,9 +99,9 @@ namespace locic {
 			}
 			
 			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = astNamespaceNode->nameSpace();
+				auto& astChildNamespace = astNamespaceNode->nameSpace();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(astChildNamespace));
 				CompleteNamespaceDataTypeTemplateVariableRequirements(context, astNamespaceNode->data());
 			}
 			

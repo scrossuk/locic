@@ -54,7 +54,7 @@ namespace locic {
 				return;
 			}
 			
-			auto& semFunctionGenerator = module.semFunctionGenerator();
+			auto& astFunctionGenerator = module.astFunctionGenerator();
 			
 			const auto& functions = typeInstance.functions();
 			
@@ -69,7 +69,7 @@ namespace locic {
 					continue;
 				}
 				
-				(void) semFunctionGenerator.genDef(&typeInstance,
+				(void) astFunctionGenerator.genDef(&typeInstance,
 				                                   *function);
 			}
 			
@@ -96,8 +96,8 @@ namespace locic {
 						// Only generate 'primitive' functions when needed.
 						continue;
 					}
-					auto& semFunctionGenerator = module.semFunctionGenerator();
-					(void) semFunctionGenerator.genDef(/*parent=*/nullptr,
+					auto& astFunctionGenerator = module.astFunctionGenerator();
+					(void) astFunctionGenerator.genDef(/*parent=*/nullptr,
 					                                   item.function());
 				} else if (item.isTypeInstance()) {
 					genTypeInstanceFunctions(module, item.typeInstance());

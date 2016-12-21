@@ -21,7 +21,7 @@ namespace locic {
 		 * while also performing any necessary conversion
 		 * operations needed to create implicit lval types.
 		 */
-		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, AST::Var* semVar);
+		void genStoreVar(Function& function, llvm::Value* value, llvm::Value* var, AST::Var* astVar);
 		
 		/**
 		 * \brief Allocate and store a value on the stack,

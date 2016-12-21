@@ -75,9 +75,9 @@ namespace locic {
 			return data_;
 		}
 		
-		void NamespaceDecl::setNamespace(Namespace& semNameSpace) {
+		void NamespaceDecl::setNamespace(Namespace& astNameSpace) {
 			assert(namespace_ == nullptr);
-			namespace_ = &semNameSpace;
+			namespace_ = &astNameSpace;
 		}
 		
 		Namespace& NamespaceDecl::nameSpace() {

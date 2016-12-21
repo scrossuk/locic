@@ -70,8 +70,8 @@ namespace locic {
 			
 			if (methods.size() == 1) {
 				// Only one method, so place it directly in the slot.
-				auto& semFunctionGenerator = module_.semFunctionGenerator();
-				const auto llvmMethod = semFunctionGenerator.getDecl(&typeInstance,
+				auto& astFunctionGenerator = module_.astFunctionGenerator();
+				const auto llvmMethod = astFunctionGenerator.getDecl(&typeInstance,
 				                                                     *methods[0]);
 				return llvmMethod;
 			}
@@ -104,8 +104,8 @@ namespace locic {
 				
 				irEmitter.selectBasicBlock(callMethodBasicBlock);
 				
-				auto& semFunctionGenerator = module_.semFunctionGenerator();
-				const auto llvmMethod = semFunctionGenerator.getDecl(&typeInstance,
+				auto& astFunctionGenerator = module_.astFunctionGenerator();
+				const auto llvmMethod = astFunctionGenerator.getDecl(&typeInstance,
 				                                                     *method);
 				llvm::Value* const parameters[] = { llvmHashValuePtr };
 				

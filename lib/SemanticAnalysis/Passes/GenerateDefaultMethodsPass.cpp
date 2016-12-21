@@ -101,9 +101,9 @@ namespace locic {
 			}
 			
 			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = astNamespaceNode->nameSpace();
+				auto& astChildNamespace = astNamespaceNode->nameSpace();
 				
-				PushScopeElement pushNamespace(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				PushScopeElement pushNamespace(context.scopeStack(), ScopeElement::Namespace(astChildNamespace));
 				GenerateNamespaceDefaultMethods(context, astNamespaceNode->data());
 			}
 			

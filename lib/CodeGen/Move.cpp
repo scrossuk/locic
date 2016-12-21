@@ -153,20 +153,20 @@ namespace locic {
 			
 			IREmitter irEmitter(functionGenerator);
 			
-			const auto& moveSEMFunction = typeInstance->getFunction(module.getCString("__moveto"));
+			const auto& moveASTFunction = typeInstance->getFunction(module.getCString("__moveto"));
 			
-			auto functionInfo = *(moveSEMFunction.debugInfo());
+			auto functionInfo = *(moveASTFunction.debugInfo());
 			functionInfo.name = functionInfo.name + module.getCString("vtableentry");
 			
 			const bool isDefinition = true;
 			const bool isInternal = true;
 			
-			const auto debugSubprogramType = genDebugFunctionType(module, moveSEMFunction.type());
+			const auto debugSubprogramType = genDebugFunctionType(module, moveASTFunction.type());
 			const auto debugSubprogram = genDebugFunction(module, functionInfo, debugSubprogramType,
 				llvmFunction, isInternal, isDefinition);
 			functionGenerator.attachDebugInfo(debugSubprogram);
 			
-			functionGenerator.setDebugPosition(moveSEMFunction.debugInfo()->scopeLocation.range().start());
+			functionGenerator.setDebugPosition(moveASTFunction.debugInfo()->scopeLocation.range().start());
 			
 			genRawFunctionCall(functionGenerator, moveArgInfo(module, typeInstance), moveFunction,
 				std::vector<llvm::Value*> { functionGenerator.getContextValue(), functionGenerator.getArg(0), functionGenerator.getArg(1) });
@@ -186,8 +186,8 @@ namespace locic {
 			// Use custom 'moveto' method if available.
 			const auto& function = typeInstance->getFunction(module.getCString("__moveto"));
 			
-			auto& semFunctionGenerator = module.semFunctionGenerator();
-			const auto llvmFunction = semFunctionGenerator.getDecl(typeInstance,
+			auto& astFunctionGenerator = module.astFunctionGenerator();
+			const auto llvmFunction = astFunctionGenerator.getDecl(typeInstance,
 			                                                       function);
 			
 			const auto argInfo = moveArgInfo(module, typeInstance);
@@ -207,9 +207,9 @@ namespace locic {
 			
 			const auto& function = typeInstance.getFunction(module.getCString("__moveto"));
 			
-			auto& semFunctionGenerator = module.semFunctionGenerator();
+			auto& astFunctionGenerator = module.astFunctionGenerator();
 			
-			const auto llvmFunction = semFunctionGenerator.genDef(&typeInstance,
+			const auto llvmFunction = astFunctionGenerator.genDef(&typeInstance,
 			                                                      function,
 			                                                      /*isInnerMethod=*/true);
 			

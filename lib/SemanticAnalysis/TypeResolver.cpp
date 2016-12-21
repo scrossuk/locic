@@ -112,7 +112,7 @@ namespace locic {
 			TypeBuilder builder(context_);
 			switch (type->typeEnum) {
 				case AST::TypeDecl::AUTO: {
-					return AST::Type::Auto(context_.semContext());
+					return AST::Type::Auto(context_.astContext());
 				}
 				case AST::TypeDecl::CONST: {
 					return resolveType(type->getConstTarget())->createTransitiveConstType(AST::Predicate::True());

@@ -163,8 +163,8 @@ namespace locic {
 				
 				const auto argInfo = getFunctionArgInfo(module_, method->type());
 				
-				auto& semFunctionGenerator = module_.semFunctionGenerator();
-				const auto llvmMethod = semFunctionGenerator.getDecl(&typeInstance,
+				auto& astFunctionGenerator = module_.astFunctionGenerator();
+				const auto llvmMethod = astFunctionGenerator.getDecl(&typeInstance,
 				                                                     *method);
 				
 				const auto functionType = method->type();

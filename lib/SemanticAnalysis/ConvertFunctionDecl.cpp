@@ -154,7 +154,7 @@ namespace locic {
 			for (const auto& templateVarNode: *(function->templateVariableDecls())) {
 				const auto templateVarName = templateVarNode->name();
 				
-				templateVarNode->setContext(context.semContext());
+				templateVarNode->setContext(context.astContext());
 				templateVarNode->setFullName(function->fullName() + templateVarName);
 				templateVarNode->setIndex(templateVarIndex++);
 				
@@ -167,17 +167,17 @@ namespace locic {
 				}
 				
 				// Also adding the function template variable type here.
-				auto& astVarType = templateVarNode->typeDecl();
-				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
+				auto& astVarTypeDecl = templateVarNode->typeDecl();
+				const auto astVarType = TypeResolver(context).resolveTemplateVarType(astVarTypeDecl);
 				
-				if (!semVarType->isPrimitive()) {
+				if (!astVarType->isPrimitive()) {
 					context.issueDiag(FunctionTemplateHasNonPrimitiveTypeDiag(templateVarName,
-					                                                          semVarType,
+					                                                          astVarType,
 					                                                          function->fullName()),
 					                  templateVarNode->typeDecl().location());
 				}
 				
-				templateVarNode->setType(semVarType);
+				templateVarNode->setType(astVarType);
 				function->templateVariables().push_back(templateVarNode.get());
 			}
 		}
@@ -514,7 +514,7 @@ namespace locic {
 			}
 			
 			auto& astReturnTypeNode = function->returnType();
-			const AST::Type* semReturnType = NULL;
+			const AST::Type* astReturnType = NULL;
 			
 			if (astReturnTypeNode->typeEnum == AST::TypeDecl::AUTO) {
 				// Undefined return type means this must be a class
@@ -524,9 +524,9 @@ namespace locic {
 				assert(function->hasScope());
 				assert(function->isStatic());
 				
-				semReturnType = thisTypeInstance->selfType();
+				astReturnType = thisTypeInstance->selfType();
 			} else {
-				semReturnType = TypeResolver(context).resolveType(astReturnTypeNode);
+				astReturnType = TypeResolver(context).resolveType(astReturnTypeNode);
 			}
 			
 			std::vector<AST::Var*> parameterVars;
@@ -572,7 +572,7 @@ namespace locic {
 				(thisTypeInstance != nullptr && !thisTypeInstance->templateVariables().empty());
 			
 			AST::FunctionAttributes attributes(function->isVarArg(), isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
-			AST::FunctionType functionType(std::move(attributes), semReturnType, std::move(parameterTypes));
+			AST::FunctionType functionType(std::move(attributes), astReturnType, std::move(parameterTypes));
 			validateFunctionType(context, function->fullName(),
 			                     functionType,
 			                     function->constPredicate(),

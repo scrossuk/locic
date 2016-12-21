@@ -37,12 +37,12 @@ namespace locic {
 		
 		llvm::Function* genFunctionDeclRef(Module& module, const AST::Type* const parentType,
 		                                   const AST::Function* function) {
-			auto& semFunctionGenerator = module.semFunctionGenerator();
+			auto& astFunctionGenerator = module.astFunctionGenerator();
 			if (parentType == nullptr) {
-				return semFunctionGenerator.getDecl(nullptr,
+				return astFunctionGenerator.getDecl(nullptr,
 				                                    *function);
 			} else if (parentType->isObject()) {
-				return semFunctionGenerator.getDecl(parentType->getObjectType(),
+				return astFunctionGenerator.getDecl(parentType->getObjectType(),
 				                                    *function);
 			} else {
 				llvm_unreachable("Unknown parent type in function ref.");
@@ -216,8 +216,8 @@ namespace locic {
 					// a virtual call to the actual call. Since the virtual call mechanism
 					// doesn't actually allow us to get a pointer to the function we want
 					// to call, we need to create the stub and refer to that instead.
-					auto& semFunctionGenerator = module.semFunctionGenerator();
-					const auto functionRefPtr = semFunctionGenerator.genTemplateFunctionStub(parentType->getTemplateVar(),
+					auto& astFunctionGenerator = module.astFunctionGenerator();
+					const auto functionRefPtr = astFunctionGenerator.genTemplateFunctionStub(parentType->getTemplateVar(),
 					                                                                         functionName,
 					                                                                         functionType,
 					                                                                         function.getDebugLoc());

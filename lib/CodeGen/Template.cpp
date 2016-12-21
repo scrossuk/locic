@@ -52,7 +52,7 @@ namespace locic {
 					return isRootType(type->resolveAliases());
 				}
 				default: {
-					llvm_unreachable("Unknown SEM::Type kind in isRootType()");
+					llvm_unreachable("Unknown AST::Type kind in isRootType()");
 				}
 			}
 		}
@@ -407,21 +407,21 @@ namespace locic {
 		static llvm::GlobalValue::LinkageTypes
 		getTemplatedObjectLinkage(Module& module,
 		                          TemplatedObject templatedObject) {
-			auto& semFunctionGenerator = module.semFunctionGenerator();
+			auto& astFunctionGenerator = module.astFunctionGenerator();
 			if (templatedObject.isTypeInstance()) {
-				return semFunctionGenerator.getTypeLinkage(*(templatedObject.typeInstance()));
+				return astFunctionGenerator.getTypeLinkage(*(templatedObject.typeInstance()));
 			} else {
-				return semFunctionGenerator.getLinkage(templatedObject.parentTypeInstance(),
+				return astFunctionGenerator.getLinkage(templatedObject.parentTypeInstance(),
 				                                       *(templatedObject.function()));
 			}
 		}
 		
 		static bool isTemplatedObjectDecl(Module& module, TemplatedObject templatedObject) {
-			auto& semFunctionGenerator = module.semFunctionGenerator();
+			auto& astFunctionGenerator = module.astFunctionGenerator();
 			if (templatedObject.isTypeInstance()) {
 				return templatedObject.typeInstance()->isClassDecl();
 			} else {
-				return !semFunctionGenerator.hasDef(templatedObject.parentTypeInstance(),
+				return !astFunctionGenerator.hasDef(templatedObject.parentTypeInstance(),
 				                                    *(templatedObject.function()));
 			}
 		}

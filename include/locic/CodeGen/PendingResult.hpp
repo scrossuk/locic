@@ -102,7 +102,7 @@ namespace locic {
 		 * alloca will be created.
 		 * 
 		 * The type passed is the reference's target type, to avoid
-		 * needing to create a SEM reference type.
+		 * needing to create an AST reference type.
 		 */
 		class ValueToRefPendingResult: public PendingResultBase {
 		public:

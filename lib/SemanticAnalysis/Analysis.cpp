@@ -18,15 +18,15 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		void Run(const SharedMaps& sharedMaps, const AST::NamespaceList& rootASTNamespaces,
-		         AST::Module& semModule, Debug::Module& debugModule, DiagnosticReceiver& diagReceiver) {
+		         AST::Module& astModule, Debug::Module& debugModule, DiagnosticReceiver& diagReceiver) {
 			try {
 				// Create 'context' to hold information about code structures.
-				Context context(sharedMaps, debugModule, semModule.context(),
+				Context context(sharedMaps, debugModule, astModule.context(),
 				                diagReceiver);
 				
 				// Push root namespace on to the stack.
 				PushScopeElement pushScopeElement(context.scopeStack(),
-				                                  ScopeElement::Namespace(semModule.rootNamespace()));
+				                                  ScopeElement::Namespace(astModule.rootNamespace()));
 				
 				// ---- Add namespaces, type names and template variables.
 				AddGlobalStructuresPass(context, rootASTNamespaces);

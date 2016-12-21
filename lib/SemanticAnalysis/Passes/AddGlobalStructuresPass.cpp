@@ -144,7 +144,7 @@ namespace locic {
 				                  std::move(previousDefinedDiag));
 			}
 			
-			typeInstanceNode->setContext(context.semContext());
+			typeInstanceNode->setContext(context.astContext());
 			typeInstanceNode->setParent(AST::GlobalStructure::Namespace(parentNamespace));
 			typeInstanceNode->setFullName(fullTypeName.copy());
 			typeInstanceNode->setModuleScope(moduleScope.copy());
@@ -184,7 +184,7 @@ namespace locic {
 			for (auto& templateVarNode: *(typeInstanceNode->templateVariableDecls)) {
 				const auto templateVarName = templateVarNode->name();
 				
-				templateVarNode->setContext(context.semContext());
+				templateVarNode->setContext(context.astContext());
 				
 				// TODO!
 				templateVarNode->setVirtual(typeInstanceName == "ref_t");
@@ -323,7 +323,7 @@ namespace locic {
 					                  std::move(previousDefinedDiag));
 				}
 				
-				aliasNode->setContext(context.semContext());
+				aliasNode->setContext(context.astContext());
 				aliasNode->setParent(AST::GlobalStructure::Namespace(uniquedNamespace));
 				aliasNode->setFullName(fullTypeName.copy());
 				
@@ -332,7 +332,7 @@ namespace locic {
 				for (auto& templateVarNode: *(aliasNode->templateVariableDecls())) {
 					const auto templateVarName = templateVarNode->name();
 					
-					templateVarNode->setContext(context.semContext());
+					templateVarNode->setContext(context.astContext());
 					
 					templateVarNode->setFullName(fullTypeName + templateVarName);
 					

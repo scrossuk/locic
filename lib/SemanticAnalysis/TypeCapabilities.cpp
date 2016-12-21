@@ -94,7 +94,7 @@ namespace locic {
 				}
 					
 				default:
-					locic_unreachable("Unknown SEM type kind.");
+					locic_unreachable("Unknown type kind.");
 			}
 		}
 		

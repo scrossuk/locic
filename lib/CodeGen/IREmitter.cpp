@@ -629,9 +629,9 @@ namespace locic {
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
-			const auto compareResultType = module().context().semContext().getPrimitive(PrimitiveCompareResult).selfType();
-			const auto typenameType = module().context().semContext().getPrimitive(PrimitiveTypename).selfType();
-			const auto& refTypeInstance = module().context().semContext().getPrimitive(PrimitiveRef);
+			const auto compareResultType = module().context().astContext().getPrimitive(PrimitiveCompareResult).selfType();
+			const auto typenameType = module().context().astContext().getPrimitive(PrimitiveTypename).selfType();
+			const auto& refTypeInstance = module().context().astContext().getPrimitive(PrimitiveRef);
 			const auto thisRefType = createRefType(type, refTypeInstance, typenameType);
 			
 			AST::FunctionType functionType(std::move(attributes),
@@ -667,9 +667,9 @@ namespace locic {
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
-			const auto boolType = module().context().semContext().getPrimitive(PrimitiveBool).selfType();
-			const auto typenameType = module().context().semContext().getPrimitive(PrimitiveTypename).selfType();
-			const auto& refTypeInstance = module().context().semContext().getPrimitive(PrimitiveRef);
+			const auto boolType = module().context().astContext().getPrimitive(PrimitiveBool).selfType();
+			const auto typenameType = module().context().astContext().getPrimitive(PrimitiveTypename).selfType();
+			const auto& refTypeInstance = module().context().astContext().getPrimitive(PrimitiveRef);
 			const auto thisRefType = createRefType(type, refTypeInstance, typenameType);
 			
 			AST::FunctionType functionType(std::move(attributes),
@@ -701,7 +701,7 @@ namespace locic {
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
-			const auto voidType = module().context().semContext().getPrimitive(PrimitiveVoid).selfType();
+			const auto voidType = module().context().astContext().getPrimitive(PrimitiveVoid).selfType();
 			
 			AST::FunctionType functionType(std::move(attributes),
 			                               voidType,
@@ -733,7 +733,7 @@ namespace locic {
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
-			const auto boolType = module().context().semContext().getPrimitive(PrimitiveBool).selfType();
+			const auto boolType = module().context().astContext().getPrimitive(PrimitiveBool).selfType();
 			
 			AST::FunctionType functionType(std::move(attributes),
 			                               boolType, {});
@@ -790,7 +790,7 @@ namespace locic {
 			                                   isTemplated,
 			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
-			const auto voidType = module().context().semContext().getPrimitive(PrimitiveVoid).selfType();
+			const auto voidType = module().context().astContext().getPrimitive(PrimitiveVoid).selfType();
 			
 			AST::FunctionType functionType(std::move(attributes),
 			                               voidType, {});

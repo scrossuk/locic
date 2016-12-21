@@ -32,7 +32,7 @@ namespace locic {
 		void CheckTemplateInstantiationsPass(Context& context) {
 			auto& templateInsts = context.templateInstantiations();
 			
-			// std::tuple<ScopeStack, AST::TemplateVarMap, const SEM::HasRequiresPredicate*, Name, Debug::SourceLocation>
+			// std::tuple<ScopeStack, AST::TemplateVarMap, const AST::HasRequiresPredicate*, Name, Debug::SourceLocation>
 			for (auto& inst: templateInsts) {
 				auto& savedScopeStack = inst.scopeStack();
 				const auto& variableAssignments = inst.templateVarMap();

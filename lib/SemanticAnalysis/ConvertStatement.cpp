@@ -638,40 +638,40 @@ namespace locic {
 					const auto varDeclType = getVarType(context, astVarNode, astValue.type());
 					
 					// Cast the initialise value to the variable's type.
-					auto semInitialiseValue = ImplicitCast(context, std::move(astValue), varDeclType, location);
+					auto astInitialiseValue = ImplicitCast(context, std::move(astValue), varDeclType, location);
 					
 					// Convert the AST type var.
-					const auto varType = semInitialiseValue.type();
+					const auto varType = astInitialiseValue.type();
 					auto var = ConvertInitialisedVar(context, astVarNode, varType);
 					assert(!var->isAny());
 					
 					// Add the variable to the scope.
-					auto& semScope = context.scopeStack().back().scope();
+					auto& astScope = context.scopeStack().back().scope();
 					
-					semScope.variables().push_back(var);
+					astScope.variables().push_back(var);
 					
 					// Generate the initialise statement.
-					return AST::Statement::InitialiseStmt(*var, std::move(semInitialiseValue));
+					return AST::Statement::InitialiseStmt(*var, std::move(astInitialiseValue));
 				}
 				case AST::StatementDecl::ASSIGN: {
 					const auto assignKind = statement->assignKind();
-					auto semVarValue = derefValue(ConvertValue(context, statement->assignLvalue()));
-					auto semOperandValue = ConvertValue(context, statement->assignRvalue());
+					auto astVarValue = derefValue(ConvertValue(context, statement->assignLvalue()));
+					auto astOperandValue = ConvertValue(context, statement->assignRvalue());
 					
-					if (!getDerefType(semVarValue.type())->isLval()) {
-						context.issueDiag(CannotAssignToNonLvalTypeDiag(semVarValue.type()),
+					if (!getDerefType(astVarValue.type())->isLval()) {
+						context.issueDiag(CannotAssignToNonLvalTypeDiag(astVarValue.type()),
 						                  statement->assignLvalue().location());
-						return AST::Statement::ValueStmt(std::move(semOperandValue));
+						return AST::Statement::ValueStmt(std::move(astOperandValue));
 					}
 					
 					// TODO: fix this to not copy the value!
-					auto semAssignValue = GetAssignValue(context, assignKind, semVarValue.copy(), std::move(semOperandValue), location);
-					auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(semVarValue)), context.getCString("assign"), location);
-					return AST::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeHeapArray(std::move(semAssignValue)), location));
+					auto astAssignValue = GetAssignValue(context, assignKind, astVarValue.copy(), std::move(astOperandValue), location);
+					auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(astVarValue)), context.getCString("assign"), location);
+					return AST::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeHeapArray(std::move(astAssignValue)), location));
 				}
 				case AST::StatementDecl::INCREMENT: {
-					auto semOperandValue = ConvertValue(context, statement->incrementValue());
-					auto opMethod = GetMethod(context, std::move(semOperandValue), context.getCString("increment"), location);
+					auto astOperandValue = ConvertValue(context, statement->incrementValue());
+					auto opMethod = GetMethod(context, std::move(astOperandValue), context.getCString("increment"), location);
 					auto opResult = CallValue(context, std::move(opMethod), { }, location);
 					
 					if (opResult.type()->isBuiltInVoid()) {
@@ -684,8 +684,8 @@ namespace locic {
 					}
 				}
 				case AST::StatementDecl::DECREMENT: {
-					auto semOperandValue = ConvertValue(context, statement->decrementValue());
-					auto opMethod = GetMethod(context, std::move(semOperandValue), context.getCString("decrement"), location);
+					auto astOperandValue = ConvertValue(context, statement->decrementValue());
+					auto opMethod = GetMethod(context, std::move(astOperandValue), context.getCString("decrement"), location);
 					auto opResult = CallValue(context, std::move(opMethod), { }, location);
 					
 					if (opResult.type()->isBuiltInVoid()) {

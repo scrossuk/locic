@@ -1,5 +1,5 @@
-#ifndef LOCIC_SEM_EXITSTATES_HPP
-#define LOCIC_SEM_EXITSTATES_HPP
+#ifndef LOCIC_AST_EXITSTATES_HPP
+#define LOCIC_AST_EXITSTATES_HPP
 
 #include <locic/AST/Predicate.hpp>
 

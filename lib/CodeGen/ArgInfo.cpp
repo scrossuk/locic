@@ -317,7 +317,7 @@ namespace locic {
 		}
 		
 		ArgInfo getFunctionArgInfo(Module& module, const AST::FunctionType functionType) {
-			const auto semReturnType = functionType.returnType();
+			const auto astReturnType = functionType.returnType();
 			
 			const auto& attributes = functionType.attributes();
 			
@@ -327,7 +327,7 @@ namespace locic {
 			
 			const bool hasReturnVarArg = !canPassByValue(module, functionType.returnType());
 			
-			const auto returnType = std::make_pair(genABIArgType(module, semReturnType), genArgType(module, semReturnType));
+			const auto returnType = std::make_pair(genABIArgType(module, astReturnType), genArgType(module, astReturnType));
 			
 			std::vector<TypePair> argTypes;
 			argTypes.reserve(functionType.parameterTypes().size());

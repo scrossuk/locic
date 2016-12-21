@@ -116,10 +116,10 @@ namespace locic {
 			}
 		}
 		
-		InternalContext::InternalContext(const AST::Context& argSEMContext,
+		InternalContext::InternalContext(const AST::Context& argASTContext,
 		                                 const SharedMaps& argSharedMaps,
 		                                 const TargetOptions& targetOptions)
-		: semContext_(argSEMContext), sharedMaps_(argSharedMaps),
+		: astContext_(argASTContext), sharedMaps_(argSharedMaps),
 		targetTriple_(parseTargetTripleString(targetOptions.triple)),
 		target_(nullptr) {
 			llvm::InitializeAllTargetInfos();
@@ -175,8 +175,8 @@ namespace locic {
 			return sharedMaps_.primitiveIDMap().getPrimitiveID(name);
 		}
 		
-		const AST::Context& InternalContext::semContext() const {
-			return semContext_;
+		const AST::Context& InternalContext::astContext() const {
+			return astContext_;
 		}
 		
 		llvm::LLVMContext& InternalContext::llvmContext() {

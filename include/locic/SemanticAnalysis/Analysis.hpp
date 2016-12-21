@@ -26,13 +26,13 @@ namespace locic {
 		 * \brief Run Semantic Analysis passes
 		 * 
 		 * This function runs all the Semantic Analysis passes to
-		 * convert an AST tree into a SEM tree. In the process of doing
-		 * this it detects errors in the AST tree, which are reported.
+		 * verify an AST, reporting any errors/warnings/notes as it goes
+		 * along, and manipulate it to be useful for CodeGen.
 		 * 
 		 * TODO: error handling needs to be improved!
 		 */
 		void Run(const SharedMaps& sharedMaps, const AST::NamespaceList& rootASTNamespaces,
-		         AST::Module& semModule, Debug::Module& debugModule, DiagnosticReceiver& diagReceiver);
+		         AST::Module& astModule, Debug::Module& debugModule, DiagnosticReceiver& diagReceiver);
 		
 	}
 	

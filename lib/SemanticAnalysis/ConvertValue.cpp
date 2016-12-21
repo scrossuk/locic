@@ -919,23 +919,23 @@ namespace locic {
 						                  location);
 					}
 					
-					HeapArray<AST::Value> semValues;
-					semValues.reserve(astParameterValueNodes->size());
+					HeapArray<AST::Value> astValues;
+					astValues.reserve(astParameterValueNodes->size());
 					
 					for (size_t i = 0; i < astParameterValueNodes->size(); i++) {
-						auto semValue = ConvertValue(context, astParameterValueNodes->at(i));
+						auto astValue = ConvertValue(context, astParameterValueNodes->at(i));
 						if (i < thisTypeInstance->variables().size()) {
-							const auto semVar = thisTypeInstance->variables().at(i);
-							auto semParam = ImplicitCast(context, std::move(semValue),
-							                             semVar->constructType()->substitute(templateVarMap),
+							const auto astVar = thisTypeInstance->variables().at(i);
+							auto astParam = ImplicitCast(context, std::move(astValue),
+							                             astVar->constructType()->substitute(templateVarMap),
 							                             location);
-							semValues.push_back(std::move(semParam));
+							astValues.push_back(std::move(astParam));
 						} else {
-							semValues.push_back(std::move(semValue));
+							astValues.push_back(std::move(astValue));
 						}
 					}
 					
-					return AST::Value::InternalConstruct(thisType, std::move(semValues));
+					return AST::Value::InternalConstruct(thisType, std::move(astValues));
 				}
 				case AST::ValueDecl::MEMBERACCESS: {
 					const auto& memberName = astValueNode->memberAccess.memberName;
@@ -1064,9 +1064,9 @@ namespace locic {
 		}
 		
 		AST::Value ConvertValue(Context& context, const AST::Node<AST::ValueDecl>& astValueNode) {
-			auto semValue = ConvertValueData(context, astValueNode);
-			semValue.setDebugInfo(makeValueInfo(astValueNode));
-			return semValue;
+			auto astValue = ConvertValueData(context, astValueNode);
+			astValue.setDebugInfo(makeValueInfo(astValueNode));
+			return astValue;
 		}
 		
 	}

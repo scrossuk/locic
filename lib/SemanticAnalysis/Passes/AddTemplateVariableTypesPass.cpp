@@ -29,32 +29,32 @@ namespace locic {
 		void AddAliasTemplateVariableTypes(Context& context, const AST::Node<AST::Alias>& aliasNode) {
 			// Add types of template variables.
 			for (const auto& templateVarNode: *(aliasNode->templateVariableDecls())) {
-				auto& astVarType = templateVarNode->typeDecl();
-				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
+				auto& varTypeDecl = templateVarNode->typeDecl();
+				const auto varType = TypeResolver(context).resolveTemplateVarType(varTypeDecl);
 				
-				if (!semVarType->isPrimitive()) {
+				if (!varType->isPrimitive()) {
 					const auto& templateVarName = templateVarNode->name();
-					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, semVarType),
+					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, varType),
 					                  templateVarNode.location());
 				}
 				
-				templateVarNode->setType(semVarType);
+				templateVarNode->setType(varType);
 			}
 		}
 		
 		void AddTypeInstanceTemplateVariableTypes(Context& context, const AST::Node<AST::TypeInstance>& typeInstanceNode) {
 			// Add types of template variables.
 			for (const auto& templateVarNode: *(typeInstanceNode->templateVariableDecls)) {
-				auto& astVarType = templateVarNode->typeDecl();
-				const auto semVarType = TypeResolver(context).resolveTemplateVarType(astVarType);
+				auto& varTypeDecl = templateVarNode->typeDecl();
+				const auto varType = TypeResolver(context).resolveTemplateVarType(varTypeDecl);
 				
-				if (!semVarType->isPrimitive()) {
+				if (!varType->isPrimitive()) {
 					const auto& templateVarName = templateVarNode->name();
-					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, semVarType),
+					context.issueDiag(TemplateVarHasNonPrimitiveTypeDiag(templateVarName, varType),
 					                  templateVarNode.location());
 				}
 				
-				templateVarNode->setType(semVarType);
+				templateVarNode->setType(varType);
 			}
 		}
 		
@@ -64,9 +64,9 @@ namespace locic {
 			}
 			
 			for (const auto& astNamespaceNode: astNamespaceDataNode->namespaces) {
-				auto& semChildNamespace = astNamespaceNode->nameSpace();
+				auto& astChildNamespace = astNamespaceNode->nameSpace();
 				
-				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(semChildNamespace));
+				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(astChildNamespace));
 				AddNamespaceDataTypeTemplateVariableTypes(context, astNamespaceNode->data());
 			}
 			

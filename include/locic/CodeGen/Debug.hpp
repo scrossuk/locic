@@ -118,7 +118,7 @@ namespace locic {
 		                                const Debug::SourceLocation& debugSourceLocation);
 		
 		Optional<llvm::DebugLoc> getFunctionDebugLocation(Function& function,
-		                                                  const AST::Function& semFunction);
+		                                                  const AST::Function& astFunction);
 		
 		Optional<llvm::DebugLoc> getValueDebugLocation(Function& function,
 		                                               const AST::Value& value);

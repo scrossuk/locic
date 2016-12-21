@@ -166,7 +166,7 @@ namespace locic {
 				
 				PrimitiveID primitiveID(const String& name) const;
 				
-				ASTFunctionGenerator& semFunctionGenerator();
+				ASTFunctionGenerator& astFunctionGenerator();
 				
 				void verify() const;
 				
@@ -193,7 +193,7 @@ namespace locic {
 				DebugBuilder debugBuilder_;
 				Debug::Module& debugModule_;
 				BuildOptions buildOptions_;
-				ASTFunctionGenerator semFunctionGenerator_;
+				ASTFunctionGenerator astFunctionGenerator_;
 				
 		};
 		

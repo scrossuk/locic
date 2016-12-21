@@ -193,9 +193,9 @@ namespace locic {
 				// Call the custom destructor function, if one exists.
 				const auto& function = typeInstance.getFunction(module.getCString("__destroy"));
 				
-				auto& semFunctionGenerator = module.semFunctionGenerator();
+				auto& astFunctionGenerator = module.astFunctionGenerator();
 				
-				const auto customDestructor = semFunctionGenerator.genDef(&typeInstance,
+				const auto customDestructor = astFunctionGenerator.genDef(&typeInstance,
 				                                                          function,
 				                                                          /*isInnerMethod=*/true);
 				

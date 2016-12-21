@@ -72,14 +72,14 @@ namespace locic {
 			llvm::SmallVector<AST::Value, 1> typeTemplateArguments;
 			
 			const auto targetType = functionTemplateArguments[0].typeRefType();
-			const auto typenameType = irEmitter_.module().context().semContext().getPrimitive(PrimitiveTypename).selfType();
+			const auto typenameType = irEmitter_.module().context().astContext().getPrimitive(PrimitiveTypename).selfType();
 			typeTemplateArguments.push_back(AST::Value::TypeRef(targetType,
 			                                                    typenameType->createStaticRefType(targetType)));
 			
 			llvm::SmallVector<AST::Value, 1> methodFunctionTemplateArguments;
 			
 			const auto rangePrimitiveID = getRangePrimitiveID(methodID);
-			const auto& rangeTypeInstance = irEmitter_.module().context().semContext().getPrimitive(rangePrimitiveID);
+			const auto& rangeTypeInstance = irEmitter_.module().context().astContext().getPrimitive(rangePrimitiveID);
 			const auto& primitive = irEmitter_.module().getPrimitive(rangeTypeInstance);
 			return primitive.emitMethod(irEmitter_, METHOD_CREATE,
 			                            typeTemplateArguments,
