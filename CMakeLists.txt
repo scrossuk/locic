@@ -26,12 +26,24 @@ enable_testing()
 project(LOCIC C CXX)
 
 # Add path for custom modules
-set(CMAKE_MODULE_PATH
-	${CMAKE_MODULE_PATH}
+set(module_paths
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake"
 	"${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
 	"${CMAKE_CURRENT_SOURCE_DIR}/projects/llvm-abi/cmake"
 	"${CMAKE_CURRENT_SOURCE_DIR}/projects/llvm-abi/cmake/modules"
+)
+
+# Check that all the custom module paths exist. This is particularly important
+# to ensure the user has pulled any relevant Git submodules.
+foreach(module_path ${module_paths})
+	if(NOT EXISTS "${module_path}")
+		message(FATAL_ERROR "Path '${module_path}' doesn't exist.")
+	endif()
+endforeach()
+
+set(CMAKE_MODULE_PATH
+	${CMAKE_MODULE_PATH}
+	${module_paths}
 )
 
 # --- Compiler Properties
