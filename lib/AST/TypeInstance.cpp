@@ -61,8 +61,8 @@ namespace locic {
 			return *parent_;
 		}
 		
-		void TypeInstance::setParent(GlobalStructure parent) {
-			parent_ = make_optional(std::move(parent));
+		void TypeInstance::setParent(GlobalStructure pParent) {
+			parent_ = make_optional(std::move(pParent));
 		}
 		
 		Namespace& TypeInstance::nameSpace() {
