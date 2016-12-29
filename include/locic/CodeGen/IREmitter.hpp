@@ -1,6 +1,8 @@
 #ifndef LOCIC_CODEGEN_IREMITTER_HPP
 #define LOCIC_CODEGEN_IREMITTER_HPP
 
+#include <locic/CodeGen/PendingResult.hpp>
+
 namespace locic {
 	
 	class MethodID;
@@ -16,7 +18,6 @@ namespace locic {
 		class ConstantGenerator;
 		class Function;
 		class Module;
-		class PendingResult;
 		class TypeGenerator;
 		
 		/**
@@ -231,6 +232,11 @@ namespace locic {
 			emitGetDatatypeVariantPtr(llvm::Value* datatypePtr,
 			                          const AST::Type* datatypeType,
 			                          const AST::Type* variantType);
+			
+			llvm::Value*
+			emitConstructorCall(const AST::Type* type,
+			                    PendingResultArray args,
+			                    llvm::Value* hintResultValue = nullptr);
 			
 			void
 			emitDestructorCall(llvm::Value* value,

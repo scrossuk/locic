@@ -1,4 +1,5 @@
 #include <locic/AST/Context.hpp>
+#include <locic/AST/Function.hpp>
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/Type.hpp>
@@ -506,6 +507,28 @@ namespace locic {
 			}
 			
 			return datatypeVariantPtr;
+		}
+		
+		llvm::Value*
+		IREmitter::emitConstructorCall(const AST::Type* const rawType,
+		                               PendingResultArray args,
+		                               llvm::Value* const hintResultValue) {
+			const auto type = rawType->resolveAliases();
+			assert(type->isObject() && "Doesn't currently support template vars.");
+			
+			const auto name = module().getCString("create");
+			const auto functionType = type->getObjectType()->getFunction(name).type();
+			
+			assert(functionType.returnType()->substitute(type->generateTemplateVarMap()) == type);
+			assert(functionType.parameterTypes().size() == args.size());
+			assert(!functionType.attributes().isMethod());
+			
+			const bool isTemplated = !type->templateArguments().empty();
+			assert(functionType.attributes().isTemplated() == isTemplated);
+			
+			MethodInfo methodInfo(type, name, functionType, /*templateArgs=*/{});
+			return genStaticMethodCall(functionGenerator_, methodInfo,
+			                           std::move(args), hintResultValue);
 		}
 		
 		void
