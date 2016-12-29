@@ -39,10 +39,20 @@ namespace locic {
 			           llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitCreateConstructor(const AST::Type* type,
-			                      AST::FunctionType functionType,
-			                      PendingResultArray args,
-			                      llvm::Value* hintResultValue);
+			emitConstructor(const AST::Type* type,
+			                AST::FunctionType functionType,
+			                PendingResultArray args,
+			                llvm::Value* hintResultValue);
+			
+			llvm::Value*
+			emitExceptionConstructor(const AST::Type* type,
+			                         PendingResultArray args,
+			                         llvm::Value* hintResultValue);
+			
+			llvm::Value*
+			emitTrivialConstructor(const AST::Type* type,
+			                       PendingResultArray args,
+			                       llvm::Value* hintResultValue);
 			
 			llvm::Value*
 			emitOuterDestroy(const AST::Type* type,

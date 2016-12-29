@@ -20,6 +20,7 @@
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/ValueEmitter.hpp>
 
 #include <locic/AST/Predicate.hpp>
 #include <locic/AST/TypeInstance.hpp>
@@ -55,10 +56,8 @@ namespace locic {
 			
 			switch (methodID) {
 				case METHOD_CREATE:
-					return emitCreateConstructor(type,
-					                             functionType,
-					                             std::move(args),
-					                             hintResultValue);
+					return emitConstructor(type, functionType, std::move(args),
+					                       hintResultValue);
 				case METHOD_DESTROY:
 					return emitOuterDestroy(type,
 					                        functionType,
@@ -99,10 +98,10 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitCreateConstructor(const AST::Type* const type,
-		                                            const AST::FunctionType /*functionType*/,
-		                                            PendingResultArray args,
-		                                            llvm::Value* const hintResultValue) {
+		DefaultMethodEmitter::emitConstructor(const AST::Type* const type,
+		                                      const AST::FunctionType /*functionType*/,
+		                                      PendingResultArray args,
+		                                      llvm::Value* const hintResultValue) {
 			const auto& typeInstance = *(type->getObjectType());
 			assert(!typeInstance.isEnum() && !typeInstance.isUnionDatatype());
 			
@@ -111,8 +110,80 @@ namespace locic {
 			if (typeInstance.isUnion()) {
 				assert(hintResultValue == nullptr);
 				return ConstantGenerator(module).getNull(genType(module, type));
+			} else if (typeInstance.isException()) {
+				return emitExceptionConstructor(type, std::move(args), hintResultValue);
+			} else {
+				return emitTrivialConstructor(type, std::move(args), hintResultValue);
+			}
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitExceptionConstructor(const AST::Type* const type,
+		                                               PendingResultArray args,
+		                                               llvm::Value* const hintResultValue) {
+			const auto& typeInstance = *(type->getObjectType());
+			assert(typeInstance.isException());
+			
+			if (typeInstance.parentType() == nullptr) {
+				// No parent, so just create a normal default constructor.
+				return emitTrivialConstructor(type, std::move(args), hintResultValue);
 			}
 			
+			IREmitter irEmitter(functionGenerator_);
+			
+			const auto resultValue = irEmitter.emitAlloca(type, hintResultValue);
+			
+			// Start from 1 to skip over parent exception type variable.
+			for (size_t i = 1; i < typeInstance.variables().size(); i++) {
+				const auto& memberVar = typeInstance.variables()[i];
+				
+				const auto memberType = memberVar->constructType()->resolveAliases();
+				
+				const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberVar->index());
+				
+				irEmitter.emitMoveStore(args[i-1].resolve(functionGenerator_),
+				                        resultPtr,
+				                        memberType);
+				
+				// Add variable to mapping so it can be referred to in the
+				// initialisation of the exception parent object.
+				functionGenerator_.getLocalVarMap().insert(memberVar, resultPtr);
+			}
+			
+			// Need an array to store all the pending results being referred to.
+			Array<ValuePendingResult, 10> pendingResultArgs;
+			
+			PendingResultArray parentArguments;
+			parentArguments.reserve(typeInstance.initializerValues().size());
+			
+			ValueEmitter valueEmitter(irEmitter);
+			for (const auto& initializerValue: typeInstance.initializerValues()) {
+				const auto irValue = valueEmitter.emitValue(initializerValue);
+				pendingResultArgs.push_back(ValuePendingResult(irValue, initializerValue.type()));
+				parentArguments.push_back(pendingResultArgs.back());
+			}
+			
+			// Parent exception type variable is the first member variable.
+			const auto parentMemberPtr = genMemberPtr(functionGenerator_, resultValue, type, 0);
+			
+			// Call the constructor of the parent exception type.
+			const auto parentValue = irEmitter.emitConstructorCall(typeInstance.parentType(),
+			                                                       std::move(parentArguments), parentMemberPtr);
+			irEmitter.emitMoveStore(parentValue, parentMemberPtr, typeInstance.parentType());
+			
+			// Set object into live state (e.g. set gap byte to 1).
+			setOuterLiveState(functionGenerator_,
+			                  typeInstance,
+			                  resultValue);
+			
+			return irEmitter.emitMoveLoad(resultValue, type);
+		}
+		
+		llvm::Value*
+		DefaultMethodEmitter::emitTrivialConstructor(const AST::Type* const type,
+		                                             PendingResultArray args,
+		                                             llvm::Value* const hintResultValue) {
+			const auto& typeInstance = *(type->getObjectType());
 			IREmitter irEmitter(functionGenerator_);
 			
 			const auto resultValue = irEmitter.emitAlloca(type, hintResultValue);
