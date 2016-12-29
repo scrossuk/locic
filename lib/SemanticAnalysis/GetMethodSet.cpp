@@ -378,6 +378,9 @@ namespace locic {
 				return existingMethodSet;
 			}
 			
+			// In static asserts we won't have a templated object (which would
+			// normally be the containing alias, function or type instance), so
+			// in this case we do NOT expect to see template variables.
 			assert(type->isObject() || templatedObject != nullptr);
 			
 			const auto methodSet =
