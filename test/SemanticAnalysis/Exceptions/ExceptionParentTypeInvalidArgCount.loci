@@ -1,0 +1,39 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// ---- Test with a parent exception that does NOT have a parent.
+
+namespace NoParent {
+
+exception ParentException(int arg);
+
+// CHECK: .loci:11:49: error: exception parent 'NoParent::ParentException' called with 0 parameter(s); expected 1
+exception ExceptionZeroArgs() : ParentException();
+
+exception ExceptionOneArg(int arg) : ParentException(arg);
+
+// CHECK: .loci:17:18: error: exception parent 'NoParent::ParentException' called with 2 parameter(s); expected 1
+exception ExceptionTwoArgs(int firstArg, int secondArg) :
+	ParentException(firstArg, secondArg);
+
+}
+
+// ---- Test with a parent exception that itself has a parent.
+
+namespace WithParent {
+
+exception GrandParentException(int arg);
+exception ParentException(int arg) : GrandParentException(arg);
+
+// CHECK: .loci:29:49: error: exception parent 'WithParent::ParentException' called with 0 parameter(s); expected 1
+exception ExceptionZeroArgs() : ParentException();
+
+exception ExceptionOneArg(int arg) : ParentException(arg);
+
+// CHECK: .loci:35:18: error: exception parent 'WithParent::ParentException' called with 2 parameter(s); expected 1
+exception ExceptionTwoArgs(int firstArg, int secondArg) :
+	ParentException(firstArg, secondArg);
+
+}
+
+// CHECK: 4 errors generated.
