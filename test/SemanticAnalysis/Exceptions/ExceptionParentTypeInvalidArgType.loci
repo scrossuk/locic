@@ -1,0 +1,27 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// ---- Test with a parent exception that does NOT have a parent.
+
+namespace NoParent {
+
+exception ParentException(int arg);
+
+// CHECK: .loci:11:51: error: user cast failed from type 'double_t' to type 'notag(int_t)'
+exception Exception(double arg) : ParentException(arg);
+
+}
+
+// ---- Test with a parent exception that itself has a parent.
+
+namespace WithParent {
+
+exception GrandParentException(int arg);
+exception ParentException(int arg) : GrandParentException(arg);
+
+// CHECK: .loci:23:51: error: user cast failed from type 'double_t' to type 'notag(int_t)'
+exception Exception(double arg) : ParentException(arg);
+
+}
+
+// CHECK: 2 errors generated.
