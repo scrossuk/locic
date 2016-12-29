@@ -743,6 +743,7 @@ namespace locic {
 						case AST::OP_LOGICALAND: {
 							const auto boolType = context.typeBuilder().getBoolType();
 							auto boolValue = ImplicitCast(context, std::move(leftOperand), boolType, location);
+							rightOperand = ImplicitCast(context, std::move(rightOperand), boolType, location);
 							
 							// Logical AND only evaluates the right operand if the left
 							// operand is TRUE, otherwise it returns FALSE.
@@ -751,6 +752,7 @@ namespace locic {
 						case AST::OP_LOGICALOR: {
 							const auto boolType = context.typeBuilder().getBoolType();
 							auto boolValue = ImplicitCast(context, std::move(leftOperand), boolType, location);
+							rightOperand = ImplicitCast(context, std::move(rightOperand), boolType, location);
 							
 							// Logical OR only evaluates the right operand if the left
 							// operand is FALSE, otherwise it returns TRUE.
