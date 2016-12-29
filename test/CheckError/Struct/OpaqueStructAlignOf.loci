@@ -8,4 +8,4 @@ size_t f() {
 	return alignof(OpaqueStruct);
 }
 
-// CHECK: 3 errors generated.
+// CHECK: 4 errors generated.

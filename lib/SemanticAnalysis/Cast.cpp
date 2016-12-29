@@ -631,16 +631,15 @@ namespace locic {
 			if (errors.empty()) {
 				if (valueKind == AST::Value::CASTDUMMYOBJECT) {
 					context.issueDiag(CannotImplicitlyCastTypeDiag(valueType, destType), location);
-					throw SkipException();
 				} else {
 					context.issueDiag(CannotImplicitlyCastValueToTypeDiag(valueType, destType),
 					                  location);
-					throw SkipException();
 				}
 			} else {
 				context.issueDiag(CastErrorDiag(errors.front()), location);
-				throw SkipException();
 			}
+			
+			return AST::Value::CastDummy(destType);
 		}
 		
 		bool CanDoImplicitCast(Context& context, const AST::Type* sourceType, const AST::Type* destType, const Debug::SourceLocation& location) {

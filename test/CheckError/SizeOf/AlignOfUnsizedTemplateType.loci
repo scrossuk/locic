@@ -7,4 +7,4 @@ size_t getTypeAlign() {
 	return alignof(T);
 }
 
-// CHECK: 3 errors generated.
+// CHECK: 4 errors generated.
