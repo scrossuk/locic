@@ -23,6 +23,7 @@
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
+#include <locic/CodeGen/LivenessEmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -99,7 +100,7 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_DEAD: {
 					const auto objectVar = irEmitter.emitAlloca(targetType, hintResultValue);
-					genSetDeadState(function, targetType, objectVar);
+					LivenessEmitter(irEmitter).emitSetDeadCall(targetType, objectVar);
 					return irEmitter.emitMoveLoad(objectVar, targetType);
 				}
 				case METHOD_ALIGNMASK: {

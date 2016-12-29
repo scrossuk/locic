@@ -23,6 +23,7 @@
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
+#include <locic/CodeGen/LivenessEmitter.hpp>
 #include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -86,7 +87,7 @@ namespace locic {
 			llvm::Value* genValueLvalDeadMethod(Function& functionGenerator, const AST::Type* const targetType, llvm::Value* const hintResultValue) {
 				IREmitter irEmitter(functionGenerator);
 				const auto objectVar = irEmitter.emitAlloca(targetType, hintResultValue);
-				genSetDeadState(functionGenerator, targetType, objectVar);
+				LivenessEmitter(irEmitter).emitSetDeadCall(targetType, objectVar);
 				return irEmitter.emitMoveLoad(objectVar, targetType);
 			}
 			
@@ -116,7 +117,8 @@ namespace locic {
 			llvm::Value* genValueLvalSetDeadMethod(Function& functionGenerator, const AST::Type* const targetType, PendingResultArray args) {
 				auto& module = functionGenerator.module();
 				const auto methodOwner = args[0].resolve(functionGenerator);
-				genSetDeadState(functionGenerator, targetType, methodOwner);
+				IREmitter irEmitter(functionGenerator);
+				LivenessEmitter(irEmitter).emitSetDeadCall(targetType, methodOwner);
 				return ConstantGenerator(module).getVoidUndef();
 			}
 			

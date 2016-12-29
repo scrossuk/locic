@@ -15,6 +15,7 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
+#include <locic/CodeGen/LivenessEmitter.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
@@ -172,9 +173,7 @@ namespace locic {
 			irEmitter.emitMoveStore(parentValue, parentMemberPtr, typeInstance.parentType());
 			
 			// Set object into live state (e.g. set gap byte to 1).
-			setOuterLiveState(functionGenerator_,
-			                  typeInstance,
-			                  resultValue);
+			LivenessEmitter(irEmitter).emitSetOuterLive(typeInstance, resultValue);
 			
 			return irEmitter.emitMoveLoad(resultValue, type);
 		}
@@ -201,9 +200,7 @@ namespace locic {
 			}
 			
 			// Set object into live state (e.g. set gap byte to 1).
-			setOuterLiveState(functionGenerator_,
-			                  typeInstance,
-			                  resultValue);
+			LivenessEmitter(irEmitter).emitSetOuterLive(typeInstance, resultValue);
 			
 			return irEmitter.emitMoveLoad(resultValue, type);
 		}
@@ -217,6 +214,7 @@ namespace locic {
 			auto& builder = functionGenerator_.getBuilder();
 			
 			IREmitter irEmitter(functionGenerator_);
+			LivenessEmitter livenessEmitter(irEmitter);
 			
 			const auto thisValue = args[0].resolve(functionGenerator_);
 			
@@ -255,7 +253,7 @@ namespace locic {
 				
 				// Check whether this object is in a 'live' state and only
 				// run the destructor if it is.
-				const auto isLiveBool = genIsLive(functionGenerator_, typeInstance.selfType(), thisValue);
+				const auto isLiveBool = livenessEmitter.emitIsLiveCall(typeInstance.selfType(), thisValue);
 				const auto isLive = irEmitter.emitBoolToI1(isLiveBool);
 				irEmitter.emitCondBranch(isLive, isLiveBB, endBB);
 				
@@ -291,7 +289,7 @@ namespace locic {
 				}
 				
 				// Put the object into a dead state.
-				genSetDeadState(functionGenerator_, typeInstance.selfType(), thisValue);
+				livenessEmitter.emitSetDeadCall(typeInstance.selfType(), thisValue);
 				
 				irEmitter.emitBranch(endBB);
 				
@@ -319,6 +317,7 @@ namespace locic {
 			auto& module = functionGenerator_.module();
 			
 			IREmitter irEmitter(functionGenerator_);
+			LivenessEmitter livenessEmitter(irEmitter);
 			
 			const auto destValue = args[1].resolve(functionGenerator_);
 			const auto positionValue = args[2].resolve(functionGenerator_);
@@ -346,9 +345,7 @@ namespace locic {
 				
 				// Check whether the source object is in a 'live' state and
 				// only perform the move if it is.
-				const auto isLiveBool = genIsLive(functionGenerator_,
-				                              type,
-				                              sourceValue);
+				const auto isLiveBool = livenessEmitter.emitIsLiveCall(type, sourceValue);
 				const auto isLive = irEmitter.emitBoolToI1(isLiveBool);
 				irEmitter.emitCondBranch(isLive, isLiveBB,
 				                         isNotLiveBB);
@@ -363,23 +360,17 @@ namespace locic {
 				                        positionValue);
 				
 				// Set dest object to be valid (e.g. may need to set gap byte to 1).
-				setOuterLiveState(functionGenerator_,
-				                  typeInstance,
-				                  destPtr);
+				livenessEmitter.emitSetOuterLive(typeInstance, destPtr);
 				
 				// Set the source object to dead state.
-				genSetDeadState(functionGenerator_,
-				                type,
-				                sourceValue);
+				livenessEmitter.emitSetDeadCall(type, sourceValue);
 				
 				irEmitter.emitBranch(mergeBB);
 				
 				irEmitter.selectBasicBlock(isNotLiveBB);
 				
 				// If the source object is dead, set destination to be dead.
-				genSetDeadState(functionGenerator_,
-				                type,
-				                destPtr);
+				livenessEmitter.emitSetDeadCall(type, destPtr);
 				
 				irEmitter.emitBranch(mergeBB);
 				
@@ -633,6 +624,7 @@ namespace locic {
 			const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
 			
 			IREmitter irEmitter(functionGenerator_);
+			LivenessEmitter livenessEmitter(irEmitter);
 			
 			switch (livenessIndicator.kind()) {
 				case LivenessIndicator::NONE: {
@@ -651,7 +643,7 @@ namespace locic {
 					// Set the relevant member into an invalid state.
 					const auto memberVar = &(livenessIndicator.memberVar());
 					const auto memberPtr = genMemberPtr(functionGenerator_, contextValue, type, memberVar->index());
-					genSetInvalidState(functionGenerator_, memberVar->constructType(), memberPtr);
+					livenessEmitter.emitSetInvalidCall(memberVar->constructType(), memberPtr);
 					break;
 				}
 				case LivenessIndicator::CUSTOM_METHODS: {
@@ -661,8 +653,8 @@ namespace locic {
 				case LivenessIndicator::SUFFIX_BYTE:
 				case LivenessIndicator::GAP_BYTE: {
 					// Store zero into suffix/gap byte to represent dead state.
-					const auto bytePtr = getLivenessBytePtr(functionGenerator_,
-					                                        typeInstance,
+					const auto bytePtr =
+					    livenessEmitter.emitLivenessBytePtr(typeInstance,
 					                                        livenessIndicator,
 					                                        contextValue);
 					irEmitter.emitRawStore(ConstantGenerator(module).getI8(0),
@@ -711,8 +703,9 @@ namespace locic {
 				}
 				case LivenessIndicator::SUFFIX_BYTE:
 				case LivenessIndicator::GAP_BYTE: {
-					const auto bytePtr = getLivenessBytePtr(functionGenerator_,
-					                                        typeInstance,
+					LivenessEmitter livenessEmitter(irEmitter);
+					const auto bytePtr =
+					    livenessEmitter.emitLivenessBytePtr(typeInstance,
 					                                        livenessIndicator,
 					                                        contextValue);
 					const auto oneValue = ConstantGenerator(module).getI8(1);
@@ -838,9 +831,7 @@ namespace locic {
 				}
 				
 				// Set object into live state (e.g. set gap byte to 1).
-				setOuterLiveState(functionGenerator_,
-				                  typeInstance,
-				                  resultValue);
+				LivenessEmitter(irEmitter).emitSetOuterLive(typeInstance, resultValue);
 			}
 			
 			return irEmitter.emitMoveLoad(resultValue, type);

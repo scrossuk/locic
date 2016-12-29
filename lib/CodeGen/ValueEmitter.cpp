@@ -23,6 +23,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Liveness.hpp>
+#include <locic/CodeGen/LivenessEmitter.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Memory.hpp>
@@ -553,7 +554,7 @@ namespace locic {
 			}
 			
 			// Set object into live state (e.g. set gap byte to 1).
-			setOuterLiveState(irEmitter_.function(), *(type->getObjectType()), objectValue);
+			LivenessEmitter(irEmitter_).emitSetOuterLive(*(type->getObjectType()), objectValue);
 			
 			return irEmitter_.emitMoveLoad(objectValue, type);
 		}
