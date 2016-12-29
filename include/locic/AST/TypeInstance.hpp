@@ -388,6 +388,19 @@ namespace locic {
 				void setNoTagSet(TemplateVarArray noTagSet);
 				
 				/**
+				 * \brief Initializer values.
+				 * 
+				 * These are the values passed to the parent exception type
+				 * constructor. For example:
+				 * 
+				 *     exception B(int i, int j) : A(i, j);
+				 * 
+				 * In this case 'i' and 'j' are the initializer values.
+				 */
+				const ValueArray& initializerValues() const;
+				void setInitializerValues(ValueArray values);
+				
+				/**
 				 * \brief Get/set debugging info.
 				 * 
 				 * A type instance can have associated debugging
@@ -430,6 +443,8 @@ namespace locic {
 				Array<Function*, 8> functions_;
 				
 				TemplateVarArray noTagSet_;
+				ValueArray initializerValues_;
+				
 				mutable const Type* cachedSelfType_;
 				
 		};

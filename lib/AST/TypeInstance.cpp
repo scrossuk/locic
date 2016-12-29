@@ -320,6 +320,14 @@ namespace locic {
 			noTagSet_ = std::move(newNoTagSet);
 		}
 		
+		const ValueArray& TypeInstance::initializerValues() const {
+			return initializerValues_;
+		}
+		
+		void TypeInstance::setInitializerValues(ValueArray values) {
+			initializerValues_ = std::move(values);
+		}
+		
 		void TypeInstance::setDebugInfo(const Debug::TypeInstanceInfo newDebugInfo) {
 			debugInfo_ = make_optional(newDebugInfo);
 		}
