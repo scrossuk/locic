@@ -15,8 +15,8 @@
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/Interface.hpp>
-#include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
+#include <locic/CodeGen/LivenessInfo.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
@@ -77,7 +77,8 @@ namespace locic {
 						members.push_back(genABIType(module, var->lvalType()));
 					}
 					
-					const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
+					const auto livenessIndicator =
+					    LivenessInfo(module).getLivenessIndicator(typeInstance);
 					if (livenessIndicator.isSuffixByte()) {
 						// Add suffix byte.
 						members.push_back(llvm_abi::Int8Ty);

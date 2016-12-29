@@ -14,9 +14,9 @@
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/LivenessEmitter.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
+#include <locic/CodeGen/LivenessInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
@@ -323,8 +323,8 @@ namespace locic {
 			const auto positionValue = args[2].resolve(functionGenerator_);
 			const auto sourceValue = args[0].resolve(functionGenerator_);
 			
-			const auto livenessIndicator = getLivenessIndicator(module,
-			                                                    typeInstance);
+			const auto livenessIndicator =
+			    LivenessInfo(module).getLivenessIndicator(typeInstance);
 			
 			if (livenessIndicator.isNone()) {
 				// No liveness indicator so just move the member values.
@@ -571,7 +571,8 @@ namespace locic {
 				
 				return makeAligned(functionGenerator_, classSize, maxVariantAlignMask);
 			} else {
-				const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
+				const auto livenessIndicator =
+				    LivenessInfo(module).getLivenessIndicator(typeInstance);
 				
 				// Add up all member variable sizes.
 				llvm::Value* classSize = livenessIndicator.isSuffixByte() ? one : zero;
@@ -621,7 +622,8 @@ namespace locic {
 			
 			const auto contextValue = args[0].resolve(functionGenerator_);
 			
-			const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
+			const auto livenessIndicator =
+			    LivenessInfo(module).getLivenessIndicator(typeInstance);
 			
 			IREmitter irEmitter(functionGenerator_);
 			LivenessEmitter livenessEmitter(irEmitter);
@@ -677,7 +679,8 @@ namespace locic {
 			
 			const auto contextValue = args[0].resolve(functionGenerator_);
 			
-			const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
+			const auto livenessIndicator =
+			    LivenessInfo(module).getLivenessIndicator(typeInstance);
 			
 			IREmitter irEmitter(functionGenerator_);
 			

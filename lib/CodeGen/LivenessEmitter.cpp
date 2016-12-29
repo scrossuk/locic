@@ -8,8 +8,8 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Liveness.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
+#include <locic/CodeGen/LivenessInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -49,7 +49,8 @@ namespace locic {
 		                                  llvm::Value* const objectPointerValue) {
 			auto& module = irEmitter_.module();
 			
-			const auto livenessIndicator = getLivenessIndicator(module, typeInstance);
+			const auto livenessIndicator =
+			    LivenessInfo(module).getLivenessIndicator(typeInstance);
 			
 			switch (livenessIndicator.kind()) {
 				case LivenessIndicator::NONE: {

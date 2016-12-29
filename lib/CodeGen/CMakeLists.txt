@@ -25,9 +25,9 @@ add_library(locic-codegen
 	Interpreter.cpp
 	IREmitter.cpp
 	Linker.cpp
-	Liveness.cpp
 	LivenessEmitter.cpp
 	LivenessIndicator.cpp
+	LivenessInfo.cpp
 	Mangling.cpp
 	md5.cpp
 	Memory.cpp
