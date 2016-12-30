@@ -8,7 +8,7 @@ __primitive final_lval_t {
 	
 	void __destroy() noexcept;
 	
-	final_lval_t<notag(T)> implicit_copy() const noexcept(noexcept_implicit_copyable<T>) require(movable<notag(T)> and implicit_copyable<T>);
+	final_lval_t<notag(T)> implicit_copy() const noexcept(noexcept_implicit_copyable<T>) require(implicit_copyable<T>);
 	
 	T* address() const noexcept;
 	T& dissolve() const noexcept;
