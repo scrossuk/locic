@@ -2,7 +2,6 @@
 // TODO: implement variadic templates!
 
 template <bool IsNoExcept, movable ReturnType>
-notag(ReturnType)
 __primitive methodfunction0_ptr_t {
 	static methodfunction0_ptr_t<IsNoExcept, ReturnType> null() noexcept;
 	
@@ -22,7 +21,6 @@ __primitive methodfunction0_ptr_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0>
-notag(ReturnType)
 __primitive methodfunction1_ptr_t {
 	static methodfunction1_ptr_t<IsNoExcept, ReturnType, Arg0> null() noexcept;
 	
@@ -42,7 +40,6 @@ __primitive methodfunction1_ptr_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1>
-notag(ReturnType)
 __primitive methodfunction2_ptr_t {
 	static methodfunction2_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1> null() noexcept;
 	
@@ -62,7 +59,6 @@ __primitive methodfunction2_ptr_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2>
-notag(ReturnType)
 __primitive methodfunction3_ptr_t {
 	static methodfunction3_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> null() noexcept;
 	
@@ -82,7 +78,6 @@ __primitive methodfunction3_ptr_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
-notag(ReturnType)
 __primitive methodfunction4_ptr_t {
 	static methodfunction4_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> null() noexcept;
 	
@@ -102,7 +97,6 @@ __primitive methodfunction4_ptr_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
-notag(ReturnType)
 __primitive methodfunction5_ptr_t {
 	static methodfunction5_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> null() noexcept;
 	
@@ -122,7 +116,6 @@ __primitive methodfunction5_ptr_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
-notag(ReturnType)
 __primitive methodfunction6_ptr_t {
 	static methodfunction6_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> null() noexcept;
 	
@@ -142,7 +135,6 @@ __primitive methodfunction6_ptr_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
-notag(ReturnType)
 __primitive methodfunction7_ptr_t {
 	static methodfunction7_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> null() noexcept;
 	
@@ -162,7 +154,6 @@ __primitive methodfunction7_ptr_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
-notag(ReturnType)
 __primitive methodfunction8_ptr_t {
 	static methodfunction8_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> null() noexcept;
 	

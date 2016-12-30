@@ -2,7 +2,6 @@
 // TODO: implement variadic templates!
 
 template <bool IsNoExcept, movable ReturnType>
-notag(ReturnType)
 __primitive interfacemethod0_t {
 	static interfacemethod0_t<IsNoExcept, ReturnType> null() noexcept;
 	
@@ -22,7 +21,6 @@ __primitive interfacemethod0_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0>
-notag(ReturnType)
 __primitive interfacemethod1_t {
 	static interfacemethod1_t<IsNoExcept, ReturnType, Arg0> null() noexcept;
 	
@@ -42,7 +40,6 @@ __primitive interfacemethod1_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1>
-notag(ReturnType)
 __primitive interfacemethod2_t {
 	static interfacemethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> null() noexcept;
 	
@@ -62,7 +59,6 @@ __primitive interfacemethod2_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2>
-notag(ReturnType)
 __primitive interfacemethod3_t {
 	static interfacemethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> null() noexcept;
 	
@@ -82,7 +78,6 @@ __primitive interfacemethod3_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
-notag(ReturnType)
 __primitive interfacemethod4_t {
 	static interfacemethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> null() noexcept;
 	
@@ -102,7 +97,6 @@ __primitive interfacemethod4_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
-notag(ReturnType)
 __primitive interfacemethod5_t {
 	static interfacemethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> null() noexcept;
 	
@@ -122,7 +116,6 @@ __primitive interfacemethod5_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
-notag(ReturnType)
 __primitive interfacemethod6_t {
 	static interfacemethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> null() noexcept;
 	
@@ -142,7 +135,6 @@ __primitive interfacemethod6_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
-notag(ReturnType)
 __primitive interfacemethod7_t {
 	static interfacemethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> null() noexcept;
 	
@@ -162,7 +154,6 @@ __primitive interfacemethod7_t {
 }
 
 template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
-notag(ReturnType)
 __primitive interfacemethod8_t {
 	static interfacemethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> null() noexcept;
 	
