@@ -18,7 +18,7 @@ __primitive value_lval_t {
 	
 	void __destroy() noexcept;
 	
-	value_lval_t<notag(T)> implicit_copy() const noexcept(noexcept_implicit_copyable<T>) require(movable<notag(T)> and implicit_copyable<T>);
+	value_lval_t<notag(T)> implicit_copy() const noexcept(noexcept_implicit_copyable<T>) require(implicit_copyable<T>);
 	
 	template <bool IsConst>
 	const<IsConst>(T)* address() const(IsConst) noexcept;
