@@ -1,10 +1,10 @@
 template <typename T, size_t element_count>
 notag(T)
 __primitive static_array_t {
-	static static_array_t<notag(T), element_count> uninitialized() require(movable<T>);
+	static static_array_t<T, element_count> uninitialized() require(movable<T>);
 	
 	// Temporarily disabled until support is implemented.
-	//static static_array_t<notag(T), element_count> null() require(nullable<T>);
+	//static static_array_t<T, element_count> null() require(nullable<T>);
 	
 	static size_t __alignmask() noexcept require(sized_type<T>);
 	static size_t __sizeof() noexcept require(sized_type<T>);
