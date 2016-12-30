@@ -282,7 +282,7 @@ namespace locic {
 			}
 			
 			const auto selfType = thisTypeInstance != nullptr ? thisTypeInstance->selfType() : context.typeBuilder().getVoidType();
-			const auto selfConstType = selfType->createTransitiveConstType(thisFunction->constPredicate().copy());
+			const auto selfConstType = selfType->createConstType(thisFunction->constPredicate().copy());
 			return createSelfRef(context, selfConstType);
 		}
 		
@@ -319,7 +319,7 @@ namespace locic {
 			}
 			
 			const auto selfType = thisTypeInstance != nullptr ? thisTypeInstance->selfType() : context.typeBuilder().getVoidType();
-			const auto selfConstType = selfType->createTransitiveConstType(thisFunction->constPredicate().copy());
+			const auto selfConstType = selfType->createConstType(thisFunction->constPredicate().copy());
 			return AST::Value::This(getBuiltInType(context, context.getCString("ptr_t"), { selfConstType }));
 		}
 		

@@ -201,23 +201,6 @@ namespace locic {
 			return staticRefTarget_;
 		}
 		
-		const Type* Type::createTransitiveConstType(const Predicate predicate) const {
-			return applyType(this,
-				[] (const Type* const) {
-					return true;
-				},
-				[] (const Type* const type) {
-					return type;
-				},
-				[&](const Type* const type) {
-					if (type->constPredicate() != predicate) {
-						return type->createConstType(Predicate::Or(type->constPredicate().copy(), predicate.copy()));
-					} else {
-						return type;
-					}
-				});
-		}
-		
 		const Type* Type::createConstType(Predicate predicate) const {
 			if (constPredicate() == predicate) {
 				return this;
@@ -225,6 +208,25 @@ namespace locic {
 			
 			Type typeCopy = copy();
 			typeCopy.isNoTag_ = false;
+			
+			// For objects, also add 'const()' to the relevant template variables.
+			if (isObject()) {
+				for (const auto& noTagTemplateVar: getObjectType()->noTagSet()) {
+					const auto templateVarIndex = noTagTemplateVar->index();
+					auto& existingTemplateArgument = typeCopy.valueArray_[templateVarIndex];
+					assert(existingTemplateArgument.isTypeRef());
+					
+					const auto varRefType = existingTemplateArgument.typeRefType();
+					const auto varRefNoTagType = varRefType->createConstType(predicate.copy());
+					const auto varType = existingTemplateArgument.type();
+					existingTemplateArgument = Value::TypeRef(varRefNoTagType, varType);
+				}
+			}
+			
+			if (typeCopy.refTarget_ != nullptr) {
+				typeCopy.refTarget_ = refTarget()->createConstType(predicate.copy());
+			}
+			
 			typeCopy.constPredicate_ = std::move(predicate);
 			return context_.getType(std::move(typeCopy));
 		}
@@ -249,7 +251,10 @@ namespace locic {
 					auto& existingTemplateArgument = typeCopy.valueArray_[templateVarIndex];
 					assert(existingTemplateArgument.isTypeRef());
 					
-					existingTemplateArgument = Value::TypeRef(existingTemplateArgument.typeRefType()->createNoTagType(), existingTemplateArgument.type());
+					const auto varRefType = existingTemplateArgument.typeRefType();
+					const auto varRefNoTagType = varRefType->createNoTagType();
+					const auto varType = existingTemplateArgument.type();
+					existingTemplateArgument = Value::TypeRef(varRefNoTagType, varType);
 				}
 			}
 			
@@ -290,24 +295,7 @@ namespace locic {
 		}
 		
 		const Type* Type::withoutConst() const {
-			return applyType(this,
-				[] (const Type* const) {
-					// Whether or not this type is an lval,
-					// it may contain lval types.
-					return true;
-				},
-				[] (const Type* const type) {
-					return type;
-				},
-				[&](const Type* const type) {
-					if (!type->constPredicate().isFalse()) {
-						Type typeCopy = type->copy();
-						typeCopy.constPredicate_ = Predicate::False();
-						return context_.getType(std::move(typeCopy));
-					} else {
-						return type;
-					}
-				});
+			return createConstType(Predicate::False());
 		}
 		
 		const Type* Type::withoutLval() const {
@@ -749,7 +737,7 @@ namespace locic {
 			}
 			
 			const auto constType =
-				basicType->createTransitiveConstType(
+				basicType->createConstType(
 					Predicate::Or(
 						basicType->constPredicate().substitute(templateVarMap),
 						type->constPredicate().substitute(templateVarMap)

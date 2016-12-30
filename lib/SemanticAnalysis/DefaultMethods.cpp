@@ -457,7 +457,7 @@ namespace locic {
 			auto noExceptPredicate = getDefaultCompareNoExceptPredicate(context_, typeInstance);
 			
 			const auto selfType = typeInstance->selfType();
-			const auto argType = createReferenceType(context_, selfType->createTransitiveConstType(AST::Predicate::True()));
+			const auto argType = createReferenceType(context_, selfType->createConstType(AST::Predicate::True()));
 			const auto compareResultType = getBuiltInType(context_, context_.getCString("compare_result_t"), {});
 			
 			AST::TypeArray argTypes;

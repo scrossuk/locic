@@ -140,7 +140,7 @@ namespace locic {
 			// If the object type is const, then the members must
 			// also be, *UNLESS* the variable is marked '__override_const'.
 			const auto derefType = getDerefType(object.type());
-			const auto memberType = var.lvalType()->createTransitiveConstType(derefType->constPredicate().copy());
+			const auto memberType = var.lvalType()->createConstType(derefType->constPredicate().copy());
 			const auto memberTypeSub = memberType->substitute(derefType->generateTemplateVarMap());
 			const auto resultMemberType = var.isOverrideConst() ? memberTypeSub->withoutConst() : memberTypeSub;
 			return AST::Value::MemberAccess(derefOrBindValue(context, std::move(object)), var, createReferenceType(context, resultMemberType));

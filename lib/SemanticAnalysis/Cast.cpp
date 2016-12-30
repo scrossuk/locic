@@ -225,7 +225,7 @@ namespace locic {
 			
 			// Non-const 'auto' can match 'const T', and in that case
 			// the resulting type must be const.
-			return resultType->createTransitiveConstType(AST::Predicate::Or(sourceType->constPredicate().copy(), destType->constPredicate().copy()));
+			return resultType->createConstType(AST::Predicate::Or(sourceType->constPredicate().copy(), destType->constPredicate().copy()));
 		}
 
 		inline static const AST::Type*

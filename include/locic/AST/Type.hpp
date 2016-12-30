@@ -55,7 +55,6 @@ namespace locic {
 				const Type* refTarget() const;
 				const Type* staticRefTarget() const;
 				
-				const Type* createTransitiveConstType(Predicate predicate) const;
 				const Type* createConstType(Predicate predicate) const;
 				
 				const Type* createNoTagType() const;
