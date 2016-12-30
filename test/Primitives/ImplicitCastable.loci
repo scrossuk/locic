@@ -1,0 +1,59 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+// This test currently fails because the compiler can't cast a templated method
+// to a non-templated method.
+// XFAIL: *
+
+// ==== Variable sized signed integer types.
+
+static assert implicit_castable<byte, byte>;
+static assert implicit_castable<byte, short>;
+static assert implicit_castable<byte, int>;
+static assert implicit_castable<byte, long>;
+static assert implicit_castable<byte, long long>;
+static assert implicit_castable<byte, int8_t>;
+static assert implicit_castable<byte, int16_t>;
+static assert implicit_castable<byte, int32_t>;
+static assert implicit_castable<byte, int64_t>;
+
+static assert implicit_castable<short, short>;
+static assert implicit_castable<short, int>;
+static assert implicit_castable<short, long>;
+static assert implicit_castable<short, long long>;
+
+static assert implicit_castable<int, int>;
+static assert implicit_castable<int, long>;
+static assert implicit_castable<int, long long>;
+
+static assert implicit_castable<long, long>;
+static assert implicit_castable<long, long long>;
+
+static assert implicit_castable<long long, long long>;
+
+// ==== Fixed sized signed integer types.
+
+static assert implicit_castable<int8_t, byte>;
+static assert implicit_castable<int8_t, short>;
+static assert implicit_castable<int8_t, int>;
+static assert implicit_castable<int8_t, long>;
+static assert implicit_castable<int8_t, long long>;
+static assert implicit_castable<int8_t, int8_t>;
+static assert implicit_castable<int8_t, int16_t>;
+static assert implicit_castable<int8_t, int32_t>;
+static assert implicit_castable<int8_t, int64_t>;
+
+static assert implicit_castable<int16_t, short>;
+static assert implicit_castable<int16_t, int>;
+static assert implicit_castable<int16_t, long>;
+static assert implicit_castable<int16_t, long long>;
+static assert implicit_castable<int16_t, int16_t>;
+static assert implicit_castable<int16_t, int32_t>;
+static assert implicit_castable<int16_t, int64_t>;
+
+static assert implicit_castable<int32_t, long>;
+static assert implicit_castable<int32_t, long long>;
+static assert implicit_castable<int32_t, int32_t>;
+static assert implicit_castable<int32_t, int64_t>;
+
+static assert implicit_castable<int64_t, long long>;
+static assert implicit_castable<int64_t, int64_t>;

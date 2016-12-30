@@ -8,6 +8,7 @@ set(RUNTIME_FILES
 	bool_t.loci
 	byte_t.loci
 	callable.loci
+	castable.loci
 	comparable.loci
 	compare_result_t.loci
 	copyable.loci

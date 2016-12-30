@@ -1,0 +1,50 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+// This test currently fails because the compiler can't cast a templated method
+// to a non-templated method.
+// XFAIL: *
+
+template <typename T>
+using castable_to_all_signed_ints =
+	castable<T, byte> and
+	castable<T, short> and
+	castable<T, int> and
+	castable<T, long> and
+	castable<T, long long> and
+	castable<T, int8_t> and
+	castable<T, int16_t> and
+	castable<T, int32_t> and
+	castable<T, int64_t> and
+	castable<T, ssize_t>;
+
+template <typename T>
+using castable_to_all_unsigned_ints =
+	castable<T, unsigned byte> and
+	castable<T, unsigned short> and
+	castable<T, unsigned int> and
+	castable<T, unsigned long> and
+	castable<T, unsigned long long> and
+	castable<T, uint8_t> and
+	castable<T, uint16_t> and
+	castable<T, uint32_t> and
+	castable<T, uint64_t> and
+	castable<T, size_t>;
+
+template <typename T>
+using castable_to_all_ints =
+	castable_to_all_signed_ints<T> and castable_to_all_unsigned_ints<T>;
+
+// ==== Variable sized signed integer types.
+
+static assert castable_to_all_ints<byte>;
+static assert castable_to_all_ints<short>;
+static assert castable_to_all_ints<int>;
+static assert castable_to_all_ints<long>;
+static assert castable_to_all_ints<long long>;
+
+// ==== Fixed sized signed integer types.
+
+static assert castable_to_all_ints<int8_t>;
+static assert castable_to_all_ints<int16_t>;
+static assert castable_to_all_ints<int32_t>;
+static assert castable_to_all_ints<int64_t>;

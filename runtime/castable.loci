@@ -1,0 +1,43 @@
+template <typename T>
+require(movable<T>)
+interface castable_t {
+	T cast() const;
+}
+
+template <typename T, typename CastType>
+require(movable<CastType>)
+using castable =
+	movable<CastType> and T : castable_t<CastType>;
+
+template <typename T>
+require(movable<T>)
+interface noexcept_castable_t {
+	T cast() const noexcept;
+}
+
+template <typename T, typename CastType>
+require(movable<CastType>)
+using noexcept_castable =
+	movable<CastType> and T : noexcept_castable_t<CastType>;
+
+template <typename T>
+require(movable<T>)
+interface implicit_castable_t {
+	T implicit_cast() const;
+}
+
+template <typename T, typename CastType>
+require(movable<CastType>)
+using implicit_castable =
+	movable<CastType> and T : implicit_castable_t<CastType>;
+
+template <typename T>
+require(movable<T>)
+interface noexcept_implicit_castable_t {
+	T implicit_cast() const noexcept;
+}
+
+template <typename T, typename CastType>
+require(movable<CastType>)
+using noexcept_implicit_castable =
+	movable<CastType> and T : noexcept_implicit_castable_t<CastType>;
