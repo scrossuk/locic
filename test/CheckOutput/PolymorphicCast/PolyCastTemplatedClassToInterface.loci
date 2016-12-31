@@ -1,0 +1,31 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: method()
+// CHECK: value=40
+
+import void printf(const ubyte * str, ...);
+
+template <implicit_copyable T>
+class TestClass(T value) {
+	static create = default;
+	
+	T method() {
+		printf(C"method()\n");
+		return @value;
+	}
+}
+
+interface TestInterface {
+	int method();
+}
+
+TestInterface& f(TestClass<int>& value) {
+	return value;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	auto value = f(TestClass<int>(40)).method();
+	printf(C"value=%d\n", value);
+	return 0;
+}

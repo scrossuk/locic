@@ -1,0 +1,27 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: method()
+
+import void printf(const ubyte * str, ...);
+
+class TestClass() {
+	static create = default;
+	
+	void method() {
+		printf(C"method()\n");
+	}
+}
+
+interface TestInterface {
+	void method();
+}
+
+TestInterface& f(TestClass& value) {
+	return value;
+}
+
+export int main(unused int argc, unused ubyte ** argv) {
+	f(TestClass()).method();
+	return 0;
+}
