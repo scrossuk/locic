@@ -1,4 +1,6 @@
-#include <assert.h>
+#include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
+
+#include <cassert>
 
 #include <algorithm>
 #include <map>
@@ -10,13 +12,10 @@
 
 #include <locic/Frontend/OptionalDiag.hpp>
 
-
-
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>
-#include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 

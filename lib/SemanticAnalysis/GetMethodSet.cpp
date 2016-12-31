@@ -1,6 +1,7 @@
-#include <assert.h>
+#include <locic/SemanticAnalysis/GetMethodSet.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <map>
 #include <string>
 
@@ -8,11 +9,9 @@
 
 #include <locic/AST/Type.hpp>
 
-
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
-#include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
