@@ -1,0 +1,18 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+import {
+	
+	template <typename T>
+	class TestClass {
+		int method();
+	}
+	
+}
+
+interface TestInterface {
+	int method();
+}
+
+export TestInterface& f(TestClass<int>& value) {
+	return value;
+}

@@ -1,0 +1,10 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+interface TestInterface {
+	void method();
+}
+
+template <typename T: TestInterface>
+export TestInterface& f(T& value) {
+	return value;
+}

@@ -1,0 +1,17 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+import {
+	
+	class TestClass {
+		void method();
+	}
+	
+}
+
+interface TestInterface {
+	void method();
+}
+
+export TestInterface& f(TestClass& value) {
+	return value;
+}
