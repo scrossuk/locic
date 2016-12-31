@@ -41,7 +41,7 @@ Implementation
 
 See :doc:`Compiler Design <CompilerDesign>`.
 
-This feature is actually relatively simple to implement, and in practice C++ compilers use multi-pass compilation (which is partially exposed for symbol uses inside classes). The implementation requirement is for the compiler's Semantic Analysis stage to iterate over the abstract syntax tree multiple times to incrementally build the resulting SEM tree to resolve circular dependencies.
+This feature is actually relatively simple to implement, and in practice C++ compilers use multi-pass compilation (which is partially exposed for symbol uses inside classes). The implementation requirement is for the compiler's Semantic Analysis stage to iterate over the abstract syntax tree multiple times to resolve circular dependencies.
 
 Member Variable Type Resolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
