@@ -230,138 +230,43 @@ Note that ``final`` is an lvalue qualifier (or 'variable qualifier') rather than
 Logical Const
 -------------
 
-Loci provides 'const' to mark data as logically constant, which means that the fundamental memory contents of 'const' objects may vary, as long as there is no change to the external behaviour of the object. ''No change to the external behaviour" means the following two functions 'function' should be equivalent, and any transformation between them is valid:
+Loci provides ``const`` to mark data as logically constant, which means that the fundamental memory contents of ``const`` objects may vary, as long as there is no change to the external behaviour of the object.
 
-.. code-block:: c++
-
-	void f(const Type& value);
-	void g(const Type& value);
-	
-	void function(){
-		const Type var = SOME_EXPR;
-		f(var);
-		g(var);
-	}
-	
-	void function(){
-		const Type var = SOME_EXPR;
-		const Type tmpVar = _copy_of_var_;
-		f(var);
-		g(tmpVar);
-	}
-
-Here '_copy_of_var_' means a simple byte-for-byte copy of variable 'var' that does not involve invoking a 'copy' method, and furthermore that the destructor for 'tmpVar' is not run. Therefore, this effectively means that the second function does not have to reload the value of the variable from memory, since it can assume that it has not changed.
-
-Compilers are allowed to optimise (note also that optimisations can only be performed where the compiler can prove that it has the only (const) reference to an object, otherwise other parts of the program may have non-const references to the object and thereby modify it in parallel, or as part of, the execution of the function with the const reference) based on the validity of this transformation. This optimisation requires that 'f' and 'g' operate within type rules and don't use 'const_cast', and this is a requirement that the developer must follow. Consider, for example:
-
-.. code-block:: c++
-
-	// A type alias.
-	using CString = const ubyte *;
-	
-	void unknownStringOperation(const CString string);
-	void printSize(size_t size);
-	void printStringLength(const CString string) {
-		size_t length = 0u;
-		CString ptr = string;
-		while (*ptr != 0u) {
-			length++;
-			ptr++;
-		}
-		printSize(length);
-	}
-	
-	void function() {
-		// Prefix 'C' means 'C string'.
-		const CString string = C"This is a string";
-		unknownStringOperation(string);
-		printStringLength(string);
-	}
-
-By the above equivalence, the compiler can assume this is equivalent to:
-
-.. code-block:: c++
-
-	// ... as above ...
-	
-	void function() {
-		unknownStringOperation(C"This is a string");
-		printStringLength(C"This is a string");
-	}
-
-Which, in combination with other transformations (such as inlining), leads to the optimised code:
-
-.. code-block:: c++
-
-	using CString = const ubyte *;
-	
-	void unknownStringOperation(const CString string);
-	void printSize(size_t size);
-	
-	void function() {
-		unknownStringOperation(C"This is a string");
-		printSize(16u);
-	}
+Specifically, this means callers are unable to observe any computational side effects of ``const`` methods on the object; the calls may be slower (in the case of mutex locking) or faster (in the case of caching) to execute, but the inputs/outputs should be unchanged.
 
 Overriding Const
-----------------
+++++++++++++++++
 
-As part of 'logical const', Loci provides the '__override_const' keyword, which allows developers to explicitly ignore const markers if needed:
-
-.. code-block:: c++
-
-	struct Struct {
-		int normalField;
-		__override_const int mutableField;
-	};
-	
-	void function(const Struct& ref) {
-		// Invalid.
-		ref.normalField = 1;
-		
-		// Valid.
-		ref.mutableField = 1;
-	}
-
-Following the rules of logical const, '__override_const' should only ever be used when it has no effect on the external behaviour of an object. Again, this means the above transformation should apply. And since optimisations are allowed to occur based on const, it is important that developers only use '__override_const' when absolutely necessary and ensure correctness when it is used.
-
-A good example of its correct use would be in a reference counting smart pointer class, in which the reference count field can (and should) be marked as '__override_const'. Considering the transformation above once again, it doesn't matter whether 'f' modifies the reference count (it could, for example, create a copy of the smart pointer and store it somewhere, increasing the reference count), because 'g' only depends on a count greater than 0 (and the reference counting invariant is intended to ensure that is always true until the last smart pointer object is destroyed).
-
-Marking class member variable mutexes as '__override_const' is another example of a good use of the keyword, since 'lock' and 'unlock' methods modify the external behaviour of the mutex (consider calling 'lock' twice in a row, without calling 'unlock') and therefore require it to be non-const, but any object that contains a mutex to handle races uses it in a way that does not affect its external behaviour (i.e. the above transformation is valid):
+As part of logical ``const``, Loci provides the '__override_const' keyword (similar to ``mutable`` in C++), which allows ``const`` methods to modify a member variable marked ``__override_const``.
 
 .. code-block:: c++
 
-	class Mutex {
-		void lock();
-		void unlock();
-	}
-	
-	class Lock(Mutex& mutex) {
-		static create(Mutex& mutex) {
-			mutex.lock();
-			return @(mutex);
+	class ComplexResultCalculator(__override_const int result) {
+		static create() {
+			// Assume that the result can never be zero.
+			return @(0);
 		}
 		
-		~ {
-			@mutex.unlock();
+		int calculateResult() const {
+			if (@result == 0) {
+				@result = performSlowCalculation();
+			}
+			return @result;
 		}
 	}
-	
-	class CustomType(__override_const Mutex mutex, Type value){
-		// ...
-		
-		void setValue(Type value) {
-			auto lock = Lock(@mutex);
-			@value = value;
-		}
-		
-		int getValue() const {
-			// 'Lock' object will call 'lock'
-			// and 'unlock' on the mutex.
-			unused auto lock = Lock(@mutex);
-			return @value;
-		}
-	}
+
+``ComplexResultCalculator`` uses ``__override_const`` to provide caching behaviour in a ``const`` method, which is a valid use case. This relies on ``ComplexResultCalculator`` correctly invalidating its cache when necessary (e.g. if a non-``const`` method could affect the calculation result).
+
+.. Note::
+	The caching used by ``ComplexResultCalculator`` is **not** thread safe. Logical ``const`` does **not** mandate thread safety.
+
+Other suitable use cases for ``__override_const``:
+
+* Reference counting (e.g. ``shared_ptr``) - Changes to the count don't affect the current reference, hence the reference count is **not** observable.
+* Locking - Some classes may wish to lock a mutex to be thread-safe in ``const`` methods; the locking/unlocking is **not** observable.
+
+.. Warning::
+	Developers should use ``__override_const`` with care, since inappropriate use would violate ``const``-correctness.
 
 Casting Const Away
 ------------------
