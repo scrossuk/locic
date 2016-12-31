@@ -434,18 +434,26 @@ namespace locic {
 				assert(value.type()->isBuiltInReference() && "Polycast dest type must be reference.");
 				assert(value.type()->refTarget()->isInterface() && "Polycast dest target type must be interface");
 				
-				const auto sourceTarget = sourceType->refTarget();
+				const auto sourceTarget = sourceType->refTarget()->resolveAliases();
 				
 				if (sourceTarget->isInterface()) {
 					// Since the vtable is a hash table and it has
 					// already been generated, this is a no-op.
 					return rawValue;
+				} else if (sourceTarget->isTemplateVar()) {
+					// The template variable already has a generated hash table;
+					// just generate an interface struct containing it.
+					const auto args = irEmitter_.function().getTemplateArgs();
+					const unsigned index = sourceTarget->getTemplateVar()->index();
+					auto& builder = irEmitter_.function().getBuilder();
+					const auto typeInfoValue = builder.CreateExtractValue(args, { index });
+					return makeInterfaceStructValue(irEmitter_.function(), rawValue,
+					                                typeInfoValue);
 				}
 				
 				// Generate the vtable and template generator.
 				const auto vtablePointer =
-					genVTable(irEmitter_.module(),
-					          sourceTarget->resolveAliases()->getObjectType());
+					genVTable(irEmitter_.module(), sourceTarget->getObjectType());
 				const auto templateGenerator =
 					getTemplateGenerator(irEmitter_.function(),
 					                     TemplateInst::Type(sourceTarget));
