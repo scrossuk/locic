@@ -3,10 +3,12 @@
 
 #include <string>
 
+#include <locic/AST/MethodSetElement.hpp>
 #include <locic/AST/TemplateVarArray.hpp>
 #include <locic/AST/Predicate.hpp>
-#include <locic/SemanticAnalysis/MethodSetElement.hpp>
+
 #include <locic/Support/Array.hpp>
+#include <locic/Support/Optional.hpp>
 #include <locic/Support/String.hpp>
 
 namespace locic {
@@ -19,7 +21,7 @@ namespace locic {
 		
 		class MethodSet {
 			public:
-				typedef std::pair<String, MethodSetElement> Element;
+				typedef std::pair<String, AST::MethodSetElement> Element;
 				typedef Array<Element, MethodSetElementBaseSize> ElementSet;
 				typedef ElementSet::const_iterator iterator;
 				

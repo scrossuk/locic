@@ -23,7 +23,9 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		AST::TemplateVarMap generateSatisfyTemplateVarMap(const MethodSetElement& checkElement, const MethodSetElement& requireElement) {
+		AST::TemplateVarMap
+		generateSatisfyTemplateVarMap(const AST::MethodSetElement& checkElement,
+		                              const AST::MethodSetElement& requireElement) {
 			AST::TemplateVarMap templateVarMap;
 			
 			// Very basic template deduction.
@@ -237,8 +239,9 @@ namespace locic {
 		
 		OptionalDiag
 		methodSetElementSatisfiesRequirement(Context& context, const AST::Predicate& checkConstPredicate,
-		                                     const String& functionName, const MethodSetElement& checkFunctionElement,
-		                                     const MethodSetElement& requireFunctionElement) {
+		                                     const String& functionName,
+		                                     const AST::MethodSetElement& checkFunctionElement,
+		                                     const AST::MethodSetElement& requireFunctionElement) {
 			const auto satisfyTemplateVarMap = generateSatisfyTemplateVarMap(checkFunctionElement, requireFunctionElement);
 			
 			// Can't cast between static/non-static methods.

@@ -1,3 +1,5 @@
+#include <locic/AST/MethodSetElement.hpp>
+
 #include <assert.h>
 
 #include <algorithm>
@@ -6,28 +8,24 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/AST/Predicate.hpp>
+#include <locic/AST/TemplateVarArray.hpp>
 #include <locic/AST/Type.hpp>
 
-
-#include <locic/SemanticAnalysis/Cast.hpp>
-#include <locic/SemanticAnalysis/Context.hpp>
-#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
-#include <locic/SemanticAnalysis/MethodSet.hpp>
-#include <locic/SemanticAnalysis/ScopeElement.hpp>
-#include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/Support/MakeString.hpp>
 
 namespace locic {
 
-	namespace SemanticAnalysis {
+	namespace AST {
 		
 		MethodSetElement::MethodSetElement(
-				AST::TemplateVarArray argTemplateVariables,
-				AST::Predicate argConstPredicate,
-				AST::Predicate argNoexceptPredicate,
-				AST::Predicate argRequirePredicate,
+				TemplateVarArray argTemplateVariables,
+				Predicate argConstPredicate,
+				Predicate argNoexceptPredicate,
+				Predicate argRequirePredicate,
 				const bool argIsStatic,
-				const AST::Type* const argReturnType,
-				AST::TypeArray argParameterTypes
+				const Type* const argReturnType,
+				TypeArray argParameterTypes
 			)
 			: templateVariables_(std::move(argTemplateVariables)),
 			constPredicate_(std::move(argConstPredicate)),
@@ -44,33 +42,33 @@ namespace locic {
 				isStatic(), returnType(), parameterTypes().copy());
 		}
 		
-		MethodSetElement MethodSetElement::withRequirement(AST::Predicate requirement) const {
+		MethodSetElement MethodSetElement::withRequirement(Predicate requirement) const {
 			return MethodSetElement(templateVariables().copy(), constPredicate().copy(),
 				noexceptPredicate().copy(),
-				AST::Predicate::And(requirePredicate().copy(), std::move(requirement)),
+				Predicate::And(requirePredicate().copy(), std::move(requirement)),
 				isStatic(), returnType(), parameterTypes().copy());
 		}
 		
-		MethodSetElement MethodSetElement::withNoExceptPredicate(AST::Predicate newNoExceptPredicate) const {
+		MethodSetElement MethodSetElement::withNoExceptPredicate(Predicate newNoExceptPredicate) const {
 			return MethodSetElement(templateVariables().copy(), constPredicate().copy(),
 				std::move(newNoExceptPredicate),
 				requirePredicate().copy(),
 				isStatic(), returnType(), parameterTypes().copy());
 		}
 		
-		const AST::TemplateVarArray& MethodSetElement::templateVariables() const {
+		const TemplateVarArray& MethodSetElement::templateVariables() const {
 			return templateVariables_;
 		}
 		
-		const AST::Predicate& MethodSetElement::constPredicate() const {
+		const Predicate& MethodSetElement::constPredicate() const {
 			return constPredicate_;
 		}
 		
-		const AST::Predicate& MethodSetElement::noexceptPredicate() const {
+		const Predicate& MethodSetElement::noexceptPredicate() const {
 			return noexceptPredicate_;
 		}
 		
-		const AST::Predicate& MethodSetElement::requirePredicate() const {
+		const Predicate& MethodSetElement::requirePredicate() const {
 			return requirePredicate_;
 		}
 		
@@ -78,19 +76,19 @@ namespace locic {
 			return isStatic_;
 		}
 		
-		const AST::Type* MethodSetElement::returnType() const {
+		const Type* MethodSetElement::returnType() const {
 			return returnType_;
 		}
 		
-		const AST::TypeArray& MethodSetElement::parameterTypes() const {
+		const TypeArray& MethodSetElement::parameterTypes() const {
 			return parameterTypes_;
 		}
 		
-		AST::FunctionType MethodSetElement::createFunctionType(const bool isTemplated) const {
+		FunctionType MethodSetElement::createFunctionType(const bool isTemplated) const {
 			const bool isVarArg = false;
 			const bool isMethod = !isStatic();
-			AST::FunctionAttributes attributes(isVarArg, isMethod, isTemplated, noexceptPredicate().copy());
-			return AST::FunctionType(std::move(attributes), returnType(), parameterTypes().copy());
+			FunctionAttributes attributes(isVarArg, isMethod, isTemplated, noexceptPredicate().copy());
+			return FunctionType(std::move(attributes), returnType(), parameterTypes().copy());
 		}
 		
 		std::size_t MethodSetElement::hash() const {

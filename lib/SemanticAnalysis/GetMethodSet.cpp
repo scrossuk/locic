@@ -344,7 +344,7 @@ namespace locic {
 				const auto functionType = function->type().substitute(templateVarMap);
 				const bool isStatic = function->isStaticMethod();
 				
-				MethodSetElement functionElement(
+				AST::MethodSetElement functionElement(
 					function->templateVariables().copy(),
 					std::move(constPredicate),
 					std::move(noexceptPredicate),
