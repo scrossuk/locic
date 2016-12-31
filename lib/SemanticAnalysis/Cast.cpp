@@ -477,7 +477,7 @@ namespace locic {
 			}
 			
 			// Try to use a polymorphic ref cast.
-			if (sourceType->isRef() && destType->isRef() && sourceType->refTarget()->isObject() && destType->refTarget()->isInterface()) {
+			if (sourceType->isRef() && destType->isRef() && destType->refTarget()->isInterface()) {
 				// TODO: add support for custom ref types.
 				if (sourceType->isBuiltInReference() && destType->isBuiltInReference()) {
 					const auto sourceTarget = sourceType->refTarget();
