@@ -1,12 +1,15 @@
 Const
 =====
 
-The 'const' keyword is used in both C and C++ (as well as some other languages) to mark that data should not be modified by a specific section, or to indicate that a function guarantees to not modify its argument, or a method guarantees to not modify its owning object. Loci also provides 'const', but with some simple syntactic and semantic changes.
+The ``const`` keyword indicates that an object should not be modified via the reference marked ``const``. It is very similar to the ``const`` keyword in C and C++, albeit there are some minor differences (detailed below).
+
+Usage
+-----
 
 Const Values
-------------
+++++++++++++
 
-As in C and C++ 'const' prevents modifications of values. For example, the following code is invalid:
+``const`` prevents modifications of values. For example, the following code is invalid:
 
 .. code-block:: c++
 
@@ -15,9 +18,12 @@ As in C and C++ 'const' prevents modifications of values. For example, the follo
 		i = 1;
 	}
 
-In this case the compiler will complain that the underlying :doc:`lvalue <LvaluesAndRvalues>` has a :ref:`require predicate <require-predicates>` for its 'assign' method that specifies the templated type must be movable; const types are NOT movable and therefore the assignment cannot occur.
+In this case the compiler will complain that the underlying :doc:`lvalue <LvaluesAndRvalues>` has a :ref:`require predicate <require-predicates>` for its ``assign`` method that specifies the ``const int`` type must be ``movable``; ``const`` types are **not** ``movable`` and therefore the assignment cannot occur.
 
-Here's another example of invalid code in both C++ and Loci:
+Const Pointers
+++++++++++++++
+
+Here's another example of invalid code:
 
 .. code-block:: c++
 
@@ -27,9 +33,12 @@ Here's another example of invalid code in both C++ and Loci:
 		*p = 1;
 	}
 
-Again the template type of the dereferenced pointer lvalue is const and hence not movable.
+While ``i`` can be modified directly, ``p`` refers to ``const int`` and therefore assignment is again not possible.
 
-It's possible to specify that a value is const based on the result of a :ref:`predicate <const-predicates>`:
+Const Predicates
+++++++++++++++++
+
+It's possible to specify that a value is ``const`` based on the result of a :ref:`predicate <const-predicates>`:
 
 .. code-block:: c++
 
@@ -38,10 +47,12 @@ It's possible to specify that a value is const based on the result of a :ref:`pr
 		return *ptr;
 	}
 
-Methods
--------
+This function will work with both ``const`` and non-``const`` values while remaining type safe. This is **not** possible in C and can only be achieved in C++ via function overloading.
 
-Methods can be marked as 'const' to indicate they do not modify their owning object, as used above. Here's another example:
+Methods
++++++++
+
+Methods can be marked as ``const`` to indicate they do not modify their owning object.
 
 .. code-block:: c++
 
@@ -59,14 +70,24 @@ Methods can be marked as 'const' to indicate they do not modify their owning obj
 		object.constMethod();
 	}
 
-It's possible to specify a :doc:`predicate <Predicates>` within the const declaration. For example:
+It's possible to specify a :ref:`predicate <const-predicates>` within the ``const`` declaration. For example:
 
 .. code-block:: c++
 
-	template <bool IsConst>
-	class ClassObject {
-		void method() const(IsConst);
+	interface RunnableType {
+		void run();
 	}
+	
+	interface ConstRunnableType {
+		void run() const;
+	}
+	
+	template <typename T>
+	class RunWrapper {
+		void run() require(T : RunnableType) const(T : ConstRunnableType);
+	}
+
+The ``run()`` method of ``RunWrapper`` requires that ``T`` has a ``run()`` method, using a :ref:`require() predicate <require-predicates>`. Furthermore, if the ``run()`` method of ``T`` is ``const`` then the ``run()`` method of ``RunWrapper`` will **also** be ``const``.
 
 Transitivity
 ------------
@@ -122,9 +143,9 @@ Consider the following code:
 		*p = 1;
 	}
 
-In this case we may have intended to use const to prevent accidental assignments to p, but in this case due to the transitivity of const we've also disabled assignments to the value it points-to.
+In this case we may have intended to use ``const`` to prevent accidental assignments to p, but in this case due to the transitivity of ``const`` we've also disabled assignments to the value it points-to.
 
-Fortunately the 'final' keyword provides a way to prevent assignments to an lvalue without having to mark it const. So the above code would become:
+Fortunately the ``final`` keyword provides a way to prevent assignments to an lvalue without having to mark it ``const``. So the above code would become:
 
 .. code-block:: c++
 
@@ -134,9 +155,9 @@ Fortunately the 'final' keyword provides a way to prevent assignments to an lval
 		*p = 1;
 	}
 
-Now the code will compile, but any assignments to 'p' itself fails. The implementation of this keyword is to use a 'final_lval' as the underlying lvalue type, which doesn't support assignment in any case, rather than 'value_lval' (which does support assignment for non-const types).
+Now the code will compile, but any assignments to 'p' itself fails. The implementation of this keyword is to use a ``final_lval`` as the underlying lvalue type, which doesn't support assignment in any case, rather than ``value_lval`` (which does support assignment for non-``const`` types).
 
-Note that 'final' is an lvalue qualifier (or 'variable qualifier') rather than a type qualifier, so doesn't affect Loci's type system in any way.
+Note that ``final`` is an lvalue qualifier (or 'variable qualifier') rather than a type qualifier, so doesn't affect Loci's type system in any way.
 
 Logical Const
 -------------
@@ -277,9 +298,10 @@ Marking class member variable mutexes as '__override_const' is another example o
 Casting Const Away
 ------------------
 
-**NOTE**: Feature not currently implemented; awaiting further design consideration.
+.. Note::
+	Feature not currently implemented; awaiting further design consideration.
 
-Const can be cast away if needed with 'const_cast', but doing so could be very dangerous, since the compiler may be performing transformations as above. This means that the only valid use for const_cast is to modify the type of a pointer to support an API that fails to use 'const', but it is guaranteed that the API does not modify the object:
+``const`` can be cast away if needed with ``const_cast``, but doing so could be very dangerous since it violates ``const``-correctness. In general the only valid use for ``const_cast`` is to modify the type of a pointer to support an API that fails to use ``const``, but it is guaranteed that the API does not modify the object:
 
 .. code-block:: c++
 
@@ -292,5 +314,3 @@ Const can be cast away if needed with 'const_cast', but doing so could be very d
 	void f(const(int*) i) {
 		oldAPI(const_cast<int *>(i));
 	}
-
-
