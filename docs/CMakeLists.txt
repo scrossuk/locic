@@ -5,6 +5,7 @@ set(PROPOSAL_FILES
 	proposals/InteractingWithC++.rst
 	proposals/NamedParameters.rst
 	proposals/RTTI.rst
+	proposals/VariadicTemplates.rst
 	proposals/VectorTypes.rst
 )
 

@@ -174,6 +174,7 @@ These features are either still in the design stage or are awaiting implementati
 	proposals/InteractingWithC++
 	proposals/NamedParameters
 	proposals/RTTI
+	proposals/VariadicTemplates
 	proposals/VectorTypes
 
 Additional Topics
