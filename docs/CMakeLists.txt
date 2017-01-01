@@ -3,6 +3,7 @@ set(PROPOSAL_FILES
 	proposals/InteractingWithC++.rst
 	proposals/NamedParameters.rst
 	proposals/RTTI.rst
+	proposals/VectorTypes.rst
 )
 
 set(SPHINX_INPUT_FILES
@@ -47,7 +48,6 @@ set(SPHINX_INPUT_FILES
 	Tuples.rst
 	UnusedValues.rst
 	ValueGenerators.rst
-	VectorTypes.rst
 	VtableGeneration.rst
 )
 

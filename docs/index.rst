@@ -168,11 +168,11 @@ These features are either still in the design stage or are awaiting implementati
 .. toctree::
 	:maxdepth: 1
 	
-	VectorTypes
 	proposals/ClassInheritance
 	proposals/InteractingWithC++
 	proposals/NamedParameters
 	proposals/RTTI
+	proposals/VectorTypes
 
 Additional Topics
 -----------------

@@ -355,7 +355,7 @@ The following features have not yet been assigned a release:
 
 **Primitives**
 
-* :doc:`Vectorised types <VectorTypes>`
+* :doc:`Vectorised types <proposals/VectorTypes>`
 * Atomic operations
 
 **Standard Library**

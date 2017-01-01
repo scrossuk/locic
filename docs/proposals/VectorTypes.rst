@@ -1,7 +1,8 @@
-Vector Types
-============
+Proposal: Vector Types
+======================
 
-**NOTE**: Feature not currently implemented; awaiting implementation.
+.. Note::
+	Feature awaiting further design consideration.
 
 Loci supports SIMD operations directly through the use of vector types, allowing operations such as addition to be applied in parallel to a vector of integer or floating point values.
 
