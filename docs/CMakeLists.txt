@@ -4,6 +4,7 @@ set(PROPOSAL_FILES
 	proposals/ExceptionSpecifications.rst
 	proposals/FutureStandardLibraryModules.rst
 	proposals/InteractingWithC++.rst
+	proposals/LateMoveParameters.rst
 	proposals/NamedParameters.rst
 	proposals/RTTI.rst
 	proposals/VariadicTemplates.rst

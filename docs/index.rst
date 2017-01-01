@@ -173,6 +173,7 @@ These features are either still in the design stage or are awaiting implementati
 	proposals/ExceptionSpecifications
 	proposals/FutureStandardLibraryModules
 	proposals/InteractingWithC++
+	proposals/LateMoveParameters
 	proposals/NamedParameters
 	proposals/RTTI
 	proposals/VariadicTemplates
