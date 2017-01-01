@@ -170,6 +170,7 @@ These features are either still in the design stage or are awaiting implementati
 	
 	proposals/AtomicOperations
 	proposals/ClassInheritance
+	proposals/FutureStandardLibraryModules
 	proposals/InteractingWithC++
 	proposals/NamedParameters
 	proposals/RTTI

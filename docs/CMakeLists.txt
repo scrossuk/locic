@@ -1,6 +1,7 @@
 set(PROPOSAL_FILES
 	proposals/AtomicOperations.rst
 	proposals/ClassInheritance.rst
+	proposals/FutureStandardLibraryModules.rst
 	proposals/InteractingWithC++.rst
 	proposals/NamedParameters.rst
 	proposals/RTTI.rst

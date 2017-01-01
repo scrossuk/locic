@@ -1,0 +1,25 @@
+Proposal: Future Standard Library Modules
+=========================================
+
+(Many of these will be APIs over existing 3rd-party libraries.)
+
+* Points, Vectors, Matrices (std.geometry)
+* URL creation/parsing (std.url)
+* Endianness (std.buffer?)
+* Fibers (std.concurrency)
+* Complex Numbers (std.numeric)
+* Infinite precision arithmetic (std.numeric)
+* Random number generation (std.numeric)
+* Precise time measurement (std.chrono)
+* Flyweights (std.flyweight?)
+* Radix tree (std.container)
+* Regular expressions (std.regex)
+* Dates (std.date)
+* Character encoding translations (std.string)
+* Localisation (std.string)
+* Function objects (std.function?)
+* Garbage collection (std.memory)
+* Cryptography (std.crypto?)
+* HTTP client (std.http?)
+* GUI (std.gui?)
+* Interprocess communication (std.process?)
