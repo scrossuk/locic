@@ -2,6 +2,7 @@ set(PROPOSAL_FILES
 	proposals/ClassInheritance.rst
 	proposals/InteractingWithC++.rst
 	proposals/NamedParameters.rst
+	proposals/RTTI.rst
 )
 
 set(SPHINX_INPUT_FILES
@@ -39,7 +40,6 @@ set(SPHINX_INPUT_FILES
 	PrimitiveObjects.rst
 	References.rst
 	Releases.rst
-	RTTI.rst
 	Strings.rst
 	StructuralTyping.rst
 	TemplateGenerators.rst

@@ -1,9 +1,10 @@
-RTTI
-====
+Proposal: RTTI
+==============
 
-**NOTE**: Feature not currently implemented; awaiting implementation.
+.. Note::
+	Feature awaiting further design consideration.
 
-Loci provides far more comprehensive run-time type information than C++, giving extra functionality as well as efficiency to developers.
+This is a proposal to add run-time type information to Loci.
 
 is_a
 ----
