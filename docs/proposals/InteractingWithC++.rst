@@ -1,5 +1,8 @@
-Interacting with C++
-====================
+Proposal: Interacting with C++
+==============================
+
+.. Note::
+	Feature awaiting further design consideration.
 
 This page describes approaches for using Loci and C++ code together. This is currently 'developer advice' but is intended to become part of a tool so this process becomes automatic.
 

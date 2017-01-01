@@ -1,5 +1,6 @@
 set(PROPOSAL_FILES
 	proposals/ClassInheritance.rst
+	proposals/InteractingWithC++.rst
 )
 
 set(SPHINX_INPUT_FILES
@@ -21,7 +22,6 @@ set(SPHINX_INPUT_FILES
 	Hashing.rst
 	HeapMemoryManagement.rst
 	ImplicitOperations.rst
-	InteractingWithC++.rst
 	index.rst
 	LanguageGoals.rst
 	LifetimeMethods.rst
