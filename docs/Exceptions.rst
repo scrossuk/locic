@@ -380,7 +380,8 @@ Note that it's not possible (without the assert statements described above) to t
 Exception Specifications
 ------------------------
 
-**NOTE**: Feature not currently implemented; awaiting further design consideration.
+.. Note::
+	Feature awaiting further design consideration.
 
 *noexcept* is actually just a special case of Loci's *exception specifications*, which follow a similar syntax to C++ but that are **statically checked** by the compiler. For example:
 
