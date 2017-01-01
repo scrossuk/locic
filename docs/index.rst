@@ -160,10 +160,10 @@ Compiler
 	TemplateGenerators
 	VtableGeneration
 
-Planned Features
-----------------
+Proposals
+---------
 
-These features are currently not implemented but are planned for upcoming releases.
+These features are either still in the design stage or are awaiting implementation.
 
 .. toctree::
 	:maxdepth: 1
@@ -172,6 +172,7 @@ These features are currently not implemented but are planned for upcoming releas
 	NamedParameters
 	RTTI
 	VectorTypes
+	proposals/ClassInheritance
 
 Additional Topics
 -----------------
@@ -179,7 +180,6 @@ Additional Topics
 .. toctree::
 	:maxdepth: 1
 	
-	ClassInheritance
 	FunctionOverloading
 	GarbageCollection
 

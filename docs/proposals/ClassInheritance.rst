@@ -1,10 +1,10 @@
-Class Inheritance
-=================
+Proposal: Class Inheritance
+===========================
 
 .. Note::
-	The following functionality has not yet been implemented in the compiler.
+	Feature awaiting implementation in the compiler.
 
-Loci has support for class implementation inheritance via the ``inherit`` keyword. Here's an example:
+Loci can add support for class implementation inheritance via a proposed ``inherit`` keyword. Here's an example:
 
 .. code-block:: c++
 
@@ -18,7 +18,7 @@ Loci has support for class implementation inheritance via the ``inherit`` keywor
 
 The ``inherit`` keyword is used on a class member variable to indicate that the parent class inherits all the methods of the member. This means that methods are added to ``TestClass`` which directly call the methods of ``BaseClass``.
 
-Note that this is **entirely separate** from :doc:`polymorphism <StructuralTyping>` (also known as 'interface inheritance' or 'subtyping'); in this case it means that ``TestClass&`` **cannot** be cast to ``BaseClass&``, and that all methods of ``BaseClass`` remain **non-virtual** (i.e. calls to ``BaseClass`` never call into ``TestClass``). (See :ref:`Rationale <inheritance_rationale>`.)
+Note that this is **entirely separate** from :doc:`polymorphism <../StructuralTyping>` (also known as 'interface inheritance' or 'subtyping'); in this case it means that ``TestClass&`` **cannot** be cast to ``BaseClass&``, and that all methods of ``BaseClass`` remain **non-virtual** (i.e. calls to ``BaseClass`` never call into ``TestClass``). (See :ref:`Rationale <inheritance_rationale>`.)
 
 Overriding Methods
 ------------------
@@ -132,7 +132,7 @@ Virtual Inheritance
 		}
 	}
 
-This works because ``inherit`` supports calling through :doc:`references <References>`, so (as expected) ``B`` and ``C`` inherit their methods from ``A`` by calling through the reference.
+This works because ``inherit`` supports calling through :doc:`references <../References>`, so (as expected) ``B`` and ``C`` inherit their methods from ``A`` by calling through the reference.
 
 .. _inheritance_rationale:
 
@@ -149,7 +149,7 @@ There are many problems avoided by this approach:
 * **Diamond problem** - This is where a cast is ambiguous, because the inheritance tree forms a diamond. This can also lead to ambiguous method calls. This is avoided in Loci because ``inherit`` does not provide a way to cast from the parent class to the member class, it simply forwards the methods. Polymorphic casts should always use interfaces and such casts are always unambiguous. Ambiguous method calls are avoided by forcing subclasses to resolve these ambiguities when they inherit.
 * **Tight coupling** - A common problem with inheritance is that classes are bound together, so they can't be separated later. This isn't a problem with Loci because the derived class only depends on the public API of the base class, and the base class has no knowledge of the derived class.
 * **Brittle hierarchies** - Sometimes an inheritance hierarchy can be created and it is later discovered to be flawed/suboptimal, but cannot be changed. In Loci a class can modify its inheritance relationships invisibly to external users so this problem doesn't occur.
-* **Complex memory layout** - Multiple inheritance in some languages can lead to complex memory layouts. This is again avoided in Loci because ``inherit`` has nothing to do with layout - it's purely a mechanism for forwarding method calls - so members would be placed in memory as usual. :doc:`Interfaces <StructuralTyping>` also avoid this problem by using a hash table for their vtable.
+* **Complex memory layout** - Multiple inheritance in some languages can lead to complex memory layouts. This is again avoided in Loci because ``inherit`` has nothing to do with layout - it's purely a mechanism for forwarding method calls - so members would be placed in memory as usual. :doc:`Interfaces <../StructuralTyping>` also avoid this problem by using a hash table for their vtable.
 
 Developer Advice
 ----------------

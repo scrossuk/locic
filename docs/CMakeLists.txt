@@ -1,8 +1,12 @@
+set(PROPOSAL_FILES
+	proposals/ClassInheritance.rst
+)
+
 set(SPHINX_INPUT_FILES
+	${PROPOSAL_FILES}
 	AlgebraicDatatypes.rst
 	AssertStatement.rst
 	Classes.rst
-	ClassInheritance.rst
 	CompatibilityWithC.rst
 	CompilerDesign.rst
 	Concurrency.rst
