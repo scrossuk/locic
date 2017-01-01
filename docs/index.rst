@@ -168,6 +168,7 @@ These features are either still in the design stage or are awaiting implementati
 .. toctree::
 	:maxdepth: 1
 	
+	proposals/AtomicOperations
 	proposals/ClassInheritance
 	proposals/InteractingWithC++
 	proposals/NamedParameters

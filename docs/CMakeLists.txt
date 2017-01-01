@@ -1,4 +1,5 @@
 set(PROPOSAL_FILES
+	proposals/AtomicOperations.rst
 	proposals/ClassInheritance.rst
 	proposals/InteractingWithC++.rst
 	proposals/NamedParameters.rst
