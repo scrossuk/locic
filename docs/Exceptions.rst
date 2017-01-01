@@ -168,7 +168,7 @@ The compiler will reject this code as invalid, since *readFile* may throw but *r
 
 This means the compiler will generate code to check this property at run-time when configured to do so (e.g. for a debug build), and otherwise trust the programmer and assume the property is true. Hence no error will be produced by the compiler in this case. Given that this overrides the assistance of static analysis, this should be done **with great care!**
 
-A similar construct can be used for exception specifications (see below):
+A similar construct is proposed for :doc:`exception specifications <proposals/ExceptionSpecifications>` (see below):
 
 .. code-block:: c++
 
@@ -197,7 +197,7 @@ A similar construct can be used for exception specifications (see below):
 		}
 	}
 
-Again, this overrides the static analysis and so should be avoided in most cases; it usually makes sense to build exception-throwing code on top of *noexcept* code rather than the other way around.
+Again, this would override the static analysis and so should be avoided in most cases; it usually makes sense to build exception-throwing code on top of *noexcept* code rather than the other way around.
 
 Note that the structures described above are essentially equivalent to:
 
@@ -380,77 +380,4 @@ Note that it's not possible (without the assert statements described above) to t
 Exception Specifications
 ------------------------
 
-.. Note::
-	Feature awaiting further design consideration.
-
-*noexcept* is actually just a special case of Loci's *exception specifications*, which follow a similar syntax to C++ but that are **statically checked** by the compiler. For example:
-
-.. code-block:: c++
-
-	import custom.library 1.0.0 {
-		exception FileOpenFailedException();
-		
-		class File {
-			static File open(const std::string& fileName) throw(FileOpenFailedException);
-		}
-	}
-
-This code is very clear that *File.open* may only throw exceptions of type *FileOpenFailedException* (or derived exception types). As previously mentioned, this property will be statically checked by the compiler.
-
-Here is the equivalent of the above *noexcept* using an *exception specification* (though the former is recommended):
-
-.. code-block:: c++
-
-	int addInts(int a, int b) throw() {
-		return a + b;
-	}
-
-The main reason to use specifications is to produce APIs with clear failure modes, such as the file opening example expressed above. Omitting the exception specification means that the function may throw any exception:
-
-.. code-block:: c++
-
-	import custom.library 1.0.0 {
-		class File {
-			static File open(const std::string& fileName);
-		}
-	}
-
-This means that developers can choose to use exception specifications where appropriate and avoid them otherwise. Typically, specifications are appropriate for use in heavily used core APIs (such as the standard library), but inappropriate as part of application logic or a custom rarely used API.
-
-In regard to :doc:`Module API versions <Modules>`, any changes to exception specifications should be made in a new API version; for this reason it may be appropriate to use a generic exception type in exception specifications (from which the client can obtain information about the error) and then throw derived exception types internally. For example:
-
-.. code-block:: c++
-
-	import custom.library 1.0.0 {
-		exception FileException(std::string what);
-		
-		class File {
-			static File open(const std::string& fileName) throw(FileException);
-		}
-	}
-
-The *open* constructor method could now be implemented as:
-
-.. code-block:: c++
-
-	export custom.library 1.0.0 {
-		exception FileException(std::string what);
-		exception FileNotFoundException() : FileException("File not found.");
-		exception FileAccessDeniedException() : FileException("File access denied.");
-		
-		class File(/* ... */) {
-			static File open(const std::string& fileName) throw(FileException) {
-				if (!fileExists(fileName)) {
-					throw FileNotFoundException();
-				}
-				
-				if (!fileIsAccessible(fileName)) {
-					throw FileAccessDeniedException();
-				}
-				
-				// etc...
-			}
-		}
-	}
-
-Note that any change to the derived exception types (i.e. with an unchanged exception specification) thrown by a function is generally *not* considered a breaking change to the API.
+:doc:`Exception specifications <proposals/ExceptionSpecifications>` are a proposed feature to constrain the set of exceptions thrown by a function or method, by **static checking** at compile-time.
