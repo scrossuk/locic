@@ -5,6 +5,7 @@ namespace locic {
 	
 	namespace AST {
 		
+		class MethodSet;
 		class Predicate;
 		class TemplateVar;
 		class Type;
@@ -14,17 +15,21 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		class Context;
-		class MethodSet;
 		
-		const MethodSet* getMethodSetForRequiresPredicate(AST::TemplateVar* templateVar, const AST::Predicate& requiresPredicate);
+		const AST::MethodSet*
+		getMethodSetForRequiresPredicate(AST::TemplateVar* templateVar, const AST::Predicate& requiresPredicate);
 		
-		const MethodSet* getMethodSetForObjectType(Context& context, const AST::Type* objectType);
+		const AST::MethodSet*
+		getMethodSetForObjectType(Context& context, const AST::Type* objectType);
 		
-		const MethodSet* getTypeMethodSet(Context& context, const AST::Type* type);
+		const AST::MethodSet*
+		getTypeMethodSet(Context& context, const AST::Type* type);
 		
-		const MethodSet* intersectMethodSets(const MethodSet* setA, const MethodSet* setB);
+		const AST::MethodSet*
+		intersectMethodSets(const AST::MethodSet* setA, const AST::MethodSet* setB);
 		
-		const MethodSet* unionMethodSets(const MethodSet* setA, const MethodSet* setB);
+		const AST::MethodSet*
+		unionMethodSets(const AST::MethodSet* setA, const AST::MethodSet* setB);
 		
 	}
 	

@@ -8,6 +8,7 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/AST/MethodSet.hpp>
 #include <locic/AST/Type.hpp>
 
 #include <locic/Frontend/OptionalDiag.hpp>
@@ -15,7 +16,6 @@
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
-#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 
@@ -402,8 +402,8 @@ namespace locic {
 		};
 		
 		OptionalDiag
-		methodSetSatisfiesRequirement(Context& context, const MethodSet* const checkSet,
-		                              const MethodSet* const requireSet) {
+		methodSetSatisfiesRequirement(Context& context, const AST::MethodSet* const checkSet,
+		                              const AST::MethodSet* const requireSet) {
 			auto checkIterator = checkSet->begin();
 			auto requireIterator = requireSet->begin();
 			

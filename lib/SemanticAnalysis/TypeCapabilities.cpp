@@ -1,13 +1,14 @@
 #include <cassert>
 
+#include <locic/AST/MethodSet.hpp>
 #include <locic/AST/Type.hpp>
+
 #include <locic/Frontend/OptionalDiag.hpp>
 
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
-#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>

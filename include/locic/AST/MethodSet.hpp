@@ -1,5 +1,5 @@
-#ifndef LOCIC_SEMANTICANALYSIS_METHODSET_HPP
-#define LOCIC_SEMANTICANALYSIS_METHODSET_HPP
+#ifndef LOCIC_AST_METHODSET_HPP
+#define LOCIC_AST_METHODSET_HPP
 
 #include <string>
 
@@ -13,7 +13,7 @@
 
 namespace locic {
 	
-	namespace SemanticAnalysis {
+	namespace AST {
 		
 		class Context;
 		
@@ -21,23 +21,23 @@ namespace locic {
 		
 		class MethodSet {
 			public:
-				typedef std::pair<String, AST::MethodSetElement> Element;
+				typedef std::pair<String, MethodSetElement> Element;
 				typedef Array<Element, MethodSetElementBaseSize> ElementSet;
 				typedef ElementSet::const_iterator iterator;
 				
 				static const MethodSet* getEmpty(const Context& context);
 				
-				static const MethodSet* get(const Context& context, AST::Predicate constPredicate, ElementSet elements);
+				static const MethodSet* get(const Context& context, Predicate constPredicate, ElementSet elements);
 				
 				MethodSet(MethodSet&&) = default;
 				MethodSet& operator=(MethodSet&&) = default;
 				
 				const Context& context() const;
 				
-				const MethodSet* withConstPredicate(AST::Predicate constPredicate) const;
-				const MethodSet* withRequirement(AST::Predicate requirement) const;
+				const MethodSet* withConstPredicate(Predicate constPredicate) const;
+				const MethodSet* withRequirement(Predicate requirement) const;
 				
-				const AST::Predicate& constPredicate() const;
+				const Predicate& constPredicate() const;
 				
 				iterator begin() const;
 				iterator end() const;
@@ -60,10 +60,10 @@ namespace locic {
 				MethodSet(const MethodSet&) = delete;
 				MethodSet& operator=(const MethodSet&) = delete;
 				
-				MethodSet(const Context& context, AST::Predicate constPredicate, ElementSet elements);
+				MethodSet(const Context& context, Predicate constPredicate, ElementSet elements);
 				
 				const Context& context_;
-				AST::Predicate constPredicate_;
+				Predicate constPredicate_;
 				ElementSet elements_;
 				mutable Optional<size_t> cachedHashValue_;
 				

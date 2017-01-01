@@ -1,6 +1,8 @@
 #include <cassert>
 
+#include <locic/AST/MethodSet.hpp>
 #include <locic/AST/Type.hpp>
+
 #include <locic/Frontend/OptionalDiag.hpp>
 
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
@@ -8,7 +10,6 @@
 #include <locic/SemanticAnalysis/GetMethod.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
-#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>

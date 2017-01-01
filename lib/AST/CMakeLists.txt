@@ -8,6 +8,7 @@ add_library(locic-ast
 	FunctionType.cpp
 	GlobalStructure.cpp
 	IfClause.cpp
+	MethodSet.cpp
 	MethodSetElement.cpp
 	Module.cpp
 	ModuleScope.cpp

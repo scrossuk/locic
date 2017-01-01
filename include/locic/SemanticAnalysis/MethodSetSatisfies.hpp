@@ -5,15 +5,20 @@ namespace locic {
 	
 	class OptionalDiag;
 	
+	namespace AST {
+		
+		class MethodSet;
+		
+	}
+	
 	namespace SemanticAnalysis {
 		
 		class Context;
-		class MethodSet;
 		
 		OptionalDiag
 		methodSetSatisfiesRequirement(Context& context,
-		                              const MethodSet* checkSet,
-		                              const MethodSet* requireSet);
+		                              const AST::MethodSet* checkSet,
+		                              const AST::MethodSet* requireSet);
 		
 	}
 	

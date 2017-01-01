@@ -7,12 +7,12 @@
 
 #include <boost/functional/hash.hpp>
 
+#include <locic/AST/MethodSet.hpp>
 #include <locic/AST/Type.hpp>
 
 #include <locic/SemanticAnalysis/Cast.hpp>
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
-#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 
@@ -46,7 +46,10 @@ namespace locic {
 		 * that case no functionality can be assumed about the
 		 * template variable (not handled here).
 		 */
-		AST::Predicate getPredicateForSatisfyRequirements(Context& /*context*/, const MethodSet* const checkSet, const MethodSet* const requireSet) {
+		AST::Predicate
+		getPredicateForSatisfyRequirements(Context& /*context*/,
+		                                   const AST::MethodSet* const checkSet,
+		                                   const AST::MethodSet* const requireSet) {
 			auto predicate = AST::Predicate::True();
 			
 			auto checkIterator = checkSet->begin();
@@ -113,7 +116,8 @@ namespace locic {
 		 * and hence determine that template variable 'T' must
 		 * have the method 'customMethod' inside the function.
 		 */
-		const MethodSet* getMethodSetForRequiresPredicate(Context& context, const AST::TemplateVar* const templateVar, const AST::Predicate& requiresPredicate) {
+		const AST::MethodSet*
+		getMethodSetForRequiresPredicate(Context& context, const AST::TemplateVar* const templateVar, const AST::Predicate& requiresPredicate) {
 			// Avoid cycles such as:
 			// 
 			// template <typename A, typename B, typename C>
@@ -127,7 +131,7 @@ namespace locic {
 			if (context.isComputingMethodSet(templateVar, requiresPredicate)) {
 				// Return empty set since the template variable extending
 				// itself doesn't provide any new information.
-				return MethodSet::getEmpty(context);
+				return AST::MethodSet::getEmpty(context.astContext());
 			}
 			
 			PushComputingMethodSet pushComputingMethodSet(context, templateVar, requiresPredicate);
@@ -137,7 +141,7 @@ namespace locic {
 				case AST::Predicate::FALSE:
 				case AST::Predicate::VARIABLE:
 				{
-					return MethodSet::getEmpty(context);
+					return AST::MethodSet::getEmpty(context.astContext());
 				}
 				case AST::Predicate::AND:
 				{
@@ -161,7 +165,7 @@ namespace locic {
 							return getTypeMethodSet(context, requiresPredicate.satisfiesRequirement());
 						} else {
 							// It's not the template variable we were looking for, so ignore.
-							return MethodSet::getEmpty(context);
+							return AST::MethodSet::getEmpty(context.astContext());
 						}
 					} else {
 						// This case is a little more complex; you can have something like:
@@ -248,9 +252,10 @@ namespace locic {
 		 * instantiated with a type that doesn't have both methods since
 		 * it only needs to comply with the requires predicate.
 		 */
-		const MethodSet* getMethodSetWithNoExceptSet(const MethodSet* methodSet,
-		                                             const MethodSet* noexceptMethodSet,
-		                                             const AST::Predicate& outerNoexceptPredicate) {
+		const AST::MethodSet*
+		getMethodSetWithNoExceptSet(const AST::MethodSet* methodSet,
+		                            const AST::MethodSet* noexceptMethodSet,
+		                            const AST::Predicate& outerNoexceptPredicate) {
 			if (noexceptMethodSet->empty()) {
 				// Try to avoid doing unnecessary work in common
 				// cases such as noexcept(true|false).
@@ -260,7 +265,7 @@ namespace locic {
 			auto iterator = methodSet->begin();
 			auto noexceptIterator = noexceptMethodSet->begin();
 			
-			MethodSet::ElementSet elements;
+			AST::MethodSet::ElementSet elements;
 			
 			while (iterator != methodSet->end() && noexceptIterator != noexceptMethodSet->end()) {
 				const auto& element = iterator->second;
@@ -299,12 +304,13 @@ namespace locic {
 				++iterator;
 			}
 			
-			return MethodSet::get(methodSet->context(),
-			                      methodSet->constPredicate().copy(),
-			                      std::move(elements));
+			return AST::MethodSet::get(methodSet->context(),
+			                           methodSet->constPredicate().copy(),
+			                           std::move(elements));
 		}
 		
-		const MethodSet* getMethodSetForTemplateVarType(Context& context, const AST::Type* const templateVarType, const AST::TemplatedObject& templatedObject) {
+		const AST::MethodSet*
+		getMethodSetForTemplateVarType(Context& context, const AST::Type* const templateVarType, const AST::TemplatedObject& templatedObject) {
 			assert(templateVarType->isTemplateVar());
 			
 			// Look in the require() predicate to see what methods this
@@ -329,10 +335,11 @@ namespace locic {
 			
 		}
 		
-		const MethodSet* getMethodSetForObjectType(Context& context, const AST::Type* const objectType) {
+		const AST::MethodSet*
+		getMethodSetForObjectType(Context& context, const AST::Type* const objectType) {
 			assert(objectType->isObject());
 			
-			MethodSet::ElementSet elements;
+			AST::MethodSet::ElementSet elements;
 			
 			const auto typeInstance = objectType->getObjectType();
 			const auto templateVarMap = objectType->generateTemplateVarMap();
@@ -357,14 +364,15 @@ namespace locic {
 			}
 			
 			// Sort the elements.
-			std::sort(elements.begin(), elements.end(), comparePairKeys<MethodSet::Element>);
+			std::sort(elements.begin(), elements.end(), comparePairKeys<AST::MethodSet::Element>);
 			
 			auto constObjectPredicate = objectType->constPredicate().substitute(templateVarMap);
 			
-			return MethodSet::get(context, std::move(constObjectPredicate), std::move(elements));
+			return AST::MethodSet::get(context.astContext(), std::move(constObjectPredicate), std::move(elements));
 		}
 		
-		const MethodSet* getTypeMethodSet(Context& context, const AST::Type* const rawType) {
+		const AST::MethodSet*
+		getTypeMethodSet(Context& context, const AST::Type* const rawType) {
 			assert(context.methodSetsComplete());
 			
 			const auto type = rawType->resolveAliases();
@@ -393,13 +401,14 @@ namespace locic {
 			return methodSet;
 		}
 		
-		const MethodSet* intersectMethodSets(const MethodSet* setA, const MethodSet* setB) {
+		const AST::MethodSet*
+		intersectMethodSets(const AST::MethodSet* setA, const AST::MethodSet* setB) {
 			assert(&(setA->context()) == &(setB->context()));
 			
 			auto iteratorA = setA->begin();
 			auto iteratorB = setB->begin();
 			
-			MethodSet::ElementSet elements;
+			AST::MethodSet::ElementSet elements;
 			elements.reserve(std::max<size_t>(setA->size(), setB->size()));
 			
 			while (iteratorA != setA->end() && iteratorB != setB->end()) {
@@ -416,16 +425,17 @@ namespace locic {
 			// about methods that exist in both sets.
 			
 			auto constObjectPredicate = AST::Predicate::Or(setA->constPredicate().copy(), setB->constPredicate().copy());
-			return MethodSet::get(setA->context(), std::move(constObjectPredicate), std::move(elements));
+			return AST::MethodSet::get(setA->context(), std::move(constObjectPredicate), std::move(elements));
 		}
 		
-		const MethodSet* unionMethodSets(const MethodSet* setA, const MethodSet* setB) {
+		const AST::MethodSet*
+		unionMethodSets(const AST::MethodSet* setA, const AST::MethodSet* setB) {
 			assert(&(setA->context()) == &(setB->context()));
 			
 			auto iteratorA = setA->begin();
 			auto iteratorB = setB->begin();
 			
-			MethodSet::ElementSet elements;
+			AST::MethodSet::ElementSet elements;
 			elements.reserve(std::max<size_t>(setA->size(), setB->size()));
 			
 			while (iteratorA != setA->end() && iteratorB != setB->end()) {
@@ -456,7 +466,7 @@ namespace locic {
 			}
 			
 			auto constObjectPredicate = AST::Predicate::Or(setA->constPredicate().copy(), setB->constPredicate().copy());
-			return MethodSet::get(setA->context(), std::move(constObjectPredicate), std::move(elements));
+			return AST::MethodSet::get(setA->context(), std::move(constObjectPredicate), std::move(elements));
 		}
 		
 	}

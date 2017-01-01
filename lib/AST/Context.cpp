@@ -1,5 +1,6 @@
 #include <locic/AST/Context.hpp>
 #include <locic/AST/FunctionType.hpp>
+#include <locic/AST/MethodSet.hpp>
 #include <locic/AST/Namespace.hpp>
 #include <locic/AST/Type.hpp>
 
@@ -21,6 +22,7 @@ namespace locic {
 			mutable StableSet<FunctionTypeData> functionTypes;
 			mutable StableSet<Type> types;
 			mutable const TypeInstance* primitiveTypes[PRIMITIVE_COUNT];
+			mutable StableSet<MethodSet> methodSets;
 		};
 		
 		// Allocate a large amount of space up-front for
@@ -55,7 +57,12 @@ namespace locic {
 		Context::getPrimitive(const PrimitiveID primitiveID) const {
 			assert(impl_->primitiveTypes[primitiveID] != nullptr);
 			return *(impl_->primitiveTypes[primitiveID]);
-			
+		}
+		
+		const MethodSet*
+		Context::getMethodSet(MethodSet methodSet) const {
+			const auto result = impl_->methodSets.insert(std::move(methodSet));
+			return &(*(result.first));
 		}
 		
 	}

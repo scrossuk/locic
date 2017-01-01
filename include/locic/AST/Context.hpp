@@ -11,6 +11,7 @@ namespace locic {
 		
 		class FunctionType;
 		class FunctionTypeData;
+		class MethodSet;
 		class Type;
 		class TypeInstance;
 		
@@ -29,6 +30,9 @@ namespace locic {
 				
 				const TypeInstance&
 				getPrimitive(PrimitiveID primitiveID) const;
+				
+				const MethodSet*
+				getMethodSet(MethodSet methodSet) const;
 				
 			private:
 				// Non-copyable.

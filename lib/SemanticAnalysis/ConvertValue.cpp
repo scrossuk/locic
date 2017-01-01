@@ -8,10 +8,11 @@
 #include <string>
 
 #include <locic/AST.hpp>
+#include <locic/AST/MethodSet.hpp>
 #include <locic/AST/Type.hpp>
+
 #include <locic/Debug.hpp>
 #include <locic/Support/MakeArray.hpp>
-
 
 #include <locic/Frontend/DiagnosticArray.hpp>
 
@@ -24,7 +25,6 @@
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/Literal.hpp>
 #include <locic/SemanticAnalysis/Lval.hpp>
-#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>

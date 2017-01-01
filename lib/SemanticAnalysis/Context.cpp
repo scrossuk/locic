@@ -19,7 +19,6 @@
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
-#include <locic/SemanticAnalysis/MethodSet.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TemplateInst.hpp>
@@ -68,11 +67,10 @@ namespace locic {
 			bool methodSetsComplete;
 			bool templateRequirementsComplete;
 			std::vector<TemplateInst> templateInstantiations;
-			mutable StableSet<MethodSet> methodSets;
 			std::unordered_map<std::pair<const AST::Type*, String>, bool, hashPair<const AST::Type*, String>> capabilities;
 			
-			std::unordered_map<const AST::Type*, const MethodSet*> objectMethodSetMap;
-			std::unordered_map<std::pair<const AST::TemplatedObject*, const AST::Type*>, const MethodSet*,
+			std::unordered_map<const AST::Type*, const AST::MethodSet*> objectMethodSetMap;
+			std::unordered_map<std::pair<const AST::TemplatedObject*, const AST::Type*>, const AST::MethodSet*,
 				hashPair<const AST::TemplatedObject*, const AST::Type*>> templateVarMethodSetMap;
 			
 			std::vector<std::pair<const AST::Type*, const AST::Type*>> assumedSatisfyPairs;
@@ -136,8 +134,9 @@ namespace locic {
 			return impl_->typeBuilder;
 		}
 		
-		const MethodSet* Context::findMethodSet(const AST::TemplatedObject* const templatedObject,
-		                                        const AST::Type* const type) const {
+		const AST::MethodSet*
+		Context::findMethodSet(const AST::TemplatedObject* const templatedObject,
+		                       const AST::Type* const type) const {
 			assert(methodSetsComplete());
 			assert(type->isObject() || type->isTemplateVar());
 			
@@ -153,7 +152,7 @@ namespace locic {
 		
 		void Context::addMethodSet(const AST::TemplatedObject* const templatedObject,
 		                           const AST::Type* const type,
-		                           const MethodSet* const methodSet) {
+		                           const AST::MethodSet* const methodSet) {
 			assert(methodSetsComplete());
 			assert(type->isObject() || type->isTemplateVar());
 			
@@ -193,11 +192,6 @@ namespace locic {
 		void Context::setMethodSetsComplete() {
 			assert(!impl_->methodSetsComplete);
 			impl_->methodSetsComplete = true;
-		}
-		
-		const MethodSet* Context::getMethodSet(MethodSet methodSet) const {
-			const auto result = impl_->methodSets.insert(std::move(methodSet));
-			return &(*(result.first));
 		}
 		
 		Optional<bool> Context::getCapability(const AST::Type* const type, const String& capability) const {

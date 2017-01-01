@@ -21,7 +21,6 @@ add_library(locic-semanalysis
 	GetMethodSet.cpp
 	Literal.cpp
 	Lval.cpp
-	MethodSet.cpp
 	MethodSetSatisfies.cpp
 	NameSearch.cpp
 	Passes/AddAliasValuesPass.cpp

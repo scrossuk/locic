@@ -21,6 +21,7 @@ namespace locic {
 	namespace AST {
 		
 		class Context;
+		class MethodSet;
 		class Predicate;
 		class TemplatedObject;
 		class Type;
@@ -38,7 +39,6 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		class AliasTypeResolver;
-		class MethodSet;
 		class ScopeStack;
 		class TemplateInst;
 		class TypeBuilder;
@@ -78,12 +78,13 @@ namespace locic {
 				
 				TypeBuilder& typeBuilder();
 				
-				const MethodSet* findMethodSet(const AST::TemplatedObject* templatedObject,
-				                               const AST::Type* type) const;
+				const AST::MethodSet*
+				findMethodSet(const AST::TemplatedObject* templatedObject,
+				              const AST::Type* type) const;
 				
 				void addMethodSet(const AST::TemplatedObject* templatedObject,
 				                  const AST::Type* type,
-				                  const MethodSet* methodSet);
+				                  const AST::MethodSet* methodSet);
 				
 				/**
 				 * \brief Maintains a list of pairs of a template var
@@ -101,8 +102,6 @@ namespace locic {
 				
 				bool methodSetsComplete() const;
 				void setMethodSetsComplete();
-				
-				const MethodSet* getMethodSet(MethodSet methodSet) const;
 				
 				Optional<bool> getCapability(const AST::Type* type, const String& capability) const;
 				
