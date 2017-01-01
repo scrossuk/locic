@@ -1,6 +1,7 @@
 set(PROPOSAL_FILES
 	proposals/ClassInheritance.rst
 	proposals/InteractingWithC++.rst
+	proposals/NamedParameters.rst
 )
 
 set(SPHINX_INPUT_FILES
@@ -31,7 +32,6 @@ set(SPHINX_INPUT_FILES
 	Modules.rst
 	MoveVersusCopy.rst
 	MultiPassCompilation.rst
-	NamedParameters.rst
 	NameMangling.rst
 	ObjectMemoryStates.rst
 	OperatorOverloading.rst
