@@ -141,7 +141,7 @@ The language may also define a ``union`` operation that manipulates ``throwset``
 Assert
 ~~~~~~
 
-Just as the :doc:`assert statement <AssertStatement>` can be used with ``noexcept``, it also makes sense to define it for ``throw()``.
+Just as the :doc:`assert statement <../AssertStatement>` can be used with ``noexcept``, it also makes sense to define it for ``throw()``.
 
 .. code-block:: c++
 
