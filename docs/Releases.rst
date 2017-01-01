@@ -287,55 +287,12 @@ Released on 6th April 2014, version 1.0 provides:
 * :doc:`Integer, floating point and C string literals <Literals>`
 * Method name canonicalization
 
-Future Releases
----------------
-
-This section lists planned releases of the Loci Compiler Tools, in reverse version order.
-
-v1.5
-~~~~
-
-Versions 1.5 aims to provide:
-
-**Language features**
-
-* Improve template argument deduction
-
-**Primitives**
-
-* Add static array comparison support.
-
-**Standard library**
-
-* Fix std::map implementation (std.container)
-* Hash table set and map (std.container)
-* Files and directories (std.filesystem)
-* DNS resolution (std.network)
-* IPv6 (std.network)
-* UDP (std.network)
-* Binary search, sorting (std.algorithm)
-
-**Compiler**
-
-* Add CMake module files to make it easier to create Loci projects
-* Improve emitted debug information
-
-**Tools**
-
-* Generation of :doc:`imports from exports <Modules>`
-
-**Test**
-
-* Tests for primitives (e.g. integer overflow)
-* More standard library tests
-
-In Consideration
-~~~~~~~~~~~~~~~~
-
-The following features have not yet been assigned a release:
+Future Development
+------------------
 
 **Language Features**
 
+* Improve template argument deduction
 * Fix function pointer ABI issues
 * Variadic templates
 * Lambdas
@@ -355,37 +312,24 @@ The following features have not yet been assigned a release:
 
 **Primitives**
 
+* Add static array comparison support.
 * :doc:`Vectorised types <proposals/VectorTypes>`
 * Atomic operations
 
-**Standard Library**
+**Standard library**
 
-(Many of these will be APIs over existing 3rd-party libraries.)
-
-* Standardise APIs for version 1.0.0
-* Points, Vectors, Matrices (std.geometry)
-* URL creation/parsing (std.url)
-* Endianness (std.buffer?)
-* Fibers (std.concurrency)
-* Complex Numbers (std.numeric)
-* Infinite precision arithmetic (std.numeric)
-* Random number generation (std.numeric)
-* Precise time measurement (std.chrono)
-* Flyweights (std.flyweight?)
-* Radix tree (std.container)
-* Regular expressions (std.regex)
-* Dates (std.date)
-* Character encoding translations (std.string)
-* Localisation (std.string)
-* Function objects (std.function?)
-* Garbage collection (std.memory)
-* Cryptography (std.crypto?)
-* HTTP client (std.http?)
-* GUI (std.gui?)
-* Interprocess communication (std.process?)
+* Fix std::map implementation (std.container)
+* Hash table set and map (std.container)
+* Files and directories (std.filesystem)
+* DNS resolution (std.network)
+* IPv6 (std.network)
+* UDP (std.network)
+* Binary search, sorting (std.algorithm)
 
 **Compiler**
 
+* Add CMake module files to make it easier to create Loci projects
+* Improve emitted debug information
 * Implement 'native' virtual calls on LLVM 3.6+.
 * Clarifying/defining :doc:`implicit casting rules <ImplicitOperations>` - mostly related to improving Semantic Analysis
 * ARM ABI support
@@ -397,10 +341,16 @@ The following features have not yet been assigned a release:
 
 **Tools**
 
+* Generation of :doc:`imports from exports <Modules>`
 * Generation of Loci imports from C (and potentially C++) headers
 * Verify imports and exports against each other
 * Benchmarks of language features
 * Generate C and C++ headers from Loci imports
+
+**Test**
+
+* Tests for primitives (e.g. integer overflow)
+* More standard library tests
 
 **Examples**
 
