@@ -6,6 +6,7 @@ set(PROPOSAL_FILES
 	proposals/InteractingWithC++.rst
 	proposals/LateMoveParameters.rst
 	proposals/NamedParameters.rst
+	proposals/RemoveNonConstTypeTags.rst
 	proposals/RTTI.rst
 	proposals/VariadicTemplates.rst
 	proposals/VectorTypes.rst
