@@ -383,6 +383,21 @@ namespace locic {
 							return ConstantGenerator(module).getVoidUndef();
 						});
 				}
+				case METHOD_ADDRESS: {
+					auto methodOwner = RefMethodOwner::AsValue(function, type, args);
+					
+					return genRefPrimitiveMethodForVirtualCases(function, type,
+						[&](llvm::Type* const llvmType) {
+							const auto refValue = methodOwner.get(llvmType);
+							if (llvmType->isPointerTy()) {
+								return refValue;
+							}
+							
+							// Load first member (which is 'this' pointer) from interface ref struct.
+							return function.getBuilder().CreateExtractValue(refValue, { 0 });
+						}
+					);
+				}
 				default:
 					llvm_unreachable("Unknown ref primitive method.");
 			}

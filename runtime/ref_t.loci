@@ -12,4 +12,7 @@ __primitive ref_t {
 	bool __isvalid() const noexcept;
 	
 	void __moveto(void* ptr, size_t position) noexcept;
+	
+	template <bool IsConst>
+	const<IsConst>(T)* address() const(IsConst) noexcept;
 }
