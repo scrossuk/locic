@@ -17,7 +17,6 @@ set(RUNTIME_FILES
 	destructible.loci
 	dissolvable.loci
 	double_t.loci
-	final_lval_t.loci
 	float_t.loci
 	function_ptr_t.loci
 	hashable.loci

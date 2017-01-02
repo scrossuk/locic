@@ -26,11 +26,11 @@ namespace Simulations {
 			}
 			
 			void step() {
-				for (final auto& outerPair: @particles.all()) {
+				for (auto& outerPair: @particles.all()) {
 					Particle& particle = outerPair.second;
 					auto acceleration = Vector.Zero();
 					
-					for (final auto& innerPair: @particles.all()) {
+					for (auto& innerPair: @particles.all()) {
 						if (outerPair.first == innerPair.first){
 							// Same particle.
 							continue;

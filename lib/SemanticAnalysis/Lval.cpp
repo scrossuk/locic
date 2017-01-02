@@ -22,20 +22,12 @@ namespace locic {
 			return getBuiltInType(context, context.getCString("value_lval_t"), { valueType })->createLvalType();
 		}
 		
-		const AST::Type* makeFinalLvalType(Context& context, const AST::Type* const valueType) {
-			return getBuiltInType(context, context.getCString("final_lval_t"), { valueType })->createLvalType();
-		}
-		
-		const AST::Type* makeLvalType(Context& context, const bool isFinal, const AST::Type* const valueType) {
+		const AST::Type* makeLvalType(Context& context, const AST::Type* const valueType) {
 			if (getDerefType(valueType)->isLval()) {
 				return valueType;
 			}
 			
-			if (isFinal) {
-				return makeFinalLvalType(context, valueType);
-			} else {
-				return makeValueLvalType(context, valueType);
-			}
+			return makeValueLvalType(context, valueType);
 		}
 		
 		AST::Value dissolveLval(Context& context, AST::Value value, const Debug::SourceLocation& location) {

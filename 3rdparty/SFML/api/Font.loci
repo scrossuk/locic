@@ -18,7 +18,7 @@ namespace sf {
 	
 	class Font(sfFont* font) {
 		static Create(const ubyte* filename) {
-			final auto font = sfFont_createFromFile(filename);
+			auto font = sfFont_createFromFile(filename);
 			if (font == null) {
 				throw FontLoadError();
 			}

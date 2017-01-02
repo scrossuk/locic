@@ -12,7 +12,7 @@ class message_queue_thread(std::concurrency::message_queue<int>& receiveQueue, s
 				continue;
 			}
 			
-			final int message = @receiveQueue.receive();
+			int message = @receiveQueue.receive();
 			
 			printf(C"  Thread %llu: Received %d.\n", @id.cast<ulonglong_t>(), message);
 			

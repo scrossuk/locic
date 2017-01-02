@@ -36,7 +36,7 @@ export std.filesystem 0.1.0 {
 		class file_stream(void* handle) {
 			static open(const path& pathname, const string& mode) {
 				const auto path_string = pathname.to_string();
-				final auto handle = fopen(path_string.make_buffer().c_str(),
+				auto handle = fopen(path_string.make_buffer().c_str(),
 				                          mode.make_buffer().c_str());
 				if (handle == null) {
 					throw open_error();

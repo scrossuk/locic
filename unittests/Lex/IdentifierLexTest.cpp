@@ -48,7 +48,6 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("export", locic::Lex::Token::Kind::EXPORT);
 	
 	testKeyword("false", locic::Lex::Token::Kind::FALSEVAL);
-	testKeyword("final", locic::Lex::Token::Kind::FINAL);
 	testKeyword("float", locic::Lex::Token::Kind::FLOAT);
 	testKeyword("for", locic::Lex::Token::Kind::FOR);
 	

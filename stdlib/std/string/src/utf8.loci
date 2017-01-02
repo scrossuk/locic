@@ -1,7 +1,7 @@
 datatype utf8_initial_pair(ubyte_t first_value, size_t bytes_to_read);
 
 utf8_initial_pair utf8_read_first_byte(ubyte_t first_byte) {
-	final size_t leading_ones_count = first_byte.count_leading_ones();
+	size_t leading_ones_count = first_byte.count_leading_ones();
 	assert leading_ones_count <= 8u;
 	
 	if (leading_ones_count == 0u) {

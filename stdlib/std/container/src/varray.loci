@@ -33,7 +33,7 @@ export std.container 0.1.0 {
 					return;
 				}
 				
-				final T* newData = reinterpret_cast<void*, T*>(allocate(size * sizeof(T)));
+				T* newData = reinterpret_cast<void*, T*>(allocate(size * sizeof(T)));
 				
 				for (auto i: counter<size_t>(0u, @size, 1u)) {
 					nolval(newData[i]).setvalue(nolval(@data[i]).extractvalue());

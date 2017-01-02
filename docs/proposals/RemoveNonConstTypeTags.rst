@@ -14,35 +14,9 @@ Lval
 
 ``lval`` can be removed by moving the lval functionality directly into the object, by:
 
-* Removing ``final``.
-* Removing existing lval types ``final_lval_t``, ``ptr_lval_t`` and ``value_lval_t``.
+* Removing existing lval types ``ptr_lval_t`` and ``value_lval_t``.
 * Adding an ``address()`` method to ``ref_t``.
 * Modifying the :doc:`lifetime methods <../LifetimeMethods>`.
-
-final
-+++++
-
-As part of this change, ``final`` could either become a type tag or be removed. ``final`` is intended to protect against accidental assignment:
-
-.. code-block:: c++
-
-	void f() {
-		final T value = ...;
-		if (value = ...) { // ERROR
-			// ...
-		}
-	}
-
-However assignment is a statement rather than an expression so this code would be invalid anyway. Assignment statements are unlikely to be accidental, particularly since an equals check would cause an unused result warning:
-
-.. code-block:: c++
-
-	void f() {
-		final T value = ...;
-		value == ...; // WARNING: result of '==' is unused
-	}
-
-The only remaining benefit of ``final`` is for documentation purposes, however its name is confusing. Given that ``final`` seems to offer little benefit, this proposal suggests to remove it.
 
 ref_t::address
 ++++++++++++++

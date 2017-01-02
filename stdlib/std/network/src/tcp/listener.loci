@@ -5,7 +5,7 @@ export std.network 0.1.0 {
 		namespace tcp {
 			
 			class listener(int handle, int nextHandle, endpoint nextPeer) {
-				static create(final port_t port) {
+				static create(port_t port) {
 					const int handle = std_tcp_socket();
 					if (handle < 0) {
 						throw socket_failed(-handle);

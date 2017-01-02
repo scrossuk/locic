@@ -214,11 +214,7 @@ namespace locic {
 						
 						astVarNode->setConstructType(varType);
 						
-						// 'final' keyword uses a different lval type (which doesn't support
-						// moving or re-assignment).
-						const bool isFinalLval = astVarNode->isFinal();
-						
-						const auto lvalType = makeLvalType(context, isFinalLval, varType);
+						const auto lvalType = makeLvalType(context, varType);
 						
 						astVarNode->setLvalType(lvalType);
 						
@@ -314,13 +310,9 @@ namespace locic {
 					const auto varType = TypeResolver(context).resolveType(astVarNode->declType());
 					astVarNode->setConstructType(varType);
 					
-					// 'final' keyword uses a different lval type (which doesn't support
-					// moving or re-assignment).
-					const bool isFinalLval = astVarNode->isFinal();
-					
 					// Variables in catch clauses don't use lvalues.
 					const auto lvalType = (varKind != Debug::VarInfo::VAR_EXCEPTION_CATCH) ?
-						makeLvalType(context, isFinalLval, varType) : varType;
+						makeLvalType(context, varType) : varType;
 					
 					astVarNode->setLvalType(lvalType);
 					

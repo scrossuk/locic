@@ -17,8 +17,8 @@ In this case, the meaning of the second argument to the method is unclear. Simil
 .. code-block:: c++
 
 	void function2(){
-		final auto haystack = "Hello world!";
-		final auto needle = "world";
+		const auto haystack = "Hello world!";
+		const auto needle = "world";
 		
 		// Is it...
 		bool found = canFindString(needle, haystack);

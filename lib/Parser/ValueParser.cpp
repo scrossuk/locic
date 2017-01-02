@@ -116,7 +116,6 @@ namespace locic {
 					return true;
 				// Specify all the 'false' cases so that any new
 				// tokens will have to be carefully added here.
-				case Token::FINAL:
 				case Token::MUTABLE:
 				case Token::DOUBLE_COLON:
 				case Token::DOUBLE_AMPERSAND:

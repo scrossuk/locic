@@ -102,17 +102,13 @@ namespace locic {
 			}
 			
 			const bool isUnused = scanOptionalToken(Token::UNUSED);
-			const bool isFinal = scanOptionalToken(Token::FINAL);
 			const bool isOverrideConst = scanOptionalToken(Token::OVERRIDE_CONST);
 			
-			if (isUnused || isFinal || isOverrideConst) {
+			if (isUnused || isOverrideConst) {
 				// Simple case: this isn't a pattern.
 				auto typeVar = parseTypeVar();
 				if (isUnused) {
 					typeVar->setMarkedUnused();
-				}
-				if (isFinal) {
-					typeVar->setFinal();
 				}
 				if (isOverrideConst) {
 					typeVar->setOverrideConst();

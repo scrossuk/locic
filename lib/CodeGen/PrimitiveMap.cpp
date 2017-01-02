@@ -4,7 +4,6 @@
 #include <locic/CodeGen/PrimitiveMap.hpp>
 #include <locic/CodeGen/Primitives/BoolPrimitive.hpp>
 #include <locic/CodeGen/Primitives/CompareResultPrimitive.hpp>
-#include <locic/CodeGen/Primitives/FinalLvalPrimitive.hpp>
 #include <locic/CodeGen/Primitives/FloatPrimitive.hpp>
 #include <locic/CodeGen/Primitives/FunctionPtrPrimitive.hpp>
 #include <locic/CodeGen/Primitives/NullPrimitive.hpp>
@@ -98,9 +97,6 @@ namespace locic {
 				}
 				case PrimitiveValueLval: {
 					return new ValueLvalPrimitive(typeInstance);
-				}
-				case PrimitiveFinalLval: {
-					return new FinalLvalPrimitive(typeInstance);
 				}
 				case PrimitiveTypename: {
 					return new TypenamePrimitive(typeInstance);

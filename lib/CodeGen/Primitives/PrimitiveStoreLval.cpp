@@ -25,7 +25,7 @@ namespace locic {
 			IREmitter irEmitter(function);
 			
 			const auto id = varType->primitiveID();
-			if (id == PrimitiveValueLval || id == PrimitiveFinalLval) {
+			if (id == PrimitiveValueLval) {
 				irEmitter.emitMoveStore(value, var,
 				                        varType->templateArguments().front().typeRefType());
 			} else {

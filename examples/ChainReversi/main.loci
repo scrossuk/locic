@@ -14,17 +14,17 @@ double SRandom() {
 }
 
 void initializeBoard(CR::Board& board) {
-	for (auto x: range<size_t>(0, board.size().width)) {
-		for (auto y: range<size_t>(0, board.size().height)) {
+	for (const auto x: range<size_t>(0, board.size().width)) {
+		for (const auto y: range<size_t>(0, board.size().height)) {
 			board[CR::Position(x, y)] = CR::Empty();
 		}
 	}
 	
 	const bool position = (Random() > 0.5);
 	
-	final auto width = board.size().width;
-	final auto height = board.size().height;
-
+	const auto width = board.size().width;
+	const auto height = board.size().height;
+	
 	// Add initial positions.
 	board[CR::Position(width / 2u - 1u, height / 2u - 1u)] = position ? CR::Red() : CR::Blue();
 	board[CR::Position(width / 2u, height / 2u)]           = position ? CR::Red() : CR::Blue();
@@ -33,9 +33,9 @@ void initializeBoard(CR::Board& board) {
 }
 
 void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& player1) {
-	final auto boardSize = CR::BoardSize(8u, 8u);
-	final auto initialColour = Random() > 0.5 ? CR::Red() : CR::Blue();
-	final auto board = CR::Board(boardSize, initialColour);
+	const auto boardSize = CR::BoardSize(8u, 8u);
+	const auto initialColour = Random() > 0.5 ? CR::Red() : CR::Blue();
+	auto board = CR::Board(boardSize, initialColour);
 	
 	CR::Value lastWinner = CR::Red();
 	
@@ -49,7 +49,7 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 	
 	auto clock = sf::Clock();
 	
-	final auto font = sf::Font(C"Data/font.ttf");
+	auto font = sf::Font(C"Data/font.ttf");
 	
 	while (renderWindow.isOpen()) {
 		while (true) {
@@ -72,7 +72,7 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 		if (playing) {
 			if (!board.isComplete()) {
 				if (!currentPlayer) {
-					auto optionalPosition = player0.performMove(board);
+					const auto optionalPosition = player0.performMove(board);
 					
 					switch (optionalPosition) {
 						case CR::Some(CR::Position position) {
@@ -82,7 +82,7 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 						case CR::None() { }
 					}
 				} else {
-					auto optionalPosition = player1.performMove(board);
+					const auto optionalPosition = player1.performMove(board);
 					
 					switch (optionalPosition) {
 						case CR::Some(CR::Position position) {
@@ -116,15 +116,15 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 		// Clear screen to black.
 		renderWindow.clear(sf::Color(0u, 0u, 0u, 255u));
 		
-		for (auto x: range<size_t>(0, board.size().width)) {
-			for (auto y: range<size_t>(0, board.size().height)) {
+		for (const auto x: range<size_t>(0, board.size().width)) {
+			for (const auto y: range<size_t>(0, board.size().height)) {
 				auto backgroundCircle = sf::CircleShape();
 				backgroundCircle.setRadius(45.0f);
 				backgroundCircle.setFillColor(sf::Color(20u, 20u, 20u, 255u));
 				backgroundCircle.setPosition(sf::Vector2f(x.cast<float>() * 100.0f + 5.0f, y.cast<float>() * 100.0f + 5.0f));
 				renderWindow.drawCircle(backgroundCircle);
 				
-				final const auto position = CR::Position(x, y);
+				const auto position = CR::Position(x, y);
 				
 				auto foregroundCircle = sf::CircleShape();
 				foregroundCircle.setRadius(40.0f);
@@ -175,18 +175,18 @@ void playGame(sf::RenderWindow& renderWindow, CR::Player& player0, CR::Player& p
 				}
 			}
 			
-			final const auto textLocalRect = winnerText.getLocalBounds();
+			const auto textLocalRect = winnerText.getLocalBounds();
 			winnerText.setOrigin(sf::Vector2f(textLocalRect.topLeft.x + textLocalRect.size.x / 2.0f,
 					textLocalRect.topLeft.y + textLocalRect.size.y / 2.0f));
 			
 			winnerText.setPosition(sf::Vector2f(400.0f, 400.0f));
 			
-			final const auto textGlobalRect = winnerText.getGlobalBounds();
+			const auto textGlobalRect = winnerText.getGlobalBounds();
 			
 			const float extraWidth = textGlobalRect.size.x * 0.5f;
 			const float extraHeight = textGlobalRect.size.y * 0.5f;
 			
-			final auto winnerTextBackground = sf::RectangleShape();
+			auto winnerTextBackground = sf::RectangleShape();
 			winnerTextBackground.setSize(sf::Vector2f(textGlobalRect.size.x + extraWidth, textGlobalRect.size.y + extraHeight));
 			winnerTextBackground.setPosition(sf::Vector2f(textGlobalRect.topLeft.x - extraWidth / 2.0f,
 				textGlobalRect.topLeft.y - extraHeight / 2.0f));
@@ -214,7 +214,7 @@ CR::Player& getPlayer(const std::string& playerString, CR::AIPlayer& aiPlayer, C
 
 // Entry point.
 export int main(int argc, ubyte ** argv) {
-	final auto usage = "chainReversi [human|ai] [human|ai] (e.g. chainReversi human ai)";
+	auto usage = "chainReversi [human|ai] [human|ai] (e.g. chainReversi human ai)";
 	
 	if (argc != 3) {
 		printf(C"Incorrect number of arguments! You need to give 2 arguments:\n");
@@ -232,8 +232,8 @@ export int main(int argc, ubyte ** argv) {
 		auto humanPlayer = CR::HumanPlayer(renderWindow);
 		auto aiPlayer = CR::AIPlayer(renderWindow);
 		
-		final auto& player0 = getPlayer(std::string::cstring(argv[1u]), aiPlayer, humanPlayer);
-		final auto& player1 = getPlayer(std::string::cstring(argv[2u]), aiPlayer, humanPlayer);
+		auto& player0 = getPlayer(std::string::cstring(argv[1u]), aiPlayer, humanPlayer);
+		auto& player1 = getPlayer(std::string::cstring(argv[2u]), aiPlayer, humanPlayer);
 		
 		playGame(renderWindow, player0, player1);
 	} catch (InvalidPlayerError error) {

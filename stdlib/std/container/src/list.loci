@@ -107,7 +107,7 @@ export std.container 0.1.0 {
 			}
 			
 			void push_front(T value) require(movable<T>) {
-				final auto new_node = new_raw<list_node<T>>(list_node<T>(null, @begin, move value));
+				auto new_node = new_raw<list_node<T>>(list_node<T>(null, @begin, move value));
 				if (self.empty()) {
 					@begin = new_node;
 					@end = new_node;
@@ -135,7 +135,7 @@ export std.container 0.1.0 {
 			}
 			
 			void push_back(T value) require(movable<T>) {
-				final auto new_node = new_raw<list_node<T>>(list_node<T>(@end, null, move value));
+				auto new_node = new_raw<list_node<T>>(list_node<T>(@end, null, move value));
 				if (self.empty()) {
 					@begin = new_node;
 					@end = new_node;

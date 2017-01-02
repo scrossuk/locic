@@ -120,7 +120,7 @@ namespace CR {
 		ssize_t cy = y.signedValue() + yi;
 		
 		while (cx >= 0 && cx < board.size().width.signedValue() && cy >= 0 && cy < board.size().height.signedValue()) {
-			final const auto position = Position(cx.unsignedValue(), cy.unsignedValue());
+			const auto position = Position(cx.unsignedValue(), cy.unsignedValue());
 			
 			if (board[position] == board.opponent()) {
 				flagOpponent = true;
@@ -147,7 +147,7 @@ namespace CR {
 		ssize_t cy = y.signedValue() + yi;
 		
 		while (cx >= 0 && cx < board.size().width.signedValue() && cy >= 0 && cy < board.size().height.signedValue()) {
-			final const auto position = Position(cx.unsignedValue(), cy.unsignedValue());
+			const auto position = Position(cx.unsignedValue(), cy.unsignedValue());
 			
 			if (board[position] == board.opponent()) {
 				board[position] = board.player();

@@ -26,21 +26,21 @@ namespace CR {
 			unsigned long bestQuality = 0u;
 			auto bestPosition = Position(0u, 0u);
 			
-			final auto analysis = BoardAnalysis(board);
+			auto analysis = BoardAnalysis(board);
 			
 			for (auto xi: range<size_t>(0, 8)) {
 				for (auto yi: range<size_t>(0, 8)) {
-					final auto position = Position(xi, yi);
+					auto position = Position(xi, yi);
 					if (!board.isValid(position)) {
 						continue;
 					}
 					
-					final auto boardCopy = board.copy();
+					auto boardCopy = board.copy();
 					boardCopy.placeMove(position);
 					
 					unsigned long quality = 10000u;
 					
-					final auto copyAnalysis = BoardAnalysis(boardCopy);
+					auto copyAnalysis = BoardAnalysis(boardCopy);
 					
 					if (copyAnalysis.hasWinner()) {
 						// Opponent has a winner -> this move is bad.

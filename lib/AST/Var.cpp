@@ -29,7 +29,7 @@ namespace locic {
 		}
 		
 		Var::Var(const Kind pKind, Node<TypeDecl> argType)
-		: kind_(pKind), isFinal_(false), isOverrideConst_(false),
+		: kind_(pKind), isOverrideConst_(false),
 		isMarkedUnused_(false), isUsed_(false), index_(-1),
 		type_(std::move(argType)), constructType_(nullptr),
 		lvalType_(nullptr) { }
@@ -73,16 +73,6 @@ namespace locic {
 		const Node<VarList>& Var::varList() const {
 			assert(isPattern());
 			return patternVar_.varList;
-		}
-		
-		bool Var::isFinal() const {
-			assert(isNamed());
-			return isFinal_;
-		}
-		
-		void Var::setFinal() {
-			assert(isNamed());
-			isFinal_ = true;
 		}
 		
 		bool Var::isOverrideConst() const {

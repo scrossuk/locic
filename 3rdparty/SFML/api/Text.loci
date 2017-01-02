@@ -86,12 +86,12 @@ namespace sf {
 		}
 		
 		FloatRect getLocalBounds() const {
-			final auto rect = sfText_getLocalBounds(@text);
+			auto rect = sfText_getLocalBounds(@text);
 			return FloatRect(Vector2f(rect.left, rect.top), Vector2f(rect.width, rect.height));
 		}
 		
 		FloatRect getGlobalBounds() const {
-			final auto rect = sfText_getGlobalBounds(@text);
+			auto rect = sfText_getGlobalBounds(@text);
 			return FloatRect(Vector2f(rect.left, rect.top), Vector2f(rect.width, rect.height));
 		}
 		

@@ -49,9 +49,6 @@ namespace locic {
 			Node<VarList>& varList();
 			const Node<VarList>& varList() const;
 			
-			bool isFinal() const;
-			void setFinal();
-			
 			bool isOverrideConst() const;
 			void setOverrideConst();
 			
@@ -97,7 +94,6 @@ namespace locic {
 			Var(Kind pKind, Node<TypeDecl> type);
 			
 			Kind kind_;
-			bool isFinal_;
 			bool isOverrideConst_;
 			bool isMarkedUnused_;
 			bool isUsed_;

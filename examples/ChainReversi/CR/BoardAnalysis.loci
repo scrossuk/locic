@@ -64,12 +64,12 @@ namespace CR {
 		bool hasWinner() const {
 			for (auto x: range<size_t>(0, @board.size().width)) {
 				for (auto y: range<size_t>(0, @board.size().height)) {
-					final auto position = Position(x, y);
+					auto position = Position(x, y);
 					if (!@board.isValid(position)) {
 						continue;
 					}
 					
-					final auto boardCopy = @board.copy();
+					auto boardCopy = @board.copy();
 					boardCopy.placeMove(position);
 					if (boardCopy.isComplete()) {
 						return true;
@@ -85,12 +85,12 @@ namespace CR {
 			
 			for (auto x: range<size_t>(0, @board.size().width)) {
 				for (auto y: range<size_t>(0, @board.size().height)) {
-					final auto position = Position(x, y);
+					auto position = Position(x, y);
 					if (!@board.isValid(position)) {
 						continue;
 					}
 					
-					final auto boardCopy = @board.copy();
+					auto boardCopy = @board.copy();
 					boardCopy.placeMove(position);
 					if (boardCopy.isComplete()) {
 						winners.push_back(position);

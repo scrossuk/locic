@@ -14,7 +14,7 @@ namespace locic {
 		// Wraps the given type in a default implicit lval, unless
 		// the type is itself an lval (or some number of refs that lead
 		// to an lval).
-		const AST::Type* makeLvalType(Context& context, bool isFinal, const AST::Type* valueType);
+		const AST::Type* makeLvalType(Context& context, const AST::Type* valueType);
 		
 		AST::Value dissolveLval(Context& context, AST::Value lvalValue, const Debug::SourceLocation& location);
 		

@@ -19,7 +19,7 @@ export std.string 0.1.0 {
 			
 			static cstring(const ubyte * stringConstant) {
 				// Work out number of bytes until NULL terminator.
-				final auto length = strlen(stringConstant);
+				auto length = strlen(stringConstant);
 				
 				auto byteArray = std::varray<ubyte>();
 				
@@ -45,7 +45,7 @@ export std.string 0.1.0 {
 			}
 			
 			string add(const string& other) const {
-				final auto newLength = @length + other.length();
+				auto newLength = @length + other.length();
 				auto byteArray = std::varray<ubyte>();
 				
 				for (auto i: std::counter<size_t>(0u, @length, 1u)) {
@@ -96,8 +96,8 @@ export std.string 0.1.0 {
 			}
 			
 			compare_result_t compare(const string& other) const noexcept {
-				final size_t minLength = @length < other.length() ? @length : other.length();
-				final size_t maxLength = @length > other.length() ? @length : other.length();
+				size_t minLength = @length < other.length() ? @length : other.length();
+				size_t maxLength = @length > other.length() ? @length : other.length();
 				
 				size_t i = 0u;
 				while (i < maxLength) {
@@ -105,8 +105,8 @@ export std.string 0.1.0 {
 						return @length.compare(other.length());
 					}
 					
-					final ubyte a = self._data()[i];
-					final ubyte b = other._data()[i];
+					ubyte a = self._data()[i];
+					ubyte b = other._data()[i];
 					if (a != b) {
 						if (a < b) {
 							return compare_result_t.less_than();

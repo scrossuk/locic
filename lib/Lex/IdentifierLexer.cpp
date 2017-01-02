@@ -307,8 +307,6 @@ namespace locic {
 			switch (get().value()) {
 				case 'a':
 					return lexPossibleKeyword("false", Token::FALSEVAL);
-				case 'i':
-					return lexPossibleKeyword("final", Token::FINAL);
 				case 'l':
 					return lexPossibleKeyword("float", Token::FLOAT);
 				case 'o':

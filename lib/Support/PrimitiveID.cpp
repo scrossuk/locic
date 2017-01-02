@@ -62,7 +62,6 @@ namespace locic {
 		switch (value_) {
 			case PrimitivePtrLval:
 			case PrimitiveValueLval:
-			case PrimitiveFinalLval:
 				return true;
 			default:
 				return false;

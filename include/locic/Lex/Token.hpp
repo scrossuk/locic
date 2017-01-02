@@ -110,7 +110,6 @@ namespace locic {
 				DOUBLE_COLON,
 				VOID,
 				BOOL,
-				FINAL,
 				CONST,
 				MUTABLE,
 				OVERRIDE_CONST,
@@ -347,7 +346,6 @@ namespace locic {
 					case DOUBLE_COLON: return "DOUBLE_COLON";
 					case VOID: return "VOID";
 					case BOOL: return "BOOL";
-					case FINAL: return "FINAL";
 					case CONST: return "CONST";
 					case MUTABLE: return "MUTABLE";
 					case OVERRIDE_CONST: return "OVERRIDE_CONST";

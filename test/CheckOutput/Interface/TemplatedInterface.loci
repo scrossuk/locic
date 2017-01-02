@@ -43,7 +43,7 @@ interface ValueHolder {
 }
 
 void polymorphicPrint(ValueHolder<int>& holder) {
-	final int value = holder.getValue();
+	const int value = holder.getValue();
 	printf(C"polymorphicPrint: Value = %d\n", value);
 	holder.setValue(holder.getValue() * 2);
 }

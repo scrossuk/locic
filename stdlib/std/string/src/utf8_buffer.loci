@@ -19,7 +19,7 @@ export std.string 0.1.0 {
 				return @length;
 			}
 			
-			void append(final unichar character) {
+			void append(unichar character) {
 				@length += 1u;
 				
 				// Remove null terminator.

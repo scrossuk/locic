@@ -8,23 +8,23 @@ namespace CR {
 		OptionalPosition performMove(const Board& board) {
 			const auto leftButton = 0;
 			if (sf::Mouse::isButtonPressed(leftButton)) {
-				final auto mousePixelPos = sf::Mouse::getPosition(@window);
-				final auto mouseCoordsPos = @window.mapPixelToCoords(mousePixelPos);
-				final auto mousePos = sf::Vector2f(mouseCoordsPos.x / 800.0f, mouseCoordsPos.y / 800.0f);
+				auto mousePixelPos = sf::Mouse::getPosition(@window);
+				auto mouseCoordsPos = @window.mapPixelToCoords(mousePixelPos);
+				auto mousePos = sf::Vector2f(mouseCoordsPos.x / 800.0f, mouseCoordsPos.y / 800.0f);
 				
 				if (mousePos.x <= 0.0f || mousePos.y <= 0.0f || mousePos.x >= 1.0f || mousePos.y >= 1.0f) {
 					return None();
 				}
 				
-				final auto x = (mousePos.x * board.size().width.cast<float>()).cast<size_t>();
-				final auto y = (mousePos.y * board.size().height.cast<float>()).cast<size_t>();
+				auto x = (mousePos.x * board.size().width.cast<float>()).cast<size_t>();
+				auto y = (mousePos.y * board.size().height.cast<float>()).cast<size_t>();
 				
 				if (x >= board.size().width || y >= board.size().height) {
 					// Just in case...
 					return None();
 				}
 				
-				final auto position = Position(x, y);
+				auto position = Position(x, y);
 				
 				if (board.isValid(position)) {
 					return Some(position);

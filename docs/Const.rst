@@ -198,35 +198,6 @@ Not only is the syntax much simpler here but the semantics of transitive ``const
 
 This code would be valid in C++ but is *invalid* in Loci. The intention behind this approach is to provide behaviour that is clearer and more closely matches the intuition of developers.
 
-Final
------
-
-Consider the following code:
-
-.. code-block:: c++
-
-	void function() {
-		int i = 0;
-		const(int*) p = &i;
-		*p = 1;
-	}
-
-In this case we may have intended to use ``const`` to prevent accidental assignments to p, but in this case due to the transitivity of ``const`` we've also disabled assignments to the value it points-to.
-
-Fortunately the ``final`` keyword provides a way to prevent assignments to an lvalue without having to mark it ``const``. So the above code would become:
-
-.. code-block:: c++
-
-	void function() {
-		int i = 0;
-		final int* p = &i;
-		*p = 1;
-	}
-
-Now the code will compile, but any assignments to 'p' itself fails. The implementation of this keyword is to use a ``final_lval`` as the underlying lvalue type, which doesn't support assignment in any case, rather than ``value_lval`` (which does support assignment for non-``const`` types).
-
-Note that ``final`` is an lvalue qualifier (or 'variable qualifier') rather than a type qualifier, so doesn't affect Loci's type system in any way.
-
 Logical Const
 -------------
 

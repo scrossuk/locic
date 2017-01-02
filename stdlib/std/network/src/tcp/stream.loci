@@ -19,11 +19,11 @@ import ssize_t std_tcp_read(const int eventHandle, uint8_t* data, const size_t s
 import ssize_t std_tcp_write(const int eventHandle, const uint8_t* data, const size_t size) noexcept;
 import void std_tcp_close(const int eventHandle) noexcept;
 
-bool isWouldBlock(final int error) noexcept {
+bool isWouldBlock(int error) noexcept {
 	return std_tcp_iswouldblock(-error) != 0;
 }
 
-bool isInProgress(final int error) noexcept {
+bool isInProgress(int error) noexcept {
 	return std_tcp_isinprogress(-error) != 0;
 }
 

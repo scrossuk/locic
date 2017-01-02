@@ -50,7 +50,7 @@ namespace sf {
 		static Create (VideoMode videoMode, const ubyte* title) {
 			// TitleBar (1) + Resize (2) + Close (4)
 			// (And 8 would give FullScreen...)
-			final int style = 7;
+			int style = 7;
 			
 			return @(sfRenderWindow_create(sfVideoMode(videoMode.width, videoMode.height, videoMode.bitsPerPixel), title, style, null));
 		}
@@ -80,7 +80,7 @@ namespace sf {
 		}
 		
 		Vector2i getSize() const {
-			final auto size = sfRenderWindow_getSize(@window);
+			auto size = sfRenderWindow_getSize(@window);
 			return Vector2i(size.x, size.y);
 		}
 		
@@ -89,9 +89,9 @@ namespace sf {
 		}
 		
 		Vector2f mapPixelToCoords(Vector2i position) const {
-			final auto pixelPosition = sfVector2i(position.x, position.y);
-			final auto view = sfRenderWindow_getView(@window);
-			final auto coordsPosition = sfRenderWindow_mapPixelToCoords(@window, pixelPosition, view);
+			auto pixelPosition = sfVector2i(position.x, position.y);
+			auto view = sfRenderWindow_getView(@window);
+			auto coordsPosition = sfRenderWindow_mapPixelToCoords(@window, pixelPosition, view);
 			return Vector2f(coordsPosition.x, coordsPosition.y);
 		}
 		

@@ -77,7 +77,7 @@ void runThreadsExample() {
 	
 	auto threadArray = std::varray<std::concurrency::thread>();
 	
-	final size_t NUM_THREADS = 20u;
+	size_t NUM_THREADS = 20u;
 	
 	for (auto i: range<size_t>(0, NUM_THREADS)) {
 		threadArray.push_back(std::new_thread<example_thread>(example_thread(mutex, logMutex, i)));
