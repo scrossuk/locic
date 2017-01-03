@@ -12,7 +12,7 @@ datatype TestDatatype2(int value, TestDatatype1 object);
 datatype TestDatatype3(TestDatatype2 object);
 
 TestDatatype3 doImplicitCopy(TestDatatype3 value) {
-	// CHECK: .loci:16:2: error: Unable to copy type 'TestDatatype3' because it doesn't have a valid 'implicitcopy' method, in cast from type ref<TestDatatype3>(TestDatatype3&) to type TestDatatype3.
+	// CHECK: .loci:16:2: error: unable to copy type 'TestDatatype3' because it doesn't have a valid 'implicitcopy' method, in cast from type 'TestDatatype3&' to type 'TestDatatype3'
 	return value;
 }
 

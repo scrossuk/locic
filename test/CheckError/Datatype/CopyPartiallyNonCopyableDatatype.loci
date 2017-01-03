@@ -8,7 +8,7 @@ class TestClass() {
 datatype TestDatatype(TestClass object);
 
 TestDatatype doImplicitCopy(TestDatatype value) {
-	// CHECK: .loci:12:2: error: Unable to copy type 'TestDatatype' because it doesn't have a valid 'implicitcopy' method, in cast from type ref<TestDatatype>(TestDatatype&) to type TestDatatype.
+	// CHECK: .loci:12:2: error: unable to copy type 'TestDatatype' because it doesn't have a valid 'implicitcopy' method, in cast from type 'TestDatatype&' to type 'TestDatatype'
 	return value;
 }
 
