@@ -264,15 +264,15 @@ namespace locic {
 			
 		};
 		
-		class ReturnTypeNotMovableDiag: public Error {
+		class ReturnTypeIsUnsizedDiag: public Error {
 		public:
-			ReturnTypeNotMovableDiag(const AST::Type* const type,
-			                         const Name& functionName)
+			ReturnTypeIsUnsizedDiag(const AST::Type* const type,
+			                        const Name& functionName)
 			: typeString_(type->toDiagString()),
 			functionNameString_(functionName.toString(/*addPrefix=*/false)) { }
 			
 			std::string toString() const {
-				return makeString("return type '%s' of function '%s' is not movable",
+				return makeString("return type '%s' of function '%s' does not have a size",
 				                  typeString_.c_str(), functionNameString_.c_str());
 			}
 			
@@ -324,9 +324,10 @@ namespace locic {
 		void ConvertFunctionDef(Context& context, const AST::Node<AST::Function>& function) {
 			const auto functionType = function->type();
 			
-			if (!TypeCapabilities(context).supportsMove(functionType.returnType())) {
-				context.issueDiag(ReturnTypeNotMovableDiag(functionType.returnType(),
-				                                           function->fullName()),
+			if (!TypeCapabilities(context).isSized(functionType.returnType())) {
+				// TODO: also check that the type is not abstract.
+				context.issueDiag(ReturnTypeIsUnsizedDiag(functionType.returnType(),
+				                                          function->fullName()),
 				                  function->returnType().location());
 			}
 			

@@ -1,0 +1,12 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+template <typename T>
+// CHECK: .loci:6:8: error: return type 'T' of function 'f' does not have a size
+import T f();
+
+template <sized_type T>
+// CHECK-NOT: .loci:11:8: error: return type 'T' of function 'g' does not have a size
+import T g();
+
+// CHECK: 1 error generated.

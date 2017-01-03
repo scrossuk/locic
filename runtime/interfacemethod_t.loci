@@ -1,7 +1,7 @@
 
 // TODO: implement variadic templates!
 
-template <bool IsNoExcept, movable ReturnType>
+template <bool IsNoExcept, sized_type ReturnType>
 __primitive interfacemethod0_t {
 	static interfacemethod0_t<IsNoExcept, ReturnType> null() noexcept;
 	
@@ -20,7 +20,7 @@ __primitive interfacemethod0_t {
 	ReturnType call() const noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, movable ReturnType, typename Arg0>
+template <bool IsNoExcept, sized_type ReturnType, typename Arg0>
 __primitive interfacemethod1_t {
 	static interfacemethod1_t<IsNoExcept, ReturnType, Arg0> null() noexcept;
 	
@@ -39,7 +39,7 @@ __primitive interfacemethod1_t {
 	ReturnType call(Arg0 arg0) const noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1>
+template <bool IsNoExcept, sized_type ReturnType, typename Arg0, typename Arg1>
 __primitive interfacemethod2_t {
 	static interfacemethod2_t<IsNoExcept, ReturnType, Arg0, Arg1> null() noexcept;
 	
@@ -58,7 +58,7 @@ __primitive interfacemethod2_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1) const noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2>
+template <bool IsNoExcept, sized_type ReturnType, typename Arg0, typename Arg1, typename Arg2>
 __primitive interfacemethod3_t {
 	static interfacemethod3_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> null() noexcept;
 	
@@ -77,7 +77,7 @@ __primitive interfacemethod3_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2) const noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
+template <bool IsNoExcept, sized_type ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3>
 __primitive interfacemethod4_t {
 	static interfacemethod4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> null() noexcept;
 	
@@ -96,7 +96,7 @@ __primitive interfacemethod4_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3) const noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
+template <bool IsNoExcept, sized_type ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4>
 __primitive interfacemethod5_t {
 	static interfacemethod5_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> null() noexcept;
 	
@@ -115,7 +115,7 @@ __primitive interfacemethod5_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4) const noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
+template <bool IsNoExcept, sized_type ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
 __primitive interfacemethod6_t {
 	static interfacemethod6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> null() noexcept;
 	
@@ -134,7 +134,7 @@ __primitive interfacemethod6_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5) const noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
+template <bool IsNoExcept, sized_type ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6>
 __primitive interfacemethod7_t {
 	static interfacemethod7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> null() noexcept;
 	
@@ -153,7 +153,7 @@ __primitive interfacemethod7_t {
 	ReturnType call(Arg0 arg0, Arg1 arg1, Arg2 arg2, Arg3 arg3, Arg4 arg4, Arg5 arg5, Arg6 arg6) const noexcept(IsNoExcept);
 }
 
-template <bool IsNoExcept, movable ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
+template <bool IsNoExcept, sized_type ReturnType, typename Arg0, typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5, typename Arg6, typename Arg7>
 __primitive interfacemethod8_t {
 	static interfacemethod8_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> null() noexcept;
 	

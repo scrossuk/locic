@@ -1,39 +1,31 @@
-template <typename T>
-require(movable<notag(T)>)
+template <sized_type T>
 interface copyable_t {
-	notag(T) copy() const;
+	T copy() const;
 }
 
-template <typename T>
-require(movable<notag(T)>)
-using copyable = movable<notag(T)> and T : copyable_t<T>;
+template <sized_type T>
+using copyable = sized_type<T> and T : copyable_t<notag(T)>;
 
-template <typename T>
-require(movable<notag(T)>)
+template <sized_type T>
 interface implicit_copyable_t {
-	notag(T) implicit_copy() const;
+	T implicit_copy() const;
 }
 
-template <typename T>
-require(movable<notag(T)>)
-using implicit_copyable = movable<notag(T)> and T : implicit_copyable_t<T>;
+template <sized_type T>
+using implicit_copyable = sized_type<T> and T : implicit_copyable_t<notag(T)>;
 
-template <typename T>
-require(movable<notag(T)>)
+template <sized_type T>
 interface noexcept_copyable_t {
-	notag(T) copy() const noexcept;
+	T copy() const noexcept;
 }
 
-template <typename T>
-require(movable<notag(T)>)
-using noexcept_copyable = movable<notag(T)> and T : noexcept_copyable_t<T>;
+template <sized_type T>
+using noexcept_copyable = sized_type<T> and T : noexcept_copyable_t<notag(T)>;
 
-template <typename T>
-require(movable<notag(T)>)
+template <sized_type T>
 interface noexcept_implicit_copyable_t {
-	notag(T) implicit_copy() const noexcept;
+	T implicit_copy() const noexcept;
 }
 
-template <typename T>
-require(movable<notag(T)>)
-using noexcept_implicit_copyable = movable<notag(T)> and T : noexcept_implicit_copyable_t<T>;
+template <sized_type T>
+using noexcept_implicit_copyable = sized_type<T> and T : noexcept_implicit_copyable_t<notag(T)>;

@@ -3,7 +3,7 @@
 
 struct OpaqueStruct;
 
-// CHECK: .loci:7:8: error: return type 'OpaqueStruct' of function 'f' is not movable
+// CHECK: .loci:7:8: error: return type 'OpaqueStruct' of function 'f' does not have a size
 import OpaqueStruct f();
 
 // CHECK: 1 error generated.

@@ -54,6 +54,8 @@ namespace locic {
 			
 			bool supportsCall(const AST::Type* const type);
 			
+			bool isSized(const AST::Type* const type);
+			
 		private:
 			Context& context_;
 			

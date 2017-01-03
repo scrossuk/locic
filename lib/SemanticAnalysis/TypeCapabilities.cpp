@@ -101,28 +101,28 @@ namespace locic {
 		
 		bool
 		TypeCapabilities::supportsImplicitCopy(const AST::Type* const type) {
-			return supportsMove(type->resolveAliases()->withoutTags()) &&
+			return isSized(type->resolveAliases()->withoutTags()) &&
 				checkCapability(type, context_.getCString("implicit_copyable_t"),
 				                { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool
 		TypeCapabilities::supportsNoExceptImplicitCopy(const AST::Type* const type) {
-			return supportsMove(type->resolveAliases()->withoutTags()) &&
+			return isSized(type->resolveAliases()->withoutTags()) &&
 				checkCapability(type, context_.getCString("noexcept_implicit_copyable_t"),
 				                { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool
 		TypeCapabilities::supportsExplicitCopy(const AST::Type* const type) {
-			return supportsMove(type->resolveAliases()->withoutTags()) &&
+			return isSized(type->resolveAliases()->withoutTags()) &&
 				checkCapability(type, context_.getCString("copyable_t"),
 				                { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool
 		TypeCapabilities::supportsNoExceptExplicitCopy(const AST::Type* const type) {
-			return supportsMove(type->resolveAliases()->withoutTags()) &&
+			return isSized(type->resolveAliases()->withoutTags()) &&
 				checkCapability(type, context_.getCString("noexcept_copyable_t"),
 				                { type->resolveAliases()->withoutTags() });
 		}
@@ -148,6 +148,11 @@ namespace locic {
 		bool
 		TypeCapabilities::supportsCall(const AST::Type* const type) {
 			return checkCapability(type, context_.getCString("callable"), {});
+		}
+		
+		bool
+		TypeCapabilities::isSized(const AST::Type* const type) {
+			return checkCapability(type, context_.getCString("sized_type_t"), {});
 		}
 		
 	}

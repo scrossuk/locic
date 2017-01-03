@@ -1,12 +1,16 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
+class TestClass(int value) { }
+
+static assert movable<TestClass>;
+
 // Class members can't (or at least, shouldn't)
 // be const since this affects the movability
 // of the object.
-class TestClass(const int value) { }
+class ConstTestClass(const int value) { }
 
-// CHECK: .loci:10:8: error: return type 'TestClass' of function 'getValue' is not movable
-import TestClass getValue();
+// CHECK: .loci:14:15: error: static assert predicate evaluates to false
+static assert movable<ConstTestClass>;
 
 // CHECK: 1 error generated.

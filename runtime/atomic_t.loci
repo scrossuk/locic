@@ -12,15 +12,13 @@ interface atomic_decrementable_t {
 template <typename T>
 using atomic_decrementable = T : atomic_decrementable_t;
 
-template <typename T>
-require(movable<T>)
+template <sized_type T>
 interface atomic_loadable_t {
 	T atomic_load() const;
 }
 
-template <typename T>
-require(movable<T>)
-using atomic_loadable = movable<T> and T : atomic_loadable_t<T>;
+template <sized_type T>
+using atomic_loadable = sized_type<T> and T : atomic_loadable_t<T>;
 
 template <typename T>
 interface atomic_storable_t {
@@ -32,7 +30,7 @@ using atomic_storable = T : atomic_storable_t<T>;
 
 template <typename T>
 __primitive atomic_t {
-	static atomic_t<T> create(T value) noexcept require(movable<T>);
+	static atomic_t<T> create(T value) noexcept require(sized_type<T>);
 	
 	T implicitcast() const require(atomic_loadable<T>);
 	

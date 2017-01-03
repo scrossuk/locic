@@ -1,9 +1,7 @@
-template <typename T>
-require(movable<T>)
+template <sized_type T>
 interface default_constructible_t {
 	static T create();
 }
 
-template <typename T>
-require(movable<T>)
-using default_constructible = movable<T> and T : default_constructible_t<T>;
+template <sized_type T>
+using default_constructible = sized_type<T> and T : default_constructible_t<T>;
