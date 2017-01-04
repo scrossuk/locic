@@ -18,12 +18,35 @@ namespace locic {
 		public:
 			TypeInfo(Module& module);
 			
+			/**
+			 * \brief Query whether type is passed by value.
+			 * 
+			 * Types will be passed by value if:
+			 * 
+			 * 1. Their size is known in all modules - If a module
+			 *    doesn't know a type's size at compile-time it
+			 *    can't pass/return by value.
+			 * 2. They don't have a custom move method - Rather than
+			 *    emitting raw loads/stores the compiler must call
+			 *    the move method.
+			 */
 			bool canPassByValue(const AST::Type* type) const;
 			
+			/**
+			 * \brief Query whether a type's size is always known.
+			 * 
+			 * Some types, such as primitives, structs, etc. have a
+			 * compile-time known size in all modules. This needs to
+			 * be queried to determine if they can be passed by
+			 * value.
+			 */
 			bool isSizeAlwaysKnown(const AST::Type* type) const;
 			
 			bool isObjectSizeAlwaysKnown(const AST::TypeInstance& typeInstance) const;
 			
+			/**
+			 * \brief Query whether a type's size is known in this module.
+			 */
 			bool isSizeKnownInThisModule(const AST::Type* type) const;
 			
 			bool isObjectSizeKnownInThisModule(const AST::TypeInstance& typeInstance) const;
