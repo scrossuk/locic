@@ -50,7 +50,7 @@ A live state:
 * Is a 'normal' state for the object, as might be returned from a constructor.
 * Is valid for calling any methods.
 * Will have any user-specified destructor invoked.
-* Will have any user-specified ``__moveto`` method invoked.
+* Will have any user-specified ``__move`` method invoked.
 
 An object memory slot is in a live state when it has a 'resident' object (i.e. an object is stored in it). In these cases the ``__islive`` method will return ``true``.
 
@@ -62,7 +62,7 @@ A dead state:
 * Is an 'empty' slot value obtained after moving an object out of the slot.
 * Is only defined for calling :doc:`Lifetime Methods <LifetimeMethods>`.
 * Will **not** have any user-specified destructor invoked.
-* Will **not** have any user-specified ``__moveto`` method invoked.
+* Will **not** have any user-specified ``__move`` method invoked.
 
 An object memory slot in a live state can be forced into a dead state by invoking ``__setdead``. **Note that this will NOT invoke the destructor.**
 
@@ -84,7 +84,7 @@ An invalid state:
 * Is a value of the memory occupied by the object which can never represent a usable state.
 * Is only defined for calling :doc:`Lifetime Methods <LifetimeMethods>`.
 * Will **not** have any user-specified destructor invoked.
-* Will **not** have any user-specified ``__moveto`` method invoked.
+* Will **not** have any user-specified ``__move`` method invoked.
 
 Objects are not required to have any invalid states, however invalid states can be useful to allow an outer parent object (which has the object as a member) to use the object's invalid state to mark its own dead state. For example:
 

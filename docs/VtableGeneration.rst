@@ -235,7 +235,7 @@ Remove const from template type
 
 This code attempts to call the ``replicate()`` method of the ``Replicator`` class, for which it is using ``const<false>(T)`` to get a non-const type equivalent of ``T``.
 
-If it worked, this code would break vtables since the compiler is only required to generate a vtable for ``const Replicator``. In particular, this means it doesn't have to add the :ref:`__moveto method <customising-move-operations>`, which may be called by ``f()``.
+If it worked, this code would break vtables since the compiler is only required to generate a vtable for ``const Replicator``. In particular, this means it doesn't have to add the :ref:`__move method <customising-move-operations>`, which may be called by ``f()``.
 
 Fortunately the code is broken because ``const`` is :ref:`cumulative <cumulative-const>`, so ``const<false> T`` is actually equivalent to ``T``. In fact ``const`` is also :ref:`relative <relative-const>`, so ``f()`` sees ``T`` as being non-``const`` and hence it doesn't make sense to 'remove' ``const`` from ``T``.
 
@@ -253,4 +253,4 @@ The code can be fixed by passing the non-``const`` type into ``f()``:
 		return f<Replicator>(replicator);
 	}
 
-In this case we generate a vtable for ``Replicator``, which will contain the ``__moveto`` method.
+In this case we generate a vtable for ``Replicator``, which will contain the ``__move`` method.

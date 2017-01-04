@@ -44,32 +44,32 @@ The only purpose of dead states is to ensure we only invoke user-specified move 
 
 Hence it's possible to invoke ``__setdead`` on a memory slot, but to still have ``__islive`` subsequently return ``true``.
 
-Further, combined with the fact ``__setdead`` is **not** recursive, calling ``__setdead`` on an object is **not** sufficient to ensure that any subsequent calls to ``__moveto`` or ``__destroy`` have no effect.
+Further, combined with the fact ``__setdead`` is **not** recursive, calling ``__setdead`` on an object is **not** sufficient to ensure that any subsequent calls to ``__move`` or ``__destroy`` have no effect.
 
-moveto
-------
+move
+----
 
 .. code-block:: c++
 
-	void __moveto(void* dest, size_t offset) noexcept;
+	T __move() noexcept;
 
-``__moveto`` moves the the object into another memory slot, at location ``dest + offset``. The ``dest`` and ``offset`` arguments are provided, rather a single destination pointer argument, because it allows the object to adjust internal pointers. ``__moveto`` **is** a recursive operation, so member objects will be moved to the destination.
+``__move`` returns an object moved from the current memory slot. Due to the Loci ABI ``__move`` will receive two pointers: the ``this`` pointer (the source) and a return value pointer (the destination).
 
-This method consists of an outer part and an inner 'user' part; only the latter can be customised.
+``__move`` **is** a recursive operation, so member objects will be moved to the destination. This method consists of an outer part and an inner 'user' part; only the latter can be customised.
 
-The outer part of the ``__moveto`` method consists of:
+The outer part of the ``__move`` method consists of:
 
 .. code-block:: c++
 
 	if (object.__islive()) {
-		[user __moveto code]
+		[user __move code]
 		object.__setdead();
 	} else {
 		// Set the destination to dead state.
 		movedest.__setdead();
 	}
 
-This structure means that the user ``__moveto`` code is only executed when the object is in a live state, which means your ``__moveto`` implementation doesn't need to make any checks itself. It also means you don't have to put the source object into a dead state at the end of the move operation.
+This structure means that the user ``__move`` code is only executed when the object is in a live state, which means your ``__move`` implementation doesn't need to make any checks itself. It also means you don't have to put the source object into a dead state at the end of the move operation.
 
 destroy
 -------

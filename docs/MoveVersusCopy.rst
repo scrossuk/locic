@@ -137,7 +137,7 @@ Customising move operations per type
 
 (If you're looking to create a new lvalue type then see :doc:`LvaluesAndRvalues <LvaluesAndRvalues>` for an explanation of this.)
 
-In some (rare) cases a type has custom behaviour during a move operation, involving more logic than simply a *memcpy* from the source address to the destination address. Loci allows this to be customised by manually implementing a method called *__moveto*, which by default just performs a *memcpy*.
+In some (rare) cases a type has custom behaviour during a move operation, involving more logic than simply a ``memcpy`` from the source address to the destination address. Loci allows this to be customised by manually implementing a method called ``__move``, which by default just performs a ``memcpy``.
 
 Here's an example:
 
@@ -152,18 +152,16 @@ Here's an example:
 			return @value;
 		}
 		
-		void __moveto(void* ptr, size_t position) noexcept {
-			@value += 1;
-			@value.__moveto(ptr, position);
+		TestClass __move() noexcept {
+			return @(@value + 1);
 		}
 	}
 
-Here the class is essentially counting the number of times it is moved. Ultimately the *__moveto* method is what lvalue types call to transfer an object from one area in memory to another and customising this property therefore provides the developer additional flexibility for their classes.
+Here the class is essentially counting the number of times it is moved. Ultimately the ``__move`` method is what lvalue types call to transfer an object from one area in memory to another and customising this property therefore provides the developer additional flexibility for their classes.
 
 There are a few things to note about this:
 
-* The *__moveto* method must be *noexcept*, since move operations cannot throw.
-* The arguments are the pointer to the base object (which could contain our object) and the offset of our object within the base object.
+* The ``__move`` method must be *noexcept*, since move operations cannot throw.
 * The compiler is allowed to increase/reduce (typically the latter!) the number of move operations, affecting the behaviour of this program.
 
-It's generally advisable to **NOT** customise *__moveto* methods unless there is a clear need and the resulting behaviour is well understood.
+It's generally advisable to **not** customise ``__move`` methods unless there is a clear need and the resulting behaviour is well understood.

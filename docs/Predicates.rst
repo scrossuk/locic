@@ -108,7 +108,7 @@ In this case the compiler proves that the predicate for *restartObject* implies 
 Move predicates
 ~~~~~~~~~~~~~~~
 
-Move predicates are just require() predicates for the type's implicitly generated :ref:`__moveto method <customising-move-operations>`. For example:
+Move predicates are just require() predicates for the type's implicitly generated :ref:`__move method <customising-move-operations>`. For example:
 
 .. code-block:: c++
 
