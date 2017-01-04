@@ -12,10 +12,8 @@ size_t MT1N9pthread_tF1N8__sizeof() {
 	return sizeof(pthread_t);
 }
 
-void MT1N9pthread_tF1N8__moveto(pthread_t* thread,
-                                uint8_t* dest,
-                                size_t offset) {
-	memcpy((dest + offset), thread, sizeof(*thread));
+void MT1N9pthread_tF1N6__move(void* dest, pthread_t* thread) {
+	memcpy(dest, thread, sizeof(*thread));
 }
 
 void MT1N9pthread_tF1N4null(pthread_t* thread) {

@@ -12,10 +12,8 @@ size_t MT1N15pthread_mutex_tF1N8__sizeof() {
 	return sizeof(pthread_mutex_t);
 }
 
-void MT1N15pthread_mutex_tF1N8__moveto(pthread_mutex_t* mutex,
-                                        uint8_t* dest,
-                                        size_t offset) {
-	memcpy((dest + offset), mutex, sizeof(*mutex));
+void MT1N15pthread_mutex_tF1N6__move(void* dest, pthread_mutex_t* mutex) {
+	memcpy(dest, mutex, sizeof(*mutex));
 }
 
 void MT1N15pthread_mutex_tF1N4null(pthread_mutex_t* mutex) {

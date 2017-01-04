@@ -12,10 +12,8 @@ size_t MT1N14pthread_cond_tF1N8__sizeof() {
 	return sizeof(pthread_cond_t);
 }
 
-void MT1N14pthread_cond_tF1N8__moveto(pthread_cond_t* cond,
-                                       uint8_t* dest,
-                                       size_t offset) {
-	memcpy((dest + offset), cond, sizeof(*cond));
+void MT1N14pthread_cond_tF1N6__move(void* dest, pthread_cond_t* cond) {
+	memcpy(dest, cond, sizeof(*cond));
 }
 
 void MT1N14pthread_cond_tF1N4null(pthread_cond_t* cond) {
