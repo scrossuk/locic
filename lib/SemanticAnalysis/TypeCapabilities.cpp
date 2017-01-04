@@ -141,8 +141,9 @@ namespace locic {
 		
 		bool
 		TypeCapabilities::supportsMove(const AST::Type* const type) {
-			return checkCapabilityWithType(type, context_.getCString("movable_t"),
-			                               context_.typeBuilder().getMovableInterfaceType());
+			return isSized(type) &&
+				checkCapability(type, context_.getCString("movable_t"),
+				                { type->resolveAliases()->withoutTags() });
 		}
 		
 		bool
