@@ -111,6 +111,21 @@ namespace locic {
 			
 		};
 		
+		class CallReturnTypeIsUnsizedDiag: public Error {
+		public:
+			CallReturnTypeIsUnsizedDiag(const AST::Type* const type)
+			: typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("return type '%s' of function call does not have a size",
+				                  typeString_.c_str());
+			}
+			
+		private:
+			std::string typeString_;
+			
+		};
+		
 		AST::Value CallValue(Context& context, AST::Value rawValue, HeapArray<AST::Value> args, const Debug::SourceLocation& location) {
 			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
 			
@@ -146,6 +161,12 @@ namespace locic {
 					                                            args.size(), typeList.size()),
 					                  location);
 				}
+			}
+			
+			if (!TypeCapabilities(context).isSized(functionType.returnType())) {
+				// TODO: also check that the type is not abstract.
+				context.issueDiag(CallReturnTypeIsUnsizedDiag(functionType.returnType()),
+				                  location);
 			}
 			
 			return addDebugInfo(AST::Value::Call(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location)), location);
