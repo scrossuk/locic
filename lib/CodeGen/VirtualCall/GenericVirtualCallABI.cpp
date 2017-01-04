@@ -268,7 +268,17 @@ namespace locic {
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 			                                                         irEmitter.typeGenerator().getPtrType());
 			
-			const auto argInfo = getStubArgInfo();
+			const auto callArgInfo = getFunctionArgInfo(module_, functionType);
+			auto argInfo = getStubArgInfo();
+			if (callArgInfo.noMemoryAccess()) {
+				argInfo = argInfo.withNoMemoryAccess();
+			}
+			if (callArgInfo.noExcept()) {
+				argInfo = argInfo.withNoExcept();
+			}
+			if (callArgInfo.noReturn()) {
+				argInfo = argInfo.withNoReturn();
+			}
 			
 			// Put together the arguments.
 			llvm::SmallVector<llvm::Value*, 5> parameters;
