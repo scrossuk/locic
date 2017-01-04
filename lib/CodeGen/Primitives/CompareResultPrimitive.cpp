@@ -22,9 +22,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/CompareResultPrimitive.hpp>

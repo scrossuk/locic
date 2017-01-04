@@ -22,9 +22,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/PtrPrimitive.hpp>
@@ -116,20 +114,11 @@ namespace locic {
 				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY:
+				case METHOD_MOVE:
 				case METHOD_DEREF:
 					return methodOwner;
 				case METHOD_SETDEAD: {
 					// Do nothing.
-					return ConstantGenerator(module).getVoidUndef();
-				}
-				case METHOD_MOVETO: {
-					const auto moveToPtr = args[1].resolve(function);
-					const auto moveToPosition = args[2].resolve(function);
-					
-					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                               moveToPtr,
-					                                               moveToPosition);
-					irEmitter.emitRawStore(methodOwner, destPtr);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_INCREMENT: {

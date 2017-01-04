@@ -25,9 +25,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/FunctionPtrPrimitive.hpp>
@@ -192,22 +190,6 @@ namespace locic {
 				return ConstantGenerator(module).getBool(true);
 			}
 			
-			llvm::Value* genFunctionPtrMoveToMethod(Function& function, const AST::Type* const type, PendingResultArray args) {
-				auto& module = function.module();
-				IREmitter irEmitter(function);
-				
-				const auto methodOwner = args[0].resolveWithoutBind(function);
-				
-				const auto moveToPtr = args[1].resolve(function);
-				const auto moveToPosition = args[2].resolve(function);
-				
-				const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-				                                               moveToPtr,
-				                                               moveToPosition);
-				irEmitter.emitMoveStore(methodOwner, destPtr, type);
-				return ConstantGenerator(module).getVoidUndef();
-			}
-			
 			llvm::Value* genFunctionPtrCallMethod(Function& function, const AST::Type* type, PendingResultArray args, llvm::Value* hintResultValue) {
 				const auto functionValue = args[0].resolveWithoutBind(function);
 				
@@ -262,13 +244,12 @@ namespace locic {
 				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY:
+				case METHOD_MOVE:
 					return genFunctionPtrCopyMethod(function, std::move(args));
 				case METHOD_COMPARE:
 					return genFunctionPtrCompareMethod(function, std::move(args));
 				case METHOD_SETDEAD:
 					return genFunctionPtrSetDeadMethod(function);
-				case METHOD_MOVETO:
-					return genFunctionPtrMoveToMethod(function, type, std::move(args));
 				case METHOD_ISLIVE:
 					return genFunctionPtrIsLiveMethod(function);
 				case METHOD_CALL:

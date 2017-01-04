@@ -22,9 +22,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/TypenamePrimitive.hpp>
@@ -105,6 +103,7 @@ namespace locic {
 				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:
+				case METHOD_MOVE:
 					return args[0].resolveWithoutBind(function);
 				default:
 					llvm_unreachable("Unknown typename primitive method.");

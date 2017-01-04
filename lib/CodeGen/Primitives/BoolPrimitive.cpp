@@ -24,9 +24,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/BoolPrimitive.hpp>
@@ -122,19 +120,8 @@ namespace locic {
 					(void) args[0].resolveWithoutBind(function);
 					return constantGenerator.getVoidUndef();
 				}
-				case METHOD_MOVETO: {
-					const auto moveToPtr = args[1].resolve(function);
-					const auto moveToPosition = args[2].resolve(function);
-					const auto methodOwner = args[0].resolveWithoutBind(function);
-					
-					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                               moveToPtr,
-					                                               moveToPosition);
-					irEmitter.emitMoveStore(methodOwner,
-					                        destPtr,
-					                        type);
-					return constantGenerator.getVoidUndef();
-				}
+				case METHOD_MOVE:
+					return args[0].resolveWithoutBind(function);
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);

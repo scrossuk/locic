@@ -25,9 +25,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/UnsignedIntegerPrimitive.hpp>
@@ -230,6 +228,7 @@ namespace locic {
 				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:
+				case METHOD_MOVE:
 					return methodOwner;
 				case METHOD_ISZERO:
 					return irEmitter.emitI1ToBool(builder.CreateICmpEQ(methodOwner, zero));
@@ -467,17 +466,6 @@ namespace locic {
 					const auto operandCasted = builder.CreateIntCast(operand, selfType, isSigned);
 					
 					return builder.CreateLShr(methodOwner, operandCasted);
-				}
-				
-				case METHOD_MOVETO: {
-					const auto moveToPtr = args[1].resolve(function);
-					const auto moveToPosition = args[2].resolve(function);
-					
-					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                               moveToPtr,
-					                                               moveToPosition);
-					irEmitter.emitRawStore(methodOwner, destPtr);
-					return constantGenerator.getVoidUndef();
 				}
 				case METHOD_INRANGE: {
 					const auto leftOperand = args[1].resolve(function);

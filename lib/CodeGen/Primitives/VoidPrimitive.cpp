@@ -22,9 +22,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/VoidPrimitive.hpp>
@@ -88,7 +86,7 @@ namespace locic {
 			auto& module = irEmitter.module();
 			
 			switch (methodID) {
-				case METHOD_MOVETO:
+				case METHOD_MOVE:
 					return ConstantGenerator(module).getVoidUndef();
 				default:
 					llvm_unreachable("Unknown void_t primitive method.");

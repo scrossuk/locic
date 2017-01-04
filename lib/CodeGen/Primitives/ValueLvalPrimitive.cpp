@@ -23,9 +23,7 @@
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/LivenessEmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/ValueLvalPrimitive.hpp>
@@ -87,18 +85,12 @@ namespace locic {
 				IREmitter irEmitter(functionGenerator);
 				const auto objectVar = irEmitter.emitAlloca(targetType, hintResultValue);
 				LivenessEmitter(irEmitter).emitSetDeadCall(targetType, objectVar);
-				return irEmitter.emitMoveLoad(objectVar, targetType);
+				return irEmitter.emitLoad(objectVar, targetType);
 			}
 			
-			llvm::Value* genValueLvalCreateMethod(Function& functionGenerator, const AST::Type* const targetType,
+			llvm::Value* genValueLvalCreateMethod(Function& functionGenerator, const AST::Type* const /*targetType*/,
 			                                      PendingResultArray args, llvm::Value* const hintResultValue) {
-				IREmitter irEmitter(functionGenerator);
-				const auto objectVar = irEmitter.emitAlloca(targetType, hintResultValue);
-				const auto operand = args[0].resolve(functionGenerator, hintResultValue);
-				
-				// Store the object.
-				irEmitter.emitMoveStore(operand, objectVar, targetType);
-				return irEmitter.emitMoveLoad(objectVar, targetType);
+				return args[0].resolve(functionGenerator, hintResultValue);
 			}
 			
 			llvm::Value* genValueLvalCopyMethod(Function& functionGenerator,
@@ -121,14 +113,22 @@ namespace locic {
 				return ConstantGenerator(module).getVoidUndef();
 			}
 			
-			llvm::Value* genValueLvalMoveToMethod(Function& functionGenerator, const AST::Type* const targetType, PendingResultArray args) {
+			llvm::Value* genValueLvalMoveMethod(Function& functionGenerator, const AST::Type* const targetType, PendingResultArray args, llvm::Value* hintResultValue) {
+				IREmitter irEmitter(functionGenerator);
+				const auto thisPtr = args[0].resolve(functionGenerator);
+				RefPendingResult thisPendingResult(thisPtr, targetType);
+				return irEmitter.emitMoveCall(thisPendingResult, targetType, hintResultValue);
+			}
+			
+			llvm::Value*
+			genValueLvalSetValueMethod(Function& functionGenerator,
+			                           const AST::Type* const targetType,
+			                           PendingResultArray args) {
 				auto& module = functionGenerator.module();
-				
-				const auto destValue = args[1].resolve(functionGenerator);
-				const auto positionValue = args[2].resolve(functionGenerator);
-				const auto sourceValue = args[0].resolve(functionGenerator);
-				
-				genMoveCall(functionGenerator, targetType, sourceValue, destValue, positionValue);
+				IREmitter irEmitter(functionGenerator);
+				const auto operand = args[1].resolve(functionGenerator);
+				const auto thisPtr = args[0].resolve(functionGenerator);
+				irEmitter.emitMoveStore(operand, thisPtr, targetType);
 				return ConstantGenerator(module).getVoidUndef();
 			}
 			
@@ -138,13 +138,6 @@ namespace locic {
 			
 			llvm::Value* genValueLvalDissolveMethod(Function& functionGenerator, PendingResultArray args) {
 				return args[0].resolve(functionGenerator);
-			}
-			
-			llvm::Value* genValueLvalMoveMethod(Function& functionGenerator, const AST::Type* const targetType, PendingResultArray args) {
-				const auto methodOwner = args[0].resolve(functionGenerator);
-				
-				IREmitter irEmitter(functionGenerator);
-				return irEmitter.emitMoveLoad(methodOwner, targetType);
 			}
 			
 			llvm::Value* genValueLvalAssignMethod(Function& functionGenerator, const AST::Type* const targetType, PendingResultArray args) {
@@ -189,14 +182,15 @@ namespace locic {
 					return genSizeOf(functionGenerator, targetType);
 				case METHOD_SETDEAD:
 					return genValueLvalSetDeadMethod(functionGenerator, targetType, std::move(args));
-				case METHOD_MOVETO:
-					return genValueLvalMoveToMethod(functionGenerator, targetType, std::move(args));
+				case METHOD_MOVE:
+				case METHOD_LVALMOVE:
+					return genValueLvalMoveMethod(functionGenerator, targetType, std::move(args), hintResultValue);
+				case METHOD_SETVALUE:
+					return genValueLvalSetValueMethod(functionGenerator, targetType, std::move(args));
 				case METHOD_ADDRESS:
 					return genValueLvalAddressMethod(functionGenerator, std::move(args));
 				case METHOD_DISSOLVE:
 					return genValueLvalDissolveMethod(functionGenerator, std::move(args));
-				case METHOD_MOVE:
-					return genValueLvalMoveMethod(functionGenerator, targetType, std::move(args));
 				case METHOD_ASSIGN:
 					return genValueLvalAssignMethod(functionGenerator, targetType, std::move(args));
 				default:

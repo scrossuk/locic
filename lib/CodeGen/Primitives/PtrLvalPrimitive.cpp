@@ -22,9 +22,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/PtrLvalPrimitive.hpp>
@@ -84,7 +82,7 @@ namespace locic {
 		                                          llvm::ArrayRef<AST::Value> typeTemplateArguments,
 		                                          llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                          PendingResultArray args,
-		                                          llvm::Value* /*hintResultValue*/) const {
+		                                          llvm::Value* hintResultValue) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
@@ -103,17 +101,7 @@ namespace locic {
 					                                      typeTemplateArguments);
 					return ConstantGenerator(module).getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
-				case METHOD_MOVETO: {
-					const auto moveToPtr = args[1].resolve(function);
-					const auto moveToPosition = args[2].resolve(function);
-					const auto methodOwner = args[0].resolveWithoutBind(function);
-					
-					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                               moveToPtr,
-					                                               moveToPosition);
-					irEmitter.emitRawStore(methodOwner, destPtr);
-					return ConstantGenerator(module).getVoidUndef();
-				}
+				case METHOD_MOVE:
 				case METHOD_ADDRESS:
 				case METHOD_DISSOLVE: {
 					return args[0].resolveWithoutBind(function);
@@ -130,9 +118,12 @@ namespace locic {
 					
 					return ConstantGenerator(module).getVoidUndef();
 				}
-				case METHOD_MOVE: {
-					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.emitMoveLoad(methodOwner, targetType);
+				case METHOD_LVALMOVE:
+				case METHOD_EXTRACTVALUE: {
+					const auto targetPtr = args[0].resolveWithoutBind(function);
+					RefPendingResult targetPtrPendingResult(targetPtr, targetType);
+					return irEmitter.emitMoveCall(targetPtrPendingResult,
+					                              targetType, hintResultValue);
 				}
 				case METHOD_SETVALUE: {
 					const auto operand = args[1].resolve(function);
@@ -142,10 +133,6 @@ namespace locic {
 					irEmitter.emitMoveStore(operand, methodOwner, targetType);
 					
 					return ConstantGenerator(module).getVoidUndef();
-				}
-				case METHOD_EXTRACTVALUE: {
-					const auto methodOwner = args[0].resolveWithoutBind(function);
-					return irEmitter.emitMoveLoad(methodOwner, targetType);
 				}
 				case METHOD_DESTROYVALUE: {
 					const auto methodOwner = args[0].resolveWithoutBind(function);

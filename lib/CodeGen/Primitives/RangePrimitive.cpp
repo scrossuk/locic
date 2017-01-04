@@ -25,9 +25,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/RangePrimitive.hpp>
@@ -168,16 +166,14 @@ namespace locic {
 					const auto result = irEmitter.emitAlloca(type, hintResultValue);
 					
 					const auto destPtrFirst = elementAccess.getFirstPtr(result);
-					const auto firstArgumentValue = args[0].resolve(function, destPtrFirst); 
-					irEmitter.emitMoveStore(firstArgumentValue,
-					                        destPtrFirst, targetType);
+					const auto firstArgumentValue = args[0].resolve(function, destPtrFirst);
+					irEmitter.emitStore(firstArgumentValue, destPtrFirst, targetType);
 					
 					const auto destPtrSecond = elementAccess.getSecondPtr(result);
 					const auto secondArgumentValue = args[1].resolve(function, destPtrSecond);
-					irEmitter.emitMoveStore(secondArgumentValue,
-					                        destPtrSecond, targetType);
+					irEmitter.emitStore(secondArgumentValue, destPtrSecond, targetType);
 					
-					return irEmitter.emitMoveLoad(result, type);
+					return irEmitter.emitLoad(result, type);
 				}
 				case METHOD_COPY:
 				case METHOD_IMPLICITCOPY: {
@@ -193,9 +189,9 @@ namespace locic {
 					                           copySourcePtrFirst,
 					                           targetType,
 					                           copyDestPtrFirst);
-					irEmitter.emitMoveStore(copyResultFirst,
-					                        copyDestPtrFirst,
-					                        targetType);
+					irEmitter.emitStore(copyResultFirst,
+					                    copyDestPtrFirst,
+					                    targetType);
 					
 					// Copy second element of range pair.
 					const auto copySourcePtrSecond = elementAccess.getSecondPtr(methodOwner);
@@ -205,11 +201,11 @@ namespace locic {
 					                           copySourcePtrSecond,
 					                           targetType,
 					                           copyDestPtrSecond);
-					irEmitter.emitMoveStore(copyResultSecond,
-					                        copyDestPtrSecond,
-					                        targetType);
+					irEmitter.emitStore(copyResultSecond,
+					                    copyDestPtrSecond,
+					                    targetType);
 					
-					return irEmitter.emitMoveLoad(result, type);
+					return irEmitter.emitLoad(result, type);
 				}
 				case METHOD_ISLIVE: {
 					(void) args[0].resolve(function);
@@ -220,25 +216,21 @@ namespace locic {
 					(void) args[0].resolve(function);
 					return ConstantGenerator(module).getVoidUndef();
 				}
-				case METHOD_MOVETO: {
-					auto methodOwner = args[0].resolve(function);
-					const auto moveToPtr = args[1].resolve(function);
-					const auto moveToPosition = args[2].resolve(function);
+				case METHOD_MOVE: {
+					const auto destPtr = irEmitter.emitAlloca(type, hintResultValue);
+					const auto sourcePtr = args[0].resolve(function);
 					
 					// Move first element of range pair.
-					const auto pairFirstPtr = elementAccess.getFirstPtr(methodOwner);
-					const auto moveToPositionFirst = moveToPosition;
-					irEmitter.emitMoveCall(pairFirstPtr, moveToPtr,
-					                       moveToPositionFirst, targetType);
+					const auto sourceFirstPtr = elementAccess.getFirstPtr(sourcePtr);
+					const auto destFirstPtr = elementAccess.getFirstPtr(destPtr);
+					irEmitter.emitMove(sourceFirstPtr, destFirstPtr, targetType);
 					
 					// Move second element of range pair.
-					const auto pairSecondPtr = elementAccess.getSecondPtr(methodOwner);
-					const auto moveToPositionSecond = irEmitter.builder().CreateAdd(moveToPosition,
-					                                                                elementAccess.getTargetSize());
-					irEmitter.emitMoveCall(pairSecondPtr, moveToPtr,
-					                       moveToPositionSecond, targetType);
+					const auto sourceSecondPtr = elementAccess.getSecondPtr(sourcePtr);
+					const auto destSecondPtr = elementAccess.getSecondPtr(destPtr);
+					irEmitter.emitMove(sourceSecondPtr, destSecondPtr, targetType);
 					
-					return ConstantGenerator(module).getVoidUndef();
+					return irEmitter.emitLoad(destPtr, type);
 				}
 				case METHOD_DESTROY: {
 					auto methodOwner = args[0].resolve(function);

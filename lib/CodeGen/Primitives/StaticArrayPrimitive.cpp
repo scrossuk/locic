@@ -26,9 +26,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/StaticArrayPrimitive.hpp>
@@ -247,10 +245,7 @@ namespace locic {
 					                                               memberPtr,
 					                                               elementType,
 					                                               resultPtr);
-					
-					irEmitter.emitMoveStore(copyResult,
-					                        resultPtr,
-					                        elementType);
+					irEmitter.emitStore(copyResult, resultPtr, elementType);
 					
 					const auto indexIncremented = builder.CreateAdd(phiNode,
 					                                                ConstantGenerator(module).getSizeTValue(1));
@@ -266,8 +261,7 @@ namespace locic {
 					
 					irEmitter.selectBasicBlock(afterLoopBB);
 					
-					return irEmitter.emitMoveLoad(result,
-					                              type);
+					return irEmitter.emitLoad(result, type);
 				}
 				case METHOD_ISLIVE: {
 					(void) args[0].resolve(function);
@@ -277,15 +271,10 @@ namespace locic {
 					(void) args[0].resolve(function);
 					return ConstantGenerator(module).getVoidUndef();
 				}
-				case METHOD_MOVETO: {
+				case METHOD_MOVE: {
 					const auto arraySize = valueEmitter.emitValue(elementCount);
-					const auto arrayPtr = args[0].resolve(function);
-					const auto moveToPtr = args[1].resolve(function);
-					const auto moveToPosition = args[2].resolve(function);
-					
-					const auto result = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                              moveToPtr,
-					                                              moveToPosition);
+					const auto sourcePtr = args[0].resolve(function);
+					const auto destPtr = irEmitter.emitAlloca(type, hintResultValue);
 					
 					const auto beforeLoopBB = builder.GetInsertBlock();
 					const auto loopBB = irEmitter.createBasicBlock("");
@@ -301,22 +290,17 @@ namespace locic {
 					phiNode->addIncoming(ConstantGenerator(module).getSizeTValue(0),
 					                     beforeLoopBB);
 					
-					const auto memberPtr = getArrayIndex(irEmitter,
+					const auto sourceMemberPtr = getArrayIndex(irEmitter,
 					                                     elementType,
-					                                     arrayPtr,
+					                                     sourcePtr,
 					                                     phiNode);
 					
-					const auto resultPtr = getArrayIndex(irEmitter,
+					const auto destMemberPtr = getArrayIndex(irEmitter,
 					                                     elementType,
-					                                     result,
+					                                     destPtr,
 					                                     phiNode);
 					
-					const auto memberValue = irEmitter.emitMoveLoad(memberPtr,
-					                                                elementType);
-					
-					irEmitter.emitMoveStore(memberValue,
-					                        resultPtr,
-					                        elementType);
+					irEmitter.emitMove(sourceMemberPtr, destMemberPtr, elementType);
 					
 					const auto indexIncremented = builder.CreateAdd(phiNode,
 					                                                ConstantGenerator(module).getSizeTValue(1));
@@ -332,7 +316,7 @@ namespace locic {
 					
 					irEmitter.selectBasicBlock(afterLoopBB);
 					
-					return ConstantGenerator(module).getVoidUndef();
+					return irEmitter.emitLoad(destPtr, type);
 				}
 				case METHOD_INDEX: {
 					const auto methodOwner = args[0].resolve(function);

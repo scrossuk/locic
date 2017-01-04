@@ -26,9 +26,7 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitive.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Primitives/RefPrimitive.hpp>
@@ -199,6 +197,7 @@ namespace locic {
 					if (virtualResult == notVirtualResult) {
 						return virtualResult;
 					} else {
+						assert(virtualResult->getType() == notVirtualResult->getType());
 						const auto phiNode = function.getBuilder().CreatePHI(virtualResult->getType(), 2);
 						phiNode->addIncoming(virtualResult, ifVirtualBlock);
 						phiNode->addIncoming(notVirtualResult, ifNotVirtualBlock);
@@ -312,7 +311,8 @@ namespace locic {
 					);
 				}
 				case METHOD_COPY:
-				case METHOD_IMPLICITCOPY: {
+				case METHOD_IMPLICITCOPY:
+				case METHOD_MOVE: {
 					// If the virtualness of the reference is known, we
 					// can load it, otherwise we have to keep accessing
 					// it by pointer.
@@ -368,20 +368,6 @@ namespace locic {
 				case METHOD_SETDEAD: {
 					// Do nothing.
 					return ConstantGenerator(module).getVoidUndef();
-				}
-				case METHOD_MOVETO: {
-					auto methodOwner = RefMethodOwner::AsValue(function, type, args);
-					const auto moveToPtr = args[1].resolve(function);
-					const auto moveToPosition = args[2].resolve(function);
-					const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-					                                               moveToPtr,
-					                                               moveToPosition);
-					
-					return genRefPrimitiveMethodForVirtualCases(function, type,
-						[&](llvm::Type* const llvmType) {
-							irEmitter.emitRawStore(methodOwner.get(llvmType), destPtr);
-							return ConstantGenerator(module).getVoidUndef();
-						});
 				}
 				case METHOD_ADDRESS: {
 					auto methodOwner = RefMethodOwner::AsValue(function, type, args);
