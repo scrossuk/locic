@@ -322,7 +322,7 @@ namespace locic {
 					                                                ConstantGenerator(module).getSizeTValue(1));
 					
 					phiNode->addIncoming(indexIncremented,
-					                     loopBB);
+					                     irEmitter.getBasicBlock());
 					
 					const auto isEnd = builder.CreateICmpEQ(indexIncremented,
 					                                        arraySize);
