@@ -212,6 +212,14 @@ namespace locic {
 			return getRawArg(argInfo_.templateGeneratorArgumentOffset());
 		}
 		
+		llvm::Value* Function::getTemplateGeneratorOrNull() const {
+			if (argInfo_.hasTemplateGeneratorArgument()) {
+				return getTemplateGenerator();
+			} else {
+				return nullptr;
+			}
+		}
+		
 		llvm::Value* Function::getTemplateArgs() {
 			assert(argInfo_.hasTemplateGeneratorArgument());
 			

@@ -119,6 +119,8 @@ namespace locic {
 				
 				llvm::Value* getTemplateGenerator() const;
 				
+				llvm::Value* getTemplateGeneratorOrNull() const;
+				
 				llvm::Value* getTemplateArgs();
 				
 				llvm::Value* getReturnVar() const;
