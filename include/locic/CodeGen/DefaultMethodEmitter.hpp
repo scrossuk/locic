@@ -65,14 +65,16 @@ namespace locic {
 			                 PendingResultArray args);
 			
 			llvm::Value*
-			emitOuterMoveTo(const AST::Type* type,
-			                AST::FunctionType functionType,
-			                PendingResultArray args);
+			emitOuterMove(const AST::Type* type,
+			              AST::FunctionType functionType,
+			              PendingResultArray args,
+			              llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitInnerMoveTo(const AST::Type* type,
-			                AST::FunctionType functionType,
-			                PendingResultArray args);
+			emitInnerMove(const AST::Type* type,
+			              AST::FunctionType functionType,
+			              PendingResultArray args,
+			              llvm::Value* hintResultValue);
 			
 			llvm::Value*
 			emitAlignMask(const AST::Type* type);

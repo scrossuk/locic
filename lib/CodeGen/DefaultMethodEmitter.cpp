@@ -18,7 +18,6 @@
 #include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/LivenessInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/ValueEmitter.hpp>
@@ -48,10 +47,9 @@ namespace locic {
 					                        functionType,
 					                        std::move(args));
 				} else {
-					assert(methodID == METHOD_MOVETO);
-					return emitInnerMoveTo(type,
-					                       functionType,
-					                       std::move(args));
+					assert(methodID == METHOD_MOVE);
+					return emitInnerMove(type, functionType, std::move(args),
+					                     hintResultValue);
 				}
 			}
 			
@@ -63,10 +61,9 @@ namespace locic {
 					return emitOuterDestroy(type,
 					                        functionType,
 					                        std::move(args));
-				case METHOD_MOVETO:
-					return emitOuterMoveTo(type,
-					                       functionType,
-					                       std::move(args));
+				case METHOD_MOVE:
+					return emitOuterMove(type, functionType, std::move(args),
+					                     hintResultValue);
 				case METHOD_ALIGNMASK:
 					return emitAlignMask(type);
 				case METHOD_SIZEOF:
@@ -170,12 +167,12 @@ namespace locic {
 			// Call the constructor of the parent exception type.
 			const auto parentValue = irEmitter.emitConstructorCall(typeInstance.parentType(),
 			                                                       std::move(parentArguments), parentMemberPtr);
-			irEmitter.emitMoveStore(parentValue, parentMemberPtr, typeInstance.parentType());
+			irEmitter.emitStore(parentValue, parentMemberPtr, typeInstance.parentType());
 			
 			// Set object into live state (e.g. set gap byte to 1).
 			LivenessEmitter(irEmitter).emitSetOuterLive(typeInstance, resultValue);
 			
-			return irEmitter.emitMoveLoad(resultValue, type);
+			return irEmitter.emitLoad(resultValue, type);
 		}
 		
 		llvm::Value*
@@ -194,15 +191,14 @@ namespace locic {
 				
 				const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberVar->index());
 				
-				irEmitter.emitMoveStore(args[i].resolve(functionGenerator_),
-				                        resultPtr,
-				                        memberType);
+				const auto argValue = args[i].resolve(functionGenerator_);
+				irEmitter.emitMoveStore(argValue, resultPtr, memberType);
 			}
 			
 			// Set object into live state (e.g. set gap byte to 1).
 			LivenessEmitter(irEmitter).emitSetOuterLive(typeInstance, resultValue);
 			
-			return irEmitter.emitMoveLoad(resultValue, type);
+			return irEmitter.emitLoad(resultValue, type);
 		}
 		
 		llvm::Value*
@@ -310,33 +306,29 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitOuterMoveTo(const AST::Type* const type,
-		                                      const AST::FunctionType /*functionType*/,
-		                                      PendingResultArray args) {
+		DefaultMethodEmitter::emitOuterMove(const AST::Type* const type,
+		                                    const AST::FunctionType /*functionType*/,
+		                                    PendingResultArray args,
+		                                    llvm::Value* const hintResultValue) {
 			const auto& typeInstance = *(type->getObjectType());
 			auto& module = functionGenerator_.module();
 			
 			IREmitter irEmitter(functionGenerator_);
 			LivenessEmitter livenessEmitter(irEmitter);
 			
-			const auto destValue = args[1].resolve(functionGenerator_);
-			const auto positionValue = args[2].resolve(functionGenerator_);
-			const auto sourceValue = args[0].resolve(functionGenerator_);
+			const auto destPtr = irEmitter.emitAlloca(type, hintResultValue);
+			const auto sourcePtr = args[0].resolve(functionGenerator_);
 			
 			const auto livenessIndicator =
 			    LivenessInfo(module).getLivenessIndicator(typeInstance);
 			
 			if (livenessIndicator.isNone()) {
 				// No liveness indicator so just move the member values.
-				genCallUserMoveFunction(functionGenerator_,
-				                        typeInstance,
-				                        sourceValue,
-				                        destValue,
-				                        positionValue);
+				const auto loadedValue =
+					irEmitter.emitInnerMoveCall(sourcePtr, type,
+					                            destPtr);
+				irEmitter.emitStore(loadedValue, destPtr, type);
 			} else {
-				const auto destPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
-				                                               destValue,
-				                                               positionValue);
 				TypeGenerator typeGenerator(module);
 				
 				const auto isLiveBB = irEmitter.createBasicBlock("is_live");
@@ -345,25 +337,23 @@ namespace locic {
 				
 				// Check whether the source object is in a 'live' state and
 				// only perform the move if it is.
-				const auto isLiveBool = livenessEmitter.emitIsLiveCall(type, sourceValue);
+				const auto isLiveBool = livenessEmitter.emitIsLiveCall(type, sourcePtr);
 				const auto isLive = irEmitter.emitBoolToI1(isLiveBool);
-				irEmitter.emitCondBranch(isLive, isLiveBB,
-				                         isNotLiveBB);
+				irEmitter.emitCondBranch(isLive, isLiveBB, isNotLiveBB);
 				
 				irEmitter.selectBasicBlock(isLiveBB);
 				
 				// Move member values.
-				genCallUserMoveFunction(functionGenerator_,
-				                        typeInstance,
-				                        sourceValue,
-				                        destValue,
-				                        positionValue);
+				const auto loadedValue =
+					irEmitter.emitInnerMoveCall(sourcePtr, type,
+					                            destPtr);
+				irEmitter.emitStore(loadedValue, destPtr, type);
 				
 				// Set dest object to be valid (e.g. may need to set gap byte to 1).
 				livenessEmitter.emitSetOuterLive(typeInstance, destPtr);
 				
 				// Set the source object to dead state.
-				livenessEmitter.emitSetDeadCall(type, sourceValue);
+				livenessEmitter.emitSetDeadCall(type, sourcePtr);
 				
 				irEmitter.emitBranch(mergeBB);
 				
@@ -377,45 +367,44 @@ namespace locic {
 				irEmitter.selectBasicBlock(mergeBB);
 			}
 			
-			return ConstantGenerator(module).getVoidUndef();
+			return irEmitter.emitLoad(destPtr, type);
 		}
 		
 		llvm::Value*
-		DefaultMethodEmitter::emitInnerMoveTo(const AST::Type* const type,
-		                                      const AST::FunctionType /*functionType*/,
-		                                      PendingResultArray args) {
+		DefaultMethodEmitter::emitInnerMove(const AST::Type* const type,
+		                                    const AST::FunctionType /*functionType*/,
+		                                    PendingResultArray args,
+		                                    llvm::Value* const hintResultValue) {
 			auto& module = functionGenerator_.module();
 			auto& builder = functionGenerator_.getBuilder();
 			const auto& typeInstance = *(type->getObjectType());
 			
 			IREmitter irEmitter(functionGenerator_);
 			
-			const auto destValue = args[1].resolve(functionGenerator_);
-			const auto positionValue = args[2].resolve(functionGenerator_);
-			const auto sourceValue = args[0].resolve(functionGenerator_);
-			
 			if (typeInstance.isEnum() || typeInstance.isUnion()) {
-				// Basically just do a memcpy.
-				genBasicMove(functionGenerator_, type, sourceValue, destValue, positionValue);
-			} else if (typeInstance.isUnionDatatype()) {
-				const auto unionDatatypePointers = getUnionDatatypePointers(functionGenerator_,
-				                                                            type,
-				                                                            sourceValue);
+				return args[0].resolveWithoutBind(functionGenerator_);
+			}
+			
+			const auto destPtr = irEmitter.emitAlloca(type, hintResultValue);
+			const auto sourcePtr = args[0].resolve(functionGenerator_);
+			
+			if (typeInstance.isUnionDatatype()) {
+				const auto sourcePointers = getUnionDatatypePointers(functionGenerator_, type,
+				                                                     sourcePtr);
+				const auto destPointers = getUnionDatatypePointers(functionGenerator_, type,
+				                                                   destPtr);
 				TypeGenerator typeGenerator(module);
-				const auto loadedTag = irEmitter.emitRawLoad(unionDatatypePointers.first,
+				const auto loadedTag = irEmitter.emitRawLoad(sourcePointers.first,
 				                                             typeGenerator.getI8Type());
 				
 				// Store tag.
-				irEmitter.emitRawStore(loadedTag,
-				                       makeMoveDest(functionGenerator_, destValue, positionValue));
+				irEmitter.emitRawStore(loadedTag, destPointers.first);
 				
 				// Set previous tag to zero.
 				irEmitter.emitRawStore(ConstantGenerator(module).getI8(0),
-				                       unionDatatypePointers.first);
+				                       sourcePointers.first);
 				
 				// Offset of union datatype data is equivalent to its alignment size.
-				const auto unionDataOffset = genAlignOf(functionGenerator_, type);
-				const auto adjustedPositionValue = builder.CreateAdd(positionValue, unionDataOffset);
 				
 				const auto endBB = irEmitter.createBasicBlock("end");
 				const auto switchInstruction = builder.CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
@@ -433,11 +422,9 @@ namespace locic {
 					
 					const auto variantType = variantTypeInstance->selfType();
 					
-					genMoveCall(functionGenerator_,
-					            variantType,
-					            unionDatatypePointers.second,
-					            destValue,
-					            adjustedPositionValue);
+					irEmitter.emitMove(sourcePointers.second,
+					                   destPointers.second,
+					                   variantType);
 					
 					irEmitter.emitBranch(endBB);
 				}
@@ -447,23 +434,14 @@ namespace locic {
 				// Move member variables.
 				for (const auto& memberVar: typeInstance.variables()) {
 					const auto memberIndex = memberVar->index();
-					const auto ptrToMember = genMemberPtr(functionGenerator_, sourceValue, type, memberIndex);
-					llvm::Value* adjustedPositionValue;
-					if (memberIndex != 0) {
-						const auto memberOffsetValue = genMemberOffset(functionGenerator_, type, memberIndex);
-						adjustedPositionValue = builder.CreateAdd(positionValue, memberOffsetValue);
-					} else {
-						adjustedPositionValue = positionValue;
-					}
-					genMoveCall(functionGenerator_,
-					            memberVar->lvalType(),
-					            ptrToMember,
-					            destValue,
-					            adjustedPositionValue);
+					const auto sourceMemberPtr = genMemberPtr(functionGenerator_, sourcePtr, type, memberIndex);
+					const auto destMemberPtr = genMemberPtr(functionGenerator_, destPtr, type, memberIndex);
+					irEmitter.emitMove(sourceMemberPtr, destMemberPtr,
+					                   memberVar->lvalType());
 				}
 			}
 			
-			return ConstantGenerator(module).getVoidUndef();
+			return irEmitter.emitLoad(destPtr, type);
 		}
 		
 		llvm::Value*
@@ -756,13 +734,13 @@ namespace locic {
 			
 			const auto& typeInstance = *(type->getObjectType());
 			
-			const auto thisPointer = args[0].resolve(functionGenerator_);
-			
 			IREmitter irEmitter(functionGenerator_);
 			
 			if (typeInstance.isEnum() || typeInstance.isUnion()) {
-				return irEmitter.emitMoveLoad(thisPointer, type);
+				return args[0].resolveWithoutBind(functionGenerator_);
 			}
+			
+			const auto thisPointer = args[0].resolve(functionGenerator_);
 			
 			auto& module = functionGenerator_.module();
 			
@@ -802,10 +780,8 @@ namespace locic {
 					                                               unionValuePtr,
 					                                               variantType,
 					                                               unionValueDestPtr);
-					
-					irEmitter.emitMoveStore(copyResult,
-					                        unionValueDestPtr,
-					                        variantType);
+					irEmitter.emitStore(copyResult, unionValueDestPtr,
+					                    variantType);
 					
 					irEmitter.emitBranch(endBB);
 				}
@@ -828,16 +804,15 @@ namespace locic {
 					                                               memberType,
 					                                               resultPtr);
 					
-					irEmitter.emitMoveStore(copyResult,
-					                        resultPtr,
-					                        memberType);
+					irEmitter.emitStore(copyResult, resultPtr,
+					                    memberType);
 				}
 				
 				// Set object into live state (e.g. set gap byte to 1).
 				LivenessEmitter(irEmitter).emitSetOuterLive(typeInstance, resultValue);
 			}
 			
-			return irEmitter.emitMoveLoad(resultValue, type);
+			return irEmitter.emitLoad(resultValue, type);
 		}
 		
 		llvm::Value*
