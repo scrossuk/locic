@@ -43,11 +43,11 @@ namespace locic {
 				                                                                    typeInstance.fullName() + context.getCString("__destroy")));
 			}
 			
-			// Add default __moveto method.
+			// Add default __move method.
 			const bool hasDefaultMove = defaultMethods.hasDefaultMove(&typeInstance);
 			if (hasDefaultMove) {
 				typeInstance.attachFunction(defaultMethods.createDefaultMoveDecl(&typeInstance,
-				                                                                 typeInstance.fullName() + context.getCString("__moveto")));
+				                                                                 typeInstance.fullName() + context.getCString("__move")));
 			}
 			
 			// Add default __setdead method.

@@ -323,21 +323,13 @@ namespace locic {
 			// Move never throws.
 			auto noExceptPredicate = AST::Predicate::True();
 			
-			const auto voidType = context_.typeBuilder().getVoidType();
-			const auto voidPtrType = getBuiltInType(context_, context_.getCString("ptr_t"), { voidType });
-			
-			const auto sizeType = context_.typeBuilder().getSizeType();
-			
-			AST::TypeArray argTypes;
-			argTypes.reserve(2);
-			argTypes.push_back(voidPtrType);
-			argTypes.push_back(sizeType);
-			
 			AST::FunctionAttributes attributes(isVarArg, isDynamicMethod,
 			                                   isTemplatedMethod,
 			                                   std::move(noExceptPredicate));
+			
+			const auto returnType = typeInstance->selfType();
 			function.setType(AST::FunctionType(std::move(attributes),
-			                                   voidType, std::move(argTypes)));
+			                                   returnType, {}));
 		}
 		
 		std::unique_ptr<AST::Function>
@@ -578,7 +570,7 @@ namespace locic {
 				}
 				
 				completeDefaultDestroyDecl(typeInstance, *function);
-			} else if (canonicalName == "__moveto") {
+			} else if (canonicalName == "__move") {
 				if (isStatic) {
 					context_.issueDiag(DefaultMethodMustBeNonStaticDiag(name),
 					                  location);
@@ -679,7 +671,7 @@ namespace locic {
 			
 			// There's only a default move method if the user
 			// hasn't specified a custom move method.
-			return !typeInstance->hasFunction(context_.getCString("__moveto"));
+			return !typeInstance->hasFunction(context_.getCString("__move"));
 		}
 		
 		bool
@@ -833,7 +825,7 @@ namespace locic {
 			
 			const auto& name = function.fullName();
 			const auto canonicalName = CanonicalizeMethodName(name.last());
-			if (canonicalName == "__moveto" ||
+			if (canonicalName == "__move" ||
 			    canonicalName == "__destroy" ||
 			    canonicalName == "__dead" ||
 			    canonicalName == "__islive") {
