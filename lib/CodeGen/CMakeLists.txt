@@ -32,7 +32,6 @@ add_library(locic-codegen
 	MethodInfo.cpp
 	Module.cpp
 	ModulePtr.cpp
-	Move.cpp
 	PendingResult.cpp
 	PrimitiveFunctionEmitter.cpp
 	PrimitiveMap.cpp
@@ -43,7 +42,6 @@ add_library(locic-codegen
 	Primitives/NullPrimitive.cpp
 	Primitives/PrimitiveDestructor.cpp
 	Primitives/PrimitiveMethod.cpp
-	Primitives/PrimitiveMove.cpp
 	Primitives/PrimitiveSizeOf.cpp
 	Primitives/PrimitiveTypes.cpp
 	Primitives/PtrLvalPrimitive.cpp

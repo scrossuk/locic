@@ -25,8 +25,6 @@ namespace locic {
 		class Function;
 		class Module;
 		
-		void genPrimitiveMoveCall(Function& function, const AST::Type* type, llvm::Value* sourceValue, llvm::Value* destValue, llvm::Value* positionValue);
-		
 		void genPrimitiveDestructorCall(Function& function, const AST::Type* type, llvm::Value* value);
 		
 		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args,
