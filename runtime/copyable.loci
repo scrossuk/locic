@@ -1,31 +1,31 @@
-template <sized_type T>
+template <typename T>
 interface copyable_t {
 	T copy() const;
 }
 
-template <sized_type T>
+template <typename T>
 using copyable = sized_type<T> and T : copyable_t<notag(T)>;
 
-template <sized_type T>
+template <typename T>
 interface implicit_copyable_t {
 	T implicit_copy() const;
 }
 
-template <sized_type T>
+template <typename T>
 using implicit_copyable = sized_type<T> and T : implicit_copyable_t<notag(T)>;
 
-template <sized_type T>
+template <typename T>
 interface noexcept_copyable_t {
 	T copy() const noexcept;
 }
 
-template <sized_type T>
+template <typename T>
 using noexcept_copyable = sized_type<T> and T : noexcept_copyable_t<notag(T)>;
 
-template <sized_type T>
+template <typename T>
 interface noexcept_implicit_copyable_t {
 	T implicit_copy() const noexcept;
 }
 
-template <sized_type T>
+template <typename T>
 using noexcept_implicit_copyable = sized_type<T> and T : noexcept_implicit_copyable_t<notag(T)>;
