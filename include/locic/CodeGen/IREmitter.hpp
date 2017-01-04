@@ -45,6 +45,8 @@ namespace locic {
 			
 			void selectBasicBlock(llvm::BasicBlock* basicBlock);
 			
+			llvm::BasicBlock* getBasicBlock();
+			
 			bool lastInstructionTerminates() const;
 			
 			void
