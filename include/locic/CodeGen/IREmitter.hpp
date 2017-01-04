@@ -61,6 +61,9 @@ namespace locic {
 			emitUnreachable();
 			
 			llvm::Value*
+			emitPointerCast(llvm::Value* ptr, llvm::Type* type);
+			
+			llvm::Value*
 			emitI1ToBool(llvm::Value* value);
 			
 			llvm::Value*

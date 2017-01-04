@@ -80,6 +80,14 @@ namespace locic {
 		}
 		
 		llvm::Value*
+		IREmitter::emitPointerCast(llvm::Value* const ptr,
+		                           llvm::Type* const type) {
+			assert(ptr->getType()->isPointerTy());
+			assert(type->isPointerTy());
+			return functionGenerator_.getBuilder().CreatePointerCast(ptr, type);
+		}
+		
+		llvm::Value*
 		IREmitter::emitI1ToBool(llvm::Value* const value) {
 			assert(value->getType()->isIntegerTy(1));
 			return functionGenerator_.getBuilder().CreateZExt(value,
@@ -102,8 +110,7 @@ namespace locic {
 		IREmitter::emitRawLoad(llvm::Value* const valuePtr,
 		                       llvm::Type* const type) {
 			assert(valuePtr->getType()->isPointerTy());
-			const auto castVar = functionGenerator_.getBuilder().CreatePointerCast(valuePtr,
-			                                                                       type->getPointerTo());
+			const auto castVar = emitPointerCast(valuePtr, type->getPointerTo());
 			return functionGenerator_.getBuilder().CreateLoad(castVar);
 		}
 		
@@ -111,8 +118,7 @@ namespace locic {
 		IREmitter::emitRawStore(llvm::Value* const value,
 		                        llvm::Value* const var) {
 			assert(var->getType()->isPointerTy());
-			const auto castVar = functionGenerator_.getBuilder().CreatePointerCast(var,
-			                                                                       value->getType()->getPointerTo());
+			const auto castVar = emitPointerCast(var, value->getType()->getPointerTo());
 			(void) functionGenerator_.getBuilder().CreateStore(value,
 			                                                   castVar);
 		}
@@ -123,8 +129,7 @@ namespace locic {
 		                           llvm::Value* const indexValue) {
 			assert(ptrValue->getType()->isPointerTy());
 			assert(indexValue->getType()->isIntegerTy());
-			const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(ptrValue,
-			                                                                         type->getPointerTo());
+			const auto castValue = emitPointerCast(ptrValue, type->getPointerTo());
 			return functionGenerator_.getBuilder().CreateInBoundsGEP(castValue,
 			                                                         indexValue);
 		}
@@ -134,8 +139,7 @@ namespace locic {
 		                           llvm::Value* const ptrValue,
 		                           llvm::ArrayRef<llvm::Value*> indexArray) {
 			assert(ptrValue->getType()->isPointerTy());
-			const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(ptrValue,
-			                                                                         type->getPointerTo());
+			const auto castValue = emitPointerCast(ptrValue, type->getPointerTo());
 			return functionGenerator_.getBuilder().CreateInBoundsGEP(castValue,
 			                                                         indexArray);
 		}
@@ -146,8 +150,7 @@ namespace locic {
 		                                    const unsigned index0,
 		                                    const unsigned index1) {
 			assert(ptrValue->getType()->isPointerTy());
-			const auto castValue = functionGenerator_.getBuilder().CreatePointerCast(ptrValue,
-			                                                                         type->getPointerTo());
+			const auto castValue = emitPointerCast(ptrValue, type->getPointerTo());
 #if LOCIC_LLVM_VERSION >= 307
 			return functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(type,
 			                                                                  castValue,
@@ -169,8 +172,7 @@ namespace locic {
 			                                                              indexArray);
 			if (indexType->isPointerTy()) {
 				assert(value->getType()->isPointerTy());
-				const auto castValue = builder().CreatePointerCast(value,
-				                                                   indexType);
+				const auto castValue = emitPointerCast(value, indexType);
 				return builder().CreateInsertValue(aggregate,
 				                                   castValue,
 				                                   indexArray);
@@ -188,8 +190,7 @@ namespace locic {
 		                      const uint64_t size,
 		                      const unsigned align) {
 			assert(ptr->getType()->isPointerTy());
-			const auto castPtr = builder().CreatePointerCast(ptr,
-			                                                 typeGenerator().getPtrType());
+			const auto castPtr = emitPointerCast(ptr, typeGenerator().getPtrType());
 			builder().CreateMemSet(castPtr, value, size, align);
 		}
 		
@@ -199,8 +200,7 @@ namespace locic {
 		                      llvm::Value* const sizeValue,
 		                      const unsigned align) {
 			assert(ptr->getType()->isPointerTy());
-			const auto castPtr = builder().CreatePointerCast(ptr,
-			                                                 typeGenerator().getPtrType());
+			const auto castPtr = emitPointerCast(ptr, typeGenerator().getPtrType());
 			builder().CreateMemSet(castPtr, value, sizeValue, align);
 		}
 		
@@ -211,10 +211,8 @@ namespace locic {
 		                      const unsigned align) {
 			assert(dest->getType()->isPointerTy());
 			assert(src->getType()->isPointerTy());
-			const auto castDest = builder().CreatePointerCast(dest,
-			                                                  typeGenerator().getPtrType());
-			const auto castSrc = builder().CreatePointerCast(src,
-			                                                 typeGenerator().getPtrType());
+			const auto castDest = emitPointerCast(dest, typeGenerator().getPtrType());
+			const auto castSrc = emitPointerCast(src, typeGenerator().getPtrType());
 			builder().CreateMemCpy(castDest, castSrc, size, align);
 		}
 		
@@ -225,10 +223,8 @@ namespace locic {
 		                      const unsigned align) {
 			assert(dest->getType()->isPointerTy());
 			assert(src->getType()->isPointerTy());
-			const auto castDest = builder().CreatePointerCast(dest,
-			                                                  typeGenerator().getPtrType());
-			const auto castSrc = builder().CreatePointerCast(src,
-			                                                 typeGenerator().getPtrType());
+			const auto castDest = emitPointerCast(dest, typeGenerator().getPtrType());
+			const auto castSrc = emitPointerCast(src, typeGenerator().getPtrType());
 			builder().CreateMemCpy(castDest, castSrc, sizeValue, align);
 		}
 		
@@ -237,8 +233,7 @@ namespace locic {
 		                    llvm::Value* const callee,
 		                    llvm::ArrayRef<llvm::Value*> args) {
 			assert(callee->getType()->isPointerTy());
-			const auto castCallee = functionGenerator_.getBuilder().CreatePointerCast(callee,
-			                                                                          functionType->getPointerTo());
+			const auto castCallee = emitPointerCast(callee, functionType->getPointerTo());
 			
 			// Cast all pointers to required types.
 			llvm::SmallVector<llvm::Value*, 10> newArgs;
@@ -247,8 +242,7 @@ namespace locic {
 				const auto& arg = args[i];
 				if (arg->getType()->isPointerTy()) {
 					assert(functionType->getParamType(i)->isPointerTy());
-					newArgs.push_back(builder().CreatePointerCast(arg,
-					                                              functionType->getParamType(i)));
+					newArgs.push_back(emitPointerCast(arg, functionType->getParamType(i)));
 				} else {
 					assert(!functionType->getParamType(i)->isPointerTy());
 					newArgs.push_back(arg);
@@ -269,8 +263,7 @@ namespace locic {
 		                      llvm::BasicBlock* const unwindDest,
 		                      llvm::ArrayRef<llvm::Value*> args) {
 			assert(callee->getType()->isPointerTy());
-			const auto castCallee = functionGenerator_.getBuilder().CreatePointerCast(callee,
-			                                                                          functionType->getPointerTo());
+			const auto castCallee = emitPointerCast(callee, functionType->getPointerTo());
 			
 			// Cast all pointers to required types.
 			llvm::SmallVector<llvm::Value*, 10> newArgs;
@@ -279,8 +272,7 @@ namespace locic {
 				const auto& arg = args[i];
 				if (arg->getType()->isPointerTy()) {
 					assert(functionType->getParamType(i)->isPointerTy());
-					newArgs.push_back(builder().CreatePointerCast(arg,
-					                                              functionType->getParamType(i)));
+					newArgs.push_back(emitPointerCast(arg, functionType->getParamType(i)));
 				} else {
 					assert(!functionType->getParamType(i)->isPointerTy());
 					newArgs.push_back(arg);
@@ -302,7 +294,7 @@ namespace locic {
 		                      llvm::Value* const value) {
 			if (value->getType()->isPointerTy()) {
 				assert(type->isPointerTy());
-				return builder().CreateRet(builder().CreatePointerCast(value, type));
+				return builder().CreateRet(emitPointerCast(value, type));
 			} else {
 				assert(!type->isPointerTy());
 				return builder().CreateRet(value);
