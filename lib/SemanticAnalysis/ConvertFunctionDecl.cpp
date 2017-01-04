@@ -184,7 +184,7 @@ namespace locic {
 		
 		bool isValidLifetimeMethod(const MethodID methodID) {
 			switch (methodID) {
-				case METHOD_MOVETO:
+				case METHOD_MOVE:
 				case METHOD_DESTROY:
 				case METHOD_ALIGNMASK:
 				case METHOD_SIZEOF:
@@ -199,10 +199,22 @@ namespace locic {
 			}
 		}
 		
-		bool isValidReturnType(const MethodID methodID, const AST::Type* const type) {
+		bool isValidReturnType(const MethodID methodID, const AST::TypeInstance* thisTypeInstance,
+		                       const AST::Type* const type) {
 			switch (methodID) {
-				case METHOD_MOVETO:
-					return type->isBuiltInVoid();
+				case METHOD_MOVE: {
+					if (thisTypeInstance == nullptr) {
+						return false;
+					}
+					const auto selfType = thisTypeInstance->selfType();
+					if (type == selfType) {
+						return true;
+					}
+					if (thisTypeInstance->isInterface() || thisTypeInstance->isPrimitive()) {
+						return true;
+					}
+					return false;
+				}
 				case METHOD_DESTROY:
 					return type->isBuiltInVoid();
 				case METHOD_ALIGNMASK:
@@ -227,8 +239,8 @@ namespace locic {
 		
 		bool isValidArgumentCount(const MethodID methodID, const size_t argCount) {
 			switch (methodID) {
-				case METHOD_MOVETO:
-					return argCount == 2;
+				case METHOD_MOVE:
+					return argCount == 0;
 				case METHOD_DESTROY:
 					return argCount == 0;
 				case METHOD_ALIGNMASK:
@@ -250,14 +262,9 @@ namespace locic {
 			}
 		}
 		
-		bool isValidArgumentTypes(const MethodID methodID, const AST::TypeArray& types) {
+		bool isValidArgumentTypes(const MethodID methodID, const AST::TypeArray& /*types*/) {
 			switch (methodID) {
-				case METHOD_MOVETO:
-					return types[0]->isPrimitive() &&
-					       types[0]->primitiveID() == PrimitivePtr &&
-					       types[0]->templateArguments()[0].typeRefType()->isBuiltInVoid() &&
-					       types[1]->isPrimitive() &&
-					       types[1]->primitiveID() == PrimitiveSize;
+				case METHOD_MOVE:
 				case METHOD_DESTROY:
 				case METHOD_ALIGNMASK:
 				case METHOD_SIZEOF:
@@ -274,7 +281,7 @@ namespace locic {
 		
 		bool isValidConstness(const MethodID methodID, const AST::Predicate& constPredicate) {
 			switch (methodID) {
-				case METHOD_MOVETO:
+				case METHOD_MOVE:
 					return constPredicate.isFalse();
 				case METHOD_DESTROY:
 					return constPredicate.isFalse();
@@ -299,7 +306,7 @@ namespace locic {
 		
 		bool isValidStaticness(const MethodID methodID, const bool isStatic) {
 			switch (methodID) {
-				case METHOD_MOVETO:
+				case METHOD_MOVE:
 					return !isStatic;
 				case METHOD_DESTROY:
 					return !isStatic;
@@ -428,6 +435,7 @@ namespace locic {
 		};
 		
 		void validateFunctionType(Context& context, const Name& functionFullName,
+		                          const AST::TypeInstance* thisTypeInstance,
 		                          const AST::FunctionType& functionType,
 		                          const AST::Predicate& constPredicate,
 		                          const Debug::SourceLocation& location) {
@@ -443,7 +451,7 @@ namespace locic {
 				return;
 			}
 			
-			if (!isValidReturnType(*methodID, functionType.returnType())) {
+			if (!isValidReturnType(*methodID, thisTypeInstance, functionType.returnType())) {
 				context.issueDiag(LifetimeMethodInvalidReturnTypeDiag(functionFullName.toString()),
 				                  location);
 			}
@@ -521,8 +529,8 @@ namespace locic {
 				// constructor, with no return type specified (i.e.
 				// the return type will be the parent class type).
 				assert(thisTypeInstance != nullptr);
-				assert(function->hasScope());
-				assert(function->isStatic());
+				//assert(function->hasScope());
+				//assert(function->isStatic());
 				
 				astReturnType = thisTypeInstance->selfType();
 			} else {
@@ -574,7 +582,7 @@ namespace locic {
 			AST::FunctionAttributes attributes(function->isVarArg(), isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate));
 			AST::FunctionType functionType(std::move(attributes), astReturnType, std::move(parameterTypes));
 			validateFunctionType(context, function->fullName(),
-			                     functionType,
+			                     thisTypeInstance, functionType,
 			                     function->constPredicate(),
 			                     function.location());
 			
