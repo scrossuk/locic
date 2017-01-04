@@ -92,6 +92,11 @@ namespace locic {
 				 */
 				llvm::Value* getRawReturnValue();
 				
+				llvm::Value* getVarAddress(const AST::Var& var);
+				
+				void setVarAddress(const AST::Var& var,
+				                   llvm::Value* varPtr);
+				
 				llvm::Function& getLLVMFunction();
 				
 				const llvm::Function& getLLVMFunction() const;

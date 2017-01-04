@@ -3,6 +3,9 @@
 #include <stdexcept>
 #include <string>
 
+#include <locic/AST/ValueDecl.hpp>
+#include <locic/AST/Var.hpp>
+
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 #include <locic/Support/Map.hpp>
@@ -13,6 +16,7 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
+#include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
@@ -129,6 +133,29 @@ namespace locic {
 			IREmitter irEmitter(*this);
 			return irEmitter.emitRawLoad(returnValuePtr_,
 			                             argInfo_.returnType().second);
+		}
+		
+		llvm::Value* Function::getVarAddress(const AST::Var& var) {
+			return localVarMap_.get(&var);
+		}
+		
+		void Function::setVarAddress(const AST::Var& var,
+		                             llvm::Value* const varPtr) {
+			localVarMap_.insert(&var, varPtr);
+			
+			if (!var.isPattern()) return;
+			
+			IREmitter irEmitter(*this);
+			
+			// For composite variables, set the pointer of each
+			// variable to the relevant offset in the object.
+			for (size_t i = 0; i < var.varList()->size(); i++) {
+				const auto& childVar = (*(var.varList()))[i];
+				const auto memberOffsetValue = genMemberOffset(*this, var.constructType(), i);
+				const auto memberPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+				                                                 varPtr, memberOffsetValue);
+				setVarAddress(*childVar, memberPtr);
+			}
 		}
 		
 		llvm::Function& Function::getLLVMFunction() {
