@@ -91,7 +91,7 @@ namespace locic {
 		}
 		
 		String mangleMoveName(Module& module, const AST::TypeInstance* typeInstance) {
-			return mangleMethodName(module, typeInstance, module.getCString("__moveto"));
+			return mangleMethodName(module, typeInstance, module.getCString("__move"));
 		}
 		
 		String mangleDestructorName(Module& module, const AST::TypeInstance* typeInstance) {
