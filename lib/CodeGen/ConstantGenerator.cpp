@@ -119,6 +119,8 @@ namespace locic {
 		}
 		
 		llvm::Constant* ConstantGenerator::getPointerCast(llvm::Constant* value, llvm::Type* targetType) const {
+			assert(value->getType()->isPointerTy());
+			assert(targetType->isPointerTy());
 			return llvm::ConstantExpr::getPointerCast(value, targetType);
 		}
 		
