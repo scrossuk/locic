@@ -46,6 +46,7 @@ namespace locic {
 		impl_->add(METHOD_SIZEOF);
 		impl_->add(METHOD_UNINITIALIZED);
 		
+		impl_->add(METHOD_MOVE);
 		impl_->add(METHOD_DESTROY);
 		impl_->add(METHOD_IMPLICITCAST);
 		impl_->add(METHOD_CAST);
@@ -66,7 +67,7 @@ namespace locic {
 		impl_->add(METHOD_ADDRESS);
 		impl_->add(METHOD_DEREF);
 		impl_->add(METHOD_DISSOLVE);
-		impl_->add(METHOD_MOVE);
+		impl_->add(METHOD_LVALMOVE);
 		impl_->add(METHOD_SIGNEDVALUE);
 		impl_->add(METHOD_UNSIGNEDVALUE);
 		impl_->add(METHOD_COUNTLEADINGZEROES);
@@ -108,7 +109,6 @@ namespace locic {
 		impl_->add(METHOD_RIGHTSHIFT);
 		
 		impl_->add(METHOD_CALL);
-		impl_->add(METHOD_MOVETO);
 		impl_->add(METHOD_INRANGE);
 		impl_->add(METHOD_SETVALUE);
 		impl_->add(METHOD_EXTRACTVALUE);

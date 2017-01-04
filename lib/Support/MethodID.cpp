@@ -23,6 +23,7 @@ namespace locic {
 			case METHOD_UNINITIALIZED:
 				return CONSTRUCTOR;
 			
+			case METHOD_MOVE:
 			case METHOD_DESTROY:
 			case METHOD_IMPLICITCAST:
 			case METHOD_CAST:
@@ -43,7 +44,7 @@ namespace locic {
 			case METHOD_ADDRESS:
 			case METHOD_DEREF:
 			case METHOD_DISSOLVE:
-			case METHOD_MOVE:
+			case METHOD_LVALMOVE:
 			case METHOD_SIGNEDVALUE:
 			case METHOD_UNSIGNEDVALUE:
 			case METHOD_COUNTLEADINGZEROES:
@@ -87,7 +88,6 @@ namespace locic {
 				return BINARY;
 			
 			case METHOD_CALL:
-			case METHOD_MOVETO:
 			case METHOD_INRANGE:
 			case METHOD_SETVALUE:
 			case METHOD_EXTRACTVALUE:
@@ -157,6 +157,8 @@ namespace locic {
 			case METHOD_UNINITIALIZED:
 				return "uninitialized";
 			
+			case METHOD_MOVE:
+				return "__move";
 			case METHOD_DESTROY:
 				return "__destroy";
 			case METHOD_IMPLICITCAST:
@@ -197,7 +199,7 @@ namespace locic {
 				return "deref";
 			case METHOD_DISSOLVE:
 				return "dissolve";
-			case METHOD_MOVE:
+			case METHOD_LVALMOVE:
 				return "move";
 			case METHOD_SIGNEDVALUE:
 				return "signedvalue";
@@ -279,8 +281,6 @@ namespace locic {
 			
 			case METHOD_CALL:
 				return "call";
-			case METHOD_MOVETO:
-				return "__moveto";
 			case METHOD_INRANGE:
 				return "inrange";
 			case METHOD_SETVALUE:
