@@ -24,7 +24,6 @@
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
@@ -291,9 +290,8 @@ namespace locic {
 			                                           functionGenerator.getReturnVarOrNull());
 			
 			if (argInfo.hasReturnVarArgument()) {
-				irEmitter.emitMoveStore(result,
-				                        functionGenerator.getReturnVar(),
-				                        value.type());
+				irEmitter.emitStore(result, functionGenerator.getReturnVar(),
+				                    value.type());
 				irEmitter.emitReturnVoid();
 			} else if (!value.type()->isBuiltInVoid()) {
 				functionGenerator.returnValue(result);

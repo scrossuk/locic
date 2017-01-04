@@ -1,7 +1,6 @@
 #include <locic/AST/Type.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/PendingResult.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
 
@@ -14,8 +13,16 @@ namespace locic {
 		: value_(value),
 		  type_(type) { }
 		
-		llvm::Value* ValuePendingResult::generateValue(Function& /*function*/, llvm::Value* /*hintResultValue*/) const {
-			return value_;
+		llvm::Value*
+		ValuePendingResult::generateValue(Function& function,
+		                                  llvm::Value* const hintResultValue) const {
+			if (hintResultValue != nullptr) {
+				IREmitter irEmitter(function);
+				irEmitter.emitMoveStore(value_, hintResultValue, type_);
+				return hintResultValue;
+			} else {
+				return value_;
+			}
 		}
 		
 		llvm::Value* ValuePendingResult::generateLoadedValue(Function& function) const {
@@ -28,7 +35,7 @@ namespace locic {
 			const auto refTargetType = type_->templateArguments().front().typeRefType();
 			
 			IREmitter irEmitter(function);
-			return irEmitter.emitMoveLoad(value_, refTargetType);
+			return irEmitter.emitLoad(value_, refTargetType);
 		}
 		
 		RefPendingResult::RefPendingResult(llvm::Value* const refValue,
@@ -37,12 +44,12 @@ namespace locic {
 		refTargetType_(refTargetType) { }
 		
 		llvm::Value* RefPendingResult::generateValue(Function& /*function*/, llvm::Value* /*hintResultValue*/) const {
+			// hintResultValue can be ignored because references are handled by value.
 			return refValue_;
 		}
 		
 		llvm::Value* RefPendingResult::generateLoadedValue(Function& function) const {
-			IREmitter irEmitter(function);
-			return irEmitter.emitMoveLoad(refValue_, refTargetType_);
+			return IREmitter(function).emitLoad(refValue_, refTargetType_);
 		}
 		
 		ValueToRefPendingResult::ValueToRefPendingResult(llvm::Value* const value,
@@ -50,16 +57,9 @@ namespace locic {
 		: value_(value), refTargetType_(refTargetType) { }
 		
 		llvm::Value* ValueToRefPendingResult::generateValue(Function& function,
-		                                                    llvm::Value* const hintResultValue) const {
-			if (!TypeInfo(function.module()).canPassByValue(refTargetType_)) {
-				// Already a pointer.
-				assert(value_->getType()->isPointerTy());
-				return value_;
-			}
-			IREmitter irEmitter(function);
-			const auto result = irEmitter.emitAlloca(refTargetType_, hintResultValue);
-			irEmitter.emitMoveStore(value_, result, refTargetType_);
-			return result;
+		                                                    llvm::Value* const /*hintResultValue*/) const {
+			// hintResultValue can be ignored because references are handled by value.
+			return IREmitter(function).emitBind(value_, refTargetType_);
 		}
 		
 		llvm::Value* ValueToRefPendingResult::generateLoadedValue(Function& /*function*/) const {

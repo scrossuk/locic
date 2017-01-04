@@ -20,7 +20,6 @@
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/MethodInfo.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/Template.hpp>
@@ -253,7 +252,7 @@ namespace locic {
 			if (argInfo.hasReturnVarArgument()) {
 				// As above, if the return value pointer is used,
 				// this should be loaded (and used instead).
-				return irEmitter.emitMoveLoad(returnVar, functionType.returnType());
+				return irEmitter.emitLoad(returnVar, functionType.returnType());
 			} else {
 				return result;
 			}

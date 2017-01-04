@@ -24,7 +24,7 @@ namespace locic {
 		PrimitiveFunctionEmitter::emitMinOrMax(const MethodID methodID,
 		                                       llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                       PendingResultArray args,
-		                                       llvm::Value* /*hintResultValue*/) {
+		                                       llvm::Value* const hintResultValue) {
 			assert(methodID == METHOD_MIN || methodID == METHOD_MAX);
 			
 			const auto targetType = functionTemplateArguments[0].typeRefType();
@@ -45,8 +45,18 @@ namespace locic {
 			                                                         rightValueResult,
 			                                                         targetType);
 			const auto compareResultI1 = irEmitter_.emitBoolToI1(compareResult);
-			return irEmitter_.builder().CreateSelect(compareResultI1,
-			                                         secondValue, firstValue);
+			const auto result =
+				irEmitter_.builder().CreateSelect(compareResultI1,
+				                                  secondValue, firstValue);
+			
+			ValueToRefPendingResult minResult(result, targetType);
+			const auto movedResult = irEmitter_.emitMoveCall(minResult, targetType,
+			                                                 hintResultValue);
+			
+			irEmitter_.emitDestructorCall(secondValue, targetType);
+			irEmitter_.emitDestructorCall(firstValue, targetType);
+			
+			return movedResult;
 		}
 		
 		static PrimitiveID getRangePrimitiveID(const MethodID methodID) {

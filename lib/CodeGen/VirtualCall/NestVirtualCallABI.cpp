@@ -16,9 +16,7 @@
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
@@ -217,7 +215,7 @@ namespace locic {
 			                                returnVarPointer);
 			
 			return returnVarPointer != nullptr ?
-			       irEmitter.emitMoveLoad(returnVarPointer, returnType) : result;
+			       irEmitter.emitLoad(returnVarPointer, returnType) : result;
 		}
 		
 		llvm::Value*

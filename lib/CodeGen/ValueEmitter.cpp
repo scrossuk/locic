@@ -337,10 +337,18 @@ namespace locic {
 		ValueEmitter::emitCast(const AST::Value& value,
 		                       llvm::Value* const hintResultValue) {
 			const auto& castValue = value.castOperand();
-			const auto codeValue = emitValue(castValue,
-			                                 /*hintResultValue=*/nullptr);
 			const auto sourceType = castValue.type()->resolveAliases();
 			const auto destType = value.type()->resolveAliases();
+			
+			auto valueHintResultValue = hintResultValue;
+			if (sourceType->isDatatype() && destType->isUnionDatatype()) {
+				valueHintResultValue = nullptr;
+			}
+			if (destType->isBuiltInVoid()) {
+				valueHintResultValue = nullptr;
+			}
+			
+			const auto codeValue = emitValue(castValue, valueHintResultValue);
 			assert((sourceType->kind() == destType->kind()
 					|| (sourceType->isPrimitive() && sourceType->getObjectType()->fullName().last() == "null_t")
 					|| destType->isBuiltInVoid())
@@ -382,7 +390,7 @@ namespace locic {
 						// Store the union value.
 						irEmitter_.emitMoveStore(codeValue, unionDatatypePointers.second, sourceType);
 						
-						return irEmitter_.emitMoveLoad(unionValue, destType);
+						return irEmitter_.emitLoad(unionValue, destType);
 					}
 					
 					assert(false && "Casts between named types not implemented.");
@@ -558,7 +566,7 @@ namespace locic {
 			// Set object into live state (e.g. set gap byte to 1).
 			LivenessEmitter(irEmitter_).emitSetOuterLive(*(type->getObjectType()), objectValue);
 			
-			return irEmitter_.emitMoveLoad(objectValue, type);
+			return irEmitter_.emitLoad(objectValue, type);
 		}
 		
 		llvm::Value*
@@ -749,13 +757,11 @@ namespace locic {
 				                                      arrayPtr, indexValue);
 				
 				const auto elementIRValue = emitValue(elementValue, elementPtr);
-				irEmitter_.emitMoveStore(elementIRValue,
-				                         elementPtr,
-				                         elementValue.type());
+				irEmitter_.emitStore(elementIRValue, elementPtr,
+				                     elementValue.type());
 			}
 			
-			return irEmitter_.emitMoveLoad(arrayPtr,
-			                               value.type());
+			return irEmitter_.emitLoad(arrayPtr, value.type());
 		}
 		
 	}

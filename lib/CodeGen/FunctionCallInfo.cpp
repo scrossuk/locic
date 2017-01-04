@@ -17,9 +17,7 @@
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/PrimitiveFunctionEmitter.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Support.hpp>
@@ -90,7 +88,7 @@ namespace locic {
 				
 				const auto result = valueEmitter.emitValue(value_);
 				
-				return irEmitter.emitMoveLoad(result, value_.type()->refTarget());
+				return irEmitter.emitLoad(result, value_.type()->refTarget());
 			}
 			
 		private:
