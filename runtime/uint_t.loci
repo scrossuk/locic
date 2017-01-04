@@ -51,7 +51,7 @@ __primitive uint_t {
 	
 	int_t signed_value() const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	uint_t __move() noexcept;
 	
 	void increment() noexcept;
 	void decrement() noexcept;

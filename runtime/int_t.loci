@@ -62,7 +62,7 @@ __primitive int_t {
 	
 	uint_t unsigned_value() const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	int_t __move() noexcept;
 	
 	void increment() noexcept;
 	void decrement() noexcept;

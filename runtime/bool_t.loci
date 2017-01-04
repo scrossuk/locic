@@ -21,7 +21,7 @@ __primitive bool_t {
 	
 	bool_t not() const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	bool_t __move() noexcept;
 }
 
 template <movable T>

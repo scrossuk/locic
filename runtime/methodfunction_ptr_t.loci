@@ -10,7 +10,7 @@ __primitive methodfunction0_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	methodfunction0_ptr_t<IsNoExcept, ReturnType> __move() noexcept;
 	
 	methodfunction0_ptr_t<IsNoExcept, ReturnType> implicit_copy() const noexcept;
 	methodfunction0_ptr_t<IsNoExcept, ReturnType> copy() const noexcept;
@@ -29,7 +29,7 @@ __primitive methodfunction1_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	methodfunction1_ptr_t<IsNoExcept, ReturnType, Arg0> __move() noexcept;
 	
 	methodfunction1_ptr_t<IsNoExcept, ReturnType, Arg0> implicit_copy() const noexcept;
 	methodfunction1_ptr_t<IsNoExcept, ReturnType, Arg0> copy() const noexcept;
@@ -48,7 +48,7 @@ __primitive methodfunction2_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	methodfunction2_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1> __move() noexcept;
 	
 	methodfunction2_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1> implicit_copy() const noexcept;
 	methodfunction2_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1> copy() const noexcept;
@@ -67,7 +67,7 @@ __primitive methodfunction3_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	methodfunction3_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> __move() noexcept;
 	
 	methodfunction3_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> implicit_copy() const noexcept;
 	methodfunction3_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> copy() const noexcept;
@@ -86,7 +86,7 @@ __primitive methodfunction4_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	methodfunction4_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> __move() noexcept;
 	
 	methodfunction4_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> implicit_copy() const noexcept;
 	methodfunction4_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> copy() const noexcept;
@@ -105,7 +105,7 @@ __primitive methodfunction5_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	methodfunction5_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> __move() noexcept;
 	
 	methodfunction5_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> implicit_copy() const noexcept;
 	methodfunction5_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> copy() const noexcept;
@@ -124,7 +124,7 @@ __primitive methodfunction6_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	methodfunction6_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> __move() noexcept;
 	
 	methodfunction6_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> implicit_copy() const noexcept;
 	methodfunction6_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> copy() const noexcept;
@@ -143,7 +143,7 @@ __primitive methodfunction7_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	methodfunction7_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> __move() noexcept;
 	
 	methodfunction7_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> implicit_copy() const noexcept;
 	methodfunction7_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> copy() const noexcept;
@@ -162,7 +162,7 @@ __primitive methodfunction8_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	methodfunction8_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> __move() noexcept;
 	
 	methodfunction8_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> implicit_copy() const noexcept;
 	methodfunction8_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> copy() const noexcept;

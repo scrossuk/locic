@@ -53,7 +53,7 @@ __primitive long_t {
 	
 	ulong_t unsigned_value() const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	long_t __move() noexcept;
 	
 	void increment() noexcept;
 	void decrement() noexcept;

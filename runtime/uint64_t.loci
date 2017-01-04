@@ -56,7 +56,7 @@ __primitive uint64_t {
 	compare_result_t compare(const uint64_t& v) const noexcept;
 	bool isZero() const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	uint64_t __move() noexcept;
 	
 	void increment() noexcept;
 	void decrement() noexcept;

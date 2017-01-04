@@ -22,7 +22,7 @@ __primitive range_incl_t {
 	
 	bool empty() const noexcept(noexcept_lessthancomparable<T>) require(lessthancomparable<T>);
 	
-	void __moveto(void* ptr, size_t position) noexcept require(movable<T>);
+	range_incl_t<T> __move() noexcept require(movable<T>);
 }
 
 template <movable T>

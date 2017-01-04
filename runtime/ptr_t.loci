@@ -35,5 +35,5 @@ __primitive ptr_t {
 	
 	compare_result_t compare(const ptr_t<T>& value) const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	ptr_t<T> __move() noexcept;
 }

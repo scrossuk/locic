@@ -53,7 +53,7 @@ __primitive double_t {
 	
 	compare_result_t compare(const double_t& v) const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	double_t __move() noexcept;
 }
 
 template <movable T>

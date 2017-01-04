@@ -10,7 +10,7 @@ __primitive templatedfunction0_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	templatedfunction0_ptr_t<IsNoExcept, ReturnType> implicit_copy() const noexcept;
 	templatedfunction0_ptr_t<IsNoExcept, ReturnType> copy() const noexcept;
@@ -29,7 +29,7 @@ __primitive templatedfunction1_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	templatedfunction1_ptr_t<IsNoExcept, ReturnType, Arg0> implicit_copy() const noexcept;
 	templatedfunction1_ptr_t<IsNoExcept, ReturnType, Arg0> copy() const noexcept;
@@ -48,7 +48,7 @@ __primitive templatedfunction2_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	templatedfunction2_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1> implicit_copy() const noexcept;
 	templatedfunction2_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1> copy() const noexcept;
@@ -67,7 +67,7 @@ __primitive templatedfunction3_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	templatedfunction3_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> implicit_copy() const noexcept;
 	templatedfunction3_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> copy() const noexcept;
@@ -86,7 +86,7 @@ __primitive templatedfunction4_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	templatedfunction4_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> implicit_copy() const noexcept;
 	templatedfunction4_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> copy() const noexcept;
@@ -105,7 +105,7 @@ __primitive templatedfunction5_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	templatedfunction5_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> implicit_copy() const noexcept;
 	templatedfunction5_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> copy() const noexcept;
@@ -124,7 +124,7 @@ __primitive templatedfunction6_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	templatedfunction6_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> implicit_copy() const noexcept;
 	templatedfunction6_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> copy() const noexcept;
@@ -143,7 +143,7 @@ __primitive templatedfunction7_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	templatedfunction7_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> implicit_copy() const noexcept;
 	templatedfunction7_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> copy() const noexcept;
@@ -162,7 +162,7 @@ __primitive templatedfunction8_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	templatedfunction8_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> implicit_copy() const noexcept;
 	templatedfunction8_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> copy() const noexcept;

@@ -17,5 +17,5 @@ __primitive ptr_lval_t {
 	T extractvalue() noexcept require(movable<T>);
 	void destroyvalue() noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	ptr_lval_t<T> __move() noexcept;
 }

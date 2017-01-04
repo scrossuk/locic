@@ -11,7 +11,7 @@ __primitive ref_t {
 	void __setinvalid() noexcept;
 	bool __isvalid() const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	ref_t<T> __move() noexcept;
 	
 	template <bool IsConst>
 	const<IsConst>(T)* address() const(IsConst) noexcept;

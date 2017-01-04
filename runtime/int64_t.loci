@@ -52,7 +52,7 @@ __primitive int64_t {
 	bool isPositive() const noexcept;
 	bool isNegative() const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	int64_t __move() noexcept;
 	
 	void increment() noexcept;
 	void decrement() noexcept;

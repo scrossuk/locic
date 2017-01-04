@@ -10,7 +10,7 @@ __primitive varargfunction0_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	varargfunction0_ptr_t<IsNoExcept, ReturnType> implicit_copy() const noexcept;
 	varargfunction0_ptr_t<IsNoExcept, ReturnType> copy() const noexcept;
@@ -29,7 +29,7 @@ __primitive varargfunction1_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	varargfunction1_ptr_t<IsNoExcept, ReturnType, Arg0> implicit_copy() const noexcept;
 	varargfunction1_ptr_t<IsNoExcept, ReturnType, Arg0> copy() const noexcept;
@@ -48,7 +48,7 @@ __primitive varargfunction2_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	varargfunction2_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1> implicit_copy() const noexcept;
 	varargfunction2_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1> copy() const noexcept;
@@ -67,7 +67,7 @@ __primitive varargfunction3_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	varargfunction3_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> implicit_copy() const noexcept;
 	varargfunction3_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2> copy() const noexcept;
@@ -86,7 +86,7 @@ __primitive varargfunction4_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	varargfunction4_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> implicit_copy() const noexcept;
 	varargfunction4_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> copy() const noexcept;
@@ -105,7 +105,7 @@ __primitive varargfunction5_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	varargfunction5_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> implicit_copy() const noexcept;
 	varargfunction5_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4> copy() const noexcept;
@@ -124,7 +124,7 @@ __primitive varargfunction6_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	varargfunction6_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> implicit_copy() const noexcept;
 	varargfunction6_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> copy() const noexcept;
@@ -143,7 +143,7 @@ __primitive varargfunction7_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	varargfunction7_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> implicit_copy() const noexcept;
 	varargfunction7_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> copy() const noexcept;
@@ -162,7 +162,7 @@ __primitive varargfunction8_ptr_t {
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
-	void __moveto(void* ptr, size_t position) noexcept;
+	__move() noexcept;
 	
 	varargfunction8_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> implicit_copy() const noexcept;
 	varargfunction8_ptr_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7> copy() const noexcept;

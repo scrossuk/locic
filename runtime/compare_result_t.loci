@@ -19,7 +19,7 @@ __primitive compare_result_t {
 	bool is_greater_than() const noexcept;
 	bool is_greater_than_or_equal() const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	compare_result_t __move() noexcept;
 }
 interface compare_result_hasher_t {
 	void hash_compare_result(compare_result_t value) noexcept;

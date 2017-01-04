@@ -47,7 +47,7 @@ __primitive ushort_t {
 	
 	bool isZero() const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	ushort_t __move() noexcept;
 	
 	void increment() noexcept;
 	void decrement() noexcept;

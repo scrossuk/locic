@@ -5,7 +5,7 @@ __primitive typename_t {
 	typename_t implicit_copy() const noexcept;
 	typename_t copy() const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	typename_t __move() noexcept;
 }
 
 interface typename_hasher_t {

@@ -53,7 +53,7 @@ __primitive longlong_t {
 	
 	compare_result_t compare(const longlong_t& v) const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	longlong_t __move() noexcept;
 	
 	void increment() noexcept;
 	void decrement() noexcept;

@@ -47,7 +47,7 @@ __primitive float_t {
 	
 	compare_result_t compare(const float_t& v) const noexcept;
 	
-	void __moveto(void* ptr, size_t position) noexcept;
+	float_t __move() noexcept;
 }
 
 template <movable T>
