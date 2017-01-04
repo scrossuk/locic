@@ -54,19 +54,19 @@ namespace locic {
 		}
 		
 		AST::Predicate getAutoDefaultMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
-			auto requirePredicate = AST::Predicate::True();
-			
-			const auto movableType = context.typeBuilder().getMovableInterfaceType();
+			auto requirePredicate = getDefaultSizedTypePredicate(context, typeInstance);
 			
 			// All member variables need to be movable.
 			for (const auto& var: typeInstance->variables()) {
 				const auto varType = var->constructType();
+				const auto movableType = context.typeBuilder().getMovableInterfaceType(varType->createNoTagType());
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
 			}
 			
 			// All variants need to be movable.
 			for (const auto& variantTypeInstance: typeInstance->variants()) {
 				const auto varType = variantTypeInstance->selfType();
+				const auto movableType = context.typeBuilder().getMovableInterfaceType(varType->createNoTagType());
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
 			}
 			
@@ -83,30 +83,8 @@ namespace locic {
 			}
 		}
 		
-		// A similar version of the move predicate but uses notag() to get non-const type.
-		AST::Predicate getDefaultCopyMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
-			auto requirePredicate = AST::Predicate::True();
-			
-			const auto movableType = context.typeBuilder().getMovableInterfaceType();
-			
-			// All member variables need to be movable.
-			for (const auto& var: typeInstance->variables()) {
-				const auto varType = var->constructType()->createNoTagType();
-				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
-			}
-			
-			// All variants need to be movable.
-			for (const auto& variantTypeInstance: typeInstance->variants()) {
-				const auto varType = variantTypeInstance->selfType()->createNoTagType();
-				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
-			}
-			
-			return requirePredicate;
-		}
-		
 		AST::Predicate getDefaultCopyPredicate(Context& context, const AST::TypeInstance* const typeInstance, const String& propertyName) {
-			// Types must be movable to be copyable.
-			auto predicate = getDefaultCopyMovePredicate(context, typeInstance);
+			auto predicate = getDefaultSizedTypePredicate(context, typeInstance);
 			
 			// All member variables need to be copyable.
 			for (const auto& var: typeInstance->variables()) {
@@ -142,7 +120,7 @@ namespace locic {
 		}
 		
 		AST::Predicate getDefaultComparePredicate(Context& context, const AST::TypeInstance* const typeInstance, const String& propertyName) {
-			auto predicate = AST::Predicate::True();
+			auto predicate = getDefaultSizedTypePredicate(context, typeInstance);
 			
 			// All member variables need to be copyable.
 			for (const auto& var: typeInstance->variables()) {
