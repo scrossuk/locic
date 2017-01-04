@@ -346,10 +346,6 @@ namespace locic {
 			return alignMaskMap_;
 		}
 		
-		LocalVarMap& Function::getLocalVarMap() {
-			return localVarMap_;
-		}
-		
 		MemberOffsetMap& Function::getMemberOffsetMap() {
 			return memberOffsetMap_;
 		}

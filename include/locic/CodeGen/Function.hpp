@@ -153,8 +153,6 @@ namespace locic {
 				
 				AlignMaskMap& alignMaskMap();
 				
-				LocalVarMap& getLocalVarMap();
-				
 				MemberOffsetMap& getMemberOffsetMap();
 				
 				SizeOfMap& sizeOfMap();
