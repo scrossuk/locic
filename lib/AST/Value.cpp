@@ -1260,13 +1260,12 @@ namespace locic {
 				case PREDICATE:
 					return predicate().toString();
 				case LOCALVAR:
-					return localVar().toString();
+					return localVar().name().asStdString();
 				case UNIONDATAOFFSET:
 					return unionDataOffsetTypeInstance()->fullName().toString();
 				case MEMBEROFFSET:
-					// TODO: this should have a Var&, not an index.
 					return makeString("@%s",
-					                  memberOffsetTypeInstance()->variables()[memberOffsetMemberIndex()]->toString().c_str());
+					                  memberOffsetTypeInstance()->variables()[memberOffsetMemberIndex()]->name().c_str());
 				case REINTERPRET:
 					return reinterpretOperand().toDiagString();
 				case DEREF_REFERENCE:
@@ -1287,13 +1286,13 @@ namespace locic {
 					return makeString("nolval(%s)", makeNoLvalOperand().toDiagString().c_str());
 				case REF:
 					return makeString("ref<%s>(%s)",
-						makeRefTargetType()->toString().c_str(),
+						makeRefTargetType()->toDiagString().c_str(),
 						makeRefOperand().toDiagString().c_str());
 				case NOREF:
 					return makeString("noref(%s)", makeNoRefOperand().toDiagString().c_str());
 				case STATICREF:
 					return makeString("staticref<%s>(%s)",
-						makeStaticRefTargetType()->toString().c_str(),
+						makeStaticRefTargetType()->toDiagString().c_str(),
 						makeStaticRefOperand().toDiagString().c_str());
 				case NOSTATICREF:
 					return makeString("nostaticref(%s)", makeNoStaticRefOperand().toDiagString().c_str());
@@ -1303,7 +1302,7 @@ namespace locic {
 				case MEMBERACCESS:
 					return makeString("%s.%s",
 						memberAccessObject().toDiagString().c_str(),
-						memberAccessVar().toString().c_str());
+						memberAccessVar().name().c_str());
 				case BIND_REFERENCE:
 					return makeString("<bind> %s", bindReferenceOperand().toDiagString().c_str());
 				case TYPEREF:
@@ -1317,7 +1316,7 @@ namespace locic {
 					return functionRefFunction().fullName().toString();
 				case TEMPLATEFUNCTIONREF:
 					return makeString("%s::%s",
-					                  templateFunctionRefParentType()->toString().c_str(),
+					                  templateFunctionRefParentType()->toDiagString().c_str(),
 					                  templateFunctionRefName().c_str());
 				case METHODOBJECT:
 					return makeString("%s.%s",
@@ -1333,8 +1332,8 @@ namespace locic {
 					                  staticInterfaceMethodObject().toDiagString().c_str());
 				case CAPABILITYTEST:
 					return makeString("%s : %s",
-					                  capabilityTestCheckType()->toString().c_str(),
-					                  capabilityTestCapabilityType()->toString().c_str());
+					                  capabilityTestCheckType()->toDiagString().c_str(),
+					                  capabilityTestCapabilityType()->toDiagString().c_str());
 				case Value::ARRAYLITERAL:
 					return makeString("{ %s }", makeArrayString(arrayLiteralValues()).c_str());
 				case CASTDUMMYOBJECT:
