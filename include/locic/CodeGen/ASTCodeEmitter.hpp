@@ -40,7 +40,7 @@ namespace locic {
 			
 			void emitUserFunctionCode(const AST::Function& function);
 			
-			void emitParameterAllocas(const AST::Function& function);
+			void emitParameterAssignments(const AST::Function& function);
 			
 			void emitScopeFunctionCode(const AST::Function& function);
 			

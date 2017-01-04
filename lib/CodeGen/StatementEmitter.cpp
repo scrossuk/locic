@@ -18,11 +18,8 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/ScopeEmitter.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
@@ -186,12 +183,15 @@ namespace locic {
 		
 		void StatementEmitter::emitInitialise(AST::Var& var,
 		                                      const AST::Value& value) {
-			const auto varAllocaOptional = irEmitter_.function().getLocalVarMap().tryGet(&var);
-			const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
+			const auto varPtr = irEmitter_.emitAlloca(var.constructType());
+			irEmitter_.function().setVarAddress(var, varPtr);
 			
 			ValueEmitter valueEmitter(irEmitter_);
-			const auto valueIR = valueEmitter.emitValue(value, varAlloca);
-			genVarInitialise(irEmitter_.function(), &var, valueIR);
+			const auto valueIR = valueEmitter.emitValue(value, varPtr);
+			
+			irEmitter_.emitStore(valueIR, varPtr, var.constructType());
+			scheduleDestructorCall(irEmitter_.function(),
+			                       var.constructType(), varPtr);
 		}
 		
 		void StatementEmitter::emitIf(const std::vector<AST::IfClause*>& ifClauseList,
@@ -324,20 +324,17 @@ namespace locic {
 			auto& module = irEmitter_.module();
 			ValueEmitter valueEmitter(irEmitter_);
 			
-			const bool isSwitchValueRef = switchValue.type()->isRef();
-			const auto switchType = isSwitchValueRef ? switchValue.type()->refTarget() : switchValue.type();
+			assert(!switchValue.type()->isRef());
+			
+			const auto switchType = switchValue.type();
 			assert(switchType->isUnionDatatype());
 			
-			const auto llvmSwitchValue = valueEmitter.emitValue(switchValue);
+			const auto switchValuePtr = irEmitter_.emitAlloca(switchType);
 			
-			llvm::Value* switchValuePtr = nullptr;
+			const auto llvmSwitchValue = valueEmitter.emitValue(switchValue, switchValuePtr);
+			irEmitter_.emitStore(llvmSwitchValue, switchValuePtr, switchType);
 			
-			if (isSwitchValueRef) {
-				switchValuePtr = llvmSwitchValue;
-			} else {
-				switchValuePtr = irEmitter_.emitAlloca(switchType);
-				irEmitter_.emitMoveStore(llvmSwitchValue, switchValuePtr, switchType);
-			}
+			scheduleDestructorCall(function, switchType, switchValuePtr);
 			
 			const auto unionDatatypePointers = getUnionDatatypePointers(function, switchType, switchValuePtr);
 			
@@ -375,10 +372,8 @@ namespace locic {
 				
 				{
 					ScopeLifetime switchCaseLifetime(function);
-					genVarAlloca(function, switchCase->var().get());
-					genVarInitialise(function, switchCase->var().get(),
-						irEmitter_.emitMoveLoad(unionDatatypePointers.second,
-						                        switchCase->var()->constructType()));
+					function.setVarAddress(*(switchCase->var()),
+					                       unionDatatypePointers.second);
 					ScopeEmitter(irEmitter_).emitScope(*(switchCase->scope()));
 				}
 				
@@ -506,7 +501,7 @@ namespace locic {
 			const auto iteratorVar = irEmitter_.emitAlloca(iteratorType);
 			const auto initValueIR = valueEmitter.emitValue(initValue,
 			                                                iteratorVar);
-			irEmitter_.emitMoveStore(initValueIR, iteratorVar, iteratorType);
+			irEmitter_.emitStore(initValueIR, iteratorVar, iteratorType);
 			scheduleDestructorCall(function, iteratorType, iteratorVar);
 			
 			const auto forConditionBB = irEmitter_.createBasicBlock("forCondition");
@@ -532,11 +527,12 @@ namespace locic {
 				ScopeLifetime valueScope(function);
 				
 				// Initialise the loop value.
-				const auto varAllocaOptional = function.getLocalVarMap().tryGet(&var);
-				const auto varAlloca = varAllocaOptional ? *varAllocaOptional : nullptr;
+				const auto varPtr = irEmitter_.emitAlloca(valueType);
+				function.setVarAddress(var, varPtr);
 				const auto value = irEmitter_.emitFrontCall(iteratorVar, iteratorType,
-				                                            valueType, varAlloca);
-				genVarInitialise(function, &var, value);
+				                                            valueType, varPtr);
+				irEmitter_.emitStore(value, varPtr, valueType);
+				scheduleDestructorCall(function, valueType, varPtr);
 				
 				ControlFlowScope controlFlowScope(function, forEndBB, forAdvanceBB);
 				ScopeEmitter(irEmitter_).emitScope(scope);
@@ -580,9 +576,7 @@ namespace locic {
 					if (function.getArgInfo().hasReturnVarArgument()) {
 						const auto returnValue = valueEmitter.emitValue(value,
 						                                                function.getReturnVar());
-						
-						// Store the return value into the return value pointer.
-						irEmitter_.emitMoveStore(returnValue, function.getReturnVar(), value.type());
+						irEmitter_.emitStore(returnValue, function.getReturnVar(), value.type());
 					} else {
 						const auto returnValue = valueEmitter.emitValue(value);
 						
@@ -598,10 +592,7 @@ namespace locic {
 					if (function.getArgInfo().hasReturnVarArgument()) {
 						const auto returnValue = valueEmitter.emitValue(value,
 						                                                function.getReturnVar());
-						
-						// Store the return value into the return value pointer.
-						irEmitter_.emitMoveStore(returnValue, function.getReturnVar(), value.type());
-						
+						irEmitter_.emitStore(returnValue, function.getReturnVar(), value.type());
 						irEmitter_.emitReturnVoid();
 					} else {
 						const auto returnValue = valueEmitter.emitValue(value);
@@ -688,9 +679,7 @@ namespace locic {
 					exceptionPtrValue->setDoesNotAccessMemory();
 					exceptionPtrValue->setDoesNotThrow();
 					
-					assert(catchClause->var()->isNamed());
-					function.getLocalVarMap().forceInsert(catchClause->var().get(),
-					                                      exceptionPtrValue);
+					function.setVarAddress(*(catchClause->var()), exceptionPtrValue);
 					
 					{
 						ScopeLifetime catchScopeLifetime(function);

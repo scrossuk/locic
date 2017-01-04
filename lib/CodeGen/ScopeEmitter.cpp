@@ -1,7 +1,6 @@
 #include <locic/AST/Scope.hpp>
 
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenVar.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/ScopeEmitter.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
@@ -20,10 +19,6 @@ namespace locic {
 			StatementEmitter statementEmitter(irEmitter_);
 			{
 				ScopeLifetime scopeLifetime(function);
-				
-				for (const auto localVar : scope.variables()) {
-					genVarAlloca(function, localVar);
-				}
 				
 				for (const auto& statement : scope.statements()) {
 					statementEmitter.emitStatement(statement);

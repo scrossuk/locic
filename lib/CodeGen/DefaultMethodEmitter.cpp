@@ -148,7 +148,7 @@ namespace locic {
 				
 				// Add variable to mapping so it can be referred to in the
 				// initialisation of the exception parent object.
-				functionGenerator_.getLocalVarMap().insert(memberVar, resultPtr);
+				functionGenerator_.setVarAddress(*memberVar, resultPtr);
 			}
 			
 			// Need an array to store all the pending results being referred to.

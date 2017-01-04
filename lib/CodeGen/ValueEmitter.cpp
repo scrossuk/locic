@@ -24,10 +24,8 @@
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/LivenessEmitter.hpp>
 #include <locic/CodeGen/Mangling.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/MethodInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Support.hpp>
@@ -236,8 +234,7 @@ namespace locic {
 		
 		llvm::Value*
 		ValueEmitter::emitLocalVar(const AST::Value& value) {
-			const auto& var = value.localVar();
-			return irEmitter_.function().getLocalVarMap().get(&var);
+			return irEmitter_.function().getVarAddress(value.localVar());
 		}
 		
 		llvm::Value*
@@ -256,7 +253,7 @@ namespace locic {
 		ValueEmitter::emitDerefReference(const AST::Value& value) {
 			llvm::Value* const refValue = emitValue(value.derefOperand(),
 			                                        /*hintResultValue=*/nullptr);
-			return irEmitter_.emitMoveLoad(refValue, value.type());
+			return irEmitter_.emitLoad(refValue, value.type());
 		}
 		
 		llvm::Value*
@@ -531,7 +528,7 @@ namespace locic {
 					                                                                   objectValue,
 					                                                                   0, i);
 					const auto llvmParamValue = emitValue(parameterValues.at(i), llvmInsertPointer);
-					genStoreVar(irEmitter_.function(), llvmParamValue, llvmInsertPointer, var);
+					irEmitter_.emitStore(llvmParamValue, llvmInsertPointer, var->lvalType());
 				}
 			} else {
 				llvm::Value* offsetValue = irEmitter_.constantGenerator().getSizeTValue(0);
@@ -547,8 +544,7 @@ namespace locic {
 					const auto llvmInsertPointer = irEmitter_.emitInBoundsGEP(irEmitter_.typeGenerator().getI8Type(),
 					                                                          objectValue, offsetValue);
 					const auto llvmParamValue = emitValue(parameterValues.at(i), llvmInsertPointer);
-					
-					genStoreVar(irEmitter_.function(), llvmParamValue, llvmInsertPointer, var);
+					irEmitter_.emitStore(llvmParamValue, llvmInsertPointer, var->lvalType());
 					
 					if ((i + 1) != parameterValues.size()) {
 						// If this isn't the last field, add its size for calculating
@@ -581,10 +577,16 @@ namespace locic {
 		llvm::Value*
 		ValueEmitter::emitBindReference(const AST::Value& value) {
 			const auto& dataValue = value.bindReferenceOperand();
+			const auto ptrValue = irEmitter_.emitAlloca(dataValue.type());
 			const auto llvmDataValue = emitValue(dataValue,
-			                                     /*hintResultValue=*/nullptr);
-			return genValuePtr(irEmitter_.function(), llvmDataValue,
-			                   dataValue.type());
+			                                     /*hintResultValue=*/ptrValue);
+			irEmitter_.emitStore(llvmDataValue, ptrValue, dataValue.type());
+			
+			// Call destructor for the object at the end of the current scope.
+			scheduleDestructorCall(irEmitter_.function(), dataValue.type(),
+			                       ptrValue);
+			
+			return ptrValue;
 		}
 		
 		llvm::Value*

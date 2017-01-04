@@ -8,7 +8,6 @@
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
@@ -77,7 +76,8 @@ namespace locic {
 				// into the target function.
 				IREmitter irEmitter(functionGenerator);
 				const auto argAlloca = irEmitter.emitAlloca(translatedParameterType);
-				irEmitter.emitBasicStore(argValue, argAlloca, translatedParameterType);
+				assert(genType(module, translatedParameterType) == argValue->getType());
+				irEmitter.emitRawStore(argValue, argAlloca);
 				return argAlloca;
 			} else {
 				return argValue;

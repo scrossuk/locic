@@ -18,7 +18,6 @@ add_library(locic-codegen
 	GenABIType.cpp
 	GenFunctionCall.cpp
 	GenType.cpp
-	GenVar.cpp
 	GenVTable.cpp
 	Interface.cpp
 	InternalContext.cpp
@@ -30,7 +29,6 @@ add_library(locic-codegen
 	LivenessInfo.cpp
 	Mangling.cpp
 	md5.cpp
-	Memory.cpp
 	MethodInfo.cpp
 	Module.cpp
 	ModulePtr.cpp
@@ -47,7 +45,6 @@ add_library(locic-codegen
 	Primitives/PrimitiveMethod.cpp
 	Primitives/PrimitiveMove.cpp
 	Primitives/PrimitiveSizeOf.cpp
-	Primitives/PrimitiveStoreLval.cpp
 	Primitives/PrimitiveTypes.cpp
 	Primitives/PtrLvalPrimitive.cpp
 	Primitives/PtrPrimitive.cpp

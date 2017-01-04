@@ -15,7 +15,6 @@
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
