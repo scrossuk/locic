@@ -169,62 +169,51 @@ namespace locic {
 			           llvm::Value* const hintResultValue=nullptr);
 			
 			/**
-			 * \brief Move a value by loading it from a memory location.
-			 * 
-			 * This function can be used to provide move operations; it will
-			 * generate a trivial load where possible but may return the
-			 * value pointer (as passed to it) if the type has a custom
-			 * move method, since this means the object must be kept in memory.
+			 * \brief Bind value to address.
 			 */
 			llvm::Value*
-			emitMoveLoad(llvm::Value* value, const AST::Type* type);
+			emitBind(llvm::Value* value, const AST::Type* type);
 			
 			/**
-			 * \brief Move a value by storing it into a memory location.
-			 * 
-			 * This function can be used to provide move operations; it will
-			 * generate a trivial store where possible but will invoke the
-			 * move method if the type has a custom move method.
+			 * \brief Load value from a memory location.
+			 */
+			llvm::Value*
+			emitLoad(llvm::Value* ptr, const AST::Type* type);
+			
+			/**
+			 * \brief Store value into a memory location.
 			 */
 			void
-			emitMoveStore(llvm::Value* value,
-			              llvm::Value* memDest,
+			emitStore(llvm::Value* value, llvm::Value* ptr,
+			          const AST::Type* type);
+			
+			/**
+			 * \brief Call __move method with given source/dest.
+			 */
+			void
+			emitMove(llvm::Value* sourcePtr, llvm::Value* destPtr,
+			         const AST::Type* type);
+			
+			/**
+			 * \brief Move value into a memory location.
+			 */
+			void
+			emitMoveStore(llvm::Value* value, llvm::Value* ptr,
 			              const AST::Type* type);
 			
 			/**
-			 * \brief Emit a call to a __moveto method.
-			 */
-			void
-			emitMoveCall(llvm::Value* memSource,
-			             llvm::Value* memDest,
-			             llvm::Value* destOffset,
-			             const AST::Type* type);
-			
-			/**
-			 * \brief Load a value from a memory location.
-			 * 
-			 * For most primitive types, this function will
-			 * generated a load instruction. However, otherwise
-			 * this function typically returns the pointer passed
-			 * to it as-is, since class types should always be
-			 * handled as pointers.
+			 * \brief Emit a call to a __move method.
 			 */
 			llvm::Value*
-			emitBasicLoad(llvm::Value* value, const AST::Type* type);
+			emitMoveCall(PendingResult value, const AST::Type* type,
+			             llvm::Value* hintResultValue = nullptr);
 			
 			/**
-			 * \brief Store a value into a memory location.
-			 * 
-			 * As with the load function, this handles both
-			 * value types (such as primitives) by generating
-			 * a normal store, but also handles reference types
-			 * (such as classes) by copying the memory from
-			 * one pointer to another.
+			 * \brief Emit a call to an inner __move method.
 			 */
-			void
-			emitBasicStore(llvm::Value* value,
-			               llvm::Value* memDest,
-			               const AST::Type* type);
+			llvm::Value*
+			emitInnerMoveCall(llvm::Value* value, const AST::Type* type,
+			                  llvm::Value* hintResultValue = nullptr);
 			
 			llvm::Value*
 			emitLoadDatatypeTag(llvm::Value* datatypePtr);

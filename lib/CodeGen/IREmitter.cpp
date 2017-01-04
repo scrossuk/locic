@@ -8,13 +8,12 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
-#include <locic/CodeGen/Memory.hpp>
 #include <locic/CodeGen/MethodInfo.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -380,88 +379,115 @@ namespace locic {
 			return genAlloca(*this, type, hintResultValue);
 		}
 		
-		// TODO: move this inline.
-		llvm::Value* genMoveLoad(Function& function, llvm::Value* var, const AST::Type* type);
-		
 		llvm::Value*
-		IREmitter::emitMoveLoad(llvm::Value* const value,
-		                        const AST::Type* const type) {
-			return genMoveLoad(functionGenerator_,
-			                   value,
-			                   type);
-		}
-		
-		// TODO: move this inline.
-		void genMoveStore(Function& function, llvm::Value* value, llvm::Value* var, const AST::Type* type);
-		
-		void
-		IREmitter::emitMoveStore(llvm::Value* const value,
-		                         llvm::Value* const memDest,
-		                         const AST::Type* type) {
-			return genMoveStore(functionGenerator_,
-			                    value,
-			                    memDest,
-			                    type);
-		}
-		
-		void
-		IREmitter::emitMoveCall(llvm::Value* const memSource,
-		                        llvm::Value* const memDest,
-		                        llvm::Value* const destOffset,
-		                        const AST::Type* const type) {
-			genMoveCall(functionGenerator_, type, memSource, memDest,
-			            destOffset);
-		}
-		
-		llvm::Value*
-		IREmitter::emitBasicLoad(llvm::Value* const value,
-		                         const AST::Type* const type) {
-			assert(value->getType()->isPointerTy());
-			
-			TypeInfo typeInfo(module());
-			if (typeInfo.isSizeAlwaysKnown(type)) {
-				const auto valueType = genType(module(), type);
-				return emitRawLoad(value, valueType);
+		IREmitter::emitBind(llvm::Value* const value,
+		                    const AST::Type* const type) {
+			if (TypeInfo(module()).canPassByValue(type)) {
+				const auto ptr = emitAlloca(type);
+				emitRawStore(value, ptr);
+				return ptr;
 			} else {
+				assert(value->getType()->isPointerTy());
 				return value;
 			}
 		}
 		
-		void
-		IREmitter::emitBasicStore(llvm::Value* const value,
-		                          llvm::Value* const memDest,
-		                          const AST::Type* const type) {
-			assert(memDest->getType()->isPointerTy());
-			
-			TypeInfo typeInfo(module());
-			if (typeInfo.isSizeAlwaysKnown(type)) {
-				// Most primitives will be passed around as values,
-				// rather than pointers.
-				emitRawStore(value, memDest);
-				return;
+		llvm::Value*
+		IREmitter::emitLoad(llvm::Value* const ptr,
+		                    const AST::Type* const type) {
+			assert(ptr->getType()->isPointerTy());
+			if (TypeInfo(module()).canPassByValue(type)) {
+				const auto llvmType = genType(module(), type);
+				return emitRawLoad(ptr, llvmType);
 			} else {
-				if (value->stripPointerCasts() == memDest->stripPointerCasts()) {
-					// Source and destination are same pointer, so no
-					// move operation required!
-					return;
-				}
-				
-				if (typeInfo.isSizeKnownInThisModule(type)) {
-					// If the type size is known now, it's
-					// better to generate an explicit load
-					// and store (optimisations will be able
-					// to make more sense of this).
-					const auto loadedValue = emitRawLoad(value,
-					                                     genType(module(), type));
-					emitRawStore(loadedValue, memDest);
-				} else {
-					// If the type size isn't known, then
-					// a memcpy is unavoidable.
-					emitMemCpy(memDest, value,
-					           genSizeOf(function(), type), 1);
-				}
-				return;
+				return ptr;
 			}
+		}
+		
+		void
+		IREmitter::emitStore(llvm::Value* const value,
+		                     llvm::Value* const ptr,
+		                     const AST::Type* const type) {
+			assert(ptr->getType()->isPointerTy());
+			if (TypeInfo(module()).canPassByValue(type)) {
+				emitRawStore(value, ptr);
+			} else {
+				assert(value->getType()->isPointerTy());
+				assert(value->stripPointerCasts() == ptr->stripPointerCasts());
+			}
+		}
+		
+		void
+		IREmitter::emitMove(llvm::Value* const sourcePtr,
+		                    llvm::Value* const destPtr,
+		                    const AST::Type* type) {
+			assert(sourcePtr->getType()->isPointerTy());
+			assert(destPtr->getType()->isPointerTy());
+			assert(sourcePtr->stripPointerCasts() != destPtr->stripPointerCasts());
+			
+			RefPendingResult thisPendingResult(sourcePtr, type);
+			const auto result = emitMoveCall(thisPendingResult, type, destPtr);
+			emitStore(result, destPtr, type);
+		}
+		
+		void
+		IREmitter::emitMoveStore(llvm::Value* const value,
+		                         llvm::Value* const ptr,
+		                         const AST::Type* const type) {
+			assert(ptr->getType()->isPointerTy());
+			if (TypeInfo(module()).canPassByValue(type)) {
+				emitRawStore(value, ptr);
+			} else {
+				emitMove(value, ptr, type);
+			}
+		}
+		
+		AST::FunctionType moveFunctionType(const AST::Type* const type) {
+			const bool hasTemplateArgs = type->isObject() && !type->templateArguments().empty();
+			AST::FunctionAttributes attributes(/*isVarArg=*/false, /*isMethod=*/true,
+			                                   /*isTemplated=*/hasTemplateArgs,
+			                                   /*noexceptPredicate=*/AST::Predicate::True());
+			return AST::FunctionType(std::move(attributes), type, {});
+		}
+		
+		llvm::Value*
+		IREmitter::emitMoveCall(PendingResult value,
+		                        const AST::Type* const rawType,
+		                        llvm::Value* const hintResultValue) {
+			const auto type = rawType->resolveAliases();
+			const auto functionType = moveFunctionType(type);
+			MethodInfo methodInfo(type, module().getCString("__move"),
+			                      functionType, /*templateArgs=*/{});
+			return genDynamicMethodCall(function(), methodInfo,
+			                            std::move(value), /*args=*/{},
+			                            hintResultValue);
+		}
+		
+		llvm::Value*
+		IREmitter::emitInnerMoveCall(llvm::Value* const value,
+		                             const AST::Type* const rawType,
+		                             llvm::Value* const hintResultValue) {
+			const auto type = rawType->resolveAliases();
+			assert(type->isObject());
+			
+			const auto& function = type->getObjectType()->getFunction(module().getCString("__move"));
+			
+			auto& astFunctionGenerator = module().astFunctionGenerator();
+			const auto moveFunction = astFunctionGenerator.genDef(type->getObjectType(),
+			                                                      function,
+			                                                      /*isInnerMethod=*/true);
+			
+			FunctionCallInfo callInfo;
+			callInfo.functionPtr = moveFunction;
+			callInfo.contextPointer = value;
+			
+			// We're assuming that this call is being made from the **outer** move function,
+			// so the template generator will be identical.
+			callInfo.templateGenerator = functionGenerator_.getTemplateGeneratorOrNull();
+			
+			const auto functionType = moveFunctionType(type);
+			return genFunctionCall(functionGenerator_, functionType, callInfo,
+			                       /*args=*/{}, hintResultValue);
 		}
 		
 		llvm::Value*
