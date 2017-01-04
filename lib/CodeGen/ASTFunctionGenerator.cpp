@@ -10,7 +10,6 @@
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
-#include <locic/CodeGen/Move.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -199,7 +198,7 @@ namespace locic {
 		                             const AST::Function& function,
 		                             const bool isInnerMethod) {
 			assert(!isInnerMethod ||
-			       function.fullName().last() == "__moveto" ||
+			       function.fullName().last() == "__move" ||
 			       function.fullName().last() == "__destroy");
 			assert(!isInnerMethod || !function.isPrimitive());
 			const auto llvmFunction = getDecl(typeInstance,
@@ -295,17 +294,17 @@ namespace locic {
 			const auto argList = functionGenerator.getArgList();
 			
 			const bool hasReturnVar = !canPassByValue(module_, functionType.returnType());
-			const auto hintResultValue = hasReturnVar ? functionGenerator.getReturnVar() : nullptr;
 			
 			IREmitter irEmitter(functionGenerator);
 			const auto result = module_.virtualCallABI().emitCall(irEmitter,
 			                                                      functionType,
 			                                                      methodComponents,
 			                                                      argList,
-			                                                      hintResultValue);
+			                                                      functionGenerator.getReturnVarOrNull());
 			
 			if (hasReturnVar) {
-				irEmitter.emitMoveStore(result, functionGenerator.getReturnVar(), functionType.returnType());
+				irEmitter.emitStore(result, functionGenerator.getReturnVar(),
+				                    functionType.returnType());
 				irEmitter.emitReturnVoid();
 			} else if (result->getType()->isVoidTy()) {
 				irEmitter.emitReturnVoid();
