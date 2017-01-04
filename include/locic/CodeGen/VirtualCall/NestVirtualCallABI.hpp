@@ -59,16 +59,6 @@ namespace locic {
 			                CountFnKind kind);
 			
 			ArgInfo
-			virtualMoveArgInfo();
-			
-			void
-			emitMoveCall(IREmitter& irEmitter,
-			             llvm::Value* typeInfoValue,
-			             llvm::Value* sourceValue,
-			             llvm::Value* destValue,
-			             llvm::Value* positionValue);
-			
-			ArgInfo
 			virtualDestructorArgInfo();
 			
 			void

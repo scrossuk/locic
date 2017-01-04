@@ -52,13 +52,6 @@ namespace locic {
 			                CountFnKind kind) = 0;
 			
 			virtual void
-			emitMoveCall(IREmitter& irEmitter,
-			             llvm::Value* typeInfoValue,
-			             llvm::Value* sourceValue,
-			             llvm::Value* destValue,
-			             llvm::Value* positionValue) = 0;
-			
-			virtual void
 			emitDestructorCall(IREmitter& irEmitter,
 			                   llvm::Value* typeInfoValue,
 			                   llvm::Value* objectValue) = 0;

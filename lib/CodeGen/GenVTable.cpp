@@ -25,7 +25,7 @@ namespace locic {
 			
 			for (const auto& function: functions) {
 				const auto name = function->canonicalName();
-				if (name.starts_with("__") && name != "__alignmask" && name != "__sizeof") {
+				if (name.starts_with("__") && name != "__alignmask" && name != "__sizeof" && name != "__move") {
 					// Don't add 'special' methods to vtable.
 					continue;
 				}
@@ -78,9 +78,6 @@ namespace locic {
 			const auto i8PtrType = typeGen.getPtrType();
 			
 			std::vector<llvm::Constant*> vtableStructElements;
-			
-			// Move.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableMoveFunction(module, typeInstance), typeGen.getPtrType()));
 			
 			// Destructor.
 			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableDestructorFunction(module, *typeInstance), typeGen.getPtrType()));

@@ -144,7 +144,7 @@ namespace locic {
 			// Get a pointer to the slot.
 			llvm::SmallVector<llvm::Value*, 3> vtableEntryGEP;
 			vtableEntryGEP.push_back(constantGen.getI32(0));
-			vtableEntryGEP.push_back(constantGen.getI32(4));
+			vtableEntryGEP.push_back(constantGen.getI32(3));
 			vtableEntryGEP.push_back(castVTableOffsetValue);
 			
 			const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module_),
@@ -232,7 +232,7 @@ namespace locic {
 			ConstantGenerator constGen(module_);
 			llvm::SmallVector<llvm::Value*, 2> vtableEntryGEP;
 			vtableEntryGEP.push_back(constGen.getI32(0));
-			vtableEntryGEP.push_back(constGen.getI32(kind == ALIGNOF ? 2 : 3));
+			vtableEntryGEP.push_back(constGen.getI32(kind == ALIGNOF ? 1 : 2));
 			
 			const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module_),
 			                                                          vtablePointer,
@@ -247,42 +247,6 @@ namespace locic {
 			return genRawFunctionCall(irEmitter.function(), argInfo,
 			                          methodFunctionPointer,
 			                          { templateGeneratorValue });
-		}
-		
-		ArgInfo
-		NestVirtualCallABI::virtualMoveArgInfo() {
-			const TypePair types[] = { pointerTypePair(module_), sizeTypePair(module_) };
-			return ArgInfo::VoidTemplateAndContextWithArgs(module_, types).withNoExcept();
-		}
-		
-		void
-		NestVirtualCallABI::emitMoveCall(IREmitter& irEmitter,
-		                                    llvm::Value* typeInfoValue,
-		                                    llvm::Value* sourceValue,
-		                                    llvm::Value* destValue,
-		                                    llvm::Value* positionValue) {
-			// Extract vtable and template generator.
-			const auto vtablePointer = irEmitter.builder().CreateExtractValue(typeInfoValue, { 0 }, "vtable");
-			const auto templateGeneratorValue = irEmitter.builder().CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
-			
-			// Get a pointer to the slot.
-			ConstantGenerator constGen(module_);
-			llvm::SmallVector<llvm::Value*, 2> vtableEntryGEP;
-			vtableEntryGEP.push_back(constGen.getI32(0));
-			vtableEntryGEP.push_back(constGen.getI32(0));
-			
-			const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module_),
-			                                                          vtablePointer,
-			                                                          vtableEntryGEP);
-			
-			const auto argInfo = virtualMoveArgInfo();
-			
-			// Load the slot.
-			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
-			                                                         irEmitter.typeGenerator().getPtrType());
-			
-			llvm::Value* const args[] = { sourceValue, destValue, positionValue, templateGeneratorValue };
-			(void) genRawFunctionCall(irEmitter.function(), argInfo, methodFunctionPointer, args);
 		}
 		
 		ArgInfo
@@ -302,7 +266,7 @@ namespace locic {
 			ConstantGenerator constGen(module_);
 			llvm::SmallVector<llvm::Value*, 2> vtableEntryGEP;
 			vtableEntryGEP.push_back(constGen.getI32(0));
-			vtableEntryGEP.push_back(constGen.getI32(1));
+			vtableEntryGEP.push_back(constGen.getI32(0));
 			
 			const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module_),
 			                                                          vtablePointer,
