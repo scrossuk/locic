@@ -42,7 +42,7 @@ namespace locic {
 			getTypenameType();
 			
 			const AST::Type*
-			getMovableInterfaceType();
+			getMovableInterfaceType(const AST::Type* type);
 			
 			const AST::Type*
 			getPointerType(const AST::Type* elementType);
@@ -101,7 +101,6 @@ namespace locic {
 			const AST::Type* cachedIntType_;
 			const AST::Type* cachedSizeType_;
 			const AST::Type* cachedTypenameType_;
-			const AST::Type* cachedMovableType_;
 			
 		};
 		

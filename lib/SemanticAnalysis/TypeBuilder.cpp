@@ -18,8 +18,7 @@ namespace locic {
 		
 		TypeBuilder::TypeBuilder(Context& argContext)
 		: context_(argContext), cachedVoidType_(nullptr), cachedBoolType_(nullptr),
-		cachedIntType_(nullptr), cachedSizeType_(nullptr), cachedTypenameType_(nullptr),
-		cachedMovableType_(nullptr) { }
+		cachedIntType_(nullptr), cachedSizeType_(nullptr), cachedTypenameType_(nullptr) { }
 		
 		const AST::Type*
 		TypeBuilder::getPrimitiveType(PrimitiveID primitiveID,
@@ -82,15 +81,8 @@ namespace locic {
 		}
 		
 		const AST::Type*
-		TypeBuilder::getMovableInterfaceType() {
-			if (cachedMovableType_ != nullptr) {
-				return cachedMovableType_;
-			}
-			
-			cachedMovableType_ = getBuiltInType(context_,
-			                                    context_.getCString("movable_t"),
-			                                    {});
-			return cachedMovableType_;
+		TypeBuilder::getMovableInterfaceType(const AST::Type* type) {
+			return getBuiltInType(context_, context_.getCString("movable_t"), { type });
 		}
 		
 		const AST::Type*
