@@ -100,8 +100,8 @@ namespace locic {
 			assert(!value->getType()->isVoidTy());
 			
 			if (value->getType()->isPointerTy()) {
-				value = getBuilder().CreatePointerCast(value,
-				                                       TypeGenerator(module()).getPtrType());
+				IREmitter irEmitter(*this);
+				value = irEmitter.emitPointerCast(value, TypeGenerator(module()).getPtrType());
 			}
 			
 			return functionEncoder_->returnValue(value);
