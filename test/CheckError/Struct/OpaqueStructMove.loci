@@ -4,9 +4,9 @@
 struct OpaqueStruct;
 
 void f(OpaqueStruct* ptr) {
-	// CHECK: .loci:9:16: error: template arguments do not satisfy require predicate 'OpaqueStruct : movable_t' of method 'move'
+	// CHECK: .loci:9:16: error: template arguments do not satisfy require predicate 'OpaqueStruct : sized_type_t and OpaqueStruct : movable_t<notag(OpaqueStruct)>' of method 'move'
 	// CHECK: .loci:9:16: note: because: method '__alignmask' not found
 	unused_result move *ptr;
 }
 
-// CHECK: 1 error generated.
+// CHECK: 2 errors generated.

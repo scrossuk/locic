@@ -3,11 +3,10 @@
 
 // CHECK: OuterType.create()
 // CHECK: OuterType.create()
-// CHECK: OuterType.__moveto() - begin
+// CHECK: OuterType.__move()
 // CHECK: InnerType.__islive()
-// CHECK: InnerType.__moveto()
+// CHECK: InnerType.__move()
 // CHECK: InnerType.__setdead()
-// CHECK: OuterType.__moveto() - end
 // CHECK: OuterType.~()
 
 import void printf(const ubyte * str, ...) noexcept;
@@ -26,8 +25,9 @@ class InnerType() {
 		printf(C"InnerType.__setdead()\n");
 	}
 	
-	void __moveto(unused void* dest, unused size_t offset) noexcept {
-		printf(C"InnerType.__moveto()\n");
+	InnerType __move() noexcept {
+		printf(C"InnerType.__move()\n");
+		return @();
 	}
 }
 
@@ -41,10 +41,9 @@ class OuterType(InnerType inner) {
 		printf(C"OuterType.~()\n");
 	}
 	
-	void __moveto(void* dest, size_t offset) noexcept {
-		printf(C"OuterType.__moveto() - begin\n");
-		@inner.__moveto(dest, offset);
-		printf(C"OuterType.__moveto() - end\n");
+	OuterType __move() noexcept {
+		printf(C"OuterType.__move()\n");
+		return @(@inner.__move());
 	}
 }
 
@@ -54,10 +53,10 @@ export int main(unused int argc, unused ubyte ** argv) {
 	auto outer = OuterType();
 	outer.__setdead();
 	
-	// Check that __moveto DOES recurse and hence DOES set the
+	// Check that __move DOES recurse and hence DOES set the
 	// member to a dead state.
 	auto sourceOuter = OuterType();
-	sourceOuter.__moveto(reinterpret_cast<OuterType*, void*>(&outer), 0u);
+	outer = move sourceOuter;
 	return 0;
 }
 

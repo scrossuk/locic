@@ -27,12 +27,12 @@ export void h() {
 	// CHECK: br i1 %{{[0-9]+}}, label %[[TRUE:[0-9]+]], label %[[FALSE:[0-9]+]]
 	// CHECK: <label>:[[TRUE]]
 	// CHECK-NEXT: call void @MT1N9TestClassF1N6create(i8* %[[V1]])
-	// CHECK-NEXT: call void @MT1N9TestClassF1N8__moveto(i8* %[[V1]], i8* %[[V2]], i64 0)
+	// CHECK-NEXT: call void @MT1N9TestClassF1N8__move(i8* %[[V2]], i8* %[[V1]])
 	// CHECK-NEXT: call i32 @g(i8* %[[V2]])
 	// CHECK-NEXT: br label %[[MERGE:[0-9]+]]
 	// CHECK: <label>:[[FALSE]]
 	// CHECK-NEXT: call void @MT1N9TestClassF1N6create(i8* %[[V3]])
-	// CHECK-NEXT: call void @MT1N9TestClassF1N8__moveto(i8* %[[V3]], i8* %[[V4]], i64 0)
+	// CHECK-NEXT: call void @MT1N9TestClassF1N8__move(i8* %[[V4]], i8* %[[V3]])
 	// CHECK-NEXT: call i32 @g(i8* %[[V4]])
 	// CHECK-NEXT: br label %[[MERGE]]
 	// CHECK: <label>:[[MERGE]]

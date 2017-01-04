@@ -2,11 +2,11 @@
 // RUN: FileCheck < %t %s
 
 // CHECK: auto testInstance = TestClass(MemberClass());
-// CHECK: MemberClass.__moveto
+// CHECK: MemberClass.__move
 // CHECK: auto testInstanceMoved = move testInstance;
-// CHECK: MemberClass.__moveto
+// CHECK: MemberClass.__move
 // CHECK: auto testInstanceMovedAgain = move testInstanceMoved;
-// CHECK: MemberClass.__moveto
+// CHECK: MemberClass.__move
 // CHECK: MemberClass.~
 
 import void printf(const ubyte * str, ...) noexcept;
@@ -24,8 +24,9 @@ class MemberClass() {
 		printf(C"MemberClass.~\n");
 	}
 	
-	void __moveto(unused void* ptr, unused size_t position) noexcept {
-		printf(C"MemberClass.__moveto\n");
+	MemberClass __move() noexcept {
+		printf(C"MemberClass.__move\n");
+		return MemberClass();
 	}
 }
 

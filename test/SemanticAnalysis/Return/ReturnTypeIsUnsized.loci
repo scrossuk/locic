@@ -2,11 +2,24 @@
 // RUN: FileCheck < %t %s
 
 template <typename T>
-// CHECK: .loci:6:8: error: return type 'T' of function 'f' does not have a size
-import T f();
+// CHECK-NOT: .loci:6:8: error: return type 'T' of function 'a' does not have a size
+import T a();
 
 template <sized_type T>
-// CHECK-NOT: .loci:11:8: error: return type 'T' of function 'g' does not have a size
-import T g();
+// CHECK-NOT: .loci:10:8: error: return type 'T' of function 'b' does not have a size
+import T b();
 
-// CHECK: 1 error generated.
+template <typename T>
+// CHECK: .loci:14:8: error: return type 'T' of function 'c' does not have a size
+export T c() {
+	// CHECK: .loci:16:9: error: return type 'T' of function call does not have a size
+	return a<T>();
+}
+
+template <sized_type T>
+// CHECK-NOT: .loci:21:8: error: return type 'T' of function 'd' does not have a size
+export T d() {
+	return a<T>();
+}
+
+// CHECK: 2 errors generated.

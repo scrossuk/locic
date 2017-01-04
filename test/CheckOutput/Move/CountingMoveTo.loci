@@ -15,9 +15,8 @@ class TestClass(int value) {
 		return @(0);
 	}
 	
-	void __moveto(void* ptr, size_t position) noexcept {
-		@value += 1;
-		@value.__moveto(ptr, position);
+	TestClass __move() noexcept {
+		return @(@value + 1);
 	}
 	
 	int value() const noexcept {

@@ -2,8 +2,10 @@
 // RUN: FileCheck < %t %s
 
 class TestClass() {
-	// CHECK: .loci:6:2: error: lifetime method '::TestClass::__moveto' should not be static
-	static void __moveto(unused void* dest, unused size_t offset) noexcept { }
+	// CHECK: .loci:6:2: error: lifetime method '::TestClass::__move' should not be static
+	static TestClass __move() noexcept {
+		return @();
+	}
 }
 
 // CHECK: 1 error generated.

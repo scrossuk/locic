@@ -4,9 +4,9 @@
 // CHECK: auto testInstance = TestClass();
 // CHECK: TestClass.Create
 // CHECK: auto testInstanceMoved = move testInstance;
-// CHECK: TestClass.__moveto
+// CHECK: TestClass.__move
 // CHECK: auto testInstanceMovedAgain = move testInstanceMoved;
-// CHECK: TestClass.__moveto
+// CHECK: TestClass.__move
 
 import void printf(const ubyte * str, ...) noexcept;
 
@@ -16,8 +16,9 @@ class TestClass() {
 		return @();
 	}
 	
-	void __moveto(unused void* ptr, unused size_t position) noexcept {
-		printf(C"TestClass.__moveto\n");
+	TestClass __move() noexcept {
+		printf(C"TestClass.__move\n");
+		return @();
 	}
 }
 

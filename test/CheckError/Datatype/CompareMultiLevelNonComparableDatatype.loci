@@ -12,7 +12,7 @@ datatype TestDatatype2(int value, TestDatatype1 object);
 datatype TestDatatype3(TestDatatype2 object);
 
 bool doCompare(const TestDatatype3& a, const TestDatatype3& b) {
-	// CHECK: .loci:17:9: error: template arguments do not satisfy require predicate 'TestDatatype2 : comparable_t<TestDatatype2>' of method 'compare'
+	// CHECK: .loci:17:9: error: template arguments do not satisfy require predicate 'TestDatatype2 : sized_type_t and TestDatatype2 : comparable_t<TestDatatype2>' of method 'compare'
 	// CHECK: .loci:17:9: note: because: method 'compare' has require predicate 'true' in required type which doesn't imply require predicate 'false' in source type
 	return a == b;
 }

@@ -8,7 +8,7 @@ class TestClass() {
 datatype TestDatatype(TestClass object);
 
 bool doCompare(const TestDatatype& a, const TestDatatype& b) {
-	// CHECK: .loci:13:9: error: template arguments do not satisfy require predicate 'TestClass : comparable_t<TestClass>' of method 'compare'
+	// CHECK: .loci:13:9: error: template arguments do not satisfy require predicate 'TestClass : sized_type_t and TestClass : comparable_t<TestClass>' of method 'compare'
 	// CHECK: .loci:13:9: note: because: method 'compare' not found
 	return a == b;
 }

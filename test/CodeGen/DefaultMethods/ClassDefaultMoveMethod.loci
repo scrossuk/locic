@@ -8,22 +8,22 @@ import Test 1.0.0 {
 }
 
 class ClassWithMove(ImportedClass value) {
-	// CHECK-LABEL: void @MT1N13ClassWithMoveF1N8__moveto(i8*, i8*, i64)
-	// CHECK-NEXT: call void @MT1N13ClassWithMoveF1N8__moveto_internal(i8* %0, i8* %1, i64 %2)
+	// CHECK-LABEL: void @MT1N13ClassWithMoveF1N6__move(i8* noalias nocapture sret, i8*)
+	// CHECK-NEXT: call void @MT1N13ClassWithMoveF1N6__move_internal(i8* %0, i8* %1)
 	// CHECK-NEXT: ret void
-	// CHECK-LABEL: void @MT1N13ClassWithMoveF1N8__moveto_internal(i8*, i8*, i64)
-	// CHECK-NEXT: call void @P1N4TestV1_0_0_MT1N13ImportedClassF1N8__moveto(i8* %0, i8* %1, i64 %2)
+	// CHECK-LABEL: void @MT1N13ClassWithMoveF1N6__move_internal(i8* noalias nocapture sret, i8*)
+	// CHECK-NEXT: call void @P1N4TestV1_0_0_MT1N13ImportedClassF1N6__move(i8* %0, i8* %1)
 	// CHECK-NEXT: ret void
-	__moveto = default;
+	__move = default;
 }
 
 class ClassWithImplicitMove(ImportedClass value) {
-	// __moveto() is always created as a default method.
+	// __move() is always created as a default method.
 	
-	// CHECK-LABEL: void @MT1N21ClassWithImplicitMoveF1N8__moveto(i8*, i8*, i64)
-	// CHECK-NEXT: call void @MT1N21ClassWithImplicitMoveF1N8__moveto_internal(i8* %0, i8* %1, i64 %2)
+	// CHECK-LABEL: void @MT1N21ClassWithImplicitMoveF1N6__move(i8* noalias nocapture sret, i8*)
+	// CHECK-NEXT: call void @MT1N21ClassWithImplicitMoveF1N6__move_internal(i8* %0, i8* %1)
 	// CHECK-NEXT: ret void
-	// CHECK-LABEL: void @MT1N21ClassWithImplicitMoveF1N8__moveto_internal(i8*, i8*, i64)
-	// CHECK-NEXT: call void @P1N4TestV1_0_0_MT1N13ImportedClassF1N8__moveto(i8* %0, i8* %1, i64 %2)
+	// CHECK-LABEL: void @MT1N21ClassWithImplicitMoveF1N6__move_internal(i8* noalias nocapture sret, i8*)
+	// CHECK-NEXT: call void @P1N4TestV1_0_0_MT1N13ImportedClassF1N6__move(i8* %0, i8* %1)
 	// CHECK-NEXT: ret void
 }

@@ -16,13 +16,12 @@ interface Printable {
 	void print() const;
 }
 
-template <typename T: Printable>
+template <typename T>
 interface PrintOther {
 	void printOther(const T& value);
 }
 
 template <typename S>
-require(S : movable_t and S : Printable)
 class TestClass(S object) {
 	static create = default;
 	
@@ -30,7 +29,7 @@ class TestClass(S object) {
 		return @object;
 	}
 	
-	void printObject() {
+	void printObject() require(S : Printable) {
 		printf(C"TestClass::printObject\n");
 		@object.print();
 	}

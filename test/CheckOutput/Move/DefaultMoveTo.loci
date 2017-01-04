@@ -31,7 +31,8 @@ export int main(unused int argc, unused ubyte ** argv) {
 	// This is very dangerous (since it messes around the destructors)!
 	// It's only used here since we can make reasonable assumptions about
 	// the compiler.
-	testInstance.__moveto(reinterpret_cast<TestClass*, void*>(&testInstance2), 0u);
+	// TODO: this should use placement new.
+	testInstance2 = testInstance.__move();
 	
 	printf(C"testInstance.getValue() = %d\n", testInstance.getValue());
 	printf(C"testInstance2.getValue() = %d\n", testInstance2.getValue());

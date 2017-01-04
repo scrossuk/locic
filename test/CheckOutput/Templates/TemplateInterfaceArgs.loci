@@ -36,11 +36,10 @@ class SecondClass(int i) {
 }
 
 template <typename A, typename B>
-require(A : Printable and A : movable_t and B : Printable and B : movable_t)
 class TestClass(A a, B b) {
 	static Create = default;
 	
-	void print() {
+	void print() require(A : Printable and B : Printable) {
 		printf(C"TestClass -> print A\n");
 		@a.print();
 		printf(C"TestClass -> print B\n");

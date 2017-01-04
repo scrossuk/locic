@@ -1,12 +1,14 @@
 // RUN: %locic %s --interpret > %t
 // RUN: FileCheck < %t %s
+// This test needs placement new.
+// XFAIL: *
 
 // CHECK: Create
 // CHECK: TestClass.create() : value = 1
 // CHECK: TestClass.create() : value = 2
 // CHECK: Move from 1 -> 2
 // CHECK: TestClass.__islive() : @value = 1
-// CHECK: TestClass.__moveto() : @value = 1
+// CHECK: TestClass.__move() : @value = 1
 // CHECK: TestClass.__setdead() : @value = 1
 // CHECK: Move from 2 -> 1
 // CHECK: TestClass.__islive() : @value = 2
@@ -38,8 +40,9 @@ class TestClass(int value) {
 		printf(C"TestClass.__setdead() : @value = %d\n", @value);
 	}
 	
-	void __moveto(unused void* dest, unused size_t offset) noexcept {
-		printf(C"TestClass.__moveto() : @value = %d\n", @value);
+	TestClass __move() noexcept {
+		printf(C"TestClass.__move() : @value = %d\n", @value);
+		return @(0);
 	}
 }
 
@@ -50,11 +53,13 @@ export int main(unused int argc, unused ubyte ** argv) {
 	
 	printf(C"Move from 1 -> 2\n");
 	// This is a normal move operation.
-	value.__moveto(reinterpret_cast<TestClass*, void*>(&moveValue), 0u);
+	// TODO: this should use placement new.
+	moveValue = value.__move();
 	
 	printf(C"Move from 2 -> 1\n");
 	// Source value is dead, so set destination value to dead.
-	moveValue.__moveto(reinterpret_cast<TestClass*, void*>(&value), 0u);
+	// TODO: this should use placement new.
+	moveValue = value.__move();
 	
 	printf(C"Destroy\n");
 	return 0;

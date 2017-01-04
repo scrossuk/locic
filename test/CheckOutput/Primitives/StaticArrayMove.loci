@@ -31,10 +31,9 @@ import void printf(const ubyte * str, ...) noexcept;
 class TestClass(int v) {
 	static create = default;
 	
-	void __moveto(void* dest, size_t offset) noexcept {
+	TestClass __move() noexcept {
 		printf(C"TestClass move: @v = %d\n", @v);
-		@v = (@v * @v + 1) % 10;
-		@v.__moveto(dest, offset);
+		return TestClass((@v * @v + 1) % 10);
 	}
 	
 	int getValue() const {

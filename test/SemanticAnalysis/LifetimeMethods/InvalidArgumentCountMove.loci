@@ -2,8 +2,10 @@
 // RUN: FileCheck < %t %s
 
 class TestClass() {
-	// CHECK: .loci:6:2: error: lifetime method '::TestClass::__moveto' has incorrect argument count
-	void __moveto(unused void* dest) noexcept { }
+	// CHECK: .loci:6:2: error: lifetime method '::TestClass::__move' has incorrect argument count
+	TestClass __move(unused int i) noexcept {
+		return @();
+	}
 }
 
 // CHECK: 1 error generated.

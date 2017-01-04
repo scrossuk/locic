@@ -5,8 +5,8 @@ class TestClass() {
 	// CHECK: .loci:6:2: error: default method 'TestClass::__destroy' must be non-static
 	static __destroy = default;
 	
-	// CHECK: .loci:9:2: error: default method 'TestClass::__moveto' must be non-static
-	static __moveto = default;
+	// CHECK: .loci:9:2: error: default method 'TestClass::__move' must be non-static
+	static __move = default;
 	
 	// CHECK: .loci:12:2: error: default method 'TestClass::implicitcopy' must be non-static
 	static implicitcopy = default;

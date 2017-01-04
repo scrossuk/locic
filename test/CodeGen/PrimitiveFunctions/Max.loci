@@ -11,10 +11,14 @@ import {
 
 // CHECK-LABEL: define void @function(i8* noalias nocapture sret, i8*, i8*)
 export TestClass function(TestClass first, TestClass second) {
-	// CHECK: %[[CMP_i8:[0-9]+]] = invoke i8 @MT1N9TestClassF1N9less_than({{.*}}%1, {{.*}}%2)
+	// CHECK: call void @MT1N9TestClassF1N6__move({{.*}}%4, {{.*}}%1)
+	// CHECK-NEXT: call void @MT1N9TestClassF1N6__move({{.*}}%5, {{.*}}%2)
+	// CHECK-NEXT: %[[CMP_i8:[0-9]+]] = invoke i8 @MT1N9TestClassF1N9less_than({{.*}}%4, {{.*}}%5)
 	// CHECK: %[[CMP:[0-9]+]] = icmp ne i8 %[[CMP_i8]], 0
-	// CHECK-NEXT: %[[RESULT:[0-9]+]] = select i1 %[[CMP]], {{.*}}%2, {{.*}}%1
-	// CHECK-NEXT: call void @MT1N9TestClassF1N8__moveto({{.*}}%[[RESULT]], {{.*}}%0, i64 0)
+	// CHECK-NEXT: %[[RESULT:[0-9]+]] = select i1 %[[CMP]], {{.*}}%5, {{.*}}%4
+	// CHECK-NEXT: call void @MT1N9TestClassF1N6__move({{.*}}%0, {{.*}}%[[RESULT]])
+	// CHECK-NEXT: call void @MT1N9TestClassF1N9__destroy(i8* %5)
+	// CHECK-NEXT: call void @MT1N9TestClassF1N9__destroy(i8* %4)
 	// CHECK: ret void
 	return max<TestClass>(move first, move second);
 }
