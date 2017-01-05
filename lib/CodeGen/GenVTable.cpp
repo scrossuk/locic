@@ -24,10 +24,6 @@ namespace locic {
 			
 			for (const auto& function: functions) {
 				const auto name = function->canonicalName();
-				if (name.starts_with("__") && name != "__alignmask" && name != "__sizeof" && name != "__move") {
-					// Don't add 'special' methods to vtable.
-					continue;
-				}
 				hashMap.insert(CreateMethodNameHash(name), function);
 			}
 			
