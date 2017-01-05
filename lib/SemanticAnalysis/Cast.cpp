@@ -464,16 +464,6 @@ namespace locic {
 				}
 			}
 			
-			// Try to dissolve the source lval type.
-			if (getDerefType(sourceType)->isLval() && !getDerefType(destType)->isLval()) {
-				auto reducedValue = dissolveLval(context, derefValue(value.copy()), location);
-				
-				auto castResult = ImplicitCastConvert(context, errors, std::move(reducedValue), destType, location, allowBind);
-				if (castResult) {
-					return castResult;
-				}
-			}
-			
 			// Try to use a polymorphic ref cast.
 			if (sourceType->isRef() && destType->isRef() && destType->refTarget()->isInterface()) {
 				// TODO: add support for custom ref types.

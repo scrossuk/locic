@@ -1,7 +1,8 @@
+#include <locic/SemanticAnalysis/Ref.hpp>
+
 #include <locic/AST/Type.hpp>
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
-
 
 #include <locic/SemanticAnalysis/Context.hpp>
 #include <locic/SemanticAnalysis/ScopeElement.hpp>
@@ -120,12 +121,20 @@ namespace locic {
 			return AST::Value::BindReference(std::move(value), refType);
 		}
 		
-		AST::Value derefOrBindValue(Context& context, AST::Value value) {
-			if (value.type()->isRef()) {
-				return derefValue(std::move(value));
-			} else {
-				return bindReference(context, std::move(value));
+		AST::Value derefOrBindValue(Context& context, AST::Value value,
+		                            const size_t targetRefCount) {
+			const auto actualRefCount = getRefCount(value.type());
+			
+			// Bind as many times as needed.
+			for (size_t i = actualRefCount; i < targetRefCount; i++) {
+				value = bindReference(context, std::move(value));
 			}
+			
+			for (size_t i = actualRefCount; i > targetRefCount; i--) {
+				value = derefValue(std::move(value));
+			}
+			
+			return value;
 		}
 		
 		AST::Value createSelfRef(Context& context, const AST::Type* const selfType) {

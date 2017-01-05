@@ -128,7 +128,7 @@ namespace locic {
 		}
 		
 		AST::Value GetTemplatedMethod(Context& context, AST::Value rawValue, const String& methodName, AST::ValueArray templateArguments, const Debug::SourceLocation& location) {
-			auto value = derefOrBindValue(context, tryDissolveValue(context, derefOrBindValue(context, std::move(rawValue)), location));
+			auto value = derefOrBindValue(context, std::move(rawValue));
 			const auto type = getDerefType(value.type())->resolveAliases();
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, std::move(templateArguments), location);
 		}

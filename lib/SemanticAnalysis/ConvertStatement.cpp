@@ -485,8 +485,7 @@ namespace locic {
 					return AST::Statement::If(std::move(clauseList), std::move(statement->ifElseScope()));
 				}
 				case AST::StatementDecl::SWITCH: {
-					auto value = tryDissolveValue(context, ConvertValue(context, statement->switchValue()),
-					                              statement->switchValue().location());
+					auto value = ConvertValue(context, statement->switchValue());
 					
 					const auto switchType = getDerefType(value.type())->resolveAliases()->withoutConst();
 					

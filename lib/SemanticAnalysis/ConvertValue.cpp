@@ -163,7 +163,7 @@ namespace locic {
 		};
 		
 		AST::Value MakeMemberAccess(Context& context, AST::Value rawValue, const String& memberName, const Debug::SourceLocation& location) {
-			auto value = tryDissolveValue(context, derefValue(std::move(rawValue)), location);
+			auto value = derefValue(std::move(rawValue));
 			const auto derefType = getStaticDerefType(getDerefType(value.type()->resolveAliases()));
 			assert(derefType->isObjectOrTemplateVar());
 			
@@ -634,11 +634,15 @@ namespace locic {
 							return CallValue(context, std::move(opMethod), {}, location);
 						}
 						case AST::OP_ADDRESS: {
-							auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(operand)), context.getCString("address"), location);
+							// We want to get a reference to the reference, so that address()
+							// is called on the reference.
+							const auto targetRefCount = 2;
+							operand = derefOrBindValue(context, std::move(operand), targetRefCount);
+							auto opMethod = GetSpecialMethod(context, std::move(operand), context.getCString("address"), location);
 							return CallValue(context, std::move(opMethod), {}, location);
 						}
 						case AST::OP_MOVE: {
-							auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(operand)), context.getCString("move"), location);
+							auto opMethod = GetMethod(context, std::move(operand), context.getCString("__move"), location);
 							return CallValue(context, std::move(opMethod), {}, location);
 						}
 					}
@@ -676,7 +680,7 @@ namespace locic {
 							return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
 						}
 						case AST::OP_ISEQUAL: {
-							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
+							auto objectValue = derefValue(std::move(leftOperand));
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
 								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
@@ -689,7 +693,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_NOTEQUAL: {
-							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
+							auto objectValue = derefValue(std::move(leftOperand));
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
 								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
@@ -702,7 +706,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_LESSTHAN: {
-							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
+							auto objectValue = derefValue(std::move(leftOperand));
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
 								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
@@ -715,7 +719,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_LESSTHANOREQUAL: {
-							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
+							auto objectValue = derefValue(std::move(leftOperand));
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
 								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
@@ -728,7 +732,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_GREATERTHAN: {
-							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
+							auto objectValue = derefValue(std::move(leftOperand));
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
 								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
@@ -741,7 +745,7 @@ namespace locic {
 							}
 						}
 						case AST::OP_GREATERTHANOREQUAL: {
-							auto objectValue = tryDissolveValue(context, derefValue(std::move(leftOperand)), location);
+							auto objectValue = derefValue(std::move(leftOperand));
 							if (HasBinaryOp(context, objectValue, binaryOp, location)) {
 								auto opMethod = GetBinaryOp(context, std::move(objectValue), binaryOp, location);
 								return CallValue(context, std::move(opMethod), makeHeapArray( std::move(rightOperand) ), location);
