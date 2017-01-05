@@ -10,7 +10,7 @@ export std.container 0.1.0 {
 			static create = default;
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsListConst>(T)> front() const(IsConst) {
+			const<IsConst or IsListConst>(T)& front() const(IsConst) {
 				assert !self.empty();
 				return *(&(@begin->value));
 			}
@@ -26,7 +26,7 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsListConst>(T)> back() const(IsConst) {
+			const<IsConst or IsListConst>(T)& back() const(IsConst) {
 				assert !self.empty();
 				return *(&(@end->value));
 			}
@@ -95,13 +95,13 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst>(T)> front() const(IsConst) {
+			const<IsConst>(T)& front() const(IsConst) {
 				assert !self.empty();
 				return *(&(@begin->value));
 			}
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst>(T)> back() const(IsConst) {
+			const<IsConst>(T)& back() const(IsConst) {
 				assert !self.empty();
 				return *(&(@end->value));
 			}
@@ -112,6 +112,7 @@ export std.container 0.1.0 {
 					@begin = new_node;
 					@end = new_node;
 				} else {
+					assert @begin != null;
 					@begin->previous = new_node;
 					@begin = new_node;
 				}
@@ -137,9 +138,12 @@ export std.container 0.1.0 {
 			void push_back(T value) require(movable<T>) {
 				auto new_node = new_raw<list_node<T>>(list_node<T>(@end, null, move value));
 				if (self.empty()) {
+					assert new_node != null;
 					@begin = new_node;
 					@end = new_node;
+					assert @end != null;
 				} else {
+					assert @end != null;
 					@end->next = new_node;
 					@end = new_node;
 				}

@@ -21,7 +21,7 @@ import std.container 0.1.0 {
 			void clear() noexcept require(destructible<Key> and destructible<Value>);
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst>(Value)>
+			const<IsConst>(Value)&
 			index(const Key& key) const(IsConst) noexcept require(noexcept_comparable<Key>);
 			
 			void insert(pair<Key, Value> value) require(noexcept_comparable<Key> and movable<Key> and movable<Value>);
@@ -44,13 +44,13 @@ import std.container 0.1.0 {
 			map_range<Key, Value, IsMapConst> copy() const noexcept;
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsMapConst>(pair<Key, Value>)>
+			const<IsConst or IsMapConst>(pair<Key, Value>)&
 			front() const(IsConst) noexcept;
 			
 			void skip_front() noexcept;
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsMapConst>(pair<Key, Value>)>
+			const<IsConst or IsMapConst>(pair<Key, Value>)&
 			back() const(IsConst) noexcept;
 			
 			void skip_back() noexcept;

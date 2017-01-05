@@ -6,12 +6,12 @@ import std.container 0.1.0 {
 		template <typename T, bool IsListConst>
 		class list_range {
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsListConst>(T)> front() const(IsConst);
+			const<IsConst or IsListConst>(T)& front() const(IsConst);
 			
 			void skip_front();
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsListConst>(T)> back() const(IsConst);
+			const<IsConst or IsListConst>(T)& back() const(IsConst);
 			
 			void skip_back();
 			
@@ -34,10 +34,10 @@ import std.container 0.1.0 {
 			void clear() noexcept require(destructible<T>);
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst>(T)> front() const(IsConst);
+			const<IsConst>(T)& front() const(IsConst);
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst>(T)> back() const(IsConst);
+			const<IsConst>(T)& back() const(IsConst);
 			
 			void push_front(T value) require(movable<T>);
 			

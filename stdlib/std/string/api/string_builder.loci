@@ -2,11 +2,6 @@ import std.string 0.1.0 {
 	
 	namespace std {
 		
-		template <typename T>
-		interface readable_lval {
-			const T& dissolve() const;
-		}
-		
 		interface serializable {
 			void serialize(string_builder& builder) const;
 		}
@@ -58,8 +53,7 @@ import std.string 0.1.0 {
 			 * 
 			 * \param The range of characters to append.
 			 */
-			template <typename LvalType: readable_lval<unichar>>
-			void append_range(input_range<LvalType>& range);
+			void append_range(input_range<unichar>& range);
 			
 			/**
 			 * \brief Generates a string value.

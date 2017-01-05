@@ -18,7 +18,7 @@ import std.container 0.1.0 {
 			void clear() noexcept require(destructible<T>);
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst>(T)> index(const T& value) const(IsConst) noexcept require(noexcept_comparable<T>);
+			const<IsConst>(T)& index(const T& value) const(IsConst) noexcept require(noexcept_comparable<T>);
 			
 			void insert(T value) require(movable<T> and noexcept_comparable<T>);
 			
@@ -40,12 +40,12 @@ import std.container 0.1.0 {
 			set_range<T, IsSetConst> copy() const noexcept;
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsSetConst>(T)> front() const(IsConst);
+			const<IsConst or IsSetConst>(T)& front() const(IsConst);
 			
 			void skip_front();
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsSetConst>(T)> back() const(IsConst);
+			const<IsConst or IsSetConst>(T)& back() const(IsConst);
 			
 			void skip_back();
 			

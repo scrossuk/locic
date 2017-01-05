@@ -15,7 +15,7 @@ export std.container 0.1.0 {
 			implicit_copy = default;
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsMapConst>(pair<Key, Value>)> front() const(IsConst) noexcept {
+			const<IsConst or IsMapConst>(pair<Key, Value>)& front() const(IsConst) noexcept {
 				return @range.front();
 			}
 			
@@ -24,7 +24,7 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsMapConst>(pair<Key, Value>)> back() const(IsConst) noexcept {
+			const<IsConst or IsMapConst>(pair<Key, Value>)& back() const(IsConst) noexcept {
 				return @range.back();
 			}
 			
@@ -61,7 +61,7 @@ export std.container 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst>(Value)> index(const Key& key) const(IsConst) noexcept require(noexcept_comparable<Key>) {
+			const<IsConst>(Value)& index(const Key& key) const(IsConst) noexcept require(noexcept_comparable<Key>) {
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i].first == key) {
 						return *(&(@array[i].second));

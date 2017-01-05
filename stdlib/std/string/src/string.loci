@@ -121,8 +121,7 @@ export std.string 0.1.0 {
 				return compare_result_t.equal();
 			}
 			
-			template <typename LvalType: readable_lval<string>>
-			string join(input_range<LvalType>& range) const require (movable<LvalType>) {
+			string join(input_range<const string&>& range) const {
 				string joinedString = "";
 				bool isFirst = true;
 				for (const auto& stringValue: range) {
@@ -188,35 +187,6 @@ export std.string 0.1.0 {
 			bytes.resize(10u, 0u);
 			unused_result sprintf(bytes.data(), C"%llu", value);
 			return std::string.cstring(bytes.data());
-		}
-		
-		template <typename T : sized_type_t>
-		class ptr_range (T* ptr) {
-			static create = default;
-			
-			bool empty() const noexcept {
-				return false;
-			}
-			
-			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst>(T)> front() const(IsConst) noexcept {
-				return *@ptr;
-			}
-			
-			void skip_front() noexcept {
-				@ptr += 1;
-			}
-		}
-		
-		class string_lval(unichar character) {
-			static create(const ubyte* utf8Ptr) {
-				auto ptrRange = ptr_range<const ubyte>(utf8Ptr);
-				return @(utf8_decode_character<ptr_lval_t<const ubyte>>(ptrRange));
-			}
-			
-			const unichar& dissolve() const noexcept {
-				return @character;
-			}
 		}
 		
 	}

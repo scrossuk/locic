@@ -29,9 +29,10 @@ export std.string 0.1.0 {
 				@position += 1u;
 			}
 			
-			lval string_lval deref() const {
+			unichar deref() const {
 				assert !self.is_end();
-				return lval(string_lval(&@stringData[@position]));
+				auto ptrRange = ptr_range<const ubyte>(&@stringData[@position]);
+				return utf8_decode_character(ptrRange);
 			}
 			
 			compare_result_t compare(const string_iterator& other) const noexcept {

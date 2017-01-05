@@ -2,11 +2,6 @@ export std.string 0.1.0 {
 	
 	namespace std {
 		
-		template <typename T>
-		interface readable_lval {
-			T& dissolve() const;
-		}
-		
 		interface serializable {
 			void serialize(string_builder& builder) const;
 		}
@@ -33,9 +28,8 @@ export std.string 0.1.0 {
 				@buffer.append(character);
 			}
 			
-			template <typename LvalType: readable_lval<unichar>>
-			void append_range(input_range<LvalType>& range) require(movable<LvalType>) {
-				@buffer.append_range<LvalType>(range);
+			void append_range(input_range<unichar>& range) {
+				@buffer.append_range(range);
 			}
 			
 			string str() const {

@@ -109,8 +109,7 @@ import std.string 0.1.0 {
 			 * \param range The range of strings to join.
 			 * \return The joined string.
 			 */
-			template <typename LvalType: readable_lval<string>>
-			string join(input_range<LvalType>& range) const;
+			string join(input_range<const string&>& range) const;
 			
 			/**
 			 * \brief Create a UTF-8 buffer for the string.
@@ -139,10 +138,6 @@ import std.string 0.1.0 {
 		std::string ulonglong_t::to_string() const;
 		
 		std::string serialize(ulonglong_t value);
-		
-		class string_lval {
-			const unichar& dissolve() const noexcept;
-		}
 		
 	}
 	

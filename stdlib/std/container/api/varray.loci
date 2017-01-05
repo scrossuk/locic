@@ -26,7 +26,7 @@ import std.container 0.1.0 {
 			size_t size() const noexcept;
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept;
+			const<IsConst>(T)& index(size_t index) const(IsConst) noexcept;
 			
 			void clear() noexcept require(destructible<T>);
 			
@@ -49,12 +49,12 @@ import std.container 0.1.0 {
 			void skip_front() noexcept;
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsArrayConst>(T)> front() const(IsConst) noexcept;
+			const<IsConst or IsArrayConst>(T)& front() const(IsConst) noexcept;
 			
 			void skip_back() noexcept;
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst or IsArrayConst>(T)> back() const(IsConst) noexcept;
+			const<IsConst or IsArrayConst>(T)& back() const(IsConst) noexcept;
 		}
 		
 	}

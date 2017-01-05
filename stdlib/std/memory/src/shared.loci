@@ -50,7 +50,7 @@ export std.memory 0.1.0 {
 			}
 			
 			template <bool IsConst>
-			lval ptr_lval_t<const<IsConst>(T)> deref() const(IsConst) noexcept {
+			const<IsConst>(T)& deref() const(IsConst) noexcept {
 				return *@ptr;
 			}
 		}

@@ -2,6 +2,23 @@ export std.string 0.1.0 {
 	
 	namespace std {
 		
+		template <sized_type T>
+		class ptr_range (T* ptr) {
+			static create = default;
+			
+			bool empty() const noexcept {
+				return false;
+			}
+			
+			T front() const noexcept require(noexcept_implicit_copyable<T>) {
+				return *@ptr;
+			}
+			
+			void skip_front() noexcept {
+				@ptr += 1;
+			}
+		}
+		
 		class string_range (const std::varray<ubyte>& stringData, size_t begin, size_t end) {
 			static _string_all(const std::varray<ubyte>& stringData) {
 				return @(stringData, 0u, stringData.size());
@@ -37,9 +54,10 @@ export std.string 0.1.0 {
 				@begin += 1u;
 			}
 			
-			lval string_lval front() const {
+			unichar front() const {
 				assert !self.empty();
-				return lval(string_lval(&@stringData[@begin]));
+				auto ptrRange = ptr_range<const ubyte>(&@stringData[@begin]);
+				return utf8_decode_character(ptrRange);
 			}
 			
 			void skip_back() {
@@ -47,9 +65,10 @@ export std.string 0.1.0 {
 				@end -= 1u;
 			}
 			
-			lval string_lval back() const {
+			unichar back() const {
 				assert !self.empty();
-                                return lval(string_lval(&@stringData[@end - 1u]));
+				auto ptrRange = ptr_range<const ubyte>(&@stringData[@end - 1u]);
+				return utf8_decode_character(ptrRange);
 			}
 			
 			bool empty() const {

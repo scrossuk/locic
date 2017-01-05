@@ -1,6 +1,6 @@
-datatype utf8_initial_pair(ubyte_t first_value, size_t bytes_to_read);
+datatype utf8_initial_pair(ubyte first_value, size_t bytes_to_read);
 
-utf8_initial_pair utf8_read_first_byte(ubyte_t first_byte) {
+utf8_initial_pair utf8_read_first_byte(ubyte first_byte) {
 	size_t leading_ones_count = first_byte.count_leading_ones();
 	assert leading_ones_count <= 8u;
 	
@@ -29,18 +29,16 @@ export std.string 0.1.0 {
 		
 		exception utf8_decode_error(const ubyte* error);
 		
-		template <typename LvalType: readable_lval<const unichar>>
-		void utf8_encode(input_range<LvalType>& source, output_range<ubyte>& dest) require(movable<LvalType>) {
+		void utf8_encode(input_range<const unichar>& source, output_range<ubyte>& dest) {
 			while (!source.empty()) {
 				utf8_encode_character(source.front(), dest);
 				source.skip_front();
 			}
 		}
 		
-		template <typename LvalType: readable_lval<const ubyte>>
-		void utf8_decode(input_range<LvalType>& source, output_range<unichar>& dest) require(movable<LvalType>) {
+		void utf8_decode(input_range<const ubyte>& source, output_range<unichar>& dest) {
 			while (!source.empty()) {
-				dest.push_back(utf8_decode_character<LvalType>(source));
+				dest.push_back(utf8_decode_character(source));
 			}
 		}
 		
@@ -65,8 +63,7 @@ export std.string 0.1.0 {
 			}
 		}
 		
-		template <typename LvalType: readable_lval<const ubyte>>
-		unichar utf8_decode_character(input_range<LvalType>& source) require(movable<LvalType>) {
+		unichar utf8_decode_character(input_range<const ubyte>& source) {
 			if (source.empty()) {
 				throw utf8_decode_error(C"Failed to read first UTF-8 byte.");
 			}

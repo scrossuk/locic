@@ -31,8 +31,7 @@ export std.string 0.1.0 {
 				@byteArray.push_back(0u);
 			}
 			
-			template <typename LvalType: readable_lval<unichar>>
-			void append_range(input_range<LvalType>& range) require(movable<LvalType>) {
+			void append_range(input_range<unichar>& range) {
 				for (unichar character: range) {
 					self.append(character);
 				}

@@ -12,10 +12,10 @@ interface internal_thread_api {
 	std::event::source event_source() const noexcept;
 }
 
-datatype thread_ref(lval value_lval_t<internal_thread_api&> thread);
+datatype thread_ref(value_lval_t<internal_thread_api&> thread);
 
 static thread_ref thread_ref::empty() noexcept {
-	return @(lval(value_lval_t<internal_thread_api&>.__dead()));
+	return @(value_lval_t<internal_thread_api&>.__dead());
 }
 
 template <typename T>
@@ -24,13 +24,13 @@ class internal_thread(thread_ref self_ref,
 		pthread_t thread_object,
 		std::concurrency::mutex mutex,
 		std::concurrency::mutex joinMutex,
-		lval value_lval_t<T> runnable,
+		T runnable,
 		bool is_finished,
 		bool has_joined,
 		std::event::generator terminate_generator) {
 	
 	static create(T runnable) {
-		return @(thread_ref.empty(), null, std::concurrency::mutex(), std::concurrency::mutex(), lval(value_lval_t<T>(move runnable)), false, false, std::event::generator());
+		return @(thread_ref.empty(), null, std::concurrency::mutex(), std::concurrency::mutex(), move runnable, false, false, std::event::generator());
 	}
 	
 	// Slightly dangerous; need to use unique reference once they're implemented.
@@ -39,7 +39,7 @@ class internal_thread(thread_ref self_ref,
 	}
 	
 	void start() require(destructible<T>) {
-		@self_ref.thread = self;
+		@self_ref.thread.assign(self);
 		const int result = @thread_object.create(null, threadFunction, reinterpret_cast<thread_ref*, void*>(&@self_ref));
 		if (result != 0) {
 			throw std::concurrency::create_failed(result);
@@ -87,6 +87,6 @@ class internal_thread(thread_ref self_ref,
 
 void* threadFunction(void* object_pointer) {
 	auto run_pointer = reinterpret_cast<void*, thread_ref*>(object_pointer);
-	run_pointer->thread.run();
+	run_pointer->thread.dissolve().run();
 	return null;
 }

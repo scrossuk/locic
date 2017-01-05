@@ -4,29 +4,29 @@ import std.container 0.1.0 {
 		
 		template <typename T>
 		interface output_range {
-			void push_back(T value) require(movable<T>);
+			void push_back(T value);
 		}
 		
-		template <typename LvalType>
+		template <typename T>
 		interface input_range {
 			bool empty() const;
 			
 			void skip_front();
 			
-			lval LvalType front() const require(movable<LvalType>);
+			T front() const;
 		}
 		
-		template <typename LvalType>
+		template <typename T>
 		interface bidirectional_range {
 			bool empty() const;
 			
 			void skip_front();
 			
-			lval LvalType front() const require(movable<LvalType>);
+			T front() const;
 			
 			void skip_back();
 			
-			lval LvalType back() const require(movable<LvalType>);
+			T back() const;
 		}
 		
 	}
