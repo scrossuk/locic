@@ -53,6 +53,26 @@ namespace locic {
 			return requirePredicate;
 		}
 		
+		AST::Predicate getDefaultDestroyPredicate(Context& context, const AST::TypeInstance* const typeInstance) {
+			auto requirePredicate = getDefaultSizedTypePredicate(context, typeInstance);
+			
+			const auto destructibleType = context.typeBuilder().getDestructibleInterfaceType();
+			
+			// All member variables need to be movable.
+			for (const auto& var: typeInstance->variables()) {
+				const auto varType = var->type();
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, destructibleType));
+			}
+			
+			// All variants need to be movable.
+			for (const auto& variantTypeInstance: typeInstance->variants()) {
+				const auto varType = variantTypeInstance->selfType();
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, destructibleType));
+			}
+			
+			return requirePredicate;
+		}
+		
 		AST::Predicate getAutoDefaultMovePredicate(Context& context, const AST::TypeInstance* const typeInstance) {
 			auto requirePredicate = getDefaultSizedTypePredicate(context, typeInstance);
 			
@@ -282,7 +302,8 @@ namespace locic {
 		void
 		DefaultMethods::completeDefaultDestroyDecl(AST::TypeInstance* typeInstance,
 		                                           AST::Function& function) {
-			function.setRequiresPredicate(typeInstance->requiresPredicate().copy());
+			function.setRequiresPredicate(AST::Predicate::And(typeInstance->requiresPredicate().copy(),
+			                                                  getDefaultDestroyPredicate(context_, typeInstance)));
 			
 			const bool isVarArg = false;
 			const bool isDynamicMethod = true;
