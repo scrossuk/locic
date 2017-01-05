@@ -48,8 +48,6 @@ namespace locic {
 					TERNARY,
 					CAST,
 					POLYCAST,
-					LVAL,
-					NOLVAL,
 					REF,
 					NOREF,
 					STATICREF,
@@ -174,24 +172,6 @@ namespace locic {
 				 * cast to 'Interface&'.
 				 */
 				static Value PolyCast(const Type* targetType, Value operand);
-				
-				/**
-				 * \brief Add Lval Type Tag
-				 * 
-				 * Turns a value into an lvalue type. This is a no-op, but
-				 * it modifies the type of the value and this affects the
-				 * semantics when the value is used (e.g. methods like
-				 * 'dissolve' are automatically invoked).
-				 */
-				static Value Lval(Value operand);
-				
-				/**
-				 * \brief Remove Lval Type Tag
-				 * 
-				 * Removes the 'lval' tag from the value's type, which
-				 * disables special automatic lvalue operations.
-				 */
-				static Value NoLval(Value operand);
 				
 				/**
 				 * \brief Add Ref Type Tag
@@ -404,12 +384,6 @@ namespace locic {
 				bool isPolyCast() const;
 				const Type* polyCastTargetType() const;
 				const Value& polyCastOperand() const;
-				
-				bool isMakeLval() const;
-				const Value& makeLvalOperand() const;
-				
-				bool isMakeNoLval() const;
-				const Value& makeNoLvalOperand() const;
 				
 				bool isMakeRef() const;
 				const Type* makeRefTargetType() const;

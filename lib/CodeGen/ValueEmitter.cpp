@@ -103,10 +103,6 @@ namespace locic {
 					return emitCast(value, hintResultValue);
 				case AST::Value::POLYCAST:
 					return emitPolyCast(value);
-				case AST::Value::LVAL:
-					return emitLval(value, hintResultValue);
-				case AST::Value::NOLVAL:
-					return emitNoLval(value, hintResultValue);
 				case AST::Value::REF:
 					return emitRef(value, hintResultValue);
 				case AST::Value::NOREF:
@@ -480,18 +476,6 @@ namespace locic {
 			} else {
 				llvm_unreachable("Poly cast type must be ref or staticref.");
 			}
-		}
-		
-		llvm::Value*
-		ValueEmitter::emitLval(const AST::Value& value,
-		                       llvm::Value* const hintResultValue) {
-			return emitValue(value.makeLvalOperand(), hintResultValue);
-		}
-		
-		llvm::Value*
-		ValueEmitter::emitNoLval(const AST::Value& value,
-		                         llvm::Value* const hintResultValue) {
-			return emitValue(value.makeNoLvalOperand(), hintResultValue);
 		}
 		
 		llvm::Value*

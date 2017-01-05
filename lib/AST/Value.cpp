@@ -199,18 +199,6 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::Lval(Value operand) {
-			Value value(LVAL, operand.type()->createLvalType(), operand.exitStates());
-			value.impl_->value0 = std::move(operand);
-			return value;
-		}
-		
-		Value Value::NoLval(Value operand) {
-			Value value(NOLVAL, operand.type()->withoutLval(), operand.exitStates());
-			value.impl_->value0 = std::move(operand);
-			return value;
-		}
-		
 		Value Value::Ref(const Type* const targetType, Value operand) {
 			Value value(REF, operand.type()->createRefType(targetType), operand.exitStates());
 			value.impl_->union_.makeRef.targetType = targetType;
@@ -559,24 +547,6 @@ namespace locic {
 			return impl_->value0;
 		}
 		
-		bool Value::isMakeLval() const {
-			return kind() == LVAL;
-		}
-		
-		const Value& Value::makeLvalOperand() const {
-			assert(isMakeLval());
-			return impl_->value0;
-		}
-		
-		bool Value::isMakeNoLval() const {
-			return kind() == NOLVAL;
-		}
-		
-		const Value& Value::makeNoLvalOperand() const {
-			assert(isMakeNoLval());
-			return impl_->value0;
-		}
-		
 		bool Value::isMakeRef() const {
 			return kind() == REF;
 		}
@@ -864,12 +834,6 @@ namespace locic {
 					hasher.add(polyCastTargetType());
 					hasher.add(polyCastOperand());
 					break;
-				case Value::LVAL:
-					hasher.add(makeLvalOperand());
-					break;
-				case Value::NOLVAL:
-					hasher.add(makeNoLvalOperand());
-					break;
 				case Value::REF:
 					hasher.add(makeRefTargetType());
 					hasher.add(makeRefOperand());
@@ -993,10 +957,6 @@ namespace locic {
 					return castTargetType() == value.castTargetType() && castOperand() == value.castOperand();
 				case Value::POLYCAST:
 					return polyCastTargetType() == value.polyCastTargetType() && polyCastOperand() == value.polyCastOperand();
-				case Value::LVAL:
-					return makeLvalOperand() == value.makeLvalOperand();
-				case Value::NOLVAL:
-					return makeNoLvalOperand() == value.makeNoLvalOperand();
 				case Value::REF:
 					return makeRefTargetType() == value.makeRefTargetType() && makeRefOperand() == value.makeRefOperand();
 				case Value::NOREF:
@@ -1206,11 +1166,6 @@ namespace locic {
 					return makeString("PolyCast(value: %s, targetType: %s)",
 						polyCastOperand().toString().c_str(),
 						polyCastTargetType()->toString().c_str());
-				case LVAL:
-					return makeString("Lval(value: %s)",
-						makeLvalOperand().toString().c_str());
-				case NOLVAL:
-					return makeString("NoLval(value: %s)", makeNoLvalOperand().toString().c_str());
 				case REF:
 					return makeString("Ref(value: %s, targetType: %s)",
 						makeRefOperand().toString().c_str(),
@@ -1316,11 +1271,6 @@ namespace locic {
 					return castOperand().toDiagString();
 				case POLYCAST:
 					return polyCastOperand().toDiagString();
-				case LVAL:
-					return makeString("lval(%s)",
-						makeLvalOperand().toDiagString().c_str());
-				case NOLVAL:
-					return makeString("nolval(%s)", makeNoLvalOperand().toDiagString().c_str());
 				case REF:
 					return makeString("ref<%s>(%s)",
 						makeRefTargetType()->toDiagString().c_str(),
