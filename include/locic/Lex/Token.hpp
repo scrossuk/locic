@@ -47,6 +47,7 @@ namespace locic {
 				IMPORT,
 				EXPORT,
 				MOVE,
+				NEW,
 
 				LVAL,
 				NOLVAL,
@@ -293,6 +294,7 @@ namespace locic {
 					case MOVE: return "MOVE";
 					case LVAL: return "LVAL";
 					case NOLVAL: return "NOLVAL";
+					case NEW: return "NEW";
 					case REF: return "REF";
 					case STATICREF: return "STATICREF";
 					case NOREF: return "NOREF";

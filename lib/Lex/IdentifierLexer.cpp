@@ -398,6 +398,8 @@ namespace locic {
 			switch (get().value()) {
 				case 'a':
 					return lexPossibleKeyword("namespace", Token::NAMESPACE);
+				case 'e':
+					return lexPossibleKeyword("new", Token::NEW);
 				case 'o':
 					return lexPrefixNo();
 				case 'u':
