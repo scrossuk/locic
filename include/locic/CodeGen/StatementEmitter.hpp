@@ -35,6 +35,9 @@ namespace locic {
 			void emitInitialise(AST::Var& var,
 			                    const AST::Value& value);
 			
+			void emitAssign(const AST::Value& lvalue,
+			                const AST::Value& rvalue);
+			
 			void emitIf(const std::vector<AST::IfClause*>& ifClauseList,
 			            const AST::Scope& elseScope);
 			
