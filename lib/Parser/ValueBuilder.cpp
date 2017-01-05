@@ -211,6 +211,15 @@ namespace locic {
 		}
 		
 		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeNewValue(AST::Node<AST::ValueDecl> placementArg,
+		                           AST::Node<AST::ValueDecl> operand,
+		                           const Debug::SourcePosition& start) {
+			return makeValueNode(AST::ValueDecl::New(std::move(placementArg),
+			                                         std::move(operand)),
+			                     start);
+		}
+		
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeSelfMemberAccess(const String name,
 		                                   const Debug::SourcePosition& start) {
 			return makeValueNode(AST::ValueDecl::MemberRef(name), start);

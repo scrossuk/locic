@@ -150,6 +150,11 @@ namespace locic {
 			                const Debug::SourcePosition& start);
 			
 			AST::Node<AST::ValueDecl>
+			makeNewValue(AST::Node<AST::ValueDecl> placementArg,
+			             AST::Node<AST::ValueDecl> operand,
+			             const Debug::SourcePosition& start);
+			
+			AST::Node<AST::ValueDecl>
 			makeSelfMemberAccess(String name,
 			                     const Debug::SourcePosition& start);
 			

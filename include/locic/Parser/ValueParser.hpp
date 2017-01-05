@@ -108,6 +108,8 @@ namespace locic {
 			
 			bool isUnaryValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;
 			
+			AST::Node<AST::ValueDecl> parseNewExpression(Context context);
+			
 			AST::Node<AST::ValueDecl> parseCallValue(Context context);
 			
 			bool isCallValueOrNext(const AST::Node<AST::ValueDecl>& operand) const;

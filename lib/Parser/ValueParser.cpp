@@ -74,6 +74,7 @@ namespace locic {
 				case Token::LROUNDBRACKET:
 				case Token::LCURLYBRACKET:
 				case Token::MOVE:
+				case Token::NEW:
 				case Token::NULLVAL:
 				case Token::LVAL:
 				case Token::NOLVAL:
@@ -633,6 +634,8 @@ namespace locic {
 				case Token::MOVE:
 					opKind = AST::OP_MOVE;
 					break;
+				case Token::NEW:
+					return parseNewExpression(context);
 				default:
 					return parseCallValue(context);
 			}
@@ -645,6 +648,21 @@ namespace locic {
 		
 		bool ValueParser::isUnaryValueOrNext(const AST::Node<AST::ValueDecl>& operand) const {
 			return operand->isUnaryOp() || isCallValueOrNext(operand);
+		}
+		
+		AST::Node<AST::ValueDecl>
+		ValueParser::parseNewExpression(const Context context) {
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::NEW);
+			// Currently only placement new is supported.
+			reader_.expect(Token::LROUNDBRACKET);
+			auto placementArg = parseValue();
+			reader_.expect(Token::RROUNDBRACKET);
+			auto value = parseValue(context);
+			
+			return builder_.makeNewValue(std::move(placementArg),
+			                             std::move(value), start);
 		}
 		
 		AST::Node<AST::ValueDecl> ValueParser::parseCallValue(const Context context) {

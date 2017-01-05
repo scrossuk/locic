@@ -234,6 +234,7 @@ namespace locic {
 				case Token::TILDA:
 				case Token::LCURLYBRACKET:
 				case Token::MOVE:
+				case Token::NEW:
 				case Token::NULLVAL:
 				case Token::TRUEVAL:
 				case Token::FALSEVAL:
