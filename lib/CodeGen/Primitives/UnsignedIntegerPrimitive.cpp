@@ -277,6 +277,7 @@ namespace locic {
 					irEmitter.emitRawStore(decrementedValue, methodOwnerPtr);
 					return constantGenerator.getVoidUndef();
 				}
+				case METHOD_DESTROY:
 				case METHOD_SETDEAD: {
 					// Do nothing.
 					return constantGenerator.getVoidUndef();

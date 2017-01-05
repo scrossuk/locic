@@ -14,6 +14,8 @@ __primitive byte_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	byte_t implicit_copy() const noexcept;
 	byte_t copy() const noexcept;
 	

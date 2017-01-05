@@ -16,7 +16,7 @@ __primitive value_lval_t {
 	static size_t __alignmask() noexcept require(sized_type<T>);
 	static size_t __sizeof() noexcept require(sized_type<T>);
 	
-	void __destroy() noexcept;
+	void __destroy() noexcept require(destructible<T>);
 	
 	value_lval_t<notag(T)> implicit_copy() const noexcept(noexcept_implicit_copyable<T>) require(implicit_copyable<T>);
 	

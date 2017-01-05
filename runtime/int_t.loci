@@ -24,6 +24,8 @@ __primitive int_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	int_t implicit_copy() const noexcept;
 	int_t copy() const noexcept;
 	

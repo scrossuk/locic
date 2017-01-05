@@ -115,6 +115,7 @@ namespace locic {
 					                                      typeTemplateArguments);
 					return constantGenerator.getSizeTValue(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes());
 				}
+				case METHOD_DESTROY:
 				case METHOD_SETDEAD: {
 					// Do nothing.
 					(void) args[0].resolveWithoutBind(function);

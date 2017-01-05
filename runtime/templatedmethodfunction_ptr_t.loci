@@ -8,6 +8,8 @@ __primitive templatedmethodfunction0_ptr_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	__move() noexcept;
@@ -26,6 +28,8 @@ __primitive templatedmethodfunction1_ptr_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
@@ -46,6 +50,8 @@ __primitive templatedmethodfunction2_ptr_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	__move() noexcept;
@@ -64,6 +70,8 @@ __primitive templatedmethodfunction3_ptr_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
@@ -84,6 +92,8 @@ __primitive templatedmethodfunction4_ptr_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	__move() noexcept;
@@ -102,6 +112,8 @@ __primitive templatedmethodfunction5_ptr_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
@@ -122,6 +134,8 @@ __primitive templatedmethodfunction6_ptr_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	__move() noexcept;
@@ -141,6 +155,8 @@ __primitive templatedmethodfunction7_ptr_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	__move() noexcept;
@@ -159,6 +175,8 @@ __primitive templatedmethodfunction8_ptr_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;

@@ -10,6 +10,8 @@ __primitive unichar_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	

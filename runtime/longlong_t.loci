@@ -24,6 +24,8 @@ __primitive longlong_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	longlong_t implicit_copy() const noexcept;
 	longlong_t copy() const noexcept;
 	

@@ -17,6 +17,8 @@ __primitive uint16_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	uint16_t implicit_copy() const noexcept;
 	uint16_t copy() const noexcept;
 	

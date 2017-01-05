@@ -22,7 +22,9 @@ __primitive double_t {
 	
 	double_t implicit_copy() const noexcept;
 	double_t copy() const noexcept;
-		
+	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	

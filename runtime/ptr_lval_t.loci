@@ -3,6 +3,8 @@ __primitive ptr_lval_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	template <bool IsConst>
 	const<IsConst>(T)* address() const(IsConst) noexcept;
 	

@@ -18,6 +18,8 @@ __primitive uint8_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	uint8_t implicit_copy() const noexcept;
 	uint8_t copy() const noexcept;
 		

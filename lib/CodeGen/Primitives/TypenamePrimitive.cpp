@@ -105,6 +105,9 @@ namespace locic {
 				case METHOD_COPY:
 				case METHOD_MOVE:
 					return args[0].resolveWithoutBind(function);
+				case METHOD_DESTROY:
+					(void) args[0].resolveWithoutBind(function);
+					return ConstantGenerator(module).getVoidUndef();
 				default:
 					llvm_unreachable("Unknown typename primitive method.");
 			}

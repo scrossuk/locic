@@ -3,6 +3,8 @@ __primitive ref_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	ref_t<T> implicit_copy() const noexcept;
 	ref_t<T> copy() const noexcept;
 	

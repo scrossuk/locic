@@ -4,6 +4,8 @@ __primitive null_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	null_t implicit_copy() const noexcept;
 	null_t copy() const noexcept;
 	

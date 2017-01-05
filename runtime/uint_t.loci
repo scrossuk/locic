@@ -20,6 +20,8 @@ __primitive uint_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	uint_t implicit_copy() const noexcept;
 	uint_t copy() const noexcept;
 	

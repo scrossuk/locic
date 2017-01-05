@@ -5,6 +5,8 @@ __primitive ptr_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	// FIXME: This needs to use const-passthrough once we have virtual templates.
 	ptr_t<T> implicit_copy() const noexcept;
 	ptr_t<T> copy() const noexcept;

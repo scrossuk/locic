@@ -23,6 +23,8 @@ __primitive ulong_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	ulong_t implicit_copy() const noexcept;
 	ulong_t copy() const noexcept;
 	

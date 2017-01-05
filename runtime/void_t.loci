@@ -2,5 +2,8 @@ __primitive void_t {
 	// FIXME: void_t should be an unsized type.
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
+	
 	void_t __move() noexcept;
 }

@@ -363,10 +363,13 @@ namespace locic {
 						});
 				}
 				case METHOD_ISLIVE: {
+					(void) args[0].resolveWithoutBind(function);
 					return ConstantGenerator(module).getBool(true);
 				}
+				case METHOD_DESTROY:
 				case METHOD_SETDEAD: {
 					// Do nothing.
+					(void) args[0].resolveWithoutBind(function);
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_ADDRESS: {

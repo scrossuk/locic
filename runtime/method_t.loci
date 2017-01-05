@@ -8,6 +8,8 @@ __primitive method0_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	method0_t<IsNoExcept, ReturnType> __move() noexcept;
@@ -26,6 +28,8 @@ __primitive method1_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
@@ -46,6 +50,8 @@ __primitive method2_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	method2_t<IsNoExcept, ReturnType, Arg0, Arg1> __move() noexcept;
@@ -64,6 +70,8 @@ __primitive method3_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
@@ -84,6 +92,8 @@ __primitive method4_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	method4_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3> __move() noexcept;
@@ -102,6 +112,8 @@ __primitive method5_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
@@ -122,6 +134,8 @@ __primitive method6_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	method6_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5> __move() noexcept;
@@ -141,6 +155,8 @@ __primitive method7_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	method7_t<IsNoExcept, ReturnType, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6> __move() noexcept;
@@ -159,6 +175,8 @@ __primitive method8_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;

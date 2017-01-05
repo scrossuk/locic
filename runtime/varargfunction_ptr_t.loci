@@ -46,6 +46,8 @@ __primitive varargfunction2_ptr_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	__move() noexcept;
@@ -64,6 +66,8 @@ __primitive varargfunction3_ptr_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
@@ -84,6 +88,8 @@ __primitive varargfunction4_ptr_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	__move() noexcept;
@@ -102,6 +108,8 @@ __primitive varargfunction5_ptr_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
@@ -122,6 +130,8 @@ __primitive varargfunction6_ptr_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	__move() noexcept;
@@ -141,6 +151,8 @@ __primitive varargfunction7_ptr_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
+	void __destroy() noexcept;
+	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	__move() noexcept;
@@ -159,6 +171,8 @@ __primitive varargfunction8_ptr_t {
 	
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
+	
+	void __destroy() noexcept;
 	
 	void __setdead() noexcept;
 	bool __islive() const noexcept;

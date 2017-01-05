@@ -150,6 +150,7 @@ namespace locic {
 					return zero;
 				case METHOD_UNIT:
 					return constantGenerator.getPrimitiveInt(primitiveID, 1);
+				case METHOD_DESTROY:
 				case METHOD_SETDEAD:
 					// Do nothing.
 					return constantGenerator.getVoidUndef();

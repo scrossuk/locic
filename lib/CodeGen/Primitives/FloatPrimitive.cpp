@@ -134,6 +134,7 @@ namespace locic {
 					return methodOwner;
 				case METHOD_CREATE:
 					return constantGenerator.getPrimitiveFloat(primitiveID, 0.0);
+				case METHOD_DESTROY:
 				case METHOD_SETDEAD:
 					// Do nothing.
 					return constantGenerator.getVoidUndef();

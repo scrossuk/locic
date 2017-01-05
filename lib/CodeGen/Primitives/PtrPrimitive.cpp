@@ -117,6 +117,7 @@ namespace locic {
 				case METHOD_MOVE:
 				case METHOD_DEREF:
 					return methodOwner;
+				case METHOD_DESTROY:
 				case METHOD_SETDEAD: {
 					// Do nothing.
 					return ConstantGenerator(module).getVoidUndef();
