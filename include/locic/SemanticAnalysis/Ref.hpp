@@ -41,7 +41,10 @@ namespace locic {
 		
 		AST::Value bindReference(Context& context, AST::Value value);
 		
-		AST::Value derefOrBindValue(Context& context, AST::Value value);
+		// Apply dereference or bind enough times to get the target level
+		// of indirection.
+		AST::Value derefOrBindValue(Context& context, AST::Value value,
+		                            size_t targetRefCount=1);
 		
 		AST::Value createSelfRef(Context& context, const AST::Type* selfType);
 		
