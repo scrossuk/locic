@@ -8,7 +8,6 @@
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/GetMethod.hpp>
-#include <locic/SemanticAnalysis/Lval.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
 #include <locic/SemanticAnalysis/TypeCapabilities.hpp>
 #include <locic/SemanticAnalysis/VarArgCast.hpp>
@@ -64,14 +63,6 @@ namespace locic {
 			
 			const auto derefType = getDerefType(value.type()->resolveAliases());
 			assert(!derefType->isRef());
-			
-			if (derefType->isLval()) {
-				// Dissolve lval.
-				value = dissolveLval(context, std::move(value), location);
-				
-				// See if this results in a valid var arg value.
-				return VarArgCastSearch(context, std::move(value), location);
-			}
 			
 			if (value.type()->isRef() && TypeCapabilities(context).supportsImplicitCopy(derefType)) {
 				// Call implicitcopy() method.
