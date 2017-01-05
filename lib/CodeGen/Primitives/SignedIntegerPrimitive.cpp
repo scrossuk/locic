@@ -154,6 +154,8 @@ namespace locic {
 				case METHOD_SETDEAD:
 					// Do nothing.
 					return constantGenerator.getVoidUndef();
+				case METHOD_ISLIVE:
+					return ConstantGenerator(module).getBool(true);
 				case METHOD_IMPLICITCASTFROM:
 				case METHOD_CASTFROM: {
 					const auto argPrimitiveID = methodID.primitiveID();
