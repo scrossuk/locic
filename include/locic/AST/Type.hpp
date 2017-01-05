@@ -81,6 +81,10 @@ namespace locic {
 				bool isBuiltInInterfaceMethod() const;
 				bool isBuiltInMethod() const;
 				bool isBuiltInMethodFunctionPtr() const;
+				
+				bool isBuiltInPointer() const;
+				const Type* pointeeType() const;
+				
 				bool isBuiltInReference() const;
 				bool isBuiltInStaticInterfaceMethod() const;
 				bool isBuiltInTemplatedFunctionPtr() const;

@@ -429,6 +429,15 @@ namespace locic {
 			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveMethodFunctionPtr0;
 		}
 		
+		bool Type::isBuiltInPointer() const {
+			return isPrimitive() && primitiveID() == PrimitivePtr;
+		}
+		
+		const Type* Type::pointeeType() const {
+			assert(isBuiltInPointer());
+			return templateArguments().front().typeRefType();
+		}
+		
 		bool Type::isBuiltInReference() const {
 			return isPrimitive() && primitiveID() == PrimitiveRef;
 		}
