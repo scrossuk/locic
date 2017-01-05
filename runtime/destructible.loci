@@ -3,4 +3,4 @@ interface destructible_t {
 }
 
 template <typename T>
-using destructible = T : destructible_t;
+using destructible = sized_type<T> and T : destructible_t;
