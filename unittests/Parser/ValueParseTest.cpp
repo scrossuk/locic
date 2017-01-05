@@ -226,6 +226,21 @@ namespace locic {
 			});
 		}
 		
+		TEST(ValueParseTest, PlacementNew) {
+			auto tokens = {
+				Token::NEW,
+				Token::LROUNDBRACKET,
+				Token::NAME,
+				Token::RROUNDBRACKET,
+				Token::NAME
+			};
+			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
+				ASSERT_EQ(value->kind(), AST::ValueDecl::NEW);
+				EXPECT_EQ(value->newValue.placementArg->kind(), AST::ValueDecl::SYMBOLREF);
+				EXPECT_EQ(value->newValue.operand->kind(), AST::ValueDecl::SYMBOLREF);
+			});
+		}
+		
 		TEST(ValueParseTest, InternalConstructNoArguments) {
 			auto tokens = {
 				Token::AT,

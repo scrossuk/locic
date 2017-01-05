@@ -66,6 +66,7 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("mutable", locic::Lex::Token::Kind::MUTABLE);
 	
 	testKeyword("namespace", locic::Lex::Token::Kind::NAMESPACE);
+	testKeyword("new", locic::Lex::Token::Kind::NEW);
 	testKeyword("noexcept", locic::Lex::Token::Kind::NOEXCEPT);
 	testKeyword("nolval", locic::Lex::Token::Kind::NOLVAL);
 	testKeyword("noref", locic::Lex::Token::Kind::NOREF);
