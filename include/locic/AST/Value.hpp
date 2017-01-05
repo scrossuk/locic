@@ -67,6 +67,7 @@ namespace locic {
 					STATICINTERFACEMETHODOBJECT,
 					CAPABILITYTEST,
 					ARRAYLITERAL,
+					NEW,
 					
 					// Used by Semantic Analysis to create a 'dummy'
 					// value to test if types can be cast.
@@ -336,6 +337,12 @@ namespace locic {
 				                          ValueArray values);
 				
 				/**
+				 * \brief New expression.
+				 */
+				static Value New(Value placementArg, Value operand,
+				                 const Type* voidType);
+				
+				/**
 				 * \brief Cast Dummy
 				 * 
 				 * A placeholder value for cast operations in the Semantic Analysis stage.
@@ -466,6 +473,10 @@ namespace locic {
 				
 				bool isArrayLiteral() const;
 				const ValueArray& arrayLiteralValues() const;
+				
+				bool isNew() const;
+				const Value& newPlacementArg() const;
+				const Value& newOperand() const;
 				
 				void setDebugInfo(Debug::ValueInfo debugInfo);
 				const Optional<Debug::ValueInfo>& debugInfo() const;

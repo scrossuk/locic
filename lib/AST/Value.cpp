@@ -378,6 +378,18 @@ namespace locic {
 			return value;
 		}
 		
+		Value Value::New(Value placementArg, Value operand,
+		                 const Type* const voidType) {
+			ExitStates exitStates = ExitStates::Normal();
+			exitStates.add(placementArg.exitStates().throwingStates());
+			exitStates.add(operand.exitStates());
+			
+			Value value(NEW, voidType, exitStates);
+			value.impl_->value0 = std::move(placementArg);
+			value.impl_->value1 = std::move(operand);
+			return value;
+		}
+		
 		Value Value::CastDummy(const Type* type) {
 			return Value(CASTDUMMYOBJECT, type, ExitStates::Normal());
 		}
@@ -778,6 +790,20 @@ namespace locic {
 			return impl_->valueArray;
 		}
 		
+		bool Value::isNew() const {
+			return kind() == NEW;
+		}
+		
+		const Value& Value::newPlacementArg() const {
+			assert(isNew());
+			return impl_->value0;
+		}
+		
+		const Value& Value::newOperand() const {
+			assert(isNew());
+			return impl_->value1;
+		}
+		
 		void Value::setDebugInfo(Debug::ValueInfo newDebugInfo) {
 			impl_->debugInfo = make_optional(std::move(newDebugInfo));
 		}
@@ -919,6 +945,10 @@ namespace locic {
 						hasher.add(value);
 					}
 					break;
+				case Value::NEW:
+					hasher.add(newPlacementArg());
+					hasher.add(newOperand());
+					break;
 				case Value::CASTDUMMYOBJECT:
 					break;
 			}
@@ -1004,6 +1034,9 @@ namespace locic {
 					       capabilityTestCapabilityType() == value.capabilityTestCapabilityType();
 				case Value::ARRAYLITERAL:
 					return arrayLiteralValues() == value.arrayLiteralValues();
+				case Value::NEW:
+					return newPlacementArg() == value.newPlacementArg() &&
+					       newOperand() == value.newOperand();
 				case Value::CASTDUMMYOBJECT:
 					return true;
 			}
@@ -1239,6 +1272,10 @@ namespace locic {
 					return makeString("ArrayLiteral(type: %s, values: %s)",
 					                  type()->toString().c_str(),
 					                  makeArrayString(arrayLiteralValues()).c_str());
+				case NEW:
+					return makeString("New(placementArg: %s, operand: %s)",
+					                  newPlacementArg().toString().c_str(),
+					                  newOperand().toString().c_str());
 				case CASTDUMMYOBJECT:
 					return makeString("[CAST DUMMY OBJECT (FOR SEMANTIC ANALYSIS)](type: %s)",
 						type()->toString().c_str());
@@ -1336,6 +1373,9 @@ namespace locic {
 					                  capabilityTestCapabilityType()->toDiagString().c_str());
 				case Value::ARRAYLITERAL:
 					return makeString("{ %s }", makeArrayString(arrayLiteralValues()).c_str());
+				case NEW:
+					return makeString("new(%s) %s", newPlacementArg().toDiagString().c_str(),
+					                  newOperand().toDiagString().c_str());
 				case CASTDUMMYOBJECT:
 					locic_unreachable("Shouldn't reach CASTDUMMYOBJECT.");
 			}

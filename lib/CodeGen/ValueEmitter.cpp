@@ -138,6 +138,8 @@ namespace locic {
 					return emitTemplateVarRef(value, hintResultValue);
 				case AST::Value::ARRAYLITERAL:
 					return emitArrayLiteral(value, hintResultValue);
+				case AST::Value::NEW:
+					return emitNew(value, hintResultValue);
 				case AST::Value::PREDICATE:
 				case AST::Value::CAPABILITYTEST:
 				case AST::Value::CASTDUMMYOBJECT:
@@ -762,6 +764,19 @@ namespace locic {
 			}
 			
 			return irEmitter_.emitLoad(arrayPtr, value.type());
+		}
+		
+		llvm::Value*
+		ValueEmitter::emitNew(const AST::Value& value,
+		                      llvm::Value* const /*hintResultValue*/) {
+			assert(value.newPlacementArg().type()->isBuiltInPointer());
+			const auto placementArg = emitValue(value.newPlacementArg());
+			assert(placementArg->getType()->isPointerTy());
+			
+			const auto newValue = emitValue(value.newOperand(), placementArg);
+			irEmitter_.emitStore(newValue, placementArg, value.newOperand().type());
+			
+			return irEmitter_.constantGenerator().getVoidUndef();
 		}
 		
 	}
