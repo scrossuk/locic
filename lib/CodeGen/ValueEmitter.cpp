@@ -93,8 +93,6 @@ namespace locic {
 					return emitReinterpretCast(value, hintResultValue);
 				case AST::Value::DEREF_REFERENCE:
 					return emitDerefReference(value);
-				case AST::Value::UNIONDATAOFFSET:
-					return emitUnionDataOffset(value);
 				case AST::Value::MEMBEROFFSET:
 					return emitMemberOffset(value);
 				case AST::Value::TERNARY:
@@ -252,13 +250,6 @@ namespace locic {
 			llvm::Value* const refValue = emitValue(value.derefOperand(),
 			                                        /*hintResultValue=*/nullptr);
 			return irEmitter_.emitLoad(refValue, value.type());
-		}
-		
-		llvm::Value*
-		ValueEmitter::emitUnionDataOffset(const AST::Value& value) {
-			// Offset of union datatype data is equivalent to its
-			// alignment size.
-			return genAlignOf(irEmitter_.function(), value.unionDataOffsetTypeInstance()->selfType());
 		}
 		
 		llvm::Value*

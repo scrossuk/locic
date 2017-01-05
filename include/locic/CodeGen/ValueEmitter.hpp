@@ -50,9 +50,6 @@ namespace locic {
 			emitDerefReference(const AST::Value& value);
 			
 			llvm::Value*
-			emitUnionDataOffset(const AST::Value& value);
-			
-			llvm::Value*
 			emitMemberOffset(const AST::Value& value);
 			
 			llvm::Value*

@@ -51,10 +51,6 @@ namespace locic {
 				
 				struct {
 					const TypeInstance* typeInstance;
-				} unionDataOffset;
-				
-				struct {
-					const TypeInstance* typeInstance;
 					size_t memberIndex;
 				} memberOffset;
 				
@@ -146,12 +142,6 @@ namespace locic {
 			assert(type->isRef() && type->isBuiltInReference());
 			Value value(LOCALVAR, type, ExitStates::Normal());
 			value.impl_->union_.localVar.var = &var;
-			return value;
-		}
-		
-		Value Value::UnionDataOffset(const TypeInstance* const typeInstance, const Type* const sizeType) {
-			Value value(UNIONDATAOFFSET, sizeType, ExitStates::Normal());
-			value.impl_->union_.unionDataOffset.typeInstance = typeInstance;
 			return value;
 		}
 		
@@ -457,15 +447,6 @@ namespace locic {
 		const Var& Value::localVar() const {
 			assert(isLocalVarRef());
 			return *(impl_->union_.localVar.var);
-		}
-		
-		bool Value::isUnionDataOffset() const {
-			return kind() == UNIONDATAOFFSET;
-		}
-		
-		const TypeInstance* Value::unionDataOffsetTypeInstance() const {
-			assert(isUnionDataOffset());
-			return impl_->union_.unionDataOffset.typeInstance;
 		}
 		
 		bool Value::isMemberOffset() const {
@@ -808,9 +789,6 @@ namespace locic {
 				case Value::LOCALVAR:
 					hasher.add(&(localVar()));
 					break;
-				case Value::UNIONDATAOFFSET:
-					hasher.add(unionDataOffsetTypeInstance());
-					break;
 				case Value::MEMBEROFFSET:
 					hasher.add(memberOffsetTypeInstance());
 					hasher.add(memberOffsetMemberIndex());
@@ -943,8 +921,6 @@ namespace locic {
 					return predicate() == value.predicate();
 				case Value::LOCALVAR:
 					return &(localVar()) == &(value.localVar());
-				case Value::UNIONDATAOFFSET:
-					return unionDataOffsetTypeInstance() == value.unionDataOffsetTypeInstance();
 				case Value::MEMBEROFFSET:
 					return memberOffsetTypeInstance() == value.memberOffsetTypeInstance() && memberOffsetMemberIndex() == value.memberOffsetMemberIndex();
 				case Value::REINTERPRET:
@@ -1143,8 +1119,6 @@ namespace locic {
 					return makeString("Predicate(%s)", predicate().toString().c_str());
 				case LOCALVAR:
 					return makeString("LocalVar(%s)", localVar().toString().c_str());
-				case UNIONDATAOFFSET:
-					return makeString("UnionDataOffset(%s)", unionDataOffsetTypeInstance()->fullName().toString().c_str());
 				case MEMBEROFFSET:
 					return makeString("MemberOffset(type: %s, memberIndex: %llu)",
 						memberOffsetTypeInstance()->fullName().toString().c_str(),
@@ -1253,8 +1227,6 @@ namespace locic {
 					return predicate().toString();
 				case LOCALVAR:
 					return localVar().name().asStdString();
-				case UNIONDATAOFFSET:
-					return unionDataOffsetTypeInstance()->fullName().toString();
 				case MEMBEROFFSET:
 					return makeString("@%s",
 					                  memberOffsetTypeInstance()->variables()[memberOffsetMemberIndex()]->name().c_str());
