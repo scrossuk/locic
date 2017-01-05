@@ -67,14 +67,6 @@ namespace locic {
 			emitPolyCast(const AST::Value& value);
 			
 			llvm::Value*
-			emitLval(const AST::Value& value,
-			         llvm::Value* hintResultValue);
-			
-			llvm::Value*
-			emitNoLval(const AST::Value& value,
-			           llvm::Value* hintResultValue);
-			
-			llvm::Value*
 			emitRef(const AST::Value& value,
 			        llvm::Value* hintResultValue);
 			
@@ -126,6 +118,10 @@ namespace locic {
 			llvm::Value*
 			emitArrayLiteral(const AST::Value& value,
 			                 llvm::Value* hintResultValue);
+			
+			llvm::Value*
+			emitNew(const AST::Value& value,
+			        llvm::Value* hintResultValue);
 			
 		private:
 			IREmitter& irEmitter_;
