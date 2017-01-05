@@ -15,13 +15,13 @@ Input Range
 
 .. code-block:: c++
 
-	template <typename LvalType>
+	template <typename T>
 	interface input_range {
 		bool empty() const;
 		
 		void skip_front();
 		
-		lval LvalType front() require(movable<LvalType>);
+		T front();
 	}
 
 Input ranges are the most common kind of range, due to their use in :ref:`for-each loops <foreachloop>`. Here's an example:
@@ -38,9 +38,9 @@ This kind of range is generally useful for any kind of iteration. For example:
 
 .. code-block:: c++
 
-	template <typename T, typename LvalType>
-	require(has_zero<T> and is_addable<T>)
-	T sum(const input_range<T, LvalType>& sum_range) {
+	template <typename T>
+	require(has_zero<T> and addable<T>)
+	T sum(input_range<T>& sum_range) {
 		T total = T.zero();
 		for (const auto& value: sum_range) {
 			total += value;
@@ -55,26 +55,25 @@ Bidirectional Range
 
 .. code-block:: c++
 
-	template <typename LvalType>
+	template <typename T>
 	interface bidirectional_range {
 		bool empty() const;
 		
 		void skip_front();
 		
-		lval LvalType front() require(movable<LvalType>);
+		T front();
 		
 		void skip_back();
 		
-		lval LvalType back() require(movable<LvalType>);
+		T back();
 	}
 
 A bidirectional range is simply an input range that supports both accessing the first and last operations. This is useful for operations such as:
 
 .. code-block:: c++
 
-	template <typename T, typename LvalType>
-	require(is_swappable<T>)
-	void reverse_inplace(bidirectional_range<T, LvalType>& reverse_range) {
+	template <swappable T>
+	void reverse_inplace(bidirectional_range<T&>& reverse_range) {
 		while (!reverse_range.empty()) {
 			swap(reverse_range.front(), reverse_range.back());
 			reverse_range.skip_front();
@@ -91,7 +90,7 @@ Output Range
 
 	template <typename T>
 	interface output_range {
-		void push_back(T value) require(movable<T>);
+		void push_back(T value);
 	}
 
 Output ranges are append-only, so they can provided by an array, a list, a circular buffer etc.
