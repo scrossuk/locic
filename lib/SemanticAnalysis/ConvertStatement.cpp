@@ -57,6 +57,36 @@ namespace locic {
 			locic_unreachable("Unknown assign kind.");
 		}
 		
+		class CannotAssignToNonLvalueDiag: public Error {
+		public:
+			CannotAssignToNonLvalueDiag(const AST::Type* const type)
+			: typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot assign to non-lvalue type '%s'",
+				                  typeString_.c_str());
+			}
+			
+		private:
+			std::string typeString_;
+			
+		};
+		
+		class CannotAssignNonMovableDiag: public Error {
+		public:
+			CannotAssignNonMovableDiag(const AST::Type* const type)
+			: typeString_(type->toDiagString()) { }
+			
+			std::string toString() const {
+				return makeString("cannot assign non-movable type '%s'",
+				                  typeString_.c_str());
+			}
+			
+		private:
+			std::string typeString_;
+			
+		};
+		
 		class ScopeActionCanThrowDiag: public Error {
 		public:
 			ScopeActionCanThrowDiag(String scopeActionState)
@@ -411,21 +441,6 @@ namespace locic {
 			
 		};
 		
-		class CannotAssignToNonLvalTypeDiag: public Error {
-		public:
-			CannotAssignToNonLvalTypeDiag(const AST::Type* type)
-			: typeString_(type->toDiagString()) { }
-			
-			std::string toString() const {
-				return makeString("cannot assign to non-lval type '%s'",
-				                  typeString_.c_str());
-			}
-			
-		private:
-			std::string typeString_;
-			
-		};
-		
 		static AST::Statement ConvertStatementData(Context& context, const AST::Node<AST::StatementDecl>& statement) {
 			const auto& location = statement.location();
 			
@@ -655,19 +670,33 @@ namespace locic {
 				}
 				case AST::StatementDecl::ASSIGN: {
 					const auto assignKind = statement->assignKind();
-					auto astVarValue = derefValue(ConvertValue(context, statement->assignLvalue()));
-					auto astOperandValue = ConvertValue(context, statement->assignRvalue());
+					auto astLvalue = derefValue(ConvertValue(context, statement->assignLvalue()));
+					auto astRvalue = ConvertValue(context, statement->assignRvalue());
 					
-					if (!getDerefType(astVarValue.type())->isLval()) {
-						context.issueDiag(CannotAssignToNonLvalTypeDiag(astVarValue.type()),
+					const AST::Type* castType;
+					
+					if (astLvalue.type()->isRef()) {
+						castType = astLvalue.type()->refTarget();
+					} else {
+						castType = astLvalue.type();
+						context.issueDiag(CannotAssignToNonLvalueDiag(astLvalue.type()),
 						                  statement->assignLvalue().location());
-						return AST::Statement::ValueStmt(std::move(astOperandValue));
 					}
 					
+					if (!TypeCapabilities(context).supportsMove(castType)) {
+						context.issueDiag(CannotAssignNonMovableDiag(castType),
+						                  location);
+					}
+					
+					assert(!castType->isRef());
+					
 					// TODO: fix this to not copy the value!
-					auto astAssignValue = GetAssignValue(context, assignKind, astVarValue.copy(), std::move(astOperandValue), location);
-					auto opMethod = GetSpecialMethod(context, derefOrBindValue(context, std::move(astVarValue)), context.getCString("assign"), location);
-					return AST::Statement::ValueStmt(CallValue(context, std::move(opMethod), makeHeapArray(std::move(astAssignValue)), location));
+					auto astAssignValue = GetAssignValue(context, assignKind, astLvalue.copy(), std::move(astRvalue), location);
+					
+					auto castAssignvalue = ImplicitCast(context, std::move(astAssignValue), castType,
+					                                    statement->assignRvalue().location());
+					
+					return AST::Statement::AssignStmt(std::move(astLvalue), std::move(castAssignvalue));
 				}
 				case AST::StatementDecl::INCREMENT: {
 					auto astOperandValue = ConvertValue(context, statement->incrementValue());
