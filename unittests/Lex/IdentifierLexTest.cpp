@@ -60,7 +60,6 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("let", locic::Lex::Token::Kind::LET);
 	testKeyword("long", locic::Lex::Token::Kind::LONG);
 	testKeyword("longlong", locic::Lex::Token::Kind::LONGLONG);
-	testKeyword("lval", locic::Lex::Token::Kind::LVAL);
 	
 	testKeyword("move", locic::Lex::Token::Kind::MOVE);
 	testKeyword("mutable", locic::Lex::Token::Kind::MUTABLE);
@@ -68,7 +67,6 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("namespace", locic::Lex::Token::Kind::NAMESPACE);
 	testKeyword("new", locic::Lex::Token::Kind::NEW);
 	testKeyword("noexcept", locic::Lex::Token::Kind::NOEXCEPT);
-	testKeyword("nolval", locic::Lex::Token::Kind::NOLVAL);
 	testKeyword("noref", locic::Lex::Token::Kind::NOREF);
 	testKeyword("notag", locic::Lex::Token::Kind::NOTAG);
 	

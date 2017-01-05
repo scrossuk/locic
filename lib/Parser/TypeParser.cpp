@@ -99,7 +99,6 @@ namespace locic {
 					auto targetType = parseQualifiedType();
 					return builder_.makeNoTagType(std::move(targetType), start);
 				}
-				case Token::LVAL:
 				case Token::REF:
 				case Token::STATICREF:
 					reader_.consume();
@@ -381,7 +380,6 @@ namespace locic {
 				case Token::DOUBLE:
 				case Token::UNICHAR:
 				case Token::CONST:
-				case Token::LVAL:
 				case Token::REF:
 				case Token::STATICREF:
 				case Token::NAME:

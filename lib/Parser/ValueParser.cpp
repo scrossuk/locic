@@ -76,8 +76,6 @@ namespace locic {
 				case Token::MOVE:
 				case Token::NEW:
 				case Token::NULLVAL:
-				case Token::LVAL:
-				case Token::NOLVAL:
 				case Token::REF:
 				case Token::NOREF:
 				case Token::STATICREF:
@@ -950,8 +948,6 @@ namespace locic {
 					return parseLiteral(token.constant(), start);
 				case Token::REF:
 				case Token::NOREF:
-				case Token::LVAL:
-				case Token::NOLVAL:
 					reader_.consume();
 					return parseTypeQualifyingValue(token.kind(), start);
 				case Token::SELF:

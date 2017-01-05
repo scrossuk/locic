@@ -362,7 +362,6 @@ namespace locic {
 				case Token::FLOAT:
 				case Token::DOUBLE:
 				case Token::CONST:
-				case Token::LVAL:
 				case Token::REF:
 				case Token::STATICREF:
 				case Token::UNUSED:

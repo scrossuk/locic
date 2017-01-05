@@ -239,8 +239,6 @@ namespace locic {
 				case Token::TRUEVAL:
 				case Token::FALSEVAL:
 				case Token::EXCLAIMMARK:
-				case Token::LVAL:
-				case Token::NOLVAL:
 				case Token::REF:
 				case Token::NOREF:
 				case Token::STATICREF:

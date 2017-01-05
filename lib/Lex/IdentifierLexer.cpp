@@ -357,8 +357,6 @@ namespace locic {
 					return lexPossibleKeyword("let", Token::LET);
 				case 'o':
 					return lexPrefixLo();
-				case 'v':
-					return lexPossibleKeyword("lval", Token::LVAL);
 				default:
 					return lexGeneralIdentifier();
 			}
@@ -413,8 +411,6 @@ namespace locic {
 			switch (get().value()) {
 				case 'e':
 					return lexPossibleKeyword("noexcept", Token::NOEXCEPT);
-				case 'l':
-					return lexPossibleKeyword("nolval", Token::NOLVAL);
 				case 'r':
 					return lexPossibleKeyword("noref", Token::NOREF);
 				case 't':
