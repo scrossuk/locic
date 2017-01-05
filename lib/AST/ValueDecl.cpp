@@ -33,6 +33,8 @@ namespace locic {
 					return "alignof()";
 				case SIZEOF:
 					return "sizeof()";
+				case NEW:
+					return "new";
 				case UNARYOP:
 					return "unary";
 				case BINARYOP:

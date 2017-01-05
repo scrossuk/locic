@@ -61,6 +61,7 @@ namespace locic {
 				MEMBERREF,
 				ALIGNOF,
 				SIZEOF,
+				NEW,
 				UNARYOP,
 				BINARYOP,
 				TERNARY,
@@ -106,6 +107,11 @@ namespace locic {
 			struct {
 				Node<TypeDecl> type;
 			} sizeOf;
+			
+			struct {
+				Node<ValueDecl> placementArg;
+				Node<ValueDecl> operand;
+			} newValue;
 			
 			struct {
 				UnaryOpKind kind;
@@ -238,6 +244,14 @@ namespace locic {
 			static ValueDecl* SizeOf(Node<TypeDecl> type) {
 				ValueDecl* value = new ValueDecl(SIZEOF);
 				value->sizeOf.type = std::move(type);
+				return value;
+			}
+			
+			static ValueDecl* New(Node<ValueDecl> placementArg,
+			                      Node<ValueDecl> operand) {
+				ValueDecl* value = new ValueDecl(NEW);
+				value->newValue.placementArg = std::move(placementArg);
+				value->newValue.operand = std::move(operand);
 				return value;
 			}
 			

@@ -599,6 +599,19 @@ namespace locic {
 					auto sizeOfMethod = GetStaticMethod(context, std::move(typeRefValue), context.getCString("__sizeof"), location);
 					return CallValue(context, std::move(sizeOfMethod), {}, location);
 				}
+				case AST::ValueDecl::NEW: {
+					auto placementArg = ConvertValue(context, astValueNode->newValue.placementArg);
+					auto operand = ConvertValue(context, astValueNode->newValue.operand);
+					const auto operandType = getDerefType(operand.type());
+					operand = ImplicitCast(context, std::move(operand), operandType, location);
+					
+					const auto operandPtrType = context.typeBuilder().getPointerType(operandType);
+					placementArg = ImplicitCast(context, std::move(placementArg),
+					                            operandPtrType, location);
+					
+					return AST::Value::New(std::move(placementArg), std::move(operand),
+					                       TypeBuilder(context).getVoidType());
+				}
 				case AST::ValueDecl::UNARYOP: {
 					const auto unaryOp = astValueNode->unaryOp.kind;
 					auto operand = ConvertValue(context, astValueNode->unaryOp.operand);

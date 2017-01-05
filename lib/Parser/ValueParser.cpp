@@ -709,6 +709,7 @@ namespace locic {
 				case AST::ValueDecl::MERGE:
 					assert(!isAtomicValue(operand));
 					return true;
+				case AST::ValueDecl::NEW:
 				case AST::ValueDecl::UNARYOP:
 				case AST::ValueDecl::BINARYOP:
 				case AST::ValueDecl::TERNARY:
@@ -829,6 +830,7 @@ namespace locic {
 				case AST::ValueDecl::MEMBERREF:
 				case AST::ValueDecl::ALIGNOF:
 				case AST::ValueDecl::SIZEOF:
+				case AST::ValueDecl::NEW:
 				case AST::ValueDecl::UNARYOP:
 				case AST::ValueDecl::BINARYOP:
 				case AST::ValueDecl::TERNARY:
@@ -870,6 +872,7 @@ namespace locic {
 				case AST::ValueDecl::MEMBERREF:
 				case AST::ValueDecl::ALIGNOF:
 				case AST::ValueDecl::SIZEOF:
+				case AST::ValueDecl::NEW:
 				case AST::ValueDecl::UNARYOP:
 				case AST::ValueDecl::BINARYOP:
 				case AST::ValueDecl::TERNARY:
@@ -1007,6 +1010,7 @@ namespace locic {
 				case AST::ValueDecl::INTERNALCONSTRUCT:
 				case AST::ValueDecl::ARRAYLITERAL:
 					return true;
+				case AST::ValueDecl::NEW:
 				case AST::ValueDecl::UNARYOP:
 				case AST::ValueDecl::BINARYOP:
 				case AST::ValueDecl::TERNARY:
