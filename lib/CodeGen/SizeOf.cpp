@@ -70,7 +70,9 @@ namespace locic {
 			return function.getBuilder().CreateAdd(alignMask, ConstantGenerator(function.module()).getSizeTValue(1), name);
 		}
 		
-		llvm::Value* genAlignMaskValue(Function& function, const AST::Type* type) {
+		llvm::Value*
+		genAlignMaskValue(Function& function, const AST::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
 			SetUseEntryBuilder setUseEntryBuilder(function);
 			
 			auto& module = function.module();

@@ -556,7 +556,8 @@ namespace locic {
 		
 		void
 		IREmitter::emitDestructorCall(llvm::Value* const value,
-		                              const AST::Type* const type) {
+		                              const AST::Type* const rawType) {
+			const auto type = rawType->resolveAliases();
 			if (type->isObject()) {
 				TypeInfo typeInfo(module());
 				if (!typeInfo.hasCustomDestructor(type)) {
