@@ -100,13 +100,9 @@ namespace locic {
 			
 			const auto constType = basicType->createConstType(Predicate::Or(basicType->constPredicate().copy(), type->constPredicate().copy()));
 			
-			const auto lvalType = type->isLval() ?
-				constType->createLvalType() :
-				constType;
-			
 			const auto refType = type->isRef() ?
-				lvalType->createRefType(applyType<CheckFunction, PreFunction, PostFunction>(type->refTarget(), checkFunction, preFunction, postFunction)) :
-				lvalType;
+				constType->createRefType(applyType<CheckFunction, PreFunction, PostFunction>(type->refTarget(), checkFunction, preFunction, postFunction)) :
+				constType;
 			
 			const auto staticRefType = type->isStaticRef() ?
 				refType->createStaticRefType(applyType<CheckFunction, PreFunction, PostFunction>(type->staticRefTarget(), checkFunction, preFunction, postFunction)) :
@@ -158,7 +154,7 @@ namespace locic {
 		
 		Type::Type(const Context& pContext, const Kind pKind) :
 			context_(pContext), kind_(pKind), isNoTag_(false),
-			isLval_(false), constPredicate_(Predicate::False()),
+			constPredicate_(Predicate::False()),
 			refTarget_(nullptr), staticRefTarget_(nullptr),
 			cachedResolvedType_(nullptr),
 			cachedWithoutTagsType_(nullptr) { }
@@ -177,10 +173,6 @@ namespace locic {
 		
 		bool Type::isNoTag() const {
 			return isNoTag_;
-		}
-		
-		bool Type::isLval() const {
-			return isLval_;
 		}
 		
 		bool Type::isRef() const {
@@ -233,13 +225,12 @@ namespace locic {
 		
 		const Type* Type::createNoTagType() const {
 			if (isNoTag()) {
-				assert(constPredicate().isFalse() && !isLval() && !isRef() && !isStaticRef());
+				assert(constPredicate().isFalse() && !isRef() && !isStaticRef());
 				return this;
 			}
 			
 			Type typeCopy = copy();
 			typeCopy.isNoTag_ = true;
-			typeCopy.isLval_ = false;
 			typeCopy.constPredicate_ = Predicate::False();
 			typeCopy.refTarget_ = nullptr;
 			typeCopy.staticRefTarget_ = nullptr;
@@ -258,17 +249,6 @@ namespace locic {
 				}
 			}
 			
-			return context_.getType(std::move(typeCopy));
-		}
-		
-		const Type* Type::createLvalType() const {
-			if (isLval()) {
-				return this;
-			}
-			
-			Type typeCopy = copy();
-			typeCopy.isNoTag_ = false;
-			typeCopy.isLval_ = true;
 			return context_.getType(std::move(typeCopy));
 		}
 		
@@ -298,27 +278,6 @@ namespace locic {
 			return createConstType(Predicate::False());
 		}
 		
-		const Type* Type::withoutLval() const {
-			return applyType(this,
-				[] (const Type* const) {
-					// Whether or not this type is an lval,
-					// it may contain lval types.
-					return true;
-				},
-				[] (const Type* const type) {
-					return type;
-				},
-				[&](const Type* const type) {
-					if (type->isLval()) {
-						Type typeCopy = type->copy();
-						typeCopy.isLval_ = false;
-						return context_.getType(std::move(typeCopy));
-					} else {
-						return type;
-					}
-				});
-		}
-		
 		const Type* Type::withoutRef() const {
 			return applyType(this,
 				[] (const Type* const) {
@@ -340,42 +299,18 @@ namespace locic {
 				});
 		}
 		
-		const Type* Type::withoutLvalOrRef() const {
-			return applyType(this,
-				[] (const Type* const) {
-					// Whether or not this type is an lval
-					// or ref, it may contain lval or ref types.
-					return true;
-				},
-				[] (const Type* const type) {
-					return type;
-				},
-				[&](const Type* const type) {
-					if (type->isRef()) {
-						Type typeCopy = type->copy();
-						typeCopy.isLval_ = false;
-						typeCopy.refTarget_ = nullptr;
-						typeCopy.staticRefTarget_ = nullptr;
-						return context_.getType(std::move(typeCopy));
-					} else {
-						return type;
-					}
-				});
-		}
-		
 		const Type* Type::withoutTags() const {
 			if (cachedWithoutTagsType_ != nullptr) {
 				return cachedWithoutTagsType_;
 			}
 			
-			if (constPredicate().isFalse() && !isLval() && !isRef() && !isStaticRef()) {
+			if (constPredicate().isFalse() && !isRef() && !isStaticRef()) {
 				cachedWithoutTagsType_ = this;
 				return this;
 			}
 			
 			Type typeCopy = copy();
 			typeCopy.constPredicate_ = Predicate::False();
-			typeCopy.isLval_ = false;
 			typeCopy.refTarget_ = nullptr;
 			typeCopy.staticRefTarget_ = nullptr;
 			
@@ -753,13 +688,9 @@ namespace locic {
 					)
 				);
 			
-			const auto lvalType = type->isLval() ?
-				constType->createLvalType() :
-				constType;
-			
 			const auto refType = type->isRef() ?
-				lvalType->createRefType(type->refTarget()->substitute(templateVarMap)) :
-				lvalType;
+				constType->createRefType(type->refTarget()->substitute(templateVarMap)) :
+				constType;
 			
 			const auto staticRefType = type->isStaticRef() ?
 				refType->createStaticRefType(type->staticRefTarget()->substitute(templateVarMap)) :
@@ -1031,15 +962,10 @@ namespace locic {
 						makeString("const<%s>(%s)", constPredicate().toString().c_str(),
 							noTagStr.c_str());
 			
-			const std::string lvalStr =
-				isLval() ?
-				makeString("lval(%s)", constStr.c_str()) :
-				constStr;
-			
 			const std::string refStr =
 				isRef() ?
-				makeString("ref<%s>(%s)", refTarget()->toString().c_str(), lvalStr.c_str()) :
-				lvalStr;
+				makeString("ref<%s>(%s)", refTarget()->toString().c_str(), constStr.c_str()) :
+				constStr;
 			
 			const std::string staticRefStr =
 				isStaticRef() ?
@@ -1124,15 +1050,10 @@ namespace locic {
 						makeString("const<%s>(%s)", constPredicate().toString().c_str(),
 							noTagStr.c_str());
 			
-			const std::string lvalStr =
-				isLval() ?
-				makeString("lval(%s)", constStr.c_str()) :
-				constStr;
-			
 			const std::string refStr =
 				isRef() && !isBuiltInReference() ?
-				makeString("ref<%s>(%s)", refTarget()->toDiagString().c_str(), lvalStr.c_str()) :
-				lvalStr;
+				makeString("ref<%s>(%s)", refTarget()->toDiagString().c_str(), constStr.c_str()) :
+				constStr;
 			
 			const std::string staticRefStr =
 				isStaticRef() ?
@@ -1151,7 +1072,6 @@ namespace locic {
 			hasher.add(kind());
 			hasher.add(isNoTag());
 			hasher.add(constPredicate().hash());
-			hasher.add(isLval());
 			hasher.add(isRef() ? refTarget() : NULL);
 			hasher.add(isStaticRef() ? staticRefTarget() : NULL);
 			
@@ -1211,7 +1131,6 @@ namespace locic {
 			}
 			
 			type.isNoTag_ = isNoTag();
-			type.isLval_ = isLval();
 			type.constPredicate_ = constPredicate().copy();
 			type.refTarget_ = isRef() ? refTarget() : nullptr;
 			type.staticRefTarget_ = isStaticRef() ? staticRefTarget() : nullptr;
@@ -1224,10 +1143,6 @@ namespace locic {
 			}
 			
 			if (isNoTag() != type.isNoTag()) {
-				return false;
-			}
-			
-			if (isLval() != type.isLval()) {
 				return false;
 			}
 			

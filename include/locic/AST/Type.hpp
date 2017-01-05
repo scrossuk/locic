@@ -48,7 +48,6 @@ namespace locic {
 				const Predicate& constPredicate() const;
 				
 				bool isNoTag() const;
-				bool isLval() const;
 				bool isRef() const;
 				bool isStaticRef() const;
 				
@@ -58,13 +57,10 @@ namespace locic {
 				const Type* createConstType(Predicate predicate) const;
 				
 				const Type* createNoTagType() const;
-				const Type* createLvalType() const;
 				const Type* createRefType(const Type* targetType) const;
 				const Type* createStaticRefType(const Type* targetType) const;
 				const Type* withoutConst() const;
-				const Type* withoutLval() const;
 				const Type* withoutRef() const;
-				const Type* withoutLvalOrRef() const;
 				const Type* withoutTags() const;
 				
 				bool isAuto() const;
@@ -159,7 +155,6 @@ namespace locic {
 				const Context& context_;
 				Kind kind_;
 				bool isNoTag_;
-				bool isLval_;
 				Predicate constPredicate_;
 				const Type* refTarget_;
 				const Type* staticRefTarget_;

@@ -160,17 +160,6 @@ namespace locic {
 			// and the destination type itself is const.
 			const bool hasConstChain = isTopLevel || (hasParentConstChain && isDestConst);
 			
-			bool isLval = false;
-			
-			if (sourceType->isLval() || destType->isLval()) {
-				if (!(sourceType->isLval() && destType->isLval())) {
-					// If one type is lval, both types must be lvals.
-					return nullptr;
-				}
-				
-				isLval = true;
-			}
-			
 			const AST::Type* refTarget = nullptr;
 			
 			if (sourceType->isRef() || destType->isRef()) {
@@ -208,10 +197,6 @@ namespace locic {
 			if (resultType == nullptr) return nullptr;
 			
 			// Add the substituted tags.
-			if (isLval) {
-				resultType = resultType->createLvalType();
-			}
-			
 			if (refTarget != nullptr) {
 				resultType = resultType->createRefType(refTarget);
 			}
@@ -529,13 +514,9 @@ namespace locic {
 				auto copyValue = CallValue(context, GetSpecialMethod(context, std::move(boundValue), context.getCString("implicitcopy"), location), {}, location);
 				assert(doesPredicateImplyPredicate(context, copyValue.type()->constPredicate(), destType->constPredicate()));
 				
-				auto copyLvalValue = sourceType->isLval() ?
-						AST::Value::Lval(std::move(copyValue)) :
-						std::move(copyValue);
-				
 				auto copyRefValue = sourceType->isRef() ?
-						AST::Value::Ref(sourceType->refTarget(), std::move(copyLvalValue)) :
-						std::move(copyLvalValue);
+						AST::Value::Ref(sourceType->refTarget(), std::move(copyValue)) :
+						std::move(copyValue);
 				
 				auto copyStaticRefValue = sourceType->isStaticRef() ?
 						AST::Value::StaticRef(sourceType->staticRefTarget(), std::move(copyRefValue)) :
@@ -549,7 +530,7 @@ namespace locic {
 			}
 			
 			// Try to bind value to reference (e.g. T -> T&).
-			if (allowBind && !sourceType->isLval() && !sourceType->isRef() && destType->isRef() &&
+			if (allowBind && !sourceType->isRef() && destType->isRef() &&
 					destType->isBuiltInReference() &&
 					doesPredicateImplyPredicate(context, sourceType->constPredicate(), destType->refTarget()->constPredicate()) &&
 					isStructurallyEqual(sourceType, destType->refTarget())) {

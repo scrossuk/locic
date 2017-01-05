@@ -333,16 +333,6 @@ namespace locic {
 			
 		};
 		
-		class CannotApplyRefToLvalDiag: public Error {
-		public:
-			CannotApplyRefToLvalDiag() { }
-			
-			std::string toString() const {
-				return "cannot create ref of value that is already a lval";
-			}
-			
-		};
-		
 		class CannotApplyNoRefToNonRefDiag: public Error {
 		public:
 			CannotApplyNoRefToNonRefDiag() { }
@@ -810,11 +800,6 @@ namespace locic {
 				}
 				case AST::ValueDecl::REF: {
 					auto sourceValue = ConvertValue(context, astValueNode->makeRef.value);
-					
-					if (sourceValue.type()->isLval()) {
-						context.issueDiag(CannotApplyRefToLvalDiag(), location);
-						return sourceValue;
-					}
 					
 					if (sourceValue.type()->isRef()) {
 						context.issueDiag(CannotApplyRefToRefDiag(), location);

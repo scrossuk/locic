@@ -220,7 +220,7 @@ namespace locic {
 		}
 		
 		Value Value::NoStaticRef(Value operand) {
-			Value value(NOSTATICREF, operand.type()->withoutLvalOrRef(), operand.exitStates());
+			Value value(NOSTATICREF, operand.type()->withoutRef(), operand.exitStates());
 			value.impl_->value0 = std::move(operand);
 			return value;
 		}

@@ -19,7 +19,7 @@ namespace locic {
 		bool isValidVarArgType(const AST::Type* const type) {
 			if (!type->isObject()) return false;
 			if (!type->getObjectType()->isPrimitive()) return false;
-			if (type->isLval() || type->isRef()) return false;
+			if (type->isRef()) return false;
 			if (!type->isPrimitive()) return false;
 			
 			switch (type->primitiveID()) {
