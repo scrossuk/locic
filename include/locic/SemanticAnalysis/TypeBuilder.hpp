@@ -42,6 +42,9 @@ namespace locic {
 			getTypenameType();
 			
 			const AST::Type*
+			getDestructibleInterfaceType();
+			
+			const AST::Type*
 			getMovableInterfaceType(const AST::Type* type);
 			
 			const AST::Type*

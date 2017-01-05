@@ -81,6 +81,11 @@ namespace locic {
 		}
 		
 		const AST::Type*
+		TypeBuilder::getDestructibleInterfaceType() {
+			return getBuiltInType(context_, context_.getCString("destructible_t"), { });
+		}
+		
+		const AST::Type*
 		TypeBuilder::getMovableInterfaceType(const AST::Type* type) {
 			return getBuiltInType(context_, context_.getCString("movable_t"), { type });
 		}
