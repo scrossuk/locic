@@ -25,6 +25,7 @@ namespace locic {
 			switch(statement.kind()) {
 				case AST::Statement::VALUE:
 				case AST::Statement::INITIALISE:
+				case AST::Statement::ASSIGN:
 				case AST::Statement::RETURN:
 				case AST::Statement::RETURNVOID:
 				case AST::Statement::THROW:
