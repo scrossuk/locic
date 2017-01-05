@@ -2,18 +2,17 @@ export std.memory 0.1.0 {
 	
 	namespace std {
 		
-		template <typename T>
-		require(movable<T>)
+		template <movable T>
 		T* new_raw(T value) {
 			void* ptr = allocate(sizeof(T));
 			T* castPtr = reinterpret_cast<void*, T*>(ptr);
-			nolval(*castPtr).setvalue(move value);
+			new(castPtr) move value;
 			return castPtr;
 		}
 		
-		template <typename T>
+		template <destructible T>
 		void delete_raw(T* ptr) noexcept {
-			nolval(*ptr).destroyvalue();
+			ptr->__destroy();
 			release(reinterpret_cast<T*, void*>(ptr));
 		}
 		

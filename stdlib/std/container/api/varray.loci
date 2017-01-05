@@ -10,12 +10,13 @@ import std.container 0.1.0 {
 		notag(T)
 		class varray {
 			static varray<T> create() noexcept;
+			void __destroy() noexcept require(destructible<T>);
 			
 			void reserve(size_t size);
 			
 			size_t capacity() const noexcept;
 			
-			void resize(size_t size, T element) require(movable<T> and copyable<T>);
+			void resize(size_t size, T element) require(destructible<T> and movable<T> and copyable<T>);
 			
 			bool empty() const noexcept;
 			
@@ -27,11 +28,11 @@ import std.container 0.1.0 {
 			template <bool IsConst>
 			lval ptr_lval_t<const<IsConst>(T)> index(size_t index) const(IsConst) noexcept;
 			
-			void clear() noexcept;
+			void clear() noexcept require(destructible<T>);
 			
 			void push_back(T value) require (movable<T>);
 			
-			void pop_back() noexcept;
+			void pop_back() noexcept require(destructible<T>);
 			
 			varray<notag(T)> copy() const require(movable<notag(T)> and copyable<T>);
 			

@@ -11,9 +11,9 @@ export std.container 0.1.0 {
 				return @(0u, 0u, null);
 			}
 			
-			~ {
+			void __destroy() noexcept require(destructible<T>) {
 				for (auto i: reverse_range<size_t>(@size, 0)) {
-					nolval(@data[i - 1u]).destroyvalue();
+					@data[i - 1u].__destroy();
 				}
 				
 				release(reinterpret_cast<T*, void*>(@data));
@@ -36,7 +36,7 @@ export std.container 0.1.0 {
 				T* newData = reinterpret_cast<void*, T*>(allocate(size * sizeof(T)));
 				
 				for (auto i: counter<size_t>(0u, @size, 1u)) {
-					nolval(newData[i]).setvalue(nolval(@data[i]).extractvalue());
+					new(&newData[i]) move @data[i];
 				}
 				
 				release(reinterpret_cast<T*, void*>(@data));
@@ -49,15 +49,15 @@ export std.container 0.1.0 {
 				return @capacity;
 			}
 			
-			void resize(size_t size, const T element) require(movable<T> and copyable<T>) {
+			void resize(size_t size, const T element) require(destructible<T> and movable<T> and copyable<T>) {
 				self.reserve(size);
 				if (size < self.size()) {
 					for (auto i: reverse_counter<size_t>(self.size(), size, 1u)) {
-						nolval(@data[i]).destroyvalue();
+						@data[i].__destroy();
 					}
 				} else {
 					for (auto i: counter<size_t>(self.size(), size, 1u)) {
-						nolval(@data[i]).setvalue(element.copy());
+						new(&@data[i]) element.copy();
 					}
 				}
 				@size = size;
@@ -82,23 +82,23 @@ export std.container 0.1.0 {
 				return @data[index];
 			}
 			
-			void clear() noexcept {
+			void clear() noexcept require(destructible<T>) {
 				for (auto i: reverse_counter<size_t>(@size, 0u, 1u)) {
-					nolval(@data[i]).destroyvalue();
+					@data[i].__destroy();
 				}
 				@size = 0u;
 			}
 			
 			void push_back(T value) require (movable<T>) {
 				self.reserve(@size + 1u);
-				nolval(@data[@size]).setvalue(move value);
-				@size = @size + 1u;
+				new(&@data[@size]) move value;
+				@size++;
 			}
 			
-			void pop_back() noexcept {
+			void pop_back() noexcept require(destructible<T>) {
 				assert !self.empty();
 				@size = @size - 1u;
-				nolval(@data[@size]).destroyvalue();
+				@data[@size].__destroy();
 			}
 			
 			varray<notag(T)> copy() const require(movable<notag(T)> and copyable<T>) {

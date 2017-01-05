@@ -17,7 +17,7 @@ export std.memory 0.1.0 {
 				return @(null, null);
 			}
 			
-			~ {
+			void __destroy() noexcept require(destructible<T>) {
 				if (@countField == null) {
 					return;
 				}
@@ -55,8 +55,7 @@ export std.memory 0.1.0 {
 			}
 		}
 		
-		template <typename T>
-		require(movable<T>)
+		template <movable T>
 		shared_ptr<T> new_shared(T value) {
 			return shared_ptr<T>::create(move value);
 		}

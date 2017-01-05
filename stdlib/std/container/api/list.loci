@@ -25,11 +25,13 @@ import std.container 0.1.0 {
 		class list {
 			static list<T> create();
 			
+			void __destroy() noexcept require(destructible<T>);
+			
 			bool empty() const noexcept;
 			
 			size_t size() const noexcept;
 			
-			void clear() noexcept;
+			void clear() noexcept require(destructible<T>);
 			
 			template <bool IsConst>
 			lval ptr_lval_t<const<IsConst>(T)> front() const(IsConst);
@@ -39,11 +41,11 @@ import std.container 0.1.0 {
 			
 			void push_front(T value) require(movable<T>);
 			
-			void pop_front() noexcept;
+			void pop_front() noexcept require(destructible<T>);
 			
 			void push_back(T value) require(movable<T>);
 			
-			void pop_back() noexcept;
+			void pop_back() noexcept require(destructible<T>);
 			
 			template <bool IsConst>
 			list_range<T, IsConst> all() const(IsConst) noexcept;

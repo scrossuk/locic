@@ -8,19 +8,20 @@ import std.memory 0.1.0 {
 			
 			static unique_ptr<T> null() noexcept;
 			
+			void __destroy() noexcept require(destructible<T>);
+			
 			template <bool IsConst>
 			lval ptr_lval_t<const<IsConst>(T)> deref() const(IsConst) noexcept;
 			
 			template <bool IsConst>
 			const<IsConst>(T)* get() const(IsConst) noexcept;
 			
-			void reset(T* pointer) noexcept;
+			void reset(T* pointer) noexcept require(destructible<T>);
 			
 			T* release() noexcept;
 		}
 		
-		template <typename T>
-		require(movable<T>)
+		template <movable T>
 		unique_ptr<T> new_unique(T value);
 		
 	}

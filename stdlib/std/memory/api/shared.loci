@@ -10,14 +10,15 @@ import std.memory 0.1.0 {
 			
 			static shared_ptr<T> null() noexcept;
 			
+			void __destroy() noexcept require(destructible<T>);
+			
 			shared_ptr<T> implicit_copy() const noexcept;
 			
 			template <bool IsConst>
 			lval ptr_lval_t<const<IsConst>(T)> deref() const(IsConst) noexcept;
 		}
 		
-		template <typename T>
-		require(movable<T>)
+		template <movable T>
 		shared_ptr<T> new_shared(T value);
 		
 	}

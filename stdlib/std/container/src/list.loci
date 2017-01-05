@@ -55,7 +55,7 @@ export std.container 0.1.0 {
 				return @(0u, null, null);
 			}
 			
-			~ {
+			void __destroy() noexcept require(destructible<T>) {
 				list_node<T>* next = @begin;
 				while (next != null) {
 					list_node<T>* current = next;
@@ -81,7 +81,7 @@ export std.container 0.1.0 {
 				return @size;
 			}
 			
-			void clear() noexcept {
+			void clear() noexcept require(destructible<T>) {
 				list_node<T>* next = @begin;
 				while (next != null) {
 					list_node<T>* current = next;
@@ -118,7 +118,7 @@ export std.container 0.1.0 {
 				@size += 1u;
 			}
 			
-			void pop_front() noexcept {
+			void pop_front() noexcept require(destructible<T>) {
 				assert !self.empty();
 				list_node<T>* newBegin = @begin->next;
 				delete_raw<list_node<T>>(@begin);
@@ -146,7 +146,7 @@ export std.container 0.1.0 {
 				@size += 1u;
 			}
 			
-			void pop_back() noexcept {
+			void pop_back() noexcept require(destructible<T>) {
 				assert !self.empty();
 				list_node<T>* newEnd = @end->previous;
 				delete_raw<list_node<T>>(@end);

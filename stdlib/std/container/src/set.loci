@@ -52,7 +52,7 @@ export std.container 0.1.0 {
 				return @array.size();
 			}
 			
-			void clear() noexcept {
+			void clear() noexcept require(destructible<T>) {
 				@array.clear();
 			}
 			
@@ -71,9 +71,9 @@ export std.container 0.1.0 {
 				for (const size_t c: std::counter<size_t>(0u, @array.size(), 1u)) {
 					for (const size_t i: std::counter<size_t>(1u, @array.size(), 1u)) {
 						if (@array[i] < @array[i - 1u]) {
-							auto tmp = nolval(@array[i]).extractvalue();
-							nolval(@array[i]).setvalue(nolval(@array[i - 1u]).extractvalue());
-							nolval(@array[i - 1u]).setvalue(move tmp);
+							auto tmp = move @array[i];
+							new(&@array[i]) move @array[i - 1u];
+							new(&@array[i - 1u]) move tmp;
 						}
 					}
 				}
@@ -113,7 +113,7 @@ export std.container 0.1.0 {
 				auto array = std::varray<T>();
 				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
 					if (@array[i] != value) {
-						array.push_back(nolval(@array[i]).extractvalue());
+						array.push_back(move @array[i]);
 					}
 				}
 				@array = move array;

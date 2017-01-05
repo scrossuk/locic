@@ -12,7 +12,7 @@ export std.memory 0.1.0 {
 				return @(null);
 			}
 			
-			~ {
+			void __destroy() noexcept require(destructible<T>) {
 				if (@ptr != null) {
 					delete_raw<T>(@ptr);
 				}
@@ -41,7 +41,7 @@ export std.memory 0.1.0 {
 				return @ptr;
 			}
 			
-			void reset(T* pointer) noexcept {
+			void reset(T* pointer) noexcept require(destructible<T>) {
 				if (@ptr != null) {
 					delete_raw<T>(@ptr);
 				}
@@ -55,8 +55,7 @@ export std.memory 0.1.0 {
 			}
 		}
 		
-		template <typename T>
-		require(movable<T>)
+		template <movable T>
 		unique_ptr<T> new_unique(T value) {
 			return unique_ptr<T>(move value);
 		}

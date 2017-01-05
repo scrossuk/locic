@@ -18,7 +18,7 @@ import std.container 0.1.0 {
 			
 			size_t size() const noexcept;
 			
-			void clear() noexcept;
+			void clear() noexcept require(destructible<Key> and destructible<Value>);
 			
 			template <bool IsConst>
 			lval ptr_lval_t<const<IsConst>(Value)>

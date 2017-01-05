@@ -2,14 +2,13 @@ export std.container 0.1.0 {
 	
 	namespace std {
 	
-		template <typename T>
-		require(sized_type<T>)
+		template <sized_type T>
 		class circular_queue(T* data, size_t capacity, size_t read_pos, size_t write_pos, bool read_pos_msb, bool write_pos_msb) {
 			static circular_queue<T> create(const size_t size) {
 				return @(reinterpret_cast<void*, T*>(allocate(sizeof(T) * size)), size, 0u, 0u, false, false);
 			}
 			
-			~ {
+			void __destroy() noexcept require(destructible<T>) {
 				self.clear();
 				release(reinterpret_cast<T*, void*>(@data));
 			}
@@ -90,7 +89,7 @@ export std.container 0.1.0 {
 				}
 			}
 			
-			void clear() noexcept {
+			void clear() noexcept require(destructible<T>) {
 				while (!self.empty()) {
 					self.pop_front();
 				}
@@ -98,7 +97,7 @@ export std.container 0.1.0 {
 			
 			void push_back(T value) noexcept require(movable<T>) {
 				assert !self.full();
-				nolval(@data[@write_pos]).setvalue(move value);
+				new(&@data[@write_pos]) move value;
 				@write_pos++;
 				if (@write_pos == self.capacity()) {
 					// Wrap around to start of array.
@@ -107,9 +106,9 @@ export std.container 0.1.0 {
 				}
 			}
 			
-			void pop_front() noexcept {
+			void pop_front() noexcept require(destructible<T>) {
 				assert !self.empty();
-				nolval(@data[@read_pos]).destroyvalue();
+				@data[@read_pos].__destroy();
 				@read_pos++;
 				if (@read_pos == self.capacity()) {
 					// Wrap around to start of array.
