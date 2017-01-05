@@ -1,9 +1,0 @@
-// RUN: %locic %s --verify > %t
-// RUN: FileCheck < %t %s
-
-export void function(const int& constValueRef) {
-	// CHECK: .loci:6:2: error: Can't implicitly cast value of type 'lval(value_lval_t<const(int_t)&>)&' to type 'int_t&'.
-	unused int& valueRef = constValueRef;
-}
-
-// CHECK: 1 error generated.

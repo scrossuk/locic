@@ -1,23 +1,5 @@
 // RUN: %locic %s --interpret > %t
 // RUN: FileCheck < %t %s
-// This test needs placement new.
-// XFAIL: *
-
-// CHECK: Create
-// CHECK: TestClass.create() : value = 1
-// CHECK: TestClass.create() : value = 2
-// CHECK: Move from 1 -> 2
-// CHECK: TestClass.__islive() : @value = 1
-// CHECK: TestClass.__move() : @value = 1
-// CHECK: TestClass.__setdead() : @value = 1
-// CHECK: Move from 2 -> 1
-// CHECK: TestClass.__islive() : @value = 2
-// CHECK: TestClass.__setdead() : @value = 1
-// CHECK: Destroy
-// CHECK: TestClass.__islive() : @value = 2
-// CHECK: TestClass.__islive() : @value = 1
-// CHECK: TestClass.~() : @value = 1
-// CHECK: TestClass.__setdead() : @value = 1
 
 import void printf(const ubyte * str, ...) noexcept;
 
@@ -47,21 +29,41 @@ class TestClass(int value) {
 }
 
 export int main(unused int argc, unused ubyte ** argv) {
+	// CHECK: Create
 	printf(C"Create\n");
-	auto value = TestClass(1);
-	auto moveValue = TestClass(2);
 	
-	printf(C"Move from 1 -> 2\n");
+	// CHECK-NEXT: TestClass.create() : value = 0
+	auto value0 = TestClass(0);
+	// CHECK-NEXT: TestClass.create() : value = 1
+	auto value1 = TestClass(1);
+	// CHECK-NEXT: TestClass.create() : value = 2
+	auto value2 = TestClass(2);
+	
+	// CHECK-NEXT: Move from 1
+	printf(C"Move from 1\n");
+	
 	// This is a normal move operation.
-	// TODO: this should use placement new.
-	moveValue = value.__move();
+	// CHECK-NEXT: TestClass.__islive() : @value = 1
+	// CHECK-NEXT: TestClass.__move() : @value = 1
+	// CHECK-NEXT: TestClass.__setdead() : @value = 1
+	new(&value0) move value1;
 	
-	printf(C"Move from 2 -> 1\n");
+	// CHECK-NEXT: Move from 2
+	printf(C"Move from 2\n");
+	
 	// Source value is dead, so set destination value to dead.
-	// TODO: this should use placement new.
-	moveValue = value.__move();
+	// CHECK-NEXT: TestClass.__islive() : @value = 2
+	// CHECK-NEXT: TestClass.__setdead() : @value = 0
+	new(&value0) move value2;
 	
+	// CHECK: Destroy
 	printf(C"Destroy\n");
+	
+	// CHECK-NEXT: TestClass.__islive() : @value = 2
+	// CHECK-NEXT: TestClass.__islive() : @value = 1
+	// CHECK-NEXT: TestClass.~() : @value = 1
+	// CHECK-NEXT: TestClass.__setdead() : @value = 1
+	// CHECK-NEXT: TestClass.__islive() : @value = 0
 	return 0;
 }
 

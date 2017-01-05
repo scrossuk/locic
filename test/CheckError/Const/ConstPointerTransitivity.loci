@@ -6,8 +6,11 @@ struct S {
 };
 
 void f(const S* value) {
-	// CHECK: .loci:11:2: error: template arguments do not satisfy require predicate 'const(int_t) : sized_type_t and const(int_t) : movable_t<notag(int_t)>' of method 'assign'
-	// CHECK: .loci:11:2: note: because: mutator method '__move' is required but type is const
+	// CHECK: .loci:10:2: error: cannot assign non-movable type 'const(int_t)'
+	*(value->p) = 1;
+}
+
+void g(S* value) {
 	*(value->p) = 1;
 }
 

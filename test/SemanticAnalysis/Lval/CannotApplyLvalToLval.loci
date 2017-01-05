@@ -1,9 +1,0 @@
-// RUN: %locic %s --verify > %t
-// RUN: FileCheck < %t %s
-
-export void f() {
-	// CHECK: .loci:6:16: error: cannot create lval of value that is already a lval
-	unused_result lval(lval(10));
-}
-
-// CHECK: 1 error generated.

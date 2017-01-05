@@ -4,7 +4,7 @@
 template <typename T>
 require(movable<T>)
 void doSwitch(T data) {
-	// CHECK: .loci:8:10: error: switch type 'T' is not an object
+	// CHECK: .loci:8:10: error: switch type 'notag(T)' is not an object
 	switch (move data) { }
 }
 

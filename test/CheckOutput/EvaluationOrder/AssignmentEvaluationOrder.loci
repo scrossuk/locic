@@ -1,34 +1,16 @@
 // RUN: %locic %s --interpret > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: getValue for ptr_lval
-// CHECK: getPtrLval
-// CHECK: getValue for custom lval
-// CHECK: getCustomLval
-
 import void printf(const ubyte * str, ...);
 
-lval ptr_lval_t<int> getPtrLval(int* ptr) {
-	printf(C"getPtrLval\n");
-	return *ptr;
-}
-
-int getValue(const ubyte* type) {
-	printf(C"getValue for %s\n", type);
+int getRvalue() {
+	printf(C"getRvalue\n");
 	return 42;
 }
 
-class CustomLval(int* ptr) {
-	static create = default;
-	
-	void assign(int value) {
-		*@ptr = value;
-	}
-}
-
-lval CustomLval getCustomLval(int* ptr) {
-	printf(C"getCustomLval\n");
-	return lval(CustomLval(ptr));
+int& getLvalue(int* ptr) {
+	printf(C"getLvalue\n");
+	return *ptr;
 }
 
 export int main(unused int argc, unused ubyte ** argv) {
@@ -36,17 +18,18 @@ export int main(unused int argc, unused ubyte ** argv) {
 	
 	int value = 0;
 	
-	{
-		// First check that ptr_lval assignments are right-to-left;
-		// this is potentially different to custom lvals because
-		// ptr_lval is a primitive.
-		getPtrLval(&value) = getValue(C"ptr_lval\n");
-	}
+	// CHECK: value=0
+	printf(C"value=%d\n", value);
 	
 	{
-		// Check that user-specified lval assignments are right-to-left.
-		getCustomLval(&value) = getValue(C"custom lval\n");
+		// Check that assignments are right-to-left.
+		// CHECK: getRvalue
+		// CHECK: getLvalue
+		getLvalue(&value) = getRvalue();
 	}
+	
+	// CHECK: value=42
+	printf(C"value=%d\n", value);
 	return 0;
 }
 

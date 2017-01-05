@@ -1,0 +1,30 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+export int& f(const int& value) {
+	// CHECK: .loci:6:2: error: Can't implicitly cast value of type 'const(int_t)&&' to type 'int_t&'.
+	return value;
+}
+
+export int& g(const(int&) value) {
+	// CHECK: .loci:11:2: error: Can't implicitly cast value of type 'const(int_t&)&' to type 'int_t&'.
+	return value;
+}
+
+export const int& h(const(int&) value) {
+	return value;
+}
+
+export const int& i(const int& value) {
+	return value;
+}
+
+export const(int&) j(const(int&) value) {
+	return value;
+}
+
+export int& k(int& value) {
+	return value;
+}
+
+// CHECK: 2 errors generated.

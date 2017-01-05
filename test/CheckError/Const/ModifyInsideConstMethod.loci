@@ -4,17 +4,14 @@
 class TestClass(int value) {
 	static create = default;
 	
-	void modify() const {
-		// CHECK: .loci:11:3: error: cannot refer to mutator method 'assign' from const object of type 'lval(const(value_lval_t<const(int_t)>))'
-		// CHECK: .loci:11:3: error: template arguments do not satisfy require predicate 'const(int_t) : sized_type_t and const(int_t) : movable_t<notag(int_t)>' of method 'assign'
-		// CHECK: .loci:11:3: note: because: mutator method '__move' is required but type is const
+	void modifyNonConst() {
+		@value = 100;
+	}
+	
+	void modifyConst() const {
+		// CHECK: .loci:13:3: error: cannot assign non-movable type 'const(int_t)'
 		@value = 100;
 	}
 }
 
-export void f() {
-	const TestClass object = TestClass(10);
-	object.modify();
-}
-
-// CHECK: 2 errors generated.
+// CHECK: 1 error generated.

@@ -2,8 +2,11 @@
 // RUN: FileCheck < %t %s
 
 void f(const int* value) {
-	// CHECK: .loci:7:2: error: template arguments do not satisfy require predicate 'const(int_t) : sized_type_t and const(int_t) : movable_t<notag(int_t)>' of method 'assign'
-	// CHECK: .loci:7:2: note: because: mutator method '__move' is required but type is const
+	// CHECK: .loci:6:2: error: cannot assign non-movable type 'const(int_t)'
+	*value = 1;
+}
+
+void g(int* value) {
 	*value = 1;
 }
 

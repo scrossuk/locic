@@ -31,8 +31,7 @@ export int main(unused int argc, unused ubyte ** argv) {
 	// This is very dangerous (since it messes around the destructors)!
 	// It's only used here since we can make reasonable assumptions about
 	// the compiler.
-	// TODO: this should use placement new.
-	testInstance2 = testInstance.__move();
+	new(&testInstance2) move testInstance;
 	
 	printf(C"testInstance.getValue() = %d\n", testInstance.getValue());
 	printf(C"testInstance2.getValue() = %d\n", testInstance2.getValue());

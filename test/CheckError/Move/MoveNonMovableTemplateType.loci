@@ -3,9 +3,7 @@
 
 template <typename T>
 void moveObject(T object) {
-	// CHECK: .loci:9:16: error: template arguments do not satisfy require predicate 'T : sized_type_t and T : movable_t<notag(T)>' of method 'move'
-	// CHECK: .loci:9:16: note: because: method '__alignmask' not found
-	// CHECK: .loci:9:16: error: return type 'T' of function call does not have a size
+	// CHECK: .loci:7:16: error: cannot find method '__move' for type 'T'
 	unused_result move object;
 }
 

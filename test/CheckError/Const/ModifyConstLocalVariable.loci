@@ -1,12 +1,15 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-export int main(unused int argc, unused ubyte ** argv) {
+export void f() {
 	const int value = 0;
-	// CHECK: .loci:8:2: error: template arguments do not satisfy require predicate 'const(int_t) : sized_type_t and const(int_t) : movable_t<notag(int_t)>' of method 'assign'
-	// CHECK: .loci:8:2: note: because: mutator method '__move' is required but type is const
+	// CHECK: .loci:7:2: error: cannot assign non-movable type 'const(int_t)'
 	value = 1;
-	return 0;
+}
+
+export void g() {
+	int value = 0;
+	value = 1;
 }
 
 // CHECK: 1 error generated.

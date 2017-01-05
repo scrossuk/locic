@@ -4,11 +4,11 @@
 class TestClass() { }
 
 void function0(staticref<TestClass> typename_t typeValue) {
-	// CHECK: .loci:8:12: error: Can't implicitly cast value of type 'lval(value_lval_t<staticref<TestClass>(typename_t)>)&' to type 'staticref<TestClass>(int_t)'.
+	// CHECK: .loci:8:12: error: Can't implicitly cast value of type 'staticref<TestClass>(typename_t)&' to type 'staticref<TestClass>(int_t)'.
 	function1(typeValue);
 }
 
-void function1(staticref<TestClass> int typeValue) { }
+void function1(unused staticref<TestClass> int typeValue) { }
 
 export int main(unused int argc, unused ubyte ** argv) {
 	function0(TestClass);

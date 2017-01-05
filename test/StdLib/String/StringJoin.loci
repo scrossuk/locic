@@ -14,7 +14,7 @@ export int main(unused int argc, unused ubyte ** argv) {
 	elements.push_back("C - 3");
 	
 	auto range = elements.all();
-	auto joinedString = ", ".join<ptr_lval_t<const std::string>>(range);
+	auto joinedString = ", ".join(range);
 	
 	printf(C"joinedString = %s\n", joinedString.make_buffer().c_str());
 	

@@ -1,0 +1,16 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass(int& member) {
+	int& getRefNonConst() {
+		return @member;
+	}
+	
+	int& getRefConst() const {
+		// Error: member is const here.
+		// CHECK: .loci:12:3: error: Can't implicitly cast value of type 'const(int_t&)&' to type 'int_t&'.
+		return @member;
+	}
+}
+
+// CHECK: 1 error generated.
