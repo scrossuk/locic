@@ -94,6 +94,11 @@ namespace locic {
 					               statement.getInitialiseValue());
 					return;
 				}
+				case AST::Statement::ASSIGN: {
+					emitAssign(statement.getAssignLvalue(),
+					           statement.getAssignRvalue());
+					return;
+				}
 				case AST::Statement::IF: {
 					emitIf(statement.getIfClauseList(),
 					       statement.getIfElseScope());
@@ -192,6 +197,20 @@ namespace locic {
 			irEmitter_.emitStore(valueIR, varPtr, var.constructType());
 			scheduleDestructorCall(irEmitter_.function(),
 			                       var.constructType(), varPtr);
+		}
+		
+		void StatementEmitter::emitAssign(const AST::Value& lvalue,
+		                                  const AST::Value& rvalue) {
+			assert(lvalue.type()->isRef());
+			// Assertion disabled due to notag().
+			// assert(lvalue.type()->refTarget() == rvalue.type());
+			
+			ValueEmitter valueEmitter(irEmitter_);
+			const auto rvalueIR = valueEmitter.emitValue(rvalue);
+			const auto lvalueIR = valueEmitter.emitValue(lvalue);
+			
+			irEmitter_.emitDestructorCall(lvalueIR, rvalue.type());
+			irEmitter_.emitMoveStore(rvalueIR, lvalueIR, rvalue.type());
 		}
 		
 		void StatementEmitter::emitIf(const std::vector<AST::IfClause*>& ifClauseList,

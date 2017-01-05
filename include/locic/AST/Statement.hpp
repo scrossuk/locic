@@ -32,6 +32,7 @@ namespace locic {
 				VALUE,
 				SCOPE,
 				INITIALISE,
+				ASSIGN,
 				IF,
 				SWITCH,
 				LOOP,
@@ -54,6 +55,8 @@ namespace locic {
 			static Statement ScopeStmt(Node<Scope> scope);
 			
 			static Statement InitialiseStmt(Var& var, Value value);
+			
+			static Statement AssignStmt(Value lvalue, Value rvalue);
 			
 			static Statement If(const std::vector<IfClause*>& ifClauses,
 			                    Node<Scope> elseScope);
@@ -111,6 +114,12 @@ namespace locic {
 			Var& getInitialiseVar() const;
 			
 			const Value& getInitialiseValue() const;
+			
+			bool isAssignStatement() const;
+			
+			const Value& getAssignLvalue() const;
+			
+			const Value& getAssignRvalue() const;
 			
 			bool isIfStatement() const;
 			
@@ -210,6 +219,11 @@ namespace locic {
 				Var* var;
 				Value value;
 			} initialiseStmt_;
+			
+			struct {
+				Value lvalue;
+				Value rvalue;
+			} assignStmt_;
 			
 			struct {
 				std::vector<IfClause*> clauseList;

@@ -39,6 +39,17 @@ namespace locic {
 			return statement;
 		}
 		
+		Statement Statement::AssignStmt(Value lvalue, Value rvalue) {
+			ExitStates exitStates = ExitStates::None();
+			exitStates.add(rvalue.exitStates().throwingStates());
+			exitStates.add(lvalue.exitStates());
+			
+			Statement statement(ASSIGN, exitStates);
+			statement.assignStmt_.lvalue = std::move(lvalue);
+			statement.assignStmt_.rvalue = std::move(rvalue);
+			return statement;
+		}
+		
 		Statement Statement::If(const std::vector<IfClause*>& ifClauses,
 		                        Node<Scope> elseScope) {
 			assert(elseScope.get() != nullptr);
@@ -275,6 +286,20 @@ namespace locic {
 			return initialiseStmt_.value;
 		}
 		
+		bool Statement::isAssignStatement() const {
+			return kind() == ASSIGN;
+		}
+		
+		const Value& Statement::getAssignLvalue() const {
+			assert(isAssignStatement());
+			return assignStmt_.lvalue;
+		}
+		
+		const Value& Statement::getAssignRvalue() const {
+			assert(isAssignStatement());
+			return assignStmt_.rvalue;
+		}
+		
 		bool Statement::isIfStatement() const {
 			return kind() == IF;
 		}
@@ -457,6 +482,12 @@ namespace locic {
 					return makeString("InitialiseStatement(var: %s, value: %s)",
 						initialiseStmt_.var->toString().c_str(),
 						initialiseStmt_.value.toString().c_str());
+				}
+				
+				case ASSIGN: {
+					return makeString("AssignStatement(lvalue: %s, rvalue: %s)",
+						assignStmt_.lvalue.toString().c_str(),
+						assignStmt_.rvalue.toString().c_str());
 				}
 				
 				case IF: {
