@@ -31,8 +31,7 @@ namespace locic {
 		Var::Var(const Kind pKind, Node<TypeDecl> argType)
 		: kind_(pKind), isOverrideConst_(false),
 		isMarkedUnused_(false), isUsed_(false), index_(-1),
-		type_(std::move(argType)), constructType_(nullptr),
-		lvalType_(nullptr) { }
+		typeDecl_(std::move(argType)), type_(nullptr) { }
 		
 		Var::~Var() { }
 		
@@ -41,11 +40,11 @@ namespace locic {
 		}
 		
 		Node<TypeDecl>& Var::declType() {
-			return type_;
+			return typeDecl_;
 		}
 		
 		const Node<TypeDecl>& Var::declType() const {
-			return type_;
+			return typeDecl_;
 		}
 		
 		bool Var::isAny() const {
@@ -105,24 +104,14 @@ namespace locic {
 			isUsed_ = true;
 		}
 		
-		const Type* Var::constructType() const {
-			assert(constructType_ != nullptr);
-			return constructType_;
+		const Type* Var::type() const {
+			assert(type_ != nullptr);
+			return type_;
 		}
 		
-		void Var::setConstructType(const Type* type) {
-			assert(constructType_ == nullptr && type != nullptr);
-			constructType_ = type;
-		}
-		
-		const Type* Var::lvalType() const {
-			assert(lvalType_ != nullptr);
-			return lvalType_;
-		}
-		
-		void Var::setLvalType(const Type* type) {
-			assert(lvalType_ == nullptr && type != nullptr);
-			lvalType_ = type;
+		void Var::setType(const Type* type) {
+			assert(type_ == nullptr && type != nullptr);
+			type_ = type;
 		}
 		
 		size_t Var::index() const {

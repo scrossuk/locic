@@ -58,29 +58,8 @@ namespace locic {
 			bool isUsed() const;
 			void setUsed();
 			
-			/**
-			 * \brief Get construct type.
-			 * 
-			 * This is the type of the value being held in this
-			 * variable. When this variable is initialised it must
-			 * be passed a value of this type.
-			 * 
-			 * If the variable itself has an 'lval' type, then the
-			 * lval type and construct type are the same.
-			 */
-			const Type* constructType() const;
-			void setConstructType(const Type* type);
-			
-			/**
-			 * \brief Get lval type.
-			 * 
-			 * This is the type of the lvalue holding this variable.
-			 * 
-			 * If the variable itself has an 'lval' type, then the
-			 * lval type and construct type are the same.
-			 */
-			const Type* lvalType() const;
-			void setLvalType(const Type* type);
+			const Type* type() const;
+			void setType(const Type* type);
 			
 			size_t index() const;
 			void setIndex(size_t index);
@@ -99,7 +78,7 @@ namespace locic {
 			bool isUsed_;
 			size_t index_;
 			
-			Node<TypeDecl> type_;
+			Node<TypeDecl> typeDecl_;
 			
 			struct {
 				String name;
@@ -110,8 +89,7 @@ namespace locic {
 			} patternVar_;
 			
 			Optional<Debug::VarInfo> debugInfo_;
-			const Type* constructType_;
-			const Type* lvalType_;
+			const Type* type_;
 			
 		};
 		

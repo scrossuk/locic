@@ -153,7 +153,7 @@ namespace locic {
 			
 			for (size_t i = 0; i < function.parameters().size(); i++) {
 				const auto& paramVar = *(function.parameters()[i]);
-				const auto paramType = paramVar.constructType();
+				const auto paramType = paramVar.type();
 				const auto paramIR = functionGenerator_.getArg(i);
 				
 				// We need to get a stack pointer to use as the variable's

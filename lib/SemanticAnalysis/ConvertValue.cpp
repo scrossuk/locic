@@ -545,7 +545,7 @@ namespace locic {
 						assert(astSymbolNode->first()->templateArguments()->empty());
 						auto& var = searchResult.var();
 						var.setUsed();
-						return AST::Value::LocalVar(var, getBuiltInType(context, context.getCString("ref_t"), { var.lvalType() })->createRefType(var.lvalType()));
+						return AST::Value::LocalVar(var, getBuiltInType(context, context.getCString("ref_t"), { var.type() })->createRefType(var.type()));
 					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						auto& templateVar = searchResult.templateVar();
@@ -942,7 +942,7 @@ namespace locic {
 						if (i < thisTypeInstance->variables().size()) {
 							const auto astVar = thisTypeInstance->variables().at(i);
 							auto astParam = ImplicitCast(context, std::move(astValue),
-							                             astVar->constructType()->substitute(templateVarMap),
+							                             astVar->type()->substitute(templateVarMap),
 							                             location);
 							astValues.push_back(std::move(astParam));
 						} else {

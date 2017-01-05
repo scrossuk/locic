@@ -557,7 +557,7 @@ namespace locic {
 				
 				paramVar->setIndex(index++);
 				
-				parameterTypes.push_back(paramVar->constructType());
+				parameterTypes.push_back(paramVar->type());
 				parameterVars.push_back(paramVar);
 			}
 			

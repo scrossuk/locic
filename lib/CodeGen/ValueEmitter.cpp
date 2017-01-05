@@ -546,7 +546,7 @@ namespace locic {
 					                                                                   objectValue,
 					                                                                   0, i);
 					const auto llvmParamValue = emitValue(parameterValues.at(i), llvmInsertPointer);
-					irEmitter_.emitStore(llvmParamValue, llvmInsertPointer, var->lvalType());
+					irEmitter_.emitStore(llvmParamValue, llvmInsertPointer, var->type());
 				}
 			} else {
 				llvm::Value* offsetValue = irEmitter_.constantGenerator().getSizeTValue(0);
@@ -555,19 +555,19 @@ namespace locic {
 					const auto var = parameterVars.at(i);
 					
 					// Align offset for field.
-					const auto varAlign = genAlignMask(irEmitter_.function(), var->lvalType());
+					const auto varAlign = genAlignMask(irEmitter_.function(), var->type());
 					offsetValue = makeAligned(irEmitter_.function(), offsetValue,
 					                          varAlign);
 					
 					const auto llvmInsertPointer = irEmitter_.emitInBoundsGEP(irEmitter_.typeGenerator().getI8Type(),
 					                                                          objectValue, offsetValue);
 					const auto llvmParamValue = emitValue(parameterValues.at(i), llvmInsertPointer);
-					irEmitter_.emitStore(llvmParamValue, llvmInsertPointer, var->lvalType());
+					irEmitter_.emitStore(llvmParamValue, llvmInsertPointer, var->type());
 					
 					if ((i + 1) != parameterValues.size()) {
 						// If this isn't the last field, add its size for calculating
 						// the offset of the next field.
-						const auto varTypeSize = genSizeOf(irEmitter_.function(), var->lvalType());
+						const auto varTypeSize = genSizeOf(irEmitter_.function(), var->type());
 						offsetValue = irEmitter_.builder().CreateAdd(offsetValue, varTypeSize);
 					}
 				}

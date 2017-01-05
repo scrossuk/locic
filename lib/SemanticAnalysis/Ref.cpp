@@ -133,7 +133,7 @@ namespace locic {
 		}
 		
 		AST::Value createLocalVarRef(Context& context, const AST::Var& var) {
-			return AST::Value::LocalVar(var, createReferenceType(context, var.lvalType()));
+			return AST::Value::LocalVar(var, createReferenceType(context, var.type()));
 		}
 		
 		AST::Value createMemberVarRef(Context& context, AST::Value object, const AST::Var& var) {

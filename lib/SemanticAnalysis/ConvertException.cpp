@@ -32,7 +32,7 @@ namespace locic {
 						isFirst = false;
 						continue;
 					}
-					types.push_back(var->constructType());
+					types.push_back(var->type());
 				}
 				return types;
 			}
@@ -180,7 +180,7 @@ namespace locic {
 					// implicitly cast for it; if there isn't a variable this is
 					// an error that we reported above, so we fail silently here.
 					const auto var = parentTypeInstance.variables()[i];
-					const auto varType = var->constructType()->substitute(parentTemplateMap);
+					const auto varType = var->type()->substitute(parentTemplateMap);
 					value = ImplicitCast(context, std::move(value), varType,
 					                     astValueNode.location());
 				}

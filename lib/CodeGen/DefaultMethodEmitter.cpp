@@ -135,7 +135,7 @@ namespace locic {
 			for (size_t i = 1; i < typeInstance.variables().size(); i++) {
 				const auto& memberVar = typeInstance.variables()[i];
 				
-				const auto memberType = memberVar->constructType()->resolveAliases();
+				const auto memberType = memberVar->type()->resolveAliases();
 				
 				const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberVar->index());
 				
@@ -187,7 +187,7 @@ namespace locic {
 			for (size_t i = 0; i < typeInstance.variables().size(); i++) {
 				const auto& memberVar = typeInstance.variables()[i];
 				
-				const auto memberType = memberVar->constructType()->resolveAliases();
+				const auto memberType = memberVar->type()->resolveAliases();
 				
 				const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberVar->index());
 				
@@ -281,7 +281,7 @@ namespace locic {
 					const auto ptrToMember = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 					                                                   thisValue,
 					                                                   memberOffsetValue);
-					irEmitter.emitDestructorCall(ptrToMember, memberVar->lvalType());
+					irEmitter.emitDestructorCall(ptrToMember, memberVar->type());
 				}
 				
 				// Put the object into a dead state.
@@ -437,7 +437,7 @@ namespace locic {
 					const auto sourceMemberPtr = genMemberPtr(functionGenerator_, sourcePtr, type, memberIndex);
 					const auto destMemberPtr = genMemberPtr(functionGenerator_, destPtr, type, memberIndex);
 					irEmitter.emitMove(sourceMemberPtr, destMemberPtr,
-					                   memberVar->lvalType());
+					                   memberVar->type());
 				}
 			}
 			
@@ -477,7 +477,7 @@ namespace locic {
 				llvm::Value* classAlignMask = zero;
 				
 				for (const auto& var: typeInstance.variables()) {
-					const auto varType = var->lvalType()->substitute(type->generateTemplateVarMap());
+					const auto varType = var->type()->substitute(type->generateTemplateVarMap());
 					const auto varAlignMask = irEmitter.emitAlignMask(varType);
 					classAlignMask = functionGenerator_.getBuilder().CreateOr(classAlignMask, varAlignMask);
 				}
@@ -505,8 +505,8 @@ namespace locic {
 				llvm::Value* maxVariantSize = zero;
 				
 				for (const auto& var: typeInstance.variables()) {
-					const auto variantAlignMask = irEmitter.emitAlignMask(var->lvalType());
-					const auto variantSize = irEmitter.emitSizeOf(var->lvalType());
+					const auto variantAlignMask = irEmitter.emitAlignMask(var->type());
+					const auto variantSize = irEmitter.emitSizeOf(var->type());
 					
 					maxVariantAlignMask = functionGenerator_.getBuilder().CreateOr(maxVariantAlignMask, variantAlignMask);
 					
@@ -560,7 +560,7 @@ namespace locic {
 				llvm::Value* classAlignMask = zero;
 				
 				for (const auto& var: typeInstance.variables()) {
-					const auto varType = var->lvalType()->substitute(type->generateTemplateVarMap());
+					const auto varType = var->type()->substitute(type->generateTemplateVarMap());
 					const auto memberAlignMask = irEmitter.emitAlignMask(varType);
 					const auto memberSize = irEmitter.emitSizeOf(varType);
 					
@@ -623,7 +623,7 @@ namespace locic {
 					// Set the relevant member into an invalid state.
 					const auto memberVar = &(livenessIndicator.memberVar());
 					const auto memberPtr = genMemberPtr(functionGenerator_, contextValue, type, memberVar->index());
-					livenessEmitter.emitSetInvalidCall(memberVar->constructType(), memberPtr);
+					livenessEmitter.emitSetInvalidCall(memberVar->type(), memberPtr);
 					break;
 				}
 				case LivenessIndicator::CUSTOM_METHODS: {
@@ -674,7 +674,7 @@ namespace locic {
 					                                    contextValue,
 					                                    type,
 					                                    memberVar.index());
-					const auto memberType = memberVar.constructType();
+					const auto memberType = memberVar.type();
 					const MethodInfo methodInfo(memberType, module.getCString("__isvalid"), functionType, {});
 					const auto contextArg = RefPendingResult(memberPtr, memberType);
 					return genDynamicMethodCall(functionGenerator_, methodInfo, contextArg, {});
@@ -795,7 +795,7 @@ namespace locic {
 					                                      type,
 					                                      memberIndex);
 					
-					const auto memberType = memberVar->constructType()->resolveAliases();
+					const auto memberType = memberVar->type()->resolveAliases();
 					
 					const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberIndex);
 					
@@ -946,7 +946,7 @@ namespace locic {
 					                                         type,
 					                                         memberIndex);
 					
-					const auto memberType = memberVar->constructType()->resolveAliases();
+					const auto memberType = memberVar->type()->resolveAliases();
 					
 					const auto compareResult = irEmitter.emitCompareCall(thisMemberPtr,
 					                                                     otherMemberPtr,

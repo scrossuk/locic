@@ -40,7 +40,7 @@ namespace locic {
 			
 			// All member variables need to be sized.
 			for (const auto& var: typeInstance->variables()) {
-				const auto varType = var->constructType();
+				const auto varType = var->type();
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, sizedType));
 			}
 			
@@ -58,7 +58,7 @@ namespace locic {
 			
 			// All member variables need to be movable.
 			for (const auto& var: typeInstance->variables()) {
-				const auto varType = var->constructType();
+				const auto varType = var->type();
 				const auto movableType = context.typeBuilder().getMovableInterfaceType(varType->createNoTagType());
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
 			}
@@ -88,7 +88,7 @@ namespace locic {
 			
 			// All member variables need to be copyable.
 			for (const auto& var: typeInstance->variables()) {
-				const auto varType = var->constructType()->withoutTags();
+				const auto varType = var->type()->withoutTags();
 				const auto copyableType = getBuiltInType(context, propertyName, { varType });
 				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
 			}
@@ -124,7 +124,7 @@ namespace locic {
 			
 			// All member variables need to be copyable.
 			for (const auto& var: typeInstance->variables()) {
-				const auto varType = var->constructType()->withoutTags();
+				const auto varType = var->type()->withoutTags();
 				const auto copyableType = getBuiltInType(context, propertyName, { varType });
 				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
 			}

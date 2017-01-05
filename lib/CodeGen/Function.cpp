@@ -151,7 +151,7 @@ namespace locic {
 			// variable to the relevant offset in the object.
 			for (size_t i = 0; i < var.varList()->size(); i++) {
 				const auto& childVar = (*(var.varList()))[i];
-				const auto memberOffsetValue = genMemberOffset(*this, var.constructType(), i);
+				const auto memberOffsetValue = genMemberOffset(*this, var.type(), i);
 				const auto memberPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
 				                                                 varPtr, memberOffsetValue);
 				setVarAddress(*childVar, memberPtr);

@@ -188,15 +188,15 @@ namespace locic {
 		
 		void StatementEmitter::emitInitialise(AST::Var& var,
 		                                      const AST::Value& value) {
-			const auto varPtr = irEmitter_.emitAlloca(var.constructType());
+			const auto varPtr = irEmitter_.emitAlloca(var.type());
 			irEmitter_.function().setVarAddress(var, varPtr);
 			
 			ValueEmitter valueEmitter(irEmitter_);
 			const auto valueIR = valueEmitter.emitValue(value, varPtr);
 			
-			irEmitter_.emitStore(valueIR, varPtr, var.constructType());
+			irEmitter_.emitStore(valueIR, varPtr, var.type());
 			scheduleDestructorCall(irEmitter_.function(),
-			                       var.constructType(), varPtr);
+			                       var.type(), varPtr);
 		}
 		
 		void StatementEmitter::emitAssign(const AST::Value& lvalue,
@@ -369,7 +369,7 @@ namespace locic {
 			bool allTerminate = true;
 			
 			for (auto switchCase: switchCases) {
-				const auto caseType = switchCase->var()->constructType();
+				const auto caseType = switchCase->var()->type();
 				
 				// Start from 1 so 0 can represent 'empty'.
 				uint8_t tag = 1;
@@ -508,7 +508,7 @@ namespace locic {
 			 *     forEnd:
 			 * }
 			 */
-			const auto valueType = var.lvalType();
+			const auto valueType = var.type();
 			const auto iteratorType = initValue.type();
 			
 			auto& function = irEmitter_.function();
@@ -635,7 +635,7 @@ namespace locic {
 			llvm::SmallVector<llvm::Constant*, 5> catchTypeList;
 			
 			for (const auto catchClause: catchClauses) {
-				catchTypeList.push_back(genCatchInfo(module, catchClause->var()->constructType()->getObjectType()));
+				catchTypeList.push_back(genCatchInfo(module, catchClause->var()->type()->getObjectType()));
 			}
 			
 			assert(catchTypeList.size() == catchClauses.size());

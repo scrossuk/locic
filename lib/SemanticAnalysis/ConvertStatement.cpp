@@ -486,7 +486,7 @@ namespace locic {
 							ConvertScope(context, caseNode->scope());
 						}
 						
-						const auto caseType = caseNode->var()->constructType();
+						const auto caseType = caseNode->var()->type();
 						
 						// Check that all switch cases are based
 						// on the same union datatype.
@@ -593,7 +593,7 @@ namespace locic {
 						assert(var == catchNode->var().get());
 						(void) var;
 						
-						const auto varType = catchNode->var()->constructType();
+						const auto varType = catchNode->var()->type();
 						if (!varType->isException()) {
 							context.issueDiag(CannotCatchNonExceptionTypeDiag(varType),
 							                  catchNode->var().location());

@@ -49,7 +49,7 @@ namespace locic {
 				// All members of the type must have a known size
 				// for it to have a known size.
 				for (auto var: typeInstance.variables()) {
-					if (!isSizeAlwaysKnown(var->lvalType())) {
+					if (!isSizeAlwaysKnown(var->type())) {
 						return false;
 					}
 				}
@@ -94,7 +94,7 @@ namespace locic {
 				// All members of the type must have a known size
 				// for it to have a known size.
 				for (auto var: typeInstance.variables()) {
-					if (!isSizeKnownInThisModule(var->lvalType())) {
+					if (!isSizeKnownInThisModule(var->type())) {
 						return false;
 					}
 				}
@@ -152,7 +152,7 @@ namespace locic {
 				}
 				
 				for (const auto var: typeInstance.variables()) {
-					if (hasCustomDestructor(var->lvalType())) {
+					if (hasCustomDestructor(var->type())) {
 						return true;
 					}
 				}
@@ -211,7 +211,7 @@ namespace locic {
 				}
 				
 				for (const auto var: typeInstance.variables()) {
-					if (hasCustomMove(var->lvalType())) {
+					if (hasCustomMove(var->type())) {
 						return true;
 					}
 				}

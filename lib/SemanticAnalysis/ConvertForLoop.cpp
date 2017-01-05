@@ -66,8 +66,7 @@ namespace locic {
 				// FIXME: We shouldn't be creating an AST::Var here; the solution
 				//        is to move all of this code into CodeGen.
 				auto initVar = AST::Var::NamedVar(AST::Node<AST::TypeDecl>(), String());
-				initVar->setConstructType(initVarType);
-				initVar->setLvalType(initVarType);
+				initVar->setType(initVarType);
 				
 				outerScope->variables().push_back(initVar);
 				
@@ -91,7 +90,7 @@ namespace locic {
 						iterationScope->variables().push_back(loopVar);
 						
 						iterationScope->statements().push_back(AST::Statement::InitialiseStmt(*loopVar,
-							ImplicitCast(context, std::move(currentValue), loopVar->constructType(), location)));
+							ImplicitCast(context, std::move(currentValue), loopVar->type(), location)));
 						
 						ConvertScope(context, scopeNode);
 						iterationScope->statements().push_back(AST::Statement::ScopeStmt(std::move(scopeNode)));

@@ -49,7 +49,7 @@ namespace locic {
 		LivenessInfo::getMemberLivenessIndicator(const AST::TypeInstance& typeInstance) {
 			// See if one of the member variables has an invalid state we can use.
 			for (const auto& var: typeInstance.variables()) {
-				const auto type = var->constructType();
+				const auto type = var->type();
 				if (!type->isObject()) {
 					continue;
 				}
@@ -73,12 +73,12 @@ namespace locic {
 			size_t currentOffset = 0;
 			TypeInfo typeInfo(module_);
 			for (const auto& var: typeInstance.variables()) {
-				if (!typeInfo.isSizeKnownInThisModule(var->lvalType())) {
+				if (!typeInfo.isSizeKnownInThisModule(var->type())) {
 					// Reached an unknown-size member, so give up here.
 					break;
 				}
 				
-				const auto abiType = genABIType(module_, var->lvalType());
+				const auto abiType = genABIType(module_, var->type());
 				const auto& abiTypeInfo = module_.abi().typeInfo();
 				const size_t nextOffset = roundUpToAlign(currentOffset,
 				                                         abiTypeInfo.getTypeRequiredAlign(abiType).asBytes());

@@ -183,7 +183,7 @@ namespace locic {
 				
 				switch (astVarNode->kind()) {
 					case AST::Var::ANYVAR: {
-						astVarNode->setConstructType(initialiseType);
+						astVarNode->setType(initialiseType);
 						return astVarNode.get();
 					}
 					
@@ -212,11 +212,7 @@ namespace locic {
 							                  location);
 						}
 						
-						astVarNode->setConstructType(varType);
-						
-						const auto lvalType = makeLvalType(context, varType);
-						
-						astVarNode->setLvalType(lvalType);
+						astVarNode->setType(varType);
 						
 						attachVar(context, astVarNode, Debug::VarInfo::VAR_LOCAL);
 						
@@ -235,7 +231,7 @@ namespace locic {
 						// 'auto' in the variable's type.
 						const auto varType = CastType(context, initialiseType, varDeclType, location, isTopLevel);
 						
-						astVarNode->setConstructType(varType);
+						astVarNode->setType(varType);
 						
 						const auto& patternChildVarNodes = astVarNode->varList();
 						const auto& objectChildVars = varType->getObjectType()->variables();
@@ -253,7 +249,7 @@ namespace locic {
 							auto& patternChildVarNode = patternChildVarNodes->at(i);
 							const auto& objectChildVar = objectChildVars.at(i);
 							
-							const auto childInitialiseType = objectChildVar->constructType()->substitute(templateVarMap);
+							const auto childInitialiseType = objectChildVar->type()->substitute(templateVarMap);
 							const bool childIsTopLevel = false;
 							(void) ConvertInitialisedVarRecurse(context, patternChildVarNode,
 							                                    childInitialiseType,
@@ -308,13 +304,7 @@ namespace locic {
 					}
 					
 					const auto varType = TypeResolver(context).resolveType(astVarNode->declType());
-					astVarNode->setConstructType(varType);
-					
-					// Variables in catch clauses don't use lvalues.
-					const auto lvalType = (varKind != Debug::VarInfo::VAR_EXCEPTION_CATCH) ?
-						makeLvalType(context, varType) : varType;
-					
-					astVarNode->setLvalType(lvalType);
+					astVarNode->setType(varType);
 					
 					attachVar(context, astVarNode, varKind);
 					
@@ -329,7 +319,7 @@ namespace locic {
 						                  astVarNode->declType().location());
 					}
 					
-					astVarNode->setConstructType(varType);
+					astVarNode->setType(varType);
 					
 					const auto& astChildVars = astVarNode->varList();
 					const auto& typeChildVars = varType->getObjectType()->variables();

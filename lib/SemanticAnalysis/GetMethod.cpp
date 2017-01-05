@@ -136,7 +136,7 @@ namespace locic {
 		// Gets the method without dissolving or derefencing the object.
 		AST::Value GetSpecialMethod(Context& context, AST::Value value, const String& methodName, const Debug::SourceLocation& location) {
 			assert(value.type()->isRef() && value.type()->isBuiltInReference());
-			const auto type = getSingleDerefType(value.type())->resolveAliases();
+			const auto type = value.type()->refTarget()->resolveAliases();
 			return GetMethodWithoutResolution(context, std::move(value), type, methodName, location);
 		}
 		

@@ -291,7 +291,7 @@ namespace locic {
 			
 			types.reserve(variables().size());
 			for (const auto var: variables()) {
-				types.push_back(var->constructType());
+				types.push_back(var->type());
 			}
 			return types;
 		}
