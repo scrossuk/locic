@@ -125,9 +125,6 @@ namespace locic {
 				case AST::TypeDecl::NOTAG: {
 					return resolveType(type->getNoTagTarget())->createNoTagType();
 				}
-				case AST::TypeDecl::LVAL: {
-					return resolveType(type->getLvalType())->createLvalType();
-				}
 				case AST::TypeDecl::REF: {
 					auto targetType = resolveType(type->getRefTarget());
 					return resolveType(type->getRefType())->createRefType(targetType);

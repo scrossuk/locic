@@ -33,7 +33,6 @@ namespace locic {
 				CONST,
 				CONSTPREDICATE,
 				NOTAG,
-				LVAL,
 				REF,
 				STATICREF,
 				VOID,
@@ -60,10 +59,6 @@ namespace locic {
 			struct {
 				Node<TypeDecl> targetType;
 			} noTagType;
-			
-			struct {
-				Node<TypeDecl> lvalType;
-			} lvalType;
 			
 			struct {
 				Node<TypeDecl> targetType;
@@ -126,8 +121,6 @@ namespace locic {
 			static TypeDecl* ConstPredicate(Node<PredicateDecl> predicate, Node<TypeDecl> targetType);
 			
 			static TypeDecl* NoTag(Node<TypeDecl> targetType);
-			
-			static TypeDecl* Lval(Node<TypeDecl> lvalType);
 			
 			static TypeDecl* Ref(Node<TypeDecl> targetType, Node<TypeDecl> refType);
 			
@@ -213,20 +206,6 @@ namespace locic {
 			const Node<TypeDecl>& getNoTagTarget() const {
 				assert(isNoTag());
 				return noTagType.targetType;
-			}
-			
-			bool isLval() const {
-				return typeEnum == LVAL;
-			}
-			
-			Node<TypeDecl>& getLvalType() {
-				assert(isLval());
-				return lvalType.lvalType;
-			}
-			
-			const Node<TypeDecl>& getLvalType() const {
-				assert(isLval());
-				return lvalType.lvalType;
 			}
 			
 			bool isRef() const {

@@ -60,12 +60,6 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeDecl>
-		TypeBuilder::makeLvalType(AST::Node<AST::TypeDecl> type,
-		                          const Debug::SourcePosition& start) {
-			return makeTypeNode(AST::TypeDecl::Lval(std::move(type)), start);
-		}
-		
-		AST::Node<AST::TypeDecl>
 		TypeBuilder::makeRefType(AST::Node<AST::TypeDecl> targetType,
 		                         AST::Node<AST::TypeDecl> type,
 		                         const Debug::SourcePosition& start) {

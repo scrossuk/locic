@@ -1134,12 +1134,6 @@ namespace locic {
 					return builder_.makeRefValue(std::move(targetType), std::move(value), start);
 				}
 				case Token::LVAL: {
-					if (reader_.peek().kind() != Token::LROUNDBRACKET) {
-						auto type = TypeParser(reader_).parseQualifiedType();
-						auto lvalType = TypeBuilder(reader_).makeLvalType(std::move(type), start);
-						return builder_.makeTypeValue(std::move(lvalType), start);
-					}
-					
 					reader_.expect(Token::LROUNDBRACKET);
 					auto value = parseValue();
 					reader_.expect(Token::RROUNDBRACKET);
