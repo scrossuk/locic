@@ -292,7 +292,15 @@ namespace locic {
 			irEmitter_.emitBranch(afterCondBB);
 			
 			irEmitter_.selectBasicBlock(ifFalseBB);
-			const auto ifFalseValue = emitValue(value.ternaryIfFalse(), hintResultValue);
+			auto ifFalseValue = emitValue(value.ternaryIfFalse(), hintResultValue);
+			// Cast pointer if necessary to make them match.
+			if (ifTrueValue->getType() != ifFalseValue->getType()) {
+				assert(ifTrueValue->getType()->isPointerTy() &&
+				       ifFalseValue->getType()->isPointerTy());
+				ifFalseValue = irEmitter_.emitPointerCast(ifFalseValue,
+				                                          ifTrueValue->getType());
+			}
+			
 			const auto ifFalseTermBlock = irEmitter_.builder().GetInsertBlock();
 			const auto ifFalseIsEmpty = ifFalseBB->empty();
 			irEmitter_.emitBranch(afterCondBB);
