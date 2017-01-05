@@ -41,7 +41,6 @@ namespace locic {
 					ALIAS,
 					PREDICATE,
 					LOCALVAR,
-					MEMBEROFFSET,
 					REINTERPRET,
 					DEREF_REFERENCE,
 					TERNARY,
@@ -114,13 +113,6 @@ namespace locic {
 				 * A reference to a local variable.
 				 */
 				static Value LocalVar(const Var& var, const Type* type);
-				
-				/**
-				 * \brief Member variable offset
-				 * 
-				 * The offset of a member variable within an object.
-				 */
-				static Value MemberOffset(const TypeInstance* typeInstance, size_t memberIndex, const Type* sizeType);
 				
 				/**
 				 * \brief Reinterpret a value as a type
@@ -350,10 +342,6 @@ namespace locic {
 				
 				bool isLocalVarRef() const;
 				const Var& localVar() const;
-				
-				bool isMemberOffset() const;
-				const TypeInstance* memberOffsetTypeInstance() const;
-				size_t memberOffsetMemberIndex() const;
 				
 				bool isReinterpret() const;
 				const Value& reinterpretOperand() const;

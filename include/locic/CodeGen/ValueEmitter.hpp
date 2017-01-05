@@ -50,9 +50,6 @@ namespace locic {
 			emitDerefReference(const AST::Value& value);
 			
 			llvm::Value*
-			emitMemberOffset(const AST::Value& value);
-			
-			llvm::Value*
 			emitTernary(const AST::Value& value,
 			            llvm::Value* hintResultValue);
 			

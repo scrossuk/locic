@@ -50,11 +50,6 @@ namespace locic {
 				} localVar;
 				
 				struct {
-					const TypeInstance* typeInstance;
-					size_t memberIndex;
-				} memberOffset;
-				
-				struct {
 					const Type* targetType;
 				} cast;
 				
@@ -142,13 +137,6 @@ namespace locic {
 			assert(type->isRef() && type->isBuiltInReference());
 			Value value(LOCALVAR, type, ExitStates::Normal());
 			value.impl_->union_.localVar.var = &var;
-			return value;
-		}
-		
-		Value Value::MemberOffset(const TypeInstance* const typeInstance, const size_t memberIndex, const Type* const sizeType) {
-			Value value(MEMBEROFFSET, sizeType, ExitStates::Normal());
-			value.impl_->union_.memberOffset.typeInstance = typeInstance;
-			value.impl_->union_.memberOffset.memberIndex = memberIndex;
 			return value;
 		}
 		
@@ -447,20 +435,6 @@ namespace locic {
 		const Var& Value::localVar() const {
 			assert(isLocalVarRef());
 			return *(impl_->union_.localVar.var);
-		}
-		
-		bool Value::isMemberOffset() const {
-			return kind() == MEMBEROFFSET;
-		}
-		
-		const TypeInstance* Value::memberOffsetTypeInstance() const {
-			assert(isMemberOffset());
-			return impl_->union_.memberOffset.typeInstance;
-		}
-		
-		size_t Value::memberOffsetMemberIndex() const {
-			assert(isMemberOffset());
-			return impl_->union_.memberOffset.memberIndex;
 		}
 		
 		bool Value::isReinterpret() const {
@@ -789,10 +763,6 @@ namespace locic {
 				case Value::LOCALVAR:
 					hasher.add(&(localVar()));
 					break;
-				case Value::MEMBEROFFSET:
-					hasher.add(memberOffsetTypeInstance());
-					hasher.add(memberOffsetMemberIndex());
-					break;
 				case Value::REINTERPRET:
 					hasher.add(reinterpretOperand());
 					break;
@@ -921,8 +891,6 @@ namespace locic {
 					return predicate() == value.predicate();
 				case Value::LOCALVAR:
 					return &(localVar()) == &(value.localVar());
-				case Value::MEMBEROFFSET:
-					return memberOffsetTypeInstance() == value.memberOffsetTypeInstance() && memberOffsetMemberIndex() == value.memberOffsetMemberIndex();
 				case Value::REINTERPRET:
 					return reinterpretOperand() == value.reinterpretOperand();
 				case Value::DEREF_REFERENCE:
@@ -1119,10 +1087,6 @@ namespace locic {
 					return makeString("Predicate(%s)", predicate().toString().c_str());
 				case LOCALVAR:
 					return makeString("LocalVar(%s)", localVar().toString().c_str());
-				case MEMBEROFFSET:
-					return makeString("MemberOffset(type: %s, memberIndex: %llu)",
-						memberOffsetTypeInstance()->fullName().toString().c_str(),
-						(unsigned long long) memberOffsetMemberIndex());
 				case REINTERPRET:
 					return makeString("Reinterpret(value: %s)", reinterpretOperand().toString().c_str());
 				case DEREF_REFERENCE:
@@ -1227,9 +1191,6 @@ namespace locic {
 					return predicate().toString();
 				case LOCALVAR:
 					return localVar().name().asStdString();
-				case MEMBEROFFSET:
-					return makeString("@%s",
-					                  memberOffsetTypeInstance()->variables()[memberOffsetMemberIndex()]->name().c_str());
 				case REINTERPRET:
 					return reinterpretOperand().toDiagString();
 				case DEREF_REFERENCE:
