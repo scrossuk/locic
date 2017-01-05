@@ -47,8 +47,6 @@ namespace locic {
 			AST::Node<AST::TypeDecl> makeNoTagType(AST::Node<AST::TypeDecl> targetType,
 			                                   const Debug::SourcePosition& start);
 			
-			AST::Node<AST::TypeDecl> makeLvalType(AST::Node<AST::TypeDecl> type,
-			                                      const Debug::SourcePosition& start);
 			AST::Node<AST::TypeDecl> makeRefType(AST::Node<AST::TypeDecl> targetType,
 			                                 AST::Node<AST::TypeDecl> type,
 			                                 const Debug::SourcePosition& start);

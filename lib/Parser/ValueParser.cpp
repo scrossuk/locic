@@ -713,8 +713,6 @@ namespace locic {
 				case AST::ValueDecl::ALIGNOF:
 				case AST::ValueDecl::SIZEOF:
 				case AST::ValueDecl::CAST:
-				case AST::ValueDecl::LVAL:
-				case AST::ValueDecl::NOLVAL:
 				case AST::ValueDecl::REF:
 				case AST::ValueDecl::NOREF:
 				case AST::ValueDecl::INTERNALCONSTRUCT:
@@ -853,8 +851,6 @@ namespace locic {
 				case AST::ValueDecl::BINARYOP:
 				case AST::ValueDecl::TERNARY:
 				case AST::ValueDecl::CAST:
-				case AST::ValueDecl::LVAL:
-				case AST::ValueDecl::NOLVAL:
 				case AST::ValueDecl::REF:
 				case AST::ValueDecl::NOREF:
 				case AST::ValueDecl::INTERNALCONSTRUCT:
@@ -895,8 +891,6 @@ namespace locic {
 				case AST::ValueDecl::BINARYOP:
 				case AST::ValueDecl::TERNARY:
 				case AST::ValueDecl::CAST:
-				case AST::ValueDecl::LVAL:
-				case AST::ValueDecl::NOLVAL:
 				case AST::ValueDecl::REF:
 				case AST::ValueDecl::NOREF:
 				case AST::ValueDecl::INTERNALCONSTRUCT:
@@ -1021,8 +1015,6 @@ namespace locic {
 				case AST::ValueDecl::ALIGNOF:
 				case AST::ValueDecl::SIZEOF:
 				case AST::ValueDecl::CAST:
-				case AST::ValueDecl::LVAL:
-				case AST::ValueDecl::NOLVAL:
 				case AST::ValueDecl::REF:
 				case AST::ValueDecl::NOREF:
 				case AST::ValueDecl::INTERNALCONSTRUCT:
@@ -1133,24 +1125,17 @@ namespace locic {
 					
 					return builder_.makeRefValue(std::move(targetType), std::move(value), start);
 				}
-				case Token::LVAL: {
+				case Token::NOREF: {
 					reader_.expect(Token::LROUNDBRACKET);
 					auto value = parseValue();
 					reader_.expect(Token::RROUNDBRACKET);
-					
-					return builder_.makeLvalValue(std::move(value), start);
+					return builder_.makeNoRefValue(std::move(value), start);
 				}
-				default: {
-					reader_.expect(Token::LROUNDBRACKET);
-					auto value = parseValue();
-					reader_.expect(Token::RROUNDBRACKET);
-					if (kind == Token::NOREF) {
-						return builder_.makeNoRefValue(std::move(value), start);
-					} else {
-						return builder_.makeNoLvalValue(std::move(value), start);
-					}
-				}
+				default:
+					break;
 			}
+			
+			locic_unreachable("Invalid token kind");
 		}
 		
 		AST::Node<AST::ValueDecl> ValueParser::parseArrayLiteral(const Debug::SourcePosition& start) {

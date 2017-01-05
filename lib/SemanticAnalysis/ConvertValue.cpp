@@ -323,36 +323,6 @@ namespace locic {
 			
 		};
 		
-		class CannotApplyLvalToLvalDiag: public Error {
-		public:
-			CannotApplyLvalToLvalDiag() { }
-			
-			std::string toString() const {
-				return "cannot create lval of value that is already a lval";
-			}
-			
-		};
-		
-		class CannotApplyLvalToRefDiag: public Error {
-		public:
-			CannotApplyLvalToRefDiag() { }
-			
-			std::string toString() const {
-				return "cannot create lval of value that is already a ref";
-			}
-			
-		};
-		
-		class CannotApplyNoLvalToNonLvalDiag: public Error {
-		public:
-			CannotApplyNoLvalToNonLvalDiag() { }
-			
-			std::string toString() const {
-				return "cannot use 'nolval' operator on non-lval value";
-			}
-			
-		};
-		
 		class CannotApplyRefToRefDiag: public Error {
 		public:
 			CannotApplyRefToRefDiag() { }
@@ -837,31 +807,6 @@ namespace locic {
 					}
 					
 					locic_unreachable("Unknown cast kind.");
-				}
-				case AST::ValueDecl::LVAL: {
-					auto sourceValue = ConvertValue(context, astValueNode->makeLval.value);
-					
-					if (sourceValue.type()->isLval()) {
-						context.issueDiag(CannotApplyLvalToLvalDiag(), location);
-						return sourceValue;
-					}
-					
-					if (sourceValue.type()->isRef()) {
-						context.issueDiag(CannotApplyLvalToRefDiag(), location);
-						return sourceValue;
-					}
-					
-					return AST::Value::Lval(std::move(sourceValue));
-				}
-				case AST::ValueDecl::NOLVAL: {
-					auto sourceValue = ConvertValue(context, astValueNode->makeNoLval.value);
-					
-					if (!getDerefType(sourceValue.type())->isLval()) {
-						context.issueDiag(CannotApplyNoLvalToNonLvalDiag(), location);
-						return sourceValue;
-					}
-					
-					return AST::Value::NoLval(std::move(sourceValue));
 				}
 				case AST::ValueDecl::REF: {
 					auto sourceValue = ConvertValue(context, astValueNode->makeRef.value);

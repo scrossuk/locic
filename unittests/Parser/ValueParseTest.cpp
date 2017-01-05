@@ -360,17 +360,6 @@ namespace locic {
 			});
 		}
 		
-		TEST(ValueParseTest, LvalType) {
-			auto tokens = {
-				Token::LVAL,
-				Token::NAME
-			};
-			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
-				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
-				EXPECT_TRUE(value->typeRef.type->isLval());
-			});
-		}
-		
 		TEST(ValueParseTest, RefType) {
 			auto tokens = {
 				Token::REF,
@@ -921,30 +910,6 @@ namespace locic {
 			};
 			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
 				EXPECT_EQ(value->kind(), AST::ValueDecl::NOREF);
-			});
-		}
-		
-		TEST(ValueParseTest, LvalValue) {
-			auto tokens = {
-				Token::LVAL,
-				Token::LROUNDBRACKET,
-				Token::NAME,
-				Token::RROUNDBRACKET
-			};
-			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
-				EXPECT_EQ(value->kind(), AST::ValueDecl::LVAL);
-			});
-		}
-		
-		TEST(ValueParseTest, NoLvalValue) {
-			auto tokens = {
-				Token::NOLVAL,
-				Token::LROUNDBRACKET,
-				Token::NAME,
-				Token::RROUNDBRACKET
-			};
-			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
-				EXPECT_EQ(value->kind(), AST::ValueDecl::NOLVAL);
 			});
 		}
 		

@@ -165,21 +165,9 @@ namespace locic {
 		}
 		
 		AST::Node<AST::ValueDecl>
-		ValueBuilder::makeLvalValue(AST::Node<AST::ValueDecl> value,
-		                            const Debug::SourcePosition& start) {
-			return makeValueNode(AST::ValueDecl::Lval(std::move(value)), start);
-		}
-		
-		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeNoRefValue(AST::Node<AST::ValueDecl> value,
 		                             const Debug::SourcePosition& start) {
 			return makeValueNode(AST::ValueDecl::NoRef(std::move(value)), start);
-		}
-		
-		AST::Node<AST::ValueDecl>
-		ValueBuilder::makeNoLvalValue(AST::Node<AST::ValueDecl> value,
-		                              const Debug::SourcePosition& start) {
-			return makeValueNode(AST::ValueDecl::NoLval(std::move(value)), start);
 		}
 		
 		AST::Node<AST::ValueDecl>

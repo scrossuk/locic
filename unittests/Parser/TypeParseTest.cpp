@@ -420,17 +420,6 @@ namespace locic {
 			});
 		}
 		
-		TEST(TypeParseTest, LvalType) {
-			auto tokens = {
-				Token::LVAL,
-				Token::NAME
-			};
-			testParseType(tokens, [](const AST::Node<AST::TypeDecl>& type) {
-				ASSERT_TRUE(type->isLval());
-				EXPECT_TRUE(type->getLvalType()->isObjectType());
-			});
-		}
-		
 	}
 	
 }

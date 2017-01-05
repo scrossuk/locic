@@ -66,8 +66,6 @@ namespace locic {
 				BINARYOP,
 				TERNARY,
 				CAST,
-				LVAL,
-				NOLVAL,
 				REF,
 				NOREF,
 				INTERNALCONSTRUCT,
@@ -139,14 +137,6 @@ namespace locic {
 				Node<TypeDecl> targetType;
 				Node<ValueDecl> value;
 			} cast;
-			
-			struct {
-				Node<ValueDecl> value;
-			} makeLval;
-			
-			struct {
-				Node<ValueDecl> value;
-			} makeNoLval;
 			
 			struct {
 				Node<TypeDecl> targetType;
@@ -284,18 +274,6 @@ namespace locic {
 				value->cast.sourceType = std::move(sourceType);
 				value->cast.targetType = std::move(targetType);
 				value->cast.value = std::move(operand);
-				return value;
-			}
-			
-			static ValueDecl* Lval(Node<ValueDecl> operand) {
-				ValueDecl* value = new ValueDecl(LVAL);
-				value->makeLval.value = std::move(operand);
-				return value;
-			}
-			
-			static ValueDecl* NoLval(Node<ValueDecl> operand) {
-				ValueDecl* value = new ValueDecl(NOLVAL);
-				value->makeNoLval.value = std::move(operand);
 				return value;
 			}
 			

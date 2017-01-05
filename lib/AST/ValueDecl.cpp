@@ -43,10 +43,6 @@ namespace locic {
 					return "ternary";
 				case CAST:
 					return "cast";
-				case LVAL:
-					return "lval";
-				case NOLVAL:
-					return "nolval";
 				case REF:
 					return "ref";
 				case NOREF:
