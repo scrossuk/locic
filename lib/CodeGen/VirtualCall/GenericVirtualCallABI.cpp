@@ -257,7 +257,7 @@ namespace locic {
 			// Get a pointer to the slot.
 			llvm::SmallVector<llvm::Value*, 3> vtableEntryGEP;
 			vtableEntryGEP.push_back(constantGen.getI32(0));
-			vtableEntryGEP.push_back(constantGen.getI32(3));
+			vtableEntryGEP.push_back(constantGen.getI32(2));
 			vtableEntryGEP.push_back(castVTableOffsetValue);
 			
 			const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module_),
@@ -341,7 +341,7 @@ namespace locic {
 			ConstantGenerator constGen(module_);
 			llvm::SmallVector<llvm::Value*, 2> vtableEntryGEP;
 			vtableEntryGEP.push_back(constGen.getI32(0));
-			vtableEntryGEP.push_back(constGen.getI32(kind == ALIGNOF ? 1 : 2));
+			vtableEntryGEP.push_back(constGen.getI32(kind == ALIGNOF ? 0 : 1));
 			
 			const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module_),
 			                                                          vtablePointer,
@@ -356,39 +356,6 @@ namespace locic {
 			return genRawFunctionCall(irEmitter.function(), argInfo,
 			                          methodFunctionPointer,
 			                          { templateGeneratorValue });
-		}
-		
-		ArgInfo
-		GenericVirtualCallABI::virtualDestructorArgInfo() {
-			return ArgInfo::VoidTemplateAndContext(module_).withNoExcept();
-		}
-		
-		void
-		GenericVirtualCallABI::emitDestructorCall(IREmitter& irEmitter,
-		                                          llvm::Value* typeInfoValue,
-		                                          llvm::Value* objectValue) {
-			// Extract vtable and template generator.
-			const auto vtablePointer = irEmitter.builder().CreateExtractValue(typeInfoValue, { 0 }, "vtable");
-			const auto templateGeneratorValue = irEmitter.builder().CreateExtractValue(typeInfoValue, { 1 }, "templateGenerator");
-			
-			// Get a pointer to the slot.
-			ConstantGenerator constGen(module_);
-			llvm::SmallVector<llvm::Value*, 2> vtableEntryGEP;
-			vtableEntryGEP.push_back(constGen.getI32(0));
-			vtableEntryGEP.push_back(constGen.getI32(0));
-			
-			const auto vtableEntryPointer = irEmitter.emitInBoundsGEP(vtableType(module_),
-			                                                          vtablePointer,
-			                                                          vtableEntryGEP);
-			
-			const auto argInfo = virtualDestructorArgInfo();
-			
-			// Load the slot.
-			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
-			                                                         irEmitter.typeGenerator().getPtrType());
-			
-			llvm::Value* const args[] = { objectValue, templateGeneratorValue };
-			(void) genRawFunctionCall(irEmitter.function(), argInfo, methodFunctionPointer, args);
 		}
 		
 	}

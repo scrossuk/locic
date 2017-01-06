@@ -58,14 +58,6 @@ namespace locic {
 			                llvm::Value* typeInfoValue,
 			                CountFnKind kind);
 			
-			ArgInfo
-			virtualDestructorArgInfo();
-			
-			void
-			emitDestructorCall(IREmitter& irEmitter,
-			                   llvm::Value* typeInfoValue,
-			                   llvm::Value* objectValue);
-			
 		private:
 			Module& module_;
 			

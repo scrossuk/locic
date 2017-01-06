@@ -2,7 +2,6 @@
 #include <locic/AST/TypeInstance.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -73,9 +72,6 @@ namespace locic {
 			const auto i8PtrType = typeGen.getPtrType();
 			
 			std::vector<llvm::Constant*> vtableStructElements;
-			
-			// Destructor.
-			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genVTableDestructorFunction(module, *typeInstance), typeGen.getPtrType()));
 			
 			// Alignmask.
 			vtableStructElements.push_back(ConstantGenerator(module).getPointerCast(genAlignMaskFunctionDecl(module, typeInstance), typeGen.getPtrType()));

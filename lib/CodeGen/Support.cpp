@@ -25,9 +25,6 @@ namespace locic {
 			
 			std::vector<llvm::Type*> structElements;
 			
-			// Destructor.
-			structElements.push_back(typeGen.getPtrType());
-			
 			// Alignof.
 			structElements.push_back(typeGen.getPtrType());
 									 
