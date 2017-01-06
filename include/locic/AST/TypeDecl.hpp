@@ -33,7 +33,6 @@ namespace locic {
 				CONST,
 				CONSTPREDICATE,
 				NOTAG,
-				REF,
 				STATICREF,
 				VOID,
 				BOOL,
@@ -206,30 +205,6 @@ namespace locic {
 			const Node<TypeDecl>& getNoTagTarget() const {
 				assert(isNoTag());
 				return noTagType.targetType;
-			}
-			
-			bool isRef() const {
-				return typeEnum == REF;
-			}
-			
-			Node<TypeDecl>& getRefTarget() {
-				assert(isRef());
-				return refType.targetType;
-			}
-			
-			const Node<TypeDecl>& getRefTarget() const {
-				assert(isRef());
-				return refType.targetType;
-			}
-			
-			Node<TypeDecl>& getRefType() {
-				assert(isRef());
-				return refType.refType;
-			}
-			
-			const Node<TypeDecl>& getRefType() const {
-				assert(isRef());
-				return refType.refType;
 			}
 			
 			bool isStaticRef() const {

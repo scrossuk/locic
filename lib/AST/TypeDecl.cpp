@@ -46,13 +46,6 @@ namespace locic {
 			return type;
 		}
 		
-		TypeDecl* TypeDecl::Ref(Node<TypeDecl> targetType, Node<TypeDecl> refType) {
-			TypeDecl* type = new TypeDecl(REF);
-			type->refType.targetType = std::move(targetType);
-			type->refType.refType = std::move(refType);
-			return type;
-		}
-		
 		TypeDecl* TypeDecl::StaticRef(Node<TypeDecl> targetType, Node<TypeDecl> refType) {
 			TypeDecl* type = new TypeDecl(STATICREF);
 			type->staticRefType.targetType = std::move(targetType);
@@ -143,9 +136,6 @@ namespace locic {
 					
 				case NOTAG:
 					return std::string("notag(") + getNoTagTarget()->toString() + ")";
-					
-				case REF:
-					return std::string("ref <") + getRefTarget()->toString() + "> " + getRefType()->toString();
 					
 				case STATICREF:
 					return std::string("staticref <") + getStaticRefTarget()->toString() + "> " + getStaticRefType()->toString();
