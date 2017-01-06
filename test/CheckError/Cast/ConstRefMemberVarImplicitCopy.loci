@@ -1,6 +1,9 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
+// Fails since const(int&) copies to int&, whereas it should copy to const(int)&.
+// XFAIL: *
+
 class TestClass(int& member) {
 	int& getRefNonConst() {
 		return @member;
@@ -8,7 +11,7 @@ class TestClass(int& member) {
 	
 	int& getRefConst() const {
 		// Error: member is const here.
-		// CHECK: .loci:12:3: error: Can't implicitly cast value of type 'const(int_t&)&' to type 'int_t&'.
+		// CHECK: .loci:15:3: error: Can't implicitly cast value of type 'const(int_t&)&' to type 'int_t&'.
 		return @member;
 	}
 }

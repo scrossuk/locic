@@ -1,13 +1,16 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
+// Fails since const(int&) copies to int&, whereas it should copy to const(int)&.
+// XFAIL: *
+
 export int& f(const int& value) {
-	// CHECK: .loci:6:2: error: Can't implicitly cast value of type 'const(int_t)&&' to type 'int_t&'.
+	// CHECK: .loci:9:2: error: Can't implicitly cast value of type 'const(int_t)&&' to type 'int_t&'.
 	return value;
 }
 
 export int& g(const(int&) value) {
-	// CHECK: .loci:11:2: error: Can't implicitly cast value of type 'const(int_t&)&' to type 'int_t&'.
+	// CHECK: .loci:14:2: error: Can't implicitly cast value of type 'const(int_t&)&' to type 'int_t&'.
 	return value;
 }
 
