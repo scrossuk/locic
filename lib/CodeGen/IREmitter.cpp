@@ -6,7 +6,6 @@
 #include <locic/AST/TypeInstance.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
@@ -554,42 +553,40 @@ namespace locic {
 			                           std::move(args), hintResultValue);
 		}
 		
+		AST::FunctionType
+		destroyFunctionType(Module& module, const AST::Type* const type) {
+			const auto& voidTypeInstance = module.context().astContext().getPrimitive(PrimitiveVoid);
+			const auto voidType = AST::Type::Object(&voidTypeInstance, {});
+			
+			const bool hasTemplateArgs = type->isObject() && !type->templateArguments().empty();
+			AST::FunctionAttributes attributes(/*isVarArg=*/false, /*isMethod=*/true,
+			                                   /*isTemplated=*/hasTemplateArgs,
+			                                   /*noexceptPredicate=*/AST::Predicate::True());
+			return AST::FunctionType(std::move(attributes), voidType, {});
+		}
+		
 		void
 		IREmitter::emitDestructorCall(llvm::Value* const value,
 		                              const AST::Type* const rawType) {
 			const auto type = rawType->resolveAliases();
-			if (type->isObject()) {
-				TypeInfo typeInfo(module());
-				if (!typeInfo.hasCustomDestructor(type)) {
-					return;
-				}
-				
-				if (type->isPrimitive()) {
-					genPrimitiveDestructorCall(functionGenerator_, type, value);
-					return;
-				}
-				
-				const auto& typeInstance = *(type->getObjectType());
-				
-				// Call destructor.
-				const auto argInfo = destructorArgInfo(module(), typeInstance);
-				const auto destructorFunction = genDestructorFunctionDecl(module(), typeInstance);
-				
-				llvm::SmallVector<llvm::Value*, 2> args;
-				args.push_back(value);
-				if (!type->templateArguments().empty()) {
-					args.push_back(getTemplateGenerator(functionGenerator_, TemplateInst::Type(type)));
-				}
-				
-				(void) genRawFunctionCall(functionGenerator_, argInfo, destructorFunction, args);
-			} else if (type->isTemplateVar()) {
-				const auto typeInfo = functionGenerator_.getEntryBuilder().CreateExtractValue(functionGenerator_.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-				module().virtualCallABI().emitDestructorCall(*this,
-				                                             typeInfo,
-				                                             value);
-			} else {
-				llvm_unreachable("Unknown type kind.");
+			
+			TypeInfo typeInfo(module());
+			if (!typeInfo.hasCustomDestructor(type)) {
+				return;
 			}
+			
+			assert(value->getType()->isPointerTy());
+			
+			const auto functionType = destroyFunctionType(module(), type);
+			
+			MethodInfo methodInfo(type, module().getCString("__destroy"),
+			                      functionType, /*templateArgs=*/{});
+			
+			RefPendingResult thisPendingResult(value, type);
+			const auto result = genDynamicMethodCall(function(), methodInfo,
+			                                         thisPendingResult, /*args=*/{});
+			assert(result->getType()->isVoidTy());
+			(void) result;
 		}
 		
 		llvm::Value*
