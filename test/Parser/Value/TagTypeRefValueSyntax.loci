@@ -10,10 +10,6 @@ export staticref<TestClass> typename getNoTagType() {
 	return notag(TestClass);
 }
 
-export staticref<ref<int> TestClass> typename getRefType() {
-	return ref<int> TestClass;
-}
-
 export staticref<staticref<int> TestClass> typename getStaticRefType() {
 	return staticref<int> TestClass;
 }
