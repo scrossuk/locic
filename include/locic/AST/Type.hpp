@@ -48,19 +48,15 @@ namespace locic {
 				const Predicate& constPredicate() const;
 				
 				bool isNoTag() const;
-				bool isRef() const;
 				bool isStaticRef() const;
 				
-				const Type* refTarget() const;
 				const Type* staticRefTarget() const;
 				
 				const Type* createConstType(Predicate predicate) const;
 				
 				const Type* createNoTagType() const;
-				const Type* createRefType(const Type* targetType) const;
 				const Type* createStaticRefType(const Type* targetType) const;
 				const Type* withoutConst() const;
-				const Type* withoutRef() const;
 				const Type* withoutTags() const;
 				
 				bool isAuto() const;
@@ -81,7 +77,9 @@ namespace locic {
 				bool isBuiltInPointer() const;
 				const Type* pointeeType() const;
 				
-				bool isBuiltInReference() const;
+				bool isReference() const;
+				const Type* referenceTarget() const;
+				
 				bool isBuiltInStaticInterfaceMethod() const;
 				bool isBuiltInTemplatedFunctionPtr() const;
 				bool isBuiltInTemplatedMethod() const;
@@ -156,7 +154,6 @@ namespace locic {
 				Kind kind_;
 				bool isNoTag_;
 				Predicate constPredicate_;
-				const Type* refTarget_;
 				const Type* staticRefTarget_;
 				
 				TypeArray typeArray_;

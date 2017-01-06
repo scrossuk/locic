@@ -160,21 +160,6 @@ namespace locic {
 			// and the destination type itself is const.
 			const bool hasConstChain = isTopLevel || (hasParentConstChain && isDestConst);
 			
-			const AST::Type* refTarget = nullptr;
-			
-			if (sourceType->isRef() || destType->isRef()) {
-				if (!(sourceType->isRef() && destType->isRef())) {
-					// If one type is ref, both types must be refs.
-					return nullptr;
-				}
-				
-				// Must perform substitutions for the ref target type.
-				refTarget =
-				    ImplicitCastTypeFormatOnlyChain(context, sourceType->refTarget(),
-				                                    destType->refTarget(), hasConstChain, location);
-				if (refTarget == nullptr) return nullptr;
-			}
-			
 			const AST::Type* staticRefTarget = nullptr;
 			
 			if (sourceType->isStaticRef() || destType->isStaticRef()) {
@@ -197,10 +182,6 @@ namespace locic {
 			if (resultType == nullptr) return nullptr;
 			
 			// Add the substituted tags.
-			if (refTarget != nullptr) {
-				resultType = resultType->createRefType(refTarget);
-			}
-			
 			if (staticRefTarget != nullptr) {
 				resultType = resultType->createStaticRefType(staticRefTarget);
 			}
@@ -257,10 +238,10 @@ namespace locic {
 
 		static Optional<AST::Value> PolyCastRefValueToType(Context& context, AST::Value value, const AST::Type* destType) {
 			const auto sourceType = value.type();
-			assert(sourceType->isRef() && destType->isRef());
+			assert(sourceType->isReference() && destType->isReference());
 			
-			const auto sourceTargetType = sourceType->refTarget();
-			const auto destTargetType = destType->refTarget();
+			const auto sourceTargetType = sourceType->referenceTarget();
+			const auto destTargetType = destType->referenceTarget();
 			
 			const auto sourceMethodSet = getTypeMethodSet(context, sourceTargetType);
 			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
@@ -449,17 +430,14 @@ namespace locic {
 			}
 			
 			// Try to use a polymorphic ref cast.
-			if (sourceType->isRef() && destType->isRef() && destType->refTarget()->isInterface()) {
-				// TODO: add support for custom ref types.
-				if (sourceType->isBuiltInReference() && destType->isBuiltInReference()) {
-					const auto sourceTarget = sourceType->refTarget();
-					const auto destTarget = destType->refTarget();
-					
-					if (doesPredicateImplyPredicate(context, sourceTarget->constPredicate(), destTarget->constPredicate())) {
-						auto castResult = PolyCastRefValueToType(context, value.copy(), destType);
-						if (castResult) {
-							return castResult;
-						}
+			if (sourceType->isReference() && destType->isReference() && destType->referenceTarget()->isInterface()) {
+				const auto sourceTarget = sourceType->referenceTarget();
+				const auto destTarget = destType->referenceTarget();
+				
+				if (doesPredicateImplyPredicate(context, sourceTarget->constPredicate(), destTarget->constPredicate())) {
+					auto castResult = PolyCastRefValueToType(context, value.copy(), destType);
+					if (castResult) {
+						return castResult;
 					}
 				}
 			}
@@ -479,7 +457,7 @@ namespace locic {
 			
 			// Try to use implicitCopy-by-reference to turn a
 			// reference into a basic value.
-			if (sourceType->isRef() && (!destType->isRef() || !isStructurallyEqual(sourceType->refTarget(), destType->refTarget()))) {
+			if (sourceType->isReference() && (!destType->isReference() || !isStructurallyEqual(sourceType->referenceTarget(), destType->referenceTarget()))) {
 				const auto sourceDerefType = getDerefType(sourceType);
 				if (TypeCapabilities(context).supportsImplicitCopy(sourceDerefType)) {
 					auto copyValue = CallValue(context, GetSpecialMethod(context, derefValue(value.copy()), context.getCString("implicitcopy"), location), {}, location);
@@ -526,10 +504,9 @@ namespace locic {
 			}
 			
 			// Try to bind value to reference (e.g. T -> T&).
-			if (allowBind && !sourceType->isRef() && destType->isRef() &&
-					destType->isBuiltInReference() &&
-					doesPredicateImplyPredicate(context, sourceType->constPredicate(), destType->refTarget()->constPredicate()) &&
-					isStructurallyEqual(sourceType, destType->refTarget())) {
+			if (allowBind && !sourceType->isReference() && destType->isReference() &&
+			    doesPredicateImplyPredicate(context, sourceType->constPredicate(), destType->referenceTarget()->constPredicate()) &&
+			    isStructurallyEqual(sourceType, destType->referenceTarget())) {
 				auto refValue = bindReference(context, value.copy());
 				auto castResult = ImplicitCastConvert(context, errors, std::move(refValue), destType, location, allowBind);
 				if (castResult) {
@@ -617,8 +594,8 @@ namespace locic {
 		namespace {
 			
 			const AST::Type* getUnionDatatypeParent(const AST::Type* type) {
-				while (type->isRef()) {
-					type = type->refTarget();
+				while (type->isReference()) {
+					type = type->referenceTarget();
 				}
 				
 				if (!type->isDatatype()) {

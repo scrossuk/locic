@@ -658,8 +658,7 @@ namespace locic {
 			                                   typenameType->createStaticRefType(refTargetType));
 			AST::ValueArray templateArguments;
 			templateArguments.push_back(std::move(typeRef));
-			return AST::Type::Object(&refTypeInstance,
-			                         std::move(templateArguments))->createRefType(refTargetType);
+			return AST::Type::Object(&refTypeInstance, std::move(templateArguments));
 		}
 		
 		llvm::Value*

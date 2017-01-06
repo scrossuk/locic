@@ -201,9 +201,9 @@ namespace locic {
 		
 		void StatementEmitter::emitAssign(const AST::Value& lvalue,
 		                                  const AST::Value& rvalue) {
-			assert(lvalue.type()->isRef());
+			assert(lvalue.type()->isReference());
 			// Assertion disabled due to notag().
-			// assert(lvalue.type()->refTarget() == rvalue.type());
+			// assert(lvalue.type()->referenceTarget() == rvalue.type());
 			
 			ValueEmitter valueEmitter(irEmitter_);
 			const auto rvalueIR = valueEmitter.emitValue(rvalue);
@@ -335,15 +335,11 @@ namespace locic {
 		void StatementEmitter::emitSwitch(const AST::Value& switchValue,
 		                                  const std::vector<AST::SwitchCase*>& switchCases,
 		                                  const AST::DefaultCase& defaultCase) {
-			assert(switchValue.type()->isUnionDatatype() ||
-			       (switchValue.type()->isRef() &&
-			        switchValue.type()->isBuiltInReference()));
+			assert(switchValue.type()->isUnionDatatype());
 			
 			auto& function = irEmitter_.function();
 			auto& module = irEmitter_.module();
 			ValueEmitter valueEmitter(irEmitter_);
-			
-			assert(!switchValue.type()->isRef());
 			
 			const auto switchType = switchValue.type();
 			assert(switchType->isUnionDatatype());

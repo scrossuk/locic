@@ -59,8 +59,8 @@ namespace locic {
 				
 				auto initValue = ConvertValue(context, astInitValueNode);
 				
-				const auto initVarType = (initValue.type()->isRef()) ?
-						createReferenceType(context, initValue.type()->refTarget()) :
+				const auto initVarType = (initValue.type()->isReference()) ?
+						createReferenceType(context, initValue.type()->referenceTarget()) :
 						initValue.type();
 				
 				// FIXME: We shouldn't be creating an AST::Var here; the solution

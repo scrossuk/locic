@@ -15,8 +15,8 @@ namespace locic {
 	
 		size_t getRefCount(const AST::Type* type) {
 			size_t count = 0;
-			while (type->isRef()) {
-				type = type->refTarget();
+			while (type->isReference()) {
+				type = type->referenceTarget();
 				count++;
 			}
 			return count;
@@ -24,30 +24,32 @@ namespace locic {
 		
 		const AST::Type* getLastRefType(const AST::Type* type) {
 			while (getRefCount(type) > 1) {
-				type = type->refTarget();
+				type = type->referenceTarget();
 			}
 			return type;
 		}
 		
 		const AST::Type* getSingleDerefType(const AST::Type* type) {
-			return type->isRef() ? type->refTarget() : type;
+			return type->isReference() ? type->referenceTarget() : type;
 		}
 		
 		const AST::Type* getDerefType(const AST::Type* type) {
-			while (type->isRef()) {
-				type = type->refTarget();
+			while (type->isReference()) {
+				type = type->referenceTarget();
 			}
 			return type;
 		}
 		
 		AST::Value derefOne(AST::Value value) {
-			assert(value.type()->isRef() && value.type()->refTarget()->isRef());
+			assert(value.type()->isReference() &&
+			       value.type()->referenceTarget()->isReference());
 			// TODO: add support for custom ref types.
 			return AST::Value::DerefReference(std::move(value));
 		}
 		
 		AST::Value derefValue(AST::Value value) {
-			while (value.type()->isRef() && value.type()->refTarget()->isRef()) {
+			while (value.type()->isReference() &&
+			       value.type()->referenceTarget()->isReference()) {
 				// TODO: add support for custom ref types.
 				value = AST::Value::DerefReference(std::move(value));
 			}
@@ -55,7 +57,7 @@ namespace locic {
 		}
 		
 		AST::Value derefAll(AST::Value value) {
-			while (value.type()->isRef()) {
+			while (value.type()->isReference()) {
 				// TODO: add support for custom ref types.
 				value = AST::Value::DerefReference(std::move(value));
 			}
@@ -113,7 +115,7 @@ namespace locic {
 		}
 		
 		const AST::Type* createReferenceType(Context& context, const AST::Type* const varType) {
-			return getBuiltInType(context, context.getCString("ref_t"), { varType})->createRefType(varType);
+			return getBuiltInType(context, context.getCString("ref_t"), { varType});
 		}
 		
 		AST::Value bindReference(Context& context, AST::Value value) {

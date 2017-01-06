@@ -74,9 +74,9 @@ namespace locic {
 		
 		AST::Value GetStaticMethod(Context& context, AST::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
 			auto value = derefOrBindValue(context, std::move(rawValue));
-			assert(value.type()->isRef() && value.type()->isBuiltInReference());
-			assert(value.type()->refTarget()->isStaticRef());
-			const auto targetType = value.type()->refTarget()->staticRefTarget()->resolveAliases();
+			assert(value.type()->isReference());
+			assert(value.type()->referenceTarget()->isStaticRef());
+			const auto targetType = value.type()->referenceTarget()->staticRefTarget()->resolveAliases();
 			assert(targetType->isObjectOrTemplateVar());
 			
 			const auto methodSet = getTypeMethodSet(context, targetType);
@@ -134,8 +134,8 @@ namespace locic {
 		
 		// Gets the method without dissolving or derefencing the object.
 		AST::Value GetSpecialMethod(Context& context, AST::Value value, const String& methodName, const Debug::SourceLocation& location) {
-			assert(value.type()->isRef() && value.type()->isBuiltInReference());
-			const auto type = value.type()->refTarget()->resolveAliases();
+			assert(value.type()->isReference());
+			const auto type = value.type()->referenceTarget()->resolveAliases();
 			return GetMethodWithoutResolution(context, std::move(value), type, methodName, location);
 		}
 		
@@ -253,7 +253,7 @@ namespace locic {
 		};
 		
 		AST::Value GetTemplatedMethodWithoutResolution(Context& context, AST::Value value, const AST::Type* const type, const String& methodName, AST::ValueArray templateArguments, const Debug::SourceLocation& location) {
-			assert(value.type()->isRef() && value.type()->isBuiltInReference());
+			assert(value.type()->isReference());
 			assert(type->isObjectOrTemplateVar());
 			
 			const auto methodSet = getTypeMethodSet(context, type);

@@ -19,7 +19,6 @@ namespace locic {
 		bool isValidVarArgType(const AST::Type* const type) {
 			if (!type->isObject()) return false;
 			if (!type->getObjectType()->isPrimitive()) return false;
-			if (type->isRef()) return false;
 			if (!type->isPrimitive()) return false;
 			
 			switch (type->primitiveID()) {
@@ -62,9 +61,9 @@ namespace locic {
 			}
 			
 			const auto derefType = getDerefType(value.type()->resolveAliases());
-			assert(!derefType->isRef());
+			assert(!derefType->isReference());
 			
-			if (value.type()->isRef() && TypeCapabilities(context).supportsImplicitCopy(derefType)) {
+			if (value.type()->isReference() && TypeCapabilities(context).supportsImplicitCopy(derefType)) {
 				// Call implicitcopy() method.
 				auto copyValue = CallValue(context, GetMethod(context, std::move(value),
 				                                              context.getCString("implicitcopy"), location),

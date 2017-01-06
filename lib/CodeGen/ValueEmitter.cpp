@@ -416,12 +416,11 @@ namespace locic {
 				// Build the new type info struct with these values.
 				return makeTypeInfoValue(irEmitter_.function(),
 				                         vtablePointer, templateGenerator);
-			} else if (sourceType->isRef()) {
-				assert(sourceType->isBuiltInReference()  && "Polycast source type must be reference.");
-				assert(value.type()->isBuiltInReference() && "Polycast dest type must be reference.");
-				assert(value.type()->refTarget()->isInterface() && "Polycast dest target type must be interface");
+			} else if (sourceType->isReference()) {
+				assert(value.type()->isReference() && "Polycast dest type must be reference.");
+				assert(value.type()->referenceTarget()->isInterface() && "Polycast dest target type must be interface");
 				
-				const auto sourceTarget = sourceType->refTarget()->resolveAliases();
+				const auto sourceTarget = sourceType->referenceTarget()->resolveAliases();
 				
 				if (sourceTarget->isInterface()) {
 					// Since the vtable is a hash table and it has
@@ -526,12 +525,12 @@ namespace locic {
 			const auto memberIndex = value.memberAccessVar().index();
 			
 			const auto& dataRefValue = value.memberAccessObject();
-			assert(dataRefValue.type()->isRef() && dataRefValue.type()->isBuiltInReference());
+			assert(dataRefValue.type()->isReference());
 			
 			const auto llvmDataRefValue = emitValue(dataRefValue,
 			                                        /*hintResultValue=*/nullptr);
 			return genMemberPtr(irEmitter_.function(), llvmDataRefValue,
-			                    dataRefValue.type()->refTarget(), memberIndex);
+			                    dataRefValue.type()->referenceTarget(), memberIndex);
 		}
 		
 		llvm::Value*

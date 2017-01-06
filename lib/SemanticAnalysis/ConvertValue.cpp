@@ -504,7 +504,7 @@ namespace locic {
 						assert(astSymbolNode->first()->templateArguments()->empty());
 						auto& var = searchResult.var();
 						var.setUsed();
-						return AST::Value::LocalVar(var, getBuiltInType(context, context.getCString("ref_t"), { var.type() })->createRefType(var.type()));
+						return AST::Value::LocalVar(var, getBuiltInType(context, context.getCString("ref_t"), { var.type() }));
 					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
 						auto& templateVar = searchResult.templateVar();
