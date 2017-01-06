@@ -9,7 +9,6 @@
 #include <locic/AST/Var.hpp>
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -256,19 +255,7 @@ namespace locic {
 				irEmitter.selectBasicBlock(isLiveBB);
 				
 				// Call the custom destructor function, if one exists.
-				const auto& function = typeInstance.getFunction(module.getCString("__destroy"));
-				
-				auto& astFunctionGenerator = module.astFunctionGenerator();
-				
-				const auto customDestructor = astFunctionGenerator.genDef(&typeInstance,
-				                                                          function,
-				                                                          /*isInnerMethod=*/true);
-				
-				const auto argInfo = destructorArgInfo(module, typeInstance);
-				const auto callArgs = argInfo.hasTemplateGeneratorArgument() ?
-							std::vector<llvm::Value*> { thisValue, functionGenerator_.getTemplateGenerator() } :
-							std::vector<llvm::Value*> { thisValue };
-				(void) genRawFunctionCall(functionGenerator_, argInfo, customDestructor, callArgs);
+				irEmitter.emitInnerDestructorCall(thisValue, type);
 				
 				const auto& memberVars = typeInstance.variables();
 				
