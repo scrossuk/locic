@@ -236,6 +236,14 @@ namespace locic {
 			emitDestructorCall(llvm::Value* value,
 			                   const AST::Type* type);
 			
+			void
+			emitInnerDestructorCall(llvm::Value* value,
+			                        const AST::Type* type);
+			
+			void
+			scheduleDestructorCall(llvm::Value* value,
+			                       const AST::Type* type);
+			
 			llvm::Value*
 			emitImplicitCopyCall(llvm::Value* valueRef,
 			                     const AST::Type* type,

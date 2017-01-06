@@ -589,6 +589,48 @@ namespace locic {
 			(void) result;
 		}
 		
+		void
+		IREmitter::emitInnerDestructorCall(llvm::Value* const value,
+		                                   const AST::Type* const rawType) {
+			assert(value->getType()->isPointerTy());
+			
+			const auto type = rawType->resolveAliases();
+			assert(type->isObject());
+			
+			const auto& function = type->getObjectType()->getFunction(module().getCString("__destroy"));
+			
+			auto& astFunctionGenerator = module().astFunctionGenerator();
+			const auto destroyFunction = astFunctionGenerator.genDef(type->getObjectType(),
+			                                                         function,
+			                                                         /*isInnerMethod=*/true);
+			
+			FunctionCallInfo callInfo;
+			callInfo.functionPtr = destroyFunction;
+			callInfo.contextPointer = value;
+			
+			// We're assuming that this call is being made from the **outer** destructor,
+			// so the template generator will be identical.
+			callInfo.templateGenerator = functionGenerator_.getTemplateGeneratorOrNull();
+			
+			const auto functionType = destroyFunctionType(module(), type);
+			const auto result = genFunctionCall(functionGenerator_, functionType, callInfo,
+			                                    /*args=*/{}, /*hintResultValue=*/nullptr);
+			assert(result->getType()->isVoidTy());
+			(void) result;
+		}
+		
+		void
+		IREmitter::scheduleDestructorCall(llvm::Value* const value,
+		                                  const AST::Type* const type) {
+			TypeInfo typeInfo(module());
+			if (!typeInfo.hasCustomDestructor(type)) {
+				return;
+			}
+			
+			assert(value->getType()->isPointerTy());
+			function().pushUnwindAction(UnwindAction::Destructor(type, value));
+		}
+		
 		llvm::Value*
 		IREmitter::emitImplicitCopyCall(llvm::Value* value,
 		                                const AST::Type* type,
