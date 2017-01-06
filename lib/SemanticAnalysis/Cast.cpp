@@ -49,6 +49,11 @@ namespace locic {
 			}
 			
 			if (destType->isAuto()) {
+				if (sourceType->isReference()) {
+					// Can't cast reference to auto.
+					return nullptr;
+				}
+				
 				// 'auto' is pattern matching, so in this
 				// case it can match the source type.
 				return sourceType->withoutTags();
