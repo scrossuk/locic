@@ -46,8 +46,6 @@ namespace locic {
 					TERNARY,
 					CAST,
 					POLYCAST,
-					REF,
-					NOREF,
 					STATICREF,
 					NOSTATICREF,
 					INTERNALCONSTRUCT,
@@ -156,24 +154,6 @@ namespace locic {
 				 * cast to 'Interface&'.
 				 */
 				static Value PolyCast(const Type* targetType, Value operand);
-				
-				/**
-				 * \brief Add Ref Type Tag
-				 * 
-				 * Turns a value into a ref type. This is a no-op, but
-				 * it modifies the type of the value and this affects the
-				 * semantics when the value is used (e.g. methods like
-				 * 'deref' are automatically invoked).
-				 */
-				static Value Ref(const Type* targetType, Value operand);
-				
-				/**
-				 * \brief Remove Ref Type Tag
-				 * 
-				 * Removes the 'ref' tag from the value's type, which
-				 * disables special automatic ref operations.
-				 */
-				static Value NoRef(Value operand);
 				
 				/**
 				 * \brief Add StaticRef Type Tag
@@ -361,13 +341,6 @@ namespace locic {
 				bool isPolyCast() const;
 				const Type* polyCastTargetType() const;
 				const Value& polyCastOperand() const;
-				
-				bool isMakeRef() const;
-				const Type* makeRefTargetType() const;
-				const Value& makeRefOperand() const;
-				
-				bool isMakeNoRef() const;
-				const Value& makeNoRefOperand() const;
 				
 				bool isMakeStaticRef() const;
 				const Type* makeStaticRefTargetType() const;

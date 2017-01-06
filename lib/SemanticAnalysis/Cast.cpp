@@ -514,13 +514,9 @@ namespace locic {
 				auto copyValue = CallValue(context, GetSpecialMethod(context, std::move(boundValue), context.getCString("implicitcopy"), location), {}, location);
 				assert(doesPredicateImplyPredicate(context, copyValue.type()->constPredicate(), destType->constPredicate()));
 				
-				auto copyRefValue = sourceType->isRef() ?
-						AST::Value::Ref(sourceType->refTarget(), std::move(copyValue)) :
-						std::move(copyValue);
-				
 				auto copyStaticRefValue = sourceType->isStaticRef() ?
-						AST::Value::StaticRef(sourceType->staticRefTarget(), std::move(copyRefValue)) :
-						std::move(copyRefValue);
+						AST::Value::StaticRef(sourceType->staticRefTarget(), std::move(copyValue)) :
+						std::move(copyValue);
 				
 				const bool nextAllowBind = false;
 				auto convertCast = ImplicitCastConvert(context, errors, std::move(copyStaticRefValue), destType, location, nextAllowBind);

@@ -59,10 +59,6 @@ namespace locic {
 				
 				struct {
 					const Type* targetType;
-				} makeRef;
-				
-				struct {
-					const Type* targetType;
 				} makeStaticRef;
 				
 				struct {
@@ -173,19 +169,6 @@ namespace locic {
 		Value Value::PolyCast(const Type* const targetType, Value operand) {
 			Value value(POLYCAST, targetType, operand.exitStates());
 			value.impl_->union_.polyCast.targetType = targetType;
-			value.impl_->value0 = std::move(operand);
-			return value;
-		}
-		
-		Value Value::Ref(const Type* const targetType, Value operand) {
-			Value value(REF, operand.type()->createRefType(targetType), operand.exitStates());
-			value.impl_->union_.makeRef.targetType = targetType;
-			value.impl_->value0 = std::move(operand);
-			return value;
-		}
-		
-		Value Value::NoRef(Value operand) {
-			Value value(NOREF, operand.type()->withoutRef(), operand.exitStates());
 			value.impl_->value0 = std::move(operand);
 			return value;
 		}
@@ -502,29 +485,6 @@ namespace locic {
 			return impl_->value0;
 		}
 		
-		bool Value::isMakeRef() const {
-			return kind() == REF;
-		}
-		
-		const Type* Value::makeRefTargetType() const {
-			assert(isMakeRef());
-			return impl_->union_.makeRef.targetType;
-		}
-		
-		const Value& Value::makeRefOperand() const {
-			assert(isMakeRef());
-			return impl_->value0;
-		}
-		
-		bool Value::isMakeNoRef() const {
-			return kind() == NOREF;
-		}
-		
-		const Value& Value::makeNoRefOperand() const {
-			assert(isMakeNoRef());
-			return impl_->value0;
-		}
-		
 		bool Value::isMakeStaticRef() const {
 			return kind() == STATICREF;
 		}
@@ -782,13 +742,6 @@ namespace locic {
 					hasher.add(polyCastTargetType());
 					hasher.add(polyCastOperand());
 					break;
-				case Value::REF:
-					hasher.add(makeRefTargetType());
-					hasher.add(makeRefOperand());
-					break;
-				case Value::NOREF:
-					hasher.add(makeNoRefOperand());
-					break;
 				case Value::STATICREF:
 					hasher.add(makeStaticRefTargetType());
 					hasher.add(makeStaticRefOperand());
@@ -901,10 +854,6 @@ namespace locic {
 					return castTargetType() == value.castTargetType() && castOperand() == value.castOperand();
 				case Value::POLYCAST:
 					return polyCastTargetType() == value.polyCastTargetType() && polyCastOperand() == value.polyCastOperand();
-				case Value::REF:
-					return makeRefTargetType() == value.makeRefTargetType() && makeRefOperand() == value.makeRefOperand();
-				case Value::NOREF:
-					return makeNoRefOperand() == value.makeNoRefOperand();
 				case Value::STATICREF:
 					return makeStaticRefTargetType() == value.makeStaticRefTargetType() && makeStaticRefOperand() == value.makeStaticRefOperand();
 				case Value::NOSTATICREF:
@@ -1104,12 +1053,6 @@ namespace locic {
 					return makeString("PolyCast(value: %s, targetType: %s)",
 						polyCastOperand().toString().c_str(),
 						polyCastTargetType()->toString().c_str());
-				case REF:
-					return makeString("Ref(value: %s, targetType: %s)",
-						makeRefOperand().toString().c_str(),
-						makeRefTargetType()->toString().c_str());
-				case NOREF:
-					return makeString("NoRef(value: %s)", makeNoRefOperand().toString().c_str());
 				case STATICREF:
 					return makeString("StaticRef(value: %s, targetType: %s)",
 						makeStaticRefOperand().toString().c_str(),
@@ -1204,12 +1147,6 @@ namespace locic {
 					return castOperand().toDiagString();
 				case POLYCAST:
 					return polyCastOperand().toDiagString();
-				case REF:
-					return makeString("ref<%s>(%s)",
-						makeRefTargetType()->toDiagString().c_str(),
-						makeRefOperand().toDiagString().c_str());
-				case NOREF:
-					return makeString("noref(%s)", makeNoRefOperand().toDiagString().c_str());
 				case STATICREF:
 					return makeString("staticref<%s>(%s)",
 						makeStaticRefTargetType()->toDiagString().c_str(),
