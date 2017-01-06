@@ -13,7 +13,6 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/ControlFlow.hpp>
 #include <locic/CodeGen/Debug.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
@@ -195,8 +194,7 @@ namespace locic {
 			const auto valueIR = valueEmitter.emitValue(value, varPtr);
 			
 			irEmitter_.emitStore(valueIR, varPtr, var.type());
-			scheduleDestructorCall(irEmitter_.function(),
-			                       var.type(), varPtr);
+			irEmitter_.scheduleDestructorCall(varPtr, var.type());
 		}
 		
 		void StatementEmitter::emitAssign(const AST::Value& lvalue,
@@ -349,7 +347,7 @@ namespace locic {
 			const auto llvmSwitchValue = valueEmitter.emitValue(switchValue, switchValuePtr);
 			irEmitter_.emitStore(llvmSwitchValue, switchValuePtr, switchType);
 			
-			scheduleDestructorCall(function, switchType, switchValuePtr);
+			irEmitter_.scheduleDestructorCall(switchValuePtr, switchType);
 			
 			const auto unionDatatypePointers = getUnionDatatypePointers(function, switchType, switchValuePtr);
 			
@@ -517,7 +515,7 @@ namespace locic {
 			const auto initValueIR = valueEmitter.emitValue(initValue,
 			                                                iteratorVar);
 			irEmitter_.emitStore(initValueIR, iteratorVar, iteratorType);
-			scheduleDestructorCall(function, iteratorType, iteratorVar);
+			irEmitter_.scheduleDestructorCall(iteratorVar, iteratorType);
 			
 			const auto forConditionBB = irEmitter_.createBasicBlock("forCondition");
 			const auto forIterationBB = irEmitter_.createBasicBlock("forIteration");
@@ -547,7 +545,7 @@ namespace locic {
 				const auto value = irEmitter_.emitFrontCall(iteratorVar, iteratorType,
 				                                            valueType, varPtr);
 				irEmitter_.emitStore(value, varPtr, valueType);
-				scheduleDestructorCall(function, valueType, varPtr);
+				irEmitter_.scheduleDestructorCall(varPtr, valueType);
 				
 				ControlFlowScope controlFlowScope(function, forEndBB, forAdvanceBB);
 				ScopeEmitter(irEmitter_).emitScope(scope);

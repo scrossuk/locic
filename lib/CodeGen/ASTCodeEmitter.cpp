@@ -5,7 +5,6 @@
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/DefaultMethodEmitter.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -164,8 +163,7 @@ namespace locic {
 				
 				// Caller has transferred ownership to us, so call any
 				// destructors when unwinding the function.
-				scheduleDestructorCall(functionGenerator_,
-				                       paramType, varPtr);
+				irEmitter.scheduleDestructorCall(varPtr, paramType);
 				
 				functionGenerator_.setVarAddress(paramVar, varPtr);
 			}
