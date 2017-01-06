@@ -1,11 +1,8 @@
 #include <stdexcept>
 #include <vector>
 
-
-
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
-#include <locic/CodeGen/Destructor.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/IREmitter.hpp>

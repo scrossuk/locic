@@ -10,7 +10,6 @@ add_library(locic-codegen
 	ControlFlow.cpp
 	Debug.cpp
 	DefaultMethodEmitter.cpp
-	Destructor.cpp
 	Exception.cpp
 	Function.cpp
 	FunctionCallInfo.cpp
