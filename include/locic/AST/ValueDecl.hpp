@@ -66,8 +66,6 @@ namespace locic {
 				BINARYOP,
 				TERNARY,
 				CAST,
-				REF,
-				NOREF,
 				INTERNALCONSTRUCT,
 				MEMBERACCESS,
 				TEMPLATEDMEMBERACCESS,
@@ -274,19 +272,6 @@ namespace locic {
 				value->cast.sourceType = std::move(sourceType);
 				value->cast.targetType = std::move(targetType);
 				value->cast.value = std::move(operand);
-				return value;
-			}
-			
-			static ValueDecl* Ref(Node<TypeDecl> targetType, Node<ValueDecl> operand) {
-				ValueDecl* value = new ValueDecl(REF);
-				value->makeRef.targetType = std::move(targetType);
-				value->makeRef.value = std::move(operand);
-				return value;
-			}
-			
-			static ValueDecl* NoRef(Node<ValueDecl> operand) {
-				ValueDecl* value = new ValueDecl(NOREF);
-				value->makeNoRef.value = std::move(operand);
 				return value;
 			}
 			

@@ -43,10 +43,6 @@ namespace locic {
 					return "ternary";
 				case CAST:
 					return "cast";
-				case REF:
-					return "ref";
-				case NOREF:
-					return "noref";
 				case INTERNALCONSTRUCT:
 					return "@()";
 				case MEMBERACCESS:

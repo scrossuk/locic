@@ -798,27 +798,6 @@ namespace locic {
 					
 					locic_unreachable("Unknown cast kind.");
 				}
-				case AST::ValueDecl::REF: {
-					auto sourceValue = ConvertValue(context, astValueNode->makeRef.value);
-					
-					if (sourceValue.type()->isRef()) {
-						context.issueDiag(CannotApplyRefToRefDiag(), location);
-						return sourceValue;
-					}
-					
-					const auto targetType = TypeResolver(context).resolveType(astValueNode->makeRef.targetType);
-					return AST::Value::Ref(targetType, std::move(sourceValue));
-				}
-				case AST::ValueDecl::NOREF: {
-					auto sourceValue = ConvertValue(context, astValueNode->makeNoRef.value);
-					
-					if (!sourceValue.type()->isRef()) {
-						context.issueDiag(CannotApplyNoRefToNonRefDiag(), location);
-						return sourceValue;
-					}
-					
-					return AST::Value::NoRef(std::move(sourceValue));
-				}
 				case AST::ValueDecl::INTERNALCONSTRUCT: {
 					const auto& astTemplateArgs = astValueNode->internalConstruct.templateArgs;
 					const auto& astParameterValueNodes = astValueNode->internalConstruct.parameters;

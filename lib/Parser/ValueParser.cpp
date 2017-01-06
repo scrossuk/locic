@@ -709,8 +709,6 @@ namespace locic {
 				case AST::ValueDecl::ALIGNOF:
 				case AST::ValueDecl::SIZEOF:
 				case AST::ValueDecl::CAST:
-				case AST::ValueDecl::REF:
-				case AST::ValueDecl::NOREF:
 				case AST::ValueDecl::INTERNALCONSTRUCT:
 				case AST::ValueDecl::ARRAYLITERAL:
 					assert(isAtomicValue(operand));
@@ -847,8 +845,6 @@ namespace locic {
 				case AST::ValueDecl::BINARYOP:
 				case AST::ValueDecl::TERNARY:
 				case AST::ValueDecl::CAST:
-				case AST::ValueDecl::REF:
-				case AST::ValueDecl::NOREF:
 				case AST::ValueDecl::INTERNALCONSTRUCT:
 				case AST::ValueDecl::MEMBERACCESS:
 				case AST::ValueDecl::TEMPLATEDMEMBERACCESS:
@@ -887,8 +883,6 @@ namespace locic {
 				case AST::ValueDecl::BINARYOP:
 				case AST::ValueDecl::TERNARY:
 				case AST::ValueDecl::CAST:
-				case AST::ValueDecl::REF:
-				case AST::ValueDecl::NOREF:
 				case AST::ValueDecl::INTERNALCONSTRUCT:
 				case AST::ValueDecl::MEMBERACCESS:
 				case AST::ValueDecl::TEMPLATEDMEMBERACCESS:
@@ -1005,8 +999,6 @@ namespace locic {
 				case AST::ValueDecl::ALIGNOF:
 				case AST::ValueDecl::SIZEOF:
 				case AST::ValueDecl::CAST:
-				case AST::ValueDecl::REF:
-				case AST::ValueDecl::NOREF:
 				case AST::ValueDecl::INTERNALCONSTRUCT:
 				case AST::ValueDecl::ARRAYLITERAL:
 					return true;
