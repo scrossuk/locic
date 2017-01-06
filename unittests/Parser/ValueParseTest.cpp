@@ -360,20 +360,6 @@ namespace locic {
 			});
 		}
 		
-		TEST(ValueParseTest, RefType) {
-			auto tokens = {
-				Token::REF,
-				Token::LTRIBRACKET,
-				Token::NAME,
-				Token::RTRIBRACKET,
-				Token::NAME
-			};
-			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
-				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
-				EXPECT_TRUE(value->typeRef.type->isRef());
-			});
-		}
-		
 		TEST(ValueParseTest, StaticRefType) {
 			auto tokens = {
 				Token::STATICREF,
@@ -883,33 +869,6 @@ namespace locic {
 			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
 				ASSERT_EQ(value->kind(), AST::ValueDecl::CAST);
 				EXPECT_EQ(value->cast.castKind, AST::ValueDecl::CAST_REINTERPRET);
-			});
-		}
-		
-		TEST(ValueParseTest, RefValue) {
-			auto tokens = {
-				Token::REF,
-				Token::LTRIBRACKET,
-				Token::NAME,
-				Token::RTRIBRACKET,
-				Token::LROUNDBRACKET,
-				Token::NAME,
-				Token::RROUNDBRACKET
-			};
-			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
-				EXPECT_EQ(value->kind(), AST::ValueDecl::REF);
-			});
-		}
-		
-		TEST(ValueParseTest, NoRefValue) {
-			auto tokens = {
-				Token::NOREF,
-				Token::LROUNDBRACKET,
-				Token::NAME,
-				Token::RROUNDBRACKET
-			};
-			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
-				EXPECT_EQ(value->kind(), AST::ValueDecl::NOREF);
 			});
 		}
 		

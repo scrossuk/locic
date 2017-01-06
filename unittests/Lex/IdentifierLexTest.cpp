@@ -67,13 +67,11 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("namespace", locic::Lex::Token::Kind::NAMESPACE);
 	testKeyword("new", locic::Lex::Token::Kind::NEW);
 	testKeyword("noexcept", locic::Lex::Token::Kind::NOEXCEPT);
-	testKeyword("noref", locic::Lex::Token::Kind::NOREF);
 	testKeyword("notag", locic::Lex::Token::Kind::NOTAG);
 	
 	testKeyword("or", locic::Lex::Token::Kind::OR);
 	testKeyword("override", locic::Lex::Token::Kind::OVERRIDE);
 	
-	testKeyword("ref", locic::Lex::Token::Kind::REF);
 	testKeyword("reinterpret_cast", locic::Lex::Token::Kind::REINTERPRET_CAST);
 	testKeyword("require", locic::Lex::Token::Kind::REQUIRE);
 	testKeyword("return", locic::Lex::Token::Kind::RETURN);
