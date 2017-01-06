@@ -26,9 +26,14 @@ class TypeWithoutDestructor(int& member) {
 	}
 }
 
-// TODO: remove need for this function...
-const int& removeLval(const int& refValue) noexcept {
-	return refValue;
+interface IsValidAPI {
+	bool __isvalid() const noexcept;
+}
+
+template <typename T>
+require(T : IsValidAPI)
+bool isValid(const T& value) noexcept {
+	return value.__isvalid();
 }
 
 class TypeWithDestructor(int& member) {
@@ -44,7 +49,10 @@ class TypeWithDestructor(int& member) {
 	}
 	
 	bool isRefValid() const noexcept {
-		return noref(removeLval(@member)).__isvalid();
+		// Use a template to call __isvalid() on reference rather than
+		// the value.
+		// TODO: Remove need to do this.
+		return isValid<int&>(@member);
 	}
 }
 
