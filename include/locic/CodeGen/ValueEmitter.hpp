@@ -65,10 +65,6 @@ namespace locic {
 			              llvm::Value* hintResultValue);
 			
 			llvm::Value*
-			emitNoStaticRef(const AST::Value& value,
-			                llvm::Value* hintResultValue);
-			
-			llvm::Value*
 			emitInternalConstruct(const AST::Value& value,
 			                      llvm::Value* hintResultValue);
 			

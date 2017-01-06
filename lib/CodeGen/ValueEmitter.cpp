@@ -101,8 +101,6 @@ namespace locic {
 					return emitPolyCast(value);
 				case AST::Value::STATICREF:
 					return emitStaticRef(value, hintResultValue);
-				case AST::Value::NOSTATICREF:
-					return emitNoStaticRef(value, hintResultValue);
 				case AST::Value::INTERNALCONSTRUCT:
 					return emitInternalConstruct(value, hintResultValue);
 				case AST::Value::MEMBERACCESS:
@@ -460,12 +458,6 @@ namespace locic {
 		ValueEmitter::emitStaticRef(const AST::Value& value,
 		                            llvm::Value* const hintResultValue) {
 			return emitValue(value.makeStaticRefOperand(), hintResultValue);
-		}
-		
-		llvm::Value*
-		ValueEmitter::emitNoStaticRef(const AST::Value& value,
-		                              llvm::Value* const hintResultValue) {
-			return emitValue(value.makeNoStaticRefOperand(), hintResultValue);
 		}
 		
 		llvm::Value*

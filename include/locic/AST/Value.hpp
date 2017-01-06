@@ -47,7 +47,6 @@ namespace locic {
 					CAST,
 					POLYCAST,
 					STATICREF,
-					NOSTATICREF,
 					INTERNALCONSTRUCT,
 					MEMBERACCESS,
 					BIND_REFERENCE,
@@ -164,14 +163,6 @@ namespace locic {
 				 * 'deref' are automatically invoked).
 				 */
 				static Value StaticRef(const Type* targetType, Value operand);
-				
-				/**
-				 * \brief Remove StaticRef Type Tag
-				 * 
-				 * Removes the 'staticref' tag from the value's type, which
-				 * disables special automatic staticref operations.
-				 */
-				static Value NoStaticRef(Value operand);
 				
 				/**
 				 * \brief Call internal constructor
@@ -345,9 +336,6 @@ namespace locic {
 				bool isMakeStaticRef() const;
 				const Type* makeStaticRefTargetType() const;
 				const Value& makeStaticRefOperand() const;
-				
-				bool isMakeNoStaticRef() const;
-				const Value& makeNoStaticRefOperand() const;
 				
 				bool isInternalConstruct() const;
 				const ValueArray& internalConstructParameters() const;

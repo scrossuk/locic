@@ -180,12 +180,6 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::NoStaticRef(Value operand) {
-			Value value(NOSTATICREF, operand.type()->withoutRef(), operand.exitStates());
-			value.impl_->value0 = std::move(operand);
-			return value;
-		}
-		
 		Value Value::InternalConstruct(const Type* const parentType, ValueArray parameters) {
 			ExitStates exitStates = ExitStates::Normal();
 			for (const auto& param: parameters) {
@@ -499,15 +493,6 @@ namespace locic {
 			return impl_->value0;
 		}
 		
-		bool Value::isMakeNoStaticRef() const {
-			return kind() == NOSTATICREF;
-		}
-		
-		const Value& Value::makeNoStaticRefOperand() const {
-			assert(isMakeNoStaticRef());
-			return impl_->value0;
-		}
-		
 		bool Value::isInternalConstruct() const {
 			return kind() == INTERNALCONSTRUCT;
 		}
@@ -746,9 +731,6 @@ namespace locic {
 					hasher.add(makeStaticRefTargetType());
 					hasher.add(makeStaticRefOperand());
 					break;
-				case Value::NOSTATICREF:
-					hasher.add(makeNoStaticRefOperand());
-					break;
 				case Value::INTERNALCONSTRUCT:
 					hasher.add(internalConstructParameters().size());
 					for (const auto& param: internalConstructParameters()) {
@@ -856,8 +838,6 @@ namespace locic {
 					return polyCastTargetType() == value.polyCastTargetType() && polyCastOperand() == value.polyCastOperand();
 				case Value::STATICREF:
 					return makeStaticRefTargetType() == value.makeStaticRefTargetType() && makeStaticRefOperand() == value.makeStaticRefOperand();
-				case Value::NOSTATICREF:
-					return makeNoStaticRefOperand() == value.makeNoStaticRefOperand();
 				case Value::INTERNALCONSTRUCT:
 					return internalConstructParameters() == value.internalConstructParameters();
 				case Value::MEMBERACCESS:
@@ -1057,8 +1037,6 @@ namespace locic {
 					return makeString("StaticRef(value: %s, targetType: %s)",
 						makeStaticRefOperand().toString().c_str(),
 						makeStaticRefTargetType()->toString().c_str());
-				case NOSTATICREF:
-					return makeString("NoStaticRef(value: %s)", makeNoStaticRefOperand().toString().c_str());
 				case INTERNALCONSTRUCT:
 					return makeString("InternalConstruct(args: %s)",
 						makeArrayString(internalConstructParameters()).c_str());
@@ -1151,8 +1129,6 @@ namespace locic {
 					return makeString("staticref<%s>(%s)",
 						makeStaticRefTargetType()->toDiagString().c_str(),
 						makeStaticRefOperand().toDiagString().c_str());
-				case NOSTATICREF:
-					return makeString("nostaticref(%s)", makeNoStaticRefOperand().toDiagString().c_str());
 				case INTERNALCONSTRUCT:
 					return makeString("@(%s)",
 						makeArrayString(internalConstructParameters()).c_str());
