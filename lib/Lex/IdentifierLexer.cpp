@@ -411,8 +411,6 @@ namespace locic {
 			switch (get().value()) {
 				case 'e':
 					return lexPossibleKeyword("noexcept", Token::NOEXCEPT);
-				case 'r':
-					return lexPossibleKeyword("noref", Token::NOREF);
 				case 't':
 					return lexPossibleKeyword("notag", Token::NOTAG);
 				default:
@@ -442,8 +440,6 @@ namespace locic {
 		
 		Token IdentifierLexer::lexPrefixRe() {
 			switch (get().value()) {
-				case 'f':
-					return lexPossibleKeyword("ref", Token::REF);
 				case 'i':
 					return lexPossibleKeyword("reinterpret_cast", Token::REINTERPRET_CAST);
 				case 'q':

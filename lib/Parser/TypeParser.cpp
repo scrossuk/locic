@@ -377,7 +377,6 @@ namespace locic {
 				case Token::DOUBLE:
 				case Token::UNICHAR:
 				case Token::CONST:
-				case Token::REF:
 				case Token::STATICREF:
 				case Token::NAME:
 				case Token::NOTAG:
