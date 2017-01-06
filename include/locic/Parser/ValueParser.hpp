@@ -137,9 +137,6 @@ namespace locic {
 			AST::Node<AST::ValueDecl> parseLiteral(Constant constant,
 			                                   const Debug::SourcePosition& start);
 			
-			AST::Node<AST::ValueDecl> parseTypeQualifyingValue(Token::Kind kind,
-			                                               const Debug::SourcePosition& start);
-			
 			AST::Node<AST::ValueDecl> parseArrayLiteral(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::ValueDeclList> parseValueList(Context context = GENERIC);

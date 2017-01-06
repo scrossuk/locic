@@ -946,10 +946,6 @@ namespace locic {
 				case Token::CONSTANT:
 					reader_.consume();
 					return parseLiteral(token.constant(), start);
-				case Token::REF:
-				case Token::NOREF:
-					reader_.consume();
-					return parseTypeQualifyingValue(token.kind(), start);
 				case Token::SELF:
 					reader_.consume();
 					return builder_.makeSelfValue(start);
@@ -1098,40 +1094,6 @@ namespace locic {
 			}
 			
 			return builder_.makeLiteralValue(constant, specifier, start);
-		}
-		
-		AST::Node<AST::ValueDecl> ValueParser::parseTypeQualifyingValue(const Token::Kind kind,
-		                                                            const Debug::SourcePosition& start) {
-			switch (kind) {
-				case Token::REF: {
-					reader_.expect(Token::LTRIBRACKET);
-					auto targetType = TypeParser(reader_).parseType();
-					reader_.expect(Token::RTRIBRACKET);
-					
-					if (reader_.peek().kind() != Token::LROUNDBRACKET) {
-						auto type = TypeParser(reader_).parseQualifiedType();
-						auto refType = TypeBuilder(reader_).makeRefType(std::move(targetType),
-						                                                std::move(type), start);
-						return builder_.makeTypeValue(std::move(refType), start);
-					}
-					
-					reader_.expect(Token::LROUNDBRACKET);
-					auto value = parseValue();
-					reader_.expect(Token::RROUNDBRACKET);
-					
-					return builder_.makeRefValue(std::move(targetType), std::move(value), start);
-				}
-				case Token::NOREF: {
-					reader_.expect(Token::LROUNDBRACKET);
-					auto value = parseValue();
-					reader_.expect(Token::RROUNDBRACKET);
-					return builder_.makeNoRefValue(std::move(value), start);
-				}
-				default:
-					break;
-			}
-			
-			locic_unreachable("Invalid token kind");
 		}
 		
 		AST::Node<AST::ValueDecl> ValueParser::parseArrayLiteral(const Debug::SourcePosition& start) {

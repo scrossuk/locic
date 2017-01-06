@@ -158,19 +158,6 @@ namespace locic {
 		}
 		
 		AST::Node<AST::ValueDecl>
-		ValueBuilder::makeRefValue(AST::Node<AST::TypeDecl> targetType,
-		                           AST::Node<AST::ValueDecl> value,
-		                           const Debug::SourcePosition& start) {
-			return makeValueNode(AST::ValueDecl::Ref(std::move(targetType), std::move(value)), start);
-		}
-		
-		AST::Node<AST::ValueDecl>
-		ValueBuilder::makeNoRefValue(AST::Node<AST::ValueDecl> value,
-		                             const Debug::SourcePosition& start) {
-			return makeValueNode(AST::ValueDecl::NoRef(std::move(value)), start);
-		}
-		
-		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeSymbolValue(AST::Node<AST::Symbol> symbol,
 		                              const Debug::SourcePosition& start) {
 			return makeValueNode(AST::ValueDecl::SymbolRef(std::move(symbol)), start);
