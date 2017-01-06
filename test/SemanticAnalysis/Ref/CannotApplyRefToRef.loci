@@ -1,9 +1,0 @@
-// RUN: %locic %s --verify > %t
-// RUN: FileCheck < %t %s
-
-export void f() {
-	// CHECK: .loci:6:16: error: cannot create ref of value that is already a ref
-	unused_result ref<int>(ref<int>(10));
-}
-
-// CHECK: 1 error generated.
