@@ -131,7 +131,6 @@ namespace locic {
 				case PrimitiveLongDouble:
 					return TypeGenerator(module).getLongDoubleType();
 				case PrimitivePtr:
-				case PrimitivePtrLval:
 				CASE_CALLABLE_ID(PrimitiveFunctionPtr):
 				CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):
 				CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr):

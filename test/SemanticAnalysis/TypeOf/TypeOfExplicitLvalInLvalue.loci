@@ -1,7 +1,0 @@
-// RUN: %locic %s --emit-llvm -o %t
-
-// XFAIL: *
-
-export void f(lval ptr_lval_t<int> x) {
-	static assert typeof(x) == lval ptr_lval_t<int>;
-}

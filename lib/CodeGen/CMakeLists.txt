@@ -42,7 +42,6 @@ add_library(locic-codegen
 	Primitives/PrimitiveMethod.cpp
 	Primitives/PrimitiveSizeOf.cpp
 	Primitives/PrimitiveTypes.cpp
-	Primitives/PtrLvalPrimitive.cpp
 	Primitives/PtrPrimitive.cpp
 	Primitives/RangePrimitive.cpp
 	Primitives/RefPrimitive.cpp

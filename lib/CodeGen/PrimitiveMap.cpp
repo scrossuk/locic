@@ -7,7 +7,6 @@
 #include <locic/CodeGen/Primitives/FloatPrimitive.hpp>
 #include <locic/CodeGen/Primitives/FunctionPtrPrimitive.hpp>
 #include <locic/CodeGen/Primitives/NullPrimitive.hpp>
-#include <locic/CodeGen/Primitives/PtrLvalPrimitive.hpp>
 #include <locic/CodeGen/Primitives/PtrPrimitive.hpp>
 #include <locic/CodeGen/Primitives/RangePrimitive.hpp>
 #include <locic/CodeGen/Primitives/RefPrimitive.hpp>
@@ -91,9 +90,6 @@ namespace locic {
 				}
 				case PrimitivePtr: {
 					return new PtrPrimitive(typeInstance);
-				}
-				case PrimitivePtrLval: {
-					return new PtrLvalPrimitive(typeInstance);
 				}
 				case PrimitiveValueLval: {
 					return new ValueLvalPrimitive(typeInstance);

@@ -60,7 +60,6 @@ namespace locic {
 	
 	bool PrimitiveID::isLval() const {
 		switch (value_) {
-			case PrimitivePtrLval:
 			case PrimitiveValueLval:
 				return true;
 			default:

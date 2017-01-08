@@ -77,7 +77,6 @@ namespace locic {
 		PrimitiveLongDouble,
 		PrimitiveRef,
 		PrimitivePtr,
-		PrimitivePtrLval,
 		PrimitiveValueLval,
 		PrimitiveAbstractTypename,
 		PrimitiveTypename,
@@ -183,8 +182,6 @@ namespace locic {
 			return prefix "ref_t"; \
 		case PrimitivePtr: \
 			return prefix "ptr_t"; \
-		case PrimitivePtrLval: \
-			return prefix "ptr_lval_t"; \
 		case PrimitiveValueLval: \
 			return prefix "value_lval_t"; \
 		case PrimitiveAbstractTypename: \
