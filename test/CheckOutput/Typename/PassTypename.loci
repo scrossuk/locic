@@ -28,7 +28,7 @@ class TestClass (int value) {
 	}
 }
 
-void function(staticref<TestClass> typename_t typeValue) {
+void function(typename_t<TestClass> typeValue) {
 	printf(C"typeValue.thirty()\n");
 	typeValue.thirty().print();
 	

@@ -2,14 +2,14 @@
 
 class TestClass() { }
 
-export staticref<const TestClass> typename getConstType() {
+export typename_t<TestClass> getType() {
+	return TestClass;
+}
+
+export typename_t<const TestClass> getConstType() {
 	return const TestClass;
 }
 
-export staticref<TestClass> typename getNoTagType() {
+export typename_t<TestClass> getNoTagType() {
 	return notag(TestClass);
-}
-
-export staticref<staticref<int> TestClass> typename getStaticRefType() {
-	return staticref<int> TestClass;
 }

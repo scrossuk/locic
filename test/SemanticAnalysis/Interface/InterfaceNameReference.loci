@@ -3,8 +3,8 @@
 
 interface TestInterface { }
 
-export staticref<TestInterface> typename f() {
-	// CHECK: .loci:8:9: error: cannot construct interface type 'TestInterface'
+export typename_t<TestInterface> f() {
+	// CHECK: .loci:8:2: error: Can't implicitly cast value of type 'abstracttypename_t' to type 'typename_t<TestInterface>'.
 	return TestInterface;
 }
 

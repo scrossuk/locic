@@ -8,7 +8,7 @@ interface TestInterface {
 template <typename T>
 using TestPredicate = T;
 
-// CHECK: .loci:12:11: error: alias 'TestPredicate' has non-boolean type 'staticref<T>(typename_t)' and therefore cannot be used in predicate
+// CHECK: .loci:12:11: error: alias 'TestPredicate' has non-boolean type 'typename_t<T>' and therefore cannot be used in predicate
 template <TestPredicate T>
 using Test = T;
 

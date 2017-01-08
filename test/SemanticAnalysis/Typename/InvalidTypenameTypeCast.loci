@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class TestClass() { }
+
+void function0(typename_t<TestClass> typeValue) {
+	// CHECK: .loci:8:12: error: Can't implicitly cast value of type 'typename_t<TestClass>&' to type 'int_t'.
+	function1(typeValue);
+}
+
+void function1(unused int typeValue) { }
+
+// CHECK: 1 error generated.

@@ -39,6 +39,6 @@ void localArray() {
 
 import static_array_t<int_t[10u], 10u> arrayTemplateArgument();
 
-staticref<int_t[10u]> typename_t arrayTypeRef() {
+typename_t<int_t[10u]> arrayTypeRef() {
 	return int_t[10u];
 }

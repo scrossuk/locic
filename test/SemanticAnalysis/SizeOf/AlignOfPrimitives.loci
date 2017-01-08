@@ -6,7 +6,7 @@ void getAligns() {
 	unused_result alignof(bool);
 	unused_result alignof(void*);
 	unused_result alignof(compare_result_t);
-	unused_result alignof(typename_t);
+	unused_result alignof(typename_t<none_t>);
 	
 	unused_result alignof(function0_ptr_t<false, int>);
 	unused_result alignof(method0_t<false, int>);

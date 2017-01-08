@@ -1,25 +1,25 @@
 // RUN: %locic %s --parse-only
 
-export staticref<int> typename getIntType() {
+export typename_t<int> getIntType() {
 	return int;
 }
 
-export staticref<float> typename getFloatType() {
+export typename_t<float> getFloatType() {
 	return float;
 }
 
-export staticref<int&> typename getReferenceType() {
+export typename_t<int&> getReferenceType() {
 	return int&;
 }
 
-export staticref<int*> typename getPointerType() {
+export typename_t<int*> getPointerType() {
 	return int*;
 }
 
-export staticref<(*)(int)()> typename getFunctionType() {
+export typename_t<(*)(int)()> getFunctionType() {
 	return (*)(int)();
 }
 
-export staticref<(*)(int)(int, int)> typename getFunctionTwoArgsType() {
+export typename_t<(*)(int)(int, int)> getFunctionTwoArgsType() {
 	return (*)(int)(int, int);
 }

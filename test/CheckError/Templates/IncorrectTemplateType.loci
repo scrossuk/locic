@@ -5,7 +5,7 @@ template <bool T>
 void g() { }
 
 export void f() {
-	// CHECK: .loci:9:2: error: template argument has type 'staticref<int_t>(typename_t)', which doesn't match type 'bool_t' of template variable 'T'
+	// CHECK: .loci:9:2: error: template argument has type 'typename_t<int_t>', which doesn't match type 'bool_t' of template variable 'T'
 	g<int>();
 }
 

@@ -32,7 +32,7 @@ interface Printable {
 	static void print300();
 }
 
-void function(staticref<Printable> typename_t typeValue) {
+void function(typename_t<Printable> typeValue) {
 	printf(C"typeValue.print100()\n");
 	typeValue.print100();
 	

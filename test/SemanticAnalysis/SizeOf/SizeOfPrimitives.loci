@@ -6,7 +6,7 @@ void getSizes() {
 	unused_result sizeof(bool);
 	unused_result sizeof(void*);
 	unused_result sizeof(compare_result_t);
-	unused_result sizeof(typename_t);
+	unused_result sizeof(typename_t<none_t>);
 	
 	unused_result sizeof(function0_ptr_t<false, int>);
 	unused_result sizeof(method0_t<false, int>);
