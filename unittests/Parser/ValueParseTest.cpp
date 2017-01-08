@@ -360,20 +360,6 @@ namespace locic {
 			});
 		}
 		
-		TEST(ValueParseTest, StaticRefType) {
-			auto tokens = {
-				Token::STATICREF,
-				Token::LTRIBRACKET,
-				Token::NAME,
-				Token::RTRIBRACKET,
-				Token::NAME
-			};
-			testParseValue(tokens, [](const AST::Node<AST::ValueDecl>& value) {
-				ASSERT_EQ(value->kind(), AST::ValueDecl::TYPEREF);
-				EXPECT_TRUE(value->typeRef.type->isStaticRef());
-			});
-		}
-		
 		TEST(ValueParseTest, LessThan) {
 			auto tokens = {
 				Token::NAME,

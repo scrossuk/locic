@@ -82,7 +82,6 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("signed", locic::Lex::Token::Kind::SIGNED);
 	testKeyword("sizeof", locic::Lex::Token::Kind::SIZEOF);
 	testKeyword("static", locic::Lex::Token::Kind::STATIC);
-	testKeyword("staticref", locic::Lex::Token::Kind::STATICREF);
 	testKeyword("struct", locic::Lex::Token::Kind::STRUCT);
 	testKeyword("switch", locic::Lex::Token::Kind::SWITCH);
 	
