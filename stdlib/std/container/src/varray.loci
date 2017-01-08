@@ -101,7 +101,7 @@ export std.container 0.1.0 {
 				@data[@size].__destroy();
 			}
 			
-			varray<notag(T)> copy() const require(movable<notag(T)> and copyable<T>) {
+			varray<T> copy() const require(movable<T> and copyable<T>) {
 				auto array = varray<T>();
 				array.reserve(@size);
 				for (auto i: counter<size_t>(0u, @size, 1u)) {

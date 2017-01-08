@@ -5,8 +5,6 @@ require(movable<notag(T)> and implicit_copyable<T>)
 class CheckIsCopyable() { }
 
 import CheckIsCopyable<value_lval_t<int>> checkMutableValueLvalIsCopyable();
-import CheckIsCopyable<value_lval_t<const int>> checkInnerConstValueLvalIsCopyable();
-import CheckIsCopyable<const value_lval_t<int>> checkOuterConstValueLvalIsCopyable();
-import CheckIsCopyable<const value_lval_t<const int>> checkBothConstValueLvalIsCopyable();
+import CheckIsCopyable<const value_lval_t<int>> checkConstValueLvalIsCopyable();
 import CheckIsCopyable<const value_lval_t<value_lval_t<int>>> checkDoubleNestedConstValueLvalIsCopyable();
 import CheckIsCopyable<const value_lval_t<value_lval_t<value_lval_t<int>>>> checkTripleNestedConstValueLvalIsCopyable();

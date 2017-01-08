@@ -1,0 +1,9 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+export int[4] copyValueFunction(int[4]& value) {
+	return value.copy();
+}
+
+export int[4] copyRefFunction(const(int[4])& value) {
+	return value.copy();
+}

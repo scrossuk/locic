@@ -7,7 +7,6 @@ interface queryislive {
 }
 
 template <typename T>
-notag(T)
 __primitive value_lval_t {
 	static value_lval_t<T> __dead() noexcept require(T : deadstateable and movable<T>);
 	
@@ -18,7 +17,7 @@ __primitive value_lval_t {
 	
 	void __destroy() noexcept require(destructible<T>);
 	
-	value_lval_t<notag(T)> implicit_copy() const noexcept(noexcept_implicit_copyable<T>) require(implicit_copyable<T>);
+	value_lval_t<T> implicit_copy() const noexcept(noexcept_implicit_copyable<T>) require(implicit_copyable<T>);
 	
 	template <bool IsConst>
 	const<IsConst>(T)* address() const(IsConst) noexcept;
@@ -37,5 +36,5 @@ __primitive value_lval_t {
 	T extractvalue() noexcept require(movable<T>);
 	void destroyvalue() noexcept;
 	
-	value_lval_t<notag(T)> __move() noexcept require(movable<T>);
+	value_lval_t<T> __move() noexcept require(movable<T>);
 }

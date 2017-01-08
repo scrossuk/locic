@@ -7,7 +7,6 @@ import std.container 0.1.0 {
 		 * \brief Resizable array.
 		 */
 		template <sized_type T>
-		notag(T)
 		class varray {
 			static varray<T> create() noexcept;
 			void __destroy() noexcept require(destructible<T>);
@@ -34,7 +33,7 @@ import std.container 0.1.0 {
 			
 			void pop_back() noexcept require(destructible<T>);
 			
-			varray<notag(T)> copy() const require(movable<notag(T)> and copyable<T>);
+			varray<T> copy() const require(movable<T> and copyable<T>);
 			
 			template <bool IsConst>
 			varray_range<T, IsConst> all() const(IsConst) noexcept;

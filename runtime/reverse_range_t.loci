@@ -1,5 +1,4 @@
 template <typename T>
-notag(T)
 __primitive reverse_range_t {
 	static reverse_range_t<T> create(T begin, T end) noexcept require(movable<T>);
 	

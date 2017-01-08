@@ -4,6 +4,6 @@ export int[4] implicitCopyValueFunction(int[4] value) {
 	return value;
 }
 
-export int[4] implicitCopyRefFunction(const int[4]& value) {
+export int[4] implicitCopyRefFunction(const(int[4])& value) {
 	return value;
 }

@@ -1,5 +1,4 @@
 template <typename T>
-notag(T)
 __primitive range_t {
 	static range_t<T> create(T begin, T end) noexcept require(movable<T>);
 	
