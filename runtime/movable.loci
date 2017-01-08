@@ -4,4 +4,4 @@ interface movable_t {
 }
 
 template <typename T>
-using movable = sized_type<T> and T : movable_t<notag(T)>;
+using movable = sized_type<T> and T : movable_t<T>;
