@@ -40,7 +40,7 @@ namespace locic {
 				
 				TemplateVarMap() { }
 				
-				TemplateVarMap(TemplateVarArray variables,
+				TemplateVarMap(const TemplateVarArray& variables,
 				               ValueArray values) {
 					assert(variables.size() == values.size());
 					for (size_t i = 0; i < variables.size(); i++) {

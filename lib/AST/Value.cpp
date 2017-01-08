@@ -106,10 +106,10 @@ namespace locic {
 		}
 		
 		Value Value::Alias(const AST::Alias& alias,
-		                   ValueArray templateArguments) {
+		                   ValueArray templateArguments,
+		                   const Type* const type) {
 			// TODO: fix exit states!
-			assert(alias.type() != nullptr);
-			Value value(ALIAS, alias.type(), ExitStates::Normal());
+			Value value(ALIAS, type, ExitStates::Normal());
 			value.impl_->valueArray = std::move(templateArguments);
 			value.impl_->union_.alias = &alias;
 			return value;
@@ -914,7 +914,8 @@ namespace locic {
 					for (const auto& argument: aliasTemplateArguments()) {
 						arguments.push_back(argument.substitute(templateVarMap));
 					}
-					return Value::Alias(alias(), std::move(arguments));
+					return Value::Alias(alias(), std::move(arguments),
+					                    type()->substitute(templateVarMap));
 				}
 				case TERNARY: {
 					return Value::Ternary(ternaryCondition().substitute(templateVarMap),

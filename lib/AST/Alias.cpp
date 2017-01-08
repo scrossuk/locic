@@ -105,11 +105,14 @@ namespace locic {
 		
 		Value Alias::selfRefValue(ValueArray templateArguments) const {
 			assert(templateArguments.size() == templateVariables().size());
-			if (type()->isBuiltInTypename()) {
+			TemplateVarMap varMap(templateVariables(), templateArguments.copy());
+			const auto substitutedType = type()->substitute(varMap);
+			if (substitutedType->isTypename()) {
 				const auto aliasRef = selfRefType(std::move(templateArguments));
-				return Value::TypeRef(aliasRef, type()->createStaticRefType(aliasRef));
+				return Value::TypeRef(aliasRef, substitutedType);
 			} else {
-				return Value::Alias(*this, std::move(templateArguments));
+				return Value::Alias(*this, std::move(templateArguments),
+				                    substitutedType);
 			}
 		}
 		

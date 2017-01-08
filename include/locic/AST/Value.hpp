@@ -94,7 +94,8 @@ namespace locic {
 				 * An alias value.
 				 */
 				static Value Alias(const AST::Alias& alias,
-				                   ValueArray templateArguments);
+				                   ValueArray templateArguments,
+				                   const Type* type);
 				
 				/**
 				 * \brief Predicate
