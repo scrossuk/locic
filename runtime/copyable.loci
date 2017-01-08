@@ -4,7 +4,7 @@ interface copyable_t {
 }
 
 template <typename T>
-using copyable = sized_type<T> and T : copyable_t<notag(T)>;
+using copyable = sized_type<T> and T : copyable_t<T>;
 
 template <typename T>
 interface implicit_copyable_t {
@@ -12,7 +12,7 @@ interface implicit_copyable_t {
 }
 
 template <typename T>
-using implicit_copyable = sized_type<T> and T : implicit_copyable_t<notag(T)>;
+using implicit_copyable = sized_type<T> and T : implicit_copyable_t<T>;
 
 template <typename T>
 interface noexcept_copyable_t {
@@ -20,7 +20,7 @@ interface noexcept_copyable_t {
 }
 
 template <typename T>
-using noexcept_copyable = sized_type<T> and T : noexcept_copyable_t<notag(T)>;
+using noexcept_copyable = sized_type<T> and T : noexcept_copyable_t<T>;
 
 template <typename T>
 interface noexcept_implicit_copyable_t {
@@ -28,4 +28,4 @@ interface noexcept_implicit_copyable_t {
 }
 
 template <typename T>
-using noexcept_implicit_copyable = sized_type<T> and T : noexcept_implicit_copyable_t<notag(T)>;
+using noexcept_implicit_copyable = sized_type<T> and T : noexcept_implicit_copyable_t<T>;
