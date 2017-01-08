@@ -1,3 +1,5 @@
+__primitive abstracttypename_t { }
+
 __primitive typename_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;

@@ -79,6 +79,7 @@ namespace locic {
 		PrimitivePtr,
 		PrimitivePtrLval,
 		PrimitiveValueLval,
+		PrimitiveAbstractTypename,
 		PrimitiveTypename,
 		
 		PrimitiveRange,
@@ -186,6 +187,8 @@ namespace locic {
 			return prefix "ptr_lval_t"; \
 		case PrimitiveValueLval: \
 			return prefix "value_lval_t"; \
+		case PrimitiveAbstractTypename: \
+			return prefix "abstracttypename_t"; \
 		case PrimitiveTypename: \
 			return prefix "typename_t"; \
 		case PrimitiveRange: \

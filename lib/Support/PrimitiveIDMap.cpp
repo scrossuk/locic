@@ -95,6 +95,7 @@ namespace locic {
 		impl_->add(PrimitivePtr);
 		impl_->add(PrimitivePtrLval);
 		impl_->add(PrimitiveValueLval);
+		impl_->add(PrimitiveAbstractTypename);
 		impl_->add(PrimitiveTypename);
 		
 		impl_->add(PrimitiveRange);
