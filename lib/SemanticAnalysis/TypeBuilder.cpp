@@ -18,7 +18,7 @@ namespace locic {
 		
 		TypeBuilder::TypeBuilder(Context& argContext)
 		: context_(argContext), cachedVoidType_(nullptr), cachedBoolType_(nullptr),
-		cachedIntType_(nullptr), cachedSizeType_(nullptr), cachedTypenameType_(nullptr) { }
+		cachedIntType_(nullptr), cachedSizeType_(nullptr) { }
 		
 		const AST::Type*
 		TypeBuilder::getPrimitiveType(PrimitiveID primitiveID,
@@ -71,13 +71,22 @@ namespace locic {
 		}
 		
 		const AST::Type*
-		TypeBuilder::getTypenameType() {
-			if (cachedTypenameType_ != nullptr) {
-				return cachedTypenameType_;
-			}
-			
-			cachedTypenameType_ = getPrimitiveType(PrimitiveTypename);
-			return cachedTypenameType_;
+		TypeBuilder::getAbstractTypenameType() {
+			return getPrimitiveType(PrimitiveAbstractTypename);
+		}
+		
+		const AST::Type*
+		TypeBuilder::getNoneTypenameType() {
+			const auto noneType = getBuiltInType(context_, context_.getCString("none_t"), { });
+			return getTypenameType(noneType);
+		}
+		
+		const AST::Type*
+		TypeBuilder::getTypenameType(const AST::Type* const type) {
+			auto typeRef = AST::Value::TypeRef(type, getAbstractTypenameType());
+			AST::ValueArray templateArgValues;
+			templateArgValues.push_back(std::move(typeRef));
+			return getPrimitiveType(PrimitiveTypename, std::move(templateArgValues));
 		}
 		
 		const AST::Type*
@@ -148,7 +157,7 @@ namespace locic {
 			}
 			
 			templateArgValues.push_back(AST::Value::TypeRef(elementType,
-			                                                getTypenameType()->createStaticRefType(elementType)));
+			                                                getTypenameType(elementType)));
 			templateArgValues.push_back(std::move(arraySize));
 			
 			return getPrimitiveType(PrimitiveStaticArray, std::move(templateArgValues));
@@ -167,13 +176,15 @@ namespace locic {
 			auto reducedNoexceptPredicate = reducePredicate(context, functionType.attributes().noExceptPredicate().copy());
 			templateArgs.push_back(AST::Value::PredicateExpr(std::move(reducedNoexceptPredicate), boolType));
 			
-			const auto typenameType = typeBuilder.getTypenameType();
-			
-			const auto returnType = functionType.returnType();
-			templateArgs.push_back(AST::Value::TypeRef(returnType, typenameType->createStaticRefType(returnType)));
+			{
+				const auto returnType = functionType.returnType();
+				const auto typenameType = typeBuilder.getTypenameType(returnType);
+				templateArgs.push_back(AST::Value::TypeRef(returnType, typenameType));
+			}
 			
 			for (const auto& paramType: parameterTypes) {
-				templateArgs.push_back(AST::Value::TypeRef(paramType, typenameType->createStaticRefType(paramType)));
+				const auto typenameType = typeBuilder.getTypenameType(paramType);
+				templateArgs.push_back(AST::Value::TypeRef(paramType, typenameType));
 			}
 			
 			return templateArgs;

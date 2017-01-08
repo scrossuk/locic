@@ -19,6 +19,7 @@
 #include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TemplateInst.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 
 namespace locic {
 
@@ -100,10 +101,16 @@ namespace locic {
 				const auto templateVarType = templateVar->type()->substitute(variableAssignments)->resolveAliases();
 				const auto templateValueType = templateValue.type()->resolveAliases();
 				
-				if (templateVarType != templateValueType) {
+				// Allow typename_t<T> -> abstracttypename_t.
+				auto castTemplateValueType = templateValueType;
+				if (templateVarType->isAbstractTypename() && templateValueType->isTypename()) {
+					castTemplateValueType = templateVarType;
+				}
+				
+				if (templateVarType != castTemplateValueType) {
 					context.issueDiag(TemplateArgHasInvalidTypeDiag(templateVar->fullName().last(),
 					                                                templateVarType,
-					                                                templateValueType),
+					                                                castTemplateValueType),
 					                  location);
 				}
 				
@@ -113,7 +120,7 @@ namespace locic {
 					// Presumably auto will always work...
 					if (!templateTypeValue->isAuto()) {
 						assert(templateTypeValue->isObjectOrTemplateVar());
-						assert(!templateTypeValue->isInterface());
+						//assert(!templateTypeValue->isInterface());
 					}
 				}
 			}
@@ -276,10 +283,9 @@ namespace locic {
 			AST::ValueArray templateArguments;
 			templateArguments.reserve(typeArray.size());
 			
-			const auto typenameType = getBuiltInType(context, context.getCString("typename_t"), {});
-			
 			for (const auto& arg: typeArray) {
-				templateArguments.push_back(AST::Value::TypeRef(arg, typenameType->createStaticRefType(arg)));
+				const auto typenameType = TypeBuilder(context).getTypenameType(arg);
+				templateArguments.push_back(AST::Value::TypeRef(arg, typenameType));
 			}
 			
 			return templateArguments;

@@ -34,9 +34,6 @@ namespace locic {
 			
 			AST::Node<AST::TypeDecl> parseConstType();
 			
-			AST::Node<AST::TypeDecl> parseTypeWithQualifier(const Debug::SourcePosition& start,
-			                                            Token::Kind qualifier);
-			
 			AST::Node<AST::TypeDecl> parseFunctionPointerType();
 			
 			AST::Node<AST::TypeDeclList> parseTypeList();

@@ -1,21 +1,25 @@
 __primitive abstracttypename_t { }
 
+interface none_t { }
+
+template <abstracttypename_t API>
 __primitive typename_t {
 	static size_t __alignmask() noexcept;
 	static size_t __sizeof() noexcept;
 	
 	void __destroy() noexcept;
 	
-	typename_t implicit_copy() const noexcept;
-	typename_t copy() const noexcept;
+	typename_t<API> implicit_copy() const noexcept;
+	typename_t<API> copy() const noexcept;
 	
-	typename_t __move() noexcept;
+	typename_t<API> __move() noexcept;
 }
 
+template <abstracttypename_t API>
 interface typename_hasher_t {
-	void hash_typename(typename_t value) noexcept;
+	void hash_typename(typename_t<API> value) noexcept;
 }
 
-void typename_t::hash(typename_hasher_t& hasher) const noexcept {
+void typename_t::hash(typename_hasher_t<API>& hasher) const noexcept {
 	hasher.hash_typename(self);
 }

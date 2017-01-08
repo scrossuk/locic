@@ -163,14 +163,16 @@ namespace locic {
 		
 		AST::Value MakeMemberAccess(Context& context, AST::Value rawValue, const String& memberName, const Debug::SourceLocation& location) {
 			auto value = derefValue(std::move(rawValue));
-			const auto derefType = getStaticDerefType(getDerefType(value.type()->resolveAliases()));
+			const auto refDerefType = getDerefType(value.type()->resolveAliases());
+			const auto derefType = refDerefType->isTypename() ?
+				refDerefType->typenameTarget() : refDerefType;
 			assert(derefType->isObjectOrTemplateVar());
 			
 			const auto methodSet = getTypeMethodSet(context, derefType);
 			
 			// Look for methods.
 			if (methodSet->hasMethod(CanonicalizeMethodName(memberName))) {
-				if (getDerefType(value.type())->isStaticRef()) {
+				if (refDerefType->isTypename()) {
 					return GetStaticMethod(context, std::move(value), memberName, location);
 				} else {
 					return GetMethod(context, std::move(value), memberName, location);
@@ -482,15 +484,15 @@ namespace locic {
 						}
 					} else if (searchResult.isTypeInstance()) {
 						auto& typeInstance = searchResult.typeInstance();
+						const auto parentType = AST::Type::Object(&typeInstance, GetTemplateValues(templateVarMap, typeInstance.templateVariables()));
 						
 						if (typeInstance.isInterface()) {
-							context.issueDiag(CannotConstructInterfaceTypeDiag(name),
-							                  location);
+							const auto abstractTypenameType = context.typeBuilder().getAbstractTypenameType();
+							return AST::Value::TypeRef(parentType, abstractTypenameType);
+						} else {
+							const auto typenameType = context.typeBuilder().getTypenameType(parentType);
+							return AST::Value::TypeRef(parentType, typenameType);
 						}
-						
-						const auto typenameType = context.typeBuilder().getTypenameType();
-						const auto parentType = AST::Type::Object(&typeInstance, GetTemplateValues(templateVarMap, typeInstance.templateVariables()));
-						return AST::Value::TypeRef(parentType, typenameType->createStaticRefType(parentType));
 					} else if (searchResult.isAlias()) {
 						auto& alias = searchResult.alias();
 						(void) context.aliasTypeResolver().resolveAliasType(alias);
@@ -515,8 +517,8 @@ namespace locic {
 				}
 				case AST::ValueDecl::TYPEREF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->typeRef.type);
-					const auto typenameType = context.typeBuilder().getTypenameType();
-					return AST::Value::TypeRef(type, typenameType->createStaticRefType(type));
+					const auto typenameType = context.typeBuilder().getTypenameType(type);
+					return AST::Value::TypeRef(type, typenameType);
 				}
 				case AST::ValueDecl::MEMBERREF: {
 					const auto& memberName = astValueNode->memberRef.name;
@@ -538,8 +540,8 @@ namespace locic {
 				}
 				case AST::ValueDecl::ALIGNOF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->alignOf.type);
-					const auto typenameType = context.typeBuilder().getTypenameType();
-					auto typeRefValue = AST::Value::TypeRef(type, typenameType->createStaticRefType(type));
+					const auto typenameType = context.typeBuilder().getTypenameType(type);
+					auto typeRefValue = AST::Value::TypeRef(type, typenameType);
 					
 					auto alignMaskMethod = GetStaticMethod(context, std::move(typeRefValue), context.getCString("__alignmask"), location);
 					auto alignMaskValue = CallValue(context, std::move(alignMaskMethod), {}, location);
@@ -552,8 +554,8 @@ namespace locic {
 				}
 				case AST::ValueDecl::SIZEOF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->sizeOf.type);
-					const auto typenameType = context.typeBuilder().getTypenameType();
-					auto typeRefValue = AST::Value::TypeRef(type, typenameType->createStaticRefType(type));
+					const auto typenameType = context.typeBuilder().getTypenameType(type);
+					auto typeRefValue = AST::Value::TypeRef(type, typenameType);
 					
 					auto sizeOfMethod = GetStaticMethod(context, std::move(typeRefValue), context.getCString("__sizeof"), location);
 					return CallValue(context, std::move(sizeOfMethod), {}, location);
@@ -896,15 +898,13 @@ namespace locic {
 				}
 				case AST::ValueDecl::CAPABILITYTEST: {
 					const auto checkType = TypeResolver(context).resolveType(astValueNode->capabilityTest.checkType);
-					if (checkType->isAlias() &&
-					    !checkType->alias().type()->isBuiltInTypename()) {
+					if (checkType->isAlias() && !checkType->alias().type()->isTypename()) {
 						context.issueDiag(InvalidOperandCapabilityCheckDiag(),
 						                  astValueNode->capabilityTest.checkType.location());
 					}
 					
 					const auto capabilityType = TypeResolver(context).resolveType(astValueNode->capabilityTest.capabilityType);
-					if (capabilityType->isAlias() &&
-					    !capabilityType->alias().type()->isBuiltInTypename()) {
+					if (capabilityType->isAlias() && !capabilityType->alias().type()->isTypename()) {
 						context.issueDiag(InvalidOperandCapabilityCheckDiag(),
 						                  astValueNode->capabilityTest.capabilityType.location());
 					}

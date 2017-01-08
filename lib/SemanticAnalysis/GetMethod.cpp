@@ -75,8 +75,8 @@ namespace locic {
 		AST::Value GetStaticMethod(Context& context, AST::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
 			auto value = derefOrBindValue(context, std::move(rawValue));
 			assert(value.type()->isReference());
-			assert(value.type()->referenceTarget()->isStaticRef());
-			const auto targetType = value.type()->referenceTarget()->staticRefTarget()->resolveAliases();
+			assert(value.type()->referenceTarget()->isTypename());
+			const auto targetType = value.type()->referenceTarget()->typenameTarget()->resolveAliases();
 			assert(targetType->isObjectOrTemplateVar());
 			
 			const auto methodSet = getTypeMethodSet(context, targetType);

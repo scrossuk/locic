@@ -484,47 +484,9 @@ namespace locic {
 		Token IdentifierLexer::lexPrefixSt() {
 			switch (get().value()) {
 				case 'a':
-					return lexPrefixSta();
-				case 'r':
-					return lexPossibleKeyword("struct", Token::STRUCT);
-				default:
-					return lexGeneralIdentifier();
-			}
-		}
-		
-		Token IdentifierLexer::lexPrefixSta() {
-			switch (get().value()) {
-				case 't':
-					return lexPrefixStat();
-				default:
-					return lexGeneralIdentifier();
-			}
-		}
-		
-		Token IdentifierLexer::lexPrefixStat() {
-			switch (get().value()) {
-				case 'i':
-					return lexPrefixStati();
-				default:
-					return lexGeneralIdentifier();
-			}
-		}
-		
-		Token IdentifierLexer::lexPrefixStati() {
-			switch (get().value()) {
-				case 'c':
-					return lexPrefixStatic();
-				default:
-					return lexGeneralIdentifier();
-			}
-		}
-		
-		Token IdentifierLexer::lexPrefixStatic() {
-			switch (get().value()) {
-				case 0:
 					return lexPossibleKeyword("static", Token::STATIC);
 				case 'r':
-					return lexPossibleKeyword("staticref", Token::STATICREF);
+					return lexPossibleKeyword("struct", Token::STRUCT);
 				default:
 					return lexGeneralIdentifier();
 			}

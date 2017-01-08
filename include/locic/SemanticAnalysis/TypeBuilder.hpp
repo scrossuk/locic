@@ -38,8 +38,23 @@ namespace locic {
 			const AST::Type*
 			getSizeType();
 			
+			/**
+			 * \brief Get abstracttypename_t.
+			 */
 			const AST::Type*
-			getTypenameType();
+			getAbstractTypenameType();
+			
+			/**
+			 * \brief Get typename_t<none_t>.
+			 */
+			const AST::Type*
+			getNoneTypenameType();
+			
+			/**
+			 * \brief Get typename_t<T>.
+			 */
+			const AST::Type*
+			getTypenameType(const AST::Type* type);
 			
 			const AST::Type*
 			getDestructibleInterfaceType();
@@ -103,7 +118,6 @@ namespace locic {
 			const AST::Type* cachedBoolType_;
 			const AST::Type* cachedIntType_;
 			const AST::Type* cachedSizeType_;
-			const AST::Type* cachedTypenameType_;
 			
 		};
 		

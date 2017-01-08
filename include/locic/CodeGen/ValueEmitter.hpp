@@ -61,10 +61,6 @@ namespace locic {
 			emitPolyCast(const AST::Value& value);
 			
 			llvm::Value*
-			emitStaticRef(const AST::Value& value,
-			              llvm::Value* hintResultValue);
-			
-			llvm::Value*
 			emitInternalConstruct(const AST::Value& value,
 			                      llvm::Value* hintResultValue);
 			

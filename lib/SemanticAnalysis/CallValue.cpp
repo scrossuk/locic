@@ -128,7 +128,7 @@ namespace locic {
 		AST::Value CallValue(Context& context, AST::Value rawValue, HeapArray<AST::Value> args, const Debug::SourceLocation& location) {
 			auto value = derefValue(std::move(rawValue));
 			
-			if (getDerefType(value.type())->isStaticRef()) {
+			if (getDerefType(value.type())->isTypename()) {
 				return CallValue(context, GetStaticMethod(context, std::move(value), context.getCString("create"), location), std::move(args), location);
 			}
 			

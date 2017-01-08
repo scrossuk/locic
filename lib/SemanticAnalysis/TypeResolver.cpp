@@ -125,10 +125,6 @@ namespace locic {
 				case AST::TypeDecl::NOTAG: {
 					return resolveType(type->getNoTagTarget())->createNoTagType();
 				}
-				case AST::TypeDecl::STATICREF: {
-					auto targetType = resolveType(type->getStaticRefTarget());
-					return resolveType(type->getStaticRefType())->createStaticRefType(targetType);
-				}
 				case AST::TypeDecl::VOID: {
 					return context_.typeBuilder().getVoidType();
 				}
@@ -136,6 +132,11 @@ namespace locic {
 					return context_.typeBuilder().getBoolType();
 				}
 				case AST::TypeDecl::PRIMITIVE: {
+					if (type->primitiveID() == PrimitiveTypename) {
+						// typename -> typename_t<none_t>.
+						return context_.typeBuilder().getNoneTypenameType();
+					}
+					
 					return context_.typeBuilder().getPrimitiveType(type->primitiveID());
 				}
 				case AST::TypeDecl::INTEGER: {
@@ -284,7 +285,7 @@ namespace locic {
 				// alias, this likely means it is a predicate
 				// (e.g. <movable T>), hence it actually has
 				// type 'typename'.
-				return TypeBuilder(context_).getTypenameType();
+				return TypeBuilder(context_).getNoneTypenameType();
 			} else {
 				return resolveType(type);
 			}

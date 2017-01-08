@@ -60,13 +60,6 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeDecl>
-		TypeBuilder::makeStaticRefType(AST::Node<AST::TypeDecl> targetType,
-		                               AST::Node<AST::TypeDecl> type,
-		                               const Debug::SourcePosition& start) {
-			return makeTypeNode(AST::TypeDecl::StaticRef(std::move(targetType), std::move(type)), start);
-		}
-		
-		AST::Node<AST::TypeDecl>
 		TypeBuilder::makeFunctionPointerType(AST::Node<AST::TypeDecl> returnType,
 		                                     AST::Node<AST::TypeDeclList> paramTypes,
 		                                     const bool isVarArg,

@@ -78,10 +78,6 @@ namespace locic {
 			Token lexPrefixS();
 			Token lexPrefixSi();
 			Token lexPrefixSt();
-			Token lexPrefixSta();
-			Token lexPrefixStat();
-			Token lexPrefixStati();
-			Token lexPrefixStatic();
 			
 			Token lexPrefixT();
 			Token lexPrefixTh();

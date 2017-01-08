@@ -64,54 +64,9 @@ namespace locic {
 			return value;
 		}
 		
-		size_t getStaticRefCount(const AST::Type* type) {
-			size_t count = 0;
-			while (type->isStaticRef()) {
-				type = type->staticRefTarget();
-				count++;
-			}
-			return count;
-		}
-		
-		const AST::Type* getLastStaticRefType(const AST::Type* type) {
-			while (getStaticRefCount(type) > 1) {
-				type = type->staticRefTarget();
-			}
-			return type;
-		}
-		
-		const AST::Type* getStaticDerefType(const AST::Type* type) {
-			while (type->isStaticRef()) {
-				type = type->staticRefTarget();
-			}
-			return type;
-		}
-		
-		AST::Value staticDerefOne(AST::Value value) {
-			assert(value.type()->isStaticRef() && value.type()->staticRefTarget()->isStaticRef());
-			// TODO: add support for custom ref types.
-			return AST::Value::DerefReference(std::move(value));
-		}
-		
-		AST::Value staticDerefValue(AST::Value value) {
-			while (value.type()->isStaticRef() && value.type()->staticRefTarget()->isStaticRef()) {
-				// TODO: add support for custom ref types.
-				value = AST::Value::DerefReference(std::move(value));
-			}
-			return value;
-		}
-		
-		AST::Value staticDerefAll(AST::Value value) {
-			while (value.type()->isStaticRef()) {
-				// TODO: add support for custom ref types.
-				value = AST::Value::DerefReference(std::move(value));
-			}
-			return value;
-		}
-		
 		AST::Value createTypeRef(Context& context, const AST::Type* targetType) {
-			const auto typenameType = context.typeBuilder().getTypenameType();
-			return AST::Value::TypeRef(targetType, typenameType->createStaticRefType(targetType));
+			const auto typenameType = context.typeBuilder().getTypenameType(targetType);
+			return AST::Value::TypeRef(targetType, typenameType);
 		}
 		
 		const AST::Type* createReferenceType(Context& context, const AST::Type* const varType) {

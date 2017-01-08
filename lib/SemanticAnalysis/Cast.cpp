@@ -165,31 +165,10 @@ namespace locic {
 			// and the destination type itself is const.
 			const bool hasConstChain = isTopLevel || (hasParentConstChain && isDestConst);
 			
-			const AST::Type* staticRefTarget = nullptr;
-			
-			if (sourceType->isStaticRef() || destType->isStaticRef()) {
-				if (!(sourceType->isStaticRef() && destType->isStaticRef())) {
-					// If one type is ref, both types must be refs.
-					return nullptr;
-				}
-				
-				// Must perform substitutions for the ref target type.
-				staticRefTarget =
-				    ImplicitCastTypeFormatOnlyChain(context, sourceType->staticRefTarget(),
-				                                    destType->staticRefTarget(), hasConstChain,
-				                                    location);
-				if (staticRefTarget == nullptr) return nullptr;
-			}
-			
 			// Generate the 'untagged' type.
 			auto resultType = ImplicitCastTypeFormatOnlyChainCheckType(context, sourceType, destType,
 			                                                           hasConstChain, location);
 			if (resultType == nullptr) return nullptr;
-			
-			// Add the substituted tags.
-			if (staticRefTarget != nullptr) {
-				resultType = resultType->createStaticRefType(staticRefTarget);
-			}
 			
 			// Non-const 'auto' can match 'const T', and in that case
 			// the resulting type must be const.
@@ -256,17 +235,18 @@ namespace locic {
 				Optional<AST::Value>();
 		}
 		
-		static Optional<AST::Value> PolyCastStaticRefValueToType(Context& context, AST::Value value, const AST::Type* destType) {
+		static Optional<AST::Value> PolyCastTypenameValueToType(Context& context, AST::Value value, const AST::Type* destType) {
 			const auto sourceType = value.type();
-			assert(sourceType->isStaticRef() && destType->isStaticRef());
+			assert(sourceType->isTypename() && destType->isTypename());
 			
-			const auto sourceTargetType = sourceType->staticRefTarget();
-			const auto destTargetType = destType->staticRefTarget();
+			const auto sourceTargetType = sourceType->typenameTarget();
+			const auto destTargetType = destType->typenameTarget();
 			
 			const auto sourceMethodSet = getTypeMethodSet(context, sourceTargetType);
 			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
 			
-			return methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet) ?
+			auto result = methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet);
+			return result ?
 				make_optional(AST::Value::PolyCast(destType, std::move(value))) :
 				Optional<AST::Value>();
 		}
@@ -294,7 +274,7 @@ namespace locic {
 				
 				auto combinedTemplateVarMap = sourceDerefType->generateTemplateVarMap();
 				const auto& castTemplateVar = castFunction.templateVariables().front();
-				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, AST::Value::TypeRef(destDerefType, castTemplateVar->type()->createStaticRefType(destDerefType))));
+				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, AST::Value::TypeRef(destDerefType, castTemplateVar->type())));
 				
 				if (evaluatePredicate(context, requiresPredicate, combinedTemplateVarMap)) {
 					auto boundValue = bindReference(context, std::move(value));
@@ -447,13 +427,13 @@ namespace locic {
 				}
 			}
 			
-			// Try to use a polymorphic staticref cast.
-			if (sourceType->isStaticRef() && destType->isStaticRef() && sourceType->staticRefTarget()->isObject() && destType->staticRefTarget()->isInterface()) {
-				const auto sourceTarget = sourceType->staticRefTarget();
-				const auto destTarget = destType->staticRefTarget();
+			// Try to use a polymorphic typename cast.
+			if (sourceType->isTypename() && destType->isTypename() && sourceType->typenameTarget()->isObject() && destType->typenameTarget()->isInterface()) {
+				const auto sourceTarget = sourceType->typenameTarget();
+				const auto destTarget = destType->typenameTarget();
 				
 				if (doesPredicateImplyPredicate(context, sourceTarget->constPredicate(), destTarget->constPredicate())) {
-					auto castResult = PolyCastStaticRefValueToType(context, value.copy(), destType);
+					auto castResult = PolyCastTypenameValueToType(context, value.copy(), destType);
 					if (castResult) {
 						return castResult;
 					}
@@ -467,12 +447,8 @@ namespace locic {
 				if (TypeCapabilities(context).supportsImplicitCopy(sourceDerefType)) {
 					auto copyValue = CallValue(context, GetSpecialMethod(context, derefValue(value.copy()), context.getCString("implicitcopy"), location), {}, location);
 					
-					auto copyRefValue = sourceDerefType->isStaticRef() ?
-						AST::Value::StaticRef(sourceDerefType->staticRefTarget(), std::move(copyValue)) :
-						std::move(copyValue);
-					
 					const bool nextAllowBind = false;
-					auto convertCast = ImplicitCastConvert(context, errors, std::move(copyRefValue), destType, location, nextAllowBind);
+					auto convertCast = ImplicitCastConvert(context, errors, std::move(copyValue), destType, location, nextAllowBind);
 					if (convertCast) {
 						return convertCast;
 					}
@@ -497,12 +473,8 @@ namespace locic {
 				auto copyValue = CallValue(context, GetSpecialMethod(context, std::move(boundValue), context.getCString("implicitcopy"), location), {}, location);
 				assert(doesPredicateImplyPredicate(context, copyValue.type()->constPredicate(), destType->constPredicate()));
 				
-				auto copyStaticRefValue = sourceType->isStaticRef() ?
-						AST::Value::StaticRef(sourceType->staticRefTarget(), std::move(copyValue)) :
-						std::move(copyValue);
-				
 				const bool nextAllowBind = false;
-				auto convertCast = ImplicitCastConvert(context, errors, std::move(copyStaticRefValue), destType, location, nextAllowBind);
+				auto convertCast = ImplicitCastConvert(context, errors, std::move(copyValue), destType, location, nextAllowBind);
 				if (convertCast) {
 					return convertCast;
 				}

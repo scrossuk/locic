@@ -108,7 +108,7 @@ namespace locic {
 			for (size_t i = 0; i < templateArgs.size(); i++) {
 				const auto& argVar = templateVariables[i];
 				const auto& argType = templateArgs[i];
-				templateArgValues.push_back(AST::Value::TypeRef(argType, argVar->type()->createStaticRefType(argType)));
+				templateArgValues.push_back(AST::Value::TypeRef(argType, argVar->type()));
 			}
 			
 			if (value.isTypeInstance()) {

@@ -100,11 +100,7 @@ namespace locic {
 			
 			const auto constType = basicType->createConstType(Predicate::Or(basicType->constPredicate().copy(), type->constPredicate().copy()));
 			
-			const auto staticRefType = type->isStaticRef() ?
-				constType->createStaticRefType(applyType<CheckFunction, PreFunction, PostFunction>(type->staticRefTarget(), checkFunction, preFunction, postFunction)) :
-				constType;
-			
-			return postFunction(staticRefType);
+			return postFunction(constType);
 		}
 		
 		const ValueArray Type::NO_TEMPLATE_ARGS = ValueArray();
@@ -135,7 +131,7 @@ namespace locic {
 		}
 		
 		const Type* Type::TemplateVarRef(const TemplateVar* const templateVar) {
-			assert(templateVar->type()->isObject() && templateVar->type()->isBuiltInTypename());
+			assert(templateVar->type()->isAbstractTypename() || templateVar->type()->isTypename());
 			const auto templateVarRefType = templateVar->selfRefType();
 			if (templateVarRefType) {
 				return templateVarRefType;
@@ -151,7 +147,6 @@ namespace locic {
 		Type::Type(const Context& pContext, const Kind pKind) :
 			context_(pContext), kind_(pKind), isNoTag_(false),
 			constPredicate_(Predicate::False()),
-			staticRefTarget_(nullptr),
 			cachedResolvedType_(nullptr),
 			cachedWithoutTagsType_(nullptr) { }
 		
@@ -169,15 +164,6 @@ namespace locic {
 		
 		bool Type::isNoTag() const {
 			return isNoTag_;
-		}
-		
-		bool Type::isStaticRef() const {
-			return staticRefTarget_ != nullptr;
-		}
-		
-		const Type* Type::staticRefTarget() const {
-			assert(isStaticRef());
-			return staticRefTarget_;
 		}
 		
 		const Type* Type::createConstType(Predicate predicate) const {
@@ -208,14 +194,13 @@ namespace locic {
 		
 		const Type* Type::createNoTagType() const {
 			if (isNoTag()) {
-				assert(constPredicate().isFalse() && !isStaticRef());
+				assert(constPredicate().isFalse());
 				return this;
 			}
 			
 			Type typeCopy = copy();
 			typeCopy.isNoTag_ = true;
 			typeCopy.constPredicate_ = Predicate::False();
-			typeCopy.staticRefTarget_ = nullptr;
 			
 			// For objects, also add 'notag()' to the relevant template variables.
 			if (isObject()) {
@@ -234,17 +219,6 @@ namespace locic {
 			return context_.getType(std::move(typeCopy));
 		}
 		
-		const Type* Type::createStaticRefType(const Type* const targetType) const {
-			if (isStaticRef() && staticRefTarget() == targetType) {
-				return this;
-			}
-			
-			Type typeCopy = copy();
-			typeCopy.isNoTag_ = false;
-			typeCopy.staticRefTarget_ = targetType;
-			return context_.getType(std::move(typeCopy));
-		}
-		
 		const Type* Type::withoutConst() const {
 			return createConstType(Predicate::False());
 		}
@@ -254,14 +228,13 @@ namespace locic {
 				return cachedWithoutTagsType_;
 			}
 			
-			if (constPredicate().isFalse() && !isStaticRef()) {
+			if (constPredicate().isFalse()) {
 				cachedWithoutTagsType_ = this;
 				return this;
 			}
 			
 			Type typeCopy = copy();
 			typeCopy.constPredicate_ = Predicate::False();
-			typeCopy.staticRefTarget_ = nullptr;
 			
 			const auto result = context_.getType(std::move(typeCopy));
 			cachedWithoutTagsType_ = result;
@@ -289,6 +262,37 @@ namespace locic {
 			return getObjectType()->primitiveID();
 		}
 		
+		bool Type::isBuiltInPointer() const {
+			return isPrimitive() && primitiveID() == PrimitivePtr;
+		}
+		
+		const Type* Type::pointeeType() const {
+			assert(isBuiltInPointer());
+			return templateArguments().front().typeRefType();
+		}
+		
+		bool Type::isReference() const {
+			return isPrimitive() && primitiveID() == PrimitiveRef;
+		}
+		
+		const Type* Type::referenceTarget() const {
+			assert(isReference());
+			return templateArguments().front().typeRefType();
+		}
+		
+		bool Type::isAbstractTypename() const {
+			return isPrimitive() && primitiveID() == PrimitiveAbstractTypename;
+		}
+		
+		bool Type::isTypename() const {
+			return isPrimitive() && primitiveID() == PrimitiveTypename;
+		}
+		
+		const Type* Type::typenameTarget() const {
+			assert(isTypename());
+			return templateArguments().front().typeRefType();
+		}
+		
 		bool Type::isBuiltInVoid() const {
 			return isPrimitive() && primitiveID() == PrimitiveVoid;
 		}
@@ -313,24 +317,6 @@ namespace locic {
 			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveMethodFunctionPtr0;
 		}
 		
-		bool Type::isBuiltInPointer() const {
-			return isPrimitive() && primitiveID() == PrimitivePtr;
-		}
-		
-		const Type* Type::pointeeType() const {
-			assert(isBuiltInPointer());
-			return templateArguments().front().typeRefType();
-		}
-		
-		bool Type::isReference() const {
-			return isPrimitive() && primitiveID() == PrimitiveRef;
-		}
-		
-		const Type* Type::referenceTarget() const {
-			assert(isReference());
-			return templateArguments().front().typeRefType();
-		}
-		
 		bool Type::isBuiltInStaticInterfaceMethod() const {
 			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveStaticInterfaceMethod0;
 		}
@@ -345,10 +331,6 @@ namespace locic {
 		
 		bool Type::isBuiltInTemplatedMethodFunctionPtr() const {
 			return isPrimitive() && primitiveID().baseCallableID() == PrimitiveTemplatedMethodFunctionPtr0;
-		}
-		
-		bool Type::isBuiltInTypename() const {
-			return isPrimitive() && primitiveID() == PrimitiveTypename;
 		}
 		
 		bool Type::isBuiltInVarArgFunctionPtr() const {
@@ -567,8 +549,22 @@ namespace locic {
 		}
 		
 		Value Type::asValue() const {
-			const auto typenameType = context_.getPrimitive(PrimitiveTypename).selfType();
-			return Value::TypeRef(this, typenameType->createStaticRefType(this));
+			// For type 'T', create:
+			// TypeRef(
+			//     type: T,
+			//     typeOfType:
+			//         typename_t<TypeRef(
+			//             type: T,
+			//             typeOfType: abstracttypename_t
+			//         )>
+			// )
+			const auto abstractTypenameType = context_.getPrimitive(PrimitiveAbstractTypename).selfType();
+			auto selfTypeRef = Value::TypeRef(this, abstractTypenameType);
+			const auto& typenameTypeInstance = context_.getPrimitive(PrimitiveTypename);
+			ValueArray templateArgs;
+			templateArgs.push_back(std::move(selfTypeRef));
+			const auto typenameType = Type::Object(&typenameTypeInstance, std::move(templateArgs));
+			return Value::TypeRef(this, typenameType);
 		}
 		
 		static const Type* basicSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
@@ -634,19 +630,12 @@ namespace locic {
 				return basicType->createNoTagType();
 			}
 			
-			const auto constType =
-				basicType->createConstType(
+			return basicType->createConstType(
 					Predicate::Or(
 						basicType->constPredicate().substitute(templateVarMap),
 						type->constPredicate().substitute(templateVarMap)
 					)
 				);
-			
-			const auto staticRefType = type->isStaticRef() ?
-				constType->createStaticRefType(type->staticRefTarget()->substitute(templateVarMap)) :
-				constType;
-			
-			return staticRefType;
 		}
 		
 		const Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
@@ -701,10 +690,6 @@ namespace locic {
 				return true;
 			}
 			
-			if (isStaticRef() && staticRefTarget()->dependsOnAny(array)) {
-				return true;
-			}
-			
 			switch (kind()) {
 				case AUTO:
 					return false;
@@ -729,10 +714,6 @@ namespace locic {
 		
 		bool Type::dependsOnOnly(const TemplateVarArray& array) const {
 			if (!constPredicate().dependsOnOnly(array)) {
-				return false;
-			}
-			
-			if (isStaticRef() && !staticRefTarget()->dependsOnOnly(array)) {
 				return false;
 			}
 			
@@ -896,20 +877,12 @@ namespace locic {
 		std::string Type::toString() const {
 			const std::string noTagStr = isNoTag() ? makeString("notag(%s)", basicToString().c_str()) : basicToString();
 			
-			const std::string constStr =
-				constPredicate().isTrue() ?
+			return constPredicate().isTrue() ?
 					makeString("const(%s)", noTagStr.c_str()) :
 					constPredicate().isFalse() ?
 						noTagStr :
 						makeString("const<%s>(%s)", constPredicate().toString().c_str(),
 							noTagStr.c_str());
-			
-			const std::string staticRefStr =
-				isStaticRef() ?
-				makeString("staticref<%s>(%s)", staticRefTarget()->toString().c_str(), constStr.c_str()) :
-				constStr;
-			
-			return staticRefStr;
 		}
 		
 		std::string Type::basicToDiagString() const {
@@ -979,20 +952,12 @@ namespace locic {
 		std::string Type::toDiagString() const {
 			const std::string noTagStr = isNoTag() ? makeString("notag(%s)", basicToDiagString().c_str()) : basicToDiagString();
 			
-			const std::string constStr =
-				constPredicate().isTrue() ?
+			return constPredicate().isTrue() ?
 					makeString("const(%s)", noTagStr.c_str()) :
 					constPredicate().isFalse() ?
 						noTagStr :
 						makeString("const<%s>(%s)", constPredicate().toString().c_str(),
 							noTagStr.c_str());
-			
-			const std::string staticRefStr =
-				isStaticRef() ?
-				makeString("staticref<%s>(%s)", staticRefTarget()->toDiagString().c_str(), constStr.c_str()) :
-				constStr;
-			
-			return staticRefStr;
 		}
 		
 		std::size_t Type::hash() const {
@@ -1004,7 +969,6 @@ namespace locic {
 			hasher.add(kind());
 			hasher.add(isNoTag());
 			hasher.add(constPredicate().hash());
-			hasher.add(isStaticRef() ? staticRefTarget() : NULL);
 			
 			switch (kind()) {
 				case AUTO: {
@@ -1063,7 +1027,6 @@ namespace locic {
 			
 			type.isNoTag_ = isNoTag();
 			type.constPredicate_ = constPredicate().copy();
-			type.staticRefTarget_ = isStaticRef() ? staticRefTarget() : nullptr;
 			return type;
 		}
 		
@@ -1077,14 +1040,6 @@ namespace locic {
 			}
 			
 			if (constPredicate() != type.constPredicate()) {
-				return false;
-			}
-			
-			if (isStaticRef() != type.isStaticRef()) {
-				return false;
-			}
-			
-			if (isStaticRef() && staticRefTarget() != type.staticRefTarget()) {
 				return false;
 			}
 			

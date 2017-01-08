@@ -48,14 +48,10 @@ namespace locic {
 				const Predicate& constPredicate() const;
 				
 				bool isNoTag() const;
-				bool isStaticRef() const;
-				
-				const Type* staticRefTarget() const;
 				
 				const Type* createConstType(Predicate predicate) const;
 				
 				const Type* createNoTagType() const;
-				const Type* createStaticRefType(const Type* targetType) const;
 				const Type* withoutConst() const;
 				const Type* withoutTags() const;
 				
@@ -67,24 +63,28 @@ namespace locic {
 				
 				PrimitiveID primitiveID() const;
 				
-				bool isBuiltInVoid() const;
-				bool isBuiltInBool() const;
-				bool isBuiltInFunctionPtr() const;
-				bool isBuiltInInterfaceMethod() const;
-				bool isBuiltInMethod() const;
-				bool isBuiltInMethodFunctionPtr() const;
-				
 				bool isBuiltInPointer() const;
 				const Type* pointeeType() const;
 				
 				bool isReference() const;
 				const Type* referenceTarget() const;
 				
+				bool isAbstractTypename() const;
+				bool isTypename() const;
+				const Type* typenameTarget() const;
+				
+				bool isNone() const;
+				
+				bool isBuiltInVoid() const;
+				bool isBuiltInBool() const;
+				bool isBuiltInFunctionPtr() const;
+				bool isBuiltInInterfaceMethod() const;
+				bool isBuiltInMethod() const;
+				bool isBuiltInMethodFunctionPtr() const;
 				bool isBuiltInStaticInterfaceMethod() const;
 				bool isBuiltInTemplatedFunctionPtr() const;
 				bool isBuiltInTemplatedMethod() const;
 				bool isBuiltInTemplatedMethodFunctionPtr() const;
-				bool isBuiltInTypename() const;
 				bool isBuiltInVarArgFunctionPtr() const;
 				
 				bool isObject() const;
@@ -154,7 +154,6 @@ namespace locic {
 				Kind kind_;
 				bool isNoTag_;
 				Predicate constPredicate_;
-				const Type* staticRefTarget_;
 				
 				TypeArray typeArray_;
 				ValueArray valueArray_;

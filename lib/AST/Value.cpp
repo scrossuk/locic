@@ -58,10 +58,6 @@ namespace locic {
 				} polyCast;
 				
 				struct {
-					const Type* targetType;
-				} makeStaticRef;
-				
-				struct {
 					const Var* memberVar;
 				} memberAccess;
 				
@@ -173,13 +169,6 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::StaticRef(const Type* const targetType, Value operand) {
-			Value value(STATICREF, operand.type()->createStaticRefType(targetType), operand.exitStates());
-			value.impl_->union_.makeStaticRef.targetType = targetType;
-			value.impl_->value0 = std::move(operand);
-			return value;
-		}
-		
 		Value Value::InternalConstruct(const Type* const parentType, ValueArray parameters) {
 			ExitStates exitStates = ExitStates::Normal();
 			for (const auto& param: parameters) {
@@ -208,7 +197,7 @@ namespace locic {
 		}
 		
 		Value Value::TypeRef(const Type* const targetType, const Type* const type) {
-			assert(type->isStaticRef() && type->isBuiltInTypename());
+			assert(type->isAbstractTypename() || type->isTypename());
 			
 			Value value(TYPEREF, type, ExitStates::Normal());
 			value.impl_->union_.typeRef.targetType = targetType;
@@ -474,20 +463,6 @@ namespace locic {
 			return impl_->value0;
 		}
 		
-		bool Value::isMakeStaticRef() const {
-			return kind() == STATICREF;
-		}
-		
-		const Type* Value::makeStaticRefTargetType() const {
-			assert(isMakeStaticRef());
-			return impl_->union_.makeStaticRef.targetType;
-		}
-		
-		const Value& Value::makeStaticRefOperand() const {
-			assert(isMakeStaticRef());
-			return impl_->value0;
-		}
-		
 		bool Value::isInternalConstruct() const {
 			return kind() == INTERNALCONSTRUCT;
 		}
@@ -722,10 +697,6 @@ namespace locic {
 					hasher.add(polyCastTargetType());
 					hasher.add(polyCastOperand());
 					break;
-				case Value::STATICREF:
-					hasher.add(makeStaticRefTargetType());
-					hasher.add(makeStaticRefOperand());
-					break;
 				case Value::INTERNALCONSTRUCT:
 					hasher.add(internalConstructParameters().size());
 					for (const auto& param: internalConstructParameters()) {
@@ -831,8 +802,6 @@ namespace locic {
 					return castTargetType() == value.castTargetType() && castOperand() == value.castOperand();
 				case Value::POLYCAST:
 					return polyCastTargetType() == value.polyCastTargetType() && polyCastOperand() == value.polyCastOperand();
-				case Value::STATICREF:
-					return makeStaticRefTargetType() == value.makeStaticRefTargetType() && makeStaticRefOperand() == value.makeStaticRefOperand();
 				case Value::INTERNALCONSTRUCT:
 					return internalConstructParameters() == value.internalConstructParameters();
 				case Value::MEMBERACCESS:
@@ -1029,10 +998,6 @@ namespace locic {
 					return makeString("PolyCast(value: %s, targetType: %s)",
 						polyCastOperand().toString().c_str(),
 						polyCastTargetType()->toString().c_str());
-				case STATICREF:
-					return makeString("StaticRef(value: %s, targetType: %s)",
-						makeStaticRefOperand().toString().c_str(),
-						makeStaticRefTargetType()->toString().c_str());
 				case INTERNALCONSTRUCT:
 					return makeString("InternalConstruct(args: %s)",
 						makeArrayString(internalConstructParameters()).c_str());
@@ -1121,10 +1086,6 @@ namespace locic {
 					return castOperand().toDiagString();
 				case POLYCAST:
 					return polyCastOperand().toDiagString();
-				case STATICREF:
-					return makeString("staticref<%s>(%s)",
-						makeStaticRefTargetType()->toDiagString().c_str(),
-						makeStaticRefOperand().toDiagString().c_str());
 				case INTERNALCONSTRUCT:
 					return makeString("@(%s)",
 						makeArrayString(internalConstructParameters()).c_str());

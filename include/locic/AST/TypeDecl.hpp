@@ -33,7 +33,6 @@ namespace locic {
 				CONST,
 				CONSTPREDICATE,
 				NOTAG,
-				STATICREF,
 				VOID,
 				BOOL,
 				INTEGER,
@@ -63,11 +62,6 @@ namespace locic {
 				Node<TypeDecl> targetType;
 				Node<TypeDecl> refType;
 			} refType;
-			
-			struct {
-				Node<TypeDecl> targetType;
-				Node<TypeDecl> refType;
-			} staticRefType;
 			
 			struct {
 				SignedModifier signedModifier;
@@ -120,10 +114,6 @@ namespace locic {
 			static TypeDecl* ConstPredicate(Node<PredicateDecl> predicate, Node<TypeDecl> targetType);
 			
 			static TypeDecl* NoTag(Node<TypeDecl> targetType);
-			
-			static TypeDecl* Ref(Node<TypeDecl> targetType, Node<TypeDecl> refType);
-			
-			static TypeDecl* StaticRef(Node<TypeDecl> targetType, Node<TypeDecl> refType);
 			
 			static TypeDecl* Integer(SignedModifier signedModifier, const String& name);
 			
@@ -205,30 +195,6 @@ namespace locic {
 			const Node<TypeDecl>& getNoTagTarget() const {
 				assert(isNoTag());
 				return noTagType.targetType;
-			}
-			
-			bool isStaticRef() const {
-				return typeEnum == STATICREF;
-			}
-			
-			Node<TypeDecl>& getStaticRefTarget() {
-				assert(isStaticRef());
-				return staticRefType.targetType;
-			}
-			
-			const Node<TypeDecl>& getStaticRefTarget() const {
-				assert(isStaticRef());
-				return staticRefType.targetType;
-			}
-			
-			Node<TypeDecl>& getStaticRefType() {
-				assert(isStaticRef());
-				return staticRefType.refType;
-			}
-			
-			const Node<TypeDecl>& getStaticRefType() const {
-				assert(isStaticRef());
-				return staticRefType.refType;
 			}
 			
 			bool isReference() const {

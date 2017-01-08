@@ -99,9 +99,6 @@ namespace locic {
 					auto targetType = parseQualifiedType();
 					return builder_.makeNoTagType(std::move(targetType), start);
 				}
-				case Token::STATICREF:
-					reader_.consume();
-					return parseTypeWithQualifier(start, token.kind());
 				case Token::LROUNDBRACKET: {
 					if (reader_.peek(/*offset=*/1).kind() == Token::STAR) {
 						return parseFunctionPointerType();
@@ -132,25 +129,6 @@ namespace locic {
 			
 			auto targetType = parseQualifiedType();
 			return builder_.makeConstType(std::move(targetType), start);
-		}
-		
-		AST::Node<AST::TypeDecl>
-		TypeParser::parseTypeWithQualifier(const Debug::SourcePosition& start,
-		                                   const Token::Kind qualifier) {
-			reader_.expect(Token::LTRIBRACKET);
-			
-			auto targetType = parseType();
-			
-			reader_.expect(Token::RTRIBRACKET);
-			
-			auto type = parseQualifiedType();
-			
-			switch (qualifier) {
-				case Token::STATICREF:
-					return builder_.makeStaticRefType(std::move(targetType), std::move(type), start);
-				default:
-					locic_unreachable("Unknown type qualifier kind.");
-			}
 		}
 		
 		AST::Node<AST::TypeDecl> TypeParser::parseFunctionPointerType() {
@@ -377,7 +355,6 @@ namespace locic {
 				case Token::DOUBLE:
 				case Token::UNICHAR:
 				case Token::CONST:
-				case Token::STATICREF:
 				case Token::NAME:
 				case Token::NOTAG:
 				case Token::LROUNDBRACKET:

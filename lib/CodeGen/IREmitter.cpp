@@ -691,12 +691,9 @@ namespace locic {
 		
 		static const AST::Type*
 		createRefType(const AST::Type* const refTargetType,
-		              const AST::TypeInstance& refTypeInstance,
-		              const AST::Type* const typenameType) {
-			auto typeRef = AST::Value::TypeRef(refTargetType,
-			                                   typenameType->createStaticRefType(refTargetType));
+		              const AST::TypeInstance& refTypeInstance) {
 			AST::ValueArray templateArguments;
-			templateArguments.push_back(std::move(typeRef));
+			templateArguments.push_back(refTargetType->asValue());
 			return AST::Type::Object(&refTypeInstance, std::move(templateArguments));
 		}
 		
@@ -715,9 +712,8 @@ namespace locic {
 			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
 			const auto compareResultType = module().context().astContext().getPrimitive(PrimitiveCompareResult).selfType();
-			const auto typenameType = module().context().astContext().getPrimitive(PrimitiveTypename).selfType();
 			const auto& refTypeInstance = module().context().astContext().getPrimitive(PrimitiveRef);
-			const auto thisRefType = createRefType(type, refTypeInstance, typenameType);
+			const auto thisRefType = createRefType(type, refTypeInstance);
 			
 			AST::FunctionType functionType(std::move(attributes),
 			                               compareResultType,
@@ -753,9 +749,8 @@ namespace locic {
 			                                   /*noExceptPredicate=*/AST::Predicate::False());
 			
 			const auto boolType = module().context().astContext().getPrimitive(PrimitiveBool).selfType();
-			const auto typenameType = module().context().astContext().getPrimitive(PrimitiveTypename).selfType();
 			const auto& refTypeInstance = module().context().astContext().getPrimitive(PrimitiveRef);
-			const auto thisRefType = createRefType(type, refTypeInstance, typenameType);
+			const auto thisRefType = createRefType(type, refTypeInstance);
 			
 			AST::FunctionType functionType(std::move(attributes),
 			                               boolType,

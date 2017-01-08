@@ -1,10 +1,12 @@
 #include <string>
 
 #include <locic/Support/String.hpp>
+#include <locic/AST/Context.hpp>
 #include <locic/AST/Node.hpp>
 #include <locic/AST/TemplateVar.hpp>
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeDecl.hpp>
+#include <locic/AST/TypeInstance.hpp>
 #include <locic/AST/ValueDecl.hpp>
 
 namespace locic {
@@ -94,9 +96,20 @@ namespace locic {
 		void TemplateVar::setType(const Type* pType) {
 			assert(type_ == nullptr && pType != nullptr);
 			type_ = pType;
-			if (type_->isBuiltInTypename()) {
+			if (type_->isTypename()) {
+				assert(type_->typenameTarget()->isInterface() &&
+				       type_->typenameTarget()->getObjectType()->name() == "none_t");
 				selfRefType_ = Type::TemplateVarRef(this);
-				type_ = type_->createStaticRefType(selfRefType_);
+				
+				// Change type from typename_t<none_t> to typename_t<T>.
+				const auto abstractTypenameType = context().getPrimitive(PrimitiveAbstractTypename).selfType();
+				auto typeRef = Value::TypeRef(selfRefType_, abstractTypenameType);
+				const auto& typenameTypeInstance = context().getPrimitive(PrimitiveTypename);
+				ValueArray templateArgs;
+				templateArgs.push_back(std::move(typeRef));
+				type_ = Type::Object(&typenameTypeInstance, std::move(templateArgs));
+			} else if (type_->isAbstractTypename()) {
+				selfRefType_ = Type::TemplateVarRef(this);
 			}
 		}
 		
@@ -109,7 +122,7 @@ namespace locic {
 		}
 		
 		Value TemplateVar::selfRefValue() const {
-			if (type()->isBuiltInTypename()) {
+			if (type()->isAbstractTypename() || type()->isTypename()) {
 				return Value::TypeRef(selfRefType(), type());
 			} else {
 				return Value::TemplateVarRef(this, type());
@@ -117,7 +130,7 @@ namespace locic {
 		}
 		
 		const Type* TemplateVar::selfRefType() const {
-			assert(type()->isBuiltInTypename());
+			assert(type()->isAbstractTypename() || type()->isTypename());
 			return selfRefType_;
 		}
 		

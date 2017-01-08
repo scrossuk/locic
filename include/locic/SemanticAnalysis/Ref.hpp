@@ -23,18 +23,6 @@ namespace locic {
 		
 		AST::Value derefAll(AST::Value value);
 		
-		size_t getStaticRefCount(const AST::Type* type);
-		
-		const AST::Type* getLastStaticRefType(const AST::Type* type);
-		
-		const AST::Type* getStaticDerefType(const AST::Type* type);
-		
-		AST::Value staticDerefOne(AST::Value value);
-		
-		AST::Value staticDerefValue(AST::Value value);
-		
-		AST::Value staticDerefAll(AST::Value value);
-		
 		AST::Value createTypeRef(Context& context, const AST::Type* targetType);
 		
 		const AST::Type* createReferenceType(Context& context, const AST::Type* varType);

@@ -98,8 +98,6 @@ namespace locic {
 					return emitCast(value, hintResultValue);
 				case AST::Value::POLYCAST:
 					return emitPolyCast(value);
-				case AST::Value::STATICREF:
-					return emitStaticRef(value, hintResultValue);
 				case AST::Value::INTERNALCONSTRUCT:
 					return emitInternalConstruct(value, hintResultValue);
 				case AST::Value::MEMBERACCESS:
@@ -395,8 +393,8 @@ namespace locic {
 			                                /*hintResultValue=*/nullptr);
 			const auto sourceType = castValue.type();
 			
-			if (sourceType->isStaticRef()) {
-				const auto sourceTarget = sourceType->staticRefTarget();
+			if (sourceType->isTypename()) {
+				const auto sourceTarget = sourceType->typenameTarget();
 				
 				if (sourceTarget->isInterface()) {
 					// Since the vtable is a hash table and it has
@@ -448,14 +446,8 @@ namespace locic {
 				                                makeTypeInfoValue(irEmitter_.function(),
 								                  vtablePointer, templateGenerator));
 			} else {
-				llvm_unreachable("Poly cast type must be ref or staticref.");
+				llvm_unreachable("Poly cast type must be reference or typename.");
 			}
-		}
-		
-		llvm::Value*
-		ValueEmitter::emitStaticRef(const AST::Value& value,
-		                            llvm::Value* const hintResultValue) {
-			return emitValue(value.makeStaticRefOperand(), hintResultValue);
 		}
 		
 		llvm::Value*

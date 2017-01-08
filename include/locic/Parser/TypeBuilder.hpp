@@ -47,10 +47,6 @@ namespace locic {
 			AST::Node<AST::TypeDecl> makeNoTagType(AST::Node<AST::TypeDecl> targetType,
 			                                   const Debug::SourcePosition& start);
 			
-			AST::Node<AST::TypeDecl> makeStaticRefType(AST::Node<AST::TypeDecl> targetType,
-			                                       AST::Node<AST::TypeDecl> type,
-			                                       const Debug::SourcePosition& start);
-			
 			AST::Node<AST::TypeDecl>
 			makeFunctionPointerType(AST::Node<AST::TypeDecl> returnType,
 			                        AST::Node<AST::TypeDeclList> paramTypes,bool isVarArg,
