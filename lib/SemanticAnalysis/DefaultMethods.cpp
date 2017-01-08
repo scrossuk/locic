@@ -78,14 +78,14 @@ namespace locic {
 			// All member variables need to be movable.
 			for (const auto& var: typeInstance->variables()) {
 				const auto varType = var->type();
-				const auto movableType = context.typeBuilder().getMovableInterfaceType(varType->createNoTagType());
+				const auto movableType = context.typeBuilder().getMovableInterfaceType(varType);
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
 			}
 			
 			// All variants need to be movable.
 			for (const auto& variantTypeInstance: typeInstance->variants()) {
 				const auto varType = variantTypeInstance->selfType();
-				const auto movableType = context.typeBuilder().getMovableInterfaceType(varType->createNoTagType());
+				const auto movableType = context.typeBuilder().getMovableInterfaceType(varType);
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
 			}
 			
@@ -380,7 +380,7 @@ namespace locic {
 			auto noExceptPredicate = getDefaultImplicitCopyNoExceptPredicate(context_, typeInstance);
 			
 			// Implicit copy should return a notag() type.
-			const auto returnType = typeInstance->selfType()->createNoTagType();
+			const auto returnType = typeInstance->selfType();
 			
 			function.setType(AST::FunctionType(AST::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), returnType, {}));
 		}
@@ -413,7 +413,7 @@ namespace locic {
 			auto noExceptPredicate = getDefaultExplicitCopyNoExceptPredicate(context_, typeInstance);
 			
 			// Implicit copy should return a notag() type.
-			const auto returnType = typeInstance->selfType()->createNoTagType();
+			const auto returnType = typeInstance->selfType();
 			
 			function.setType(AST::FunctionType(AST::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), returnType, {}));
 		}

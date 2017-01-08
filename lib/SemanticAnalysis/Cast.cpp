@@ -257,9 +257,7 @@ namespace locic {
 		                                             const Debug::SourceLocation& location, bool allowBind) {
 			auto value = derefValue(std::move(rawValue));
 			const auto sourceDerefType = getDerefType(value.type());
-			
-			// Use notag() to make destination type non-const so that it's movable.
-			const auto destDerefType = getDerefType(destType)->createNoTagType();
+			const auto destDerefType = getDerefType(destType);
 			
 			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() &&
 			    TypeCapabilities(context).supportsImplicitCast(sourceDerefType)) {
