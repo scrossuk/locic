@@ -2,7 +2,7 @@
 // RUN: FileCheck < %t %s
 
 export int main(unused int argc, unused ubyte ** argv) {
-	// CHECK: .loci:6:16: error: user cast failed from type 'double_t' to type 'notag(int8_t)'
+	// CHECK: .loci:6:16: error: user cast failed from type 'double_t' to type 'int8_t'
 	unused_result(true ? 1 : 1.0);
 	return 0;
 }

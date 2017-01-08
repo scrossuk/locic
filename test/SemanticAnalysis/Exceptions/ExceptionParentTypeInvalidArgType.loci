@@ -7,7 +7,7 @@ namespace NoParent {
 
 exception ParentException(int arg);
 
-// CHECK: .loci:11:51: error: user cast failed from type 'double_t' to type 'notag(int_t)'
+// CHECK: .loci:11:51: error: user cast failed from type 'double_t' to type 'int_t'
 exception Exception(double arg) : ParentException(arg);
 
 }
@@ -19,7 +19,7 @@ namespace WithParent {
 exception GrandParentException(int arg);
 exception ParentException(int arg) : GrandParentException(arg);
 
-// CHECK: .loci:23:51: error: user cast failed from type 'double_t' to type 'notag(int_t)'
+// CHECK: .loci:23:51: error: user cast failed from type 'double_t' to type 'int_t'
 exception Exception(double arg) : ParentException(arg);
 
 }
