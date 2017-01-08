@@ -23,10 +23,10 @@ __primitive byte_t {
 	bool __islive() const noexcept;
 	
 	template <typename T>
-	T implicit_cast() const noexcept require(T : __implicit_cast_from_byte_t<T> and movable<T>);
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_byte_t<T>);
 	
 	template <typename T>
-	T cast() const noexcept require(T : __cast_from_byte_t<T> and movable<T>);
+	T cast() const noexcept require(T : __cast_from_byte_t<T>);
 	
 	byte_t plus() const noexcept;
 	byte_t minus() const noexcept;
@@ -58,12 +58,12 @@ __primitive byte_t {
 	void decrement() noexcept;
 }
 
-template <movable T>
+template <typename T>
 interface __implicit_cast_from_byte_t {
 	static T implicit_cast_byte_t(byte_t value) noexcept;
 }
 
-template <movable T>
+template <typename T>
 interface __cast_from_byte_t {
 	static T cast_byte_t(byte_t value) noexcept;
 }

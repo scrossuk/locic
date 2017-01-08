@@ -27,10 +27,10 @@ __primitive ushort_t {
 	bool __islive() const noexcept;
 	
 	template <typename T>
-	T implicit_cast() const noexcept require(T : __implicit_cast_from_ushort_t<T> and movable<T>);
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_ushort_t<T>);
 	
 	template <typename T>
-	T cast() const noexcept require(T : __cast_from_ushort_t<T> and movable<T>);
+	T cast() const noexcept require(T : __cast_from_ushort_t<T>);
 	
 	ushort_t add(const ushort_t& v) const noexcept;
 	ushort_t subtract(const ushort_t& v) const noexcept;
@@ -55,12 +55,12 @@ __primitive ushort_t {
 	void decrement() noexcept;
 }
 
-template <movable T>
+template <typename T>
 interface __implicit_cast_from_ushort_t {
 	static T implicit_cast_ushort_t(ushort_t value) noexcept;
 }
 
-template <movable T>
+template <typename T>
 interface __cast_from_ushort_t {
 	static T cast_ushort_t(ushort_t value) noexcept;
 }

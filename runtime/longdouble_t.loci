@@ -13,10 +13,10 @@ __primitive longdouble_t {
 	longdouble_t copy() const noexcept;
 	
 	template <typename T>
-	T implicit_cast() const noexcept require(T : __implicit_cast_from_longdouble_t<T> and movable<T>);
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_longdouble_t<T>);
 	
 	template <typename T>
-	T cast() const noexcept require(T : __cast_from_longdouble_t<T> and movable<T>);
+	T cast() const noexcept require(T : __cast_from_longdouble_t<T>);
 	
 	longdouble_t plus() const noexcept;
 	longdouble_t minus() const noexcept;
@@ -41,12 +41,12 @@ __primitive longdouble_t {
 	longdouble_t __move() noexcept;
 }
 
-template <movable T>
+template <typename T>
 interface __implicit_cast_from_longdouble_t {
 	static T implicit_cast_longdouble_t(longdouble_t value) noexcept;
 }
 
-template <movable T>
+template <typename T>
 interface __cast_from_longdouble_t {
 	static T cast_longdouble_t(longdouble_t value) noexcept;
 }

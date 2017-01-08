@@ -8,7 +8,7 @@ interface queryislive {
 
 template <typename T>
 __primitive value_lval_t {
-	static value_lval_t<T> __dead() noexcept require(T : deadstateable and movable<T>);
+	static value_lval_t<T> __dead() noexcept require(T : deadstateable);
 	
 	static value_lval_t<T> create(T value) noexcept require(movable<T>);
 	

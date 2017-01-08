@@ -26,10 +26,10 @@ __primitive int64_t {
 	int64_t copy() const noexcept;
 	
 	template <typename T>
-	T implicit_cast() const noexcept require(T : __implicit_cast_from_int64_t<T> and movable<T>);
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_int64_t<T>);
 	
 	template <typename T>
-	T cast() const noexcept require(T : __cast_from_int64_t<T> and movable<T>);
+	T cast() const noexcept require(T : __cast_from_int64_t<T>);
 	
 	int64_t plus() const noexcept;
 	int64_t minus() const noexcept;
@@ -60,12 +60,12 @@ __primitive int64_t {
 	void decrement() noexcept;
 }
 
-template <movable T>
+template <typename T>
 interface __implicit_cast_from_int64_t {
 	static T implicit_cast_int64_t(int64_t value) noexcept;
 }
 
-template <movable T>
+template <typename T>
 interface __cast_from_int64_t {
 	static T cast_int64_t(int64_t value) noexcept;
 }

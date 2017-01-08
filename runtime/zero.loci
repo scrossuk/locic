@@ -1,19 +1,15 @@
 template <typename T>
-require(movable<T>)
 interface has_zero_t {
 	static T zero();
 }
 
 template <typename T>
-require(movable<T>)
 using has_zero = T : has_zero_t<T>;
 
 template <typename T>
-require(movable<T>)
 interface has_noexcept_zero_t {
 	static T zero() noexcept;
 }
 
 template <typename T>
-require(movable<T>)
 using has_noexcept_zero = T : has_noexcept_zero_t<T>;

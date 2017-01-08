@@ -1,6 +1,6 @@
 template <typename T, size_t element_count>
 __primitive static_array_t {
-	static static_array_t<T, element_count> uninitialized() require(movable<T>);
+	static static_array_t<T, element_count> uninitialized();
 	
 	// Temporarily disabled until support is implemented.
 	//static static_array_t<T, element_count> null() require(nullable<T>);

@@ -30,10 +30,10 @@ __primitive uint32_t {
 	bool __islive() const noexcept;
 	
 	template <typename T>
-	T implicit_cast() const noexcept require(T : __implicit_cast_from_uint32_t<T> and movable<T>);
+	T implicit_cast() const noexcept require(T : __implicit_cast_from_uint32_t<T>);
 	
 	template <typename T>
-	T cast() const noexcept require(T : __cast_from_uint32_t<T> and movable<T>);
+	T cast() const noexcept require(T : __cast_from_uint32_t<T>);
 
 	uint32_t add(const uint32_t& v) const noexcept;
 	uint32_t subtract(const uint32_t& v) const noexcept;
@@ -63,12 +63,12 @@ __primitive uint32_t {
 	void decrement() noexcept;
 }
 
-template <movable T>
+template <typename T>
 interface __implicit_cast_from_uint32_t {
 	static T implicit_cast_uint32_t(uint32_t value) noexcept;
 }
 
-template <movable T>
+template <typename T>
 interface __cast_from_uint32_t {
 	static T cast_uint32_t(uint32_t value) noexcept;
 }
