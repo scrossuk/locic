@@ -12,10 +12,10 @@ int_t[10u]* getArrayPtr(int_t[10u]* array) {
 	return move array;
 }
 
-// Disabled due to issues with notag().
-// int&[10u] getRefArray(static_array_t<int&, 10u> array) {
-// 	return move array;
-// }
+
+int&[10u] getRefArray(static_array_t<int&, 10u> array) {
+	return move array;
+}
 
 int_t[10u]& getArrayRef(int_t[10u]& array) {
 	return array;

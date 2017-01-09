@@ -8,9 +8,8 @@
 import void printf(const ubyte * str, ...);
 
 template <typename T>
-require(movable<notag(T)>)
 interface PrimitiveInterface {
-	notag(T) add(const T& value) const;
+	T add(const T& value) const;
 }
 
 void polymorphicAddAndPrint(const PrimitiveInterface<int>& value1, int value2) {

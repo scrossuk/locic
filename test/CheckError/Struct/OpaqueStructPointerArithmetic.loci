@@ -6,7 +6,7 @@ struct OpaqueStruct;
 OpaqueStruct* plusOne(OpaqueStruct* ptr) {
 	// .loci:12:9: error: template arguments do not satisfy require predicate 'OpaqueStruct : sized_type_t' of method 'add'
 	// .loci:12:9: note: because: method '__alignmask' not found
-	// .loci:12:15: error: User cast failed from type 'uint8_t' to type 'notag(ptrdiff_t)'.
+	// .loci:12:15: error: User cast failed from type 'uint8_t' to type 'ptrdiff_t'.
 	return ptr + 1u;
 }
 

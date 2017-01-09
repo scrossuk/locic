@@ -10,6 +10,7 @@ export typename_t<const TestClass> getConstType() {
 	return const TestClass;
 }
 
-export typename_t<TestClass> getNoTagType() {
-	return notag(TestClass);
+template <bool IsConst>
+export typename_t<const<IsConst> TestClass> getConstPredicateType() {
+	return const<IsConst> TestClass;
 }
