@@ -94,10 +94,6 @@ namespace locic {
 			
 			const auto basicType = preFunction(doApplyType<CheckFunction, PreFunction, PostFunction>(type, checkFunction, preFunction, postFunction));
 			
-			if (type->isNoTag()) {
-				return basicType->createNoTagType();
-			}
-			
 			const auto constType = basicType->createConstType(Predicate::Or(basicType->constPredicate().copy(), type->constPredicate().copy()));
 			
 			return postFunction(constType);
@@ -145,7 +141,7 @@ namespace locic {
 		}
 		
 		Type::Type(const Context& pContext, const Kind pKind) :
-			context_(pContext), kind_(pKind), isNoTag_(false),
+			context_(pContext), kind_(pKind),
 			constPredicate_(Predicate::False()),
 			cachedResolvedType_(nullptr),
 			cachedWithoutTagsType_(nullptr) { }
@@ -162,60 +158,13 @@ namespace locic {
 			return constPredicate_;
 		}
 		
-		bool Type::isNoTag() const {
-			return isNoTag_;
-		}
-		
 		const Type* Type::createConstType(Predicate predicate) const {
 			if (constPredicate() == predicate) {
 				return this;
 			}
 			
 			Type typeCopy = copy();
-			typeCopy.isNoTag_ = false;
-			
-			// For objects, also add 'const()' to the relevant template variables.
-			if (isObject()) {
-				for (const auto& noTagTemplateVar: getObjectType()->noTagSet()) {
-					const auto templateVarIndex = noTagTemplateVar->index();
-					auto& existingTemplateArgument = typeCopy.valueArray_[templateVarIndex];
-					assert(existingTemplateArgument.isTypeRef());
-					
-					const auto varRefType = existingTemplateArgument.typeRefType();
-					const auto varRefNoTagType = varRefType->createConstType(predicate.copy());
-					const auto varType = existingTemplateArgument.type();
-					existingTemplateArgument = Value::TypeRef(varRefNoTagType, varType);
-				}
-			}
-			
 			typeCopy.constPredicate_ = std::move(predicate);
-			return context_.getType(std::move(typeCopy));
-		}
-		
-		const Type* Type::createNoTagType() const {
-			if (isNoTag()) {
-				assert(constPredicate().isFalse());
-				return this;
-			}
-			
-			Type typeCopy = copy();
-			typeCopy.isNoTag_ = true;
-			typeCopy.constPredicate_ = Predicate::False();
-			
-			// For objects, also add 'notag()' to the relevant template variables.
-			if (isObject()) {
-				for (const auto& noTagTemplateVar: getObjectType()->noTagSet()) {
-					const auto templateVarIndex = noTagTemplateVar->index();
-					auto& existingTemplateArgument = typeCopy.valueArray_[templateVarIndex];
-					assert(existingTemplateArgument.isTypeRef());
-					
-					const auto varRefType = existingTemplateArgument.typeRefType();
-					const auto varRefNoTagType = varRefType->createNoTagType();
-					const auto varType = existingTemplateArgument.type();
-					existingTemplateArgument = Value::TypeRef(varRefNoTagType, varType);
-				}
-			}
-			
 			return context_.getType(std::move(typeCopy));
 		}
 		
@@ -626,10 +575,6 @@ namespace locic {
 		const Type* doSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
 			const auto basicType = basicSubstitute(type, templateVarMap);
 			
-			if (type->isNoTag()) {
-				return basicType->createNoTagType();
-			}
-			
 			return basicType->createConstType(
 					Predicate::Or(
 						basicType->constPredicate().substitute(templateVarMap),
@@ -875,14 +820,14 @@ namespace locic {
 		}
 		
 		std::string Type::toString() const {
-			const std::string noTagStr = isNoTag() ? makeString("notag(%s)", basicToString().c_str()) : basicToString();
-			
-			return constPredicate().isTrue() ?
-					makeString("const(%s)", noTagStr.c_str()) :
-					constPredicate().isFalse() ?
-						noTagStr :
-						makeString("const<%s>(%s)", constPredicate().toString().c_str(),
-							noTagStr.c_str());
+			if (constPredicate().isTrue()) {
+				return makeString("const(%s)", basicToString().c_str());
+			} else if (constPredicate().isFalse()) {
+				return basicToString();
+			} else {
+				return makeString("const<%s>(%s)", constPredicate().toString().c_str(),
+				                  basicToString().c_str());
+			}
 		}
 		
 		std::string Type::basicToDiagString() const {
@@ -893,7 +838,7 @@ namespace locic {
 				case OBJECT: {
 					if (isReference()) {
 						assert(templateArguments().size() == 1);
-						return templateArguments().front().typeRefType()->toDiagString() + "&";
+						return referenceTarget()->toDiagString() + "&";
 					}
 					
 					const auto objectName = getObjectType()->fullName().toString(false);
@@ -950,14 +895,14 @@ namespace locic {
 		}
 		
 		std::string Type::toDiagString() const {
-			const std::string noTagStr = isNoTag() ? makeString("notag(%s)", basicToDiagString().c_str()) : basicToDiagString();
-			
-			return constPredicate().isTrue() ?
-					makeString("const(%s)", noTagStr.c_str()) :
-					constPredicate().isFalse() ?
-						noTagStr :
-						makeString("const<%s>(%s)", constPredicate().toString().c_str(),
-							noTagStr.c_str());
+			if (constPredicate().isTrue()) {
+				return makeString("const(%s)", basicToDiagString().c_str());
+			} else if (constPredicate().isFalse()) {
+				return basicToDiagString();
+			} else {
+				return makeString("const<%s>(%s)", constPredicate().toString().c_str(),
+				                  basicToDiagString().c_str());
+			}
 		}
 		
 		std::size_t Type::hash() const {
@@ -967,7 +912,6 @@ namespace locic {
 			
 			Hasher hasher;
 			hasher.add(kind());
-			hasher.add(isNoTag());
 			hasher.add(constPredicate().hash());
 			
 			switch (kind()) {
@@ -1025,17 +969,12 @@ namespace locic {
 				}
 			}
 			
-			type.isNoTag_ = isNoTag();
 			type.constPredicate_ = constPredicate().copy();
 			return type;
 		}
 		
 		bool Type::operator==(const Type& type) const {
 			if (kind() != type.kind()) {
-				return false;
-			}
-			
-			if (isNoTag() != type.isNoTag()) {
 				return false;
 			}
 			

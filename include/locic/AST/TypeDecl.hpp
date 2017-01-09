@@ -32,7 +32,6 @@ namespace locic {
 				AUTO,
 				CONST,
 				CONSTPREDICATE,
-				NOTAG,
 				VOID,
 				BOOL,
 				INTEGER,
@@ -53,10 +52,6 @@ namespace locic {
 				Node<PredicateDecl> predicate;
 				Node<TypeDecl> targetType;
 			} constPredicateType;
-			
-			struct {
-				Node<TypeDecl> targetType;
-			} noTagType;
 			
 			struct {
 				Node<TypeDecl> targetType;
@@ -112,8 +107,6 @@ namespace locic {
 			static TypeDecl* Const(Node<TypeDecl> targetType);
 			
 			static TypeDecl* ConstPredicate(Node<PredicateDecl> predicate, Node<TypeDecl> targetType);
-			
-			static TypeDecl* NoTag(Node<TypeDecl> targetType);
 			
 			static TypeDecl* Integer(SignedModifier signedModifier, const String& name);
 			
@@ -181,20 +174,6 @@ namespace locic {
 			const Node<TypeDecl>& getConstPredicateTarget() const {
 				assert(isConstPredicate());
 				return constPredicateType.targetType;
-			}
-			
-			bool isNoTag() const {
-				return typeEnum == NOTAG;
-			}
-			
-			Node<TypeDecl>& getNoTagTarget() {
-				assert(isNoTag());
-				return noTagType.targetType;
-			}
-			
-			const Node<TypeDecl>& getNoTagTarget() const {
-				assert(isNoTag());
-				return noTagType.targetType;
 			}
 			
 			bool isReference() const {

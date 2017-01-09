@@ -312,14 +312,6 @@ namespace locic {
 			return parentType_;
 		}
 		
-		const TemplateVarArray& TypeInstance::noTagSet() const {
-			return noTagSet_;
-		}
-		
-		void TypeInstance::setNoTagSet(TemplateVarArray newNoTagSet) {
-			noTagSet_ = std::move(newNoTagSet);
-		}
-		
 		const ValueArray& TypeInstance::initializerValues() const {
 			return initializerValues_;
 		}

@@ -101,7 +101,6 @@ namespace locic {
 				Node<ExceptionInitializer> initializer;
 				Node<RequireSpecifier> moveSpecifier;
 				Node<RequireSpecifier> requireSpecifier;
-				Node<StringList> noTagSetDecl;
 				
 				/**
 				 * \brief Get/set context.
@@ -373,21 +372,6 @@ namespace locic {
 				void setParentType(const Type* parent);
 				
 				/**
-				 * \brief Get/set notag() set.
-				 * 
-				 * When using the notag() on an object type
-				 * this removes type tags from the type itself
-				 * and, depending on the object, some of the
-				 * template arguments of the type.
-				 * 
-				 * This set defines which template arguments
-				 * (based on their associated template variable)
-				 * should have the notag() added to them.
-				 */
-				const TemplateVarArray& noTagSet() const;
-				void setNoTagSet(TemplateVarArray noTagSet);
-				
-				/**
 				 * \brief Initializer values.
 				 * 
 				 * These are the values passed to the parent exception type
@@ -442,7 +426,6 @@ namespace locic {
 				
 				Array<Function*, 8> functions_;
 				
-				TemplateVarArray noTagSet_;
 				ValueArray initializerValues_;
 				
 				mutable const Type* cachedSelfType_;

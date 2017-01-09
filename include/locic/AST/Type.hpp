@@ -47,11 +47,8 @@ namespace locic {
 				
 				const Predicate& constPredicate() const;
 				
-				bool isNoTag() const;
-				
 				const Type* createConstType(Predicate predicate) const;
 				
-				const Type* createNoTagType() const;
 				const Type* withoutConst() const;
 				const Type* withoutTags() const;
 				
@@ -152,7 +149,6 @@ namespace locic {
 				
 				const Context& context_;
 				Kind kind_;
-				bool isNoTag_;
 				Predicate constPredicate_;
 				
 				TypeArray typeArray_;

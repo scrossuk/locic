@@ -40,12 +40,6 @@ namespace locic {
 			return type;
 		}
 		
-		TypeDecl* TypeDecl::NoTag(Node<TypeDecl> targetType) {
-			TypeDecl* type = new TypeDecl(NOTAG);
-			type->noTagType.targetType = std::move(targetType);
-			return type;
-		}
-		
 		TypeDecl* TypeDecl::Integer(SignedModifier signedModifier, const String& name) {
 			TypeDecl* type = new TypeDecl(INTEGER);
 			type->integerType.signedModifier = signedModifier;
@@ -126,9 +120,6 @@ namespace locic {
 					
 				case CONSTPREDICATE:
 					return std::string("const<[TODO]> ") + getConstPredicateTarget()->toString();
-					
-				case NOTAG:
-					return std::string("notag(") + getNoTagTarget()->toString() + ")";
 					
 				case VOID:
 					return "void";
