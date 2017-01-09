@@ -67,7 +67,6 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("namespace", locic::Lex::Token::Kind::NAMESPACE);
 	testKeyword("new", locic::Lex::Token::Kind::NEW);
 	testKeyword("noexcept", locic::Lex::Token::Kind::NOEXCEPT);
-	testKeyword("notag", locic::Lex::Token::Kind::NOTAG);
 	
 	testKeyword("or", locic::Lex::Token::Kind::OR);
 	testKeyword("override", locic::Lex::Token::Kind::OVERRIDE);

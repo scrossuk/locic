@@ -157,35 +157,6 @@ namespace locic {
 			});
 		}
 		
-		TEST(NamespaceParseTest, TemplatedClassWithNoTagSetInNamespace) {
-			auto tokens = {
-				Token::NAMESPACE,
-				Token::NAME,
-				Token::LCURLYBRACKET,
-				
-				Token::TEMPLATE,
-				Token::LTRIBRACKET,
-				Token::NAME,
-				Token::NAME,
-				Token::RTRIBRACKET,
-				
-				Token::NOTAG,
-				Token::LROUNDBRACKET,
-				Token::NAME,
-				Token::RROUNDBRACKET,
-				
-				Token::CLASS,
-				Token::NAME,
-				Token::LCURLYBRACKET,
-				Token::RCURLYBRACKET,
-				
-				Token::RCURLYBRACKET
-			};
-			testParseNamespace(tokens, [](const AST::Node<AST::NamespaceDecl>& nameSpace) {
-				ASSERT_EQ(nameSpace->data()->typeInstances.size(), 1);
-			});
-		}
-		
 		TEST(NamespaceParseTest, TemplatedPrimitiveInNamespace) {
 			auto tokens = {
 				Token::NAMESPACE,
