@@ -150,9 +150,6 @@ namespace locic {
 			if (templateInfo.hasMoveSpecifier()) {
 				typeInstance->moveSpecifier = templateInfo.extractMoveSpecifier();
 			}
-			if (templateInfo.hasNoTagSet()) {
-				typeInstance->noTagSetDecl = templateInfo.extractNoTagSet();
-			}
 			
 			typeInstance.setLocation(reader_.locationWithRangeFrom(start));
 			
@@ -213,7 +210,7 @@ namespace locic {
 				function->setRequireSpecifier(templateInfo.extractRequireSpecifier());
 			}
 			
-			// TODO: reject move() or notag().
+			// TODO: reject move().
 			
 			function.setLocation(reader_.locationWithRangeFrom(start));
 			

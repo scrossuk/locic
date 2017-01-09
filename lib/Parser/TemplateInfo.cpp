@@ -24,11 +24,6 @@ namespace locic {
 			return *moveSpecifier_;
 		}
 		
-		const AST::Node<AST::StringList>&
-		TemplateInfo::noTagSet() const {
-			return *noTagSet_;
-		}
-		
 		AST::Node<AST::TemplateVarList>
 		TemplateInfo::extractTemplateVariables() {
 			return std::move(*templateVariables_);
@@ -44,21 +39,12 @@ namespace locic {
 			return std::move(*moveSpecifier_);
 		}
 		
-		AST::Node<AST::StringList>
-		TemplateInfo::extractNoTagSet() {
-			return std::move(*noTagSet_);
-		}
-		
 		bool TemplateInfo::hasRequireSpecifier() const {
 			return requireSpecifier_;
 		}
 		
 		bool TemplateInfo::hasMoveSpecifier() const {
 			return moveSpecifier_;
-		}
-		
-		bool TemplateInfo::hasNoTagSet() const {
-			return noTagSet_;
 		}
 		
 		void TemplateInfo::setTemplateVariables(AST::Node<AST::TemplateVarList> newTemplateVariables) {
@@ -71,10 +57,6 @@ namespace locic {
 		
 		void TemplateInfo::setMoveSpecifier(AST::Node<AST::RequireSpecifier> specifier) {
 			moveSpecifier_ = std::move(specifier);
-		}
-		
-		void TemplateInfo::setNoTagSet(AST::Node<AST::StringList> newNoTagSet) {
-			noTagSet_ = std::move(newNoTagSet);
 		}
 		
 		

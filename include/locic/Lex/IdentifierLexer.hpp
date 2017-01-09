@@ -68,7 +68,6 @@ namespace locic {
 			Token lexPrefixM();
 			
 			Token lexPrefixN();
-			Token lexPrefixNo();
 			
 			Token lexPrefixO();
 			

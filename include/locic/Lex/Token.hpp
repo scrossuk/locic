@@ -49,8 +49,6 @@ namespace locic {
 				MOVE,
 				NEW,
 
-				NOTAG,
-
 				TEMPLATE,
 				TYPENAME,
 				VIRTUAL,
@@ -288,7 +286,6 @@ namespace locic {
 					case EXPORT: return "EXPORT";
 					case MOVE: return "MOVE";
 					case NEW: return "NEW";
-					case NOTAG: return "NOTAG";
 					case TEMPLATE: return "TEMPLATE";
 					case TYPENAME: return "TYPENAME";
 					case VIRTUAL: return "VIRTUAL";

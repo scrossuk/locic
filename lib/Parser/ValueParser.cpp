@@ -76,7 +76,6 @@ namespace locic {
 				case Token::MOVE:
 				case Token::NEW:
 				case Token::NULLVAL:
-				case Token::NOTAG:
 				case Token::AT:
 				case Token::SELF:
 				case Token::THIS:

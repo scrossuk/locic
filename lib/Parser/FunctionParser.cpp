@@ -143,7 +143,7 @@ namespace locic {
 				function->setRequireSpecifier(templateInfo.extractRequireSpecifier());
 			}
 			
-			// TODO: reject move() or notag().
+			// TODO: reject move().
 			return function;
 		}
 		

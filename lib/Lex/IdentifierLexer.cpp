@@ -399,20 +399,9 @@ namespace locic {
 				case 'e':
 					return lexPossibleKeyword("new", Token::NEW);
 				case 'o':
-					return lexPrefixNo();
+					return lexPossibleKeyword("noexcept", Token::NOEXCEPT);
 				case 'u':
 					return lexPossibleKeyword("null", Token::NULLVAL);
-				default:
-					return lexGeneralIdentifier();
-			}
-		}
-		
-		Token IdentifierLexer::lexPrefixNo() {
-			switch (get().value()) {
-				case 'e':
-					return lexPossibleKeyword("noexcept", Token::NOEXCEPT);
-				case 't':
-					return lexPossibleKeyword("notag", Token::NOTAG);
 				default:
 					return lexGeneralIdentifier();
 			}

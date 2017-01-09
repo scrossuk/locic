@@ -35,9 +35,6 @@ namespace locic {
 			AST::Node<AST::RequireSpecifier>
 			parseOptionalRequireSpecifier();
 			
-			AST::Node<AST::StringList>
-			parseOptionalNoTagSet();
-			
 		private:
 			TokenReader& reader_;
 			AttributeBuilder builder_;

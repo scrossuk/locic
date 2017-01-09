@@ -54,12 +54,6 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeDecl>
-		TypeBuilder::makeNoTagType(AST::Node<AST::TypeDecl> targetType,
-		                           const Debug::SourcePosition& start) {
-			return makeTypeNode(AST::TypeDecl::NoTag(std::move(targetType)), start);
-		}
-		
-		AST::Node<AST::TypeDecl>
 		TypeBuilder::makeFunctionPointerType(AST::Node<AST::TypeDecl> returnType,
 		                                     AST::Node<AST::TypeDeclList> paramTypes,
 		                                     const bool isVarArg,

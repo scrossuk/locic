@@ -40,9 +40,6 @@ namespace locic {
 					case Token::MOVE:
 						info.setMoveSpecifier(attributeParser.parseOptionalMoveSpecifier());
 						break;
-					case Token::NOTAG:
-						info.setNoTagSet(attributeParser.parseOptionalNoTagSet());
-						break;
 					default:
 						return info;
 				}

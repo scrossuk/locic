@@ -88,17 +88,10 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeDecl> TypeParser::parseQualifiedType() {
-			const auto start = reader_.position();
-			
 			const auto token = reader_.peek();
 			switch (token.kind()) {
 				case Token::CONST:
 					return parseConstType();
-				case Token::NOTAG: {
-					reader_.consume();
-					auto targetType = parseQualifiedType();
-					return builder_.makeNoTagType(std::move(targetType), start);
-				}
 				case Token::LROUNDBRACKET: {
 					if (reader_.peek(/*offset=*/1).kind() == Token::STAR) {
 						return parseFunctionPointerType();
@@ -356,7 +349,6 @@ namespace locic {
 				case Token::UNICHAR:
 				case Token::CONST:
 				case Token::NAME:
-				case Token::NOTAG:
 				case Token::LROUNDBRACKET:
 					return true;
 				default:
