@@ -1,0 +1,35 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+interface Interface { }
+
+// CHECK: .loci:7:8: error: array cannot have abstract element type 'Interface'
+import Interface[10] interfaceElementType();
+
+template <abstracttypename_t T>
+// CHECK: .loci:11:8: error: array cannot have abstract element type 'T'
+import T[10] abstractTemplateElementType();
+
+template <abstracttypename_t T>
+using AbstractAlias = T;
+
+// CHECK: .loci:17:8: error: array cannot have abstract element type 'AbstractAlias<Interface>'
+import AbstractAlias<Interface>[10] abstractAliasInterfaceElementType();
+
+template <abstracttypename_t T>
+// CHECK: .loci:21:8: error: array cannot have abstract element type 'AbstractAlias<T>'
+import AbstractAlias<T>[10] abstractTemplateAliasInterfaceElementType();
+
+// CHECK: .loci:24:8: error: array cannot have abstract element type 'AbstractAlias<int_t>'
+import AbstractAlias<int>[10] abstractAliasIntElementType();
+
+template <typename T>
+using Alias = T;
+
+// (This is valid.)
+import Alias<int>[10] aliasIntElementType();
+
+// CHECK: .loci:33:8: error: template argument has type 'abstracttypename_t', which doesn't match type 'typename_t<Interface>' of template variable 'T'
+import Alias<Interface>[10] aliasInterfaceElementType();
+
+// CHECK: 6 errors generated.

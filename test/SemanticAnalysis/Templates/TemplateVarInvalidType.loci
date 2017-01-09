@@ -1,0 +1,8 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: .loci:5:11: error: unknown type name 'someunknowntypethatmustnotexist'
+template <someunknowntypethatmustnotexist T>
+import T function();
+
+// CHECK: 1 error generated.

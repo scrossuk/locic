@@ -127,7 +127,6 @@ namespace locic {
 		}
 		
 		const Type* Type::TemplateVarRef(const TemplateVar* const templateVar) {
-			assert(templateVar->type()->isAbstractTypename() || templateVar->type()->isTypename());
 			const auto templateVarRefType = templateVar->selfRefType();
 			if (templateVarRefType) {
 				return templateVarRefType;
@@ -411,6 +410,19 @@ namespace locic {
 		
 		bool Type::isObjectOrTemplateVar() const {
 			return isObject() || isTemplateVar();
+		}
+		
+		bool Type::isAbstract() const {
+			switch (kind()) {
+				case AUTO:
+					return false;
+				case OBJECT:
+					return isInterface();
+				case TEMPLATEVAR:
+					return getTemplateVar()->type()->isAbstractTypename();
+				case ALIAS:
+					return alias().type()->isAbstractTypename();
+			}
 		}
 		
 		TemplateVarMap Type::generateTemplateVarMap() const {

@@ -96,10 +96,11 @@ namespace locic {
 		void TemplateVar::setType(const Type* pType) {
 			assert(type_ == nullptr && pType != nullptr);
 			type_ = pType;
+			selfRefType_ = Type::TemplateVarRef(this);
+			
 			if (type_->isTypename()) {
 				assert(type_->typenameTarget()->isInterface() &&
 				       type_->typenameTarget()->getObjectType()->name() == "none_t");
-				selfRefType_ = Type::TemplateVarRef(this);
 				
 				// Change type from typename_t<none_t> to typename_t<T>.
 				const auto abstractTypenameType = context().getPrimitive(PrimitiveAbstractTypename).selfType();
@@ -108,8 +109,6 @@ namespace locic {
 				ValueArray templateArgs;
 				templateArgs.push_back(std::move(typeRef));
 				type_ = Type::Object(&typenameTypeInstance, std::move(templateArgs));
-			} else if (type_->isAbstractTypename()) {
-				selfRefType_ = Type::TemplateVarRef(this);
 			}
 		}
 		
@@ -130,7 +129,6 @@ namespace locic {
 		}
 		
 		const Type* TemplateVar::selfRefType() const {
-			assert(type()->isAbstractTypename() || type()->isTypename());
 			return selfRefType_;
 		}
 		

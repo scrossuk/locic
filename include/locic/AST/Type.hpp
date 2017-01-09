@@ -107,6 +107,7 @@ namespace locic {
 				
 				bool isClassOrTemplateVar() const;
 				bool isObjectOrTemplateVar() const;
+				bool isAbstract() const;
 				
 				TemplateVarMap generateTemplateVarMap() const;
 				

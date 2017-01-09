@@ -65,6 +65,7 @@ namespace locic {
 				return AST::Type::TemplateVarRef(&(searchResult.templateVar()));
 			} else if (searchResult.isAlias()) {
 				auto& alias = searchResult.alias();
+				(void) context_.aliasTypeResolver().resolveAliasType(alias);
 				
 				assert(templateVarMap.size() == alias.templateVariables().size());
 				
@@ -104,6 +105,21 @@ namespace locic {
 			std::string toString() const {
 				return "parameter type in function pointer type cannot be void";
 			}
+			
+		};
+		
+		class ArrayElementTypeCannotBeAbstractDiag: public Error {
+		public:
+			ArrayElementTypeCannotBeAbstractDiag(const AST::Type* const type)
+			: type_(type) { }
+			
+			std::string toString() const {
+				return makeString("array cannot have abstract element type '%s'",
+				                  type_->toDiagString().c_str());
+			}
+			
+		private:
+			const AST::Type* type_;
 			
 		};
 		
@@ -156,6 +172,11 @@ namespace locic {
 				}
 				case AST::TypeDecl::STATICARRAY: {
 					const auto targetType = resolveType(type->getStaticArrayTarget());
+					if (targetType->isAbstract()) {
+						context_.issueDiag(ArrayElementTypeCannotBeAbstractDiag(targetType),
+						                   type.location());
+					}
+					
 					auto arraySize = ConvertValue(context_, type->getArraySize());
 					return builder.getStaticArrayType(targetType,
 					                                  std::move(arraySize),
