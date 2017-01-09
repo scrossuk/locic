@@ -87,8 +87,7 @@ namespace locic {
 		};
 		
 		// Fill in type instance structures with member variable information.
-		void AddTypeInstanceMemberVariables(Context& context, const AST::Node<AST::TypeInstance>& typeInstanceNode,
-				std::vector<AST::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
+		void AddTypeInstanceMemberVariables(Context& context, const AST::Node<AST::TypeInstance>& typeInstanceNode) {
 			assert(typeInstanceNode->variables().empty());
 			assert(typeInstanceNode->constructTypes().empty());
 			
@@ -127,78 +126,38 @@ namespace locic {
 				auto var = ConvertVar(context, Debug::VarInfo::VAR_MEMBER, astVarNode);
 				typeInstanceNode->attachVariable(*var);
 			}
-			
-			if (typeInstanceNode->noTagSetDecl.isNull() && !typeInstanceNode->isPrimitive()) {
-				// No tag set was specified so generate one from member variables.
-				typeInstancesToGenerateNoTagSets.push_back(typeInstanceNode.get());
-			}
 		}
 		
-		void AddNamespaceDataTypeMemberVariables(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode,
-				std::vector<AST::TypeInstance*>& typeInstancesToGenerateNoTagSets) {
+		void AddNamespaceDataTypeMemberVariables(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
 			for (const auto& astChildNamespaceNode: astNamespaceDataNode->namespaces) {
 				auto& astChildNamespace = astChildNamespaceNode->nameSpace();
 				
 				PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::Namespace(astChildNamespace));
-				AddNamespaceDataTypeMemberVariables(context, astChildNamespaceNode->data(), typeInstancesToGenerateNoTagSets);
+				AddNamespaceDataTypeMemberVariables(context, astChildNamespaceNode->data());
 			}
 			
 			for (const auto& astModuleScopeNode: astNamespaceDataNode->moduleScopes) {
-				AddNamespaceDataTypeMemberVariables(context, astModuleScopeNode->data(),
-				                                    typeInstancesToGenerateNoTagSets);
+				AddNamespaceDataTypeMemberVariables(context, astModuleScopeNode->data());
 			}
 			
 			for (const auto& typeInstanceNode: astNamespaceDataNode->typeInstances) {
 				{
 					PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*typeInstanceNode));
-					AddTypeInstanceMemberVariables(context, typeInstanceNode, typeInstancesToGenerateNoTagSets);
+					AddTypeInstanceMemberVariables(context, typeInstanceNode);
 				}
 				
 				if (typeInstanceNode->isUnionDatatype()) {
 					for (const auto& variantNode: *(typeInstanceNode->variantDecls)) {
 						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*variantNode));
-						AddTypeInstanceMemberVariables(context, variantNode, typeInstancesToGenerateNoTagSets);
+						AddTypeInstanceMemberVariables(context, variantNode);
 					}
 				}
 			}
 		}
 		
-		const AST::TemplateVarArray& GetTypeInstanceNoTagSet(AST::TypeInstance& typeInstance) {
-			if (!typeInstance.noTagSet().empty()) {
-				return typeInstance.noTagSet();
-			}
-			
-			AST::TemplateVarArray noTagSet;
-			
-			for (const auto& memberVar: typeInstance.variables()) {
-				// TODO: fix this to be less simplistic by looking for
-				// any template variable references inside the type.
-				if (memberVar->type()->isTemplateVar()) {
-					// TODO: remove const_cast.
-					noTagSet.push_back(const_cast<AST::TemplateVar*>(memberVar->type()->getTemplateVar()));
-				}
-			}
-			
-			for (const auto& variant: typeInstance.variants()) {
-				const auto& variantNoTagSet = GetTypeInstanceNoTagSet(*variant);
-				for (const auto& childTagSetVar: variantNoTagSet) {
-					noTagSet.push_back(childTagSetVar);
-				}
-			}
-			
-			typeInstance.setNoTagSet(std::move(noTagSet));
-			
-			return typeInstance.noTagSet();
-		}
-		
 		void AddTypeMemberVariablesPass(Context& context, const AST::NamespaceList& rootASTNamespaces) {
-			std::vector<AST::TypeInstance*> typeInstancesToGenerateNoTagSets;
 			for (const auto& astNamespaceNode: rootASTNamespaces) {
-				AddNamespaceDataTypeMemberVariables(context, astNamespaceNode->data(), typeInstancesToGenerateNoTagSets);
-			}
-			
-			for (const auto& typeInstance: typeInstancesToGenerateNoTagSets) {
-				(void) GetTypeInstanceNoTagSet(*typeInstance);
+				AddNamespaceDataTypeMemberVariables(context, astNamespaceNode->data());
 			}
 		}
 		

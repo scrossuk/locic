@@ -122,9 +122,6 @@ namespace locic {
 					const auto constTarget = resolveType(type->getConstPredicateTarget());
 					return constTarget->createConstType(std::move(constPredicate));
 				}
-				case AST::TypeDecl::NOTAG: {
-					return resolveType(type->getNoTagTarget())->createNoTagType();
-				}
 				case AST::TypeDecl::VOID: {
 					return context_.typeBuilder().getVoidType();
 				}

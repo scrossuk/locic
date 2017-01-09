@@ -109,23 +109,6 @@ namespace locic {
 			
 		};
 		
-		class UnknownTemplateVariableInNoTagSetDiag: public Error {
-		public:
-			UnknownTemplateVariableInNoTagSetDiag(String templateVarName, Name typeName)
-			: templateVarName_(templateVarName), typeName_(std::move(typeName)) { }
-			
-			std::string toString() const {
-				return makeString("unknown template variable '%s' in notag() set of '%s'",
-				                  templateVarName_.c_str(),
-				                  typeName_.toString(/*addPrefix=*/false).c_str());
-			}
-			
-		private:
-			String templateVarName_;
-			Name typeName_;
-			
-		};
-		
 		void AddTypeInstance(Context& context, AST::Node<AST::TypeInstance>& typeInstanceNode,
 		                     const AST::ModuleScope& moduleScope) {
 			auto& parentNamespace = context.scopeStack().back().nameSpace();
@@ -214,23 +197,6 @@ namespace locic {
 					variantNode->namedTemplateVariables() = typeInstanceNode->namedTemplateVariables().copy();
 					typeInstanceNode->variants().push_back(variantNode.get());
 				}
-			}
-			
-			if (!typeInstanceNode->noTagSetDecl.isNull()) {
-				AST::TemplateVarArray noTagSet;
-				
-				for (const auto& astNoTagName: *(typeInstanceNode->noTagSetDecl)) {
-					const auto templateVarIterator = typeInstanceNode->namedTemplateVariables().find(astNoTagName);
-					if (templateVarIterator == typeInstanceNode->namedTemplateVariables().end()) {
-						context.issueDiag(UnknownTemplateVariableInNoTagSetDiag(astNoTagName, fullTypeName.copy()),
-						                  typeInstanceNode->noTagSetDecl.location());
-						continue;
-					}
-					
-					noTagSet.push_back(templateVarIterator->second);
-				}
-				
-				typeInstanceNode->setNoTagSet(std::move(noTagSet));
 			}
 			
 			parentNamespace.items().insert(std::make_pair(typeInstanceName, AST::NamespaceItem::TypeInstance(*typeInstanceNode)));

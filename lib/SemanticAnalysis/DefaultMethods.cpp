@@ -379,7 +379,6 @@ namespace locic {
 			// may call child copy methods that throw.
 			auto noExceptPredicate = getDefaultImplicitCopyNoExceptPredicate(context_, typeInstance);
 			
-			// Implicit copy should return a notag() type.
 			const auto returnType = typeInstance->selfType();
 			
 			function.setType(AST::FunctionType(AST::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), returnType, {}));
@@ -412,7 +411,6 @@ namespace locic {
 			// may call child copy methods that throw.
 			auto noExceptPredicate = getDefaultExplicitCopyNoExceptPredicate(context_, typeInstance);
 			
-			// Implicit copy should return a notag() type.
 			const auto returnType = typeInstance->selfType();
 			
 			function.setType(AST::FunctionType(AST::FunctionAttributes(isVarArg, isDynamicMethod, isTemplatedMethod, std::move(noExceptPredicate)), returnType, {}));
