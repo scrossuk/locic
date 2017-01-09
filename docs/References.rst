@@ -1,114 +1,130 @@
 References
 ==========
 
-Loci references are in many ways similar to C++ references. The key differences between C++ and Loci references from the point of view of developers are that:
+References are aliases for an object in memory. They can be used to access the methods of the object indirectly. Unlike pointers, they cannot be ``null``.
 
-* References cannot be used to assign to the referred-to value; lvals should be used for this.
-* References can be used inside containers, since they are assignable.
+.. code-block:: c++
+	
+	void example() {
+		int value = 10;
+		int& reference = value;
+		reference = 20;
+		assert value == 20;
+	}
 
-Ref Type Attribute
-------------------
+.. Note::
+	Loci's references are almost identical to C++; the notable exception being that references can be stored in a container.
 
-References are implemented in Loci based on the *ref* type attribute (*lval* is a similar type attribute; see :doc:`Lvalues and Rvalues <LvaluesAndRvalues>`), which specifies that the value should be treated with special rules. For example, consider the following code:
+Indirect Method Call
+--------------------
+
+References allow method calls to the referenced object via the normal 'dot' syntax:
+
+.. code-block:: c++
+	
+	void callMethod(Object& value) {
+		value.method();
+	}
+
+Assignment
+----------
+
+References provide support for assignment:
+
+.. code-block:: c++
+	
+	void f(int& value) {
+		value = 100;
+	}
+
+As a template argument
+----------------------
+
+References can be passed as template arguments, notably allowing storing them in containers.
 
 .. code-block:: c++
 
-	IntRefType getNonRef();
-	
-	ref<int> IntRefType getRef();
-	
-	void function() {
-		// Invalid: "Type 'IntRefType' doesn't have a method named 'abs'."
-		int a = getNonRef().abs();
-		
-		// Valid; implicitly dereferences 'IntRefType' to call method 'abs'.
-		int b = getRef().abs();
+	template <typename T>
+	T copyValue(const T& value) require(copyable<T>) {
+		return value.copy();
 	}
 
-Here you can see that implicit conversion operations between types are able to use the information provided by the *ref* attribute to generate implicit dereference operations. Note that the first point above isn't entirely true; *ref* and *lval* can be combined to achieve this:
+	int& copyReference(int& value) {
+		return copyValue<int&>(value);
+	}
+
+This works because the 'special effects' of method indirection only occur when the compiler can see that the type is a reference. Hence templated code sees the reference type as if it is a normal value type.
+
+A consequence of this property is that a trivial template code substition would not work correctly:
 
 .. code-block:: c++
 
-	ref<lval IntLvalType> IntLvalRefType getLvalRef();
-	
-	void function() {
-		// Implicitly dereferences 'IntLvalRefType' to call method 'assign'.
-		getLvalRef() = 44;
+	int& copyReference(int& value) {
+		// This will try to copy the int, but the original code copied the reference.
+		return value.copy();
 	}
 
-Of course, the *ref* syntax is quite verbose, and 'normal' references (i.e. as opposed to user-defined reference types) can be used with this C++-like syntax:
+References-to-references
+------------------------
+
+It is possible to create a reference that refers to another reference, up to any number of levels, with additional ampersands in the type. Any indirect method calls to ``T&``, ``T&&``, etc. will always call methods of ``T``:
 
 .. code-block:: c++
 
-	int f(int& value) {
-		return value.abs();
+	void a(Object arg) {
+		arg.method(); // Calls Object::method().
 	}
 	
-	int f(ref<int> ref_t<int> value) {
-		return value.abs();
+	void b(Object& arg) {
+		arg.method(); // Calls Object::method().
+	}
+	
+	void c(Object&& arg) {
+		arg.method(); // Calls Object::method().
+	}
+	
+	void d(Object&&& arg) {
+		arg.method(); // Calls Object::method().
 	}
 
-Both functions are equivalent; the compiler automatically turns the ampersand into the *ref* attribute applied to the primitive type 'ref_t'. This is very similar to the compiler's automatic translation of C pointer syntax into 'ptr_t' with a template argument.
+Manipulating a reference
+------------------------
 
-Here are some more examples of references:
+.. Note::
+	Not currently implemented.
+
+There are cases where it would be desired to call methods of ``T&`` rather than ``T``:
 
 .. code-block:: c++
 
-	void function(int data, int * pointer){
-		{
-			// Invalid - no implicit cast from
-			// pointer type to reference type.
-			int& reference = pointer;
-		}
-		
-		{
-			// Valid - using dereference operator
-			// to cast from pointer to reference.
-			int& reference = *pointer;
-		}
-		
-		{
-			// Invalid - again, no implicit cast
-			// from pointer type to reference type.
-			int& reference = &data;
-		}
-		
-		{
-			// Valid - making reference of 'data'.
-			int& reference = data;
-			
-			// Invalid - cannot assign since referred-to
-			// type is not an lval.
-			reference = 1;
-			
-			// Invalid - type 'ref_t' has no overload for
-			// the dereference operator.
-			*reference = 2;
-			
-			// Valid - this will dereference the value and
-			// then call '.add(5)'.
-			int newData = reference + 5;
-		}
-		
-		{
-			// Valid.
-			// Binds value to non-const reference.
-			// Note the difference to C++, which only allows binding to const references.
-			int& reference = 1;
-			
-			// ...which is basically equivalent to this.
-			int __unnamed_value = 1;
-			int& reference = __unamed_value;
-		}
-		
-		{
-			// Valid (same as above).
-			const int& reference = 5;
-			
-			// ...which is basically equivalent to this.
-			const int __unnamed_value = 5;
-			const int& reference = __unamed_value;
+	class RefClass(T& reference) {
+		RefClass __move() noexcept {
+			// This will attempt to call ``__move()`` on ``T``, but we just want
+			// to move the reference.
+			return @(@reference.__move());
 		}
 	}
 
+The syntax ``.&`` can be used to call methods of the reference:
 
+.. code-block:: c++
+
+	class RefClass(T& reference) {
+		RefClass __move() noexcept {
+			// This will now call ``__move()`` on ``T&``.
+			return @(@reference.&__move());
+		}
+	}
+
+Furthermore ``.&&`` can be used for calling methods of ``T&&``, ``.&&&`` for ``T&&&``, etc.
+
+Conversion to pointers
+----------------------
+
+References can be converted into pointers using the address-of (``&``) operator. For ``T&``, ``T&&``, ``T&&&``, etc. the address-of operator will always get the address of the ``T`` object. It is therefore effectively called via ``r.&address()``:
+
+* ``T v`` means expression ``&v`` will call ``address()`` on ``T&``.
+* ``T& v`` means expression ``&v`` will call ``address()`` on ``T&``.
+* ``T&& v`` means expression ``&v`` will call ``address()`` on ``T&``.
+
+Users can use ``r.address()``, ``r.&&address()``, etc. if they intended a different meaning, however in almost all cases the desire will be to turn the reference into a pointer (as is common in C++).
