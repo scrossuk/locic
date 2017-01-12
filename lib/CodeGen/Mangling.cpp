@@ -90,14 +90,6 @@ namespace locic {
 			return module.getString(std::move(s));
 		}
 		
-		String mangleMoveName(Module& module, const AST::TypeInstance* typeInstance) {
-			return mangleMethodName(module, typeInstance, module.getCString("__move"));
-		}
-		
-		String mangleDestructorName(Module& module, const AST::TypeInstance* typeInstance) {
-			return mangleMethodName(module, typeInstance, module.getCString("__destroy"));
-		}
-		
 		String mangleObjectType(Module& module, const AST::TypeInstance* const typeInstance) {
 			assert(typeInstance != nullptr);
 			return mangleTypeName(module, typeInstance->fullName());

@@ -22,10 +22,6 @@ namespace locic {
 		
 		String mangleMethodName(Module& module, const AST::TypeInstance* typeInstance, const String& methodName);
 		
-		String mangleMoveName(Module& module, const AST::TypeInstance* typeInstance);
-		
-		String mangleDestructorName(Module& module, const AST::TypeInstance* typeInstance);
-		
 		String mangleObjectType(Module& module, const AST::TypeInstance* typeInstance);
 		
 		String mangleTypeName(Module& module, const Name& name);
