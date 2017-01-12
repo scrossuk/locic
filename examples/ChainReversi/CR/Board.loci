@@ -1,8 +1,7 @@
 // Chain Reversi Board.
 
 namespace CR {
-
-	datatype Position(size_t x, size_t y);
+	
 	datatype BoardSize(size_t width, size_t height);
 	
 	class Board (std::varray<Value> data, Value currentPlayer, BoardSize size) {

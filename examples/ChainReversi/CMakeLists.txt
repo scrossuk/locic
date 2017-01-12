@@ -20,6 +20,7 @@ loci_module(ChainReversi_Module chainReversi.bc ""
 	CR/BoardAnalysis.loci
 	CR/HumanPlayer.loci
 	CR/Player.loci
+	CR/Position.loci
 	CR/Value.loci
 	${SFML_API_FILES}
 	${STD_CONTAINER_API_FILES}

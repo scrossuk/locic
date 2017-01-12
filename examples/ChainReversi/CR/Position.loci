@@ -1,0 +1,15 @@
+// Position on board.
+
+namespace CR {
+
+	datatype Position(size_t x, size_t y);
+	
+	bool Position::isEdge() const {
+		return @x == 0u || @y == 0u || @x == 7u || @y == 7u;
+	}
+	
+	bool Position::isDiagonal() const {
+		return @x == @y || (@x + @y) == 7u;
+	}
+	
+}
