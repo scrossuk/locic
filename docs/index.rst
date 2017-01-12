@@ -175,6 +175,7 @@ These features are either still in the design stage or are awaiting implementati
 	proposals/InteractingWithC++
 	proposals/LateMoveParameters
 	proposals/NamedParameters
+	proposals/RemoveLifetimeMethods
 	proposals/RTTI
 	proposals/VariadicTemplates
 	proposals/VectorTypes
