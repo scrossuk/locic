@@ -11,22 +11,10 @@ namespace CR {
 			// This AI is very fast; too fast!
 			// Hence it must wait for half a
 			// second before playing each move.
-			if (!@isWaiting) {
-				@clock.restart();
-				@isWaiting = true;
-				return None();
-			}
-			
-			if (@clock.getElapsedTime().asSeconds() < 0.5f) {
-				return None();
-			}
-			
-			@isWaiting = false;
+			if (!self.isReady()) { return None(); }
 			
 			unsigned long bestQuality = 0u;
 			auto bestPosition = Position(0u, 0u);
-			
-			auto analysis = BoardAnalysis(board);
 			
 			for (auto xi: range<size_t>(0, 8)) {
 				for (auto yi: range<size_t>(0, 8)) {
@@ -35,37 +23,7 @@ namespace CR {
 						continue;
 					}
 					
-					auto boardCopy = board.copy();
-					boardCopy.placeMove(position);
-					
-					unsigned long quality = 10000u;
-					
-					auto copyAnalysis = BoardAnalysis(boardCopy);
-					
-					if (copyAnalysis.hasWinner()) {
-						// Opponent has a winner -> this move is bad.
-						quality = 1u;
-					} else if (boardCopy.isComplete()) {
-						// This move is a winner -> this move is very good.
-						quality = 100000u;
-					} else {
-						// Edges are good.
-						if (xi == 0u || yi == 0u || xi == 7u || yi == 7u) {
-							quality += 10u;
-						}
-						
-						// Diagonals are very good.
-						if (xi == yi || (xi + yi) == 7u) {
-							quality += 50u;
-						}
-						
-						// Corners are fantastic.
-						quality += (copyAnalysis.countCorners(board.player()) - analysis.countCorners(board.player())) * 1000u;
-						
-						// Opponents getting corners is very bad.
-						quality -= copyAnalysis.reachableCorners() * 1000u;
-					}
-					
+					const auto quality = self.scoreQuality(board, position);
 					if (quality >= bestQuality) {
 						bestQuality = quality;
 						bestPosition = position;
@@ -74,6 +32,54 @@ namespace CR {
 			}
 			
 			return Some(bestPosition);
+		}
+		
+		bool isReady() {
+			if (!@isWaiting) {
+				@clock.restart();
+				@isWaiting = true;
+				return false;
+			}
+			
+			if (@clock.getElapsedTime().asSeconds() < 0.5f) {
+				return false;
+			}
+			
+			@isWaiting = false;
+			return true;
+		}
+		
+		unsigned long scoreQuality(const Board& board, const Position& position) const {
+			auto analysis = BoardAnalysis(board);
+			
+			auto boardCopy = board.copy();
+			boardCopy.placeMove(position);
+			
+			unsigned long quality = 10000u;
+			
+			auto copyAnalysis = BoardAnalysis(boardCopy);
+			
+			if (copyAnalysis.hasWinner()) {
+				// Opponent has a winner -> this move is bad.
+				return 1u;
+			} else if (boardCopy.isComplete()) {
+				// This move is a winner -> this move is very good.
+				return 100000u;
+			}
+			
+			// Edges are good.
+			if (position.isEdge()) { quality += 10u; }
+			
+			// Diagonals are very good.
+			if (position.isDiagonal()) { quality += 50u; }
+			
+			// Corners are fantastic.
+			quality += (copyAnalysis.countCorners(board.player()) - analysis.countCorners(board.player())) * 1000u;
+			
+			// Opponents getting corners is very bad.
+			quality -= copyAnalysis.reachableCorners() * 1000u;
+			
+			return quality;
 		}
 		
 		void gameOver(unused bool win) { }
