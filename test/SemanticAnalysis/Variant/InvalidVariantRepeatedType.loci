@@ -1,0 +1,13 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// Not yet implemented.
+// XFAIL: *
+
+datatype A();
+datatype B();
+
+// CHECK: .loci:8:21: type 'A' appears multiple times in variant 'C'
+variant C = A | B | A;
+
+// CHECK: 1 error generated.

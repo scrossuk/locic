@@ -1,0 +1,12 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+datatype A();
+datatype B();
+variant C = A | B;
+
+export bool f(C value) {
+	switch (value) {
+		case A() { return true; }
+		case B() { return false; }
+	}
+}

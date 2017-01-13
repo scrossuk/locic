@@ -1,0 +1,10 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+datatype A();
+datatype B();
+variant C = A | B;
+
+export C f(bool cond) {
+	auto value = cond ? A() : B();
+	return value;
+}

@@ -1,0 +1,18 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+// Not yet implemented.
+// XFAIL: *
+
+class A() {
+	void method() const { }
+}
+
+class B() {
+	void method() const { }
+}
+
+variant C = A | B;
+
+export void f(const C& value) {
+	value.method();
+}

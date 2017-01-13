@@ -1,0 +1,16 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+// Not yet implemented.
+// XFAIL: *
+
+datatype A();
+datatype B();
+variant C = A | B;
+
+export bool f(C value) {
+	if (A a = value) {
+		return true;
+	} else {
+		return false;
+	}
+}

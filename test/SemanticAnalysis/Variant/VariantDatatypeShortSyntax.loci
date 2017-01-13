@@ -1,0 +1,3 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+datatype C = A() | B();

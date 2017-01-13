@@ -1,0 +1,17 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// Not yet implemented.
+// XFAIL: *
+
+datatype A();
+
+// CHECK: .loci:8:17: type 'B' appears within itself via a cycle
+variant B = A | B;
+
+datatype C(D value);
+
+// CHECK: .loci:8:17: type 'D' appears within itself via a cycle
+variant D = A | C;
+
+// CHECK: 2 errors generated.

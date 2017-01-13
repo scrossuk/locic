@@ -1,0 +1,4 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+template <typename A, typename B>
+variant C = A | B;
