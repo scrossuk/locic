@@ -216,16 +216,15 @@ namespace locic {
 			                  llvm::Value* hintResultValue = nullptr);
 			
 			llvm::Value*
-			emitLoadDatatypeTag(llvm::Value* datatypePtr);
+			emitLoadVariantTag(llvm::Value* datatypePtr);
 			
 			void
-			emitStoreDatatypeTag(llvm::Value* tagValue,
-			                     llvm::Value* datatypePtr);
+			emitStoreVariantTag(llvm::Value* tagValue,
+			                    llvm::Value* datatypePtr);
 			
 			llvm::Value*
-			emitGetDatatypeVariantPtr(llvm::Value* datatypePtr,
-			                          const AST::Type* datatypeType,
-			                          const AST::Type* variantType);
+			emitGetVariantValuePtr(llvm::Value* variantPtr,
+			                       const AST::Type* variantType);
 			
 			llvm::Value*
 			emitConstructorCall(const AST::Type* type,

@@ -103,7 +103,7 @@ namespace locic {
 				bool isPrimitive() const;
 				bool isStruct() const;
 				bool isUnion() const;
-				bool isUnionDatatype() const;
+				bool isVariant() const;
 				
 				bool isClassOrTemplateVar() const;
 				bool isObjectOrTemplateVar() const;

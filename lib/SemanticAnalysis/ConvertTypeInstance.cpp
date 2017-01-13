@@ -80,7 +80,7 @@ namespace locic {
 			
 			// Generate default implicitCopy if relevant.
 			if (typeInstanceNode->isEnum() || typeInstanceNode->isStruct() || typeInstanceNode->isDatatype() ||
-					typeInstanceNode->isUnionDatatype() || typeInstanceNode->isUnion()) {
+					typeInstanceNode->isVariant() || typeInstanceNode->isUnion()) {
 				const auto existingFunction = typeInstanceNode->findFunction(context.getCString("implicitcopy"));
 				if (existingFunction != nullptr) {
 					CreateDefaultMethodOrRemove(context, *typeInstanceNode, *existingFunction,
@@ -89,7 +89,7 @@ namespace locic {
 			}
 			
 			// Generate default compare if relevant.
-			if (typeInstanceNode->isEnum() || typeInstanceNode->isStruct() || typeInstanceNode->isDatatype() || typeInstanceNode->isUnionDatatype()) {
+			if (typeInstanceNode->isEnum() || typeInstanceNode->isStruct() || typeInstanceNode->isDatatype() || typeInstanceNode->isVariant()) {
 				const auto existingFunction = typeInstanceNode->findFunction(context.getCString("compare"));
 				if (existingFunction != nullptr) {
 					CreateDefaultMethodOrRemove(context, *typeInstanceNode, *existingFunction,

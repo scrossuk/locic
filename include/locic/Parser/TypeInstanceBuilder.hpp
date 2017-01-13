@@ -38,8 +38,8 @@ namespace locic {
 			             const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstance>
-			makeUnionDatatype(String name, AST::Node<AST::TypeInstanceList> variants,
-			                  const Debug::SourcePosition& start);
+			makeVariantDatatype(String name, AST::Node<AST::TypeInstanceList> variants,
+			                    const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeInstanceList>
 			makeTypeInstanceList(AST::TypeInstanceList list,
@@ -84,6 +84,14 @@ namespace locic {
 			AST::Node<AST::TypeInstance>
 			makeUnion(String name, AST::Node<AST::VarList> variables,
 			          const Debug::SourcePosition& start);
+			
+			AST::Node<AST::TypeInstance>
+			makeVariant(String name, AST::Node<AST::TypeDeclList> variantTypes,
+			            const Debug::SourcePosition& start);
+			
+			AST::Node<AST::TypeDeclList>
+			makeTypeList(AST::TypeDeclList list,
+			             const Debug::SourcePosition& start);
 			
 			AST::Node<AST::FunctionList>
 			makeFunctionList(AST::FunctionList functionList,

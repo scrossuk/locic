@@ -59,12 +59,11 @@ namespace locic {
 					}
 					
 					return abiTypeBuilder.getUnionTy(members, mangledName);
-				} else if (typeInstance.isUnionDatatype()) {
-					members.reserve(typeInstance.variants().size());
+				} else if (typeInstance.isVariant()) {
+					members.reserve(typeInstance.variantTypes().size());
 					
-					for (auto variantTypeInstance: typeInstance.variants()) {
-						members.push_back(genABIObjectType(module, *variantTypeInstance,
-						                                   variantTypeInstance->selfTemplateArgs()));
+					for (const auto variantType: typeInstance.variantTypes()) {
+						members.push_back(genABIType(module, variantType));
 					}
 					
 					const auto unionType = abiTypeBuilder.getUnionTy(members);

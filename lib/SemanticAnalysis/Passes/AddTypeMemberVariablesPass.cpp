@@ -45,7 +45,7 @@ namespace locic {
 					context.issueDiag(ExceptionCircularInheritanceDiag(typeInstance->fullName().toString()),
 					                  typeInstance->debugInfo()->location);
 				}
-					
+				
 				const auto parentType = typeInstance->parentType();
 				if (parentType == nullptr || !parentType->isException()) {
 					break;
@@ -126,6 +126,24 @@ namespace locic {
 				auto var = ConvertVar(context, Debug::VarInfo::VAR_MEMBER, astVarNode);
 				typeInstanceNode->attachVariable(*var);
 			}
+			
+			if (typeInstanceNode->isVariant()) {
+				for (auto& variantNode: *(typeInstanceNode->variantDecls)) {
+					variantNode->setParentTypeInstance(typeInstanceNode.get());
+					typeInstanceNode->variantTypes().push_back(variantNode->selfType());
+				}
+				
+				TypeResolver typeResolver(context);
+				for (auto& typeNode: *(typeInstanceNode->variantTypeDecls)) {
+					const auto variantType = typeResolver.resolveType(typeNode);
+					if (variantType->isObject()) {
+						// TODO: remove const_cast.
+						auto typeInstance = const_cast<AST::TypeInstance*>(variantType->getObjectType());
+						typeInstance->setParentTypeInstance(typeInstanceNode.get());
+					}
+					typeInstanceNode->variantTypes().push_back(variantType);
+				}
+			}
 		}
 		
 		void AddNamespaceDataTypeMemberVariables(Context& context, const AST::Node<AST::NamespaceData>& astNamespaceDataNode) {
@@ -146,7 +164,7 @@ namespace locic {
 					AddTypeInstanceMemberVariables(context, typeInstanceNode);
 				}
 				
-				if (typeInstanceNode->isUnionDatatype()) {
+				if (typeInstanceNode->isVariant()) {
 					for (const auto& variantNode: *(typeInstanceNode->variantDecls)) {
 						PushScopeElement pushScopeElement(context.scopeStack(), ScopeElement::TypeInstance(*variantNode));
 						AddTypeInstanceMemberVariables(context, variantNode);

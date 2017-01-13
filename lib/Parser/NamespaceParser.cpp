@@ -82,7 +82,8 @@ namespace locic {
 					case Token::INTERFACE:
 					case Token::PRIMITIVE:
 					case Token::STRUCT:
-					case Token::UNION: {
+					case Token::UNION:
+					case Token::VARIANT: {
 						auto typeInstance = TypeInstanceParser(reader_).parseTypeInstance();
 						data.typeInstances.push_back(std::move(typeInstance));
 						break;
@@ -122,7 +123,8 @@ namespace locic {
 				case Token::INTERFACE:
 				case Token::PRIMITIVE:
 				case Token::STRUCT:
-				case Token::UNION: {
+				case Token::UNION:
+				case Token::VARIANT: {
 					parseTemplatedTypeInstance(data, std::move(templateInfo), start);
 					break;
 				}

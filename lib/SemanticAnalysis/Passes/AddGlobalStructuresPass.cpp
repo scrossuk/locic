@@ -189,13 +189,11 @@ namespace locic {
 				typeInstanceNode->templateVariables().push_back(templateVarNode.get());
 			}
 			
-			if (typeInstanceNode->isUnionDatatype()) {
+			if (typeInstanceNode->isVariant()) {
 				for (auto& variantNode: *(typeInstanceNode->variantDecls)) {
 					AddTypeInstance(context, variantNode, moduleScope);
-					variantNode->setParentTypeInstance(typeInstanceNode.get());
 					variantNode->templateVariables() = typeInstanceNode->templateVariables().copy();
 					variantNode->namedTemplateVariables() = typeInstanceNode->namedTemplateVariables().copy();
-					typeInstanceNode->variants().push_back(variantNode.get());
 				}
 			}
 			

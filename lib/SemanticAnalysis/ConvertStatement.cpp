@@ -300,11 +300,11 @@ namespace locic {
 		
 		class SwitchCasesNotHandledDiag: public Error {
 		public:
-			SwitchCasesNotHandledDiag(const Array<const AST::TypeInstance*, 8>& unhandledCases) {
+			SwitchCasesNotHandledDiag(const Array<const AST::Type*, 8>& unhandledCases) {
 				assert(!unhandledCases.empty());
 				for (size_t i = 0; i < std::min<size_t>(unhandledCases.size(), MAX_DIAG_LIST_SIZE); i++) {
 					if (i > 0) casesNotHandled_ += ", ";
-					casesNotHandled_ += unhandledCases[i]->fullName().toString(/*addPrefix=*/false);
+					casesNotHandled_ += unhandledCases[i]->toDiagString();
 				}
 				if (unhandledCases.size() > MAX_DIAG_LIST_SIZE) {
 					casesNotHandled_ += ", ...";
@@ -529,10 +529,11 @@ namespace locic {
 						const auto switchTypeInstance = switchType->getObjectType();
 						assert(switchTypeInstance != nullptr);
 						
-						Array<const AST::TypeInstance*, 8> unhandledCases;
-						for (auto variantTypeInstance: switchTypeInstance->variants()) {
+						Array<const AST::Type*, 8> unhandledCases;
+						for (const auto variantType: switchTypeInstance->variantTypes()) {
+							const auto variantTypeInstance = variantType->getObjectType();
 							if (switchCaseTypes.find(variantTypeInstance) == switchCaseTypes.end()) {
-								unhandledCases.push_back(variantTypeInstance);
+								unhandledCases.push_back(variantType);
 							}
 						}
 						

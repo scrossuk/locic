@@ -392,12 +392,12 @@ namespace locic {
 			return getObjectType()->isUnion();
 		}
 		
-		bool Type::isUnionDatatype() const {
+		bool Type::isVariant() const {
 			if (!isObject()) {
 				return false;
 			}
 			
-			return getObjectType()->isUnionDatatype();
+			return getObjectType()->isVariant();
 		}
 		
 		bool Type::isTemplateVar() const {

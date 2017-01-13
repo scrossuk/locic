@@ -100,7 +100,7 @@ namespace locic {
 		                                      PendingResultArray args,
 		                                      llvm::Value* const hintResultValue) {
 			const auto& typeInstance = *(type->getObjectType());
-			assert(!typeInstance.isEnum() && !typeInstance.isUnionDatatype());
+			assert(!typeInstance.isEnum() && !typeInstance.isVariant());
 			
 			auto& module = functionGenerator_.module();
 			
@@ -213,16 +213,18 @@ namespace locic {
 			
 			const auto thisValue = args[0].resolve(functionGenerator_);
 			
-			if (typeInstance.isUnionDatatype()) {
-				const auto loadedTag = irEmitter.emitLoadDatatypeTag(thisValue);
+			if (typeInstance.isVariant()) {
+				const auto loadedTag = irEmitter.emitLoadVariantTag(thisValue);
 				
 				const auto endBB = irEmitter.createBasicBlock("end");
-				const auto switchInstruction = builder.CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
+				const auto switchInstruction =
+					builder.CreateSwitch(loadedTag, endBB,
+					                     typeInstance.variantTypes().size());
 				
 				// Start from 1 so that 0 can represent 'empty'.
 				uint8_t tag = 1;
 				
-				for (const auto variantTypeInstance: typeInstance.variants()) {
+				for (const auto variantType: typeInstance.variantTypes()) {
 					const auto matchBB = irEmitter.createBasicBlock("tagMatch");
 					const auto tagValue = ConstantGenerator(module).getI8(tag++);
 					
@@ -230,13 +232,10 @@ namespace locic {
 					
 					irEmitter.selectBasicBlock(matchBB);
 					
-					const auto variantType = variantTypeInstance->selfType();
+					const auto variantPtr =
+						irEmitter.emitGetVariantValuePtr(thisValue, type);
 					
-					const auto unionValuePtr = irEmitter.emitGetDatatypeVariantPtr(thisValue,
-					                                                               type,
-					                                                               variantType);
-					
-					irEmitter.emitDestructorCall(unionValuePtr, variantType);
+					irEmitter.emitDestructorCall(variantPtr, variantType);
 					
 					irEmitter.emitBranch(endBB);
 				}
@@ -375,11 +374,11 @@ namespace locic {
 			const auto destPtr = irEmitter.emitAlloca(type, hintResultValue);
 			const auto sourcePtr = args[0].resolve(functionGenerator_);
 			
-			if (typeInstance.isUnionDatatype()) {
-				const auto sourcePointers = getUnionDatatypePointers(functionGenerator_, type,
-				                                                     sourcePtr);
-				const auto destPointers = getUnionDatatypePointers(functionGenerator_, type,
-				                                                   destPtr);
+			if (typeInstance.isVariant()) {
+				const auto sourcePointers = getVariantPointers(functionGenerator_, type,
+				                                               sourcePtr);
+				const auto destPointers = getVariantPointers(functionGenerator_, type,
+				                                             destPtr);
 				TypeGenerator typeGenerator(module);
 				const auto loadedTag = irEmitter.emitRawLoad(sourcePointers.first,
 				                                             typeGenerator.getI8Type());
@@ -394,20 +393,20 @@ namespace locic {
 				// Offset of union datatype data is equivalent to its alignment size.
 				
 				const auto endBB = irEmitter.createBasicBlock("end");
-				const auto switchInstruction = builder.CreateSwitch(loadedTag, endBB, typeInstance.variants().size());
+				const auto switchInstruction =
+					builder.CreateSwitch(loadedTag, endBB,
+					                     typeInstance.variantTypes().size());
 				
 				// Start from 1 so that 0 can represent 'empty'.
 				uint8_t tag = 1;
 				
-				for (const auto& variantTypeInstance: typeInstance.variants()) {
+				for (const auto& variantType: typeInstance.variantTypes()) {
 					const auto matchBB = irEmitter.createBasicBlock("tagMatch");
 					const auto tagValue = ConstantGenerator(module).getI8(tag++);
 					
 					switchInstruction->addCase(tagValue, matchBB);
 					
 					irEmitter.selectBasicBlock(matchBB);
-					
-					const auto variantType = variantTypeInstance->selfType();
 					
 					irEmitter.emitMove(sourcePointers.second,
 					                   destPointers.second,
@@ -443,16 +442,14 @@ namespace locic {
 			if (typeInstance.isEnum()) {
 				const auto intAlign = module.abi().typeInfo().getTypeRequiredAlign(llvm_abi::IntTy).asBytes();
 				return ConstantGenerator(module).getSizeTValue(intAlign - 1);
-			} else if (typeInstance.isUnionDatatype()) {
+			} else if (typeInstance.isVariant()) {
 				// Calculate maximum alignment mask of all variants,
 				// which is just a matter of OR-ing them together
 				// (the tag byte has an alignment of 1 and hence an
 				// alignment mask of 0).
 				llvm::Value* maxVariantAlignMask = zero;
 				
-				for (const auto variantTypeInstance: typeInstance.variants()) {
-					const auto variantType = AST::Type::Object(variantTypeInstance,
-					                                           type->templateArguments().copy());
+				for (const auto variantType: typeInstance.variantTypes()) {
 					const auto variantAlignMask = irEmitter.emitAlignMask(variantType);
 					maxVariantAlignMask = functionGenerator_.getBuilder().CreateOr(maxVariantAlignMask, variantAlignMask);
 				}
@@ -502,14 +499,12 @@ namespace locic {
 				}
 				
 				return makeAligned(functionGenerator_, maxVariantSize, maxVariantAlignMask);
-			} else if (typeInstance.isUnionDatatype()) {
+			} else if (typeInstance.isVariant()) {
 				// Calculate maximum alignment and size of all variants.
 				llvm::Value* maxVariantAlignMask = zero;
 				llvm::Value* maxVariantSize = zero;
 				
-				for (const auto variantTypeInstance: typeInstance.variants()) {
-					const auto variantType = AST::Type::Object(variantTypeInstance,
-					                                           type->templateArguments().copy());
+				for (const auto variantType: typeInstance.variantTypes()) {
 					const auto variantAlignMask = irEmitter.emitAlignMask(variantType);
 					const auto variantSize = irEmitter.emitSizeOf(variantType);
 					
@@ -733,19 +728,19 @@ namespace locic {
 			
 			const auto resultValue = irEmitter.emitAlloca(type, hintResultValue);
 			
-			if (typeInstance.isUnionDatatype()) {
-				const auto loadedTag = irEmitter.emitLoadDatatypeTag(thisPointer);
-				irEmitter.emitStoreDatatypeTag(loadedTag, resultValue);
+			if (typeInstance.isVariant()) {
+				const auto loadedTag = irEmitter.emitLoadVariantTag(thisPointer);
+				irEmitter.emitStoreVariantTag(loadedTag, resultValue);
 				
 				const auto endBB = irEmitter.createBasicBlock("end");
-				const auto switchInstruction = functionGenerator_.getBuilder().CreateSwitch(loadedTag,
-				                                                                            endBB,
-				                                                                            typeInstance.variants().size());
+				const auto switchInstruction =
+					functionGenerator_.getBuilder().CreateSwitch(loadedTag, endBB,
+				                                                     typeInstance.variantTypes().size());
 				
 				// Start from 1 so that 0 can represent 'empty'.
 				uint8_t tag = 1;
 				
-				for (const auto variantTypeInstance : typeInstance.variants()) {
+				for (const auto variantType: typeInstance.variantTypes()) {
 					const auto matchBB = irEmitter.createBasicBlock("tagMatch");
 					const auto tagValue = ConstantGenerator(module).getI8(tag++);
 					
@@ -753,21 +748,19 @@ namespace locic {
 					
 					irEmitter.selectBasicBlock(matchBB);
 					
-					const auto variantType = AST::Type::Object(variantTypeInstance, type->templateArguments().copy());
+					const auto variantPtr =
+						irEmitter.emitGetVariantValuePtr(thisPointer,
+						                                 type);
 					
-					const auto unionValuePtr = irEmitter.emitGetDatatypeVariantPtr(thisPointer,
-					                                                               type,
-					                                                               variantType);
-					
-					const auto unionValueDestPtr = irEmitter.emitGetDatatypeVariantPtr(resultValue,
-					                                                                   type,
-					                                                                   variantType);
+					const auto variantDestPtr =
+						irEmitter.emitGetVariantValuePtr(resultValue,
+						                                 type);
 					
 					const auto copyResult = irEmitter.emitCopyCall(methodID,
-					                                               unionValuePtr,
+					                                               variantPtr,
 					                                               variantType,
-					                                               unionValueDestPtr);
-					irEmitter.emitStore(copyResult, unionValueDestPtr,
+					                                               variantDestPtr);
+					irEmitter.emitStore(copyResult, variantDestPtr,
 					                    variantType);
 					
 					irEmitter.emitBranch(endBB);
@@ -831,9 +824,9 @@ namespace locic {
 				                                         ConstantGenerator(module).getI8(1));
 				return builder.CreateSelect(isNotEqual, result,
 				                            ConstantGenerator(module).getI8(0));
-			} else if (typeInstance.isUnionDatatype()) {
-				const auto thisTag = irEmitter.emitLoadDatatypeTag(thisPointer);
-				const auto otherTag = irEmitter.emitLoadDatatypeTag(otherPointer);
+			} else if (typeInstance.isVariant()) {
+				const auto thisTag = irEmitter.emitLoadVariantTag(thisPointer);
+				const auto otherTag = irEmitter.emitLoadVariantTag(otherPointer);
 				
 				const auto isTagNotEqual = functionGenerator_.getBuilder().CreateICmpNE(thisTag,
 				                                                                        otherTag);
@@ -850,7 +843,7 @@ namespace locic {
 				const auto endBB = irEmitter.createBasicBlock("end");
 				
 				const auto phiNode = llvm::PHINode::Create(i8Type,
-				                                           typeInstance.variants().size(),
+				                                           typeInstance.variantTypes().size(),
 				                                           "compare_result",
 				                                           endBB);
 				
@@ -864,9 +857,9 @@ namespace locic {
 				
 				const auto unreachableBB = irEmitter.createBasicBlock("");
 				
-				const auto switchInstruction = functionGenerator_.getBuilder().CreateSwitch(thisTag,
-				                                                                            unreachableBB,
-				                                                                            typeInstance.variants().size());
+				const auto switchInstruction =
+					functionGenerator_.getBuilder().CreateSwitch(thisTag, unreachableBB,
+					                                             typeInstance.variantTypes().size());
 				
 				irEmitter.selectBasicBlock(unreachableBB);
 				irEmitter.emitUnreachable();
@@ -874,7 +867,7 @@ namespace locic {
 				// Start from 1 so that 0 can represent 'empty'.
 				uint8_t tag = 1;
 				
-				for (const auto variantTypeInstance : typeInstance.variants()) {
+				for (const auto variantType: typeInstance.variantTypes()) {
 					const auto matchBB = irEmitter.createBasicBlock("tagMatch");
 					const auto tagValue = ConstantGenerator(module).getI8(tag++);
 					
@@ -882,15 +875,13 @@ namespace locic {
 					
 					irEmitter.selectBasicBlock(matchBB);
 					
-					const auto variantType = AST::Type::Object(variantTypeInstance, type->templateArguments().copy());
+					const auto thisValuePtr =
+						irEmitter.emitGetVariantValuePtr(thisPointer,
+						                                 type);
 					
-					const auto thisValuePtr = irEmitter.emitGetDatatypeVariantPtr(thisPointer,
-					                                                              type,
-					                                                              variantType);
-					
-					const auto otherValuePtr = irEmitter.emitGetDatatypeVariantPtr(otherPointer,
-					                                                               type,
-					                                                               variantType);
+					const auto otherValuePtr =
+						irEmitter.emitGetVariantValuePtr(otherPointer,
+						                                 type);
 					
 					const auto compareResult = irEmitter.emitCompareCall(thisValuePtr,
 					                                                     otherValuePtr,

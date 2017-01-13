@@ -43,10 +43,11 @@ namespace locic {
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, sizedType));
 			}
 			
+			if (!typeInstance->isVariant()) return requirePredicate;
+			
 			// All variants need to be sized.
-			for (const auto& variantTypeInstance: typeInstance->variants()) {
-				const auto varType = variantTypeInstance->selfType();
-				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, sizedType));
+			for (const auto variantType: typeInstance->variantTypes()) {
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(variantType, sizedType));
 			}
 			
 			return requirePredicate;
@@ -63,10 +64,11 @@ namespace locic {
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, destructibleType));
 			}
 			
+			if (!typeInstance->isVariant()) return requirePredicate;
+			
 			// All variants need to be movable.
-			for (const auto& variantTypeInstance: typeInstance->variants()) {
-				const auto varType = variantTypeInstance->selfType();
-				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, destructibleType));
+			for (const auto variantType: typeInstance->variantTypes()) {
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(variantType, destructibleType));
 			}
 			
 			return requirePredicate;
@@ -82,11 +84,12 @@ namespace locic {
 				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
 			}
 			
+			if (!typeInstance->isVariant()) return requirePredicate;
+			
 			// All variants need to be movable.
-			for (const auto& variantTypeInstance: typeInstance->variants()) {
-				const auto varType = variantTypeInstance->selfType();
-				const auto movableType = context.typeBuilder().getMovableInterfaceType(varType);
-				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(varType, movableType));
+			for (const auto variantType: typeInstance->variantTypes()) {
+				const auto movableType = context.typeBuilder().getMovableInterfaceType(variantType);
+				requirePredicate = AST::Predicate::And(std::move(requirePredicate), AST::Predicate::Satisfies(variantType, movableType));
 			}
 			
 			return requirePredicate;
@@ -112,11 +115,12 @@ namespace locic {
 				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
 			}
 			
+			if (!typeInstance->isVariant()) return predicate;
+			
 			// All variants need to be copyable.
-			for (const auto& variantTypeInstance: typeInstance->variants()) {
-				const auto varType = variantTypeInstance->selfType();
-				const auto copyableType = getBuiltInType(context, propertyName, { varType });
-				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
+			for (const auto variantType: typeInstance->variantTypes()) {
+				const auto copyableType = getBuiltInType(context, propertyName, { variantType });
+				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(variantType, copyableType));
 			}
 			
 			return predicate;
@@ -148,11 +152,12 @@ namespace locic {
 				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
 			}
 			
+			if (!typeInstance->isVariant()) return predicate;
+			
 			// All variants need to be copyable.
-			for (const auto& variantTypeInstance: typeInstance->variants()) {
-				const auto varType = variantTypeInstance->selfType();
-				const auto copyableType = getBuiltInType(context, propertyName, { varType });
-				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
+			for (const auto variantType: typeInstance->variantTypes()) {
+				const auto copyableType = getBuiltInType(context, propertyName, { variantType });
+				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(variantType, copyableType));
 			}
 			
 			return predicate;
@@ -700,7 +705,7 @@ namespace locic {
 				typeInstance->isException() ||
 				typeInstance->isStruct() ||
 				typeInstance->isUnion() ||
-				typeInstance->isUnionDatatype();
+				typeInstance->isVariant();
 		}
 		
 		bool
@@ -711,7 +716,7 @@ namespace locic {
 				typeInstance->isException() ||
 				typeInstance->isStruct() ||
 				typeInstance->isUnion() ||
-				typeInstance->isUnionDatatype();
+				typeInstance->isVariant();
 		}
 		
 		bool
@@ -721,7 +726,7 @@ namespace locic {
 				typeInstance->isEnum() ||
 				typeInstance->isException() ||
 				typeInstance->isStruct() ||
-				typeInstance->isUnionDatatype();
+				typeInstance->isVariant();
 		}
 		
 		bool
@@ -751,7 +756,7 @@ namespace locic {
 		                                         AST::Function& /*function*/,
 		                                         const Debug::SourceLocation& /*location*/) {
 			(void) typeInstance;
-			assert(!typeInstance->isUnionDatatype());
+			assert(!typeInstance->isVariant());
 			
 			// TODO: Need to check if default constructor can be created.
 		}

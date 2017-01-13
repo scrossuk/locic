@@ -35,7 +35,9 @@ namespace locic {
 		
 		llvm::Value* genMemberPtr(Function& function, llvm::Value* objectPointer, const AST::Type* objectType, size_t memberIndex);
 		
-		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, const AST::Type* type, llvm::Value* objectPointer);
+		std::pair<llvm::Value*, llvm::Value*>
+		getVariantPointers(Function& function, const AST::Type* type,
+		                   llvm::Value* objectPointer);
 		
 	}
 	

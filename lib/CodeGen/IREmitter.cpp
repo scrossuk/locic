@@ -490,45 +490,40 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		IREmitter::emitLoadDatatypeTag(llvm::Value* const datatypePtr) {
-			return emitRawLoad(datatypePtr,
+		IREmitter::emitLoadVariantTag(llvm::Value* const variantPtr) {
+			return emitRawLoad(variantPtr,
 			                   TypeGenerator(module()).getI8Type());
 		}
 		
 		void
-		IREmitter::emitStoreDatatypeTag(llvm::Value* const tagValue,
-		                                llvm::Value* const datatypePtr) {
+		IREmitter::emitStoreVariantTag(llvm::Value* const tagValue,
+		                                llvm::Value* const variantPtr) {
 			assert(tagValue->getType()->isIntegerTy(8));
-			assert(datatypePtr->getType()->isPointerTy());
-			emitRawStore(tagValue, datatypePtr);
+			assert(variantPtr->getType()->isPointerTy());
+			emitRawStore(tagValue, variantPtr);
 		}
 		
 		llvm::Value*
-		IREmitter::emitGetDatatypeVariantPtr(llvm::Value* const datatypePtr,
-		                                     const AST::Type* const datatypeType,
-		                                     const AST::Type* const variantType) {
-			(void) variantType;
-			assert(datatypePtr->getType()->isPointerTy());
-			assert(datatypeType->isUnionDatatype());
-			assert(variantType->isDatatype());
+		IREmitter::emitGetVariantValuePtr(llvm::Value* const variantPtr,
+		                                  const AST::Type* const variantType) {
+			assert(variantPtr->getType()->isPointerTy());
+			assert(variantType->isVariant());
 			
-			llvm::Value* datatypeVariantPtr = nullptr;
+			llvm::Value* valuePtr;
 			
 			// Try to use a plain GEP if possible.
 			TypeInfo typeInfo(module());
-			if (typeInfo.isSizeKnownInThisModule(datatypeType)) {
-				datatypeVariantPtr = emitConstInBoundsGEP2_32(genType(module(), datatypeType),
-				                                              datatypePtr,
-				                                              0, 1);
+			if (typeInfo.isSizeKnownInThisModule(variantType)) {
+				valuePtr = emitConstInBoundsGEP2_32(genType(module(), variantType),
+				                                    variantPtr, 0, 1);
 			} else {
 				const auto unionAlignValue = genAlignOf(functionGenerator_,
-				                                        datatypeType);
-				datatypeVariantPtr = emitInBoundsGEP(typeGenerator().getI8Type(),
-				                                     datatypePtr,
-				                                     unionAlignValue);
+				                                        variantType);
+				valuePtr = emitInBoundsGEP(typeGenerator().getI8Type(),
+				                           variantPtr, unionAlignValue);
 			}
 			
-			return datatypeVariantPtr;
+			return valuePtr;
 		}
 		
 		llvm::Value*

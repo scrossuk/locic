@@ -79,7 +79,7 @@ namespace locic {
 			}
 			
 			// Copy requires predicate to all variant types.
-			for (const auto variantTypeInstance: typeInstanceNode->variants()) {
+			for (auto& variantTypeInstance: *(typeInstanceNode->variantDecls)) {
 				if (movePredicate) {
 					variantTypeInstance->setMovePredicate(movePredicate->copy());
 				}

@@ -332,14 +332,14 @@ namespace locic {
 		void StatementEmitter::emitSwitch(const AST::Value& switchValue,
 		                                  const std::vector<AST::SwitchCase*>& switchCases,
 		                                  const AST::DefaultCase& defaultCase) {
-			assert(switchValue.type()->isUnionDatatype());
+			assert(switchValue.type()->isVariant());
 			
 			auto& function = irEmitter_.function();
 			auto& module = irEmitter_.module();
 			ValueEmitter valueEmitter(irEmitter_);
 			
 			const auto switchType = switchValue.type();
-			assert(switchType->isUnionDatatype());
+			assert(switchType->isVariant());
 			
 			const auto switchValuePtr = irEmitter_.emitAlloca(switchType);
 			
@@ -348,9 +348,9 @@ namespace locic {
 			
 			irEmitter_.scheduleDestructorCall(switchValuePtr, switchType);
 			
-			const auto unionDatatypePointers = getUnionDatatypePointers(function, switchType, switchValuePtr);
+			const auto variantPointers = getVariantPointers(function, switchType, switchValuePtr);
 			
-			const auto loadedTag = irEmitter_.emitRawLoad(unionDatatypePointers.first,
+			const auto loadedTag = irEmitter_.emitRawLoad(variantPointers.first,
 			                                              TypeGenerator(module).getI8Type());
 			
 			const auto defaultBB = irEmitter_.createBasicBlock("");
@@ -367,8 +367,8 @@ namespace locic {
 				// Start from 1 so 0 can represent 'empty'.
 				uint8_t tag = 1;
 				
-				for (auto variantTypeInstance : switchType->getObjectType()->variants()) {
-					if (variantTypeInstance == caseType->getObjectType()) {
+				for (const auto variantType: switchType->getObjectType()->variantTypes()) {
+					if (variantType->getObjectType() == caseType->getObjectType()) {
 						break;
 					}
 					
@@ -385,7 +385,7 @@ namespace locic {
 				{
 					ScopeLifetime switchCaseLifetime(function);
 					function.setVarAddress(*(switchCase->var()),
-					                       unionDatatypePointers.second);
+					                       variantPointers.second);
 					ScopeEmitter(irEmitter_).emitScope(*(switchCase->scope()));
 				}
 				

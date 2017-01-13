@@ -81,9 +81,9 @@ namespace locic {
 					CLASSDECL,
 					CLASSDEF,
 					DATATYPE,
-					UNION_DATATYPE,
 					INTERFACE,
-					EXCEPTION
+					EXCEPTION,
+					VARIANT
 				};
 				
 				TypeInstance(String name, Kind kind);
@@ -96,6 +96,7 @@ namespace locic {
 				Node<StringList> constructors;
 				Node<TemplateVarList> templateVariableDecls;
 				Node<TypeInstanceList> variantDecls;
+				Node<TypeDeclList> variantTypeDecls;
 				Node<VarList> variableDecls;
 				Node<FunctionList> functionDecls;
 				Node<ExceptionInitializer> initializer;
@@ -164,11 +165,11 @@ namespace locic {
 				
 				bool isDatatype() const;
 				
-				bool isUnionDatatype() const;
-				
 				bool isInterface() const;
 				
 				bool isException() const;
+				
+				bool isVariant() const;
 				
 				/**
 				 * \brief Get type of 'self'.
@@ -202,17 +203,14 @@ namespace locic {
 				ValueArray selfTemplateArgs() const;
 				
 				/**
-				 * \brief Get variants.
+				 * \brief Get variants types.
 				 * 
-				 * Some type instances (e.g. union datatypes)
-				 * can have multiple 'variants', which are
-				 * type instances that are effectively children
-				 * of this type instance.
+				 * Get all the types in a variant.
 				 * 
-				 * \return Variant type instance array.
+				 * \return Variant type array.
 				 */
-				std::vector<TypeInstance*>& variants();
-				const std::vector<TypeInstance*>& variants() const;
+				std::vector<const Type*>& variantTypes();
+				const std::vector<const Type*>& variantTypes() const;
 				
 				/**
 				 * \brief Get template variables.
@@ -413,7 +411,7 @@ namespace locic {
 				const TypeInstance* parentTypeInstance_;
 				const Type* parentType_;
 				
-				std::vector<TypeInstance*> variants_;
+				std::vector<const Type*> variantTypes_;
 				
 				TemplateVarArray templateVariables_;
 				FastMap<String, TemplateVar*> namedTemplateVariables_;

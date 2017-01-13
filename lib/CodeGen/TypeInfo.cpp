@@ -54,9 +54,9 @@ namespace locic {
 					}
 				}
 				return true;
-			} else if (typeInstance.isUnionDatatype()) {
-				for (auto variantTypeInstance: typeInstance.variants()) {
-					if (!isObjectSizeAlwaysKnown(*variantTypeInstance)) {
+			} else if (typeInstance.isVariant()) {
+				for (const auto variantType: typeInstance.variantTypes()) {
+					if (!isSizeAlwaysKnown(variantType)) {
 						return false;
 					}
 				}
@@ -99,9 +99,9 @@ namespace locic {
 					}
 				}
 				return true;
-			} else if (typeInstance.isUnionDatatype()) {
-				for (auto variantTypeInstance: typeInstance.variants()) {
-					if (!isObjectSizeKnownInThisModule(*variantTypeInstance)) {
+			} else if (typeInstance.isVariant()) {
+				for (const auto variantType: typeInstance.variantTypes()) {
+					if (!isSizeKnownInThisModule(variantType)) {
 						return false;
 					}
 				}
@@ -137,9 +137,9 @@ namespace locic {
 				                                     arrayRef(typeInstance.selfTemplateArgs()));
 			}
 			
-			if (typeInstance.isUnionDatatype()) {
-				for (const auto variantTypeInstance: typeInstance.variants()) {
-					if (objectHasCustomDestructor(*variantTypeInstance)) {
+			if (typeInstance.isVariant()) {
+				for (const auto variantType: typeInstance.variantTypes()) {
+					if (hasCustomDestructor(variantType)) {
 						return true;
 					}
 				}
@@ -196,9 +196,9 @@ namespace locic {
 				                               arrayRef(typeInstance.selfTemplateArgs()));
 			}
 			
-			if (typeInstance.isUnionDatatype()) {
-				for (const auto variantTypeInstance: typeInstance.variants()) {
-					if (objectHasCustomMove(*variantTypeInstance)) {
+			if (typeInstance.isVariant()) {
+				for (const auto variantType: typeInstance.variantTypes()) {
+					if (hasCustomMove(variantType)) {
 						return true;
 					}
 				}

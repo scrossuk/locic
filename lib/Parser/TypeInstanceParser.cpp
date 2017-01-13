@@ -6,6 +6,7 @@
 #include <locic/Parser/TokenReader.hpp>
 #include <locic/Parser/TypeInstanceBuilder.hpp>
 #include <locic/Parser/TypeInstanceParser.hpp>
+#include <locic/Parser/TypeParser.hpp>
 #include <locic/Parser/ValueParser.hpp>
 #include <locic/Parser/VarParser.hpp>
 
@@ -59,6 +60,8 @@ namespace locic {
 					return parseStruct();
 				case Token::UNION:
 					return parseUnion();
+				case Token::VARIANT:
+					return parseVariant();
 				default:
 					throw std::logic_error("TODO: invalid type instance");
 			}
@@ -104,8 +107,7 @@ namespace locic {
 			reader_.expect(Token::SETEQUAL);
 			
 			auto variants = parseDatatypeVariantList();
-			
-			return builder_.makeUnionDatatype(name, std::move(variants), start);
+			return builder_.makeVariantDatatype(name, std::move(variants), start);
 		}
 		
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseEnum() {
@@ -159,7 +161,7 @@ namespace locic {
 			
 			return builder_.makeTypeInstanceList(std::move(list), start);
 		}
-		
+
 		AST::Node<AST::TypeInstance> TypeInstanceParser::parseDatatypeVariant() {
 			const auto start = reader_.position();
 			
@@ -261,6 +263,40 @@ namespace locic {
 			reader_.expect(Token::RCURLYBRACKET);
 			
 			return builder_.makeUnion(name, std::move(variables), start);
+		}
+		
+		AST::Node<AST::TypeInstance> TypeInstanceParser::parseVariant() {
+			const auto start = reader_.position();
+			
+			reader_.expect(Token::VARIANT);
+			const auto name = reader_.expectName();
+			
+			reader_.expect(Token::SETEQUAL);
+			
+			auto variantTypes = parseVariantTypeList();
+			
+			return builder_.makeVariant(name, std::move(variantTypes), start);
+		}
+		
+		AST::Node<AST::TypeDeclList>
+		TypeInstanceParser::parseVariantTypeList() {
+			const auto start = reader_.position();
+			
+			AST::TypeDeclList list;
+			list.reserve(8);
+			
+			list.push_back(TypeParser(reader_).parseType());
+			
+			while (true) {
+				if (reader_.peek().kind() != Token::VERTICAL_BAR) {
+					break;
+				}
+				
+				reader_.consume();
+				list.push_back(TypeParser(reader_).parseType());
+			}
+			
+			return builder_.makeTypeList(std::move(list), start);
 		}
 		
 		AST::Node<AST::FunctionList> TypeInstanceParser::parseMethodDeclList() {

@@ -320,7 +320,7 @@ namespace locic {
 			const auto destType = value.type()->resolveAliases();
 			
 			auto valueHintResultValue = hintResultValue;
-			if (sourceType->isDatatype() && destType->isUnionDatatype()) {
+			if (!sourceType->isVariant() && destType->isVariant()) {
 				valueHintResultValue = nullptr;
 			}
 			if (destType->isBuiltInVoid()) {
@@ -348,28 +348,28 @@ namespace locic {
 						return codeValue;
 					}
 					
-					if (sourceType->isDatatype() && destType->isUnionDatatype()) {
+					if (!sourceType->isVariant() && destType->isVariant()) {
 						// Start from 1 so 0 can be used to represent 'empty'.
 						uint8_t variantKind = 1;
-						for (auto variantTypeInstance: destType->getObjectType()->variants()) {
-							if (variantTypeInstance == sourceType->getObjectType()) break;
+						for (auto variantType: destType->getObjectType()->variantTypes()) {
+							if (variantType->getObjectType() == sourceType->getObjectType()) break;
 							variantKind++;
 						}
 						
-						const auto unionValue = irEmitter_.emitAlloca(destType, hintResultValue);
+						const auto variantValue = irEmitter_.emitAlloca(destType, hintResultValue);
 						
-						const auto unionDatatypePointers =
-							getUnionDatatypePointers(irEmitter_.function(),
-							                         destType, unionValue);
+						const auto variantPointers =
+							getVariantPointers(irEmitter_.function(),
+							                   destType, variantValue);
 						
 						// Set the variant kind value.
 						irEmitter_.emitRawStore(irEmitter_.constantGenerator().getI8(variantKind),
-						                        unionDatatypePointers.first);
+						                        variantPointers.first);
 						
 						// Store the union value.
-						irEmitter_.emitMoveStore(codeValue, unionDatatypePointers.second, sourceType);
+						irEmitter_.emitMoveStore(codeValue, variantPointers.second, sourceType);
 						
-						return irEmitter_.emitLoad(unionValue, destType);
+						return irEmitter_.emitLoad(variantValue, destType);
 					}
 					
 					assert(false && "Casts between named types not implemented.");

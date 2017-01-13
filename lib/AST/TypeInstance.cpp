@@ -22,6 +22,7 @@ namespace locic {
 		TypeInstance::TypeInstance(String pName, Kind pKind)
 		: templateVariableDecls(makeDefaultNode<TemplateVarList>()),
 		variantDecls(makeDefaultNode<TypeInstanceList>()),
+		variantTypeDecls(makeDefaultNode<TypeDeclList>()),
 		variableDecls(makeDefaultNode<VarList>()),
 		functionDecls(makeDefaultNode<FunctionList>()),
 		moveSpecifier(makeNode<RequireSpecifier>(Debug::SourceLocation::Null(), RequireSpecifier::None())),
@@ -137,8 +138,8 @@ namespace locic {
 			return kind() == DATATYPE;
 		}
 		
-		bool TypeInstance::isUnionDatatype() const {
-			return kind() == UNION_DATATYPE;
+		bool TypeInstance::isVariant() const {
+			return kind() == VARIANT;
 		}
 		
 		bool TypeInstance::isInterface() const {
@@ -206,12 +207,14 @@ namespace locic {
 			return noexceptPredicate_;
 		}
 		
-		std::vector<TypeInstance*>& TypeInstance::variants() {
-			return variants_;
+		std::vector<const Type*>& TypeInstance::variantTypes() {
+			assert(isVariant());
+			return variantTypes_;
 		}
 		
-		const std::vector<TypeInstance*>& TypeInstance::variants() const {
-			return variants_;
+		const std::vector<const Type*>& TypeInstance::variantTypes() const {
+			assert(isVariant());
+			return variantTypes_;
 		}
 		
 		FastMap<String, Var*>& TypeInstance::namedVariables() {
@@ -357,8 +360,8 @@ namespace locic {
 				case DATATYPE:
 					s += "datatype";
 					break;
-				case UNION_DATATYPE:
-					s += "union datatype";
+				case VARIANT:
+					s += "variant";
 					break;
 				case INTERFACE:
 					s += "interface";
@@ -395,6 +398,25 @@ namespace locic {
 				bool isFirst = true;
 				
 				for (const auto& node : *variantDecls) {
+					if (!isFirst) {
+						s += ", ";
+					}
+					
+					isFirst = false;
+					s += node.toString();
+				}
+				
+				s += ")";
+			}
+			
+			s += ", ";
+			
+			{
+				s += "variantTypeList: (";
+				
+				bool isFirst = true;
+				
+				for (const auto& node : *variantTypeDecls) {
 					if (!isFirst) {
 						s += ", ";
 					}

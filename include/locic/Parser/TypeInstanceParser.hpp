@@ -26,17 +26,13 @@ namespace locic {
 			AST::Node<AST::TypeInstance> parseClass();
 			
 			AST::Node<AST::TypeInstance> parseDatatype();
-			
 			AST::Node<AST::TypeInstanceList> parseDatatypeVariantList();
-			
 			AST::Node<AST::TypeInstance> parseDatatypeVariant();
 			
 			AST::Node<AST::TypeInstance> parseEnum();
-			
 			AST::Node<AST::StringList> parseEnumConstructorList();
 			
 			AST::Node<AST::TypeInstance> parseException();
-			
 			AST::Node<AST::ExceptionInitializer> parseExceptionInitializer();
 			
 			AST::Node<AST::TypeInstance> parseInterface();
@@ -46,6 +42,9 @@ namespace locic {
 			AST::Node<AST::TypeInstance> parseStruct();
 			
 			AST::Node<AST::TypeInstance> parseUnion();
+			
+			AST::Node<AST::TypeInstance> parseVariant();
+			AST::Node<AST::TypeDeclList> parseVariantTypeList();
 			
 			AST::Node<AST::FunctionList> parseMethodDeclList();
 			

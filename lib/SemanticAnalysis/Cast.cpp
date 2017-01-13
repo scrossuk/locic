@@ -367,13 +367,13 @@ namespace locic {
 				                                          destType));
 			}
 			
-			// Try to cast datatype to its parent union datatype.
+			// Try to cast datatype to its parent variant.
 			if (sourceType->isDatatype()) {
 				const auto destDerefType = getDerefType(destType);
-				if (destDerefType->isUnionDatatype()) {
+				if (destDerefType->isVariant()) {
 					bool found = false;
-					for (const auto variant: destDerefType->getObjectType()->variants()) {
-						if (sourceType->getObjectType() == variant) {
+					for (const auto variantType: destDerefType->getObjectType()->variantTypes()) {
+						if (sourceType->getObjectType() == variantType->getObjectType()) {
 							found = true;
 							break;
 						}
@@ -568,12 +568,12 @@ namespace locic {
 		
 		namespace {
 			
-			const AST::Type* getUnionDatatypeParent(const AST::Type* type) {
+			const AST::Type* getVariantParent(const AST::Type* type) {
 				while (type->isReference()) {
 					type = type->referenceTarget();
 				}
 				
-				if (!type->isDatatype()) {
+				if (!type->isObject()) {
 					return nullptr;
 				}
 				
@@ -581,14 +581,14 @@ namespace locic {
 					return nullptr;
 				}
 				
-				return type->getObjectType()->parentTypeInstance()->selfType()->substitute(type->generateTemplateVarMap());
+				return type->getObjectType()->parentTypeInstance()->selfType();
 			}
 			
 		}
 		
 		const AST::Type* UnifyTypes(Context& context, const AST::Type* first, const AST::Type* second, const Debug::SourceLocation& location) {
 			// Try to convert both types to their parent (if any).
-			const auto firstParent = getUnionDatatypeParent(first);
+			const auto firstParent = getVariantParent(first);
 			if (firstParent != nullptr &&
 				CanDoImplicitCast(context, first, firstParent, location) &&
 				CanDoImplicitCast(context, second, firstParent, location)) {

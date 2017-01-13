@@ -50,9 +50,9 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeInstance>
-		TypeInstanceBuilder::makeUnionDatatype(String name, AST::Node<AST::TypeInstanceList> variants,
-		                                       const Debug::SourcePosition& start) {
-			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::UNION_DATATYPE),
+		TypeInstanceBuilder::makeVariantDatatype(String name, AST::Node<AST::TypeInstanceList> variants,
+		                                         const Debug::SourcePosition& start) {
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::VARIANT),
 			                                 start);
 			node->variantDecls = std::move(variants);
 			return node;
@@ -146,6 +146,22 @@ namespace locic {
 			                                 start);
 			node->variableDecls = std::move(variables);
 			return node;
+		}
+		
+		AST::Node<AST::TypeInstance>
+		TypeInstanceBuilder::makeVariant(String name, AST::Node<AST::TypeDeclList> variantTypes,
+		                                 const Debug::SourcePosition& start) {
+			auto node = makeTypeInstanceNode(new AST::TypeInstance(name, AST::TypeInstance::VARIANT),
+			                                 start);
+			node->variantTypeDecls = std::move(variantTypes);
+			return node;
+		}
+		
+		AST::Node<AST::TypeDeclList>
+		TypeInstanceBuilder::makeTypeList(AST::TypeDeclList list,
+		                                  const Debug::SourcePosition& start) {
+			const auto location = reader_.locationWithRangeFrom(start);
+			return AST::makeNode(location, new AST::TypeDeclList(std::move(list)));
 		}
 		
 		AST::Node<AST::FunctionList>

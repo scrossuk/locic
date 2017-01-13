@@ -386,8 +386,8 @@ namespace locic {
 			}
 		}
 		
-		std::pair<llvm::Value*, llvm::Value*> getUnionDatatypePointers(Function& function, const AST::Type* const type, llvm::Value* const objectPtr) {
-			assert(type->isUnionDatatype());
+		std::pair<llvm::Value*, llvm::Value*> getVariantPointers(Function& function, const AST::Type* const type, llvm::Value* const objectPtr) {
+			assert(type->isVariant());
 			auto& module = function.module();
 			
 			IREmitter irEmitter(function);
