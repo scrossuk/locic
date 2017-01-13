@@ -83,6 +83,7 @@ namespace locic {
 				STRUCT,
 				CLASS,
 				DATATYPE,
+				VARIANT,
 
 				SIGNED,
 				UNSIGNED,
@@ -316,6 +317,7 @@ namespace locic {
 					case STRUCT: return "STRUCT";
 					case CLASS: return "CLASS";
 					case DATATYPE: return "DATATYPE";
+					case VARIANT: return "VARIANT";
 					case SIGNED: return "SIGNED";
 					case UNSIGNED: return "UNSIGNED";
 					case BYTE: return "BYTE";

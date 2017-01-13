@@ -140,6 +140,7 @@ namespace locic {
 				case Token::NAMESPACE:
 				case Token::STRUCT:
 				case Token::UNION:
+				case Token::VARIANT:
 				case Token::TEMPLATE:
 				case Token::IMPORT:
 				case Token::EXPORT:

@@ -643,6 +643,8 @@ namespace locic {
 		
 		Token IdentifierLexer::lexPrefixV() {
 			switch (get().value()) {
+				case 'a':
+					return lexPossibleKeyword("variant", Token::VARIANT);
 				case 'i':
 					return lexPossibleKeyword("virtual", Token::VIRTUAL);
 				case 'o':

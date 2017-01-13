@@ -106,6 +106,7 @@ TEST(IdentifierLexTest, Keywords) {
 	testKeyword("ushort", locic::Lex::Token::Kind::USHORT);
 	testKeyword("using", locic::Lex::Token::Kind::USING);
 	
+	testKeyword("variant", locic::Lex::Token::Kind::VARIANT);
 	testKeyword("virtual", locic::Lex::Token::Kind::VIRTUAL);
 	testKeyword("void", locic::Lex::Token::Kind::VOID);
 }
