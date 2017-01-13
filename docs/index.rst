@@ -133,6 +133,7 @@ Language
 	Templates
 	UnusedValues
 	ValueGenerators
+	Variants
 
 Standard Library
 ----------------
@@ -178,7 +179,6 @@ These features are either still in the design stage or are awaiting implementati
 	proposals/RemoveLifetimeMethods
 	proposals/RTTI
 	proposals/VariadicTemplates
-	proposals/Variants
 	proposals/VectorTypes
 
 Additional Topics

@@ -9,7 +9,6 @@ set(PROPOSAL_FILES
 	proposals/RemoveLifetimeMethods.rst
 	proposals/RTTI.rst
 	proposals/VariadicTemplates.rst
-	proposals/Variants.rst
 	proposals/VectorTypes.rst
 )
 
@@ -55,6 +54,7 @@ set(SPHINX_INPUT_FILES
 	Tuples.rst
 	UnusedValues.rst
 	ValueGenerators.rst
+	Variants.rst
 	VtableGeneration.rst
 )
 

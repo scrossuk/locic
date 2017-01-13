@@ -11,6 +11,9 @@ Functional languages such as ML and Haskell provide algebraic data types as a me
 
 In this case, a binary tree element is either a Leaf which contains only an integer value, or a Node that contains two trees as its left and right children.
 
+.. Note::
+	This is a syntactic special case of :doc:`variants <Variants>`.
+
 It is common to need to describe such types when handling lots of data (for example, building ASTs in a compiler), and also in general programming. Expressing similar structures in C or C++ requires the combination of enums, unions and structs, and furthermore unions and class types interact poorly in C++, as they do in Loci:
 
 .. code-block:: c++
