@@ -394,21 +394,12 @@ Not specifying the ``depth`` means that it is zero, and hence either:
 
 (The second case is the result of the pass-through optimisation.)
 
-A known depth means root template generators know how many bits must be available and hence can allocate vtable sizes accordingly. The compiler can also warn when the ``depth`` becomes large enough that the template generator vtable is huge (at 12+ bits it starts taking 4+KiB).
+This has the following advantages:
 
-We can also prevent template cycles between modules, because they would end up with infinite depth.
-
-Furthermore, we can remove ``path_position`` from ``callinfo_t``:
-
-.. code-block:: c++
-
-	struct callinfo_t {
-		uint64_t method_hash;
-		typename_t types[8];
-		void* vtable;
-	};
-
-This works because each intermediate template generator knows exactly its offset within the path.
+* A known depth means root template generators know how many bits must be available and hence can allocate vtable sizes accordingly.
+* The compiler can warn when the ``depth`` becomes large enough that the template generator vtable is huge (at 12+ bits it starts taking 4+KiB).
+* We can prevent template cycles between modules, because they would end up with infinite depth.
+* We can remove ``path_position`` from ``callinfo_t``, because each intermediate template generator knows exactly its offset within the path.
 
 Summary
 -------
@@ -440,7 +431,7 @@ Interface reference
 		typedef <return arg> (*method_type)(hidden callinfo_t*, ...);
 		
 		void** fixed_vtable = ref.vtable & ~(127);
-		method_type ptr = fixed_vtable[METHOD_HASH_INDEX];
+		method_type ptr = fixed_vtable[METHOD_HASH % VTABLE_SIZE];
 		
 		callinfo_t callinfo;
 		callinfo.method_hash = METHOD_HASH;
@@ -461,7 +452,7 @@ typename_t
 		typedef <return arg> (*static_method_type)(hidden callinfo_t*, ...);
 		
 		void** fixed_vtable = ref.vtable & ~(127);
-		static_method_type ptr = fixed_vtable[METHOD_HASH_INDEX];
+		static_method_type ptr = fixed_vtable[METHOD_HASH % VTABLE_SIZE];
 		
 		callinfo_t callinfo;
 		callinfo.method_hash = METHOD_HASH;
@@ -532,8 +523,8 @@ Receiving template arguments
 .. code-block:: c++
 
 	<return arg> exported_templated_function(hidden callinfo_t* callinfo, ...<call args>...) {
-		typename_t first_arg = callinfo.types[0];
-		typename_t second_arg = callinfo.types[1];
+		typename_t first_arg = callinfo->types[0];
+		typename_t second_arg = callinfo->types[1];
 		
 		return internal_templated_function(callinfo, ...<call args>...);
 	}
@@ -544,7 +535,7 @@ Sending template arguments
 .. code-block:: c++
 
 	<return arg> function(hidden callinfo_t* callinfo, ...<call args>...) {
-		callinfo.vtable |= (TEMPLATE_PATH_VALUE << NEXT_MODULE_TEMPLATE_DEPTH);
+		callinfo->vtable |= (TEMPLATE_PATH_VALUE << NEXT_MODULE_TEMPLATE_DEPTH);
 		return imported_templated_function(callinfo, ...<call args>...);
 	}
 
@@ -554,7 +545,7 @@ Conflict resolution stub
 .. code-block:: c++
 
 	<return arg> conflict_resolution_stub(hidden callinfo_t* callinfo, ...<call args>...) {
-		switch (callinfo.method_hash) {
+		switch (callinfo->method_hash) {
 			case HASH_METHOD_0:
 				return tailcall method0(callinfo, ...<call args>...);
 			case HASH_METHOD_1:
