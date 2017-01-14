@@ -5,6 +5,7 @@ set(PROPOSAL_FILES
 	proposals/FutureStandardLibraryModules.rst
 	proposals/InteractingWithC++.rst
 	proposals/LateMoveParameters.rst
+	proposals/MergeTemplateGeneratorsAndVtables.rst
 	proposals/NamedParameters.rst
 	proposals/RemoveLifetimeMethods.rst
 	proposals/RTTI.rst
