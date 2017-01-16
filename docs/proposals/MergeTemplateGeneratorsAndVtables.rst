@@ -380,7 +380,7 @@ These substitutions mean that all code in our module can use the same path value
 Determining path size at compile-time
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This proposal suggests adding a ``depth`` attribute to imported templates, which indicates how many bits they require in their path:
+One possible approach is to add a ``depth`` attribute to imported templates, which indicates how many bits they require in their path:
 
 .. code-block:: c++
 
@@ -400,6 +400,260 @@ This has the following advantages:
 * The compiler can warn when the ``depth`` becomes large enough that the template generator vtable is huge (at 12+ bits it starts taking 4+KiB).
 * We can prevent template cycles between modules, because they would end up with infinite depth.
 * We can remove ``path_position`` from ``callinfo_t``, because each intermediate template generator knows exactly its offset within the path.
+
+Determining path size at run-time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``depth`` attribute exposes an implementation detail of the module, so it would be preferable to avoid it. Hence an alternative is to compute the depth at run-time.
+
+Doing this at run-time means root template generator vtables can't be pre-allocated. We can call down the chain at load-time to determine the depth, but we can't allocate storage in the data segment this way. We can allocate a one-vtable size global, but the required depth may exceed this space (i.e. when more than 6/7 bits are needed in the path). There are two approaches to this:
+
+* Terminate/report error. With this approach we can omit the load-time call for non-debug builds.
+* Allocate (suitably aligned) space on the heap (and copy from the vtable global).
+
+Direct versus indirect calls
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An interesting observation is that the path used by template generators is effectively a re-creation of the stack. The only reason we can't use the stack is that we can capture references to templated functions, methods or classes:
+
+.. code-block:: c++
+
+	template <typename T>
+	Interface& cast_to_interface(Class<T>& object) {
+		return object;
+	}
+
+Any method of ``Class<T>`` that is called via ``Interface&`` is likely to want to access its template arguments, but by that point the stack frame of ``f()`` will have unwound, so we can't just put the template arguments on the stack.
+
+**However**, in most cases we can put the template arguments on the stack:
+
+.. code-block:: c++
+
+	template <typename T>
+	void f() {
+		g<T>();
+	}
+
+In this case we don't actually need a template generator, because ``f()`` can pass its arguments to ``g()`` on the stack. An important caveat is that ``g()`` might capture references to templated functions, methods or classes, so we must pass it a template generator it can use.
+
+Based on this reasoning, the path only needs to contain enough information to identify **indirectly called** templated functions, methods or classes. So the template generator for ``f()`` never needs to consider the possibility of an indirect call to ``g()``, because there is no way to achieve that in the code.
+
+The template generator for ``f()`` does, however, need to consider the possibility that ``g()`` performs an indirect call to templated functions, so it still needs to call the template generator for ``g()``.
+
+Using vtable slots to reduce path size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following template generator graph:
+
+::
+
+	Module 1   |   Module 2   |  Module 3  |
+	
+	    ->   TPL(f)  -> a (slot: 2)
+	                 ->     TPL(a)  -> x (slot: 5)
+	                 -> b (slot: 3)
+	                 ->     TPL(b)  -> y (slot: 6)
+	                 -> c (slot: 4)
+	                 ->     TPL(c)  -> z (slot: 6)
+
+Here ``a``, ``b`` and ``c`` are templated functions or methods for which an indirect call reference is captured by ``f``. ``x`` is a templated function or method for which an indirect call reference is captured by ``a``, and similarly applies for ``y`` (captured by ``b``) and ``z`` (captured by ``c``).
+
+The compiler for module 2 assumes there are 6 choices for the template generator of ``f``:
+
+* Call ``a``
+* Call ``b``
+* Call ``c``
+* Call template generator for ``a``
+* Call template generator for ``b``
+* Call template generator for ``c``
+
+However the template generator of ``f`` also knows the 64-bit hash of the name of the function or method it will eventually call. We can therefore divide these based on the vtable slot they will fall into, which is shown in the graph. Looking at the whole graph, if you take into account the vtable slots there is only one conflict: between ``b`` and ``c`` when the slot index is ``6``. In other words the template generator for ``f`` can have logic such as:
+
+.. code-block:: c++
+
+	switch (path_value) {
+	case 0:
+		switch (slot) {
+		case 2: ...call a...
+		case 3: ...call b...
+		case 4: ...call c...
+		case 5: ...call a template generator...
+		case 6: ...call b template generator...
+		}
+	case 1:
+		assert(slot == 6);
+		...call c template generator...
+	}
+
+This works because we know that we can only be calling ``y`` and ``z`` when the slot index is ``6``; if the slot index is anything else the path is unambiguous.
+
+To compute this, we can define ``reachable(N)`` for node ``N`` where:
+
+* If ``N`` is a templated function/method (i.e. a leaf in the graph), then ``reachable(N) = { P }``, where ``P`` is its vtable slot.
+* If ``N`` is a template generator (i.e. **not** a leaf), then ``reachable(N) = union(child C of N) { reachable(C) }``.
+
+This gives:
+
+* ``reachable(a) = { 2 }``
+* ``reachable(TPLGEN(a)) = reachable(x) = { 5 }``
+* ``reachable(b) = { 3 }``
+* ``reachable(TPLGEN(b)) = reachable(y) = { 6 }``
+* ``reachable(c) = { 4 }``
+* ``reachable(TPLGEN(c)) = reachable(z) = { 6 }``
+* ``reachable(f) = reachable(a) | ... | reachable(TPL(a)) | ... = { 2, 3, 4, 5, 6 }``
+
+You can see where there are conflicts by determining ``conflict(N)``, which is ``union(child A of N, child B of N, A != B) { reachable(A) & reachable(B) }``:
+
+* ``conflict(TPLGEN(a)) = { }``
+* ``conflict(TPLGEN(b)) = { }``
+* ``conflict(TPLGEN(c)) = { }``
+* ``conflict(TPLGEN(f)) = (reachable(a) & reachable(b)) | (reachable(a) & reachable(c)) | ... = { 6 }``
+
+By representing ``reachable(N)`` as a bit field (one bit per vtable slot to indicate whether there is a reachable function/method for that slot) we can write efficient code to perform this computation, since intersection and union map neatly onto bitwise ``AND`` and bitwise ``OR``.
+
+The template generator can effectively be made programmable by creating a slot action table:
+
+.. code-block:: c++
+
+	struct template_child_info_t {
+		// The value we put into our position in the path to identify
+		// this child.
+		uint16_t path_id;
+		
+		// Reachability set of this child represented as bitfield.
+		uint16_t reachable;
+		
+		// Pointer to child's template_info_t; only applies for template
+		// generators.
+		template_info_t* info;
+	};
+	
+	struct slot_action_t {
+		// The action to take for each path ID, for this slot.
+		uint8_t id_to_child_map[NUM_CHILDREN];
+	};
+	
+	struct template_info_t {
+		// The offset within the path of our component.
+		uint8_t offset;
+		
+		// The mask of the path to get our component.
+		uint16_t mask;
+		
+		// The reachability of each path ID.
+		uint16_t path_id_reachability[NUM_CHILDREN];
+		
+		// The action table for each slot.
+		slot_action_t slot_actions[VTABLE_SIZE];
+		
+		// Information about child templates.
+		template_child_info_t children[NUM_CHILDREN];
+	};
+
+The template generator for ``f`` would then look like:
+
+.. code-block:: c++
+
+	template_info_t f_info = ...;
+	
+	<return arg> TPLGEN_f(hidden callinfo_t* callinfo, ...<call args>...) {
+		const auto slot = callinfo->method_hash & VTABLE_SIZE;
+		const auto path_id = (callinfo->vtable >> f_info->offset) & f_info->mask;
+		const auto action = f_info->slot_actions[slot].id_actions[path_id];
+		
+		switch (action) {
+		case 0:
+			[...modify types for templated function call...]
+			return tailcall a(callinfo, ...<call args>...);
+		case 1:
+			[...modify types for templated function call...]
+			return tailcall b(callinfo, ...<call args>...);
+		case 2:
+			[...modify types for templated function call...]
+			return tailcall c(callinfo, ...<call args>...);
+		case 3:
+			[...modify types for templated function call...]
+			return tailcall TPLGEN_a(callinfo, ...<call args>...);
+		case 4:
+			[...modify types for templated function call...]
+			return tailcall TPLGEN_b(callinfo, ...<call args>...);
+		case 5:
+			[...modify types for templated function call...]
+			return tailcall TPLGEN_c(callinfo, ...<call args>...);
+		}
+	}
+
+The algorithm to generate the table would look something like:
+
+.. code-block:: c++
+
+	// Allocate a path ID for the given reachability set.
+	uint8_t allocate_path_id(template_info_t* info, uint16_t reachable) {
+		uint8_t id = 0;
+		
+		while (true) {
+			if (info->path_id_reachability[id] & reachable) {
+				// Conflicts with this reachability set, try
+				// next.
+				id++;
+				continue;
+			}
+			
+			// Union the reachability set given; this means the path
+			// ID will only be re-used for other genuinely
+			// non-conflicting reachability sets.
+			info->path_id_reachability[id] |= reachable;
+			
+			return id;
+		}
+	}
+	
+	void generate_slotactions(template_info_t* info) {
+		size_t max_offset = 0;
+		
+		// Recursive call to children.
+		for (size_t i = 0; i < NUM_CHILDREN; i++) {
+			template_info_t* child_info = info->children[i].info;
+			if (child_info == NULL) continue;
+			
+			const auto offset = generate_slotactions(child_info);
+			if (offset > max_offset) max_offset = offset;
+		}
+		
+		size_t max_path_id = 0;
+		
+		// Allocate a path ID for each child based on their reachability sets.
+		for (size_t i = 0; i < NUM_CHILDREN; i++) {
+			const auto path_id = allocate_path_id(info, child_info->reachable);
+			
+			// Set the path ID we'll use for this child.
+			info->children[i].path_id = path_id;
+			
+			if (path_id > max_path_id) max_path_id = path_id;
+		}
+		
+		// Determine offset and mask.
+		info->offset = max_offset;
+		info->mask = round_up_to_power_of_2(max_path_id);
+		
+		// Fill in the slot action tables.
+		for (unsigned slot = 0; slot < VTABLE_SIZE; slot++) {
+			for (size_t i = 0; i < NUM_CHILDREN; i++) {
+				if (!(info->children[j].reachable & (1 << slot))) {
+					// Child isn't reachable for this slot.
+					continue;
+				}
+				
+				const auto child_path_id = info->children[i].path_id;
+				info->slot_actions[slot].id_to_child_map[child_path_id] = i;
+			}
+		}
+		
+		return max_offset + log_2(info->mask);
+	}
+
+.. Note::
+	We can go even further than this and use the complete 64-bit name hashes, which in general shouldn't conflict unless the names are the same. This would require determining if there are any identical name hashes between children (only in such cases do we need to allocate bits on the path). However doing this is costly, so the approximation of using only 4-bits in the hash value (corresponding to 16 possible slots) is more useful.
 
 Summary
 -------
