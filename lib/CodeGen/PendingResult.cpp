@@ -15,11 +15,11 @@ namespace locic {
 		
 		llvm::Value*
 		ValuePendingResult::generateValue(Function& function,
-		                                  llvm::Value* const hintResultValue) const {
-			if (hintResultValue != nullptr) {
+		                                  llvm::Value* const resultPtr) const {
+			if (resultPtr != nullptr) {
 				IREmitter irEmitter(function);
-				irEmitter.emitMoveStore(value_, hintResultValue, type_);
-				return hintResultValue;
+				irEmitter.emitMoveStore(value_, resultPtr, type_);
+				return resultPtr;
 			} else {
 				return value_;
 			}
@@ -43,8 +43,8 @@ namespace locic {
 		: refValue_(refValue),
 		refTargetType_(refTargetType) { }
 		
-		llvm::Value* RefPendingResult::generateValue(Function& /*function*/, llvm::Value* /*hintResultValue*/) const {
-			// hintResultValue can be ignored because references are handled by value.
+		llvm::Value* RefPendingResult::generateValue(Function& /*function*/, llvm::Value* /*resultPtr*/) const {
+			// resultPtr can be ignored because references are handled by value.
 			return refValue_;
 		}
 		
@@ -57,8 +57,8 @@ namespace locic {
 		: value_(value), refTargetType_(refTargetType) { }
 		
 		llvm::Value* ValueToRefPendingResult::generateValue(Function& function,
-		                                                    llvm::Value* const /*hintResultValue*/) const {
-			// hintResultValue can be ignored because references are handled by value.
+		                                                    llvm::Value* const /*resultPtr*/) const {
+			// resultPtr can be ignored because references are handled by value.
 			return IREmitter(function).emitBind(value_, refTargetType_);
 		}
 		
@@ -67,22 +67,21 @@ namespace locic {
 		}
 		
 		PendingResult::PendingResult(const PendingResultBase& base)
-		: base_(&base),
-		 cacheLastHintResultValue_(nullptr),
+		: base_(&base), cacheLastResultPtr_(nullptr),
 		 cacheLastResolvedValue_(nullptr),
 		 cacheLastResolvedWithoutBindValue_(nullptr) { }
 		
-		llvm::Value* PendingResult::resolve(Function& function, llvm::Value* const hintResultValue) {
+		llvm::Value* PendingResult::resolve(Function& function, llvm::Value* const resultPtr) {
 			if (cacheLastResolvedValue_ != nullptr &&
-			    hintResultValue == cacheLastHintResultValue_) {
+			    resultPtr == cacheLastResultPtr_) {
 				// Return cached result.
 				return cacheLastResolvedValue_;
 			}
 			
-			const auto result = base_->generateValue(function, hintResultValue);
+			const auto result = base_->generateValue(function, resultPtr);
 			assert(result != nullptr);
 			
-			cacheLastHintResultValue_ = hintResultValue;
+			cacheLastResultPtr_ = resultPtr;
 			cacheLastResolvedValue_ = result;
 			
 			return result;

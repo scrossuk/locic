@@ -26,7 +26,7 @@ namespace locic {
 		class Module;
 		
 		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args,
-			llvm::Value* const hintResultValue = nullptr);
+			llvm::Value* const resultPtr = nullptr);
 		
 		llvm::Value* genPrimitiveAlignMask(Function& function, const AST::Type* type);
 		llvm::Value* genPrimitiveSizeOf(Function& function, const AST::Type* type);

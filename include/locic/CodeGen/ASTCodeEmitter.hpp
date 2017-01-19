@@ -32,7 +32,7 @@ namespace locic {
 			                            const AST::TypeInstance* typeInstance,
 			                            const AST::Function& function,
 			                            PendingResultArray args,
-			                            llvm::Value* hintResultValue);
+			                            llvm::Value* resultPtr);
 			
 			void emitBuiltInFunctionCode(const AST::TypeInstance* typeInstance,
 			                             const AST::Function& function,

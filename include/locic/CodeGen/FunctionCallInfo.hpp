@@ -108,11 +108,11 @@ namespace locic {
 		 * \param function The current function generator.
 		 * \param value The function AST value.
 		 * \param args The AST value arguments.
-		 * \param hintResultValue A result pointer (to avoid unnecessary allocs/moves) or null if none available.
+		 * \param resultPtr A result pointer (to avoid unnecessary allocs/moves) or null if none available.
 		 * \return The result of the function call.
 		 */
 		llvm::Value* genTrivialFunctionCall(Function& function, const AST::Value& value, llvm::ArrayRef<AST::Value> args,
-			llvm::Value* const hintResultValue = nullptr);
+			llvm::Value* const resultPtr = nullptr);
 		
 		FunctionCallInfo genFunctionCallInfo(Function& function, const AST::Value& value);
 		

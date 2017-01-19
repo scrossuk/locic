@@ -26,7 +26,7 @@ namespace locic {
 			
 			llvm::Value*
 			emitValue(const AST::Value& value,
-			          llvm::Value* hintResultValue = nullptr);
+			          llvm::Value* resultPtr = nullptr);
 			
 			llvm::Value* emitSelf();
 			
@@ -37,32 +37,32 @@ namespace locic {
 			
 			llvm::Value*
 			emitAlias(const AST::Value& value,
-			          llvm::Value* hintResultValue);
+			          llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitLocalVar(const AST::Value& value);
 			
 			llvm::Value*
 			emitReinterpretCast(const AST::Value& value,
-			                    llvm::Value* hintResultValue);
+			                    llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitDerefReference(const AST::Value& value);
 			
 			llvm::Value*
 			emitTernary(const AST::Value& value,
-			            llvm::Value* hintResultValue);
+			            llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitCast(const AST::Value& value,
-			         llvm::Value* hintResultValue);
+			         llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitPolyCast(const AST::Value& value);
 			
 			llvm::Value*
 			emitInternalConstruct(const AST::Value& value,
-			                      llvm::Value* hintResultValue);
+			                      llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitMemberAccess(const AST::Value& value);
@@ -75,7 +75,7 @@ namespace locic {
 			
 			llvm::Value*
 			emitCall(const AST::Value& value,
-			         llvm::Value* hintResultValue);
+			         llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitFunctionRef(const AST::Value& value);
@@ -91,15 +91,15 @@ namespace locic {
 			
 			llvm::Value*
 			emitTemplateVarRef(const AST::Value& value,
-			                   llvm::Value* hintResultValue);
+			                   llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitArrayLiteral(const AST::Value& value,
-			                 llvm::Value* hintResultValue);
+			                 llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitNew(const AST::Value& value,
-			        llvm::Value* hintResultValue);
+			        llvm::Value* resultPtr);
 			
 		private:
 			IREmitter& irEmitter_;

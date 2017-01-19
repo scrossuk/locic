@@ -42,7 +42,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Value* callRawCastMethod(Function& function, llvm::Value* const castFromValue, const AST::Type* const castFromType,
-				const String& targetMethodName, const AST::Type* const castToType, llvm::Value* const hintResultValue);
+				const String& targetMethodName, const AST::Type* const castToType, llvm::Value* const resultPtr);
 		
 		NullPrimitive::NullPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) { }
@@ -84,7 +84,7 @@ namespace locic {
 		                                       llvm::ArrayRef<AST::Value> typeTemplateArguments,
 		                                       llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                       PendingResultArray /*args*/,
-		                                       llvm::Value* const hintResultValue) const {
+		                                       llvm::Value* const resultPtr) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
@@ -117,7 +117,7 @@ namespace locic {
 					                                    std::move(valueArray));
 					const auto targetType = functionTemplateArguments.front().typeRefType();
 					return callRawCastMethod(function, nullptr, type, module.getCString("null"),
-					                         targetType, hintResultValue);
+					                         targetType, resultPtr);
 				}
 				default:
 					llvm_unreachable("Unknown null_t primitive method.");

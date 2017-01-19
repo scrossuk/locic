@@ -126,7 +126,7 @@ namespace locic {
 		                                              llvm::ArrayRef<AST::Value> typeTemplateArguments,
 		                                              llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                              PendingResultArray args,
-		                                              llvm::Value* const hintResultValue) const {
+		                                              llvm::Value* const resultPtr) const {
 			auto& builder = irEmitter.builder();
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
@@ -158,7 +158,7 @@ namespace locic {
 					if (typeInfo.isSizeAlwaysKnown(type)) {
 						return ConstantGenerator(module).getUndef(genType(module, type));
 					} else {
-						const auto result = irEmitter.emitAlloca(type, hintResultValue);
+						const auto result = irEmitter.emitAlloca(type, resultPtr);
 						// TODO
 						return result;
 					}
@@ -214,7 +214,7 @@ namespace locic {
 					const auto arraySize = valueEmitter.emitValue(elementCount);
 					const auto arrayPtr = args[0].resolve(function);
 					
-					const auto result = irEmitter.emitAlloca(type, hintResultValue);
+					const auto result = irEmitter.emitAlloca(type, resultPtr);
 					
 					const auto beforeLoopBB = builder.GetInsertBlock();
 					const auto loopBB = irEmitter.createBasicBlock("");
@@ -230,21 +230,21 @@ namespace locic {
 					phiNode->addIncoming(ConstantGenerator(module).getSizeTValue(0),
 					                     beforeLoopBB);
 					
-					const auto memberPtr = getArrayIndex(irEmitter,
-					                                     elementType,
-					                                     arrayPtr,
-					                                     phiNode);
+					const auto memberSourcePtr = getArrayIndex(irEmitter,
+					                                           elementType,
+					                                           arrayPtr,
+					                                           phiNode);
 					
-					const auto resultPtr = getArrayIndex(irEmitter,
-					                                     elementType,
-					                                     result,
-					                                     phiNode);
+					const auto memberDestPtr = getArrayIndex(irEmitter,
+					                                         elementType,
+					                                         result,
+					                                         phiNode);
 					
 					const auto copyResult = irEmitter.emitCopyCall(methodID,
-					                                               memberPtr,
+					                                               memberSourcePtr,
 					                                               elementType,
-					                                               resultPtr);
-					irEmitter.emitStore(copyResult, resultPtr, elementType);
+					                                               memberDestPtr);
+					irEmitter.emitStore(copyResult, memberDestPtr, elementType);
 					
 					const auto indexIncremented = builder.CreateAdd(phiNode,
 					                                                ConstantGenerator(module).getSizeTValue(1));
@@ -273,7 +273,7 @@ namespace locic {
 				case METHOD_MOVE: {
 					const auto arraySize = valueEmitter.emitValue(elementCount);
 					const auto sourcePtr = args[0].resolve(function);
-					const auto destPtr = irEmitter.emitAlloca(type, hintResultValue);
+					const auto destPtr = irEmitter.emitAlloca(type, resultPtr);
 					
 					const auto beforeLoopBB = builder.GetInsertBlock();
 					const auto loopBB = irEmitter.createBasicBlock("");

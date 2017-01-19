@@ -20,7 +20,7 @@ namespace locic {
 			                            METHOD_ALIGNMASK,
 			                            arrayRef(type->templateArguments()),
 			                            /*functionTemplateArguments=*/llvm::ArrayRef<AST::Value>(),
-			                            /*args=*/{}, /*hintResultValue=*/nullptr);
+			                            /*args=*/{}, /*resultPtr=*/nullptr);
 		}
 		
 		llvm::Value* genPrimitiveSizeOf(Function& function, const AST::Type* const type) {
@@ -33,7 +33,7 @@ namespace locic {
 			                            METHOD_SIZEOF,
 			                            arrayRef(type->templateArguments()),
 			                            /*functionTemplateArguments=*/llvm::ArrayRef<AST::Value>(),
-			                            /*args=*/{}, /*hintResultValue=*/nullptr);
+			                            /*args=*/{}, /*resultPtr=*/nullptr);
 		}
 		
 	}

@@ -270,7 +270,7 @@ namespace locic {
 		                                      llvm::ArrayRef<AST::Value> typeTemplateArguments,
 		                                      llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                      PendingResultArray args,
-		                                      llvm::Value* const hintResultValue) const {
+		                                      llvm::Value* const resultPtr) const {
 			auto& builder = irEmitter.builder();
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
@@ -315,7 +315,7 @@ namespace locic {
 					// If the virtualness of the reference is known, we
 					// can load it, otherwise we have to keep accessing
 					// it by pointer.
-					if (!isRefVirtualnessKnown(type) && hintResultValue == nullptr) {
+					if (!isRefVirtualnessKnown(type) && resultPtr == nullptr) {
 						return args[0].resolve(function);
 					}
 					
@@ -325,10 +325,10 @@ namespace locic {
 						[&](llvm::Type* const llvmType) {
 							const auto loadedValue = methodOwner.get(llvmType);
 							if (!isRefVirtualnessKnown(type)) {
-								assert(hintResultValue != nullptr);
+								assert(resultPtr != nullptr);
 								irEmitter.emitRawStore(loadedValue,
-								                       hintResultValue);
-								return hintResultValue;
+								                       resultPtr);
+								return resultPtr;
 							} else {
 								return loadedValue;
 							}

@@ -71,7 +71,7 @@ namespace locic {
 		
 		llvm::Value*
 		ValueEmitter::emitValue(const AST::Value& value,
-		                        llvm::Value* const hintResultValue) {
+		                        llvm::Value* const resultPtr) {
 			const auto& debugInfo = value.debugInfo();
 			if (debugInfo) {
 				irEmitter_.function().setDebugPosition(debugInfo->location.range().start());
@@ -85,21 +85,21 @@ namespace locic {
 				case AST::Value::CONSTANT:
 					return emitConstant(value);
 				case AST::Value::ALIAS:
-					return emitAlias(value, hintResultValue);
+					return emitAlias(value, resultPtr);
 				case AST::Value::LOCALVAR:
 					return emitLocalVar(value);
 				case AST::Value::REINTERPRET:
-					return emitReinterpretCast(value, hintResultValue);
+					return emitReinterpretCast(value, resultPtr);
 				case AST::Value::DEREF_REFERENCE:
 					return emitDerefReference(value);
 				case AST::Value::TERNARY:
-					return emitTernary(value, hintResultValue);
+					return emitTernary(value, resultPtr);
 				case AST::Value::CAST:
-					return emitCast(value, hintResultValue);
+					return emitCast(value, resultPtr);
 				case AST::Value::POLYCAST:
 					return emitPolyCast(value);
 				case AST::Value::INTERNALCONSTRUCT:
-					return emitInternalConstruct(value, hintResultValue);
+					return emitInternalConstruct(value, resultPtr);
 				case AST::Value::MEMBERACCESS:
 					return emitMemberAccess(value);
 				case AST::Value::BIND_REFERENCE:
@@ -107,7 +107,7 @@ namespace locic {
 				case AST::Value::TYPEREF:
 					return emitTypeRef(value);
 				case AST::Value::CALL:
-					return emitCall(value, hintResultValue);
+					return emitCall(value, resultPtr);
 				case AST::Value::FUNCTIONREF:
 				case AST::Value::TEMPLATEFUNCTIONREF:
 					return emitFunctionRef(value);
@@ -118,11 +118,11 @@ namespace locic {
 				case AST::Value::STATICINTERFACEMETHODOBJECT:
 					return emitStaticInterfaceMethodObject(value);
 				case AST::Value::TEMPLATEVARREF:
-					return emitTemplateVarRef(value, hintResultValue);
+					return emitTemplateVarRef(value, resultPtr);
 				case AST::Value::ARRAYLITERAL:
-					return emitArrayLiteral(value, hintResultValue);
+					return emitArrayLiteral(value, resultPtr);
 				case AST::Value::NEW:
-					return emitNew(value, hintResultValue);
+					return emitNew(value, resultPtr);
 				case AST::Value::PREDICATE:
 				case AST::Value::CAPABILITYTEST:
 				case AST::Value::CASTDUMMYOBJECT:
@@ -208,13 +208,13 @@ namespace locic {
 		
 		llvm::Value*
 		ValueEmitter::emitAlias(const AST::Value& value,
-		                        llvm::Value* const hintResultValue) {
+		                        llvm::Value* const resultPtr) {
 			const auto& alias = value.alias();
 			
 			AST::TemplateVarMap assignments(alias.templateVariables().copy(),
 			                                value.aliasTemplateArguments().copy());
 			auto resolvedValue = alias.value().substitute(assignments);
-			return emitValue(resolvedValue, hintResultValue);
+			return emitValue(resolvedValue, resultPtr);
 		}
 		
 		llvm::Value*
@@ -224,8 +224,8 @@ namespace locic {
 		
 		llvm::Value*
 		ValueEmitter::emitReinterpretCast(const AST::Value& value,
-		                                  llvm::Value* const hintResultValue) {
-			const auto sourceValue = emitValue(value.reinterpretOperand(), hintResultValue);
+		                                  llvm::Value* const resultPtr) {
+			const auto sourceValue = emitValue(value.reinterpretOperand(), resultPtr);
 			
 			// Currently, reinterpret_cast is only implemented for pointers.
 			assert(sourceValue->getType()->isPointerTy());
@@ -237,15 +237,15 @@ namespace locic {
 		llvm::Value*
 		ValueEmitter::emitDerefReference(const AST::Value& value) {
 			llvm::Value* const refValue = emitValue(value.derefOperand(),
-			                                        /*hintResultValue=*/nullptr);
+			                                        /*resultPtr=*/nullptr);
 			return irEmitter_.emitLoad(refValue, value.type());
 		}
 		
 		llvm::Value*
 		ValueEmitter::emitTernary(const AST::Value& value,
-		                          llvm::Value* const hintResultValue) {
+		                          llvm::Value* const resultPtr) {
 			const auto boolCondition = emitValue(value.ternaryCondition(),
-			                                     /*hintResultValue=*/nullptr);
+			                                     /*resultPtr=*/nullptr);
 			const auto condValue = irEmitter_.emitBoolToI1(boolCondition);
 			
 			const auto ifTrueBB = irEmitter_.createBasicBlock("");
@@ -255,13 +255,13 @@ namespace locic {
 			const auto currentBB = irEmitter_.builder().GetInsertBlock();
 			
 			irEmitter_.selectBasicBlock(ifTrueBB);
-			const auto ifTrueValue = emitValue(value.ternaryIfTrue(), hintResultValue);
+			const auto ifTrueValue = emitValue(value.ternaryIfTrue(), resultPtr);
 			const auto ifTrueTermBlock = irEmitter_.builder().GetInsertBlock();
 			const auto ifTrueIsEmpty = ifTrueBB->empty();
 			irEmitter_.emitBranch(afterCondBB);
 			
 			irEmitter_.selectBasicBlock(ifFalseBB);
-			auto ifFalseValue = emitValue(value.ternaryIfFalse(), hintResultValue);
+			auto ifFalseValue = emitValue(value.ternaryIfFalse(), resultPtr);
 			// Cast pointer if necessary to make them match.
 			if (ifTrueValue->getType() != ifFalseValue->getType()) {
 				assert(ifTrueValue->getType()->isPointerTy() &&
@@ -314,12 +314,12 @@ namespace locic {
 		
 		llvm::Value*
 		ValueEmitter::emitCast(const AST::Value& value,
-		                       llvm::Value* const hintResultValue) {
+		                       llvm::Value* const resultPtr) {
 			const auto& castValue = value.castOperand();
 			const auto sourceType = castValue.type()->resolveAliases();
 			const auto destType = value.type()->resolveAliases();
 			
-			auto valueHintResultValue = hintResultValue;
+			auto valueHintResultValue = resultPtr;
 			if (!sourceType->isVariant() && destType->isVariant()) {
 				valueHintResultValue = nullptr;
 			}
@@ -356,7 +356,7 @@ namespace locic {
 							variantKind++;
 						}
 						
-						const auto variantValue = irEmitter_.emitAlloca(destType, hintResultValue);
+						const auto variantValue = irEmitter_.emitAlloca(destType, resultPtr);
 						
 						const auto variantPointers =
 							getVariantPointers(irEmitter_.function(),
@@ -390,7 +390,7 @@ namespace locic {
 		ValueEmitter::emitPolyCast(const AST::Value& value) {
 			const auto& castValue = value.polyCastOperand();
 			const auto rawValue = emitValue(castValue,
-			                                /*hintResultValue=*/nullptr);
+			                                /*resultPtr=*/nullptr);
 			const auto sourceType = castValue.type();
 			
 			if (sourceType->isTypename()) {
@@ -452,14 +452,14 @@ namespace locic {
 		
 		llvm::Value*
 		ValueEmitter::emitInternalConstruct(const AST::Value& value,
-		                                    llvm::Value* const hintResultValue) {
+		                                    llvm::Value* const resultPtr) {
 			const auto& parameterValues = value.internalConstructParameters();
 			const auto& parameterVars = value.type()->getObjectType()->variables();
 			
 			const auto type = value.type();
 			assert(!type->isUnion());
 			
-			const auto objectValue = irEmitter_.emitAlloca(type, hintResultValue);
+			const auto objectValue = irEmitter_.emitAlloca(type, resultPtr);
 			
 			TypeInfo typeInfo(irEmitter_.module());
 			
@@ -519,7 +519,7 @@ namespace locic {
 			assert(dataRefValue.type()->isReference());
 			
 			const auto llvmDataRefValue = emitValue(dataRefValue,
-			                                        /*hintResultValue=*/nullptr);
+			                                        /*resultPtr=*/nullptr);
 			return genMemberPtr(irEmitter_.function(), llvmDataRefValue,
 			                    dataRefValue.type()->referenceTarget(), memberIndex);
 		}
@@ -529,7 +529,7 @@ namespace locic {
 			const auto& dataValue = value.bindReferenceOperand();
 			const auto ptrValue = irEmitter_.emitAlloca(dataValue.type());
 			const auto llvmDataValue = emitValue(dataValue,
-			                                     /*hintResultValue=*/ptrValue);
+			                                     /*resultPtr=*/ptrValue);
 			irEmitter_.emitStore(llvmDataValue, ptrValue, dataValue.type());
 			
 			// Call destructor for the object at the end of the current scope.
@@ -554,7 +554,7 @@ namespace locic {
 		
 		llvm::Value*
 		ValueEmitter::emitCall(const AST::Value& value,
-		                       llvm::Value* const hintResultValue) {
+		                       llvm::Value* const resultPtr) {
 			auto& module = irEmitter_.module();
 			auto& function = irEmitter_.function();
 			const auto& astCallValue = value.callValue();
@@ -565,22 +565,22 @@ namespace locic {
 				
 				llvm::SmallVector<llvm::Value*, 10> llvmArgs;
 				for (const auto& arg: astArgumentValues) {
-					llvmArgs.push_back(emitValue(arg, /*hintResultValue=*/nullptr));
+					llvmArgs.push_back(emitValue(arg, /*resultPtr=*/nullptr));
 				}
 				
 				return module.virtualCallABI().emitCall(irEmitter_,
 				                                        astCallValue.type()->asFunctionType(),
 				                                        methodComponents,
 				                                        llvmArgs,
-				                                        hintResultValue);
+				                                        resultPtr);
 			}
 			
 			// TODO: merge this with the call below.
 			if (isTrivialFunction(module, astCallValue)) {
-				return genTrivialFunctionCall(function, astCallValue, arrayRef(astArgumentValues), hintResultValue);
+				return genTrivialFunctionCall(function, astCallValue, arrayRef(astArgumentValues), resultPtr);
 			}
 			
-			return genASTFunctionCall(function, astCallValue, arrayRef(astArgumentValues), hintResultValue);
+			return genASTFunctionCall(function, astCallValue, arrayRef(astArgumentValues), resultPtr);
 		}
 		
 		llvm::Value*
@@ -627,7 +627,7 @@ namespace locic {
 		ValueEmitter::emitInterfaceMethodObject(const AST::Value& value) {
 			const auto& method = value.interfaceMethodObject();
 			const auto methodOwner = emitValue(value.interfaceMethodOwner(),
-			                                   /*hintResultValue=*/nullptr);
+			                                   /*resultPtr=*/nullptr);
 			
 			assert(method.kind() == AST::Value::FUNCTIONREF);
 			
@@ -642,7 +642,7 @@ namespace locic {
 		ValueEmitter::emitStaticInterfaceMethodObject(const AST::Value& value) {
 			const auto& method = value.staticInterfaceMethodObject();
 			const auto typeRefPtr = emitValue(value.staticInterfaceMethodOwner(),
-			                                  /*hintResultValue=*/nullptr);
+			                                  /*resultPtr=*/nullptr);
 			
 			const auto typeRef = irEmitter_.emitRawLoad(typeRefPtr,
 			                                            typeInfoType(irEmitter_.module()).second);
@@ -658,7 +658,7 @@ namespace locic {
 		
 		llvm::Value*
 		ValueEmitter::emitTemplateVarRef(const AST::Value& value,
-		                                 llvm::Value* const hintResultValue) {
+		                                 llvm::Value* const resultPtr) {
 			const auto templateArgs = irEmitter_.function().getTemplateArgs();
 			const auto templateVar = value.templateVar();
 			const auto index = templateVar->index();
@@ -681,13 +681,13 @@ namespace locic {
 			                       functionType,
 			                       callInfo,
 			                       /*args=*/{},
-			                       hintResultValue);
+			                       resultPtr);
 		}
 		
 		llvm::Value*
 		ValueEmitter::emitArrayLiteral(const AST::Value& value,
-		                               llvm::Value* const hintResultValue) {
-			const auto arrayPtr = irEmitter_.emitAlloca(value.type(), hintResultValue);
+		                               llvm::Value* const resultPtr) {
+			const auto arrayPtr = irEmitter_.emitAlloca(value.type(), resultPtr);
 			
 			for (size_t i = 0; i < value.arrayLiteralValues().size(); i++) {
 				const auto& elementValue = value.arrayLiteralValues()[i];
@@ -707,7 +707,7 @@ namespace locic {
 		
 		llvm::Value*
 		ValueEmitter::emitNew(const AST::Value& value,
-		                      llvm::Value* const /*hintResultValue*/) {
+		                      llvm::Value* const /*resultPtr*/) {
 			assert(value.newPlacementArg().type()->isBuiltInPointer());
 			const auto placementArg = emitValue(value.newPlacementArg());
 			assert(placementArg->getType()->isPointerTy());

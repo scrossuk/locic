@@ -24,7 +24,7 @@ namespace locic {
 		PrimitiveFunctionEmitter::emitMinOrMax(const MethodID methodID,
 		                                       llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                       PendingResultArray args,
-		                                       llvm::Value* const hintResultValue) {
+		                                       llvm::Value* const resultPtr) {
 			assert(methodID == METHOD_MIN || methodID == METHOD_MAX);
 			
 			const auto targetType = functionTemplateArguments[0].typeRefType();
@@ -51,7 +51,7 @@ namespace locic {
 			
 			ValueToRefPendingResult minResult(result, targetType);
 			const auto movedResult = irEmitter_.emitMoveCall(minResult, targetType,
-			                                                 hintResultValue);
+			                                                 resultPtr);
 			
 			irEmitter_.emitDestructorCall(secondValue, targetType);
 			irEmitter_.emitDestructorCall(firstValue, targetType);
@@ -78,7 +78,7 @@ namespace locic {
 		PrimitiveFunctionEmitter::emitRange(const MethodID methodID,
 		                                    llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                    PendingResultArray args,
-		                                    llvm::Value* const hintResultValue) {
+		                                    llvm::Value* const resultPtr) {
 			llvm::SmallVector<AST::Value, 1> typeTemplateArguments;
 			
 			const auto targetType = functionTemplateArguments[0].typeRefType();
@@ -92,14 +92,14 @@ namespace locic {
 			return primitive.emitMethod(irEmitter_, METHOD_CREATE,
 			                            typeTemplateArguments,
 			                            methodFunctionTemplateArguments,
-			                            std::move(args), hintResultValue);
+			                            std::move(args), resultPtr);
 		}
 		
 		llvm::Value*
 		PrimitiveFunctionEmitter::emitStandaloneFunction(const MethodID methodID,
 		                                                 llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                                 PendingResultArray args,
-		                                                 llvm::Value* const hintResultValue) {
+		                                                 llvm::Value* const resultPtr) {
 			assert(methodID.isStandaloneFunction());
 			switch (methodID) {
 				case METHOD_MIN:
@@ -107,14 +107,14 @@ namespace locic {
 					return emitMinOrMax(methodID,
 					                    functionTemplateArguments,
 					                    std::move(args),
-					                    hintResultValue);
+					                    resultPtr);
 				case METHOD_RANGE:
 				case METHOD_RANGE_INCL:
 				case METHOD_REVERSE_RANGE:
 				case METHOD_REVERSE_RANGE_INCL:
 					return emitRange(methodID, functionTemplateArguments,
 					                 std::move(args),
-					                 hintResultValue);
+					                 resultPtr);
 				default:
 					llvm_unreachable("Unknown standalone function.");
 			}
@@ -125,14 +125,14 @@ namespace locic {
 		                                     const AST::Type* const parentType,
 		                                     llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                     PendingResultArray args,
-		                                     llvm::Value* const hintResultValue) {
+		                                     llvm::Value* const resultPtr) {
 			assert(parentType != nullptr);
 			assert(!methodID.isStandaloneFunction());
 			const auto& primitive = irEmitter_.module().getPrimitive(*(parentType->getObjectType()));
 			return primitive.emitMethod(irEmitter_, methodID,
 			                            arrayRef(parentType->templateArguments()),
 			                            functionTemplateArguments,
-			                            std::move(args), hintResultValue);
+			                            std::move(args), resultPtr);
 		}
 		
 		llvm::Value*
@@ -140,18 +140,18 @@ namespace locic {
 		                                       const AST::Type* const parentType,
 		                                       llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                                       PendingResultArray args,
-		                                       llvm::Value* const hintResultValue) {
+		                                       llvm::Value* const resultPtr) {
 			if (parentType != nullptr) {
 				assert(!methodID.isStandaloneFunction());
 				return emitMethod(methodID, parentType,
 				                  functionTemplateArguments,
-				                  std::move(args), hintResultValue);
+				                  std::move(args), resultPtr);
 			} else {
 				assert(methodID.isStandaloneFunction());
 				return emitStandaloneFunction(methodID,
 				                              functionTemplateArguments,
 				                              std::move(args),
-				                              hintResultValue);
+				                              resultPtr);
 			}
 		}
 		

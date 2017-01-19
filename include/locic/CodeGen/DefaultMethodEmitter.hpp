@@ -36,23 +36,23 @@ namespace locic {
 			           const AST::Type* type,
 			           AST::FunctionType functionType,
 			           PendingResultArray args,
-			           llvm::Value* hintResultValue);
+			           llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitConstructor(const AST::Type* type,
 			                AST::FunctionType functionType,
 			                PendingResultArray args,
-			                llvm::Value* hintResultValue);
+			                llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitExceptionConstructor(const AST::Type* type,
 			                         PendingResultArray args,
-			                         llvm::Value* hintResultValue);
+			                         llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitTrivialConstructor(const AST::Type* type,
 			                       PendingResultArray args,
-			                       llvm::Value* hintResultValue);
+			                       llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitOuterDestroy(const AST::Type* type,
@@ -68,13 +68,13 @@ namespace locic {
 			emitOuterMove(const AST::Type* type,
 			              AST::FunctionType functionType,
 			              PendingResultArray args,
-			              llvm::Value* hintResultValue);
+			              llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitInnerMove(const AST::Type* type,
 			              AST::FunctionType functionType,
 			              PendingResultArray args,
-			              llvm::Value* hintResultValue);
+			              llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitAlignMask(const AST::Type* type);
@@ -96,20 +96,20 @@ namespace locic {
 			emitImplicitCopy(const AST::Type* type,
 			                 AST::FunctionType functionType,
 			                 PendingResultArray args,
-			                 llvm::Value* hintResultValue);
+			                 llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitExplicitCopy(const AST::Type* type,
 			                 AST::FunctionType functionType,
 			                 PendingResultArray args,
-			                 llvm::Value* hintResultValue);
+			                 llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitCopyMethod(MethodID methodID,
 			               const AST::Type* type,
 			               AST::FunctionType functionType,
 			               PendingResultArray args,
-			               llvm::Value* hintResultValue);
+			               llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitCompare(const AST::Type* type,

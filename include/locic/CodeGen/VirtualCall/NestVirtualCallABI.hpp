@@ -51,7 +51,7 @@ namespace locic {
 			         AST::FunctionType functionType,
 			         VirtualMethodComponents methodComponents,
 			         llvm::ArrayRef<llvm::Value*> args,
-			         llvm::Value* hintResultValue);
+			         llvm::Value* resultPtr);
 			
 			llvm::Value*
 			emitCountFnCall(IREmitter& irEmitter,

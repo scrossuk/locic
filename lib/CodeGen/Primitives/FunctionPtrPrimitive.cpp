@@ -189,7 +189,7 @@ namespace locic {
 				return ConstantGenerator(module).getBool(true);
 			}
 			
-			llvm::Value* genFunctionPtrCallMethod(Function& function, const AST::Type* type, PendingResultArray args, llvm::Value* hintResultValue) {
+			llvm::Value* genFunctionPtrCallMethod(Function& function, const AST::Type* type, PendingResultArray args, llvm::Value* resultPtr) {
 				const auto functionValue = args[0].resolveWithoutBind(function);
 				
 				FunctionCallInfo callInfo;
@@ -209,7 +209,7 @@ namespace locic {
 				                                 type->asFunctionType(),
 				                                 callInfo,
 				                                 std::move(callArgs),
-				                                 hintResultValue);
+				                                 resultPtr);
 			}
 			
 		}
@@ -219,7 +219,7 @@ namespace locic {
 		                                              llvm::ArrayRef<AST::Value> typeTemplateArguments,
 		                                              llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                              PendingResultArray args,
-		                                              llvm::Value* const hintResultValue) const {
+		                                              llvm::Value* const resultPtr) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
@@ -255,7 +255,7 @@ namespace locic {
 					return genFunctionPtrCallMethod(function,
 					                                type,
 					                                std::move(args),
-					                                hintResultValue);
+					                                resultPtr);
 				default:
 					llvm_unreachable("Unknown function_ptr primitive method.");
 			}

@@ -36,7 +36,7 @@ namespace locic {
 		llvm::Value* genASTFunctionCall(Function& function,
 		                                const AST::Value& astCallValue,
 		                                llvm::ArrayRef<AST::Value> args,
-		                                llvm::Value* const hintResultValue) {
+		                                llvm::Value* const resultPtr) {
 			auto& module = function.module();
 			
 			IREmitter irEmitter(function);
@@ -58,7 +58,7 @@ namespace locic {
 			
 			const auto callInfo = genFunctionCallInfo(function, astCallValue);
 			return genFunctionCall(function, functionType, callInfo,
-			                       parameters, hintResultValue);
+			                       parameters, resultPtr);
 		}
 		
 		llvm::Value* genRawFunctionCall(Function& function,
@@ -180,7 +180,7 @@ namespace locic {
 		                                       AST::FunctionType functionType,
 		                                       const FunctionCallInfo callInfo,
 		                                       PendingResultArray args,
-		                                       llvm::Value* const hintResultValue) {
+		                                       llvm::Value* const resultPtr) {
 			const auto argInfo = getFunctionArgInfo(function.module(), functionType);
 			assert(!argInfo.isVarArg() && "This method doesn't support calling varargs functions.");
 			assert(args.size() == argInfo.numStandardArguments());
@@ -194,14 +194,14 @@ namespace locic {
 				                                       functionABIType.argumentTypes()[abiTypeIndex]));
 			}
 			return genFunctionCall(function, functionType, callInfo,
-			                       abiArgs, hintResultValue);
+			                       abiArgs, resultPtr);
 		}
 		
 		llvm::Value* genFunctionCall(Function& function,
 		                             AST::FunctionType functionType,
 		                             const FunctionCallInfo callInfo,
 		                             llvm::ArrayRef<llvm_abi::TypedValue> args,
-		                             llvm::Value* const hintResultValue) {
+		                             llvm::Value* const resultPtr) {
 			auto& module = function.module();
 			
 			IREmitter irEmitter(function);
@@ -217,7 +217,7 @@ namespace locic {
 			// potentially being unknown).
 			llvm::Value* returnVar = nullptr;
 			if (argInfo.hasReturnVarArgument()) {
-				returnVar = irEmitter.emitAlloca(functionType.returnType(), hintResultValue);
+				returnVar = irEmitter.emitAlloca(functionType.returnType(), resultPtr);
 				llvmArgs.push_back(llvm_abi::TypedValue(returnVar,
 				                                        llvm_abi::PointerTy));
 			}
@@ -259,7 +259,7 @@ namespace locic {
 		}
 		
 		llvm::Value* genTemplateMethodCall(Function& function, const MethodInfo& methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
-				llvm::Value* const hintResultValue) {
+				llvm::Value* const resultPtr) {
 			const auto parentType = methodInfo.parentType;
 			assert(parentType->isTemplateVar());
 			
@@ -289,11 +289,11 @@ namespace locic {
 			                                        methodInfo.functionType,
 			                                        methodComponents,
 			                                        llvmArgs,
-			                                        hintResultValue);
+			                                        resultPtr);
 		}
 		
 		llvm::Value* genMethodCall(Function& function, const MethodInfo& methodInfo, Optional<PendingResult> methodOwner, PendingResultArray args,
-				llvm::Value* const hintResultValue) {
+				llvm::Value* const resultPtr) {
 			const auto type = methodInfo.parentType;
 			
 			assert(type != nullptr);
@@ -310,7 +310,7 @@ namespace locic {
 						newArgs.push_back(std::move(arg));
 					}
 					
-					return genTrivialPrimitiveFunctionCall(function, methodInfo, std::move(newArgs), hintResultValue);
+					return genTrivialPrimitiveFunctionCall(function, methodInfo, std::move(newArgs), resultPtr);
 				} else {
 					FunctionCallInfo callInfo;
 					
@@ -327,21 +327,21 @@ namespace locic {
 					
 					return genNonVarArgsFunctionCall(function, methodInfo.functionType,
 					                                 callInfo, std::move(args),
-					                                 hintResultValue);
+					                                 resultPtr);
 				}
 			} else {
-				return genTemplateMethodCall(function, methodInfo, std::move(methodOwner), std::move(args), hintResultValue);
+				return genTemplateMethodCall(function, methodInfo, std::move(methodOwner), std::move(args), resultPtr);
 			}
 		}
 		
 		llvm::Value* genDynamicMethodCall(Function& function, const MethodInfo& methodInfo, PendingResult methodOwner, PendingResultArray args,
-				llvm::Value* const hintResultValue) {
-			return genMethodCall(function, methodInfo, Optional<PendingResult>(std::move(methodOwner)), std::move(args), hintResultValue);
+				llvm::Value* const resultPtr) {
+			return genMethodCall(function, methodInfo, Optional<PendingResult>(std::move(methodOwner)), std::move(args), resultPtr);
 		}
 		
 		llvm::Value* genStaticMethodCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args,
-				llvm::Value* const hintResultValue) {
-			return genMethodCall(function, methodInfo, None, std::move(args), hintResultValue);
+				llvm::Value* const resultPtr) {
+			return genMethodCall(function, methodInfo, None, std::move(args), resultPtr);
 		}
 		
 	}

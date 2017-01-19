@@ -42,7 +42,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const AST::Type* const castFromType,
-				MethodID methodID, const AST::Type* const rawCastToType, llvm::Value* const hintResultValue);
+				MethodID methodID, const AST::Type* const rawCastToType, llvm::Value* const resultPtr);
 		
 		UnicharPrimitive::UnicharPrimitive(const AST::TypeInstance& typeInstance)
 		: typeInstance_(typeInstance) { }
@@ -89,7 +89,7 @@ namespace locic {
 		                             llvm::ArrayRef<AST::Value> typeTemplateArguments,
 		                             llvm::ArrayRef<AST::Value> functionTemplateArguments,
 		                             PendingResultArray args,
-		                             llvm::Value* const hintResultValue) const {
+		                             llvm::Value* const resultPtr) const {
 			auto& builder = irEmitter.builder();
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
@@ -130,7 +130,7 @@ namespace locic {
 					                      type,
 					                      methodID,
 					                      functionTemplateArguments.front().typeRefType(),
-					                      hintResultValue);
+					                      resultPtr);
 				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY:

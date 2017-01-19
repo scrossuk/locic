@@ -81,7 +81,7 @@ namespace locic {
 		                                           llvm::ArrayRef<AST::Value> typeTemplateArguments,
 		                                           llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                           PendingResultArray args,
-		                                           llvm::Value* /*hintResultValue*/) const {
+		                                           llvm::Value* /*resultPtr*/) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			

@@ -166,7 +166,7 @@ namespace locic {
 			 */
 			llvm::Value*
 			emitAlloca(const AST::Type* type,
-			           llvm::Value* const hintResultValue=nullptr);
+			           llvm::Value* const resultPtr=nullptr);
 			
 			/**
 			 * \brief Bind value to address.
@@ -206,14 +206,14 @@ namespace locic {
 			 */
 			llvm::Value*
 			emitMoveCall(PendingResult value, const AST::Type* type,
-			             llvm::Value* hintResultValue = nullptr);
+			             llvm::Value* resultPtr = nullptr);
 			
 			/**
 			 * \brief Emit a call to an inner __move method.
 			 */
 			llvm::Value*
 			emitInnerMoveCall(llvm::Value* value, const AST::Type* type,
-			                  llvm::Value* hintResultValue = nullptr);
+			                  llvm::Value* resultPtr = nullptr);
 			
 			llvm::Value*
 			emitLoadVariantTag(llvm::Value* datatypePtr);
@@ -229,7 +229,7 @@ namespace locic {
 			llvm::Value*
 			emitConstructorCall(const AST::Type* type,
 			                    PendingResultArray args,
-			                    llvm::Value* hintResultValue = nullptr);
+			                    llvm::Value* resultPtr = nullptr);
 			
 			void
 			emitDestructorCall(llvm::Value* value,
@@ -246,12 +246,12 @@ namespace locic {
 			llvm::Value*
 			emitImplicitCopyCall(llvm::Value* valueRef,
 			                     const AST::Type* type,
-			                     llvm::Value* hintResultValue = nullptr);
+			                     llvm::Value* resultPtr = nullptr);
 			
 			llvm::Value*
 			emitExplicitCopyCall(llvm::Value* valueRef,
 			                     const AST::Type* type,
-			                     llvm::Value* hintResultValue = nullptr);
+			                     llvm::Value* resultPtr = nullptr);
 			
 			/**
 			 * \brief Emit call to copy method.
@@ -262,16 +262,15 @@ namespace locic {
 			 * \param methodID Either METHOD_IMPLICITCOPY or METHOD_COPY.
 			 * \param valueRef A reference (i.e. IR pointer) to the value to be copied.
 			 * \param type The type of the value to be copied.
-			 * \param hintResultValue If given, a pointer to memory where
-			 *                        the result **can** be placed, to
-			 *                        avoid generating unnecessary allocas.
+			 * \param resultPtr If given, a pointer to memory for the result (if type
+			 *                  is NOT passed by value).
 			 * \return The result of the copy operation.
 			 */
 			llvm::Value*
 			emitCopyCall(MethodID methodID,
 			             llvm::Value* valueRef,
 			             const AST::Type* type,
-			             llvm::Value* hintResultValue = nullptr);
+			             llvm::Value* resultPtr = nullptr);
 			
 			llvm::Value*
 			emitCompareCall(llvm::Value* leftValue,
@@ -302,7 +301,7 @@ namespace locic {
 			llvm::Value*
 			emitFrontCall(llvm::Value* valueRef, const AST::Type* type,
 			              const AST::Type* resultType,
-			              llvm::Value* hintResultValue = nullptr);
+			              llvm::Value* resultPtr = nullptr);
 			
 			/**
 			 * \brief Emit call to skip_front() method.

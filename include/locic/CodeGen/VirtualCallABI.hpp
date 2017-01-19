@@ -39,7 +39,7 @@ namespace locic {
 			         AST::FunctionType functionType,
 			         VirtualMethodComponents methodComponents,
 			         llvm::ArrayRef<llvm::Value*> args,
-			         llvm::Value* hintResultValue) = 0;
+			         llvm::Value* resultPtr) = 0;
 			
 			enum CountFnKind {
 				ALIGNOF,

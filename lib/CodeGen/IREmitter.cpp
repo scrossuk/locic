@@ -329,10 +329,10 @@ namespace locic {
 		}
 		
 		static llvm::Value*
-		genRawAlloca(IREmitter& irEmitter, const AST::Type* const type, llvm::Value* const hintResultValue) {
-			if (hintResultValue != nullptr) {
-				assert(hintResultValue->getType()->isPointerTy());
-				return hintResultValue;
+		genRawAlloca(IREmitter& irEmitter, const AST::Type* const type, llvm::Value* const resultPtr) {
+			if (resultPtr != nullptr) {
+				assert(resultPtr->getType()->isPointerTy());
+				return resultPtr;
 			}
 			
 			auto& function = irEmitter.function();
@@ -353,15 +353,15 @@ namespace locic {
 		}
 		
 		static llvm::Value*
-		genAlloca(IREmitter& irEmitter, const AST::Type* const type, llvm::Value* const hintResultValue) {
+		genAlloca(IREmitter& irEmitter, const AST::Type* const type, llvm::Value* const resultPtr) {
 			auto& module = irEmitter.module();
 			const bool shouldZeroAlloca = module.buildOptions().zeroAllAllocas;
 			
 			const auto allocaValue = genRawAlloca(irEmitter,
 			                                      type,
-			                                      hintResultValue);
+			                                      resultPtr);
 			
-			if (shouldZeroAlloca && hintResultValue == nullptr) {
+			if (shouldZeroAlloca && resultPtr == nullptr) {
 				const auto typeSizeValue = irEmitter.emitSizeOf(type);
 				irEmitter.emitMemSet(allocaValue,
 				                     ConstantGenerator(module).getI8(0),
@@ -374,8 +374,8 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::emitAlloca(const AST::Type* const type,
-		                      llvm::Value* const hintResultValue) {
-			return genAlloca(*this, type, hintResultValue);
+		                      llvm::Value* const resultPtr) {
+			return genAlloca(*this, type, resultPtr);
 		}
 		
 		llvm::Value*
@@ -452,20 +452,20 @@ namespace locic {
 		llvm::Value*
 		IREmitter::emitMoveCall(PendingResult value,
 		                        const AST::Type* const rawType,
-		                        llvm::Value* const hintResultValue) {
+		                        llvm::Value* const resultPtr) {
 			const auto type = rawType->resolveAliases();
 			const auto functionType = moveFunctionType(type);
 			MethodInfo methodInfo(type, module().getCString("__move"),
 			                      functionType, /*templateArgs=*/{});
 			return genDynamicMethodCall(function(), methodInfo,
 			                            std::move(value), /*args=*/{},
-			                            hintResultValue);
+			                            resultPtr);
 		}
 		
 		llvm::Value*
 		IREmitter::emitInnerMoveCall(llvm::Value* const value,
 		                             const AST::Type* const rawType,
-		                             llvm::Value* const hintResultValue) {
+		                             llvm::Value* const resultPtr) {
 			const auto type = rawType->resolveAliases();
 			assert(type->isObject());
 			
@@ -486,7 +486,7 @@ namespace locic {
 			
 			const auto functionType = moveFunctionType(type);
 			return genFunctionCall(functionGenerator_, functionType, callInfo,
-			                       /*args=*/{}, hintResultValue);
+			                       /*args=*/{}, resultPtr);
 		}
 		
 		llvm::Value*
@@ -529,7 +529,7 @@ namespace locic {
 		llvm::Value*
 		IREmitter::emitConstructorCall(const AST::Type* const rawType,
 		                               PendingResultArray args,
-		                               llvm::Value* const hintResultValue) {
+		                               llvm::Value* const resultPtr) {
 			const auto type = rawType->resolveAliases();
 			assert(type->isObject() && "Doesn't currently support template vars.");
 			
@@ -545,7 +545,7 @@ namespace locic {
 			
 			MethodInfo methodInfo(type, name, functionType, /*templateArgs=*/{});
 			return genStaticMethodCall(functionGenerator_, methodInfo,
-			                           std::move(args), hintResultValue);
+			                           std::move(args), resultPtr);
 		}
 		
 		AST::FunctionType
@@ -609,7 +609,7 @@ namespace locic {
 			
 			const auto functionType = destroyFunctionType(module(), type);
 			const auto result = genFunctionCall(functionGenerator_, functionType, callInfo,
-			                                    /*args=*/{}, /*hintResultValue=*/nullptr);
+			                                    /*args=*/{}, /*resultPtr=*/nullptr);
 			assert(result->getType()->isVoidTy());
 			(void) result;
 		}
@@ -629,28 +629,28 @@ namespace locic {
 		llvm::Value*
 		IREmitter::emitImplicitCopyCall(llvm::Value* value,
 		                                const AST::Type* type,
-		                                llvm::Value* hintResultValue) {
+		                                llvm::Value* resultPtr) {
 			return emitCopyCall(METHOD_IMPLICITCOPY,
 			                    value,
 			                    type,
-			                    hintResultValue);
+			                    resultPtr);
 		}
 		
 		llvm::Value*
 		IREmitter::emitExplicitCopyCall(llvm::Value* value,
 		                                const AST::Type* type,
-		                                llvm::Value* hintResultValue) {
+		                                llvm::Value* resultPtr) {
 			return emitCopyCall(METHOD_COPY,
 			                    value,
 			                    type,
-			                    hintResultValue);
+			                    resultPtr);
 		}
 		
 		llvm::Value*
 		IREmitter::emitCopyCall(const MethodID methodID,
 		                        llvm::Value* value,
 		                        const AST::Type* rawType,
-		                        llvm::Value* hintResultValue) {
+		                        llvm::Value* resultPtr) {
 			assert(methodID == METHOD_IMPLICITCOPY ||
 			       methodID == METHOD_COPY);
 			
@@ -681,7 +681,7 @@ namespace locic {
 			                     methodInfo,
 			                     Optional<PendingResult>(thisPendingResult),
 			                     /*args=*/{},
-			                     hintResultValue);
+			                     resultPtr);
 		}
 		
 		static const AST::Type*
@@ -827,7 +827,7 @@ namespace locic {
 		IREmitter::emitFrontCall(llvm::Value* const value,
 		                         const AST::Type* const rawType,
 		                         const AST::Type* const rawResultType,
-		                         llvm::Value* const hintResultValue) {
+		                         llvm::Value* const resultPtr) {
 			const auto type = rawType->resolveAliases();
 			const auto resultType = rawResultType->resolveAliases();
 			
@@ -849,7 +849,7 @@ namespace locic {
 			
 			return genMethodCall(functionGenerator_, methodInfo,
 			                     Optional<PendingResult>(objectPendingResult),
-			                     /*args=*/{}, hintResultValue);
+			                     /*args=*/{}, resultPtr);
 		}
 		
 		void

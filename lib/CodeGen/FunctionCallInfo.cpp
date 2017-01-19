@@ -62,10 +62,10 @@ namespace locic {
 			CallValuePendingResult(const AST::Value& value)
 			: value_(value) { }
 			
-			llvm::Value* generateValue(Function& function, llvm::Value* const hintResultValue) const {
+			llvm::Value* generateValue(Function& function, llvm::Value* const resultPtr) const {
 				IREmitter irEmitter(function);
 				ValueEmitter valueEmitter(irEmitter);
-				return valueEmitter.emitValue(value_, hintResultValue);
+				return valueEmitter.emitValue(value_, resultPtr);
 			}
 			
 			llvm::Value* generateLoadedValue(Function& function) const {
@@ -114,7 +114,7 @@ namespace locic {
 		llvm::Value* genTrivialMethodCall(Function& function, const AST::Value& value,
 		                                  llvm::ArrayRef<AST::Value> valueArgs,
 		                                  Optional<PendingResult> contextValue,
-		                                  llvm::Value* const hintResultValue) {
+		                                  llvm::Value* const resultPtr) {
 			auto& module = function.module();
 			
 			switch (value.kind()) {
@@ -147,7 +147,7 @@ namespace locic {
 					                                             value.functionRefParentType(),
 					                                             arrayRef(value.functionRefTemplateArguments()),
 					                                             std::move(args),
-					                                             hintResultValue);
+					                                             resultPtr);
 				}
 				
 				case AST::Value::METHODOBJECT: {
@@ -155,7 +155,7 @@ namespace locic {
 					const CallValuePendingResult dataResult(dataValue);
 					const PendingResult dataPendingResult(dataResult);
 					return genTrivialMethodCall(function, value.methodObject(), valueArgs,
-					                            make_optional(dataPendingResult), hintResultValue);
+					                            make_optional(dataPendingResult), resultPtr);
 				}
 				
 				default: {
@@ -165,8 +165,8 @@ namespace locic {
 		}
 		
 		llvm::Value* genTrivialFunctionCall(Function& function, const AST::Value& value, llvm::ArrayRef<AST::Value> valueArgs,
-				llvm::Value* const hintResultValue) {
-			return genTrivialMethodCall(function, value, valueArgs, None, hintResultValue);
+				llvm::Value* const resultPtr) {
+			return genTrivialMethodCall(function, value, valueArgs, None, resultPtr);
 		}
 		
 		FunctionCallInfo genFunctionCallInfo(Function& function, const AST::Value& value) {

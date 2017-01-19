@@ -139,7 +139,7 @@ namespace locic {
 		                                        llvm::ArrayRef<AST::Value> typeTemplateArguments,
 		                                        llvm::ArrayRef<AST::Value> /*functionTemplateArguments*/,
 		                                        PendingResultArray args,
-		                                        llvm::Value* const hintResultValue) const {
+		                                        llvm::Value* const resultPtr) const {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
@@ -162,7 +162,7 @@ namespace locic {
 					return irEmitter.emitSizeOf(targetType);
 				}
 				case METHOD_CREATE: {
-					const auto result = irEmitter.emitAlloca(type, hintResultValue);
+					const auto result = irEmitter.emitAlloca(type, resultPtr);
 					
 					const auto destPtrFirst = elementAccess.getFirstPtr(result);
 					const auto firstArgumentValue = args[0].resolve(function, destPtrFirst);
@@ -178,7 +178,7 @@ namespace locic {
 				case METHOD_IMPLICITCOPY: {
 					auto methodOwner = args[0].resolve(function);
 					
-					const auto result = irEmitter.emitAlloca(type, hintResultValue);
+					const auto result = irEmitter.emitAlloca(type, resultPtr);
 					
 					// Copy first element of range pair.
 					const auto copySourcePtrFirst = elementAccess.getFirstPtr(methodOwner);
@@ -216,7 +216,7 @@ namespace locic {
 					return ConstantGenerator(module).getVoidUndef();
 				}
 				case METHOD_MOVE: {
-					const auto destPtr = irEmitter.emitAlloca(type, hintResultValue);
+					const auto destPtr = irEmitter.emitAlloca(type, resultPtr);
 					const auto sourcePtr = args[0].resolve(function);
 					
 					// Move first element of range pair.

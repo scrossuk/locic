@@ -47,7 +47,7 @@ namespace locic {
 			                        llvm::ArrayRef<AST::Value> typeTemplateVariables,
 			                        llvm::ArrayRef<AST::Value> functionTemplateVariables,
 			                        PendingResultArray args,
-			                        llvm::Value* hintResultValue) const;
+			                        llvm::Value* resultPtr) const;
 			
 		private:
 			const AST::TypeInstance& typeInstance_;

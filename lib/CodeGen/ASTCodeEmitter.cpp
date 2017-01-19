@@ -49,7 +49,7 @@ namespace locic {
 		                                            const AST::TypeInstance* const typeInstance,
 		                                            const AST::Function& function,
 		                                            PendingResultArray args,
-		                                            llvm::Value* const hintResultValue) {
+		                                            llvm::Value* const resultPtr) {
 			if (!function.isPrimitive()) {
 				DefaultMethodEmitter defaultMethodEmitter(functionGenerator_);
 				return defaultMethodEmitter.emitMethod(methodID,
@@ -57,7 +57,7 @@ namespace locic {
 				                                       typeInstance->selfType(),
 				                                       function.type(),
 				                                       std::move(args),
-				                                       hintResultValue);
+				                                       resultPtr);
 			} else {
 				assert(!isInnerMethod);
 				
@@ -73,7 +73,7 @@ namespace locic {
 				return primitiveFunctionEmitter.emitFunction(methodID, type,
 				                                             arrayRef(templateArgs),
 				                                             std::move(args),
-				                                             hintResultValue);
+				                                             resultPtr);
 			}
 		}
 		

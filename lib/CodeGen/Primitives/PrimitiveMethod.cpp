@@ -38,7 +38,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		llvm::Value* callRawCastMethod(Function& function, llvm::Value* const castFromValue, const AST::Type* const castFromType,
-				const String& targetMethodName, const AST::Type* const castToType, llvm::Value* const hintResultValue) {
+				const String& targetMethodName, const AST::Type* const castToType, llvm::Value* const resultPtr) {
 			const bool isVarArg = false;
 			const bool isMethod = false;
 			const bool isTemplated = false;
@@ -56,7 +56,7 @@ namespace locic {
 			if (castFromValue != nullptr) {
 				args.push_back(contextPendingResult);
 			}
-			return genStaticMethodCall(function, std::move(methodInfo), std::move(args), hintResultValue);
+			return genStaticMethodCall(function, std::move(methodInfo), std::move(args), resultPtr);
 		}
 		
 		String getCastMethodName(Module& module, const MethodID methodID) {
@@ -71,7 +71,7 @@ namespace locic {
 		}
 		
 		llvm::Value* callCastMethod(Function& function, llvm::Value* const castFromValue, const AST::Type* const castFromType,
-				const MethodID methodID, const AST::Type* const rawCastToType, llvm::Value* const hintResultValue) {
+				const MethodID methodID, const AST::Type* const rawCastToType, llvm::Value* const resultPtr) {
 			assert(castFromType->isPrimitive());
 			
 			const auto castToType = rawCastToType->resolveAliases();
@@ -80,10 +80,10 @@ namespace locic {
 			auto& module = function.module();
 			const auto methodName = getCastMethodName(module, methodID);
 			const auto targetMethodName = methodName + "_" + castFromType->getObjectType()->fullName().last();
-			return callRawCastMethod(function, castFromValue, castFromType, targetMethodName, castToType, hintResultValue);
+			return callRawCastMethod(function, castFromValue, castFromType, targetMethodName, castToType, resultPtr);
 		}
 		
-		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args, llvm::Value* const hintResultValue) {
+		llvm::Value* genTrivialPrimitiveFunctionCall(Function& function, const MethodInfo& methodInfo, PendingResultArray args, llvm::Value* const resultPtr) {
 			const auto type = methodInfo.parentType;
 			const auto methodName = methodInfo.name;
 			const auto& templateArgs = methodInfo.templateArgs;
@@ -98,7 +98,7 @@ namespace locic {
 			                            methodID,
 			                            arrayRef(type->templateArguments()),
 			                            /*functionTemplateArguments=*/arrayRef(templateArgs),
-			                            std::move(args), hintResultValue);
+			                            std::move(args), resultPtr);
 		}
 		
 	}

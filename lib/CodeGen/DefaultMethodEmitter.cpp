@@ -39,7 +39,7 @@ namespace locic {
 		                                 const AST::Type* const type,
 		                                 const AST::FunctionType functionType,
 		                                 PendingResultArray args,
-		                                 llvm::Value* const hintResultValue) {
+		                                 llvm::Value* const resultPtr) {
 			if (isInnerMethod) {
 				if (methodID == METHOD_DESTROY) {
 					return emitInnerDestroy(type,
@@ -48,21 +48,21 @@ namespace locic {
 				} else {
 					assert(methodID == METHOD_MOVE);
 					return emitInnerMove(type, functionType, std::move(args),
-					                     hintResultValue);
+					                     resultPtr);
 				}
 			}
 			
 			switch (methodID) {
 				case METHOD_CREATE:
 					return emitConstructor(type, functionType, std::move(args),
-					                       hintResultValue);
+					                       resultPtr);
 				case METHOD_DESTROY:
 					return emitOuterDestroy(type,
 					                        functionType,
 					                        std::move(args));
 				case METHOD_MOVE:
 					return emitOuterMove(type, functionType, std::move(args),
-					                     hintResultValue);
+					                     resultPtr);
 				case METHOD_ALIGNMASK:
 					return emitAlignMask(type);
 				case METHOD_SIZEOF:
@@ -79,12 +79,12 @@ namespace locic {
 					return emitImplicitCopy(type,
 					                        functionType,
 					                        std::move(args),
-					                        hintResultValue);
+					                        resultPtr);
 				case METHOD_COPY:
 					return emitExplicitCopy(type,
 					                        functionType,
 					                        std::move(args),
-					                        hintResultValue);
+					                        resultPtr);
 				case METHOD_COMPARE:
 					return emitCompare(type,
 					                   functionType,
@@ -98,37 +98,37 @@ namespace locic {
 		DefaultMethodEmitter::emitConstructor(const AST::Type* const type,
 		                                      const AST::FunctionType /*functionType*/,
 		                                      PendingResultArray args,
-		                                      llvm::Value* const hintResultValue) {
+		                                      llvm::Value* const resultPtr) {
 			const auto& typeInstance = *(type->getObjectType());
 			assert(!typeInstance.isEnum() && !typeInstance.isVariant());
 			
 			auto& module = functionGenerator_.module();
 			
 			if (typeInstance.isUnion()) {
-				assert(hintResultValue == nullptr);
+				assert(resultPtr == nullptr);
 				return ConstantGenerator(module).getNull(genType(module, type));
 			} else if (typeInstance.isException()) {
-				return emitExceptionConstructor(type, std::move(args), hintResultValue);
+				return emitExceptionConstructor(type, std::move(args), resultPtr);
 			} else {
-				return emitTrivialConstructor(type, std::move(args), hintResultValue);
+				return emitTrivialConstructor(type, std::move(args), resultPtr);
 			}
 		}
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitExceptionConstructor(const AST::Type* const type,
 		                                               PendingResultArray args,
-		                                               llvm::Value* const hintResultValue) {
+		                                               llvm::Value* const resultPtr) {
 			const auto& typeInstance = *(type->getObjectType());
 			assert(typeInstance.isException());
 			
 			if (typeInstance.parentType() == nullptr) {
 				// No parent, so just create a normal default constructor.
-				return emitTrivialConstructor(type, std::move(args), hintResultValue);
+				return emitTrivialConstructor(type, std::move(args), resultPtr);
 			}
 			
 			IREmitter irEmitter(functionGenerator_);
 			
-			const auto resultValue = irEmitter.emitAlloca(type, hintResultValue);
+			const auto resultValue = irEmitter.emitAlloca(type, resultPtr);
 			
 			// Start from 1 to skip over parent exception type variable.
 			for (size_t i = 1; i < typeInstance.variables().size(); i++) {
@@ -136,15 +136,14 @@ namespace locic {
 				
 				const auto memberType = memberVar->type()->resolveAliases();
 				
-				const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberVar->index());
+				const auto memberPtr = genMemberPtr(functionGenerator_, resultValue, type, memberVar->index());
 				
 				irEmitter.emitMoveStore(args[i-1].resolve(functionGenerator_),
-				                        resultPtr,
-				                        memberType);
+				                        memberPtr, memberType);
 				
 				// Add variable to mapping so it can be referred to in the
 				// initialisation of the exception parent object.
-				functionGenerator_.setVarAddress(*memberVar, resultPtr);
+				functionGenerator_.setVarAddress(*memberVar, memberPtr);
 			}
 			
 			// Need an array to store all the pending results being referred to.
@@ -177,21 +176,21 @@ namespace locic {
 		llvm::Value*
 		DefaultMethodEmitter::emitTrivialConstructor(const AST::Type* const type,
 		                                             PendingResultArray args,
-		                                             llvm::Value* const hintResultValue) {
+		                                             llvm::Value* const resultPtr) {
 			const auto& typeInstance = *(type->getObjectType());
 			IREmitter irEmitter(functionGenerator_);
 			
-			const auto resultValue = irEmitter.emitAlloca(type, hintResultValue);
+			const auto resultValue = irEmitter.emitAlloca(type, resultPtr);
 			
 			for (size_t i = 0; i < typeInstance.variables().size(); i++) {
 				const auto& memberVar = typeInstance.variables()[i];
 				
 				const auto memberType = memberVar->type()->resolveAliases();
 				
-				const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberVar->index());
+				const auto memberPtr = genMemberPtr(functionGenerator_, resultValue, type, memberVar->index());
 				
 				const auto argValue = args[i].resolve(functionGenerator_);
-				irEmitter.emitMoveStore(argValue, resultPtr, memberType);
+				irEmitter.emitMoveStore(argValue, memberPtr, memberType);
 			}
 			
 			// Set object into live state (e.g. set gap byte to 1).
@@ -295,14 +294,14 @@ namespace locic {
 		DefaultMethodEmitter::emitOuterMove(const AST::Type* const type,
 		                                    const AST::FunctionType /*functionType*/,
 		                                    PendingResultArray args,
-		                                    llvm::Value* const hintResultValue) {
+		                                    llvm::Value* const resultPtr) {
 			const auto& typeInstance = *(type->getObjectType());
 			auto& module = functionGenerator_.module();
 			
 			IREmitter irEmitter(functionGenerator_);
 			LivenessEmitter livenessEmitter(irEmitter);
 			
-			const auto destPtr = irEmitter.emitAlloca(type, hintResultValue);
+			const auto destPtr = irEmitter.emitAlloca(type, resultPtr);
 			const auto sourcePtr = args[0].resolve(functionGenerator_);
 			
 			const auto livenessIndicator =
@@ -360,7 +359,7 @@ namespace locic {
 		DefaultMethodEmitter::emitInnerMove(const AST::Type* const type,
 		                                    const AST::FunctionType /*functionType*/,
 		                                    PendingResultArray args,
-		                                    llvm::Value* const hintResultValue) {
+		                                    llvm::Value* const resultPtr) {
 			auto& module = functionGenerator_.module();
 			auto& builder = functionGenerator_.getBuilder();
 			const auto& typeInstance = *(type->getObjectType());
@@ -371,7 +370,7 @@ namespace locic {
 				return args[0].resolveWithoutBind(functionGenerator_);
 			}
 			
-			const auto destPtr = irEmitter.emitAlloca(type, hintResultValue);
+			const auto destPtr = irEmitter.emitAlloca(type, resultPtr);
 			const auto sourcePtr = args[0].resolve(functionGenerator_);
 			
 			if (typeInstance.isVariant()) {
@@ -685,24 +684,24 @@ namespace locic {
 		DefaultMethodEmitter::emitImplicitCopy(const AST::Type* const type,
 		                                       const AST::FunctionType functionType,
 		                                       PendingResultArray args,
-		                                       llvm::Value* const hintResultValue) {
+		                                       llvm::Value* const resultPtr) {
 			return emitCopyMethod(METHOD_IMPLICITCOPY,
 			                      type,
 			                      functionType,
 			                      std::move(args),
-			                      hintResultValue);
+			                      resultPtr);
 		}
 		
 		llvm::Value*
 		DefaultMethodEmitter::emitExplicitCopy(const AST::Type* const type,
 		                                       const AST::FunctionType functionType,
 		                                       PendingResultArray args,
-		                                       llvm::Value* const hintResultValue) {
+		                                       llvm::Value* const resultPtr) {
 			return emitCopyMethod(METHOD_COPY,
 			                      type,
 			                      functionType,
 			                      std::move(args),
-			                      hintResultValue);
+			                      resultPtr);
 		}
 		
 		llvm::Value*
@@ -710,7 +709,7 @@ namespace locic {
 		                                     const AST::Type* const type,
 		                                     const AST::FunctionType /*functionType*/,
 		                                     PendingResultArray args,
-		                                     llvm::Value* const hintResultValue) {
+		                                     llvm::Value* const resultPtr) {
 			assert(methodID == METHOD_IMPLICITCOPY ||
 			       methodID == METHOD_COPY);
 			
@@ -726,7 +725,7 @@ namespace locic {
 			
 			auto& module = functionGenerator_.module();
 			
-			const auto resultValue = irEmitter.emitAlloca(type, hintResultValue);
+			const auto resultValue = irEmitter.emitAlloca(type, resultPtr);
 			
 			if (typeInstance.isVariant()) {
 				const auto loadedTag = irEmitter.emitLoadVariantTag(thisPointer);
@@ -777,14 +776,14 @@ namespace locic {
 					
 					const auto memberType = memberVar->type()->resolveAliases();
 					
-					const auto resultPtr = genMemberPtr(functionGenerator_, resultValue, type, memberIndex);
+					const auto memberPtr = genMemberPtr(functionGenerator_, resultValue, type, memberIndex);
 					
 					const auto copyResult = irEmitter.emitCopyCall(methodID,
 					                                               ptrToMember,
 					                                               memberType,
-					                                               resultPtr);
+					                                               memberPtr);
 					
-					irEmitter.emitStore(copyResult, resultPtr,
+					irEmitter.emitStore(copyResult, memberPtr,
 					                    memberType);
 				}
 				
