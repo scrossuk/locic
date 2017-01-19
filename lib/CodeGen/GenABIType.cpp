@@ -22,17 +22,18 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 
 namespace locic {
 
 	namespace CodeGen {
 		
 		llvm_abi::Type genABIArgType(Module& module, const AST::Type* type) {
-			if (canPassByValue(module, type)) {
-				return genABIType(module, type);
-			} else {
+			if (!TypeInfo(module).isPassedByValue(type)) {
 				return module.abiTypeBuilder().getPointerTy();
 			}
+			
+			return genABIType(module, type);
 		}
 		
 		llvm_abi::Type genABIObjectType(Module& module, const AST::TypeInstance& typeInstance,

@@ -30,7 +30,7 @@ namespace locic {
 			 *    emitting raw loads/stores the compiler must call
 			 *    the move method.
 			 */
-			bool canPassByValue(const AST::Type* type) const;
+			bool isPassedByValue(const AST::Type* type) const;
 			
 			/**
 			 * \brief Query whether a type's size is always known.

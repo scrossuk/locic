@@ -312,10 +312,6 @@ namespace locic {
 				noReturn() ? "true" : "false");
 		}
 		
-		bool canPassByValue(Module& module, const AST::Type* type) {
-			return TypeInfo(module).canPassByValue(type);
-		}
-		
 		ArgInfo getFunctionArgInfo(Module& module, const AST::FunctionType functionType) {
 			const auto astReturnType = functionType.returnType();
 			
@@ -325,7 +321,7 @@ namespace locic {
 			const bool hasTemplateGeneratorArg = attributes.isTemplated();
 			const bool hasContextArg = attributes.isMethod();
 			
-			const bool hasReturnVarArg = !canPassByValue(module, functionType.returnType());
+			const bool hasReturnVarArg = !TypeInfo(module).isPassedByValue(functionType.returnType());
 			
 			const auto returnType = std::make_pair(genABIArgType(module, astReturnType), genArgType(module, astReturnType));
 			

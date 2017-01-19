@@ -21,6 +21,7 @@
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/CodeGen/VirtualCallABI.hpp>
 #include <locic/CodeGen/VTable.hpp>
@@ -108,8 +109,8 @@ namespace locic {
 				const auto argPtr = irEmitter.emitConstInBoundsGEP2_32(argsStructType,
 				                                                       argsStructPtr,
 				                                                       0, offset);
-										
-				if (canPassByValue(module_, argTypes[offset])) {
+				
+				if (TypeInfo(module_).isPassedByValue(argTypes[offset])) {
 					const auto argAlloca = irEmitter.emitRawAlloca(args[offset]->getType());
 					irEmitter.emitRawStore(args[offset], argAlloca);
 					irEmitter.emitRawStore(argAlloca, argPtr);
@@ -205,7 +206,7 @@ namespace locic {
 					const auto argPtr = irEmitter.emitRawLoad(argPtrPtr,
 					                                          irEmitter.typeGenerator().getPtrType());
 					
-					if (canPassByValue(module_, paramType)) {
+					if (TypeInfo(module_).isPassedByValue(paramType)) {
 						parameters.push_back(irEmitter.emitRawLoad(argPtr,
 						                                           genType(module_, paramType)));
 					} else {

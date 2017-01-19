@@ -145,8 +145,6 @@ namespace locic {
 				
 		};
 		
-		bool canPassByValue(Module& module, const AST::Type* type);
-		
 		ArgInfo getFunctionArgInfo(Module& module, AST::FunctionType functionType);
 		
 	}

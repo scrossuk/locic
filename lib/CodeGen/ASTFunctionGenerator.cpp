@@ -13,6 +13,7 @@
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/VirtualCallABI.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
@@ -73,22 +74,26 @@ namespace locic {
 		void
 		ASTFunctionGenerator::addStandardFunctionAttributes(const AST::FunctionType type,
 		                                                    llvm::Function& llvmFunction) {
-			if (!canPassByValue(module_, type.returnType())) {
-				// Class return values are allocated by the caller,
-				// which passes a pointer to the callee. The caller
-				// and callee must, for the sake of optimisation,
-				// ensure that the following attributes hold...
-				
-				// Caller must ensure pointer is always valid.
-				llvmFunction.addAttribute(1, llvm::Attribute::StructRet);
-				
-				// Caller must ensure pointer does not alias with
-				// any other arguments.
-				llvmFunction.addAttribute(1, llvm::Attribute::NoAlias);
-				
-				// Callee must not capture the pointer.
-				llvmFunction.addAttribute(1, llvm::Attribute::NoCapture);
+			if (TypeInfo(module_).isPassedByValue(type.returnType())) {
+				// Passed by value, so we don't need to add any pointer
+				// attributes.
+				return;
 			}
+			
+			// Class return values are allocated by the caller,
+			// which passes a pointer to the callee. The caller
+			// and callee must, for the sake of optimisation,
+			// ensure that the following attributes hold...
+			
+			// Caller must ensure pointer is always valid.
+			llvmFunction.addAttribute(1, llvm::Attribute::StructRet);
+			
+			// Caller must ensure pointer does not alias with
+			// any other arguments.
+			llvmFunction.addAttribute(1, llvm::Attribute::NoAlias);
+			
+			// Callee must not capture the pointer.
+			llvmFunction.addAttribute(1, llvm::Attribute::NoCapture);
 		}
 		
 		llvm::Function*
@@ -293,7 +298,7 @@ namespace locic {
 			
 			const auto argList = functionGenerator.getArgList();
 			
-			const bool hasReturnVar = !canPassByValue(module_, functionType.returnType());
+			const bool hasReturnVar = !TypeInfo(module_).isPassedByValue(functionType.returnType());
 			
 			IREmitter irEmitter(functionGenerator);
 			const auto result = module_.virtualCallABI().emitCall(irEmitter,

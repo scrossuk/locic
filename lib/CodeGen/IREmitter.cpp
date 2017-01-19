@@ -381,7 +381,7 @@ namespace locic {
 		llvm::Value*
 		IREmitter::emitBind(llvm::Value* const value,
 		                    const AST::Type* const type) {
-			if (TypeInfo(module()).canPassByValue(type)) {
+			if (TypeInfo(module()).isPassedByValue(type)) {
 				const auto ptr = emitAlloca(type);
 				emitRawStore(value, ptr);
 				return ptr;
@@ -395,7 +395,7 @@ namespace locic {
 		IREmitter::emitLoad(llvm::Value* const ptr,
 		                    const AST::Type* const type) {
 			assert(ptr->getType()->isPointerTy());
-			if (TypeInfo(module()).canPassByValue(type)) {
+			if (TypeInfo(module()).isPassedByValue(type)) {
 				const auto llvmType = genType(module(), type);
 				return emitRawLoad(ptr, llvmType);
 			} else {
@@ -408,7 +408,7 @@ namespace locic {
 		                     llvm::Value* const ptr,
 		                     const AST::Type* const type) {
 			assert(ptr->getType()->isPointerTy());
-			if (TypeInfo(module()).canPassByValue(type)) {
+			if (TypeInfo(module()).isPassedByValue(type)) {
 				emitRawStore(value, ptr);
 			} else {
 				assert(value->getType()->isPointerTy());
@@ -434,7 +434,7 @@ namespace locic {
 		                         llvm::Value* const ptr,
 		                         const AST::Type* const type) {
 			assert(ptr->getType()->isPointerTy());
-			if (TypeInfo(module()).canPassByValue(type)) {
+			if (TypeInfo(module()).isPassedByValue(type)) {
 				emitRawStore(value, ptr);
 			} else {
 				emitMove(value, ptr, type);

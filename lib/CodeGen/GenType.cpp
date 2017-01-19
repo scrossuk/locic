@@ -24,15 +24,15 @@
 #include <locic/CodeGen/TypeInfo.hpp>
 
 namespace locic {
-
-	namespace CodeGen {
 	
+	namespace CodeGen {
+		
 		llvm::Type* genArgType(Module& module, const AST::Type* type) {
-			if (canPassByValue(module, type)) {
-				return genType(module, type);
-			} else {
+			if (!TypeInfo(module).isPassedByValue(type)) {
 				return TypeGenerator(module).getPtrType();
 			}
+			
+			return genType(module, type);
 		}
 		
 		llvm::FunctionType* genFunctionType(Module& module, AST::FunctionType type) {

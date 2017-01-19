@@ -10,6 +10,7 @@
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
+#include <locic/CodeGen/TypeInfo.hpp>
 #include <locic/CodeGen/UnwindAction.hpp>
 #include <locic/Support/Utils.hpp>
 
@@ -66,12 +67,14 @@ namespace locic {
 		                                         const AST::Type* const parameterType,
 		                                         const AST::Type* const translatedParameterType) {
 			auto& module = functionGenerator.module();
+			TypeInfo typeInfo(module);
 			
 			// Being able to pass the inner parameter type by value must imply
 			// that the outer parameter type can be passed by value.
-			assert(checkImplies(canPassByValue(module, parameterType), canPassByValue(module, translatedParameterType)));
+			assert(checkImplies(typeInfo.isPassedByValue(parameterType),
+			                    typeInfo.isPassedByValue(translatedParameterType)));
 			
-			if (!canPassByValue(module, parameterType) && canPassByValue(module, translatedParameterType)) {
+			if (!typeInfo.isPassedByValue(parameterType) && typeInfo.isPassedByValue(translatedParameterType)) {
 				// Create an alloca to hold the parameter so it can be passed by pointer
 				// into the target function.
 				IREmitter irEmitter(functionGenerator);
