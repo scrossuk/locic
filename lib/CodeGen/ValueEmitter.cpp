@@ -607,9 +607,9 @@ namespace locic {
 			llvm::Value* functionValue = nullptr;
 			
 			if (callInfo.templateGenerator != nullptr) {
-				const auto functionPtrType = getBasicPrimitiveType(irEmitter_.module(),
-				                                                   PrimitiveTemplatedMethodFunctionPtr0);
-				functionValue = irEmitter_.constantGenerator().getUndef(functionPtrType);
+				const auto functionPtrType = getBasicPrimitiveABIType(irEmitter_.module(),
+				                                                      PrimitiveTemplatedMethodFunctionPtr0);
+				functionValue = irEmitter_.getUndef(functionPtrType);
 				functionValue = irEmitter_.emitInsertValue(functionValue, callInfo.functionPtr, { 0 });
 				functionValue = irEmitter_.emitInsertValue(functionValue, callInfo.templateGenerator, { 1 });
 			} else {
@@ -644,8 +644,8 @@ namespace locic {
 			const auto typeRefPtr = emitValue(value.staticInterfaceMethodOwner(),
 			                                  /*resultPtr=*/nullptr);
 			
-			const auto typeRef = irEmitter_.emitRawLoad(typeRefPtr,
-			                                            typeInfoType(irEmitter_.module()).second);
+			const auto typeRefTy = irEmitter_.module().getLLVMType(typeInfoType(irEmitter_.module()));
+			const auto typeRef = irEmitter_.emitRawLoad(typeRefPtr, typeRefTy);
 			
 			assert(method.kind() == AST::Value::FUNCTIONREF);
 			

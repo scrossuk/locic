@@ -97,15 +97,6 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* UnsignedIntegerPrimitive::getIRType(Module& module,
-		                                                const TypeGenerator& typeGenerator,
-		                                                llvm::ArrayRef<AST::Value> templateArguments) const {
-			const auto abiType = this->getABIType(module,
-			                                      module.abiTypeBuilder(),
-			                                      templateArguments);
-			return typeGenerator.getIntType(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes() * 8);
-		}
-		
 		llvm::Value* UnsignedIntegerPrimitive::emitMethod(IREmitter& irEmitter,
 		                                                  const MethodID methodID,
 		                                                  llvm::ArrayRef<AST::Value> typeTemplateArguments,

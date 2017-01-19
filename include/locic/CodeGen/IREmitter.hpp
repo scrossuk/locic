@@ -1,6 +1,8 @@
 #ifndef LOCIC_CODEGEN_IREMITTER_HPP
 #define LOCIC_CODEGEN_IREMITTER_HPP
 
+#include <llvm-abi/Type.hpp>
+
 #include <locic/CodeGen/PendingResult.hpp>
 
 namespace locic {
@@ -59,6 +61,9 @@ namespace locic {
 			
 			void
 			emitUnreachable();
+			
+			llvm::Value*
+			getUndef(llvm_abi::Type type);
 			
 			llvm::Value*
 			emitPointerCast(llvm::Value* ptr, llvm::Type* type);

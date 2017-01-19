@@ -39,10 +39,6 @@ namespace locic {
 			                          const llvm_abi::TypeBuilder& abiTypeBuilder,
 			                          llvm::ArrayRef<AST::Value> templateVariables) const;
 			
-			llvm::Type* getIRType(Module& module,
-			                      const TypeGenerator& typeGenerator,
-			                      llvm::ArrayRef<AST::Value> templateVariables) const;
-			
 			llvm::Value* emitMethod(IREmitter& irEmitter, MethodID methodID,
 			                        llvm::ArrayRef<AST::Value> typeTemplateVariables,
 			                        llvm::ArrayRef<AST::Value> functionTemplateVariables,

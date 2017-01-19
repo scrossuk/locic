@@ -20,15 +20,6 @@ namespace locic {
 	namespace CodeGen {
 		
 		class Module;
-		typedef std::pair<llvm_abi::Type, llvm::Type*> TypePair;
-		
-		TypePair voidTypePair(Module& module);
-		
-		TypePair boolTypePair(Module& module);
-		
-		TypePair sizeTypePair(Module& module);
-		
-		TypePair pointerTypePair(Module& module);
 		
 		struct ArgOffsets {
 			size_t nestArgumentOffset;
@@ -53,31 +44,32 @@ namespace locic {
 				
 				static ArgInfo VoidContextOnly(Module& module);
 				
-				static ArgInfo VoidContextWithArgs(Module& module, llvm::ArrayRef<TypePair> argumentTypes);
+				static ArgInfo VoidContextWithArgs(Module& module, llvm::ArrayRef<llvm_abi::Type> argumentTypes);
 				
 				static ArgInfo VoidTemplateOnly(Module& module);
 				
-				static ArgInfo ContextOnly(Module& module, TypePair returnType);
+				static ArgInfo ContextOnly(Module& module, llvm_abi::Type returnType);
 				
-				static ArgInfo Templated(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
+				static ArgInfo Templated(Module& module, llvm_abi::Type returnType, llvm::ArrayRef<llvm_abi::Type> argumentTypes);
 				
-				static ArgInfo TemplateOnly(Module& module, TypePair returnType);
+				static ArgInfo TemplateOnly(Module& module, llvm_abi::Type returnType);
 				
 				static ArgInfo VoidTemplateAndContext(Module& module);
 				
-				static ArgInfo VoidTemplateAndContextWithArgs(Module& module, llvm::ArrayRef<TypePair> argumentTypes);
+				static ArgInfo VoidTemplateAndContextWithArgs(Module& module, llvm::ArrayRef<llvm_abi::Type> argumentTypes);
 				
-				static ArgInfo TemplateAndContext(Module& module, TypePair returnType);
+				static ArgInfo TemplateAndContext(Module& module, llvm_abi::Type returnType);
 				
-				static ArgInfo VoidBasic(Module& module, llvm::ArrayRef<TypePair> argumentTypes);
+				static ArgInfo VoidBasic(Module& module, llvm::ArrayRef<llvm_abi::Type> argumentTypes);
 				
-				static ArgInfo Basic(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
+				static ArgInfo Basic(Module& module, llvm_abi::Type returnType, llvm::ArrayRef<llvm_abi::Type> argumentTypes);
 				
-				static ArgInfo VoidVarArgs(Module& module, llvm::ArrayRef<TypePair> argumentTypes);
+				static ArgInfo VoidVarArgs(Module& module, llvm::ArrayRef<llvm_abi::Type> argumentTypes);
 				
-				static ArgInfo VarArgs(Module& module, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
+				static ArgInfo VarArgs(Module& module, llvm_abi::Type returnType, llvm::ArrayRef<llvm_abi::Type> argumentTypes);
 				
-				ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, TypePair returnType, llvm::ArrayRef<TypePair> argumentTypes);
+				ArgInfo(Module& module, bool hRVA, bool hTG, bool hCA, bool pIsVarArg, llvm_abi::Type returnType,
+				        llvm::ArrayRef<llvm_abi::Type> argumentTypes);
 				
 				ArgInfo withNoMemoryAccess() const;
 				
@@ -123,9 +115,9 @@ namespace locic {
 				
 				size_t numArguments() const;
 				
-				const TypePair& returnType() const;
+				const llvm_abi::Type& returnType() const;
 				
-				const llvm::SmallVector<TypePair, 10>& argumentTypes() const;
+				const llvm::SmallVector<llvm_abi::Type, 10>& argumentTypes() const;
 				
 				std::string toString() const;
 				
@@ -140,8 +132,8 @@ namespace locic {
 				bool noExcept_;
 				bool noReturn_;
 				size_t numStandardArguments_;
-				TypePair returnType_;
-				llvm::SmallVector<TypePair, 10> argumentTypes_;
+				llvm_abi::Type returnType_;
+				llvm::SmallVector<llvm_abi::Type, 10> argumentTypes_;
 				
 		};
 		

@@ -71,12 +71,6 @@ namespace locic {
 			return llvm_abi::PointerTy;
 		}
 		
-		llvm::Type* PtrPrimitive::getIRType(Module& /*module*/,
-		                                    const TypeGenerator& typeGenerator,
-		                                    llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
-			return typeGenerator.getPtrType();
-		}
-		
 		llvm::Value* PtrPrimitive::emitMethod(IREmitter& irEmitter,
 		                                      const MethodID methodID,
 		                                      llvm::ArrayRef<AST::Value> typeTemplateArguments,
@@ -174,7 +168,7 @@ namespace locic {
 				}
 				case METHOD_SUBTRACT: {
 					// TODO: should be intptr_t!
-					const auto ptrDiffTType = getBasicPrimitiveType(module, PrimitivePtrDiff);
+					const auto ptrDiffTType = module.getLLVMType(llvm_abi::PtrDiffTy);
 					const auto operand = args[1].resolveWithoutBind(function);
 					
 					const auto firstPtrInt = builder.CreatePtrToInt(methodOwner, ptrDiffTType);
@@ -183,7 +177,7 @@ namespace locic {
 					return builder.CreateSub(firstPtrInt, secondPtrInt);
 				}
 				case METHOD_INDEX: {
-					const auto sizeTType = getBasicPrimitiveType(module, PrimitiveSize);
+					const auto sizeTType = module.getLLVMType(llvm_abi::SizeTy);
 					const auto operand = args[1].resolve(function);
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {

@@ -78,6 +78,12 @@ namespace locic {
 		}
 		
 		llvm::Value*
+		IREmitter::getUndef(const llvm_abi::Type type) {
+			const auto llvmType = module().getLLVMType(type);
+			return constantGenerator().getUndef(llvmType);
+		}
+		
+		llvm::Value*
 		IREmitter::emitPointerCast(llvm::Value* const ptr,
 		                           llvm::Type* const type) {
 			assert(ptr->getType()->isPointerTy());

@@ -303,7 +303,7 @@ namespace locic {
 				}
 				
 				default: {
-					const auto typeInfoIRType = typeInfoType(function.module()).second;
+					const auto typeInfoIRType = function.module().getLLVMType(typeInfoType(function.module()));
 					const auto typeInfoValue = irEmitter.emitRawLoad(valueEmitter.emitValue(value),
 					                                                 typeInfoIRType);
 					return getTypeInfoComponents(function,

@@ -76,30 +76,25 @@ namespace locic {
 		
 		constexpr size_t TYPE_INFO_ARRAY_SIZE = 8;
 		
-		TypePair pathType(Module& module) {
-			return std::make_pair(llvm_abi::Int64Ty,
-			                      TypeGenerator(module).getI64Type());
+		llvm_abi::Type pathType(Module& /*module*/) {
+			return llvm_abi::Int64Ty;
 		}
 		
 		llvm_abi::Type templateGeneratorABIType(Module& module) {
 			auto& abiTypeBuilder = module.abiTypeBuilder();
-			llvm::SmallVector<llvm_abi::Type, 3> types;
+			llvm::SmallVector<llvm_abi::Type, 2> types;
 			types.push_back(llvm_abi::PointerTy);
 			types.push_back(llvm_abi::Int64Ty);
 			return llvm_abi::Type::AutoStruct(abiTypeBuilder, types, "__template_generator");
 		}
 		
-		llvm::StructType* templateGeneratorLLVMType(Module& module) {
-			return llvm::dyn_cast<llvm::StructType>(module.abi().typeInfo().getLLVMType(templateGeneratorABIType(module)));
-		}
-		
-		TypePair templateGeneratorType(Module& module) {
+		llvm_abi::Type templateGeneratorType(Module& module) {
 			const auto iterator = module.standardTypeMap().find(TemplateGeneratorType);
 			if (iterator != module.standardTypeMap().end()) {
 				return iterator->second;
 			}
 			
-			const auto type = std::make_pair(templateGeneratorABIType(module), templateGeneratorLLVMType(module));
+			const auto type = templateGeneratorABIType(module);
 			module.standardTypeMap().insert(std::make_pair(TemplateGeneratorType, type));
 			return type;
 		}
@@ -108,38 +103,32 @@ namespace locic {
 			auto& abiTypeBuilder = module.abiTypeBuilder();
 			llvm::SmallVector<llvm_abi::Type, 2> types;
 			types.push_back(llvm_abi::PointerTy);
-			types.push_back(templateGeneratorABIType(module));
+			types.push_back(templateGeneratorType(module));
 			return llvm_abi::Type::AutoStruct(abiTypeBuilder, types, "__type_info");
 		}
 		
-		llvm::Type* typeInfoLLVMType(Module& module) {
-			return module.abi().typeInfo().getLLVMType(typeInfoABIType(module));
-		}
-		
-		TypePair typeInfoType(Module& module) {
+		llvm_abi::Type typeInfoType(Module& module) {
 			const auto iterator = module.standardTypeMap().find(TypeInfoType);
 			if (iterator != module.standardTypeMap().end()) {
 				return iterator->second;
 			}
 			
-			const auto type = std::make_pair(typeInfoABIType(module), typeInfoLLVMType(module));
+			const auto type = typeInfoABIType(module);
 			module.standardTypeMap().insert(std::make_pair(TypeInfoType, type));
 			return type;
 		}
 		
-		TypePair typeInfoArrayType(Module& module) {
+		llvm_abi::Type typeInfoArrayType(Module& module) {
 			const auto typeInfo = typeInfoType(module);
 			auto& abiTypeBuilder = module.abiTypeBuilder();
-			TypeGenerator typeGen(module);
-			return std::make_pair(llvm_abi::Type::Array(abiTypeBuilder, TYPE_INFO_ARRAY_SIZE, typeInfo.first),
-			                      typeGen.getArrayType(typeInfo.second, TYPE_INFO_ARRAY_SIZE));
+			return llvm_abi::Type::Array(abiTypeBuilder, TYPE_INFO_ARRAY_SIZE, typeInfo);
 		}
 		
 		ArgInfo rootFunctionArgInfo(Module& module) {
-			llvm::SmallVector<TypePair, 2> types;
+			llvm::SmallVector<llvm_abi::Type, 2> types;
 			
 			// Type info array pointer.
-			types.push_back(pointerTypePair(module));
+			types.push_back(llvm_abi::PointerTy);
 			
 			// Path value.
 			types.push_back(pathType(module));
@@ -149,10 +138,10 @@ namespace locic {
 		
 		llvm::Value* computeTemplateArguments(Function& function, llvm::Value* generatorValue) {
 			auto& builder = function.getBuilder();
-			
-			const auto typeInfoArrayIRType = typeInfoArrayType(function.module()).second;
+			auto& module = function.module();
 			
 			IREmitter irEmitter(function);
+			const auto typeInfoArrayIRType = module.getLLVMType(typeInfoArrayType(module));
 			const auto typesPtrArg = irEmitter.emitRawAlloca(typeInfoArrayIRType);
 			
 			const auto generatorRootFn = builder.CreateExtractValue(generatorValue, { 0 }, "rootFn");
@@ -173,7 +162,9 @@ namespace locic {
 				constGen.getNull(TypeGenerator(module).getPtrType()),
 				constGen.getI64(0)
 			};
-			return constGen.getStruct(templateGeneratorLLVMType(module), values);
+			
+			const auto type = module.getLLVMType(templateGeneratorType(module));
+			return constGen.getStruct(static_cast<llvm::StructType*>(type), values);
 		}
 		
 		bool hasTemplateVirtualTypeArgument(llvm::ArrayRef<const AST::Type*> arguments) {
@@ -210,7 +201,8 @@ namespace locic {
 						constGen.getPointerCast(rootFunction, TypeGenerator(module).getPtrType()),
 						constGen.getI64(1)
 					};
-				return constGen.getStruct(templateGeneratorLLVMType(module), values);
+				const auto type = module.getLLVMType(templateGeneratorType(module));
+				return constGen.getStruct(static_cast<llvm::StructType*>(type), values);
 			} else {
 				auto& templateBuilder = function.templateBuilder();
 				
@@ -241,7 +233,7 @@ namespace locic {
 				
 				SetUseEntryBuilder setUseEntryBuilder(function);
 				
-				llvm::Value* templateGenerator = constGen.getUndef(templateGeneratorType(module).second);
+				auto templateGenerator = irEmitter.getUndef(templateGeneratorType(module));
 				templateGenerator = irEmitter.emitInsertValue(templateGenerator, rootFunction, { 0 });
 				templateGenerator = irEmitter.emitInsertValue(templateGenerator, newPath, { 1 });
 				return templateGenerator;
@@ -327,14 +319,14 @@ namespace locic {
 			const auto typesPtrArg = function.getArg(0);
 			const auto pathArg = function.getArg(1);
 			
-			const auto typeInfoArrayIRType = typeInfoArrayType(module).second;
+			const auto typeInfoArrayIRType = module.getLLVMType(typeInfoArrayType(module));
 			
 			ConstantGenerator constGen(module);
 			
 			for (size_t i = 0; i < templateInst.arguments().size(); i++) {
 				const auto& templateArg = templateInst.arguments()[i];
 				
-				llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
+				auto typeInfo = irEmitter.getUndef(typeInfoType(module));
 				
 				if (templateArg.isTypeRef()) {
 					const auto vtablePointer = genVTable(module, templateArg.typeRefType()->resolveAliases()->getObjectType());
@@ -382,21 +374,20 @@ namespace locic {
 		}
 		
 		ArgInfo intermediateFunctionArgInfo(Module& module) {
-			std::vector<TypePair> argTypes;
+			std::vector<llvm_abi::Type> argTypes;
 			argTypes.reserve(4);
 			
 			// Type info array pointer.
-			argTypes.push_back(pointerTypePair(module));
+			argTypes.push_back(llvm_abi::PointerTy);
 			
 			// Root function pointer.
-			argTypes.push_back(pointerTypePair(module));
+			argTypes.push_back(llvm_abi::PointerTy);
 			
 			// Path value.
 			argTypes.push_back(pathType(module));
 			
 			// Position in path.
-			argTypes.push_back(std::make_pair(llvm_abi::SizeTy,
-			                                  TypeGenerator(module).getSizeTType()));
+			argTypes.push_back(llvm_abi::SizeTy);
 			
 			return ArgInfo::VoidBasic(module, argTypes).withNoExcept();
 		}
@@ -461,8 +452,8 @@ namespace locic {
 			}
 			
 			void emitActions(IREmitter& irEmitter, llvm::Value* const typesPtrArg) {
-				const auto typeInfoIRType = typeInfoType(irEmitter.module()).second;
-				const auto typeInfoArrayIRType = typeInfoArrayType(irEmitter.module()).second;
+				const auto typeInfoIRType = irEmitter.module().getLLVMType(typeInfoType(irEmitter.module()));
+				const auto typeInfoArrayIRType = irEmitter.module().getLLVMType(typeInfoArrayType(irEmitter.module()));
 				
 				llvm::SmallVector<llvm::Value*, 8> loadedValues;
 				loadedValues.reserve(moveActions_.size());
@@ -585,7 +576,7 @@ namespace locic {
 							typeArrayMapper.scheduleMove(templateVarIndex, i);
 						} else {
 							// Other values are just ignored for now...
-							llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
+							auto typeInfo = irEmitter.getUndef(typeInfoType(module));
 							typeInfo = irEmitter.emitInsertValue(typeInfo,
 							                                     nullTemplateGenerator(module),
 							                                     { 1 });
@@ -605,7 +596,7 @@ namespace locic {
 						// also the generator function for its template arguments).
 						const auto vtablePointer = genVTable(module, templateUseArg->resolveAliases()->getObjectType());
 						
-						llvm::Value* typeInfo = constGen.getUndef(typeInfoType(module).second);
+						llvm::Value* typeInfo = irEmitter.getUndef(typeInfoType(module));
 						typeInfo = irEmitter.emitInsertValue(typeInfo, vtablePointer, { 0 });
 						
 						if (templateUseArg->templateArguments().empty()) {
@@ -632,7 +623,7 @@ namespace locic {
 								argFullPath = builder.CreateOr(maskedSubPath, constGen.getI64(argComponent.value()));
 							}
 							
-							llvm::Value* templateGenerator = constGen.getUndef(templateGeneratorType(module).second);
+							auto templateGenerator = irEmitter.getUndef(templateGeneratorType(module));
 							templateGenerator = irEmitter.emitInsertValue(templateGenerator, rootFnArg, { 0 });
 							templateGenerator = irEmitter.emitInsertValue(templateGenerator, argFullPath, { 1 });
 							typeInfo = irEmitter.emitInsertValue(typeInfo, templateGenerator, { 1 });

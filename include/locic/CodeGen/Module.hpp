@@ -42,8 +42,6 @@ namespace locic {
 	}
 	
 	namespace CodeGen {
-	
-		typedef std::pair<llvm_abi::Type, llvm::Type*> TypePair;
 		
 		enum CompareResult {
 			COMPARE_EQUAL,
@@ -81,7 +79,7 @@ namespace locic {
 		typedef std::unordered_map<std::pair<String, Name>, String, hashPair<String, Name>> MangledNameMap;
 		typedef std::unordered_map<const AST::TypeInstance*, llvm::Function*> MemberOffsetFunctionMap;
 		typedef std::unordered_map<const AST::TypeInstance*, llvm::Function*> MoveFunctionMap;
-		typedef FastMap<StandardTypeKind, TypePair> StandardTypeMap;
+		typedef FastMap<StandardTypeKind, llvm_abi::Type> StandardTypeMap;
 		typedef FastMap<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
 		typedef FastMap<TemplateInst, llvm::Function*> TemplateRootFunctionMap;
 		typedef FastMap<String, llvm::StructType*> TypeMap;
@@ -110,7 +108,9 @@ namespace locic {
 				
 				const llvm_abi::ABI& abi() const;
 				
-				const llvm_abi::TypeBuilder& abiTypeBuilder();
+				const llvm_abi::TypeBuilder& abiTypeBuilder() const;
+				
+				llvm::Type* getLLVMType(llvm_abi::Type type) const;
 				
 				VirtualCallABI& virtualCallABI();
 				

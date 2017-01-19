@@ -111,8 +111,10 @@ namespace locic {
 			assert(!argInfo_.hasReturnVarArgument());
 			assert(!value->getType()->isVoidTy());
 			
+			const auto returnIRType = module().getLLVMType(argInfo_.returnType());
+			
 			if (returnValuePtr_ == nullptr) {
-				returnValuePtr_ = getEntryBuilder().CreateAlloca(argInfo_.returnType().second,
+				returnValuePtr_ = getEntryBuilder().CreateAlloca(returnIRType,
 				                                                 nullptr, "returnvalueptr");
 			}
 			
@@ -121,18 +123,19 @@ namespace locic {
 		}
 		
 		llvm::Value* Function::getRawReturnValue() {
-			if (argInfo_.hasReturnVarArgument() || argInfo_.returnType().second->isVoidTy()) {
+			if (argInfo_.hasReturnVarArgument() || argInfo_.returnType().isVoid()) {
 				return nullptr;
 			}
 			
+			const auto returnIRType = module().getLLVMType(argInfo_.returnType());
+			
 			if (returnValuePtr_ == nullptr) {
-				returnValuePtr_ = getEntryBuilder().CreateAlloca(argInfo_.returnType().second,
+				returnValuePtr_ = getEntryBuilder().CreateAlloca(returnIRType,
 				                                                 nullptr, "returnvalueptr");
 			}
 			
 			IREmitter irEmitter(*this);
-			return irEmitter.emitRawLoad(returnValuePtr_,
-			                             argInfo_.returnType().second);
+			return irEmitter.emitRawLoad(returnValuePtr_, returnIRType);
 		}
 		
 		llvm::Value* Function::getVarAddress(const AST::Var& var) {

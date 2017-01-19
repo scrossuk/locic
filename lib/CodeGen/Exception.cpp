@@ -27,11 +27,8 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
-			const auto sizeType = std::make_pair(llvm_abi::SizeTy, getBasicPrimitiveType(module, PrimitiveSize));
-			
-			const TypePair argTypes[] = { sizeType };
-			const auto argInfo = ArgInfo::Basic(module, voidPtr, argTypes).withNoExcept();
+			const llvm_abi::Type argTypes[] = { llvm_abi::SizeTy };
+			const auto argInfo = ArgInfo::Basic(module, llvm_abi::PointerTy, argTypes).withNoExcept();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
@@ -46,11 +43,8 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
-			
-			const TypePair argTypes[] = { voidPtr };
-			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoExcept();
+			const llvm_abi::Type argTypes[] = { llvm_abi::PointerTy };
+			const auto argInfo = ArgInfo::Basic(module, llvm_abi::VoidTy, argTypes).withNoExcept();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
@@ -65,11 +59,8 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
-			
-			const TypePair argTypes[] = { voidPtr, voidPtr, voidPtr };
-			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoReturn();
+			const llvm_abi::Type argTypes[] = { llvm_abi::PointerTy, llvm_abi::PointerTy, llvm_abi::PointerTy };
+			const auto argInfo = ArgInfo::Basic(module, llvm_abi::VoidTy, argTypes).withNoReturn();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
@@ -84,11 +75,8 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
-			
-			const TypePair argTypes[] = { voidPtr };
-			const auto argInfo = ArgInfo::Basic(module, voidType, argTypes).withNoReturn();
+			const llvm_abi::Type argTypes[] = { llvm_abi::PointerTy };
+			const auto argInfo = ArgInfo::Basic(module, llvm_abi::VoidTy, argTypes).withNoReturn();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
@@ -104,8 +92,7 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto int32Type = std::make_pair(llvm_abi::Int32Ty, TypeGenerator(module).getI32Type());
-			const auto argInfo = ArgInfo::VarArgs(module, int32Type, {}).withNoExcept();
+			const auto argInfo = ArgInfo::VarArgs(module, llvm_abi::Int32Ty, {}).withNoExcept();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
@@ -120,10 +107,8 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
-			
-			const TypePair argTypes[] = { voidPtr };
-			const auto argInfo = ArgInfo::Basic(module, voidPtr, argTypes).withNoExcept().withNoMemoryAccess();
+			const llvm_abi::Type argTypes[] = { llvm_abi::PointerTy };
+			const auto argInfo = ArgInfo::Basic(module, llvm_abi::PointerTy, argTypes).withNoExcept().withNoMemoryAccess();
 			
 			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));

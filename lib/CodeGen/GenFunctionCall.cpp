@@ -225,7 +225,7 @@ namespace locic {
 			if (argInfo.isVarArg() && argInfo.hasTemplateGeneratorArgument()) {
 				assert(callInfo.templateGenerator != nullptr);
 				llvmArgs.push_back(llvm_abi::TypedValue(callInfo.templateGenerator,
-				                                        templateGeneratorType(module).first));
+				                                        templateGeneratorType(module)));
 			}
 			
 			if (argInfo.hasContextArgument()) {
@@ -241,7 +241,7 @@ namespace locic {
 			if (!argInfo.isVarArg() && argInfo.hasTemplateGeneratorArgument()) {
 				assert(callInfo.templateGenerator != nullptr);
 				llvmArgs.push_back(llvm_abi::TypedValue(callInfo.templateGenerator,
-				                                        templateGeneratorType(module).first));
+				                                        templateGeneratorType(module)));
 			}
 			
 			const auto result = genRawFunctionCall(function,

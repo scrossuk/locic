@@ -73,12 +73,6 @@ namespace locic {
 			return llvm_abi::PointerTy;
 		}
 		
-		llvm::Type* NullPrimitive::getIRType(Module& /*module*/,
-		                                     const TypeGenerator& typeGenerator,
-		                                     llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
-			return typeGenerator.getPtrType();
-		}
-		
 		llvm::Value* NullPrimitive::emitMethod(IREmitter& irEmitter,
 		                                       const MethodID methodID,
 		                                       llvm::ArrayRef<AST::Value> typeTemplateArguments,

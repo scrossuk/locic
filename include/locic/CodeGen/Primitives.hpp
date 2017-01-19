@@ -31,9 +31,6 @@ namespace locic {
 		llvm::Value* genPrimitiveAlignMask(Function& function, const AST::Type* type);
 		llvm::Value* genPrimitiveSizeOf(Function& function, const AST::Type* type);
 		
-		llvm::Type* getBasicPrimitiveType(Module& module, PrimitiveID id);
-		llvm::Type* getPrimitiveType(Module& module, const AST::Type* type);
-		
 		llvm_abi::Type getBasicPrimitiveABIType(Module& module, PrimitiveID id);
 		llvm_abi::Type getPrimitiveABIType(Module& module, const AST::Type* type);
 		

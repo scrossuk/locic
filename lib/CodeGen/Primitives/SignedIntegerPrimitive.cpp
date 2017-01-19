@@ -99,15 +99,6 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* SignedIntegerPrimitive::getIRType(Module& module,
-		                                              const TypeGenerator& typeGenerator,
-		                                              llvm::ArrayRef<AST::Value> templateArguments) const {
-			const auto abiType = this->getABIType(module,
-			                                      module.abiTypeBuilder(),
-			                                      templateArguments);
-			return typeGenerator.getIntType(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes() * 8);
-		}
-		
 		llvm::Value* SignedIntegerPrimitive::emitMethod(IREmitter& irEmitter,
 		                                                const MethodID methodID,
 		                                                llvm::ArrayRef<AST::Value> typeTemplateArguments,
@@ -119,7 +110,6 @@ namespace locic {
 			auto& module = irEmitter.module();
 			
 			const auto& constantGenerator = irEmitter.constantGenerator();
-			const auto& typeGenerator = irEmitter.typeGenerator();
 			
 			const auto primitiveID = typeInstance_.primitiveID();
 			
@@ -159,9 +149,10 @@ namespace locic {
 				case METHOD_CASTFROM: {
 					const auto argPrimitiveID = methodID.primitiveID();
 					const auto operand = args[0].resolve(function);
-					const auto selfType = this->getIRType(module,
-					                                      typeGenerator,
-					                                      typeTemplateArguments);
+					const auto selfABIType = this->getABIType(module,
+					                                          module.abiTypeBuilder(),
+					                                          typeTemplateArguments);
+					const auto selfType = module.getLLVMType(selfABIType);
 					if (argPrimitiveID.isFloat()) {
 						return builder.CreateFPToSI(operand, selfType);
 					} else if (argPrimitiveID.isInteger()) {

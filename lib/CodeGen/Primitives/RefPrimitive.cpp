@@ -74,33 +74,9 @@ namespace locic {
 		                                        const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
 		                                        llvm::ArrayRef<AST::Value> templateArguments) const {
 			if (templateArguments.front().typeRefType()->isInterface()) {
-				return interfaceStructType(module).first;
+				return interfaceStructType(module);
 			} else {
 				return llvm_abi::PointerTy;
-			}
-		}
-		
-		llvm::Type* RefPrimitive::getIRType(Module& module,
-		                                    const TypeGenerator& typeGenerator,
-		                                    llvm::ArrayRef<AST::Value> templateArguments) const {
-			const auto argType = templateArguments.front().typeRefType();
-			if (argType->isTemplateVar() && argType->getTemplateVar()->isVirtual()) {
-				// Unknown whether the argument type is virtual, so use an opaque struct type.
-				const auto iterator = module.typeInstanceMap().find(&typeInstance_);
-				if (iterator != module.typeInstanceMap().end()) {
-					return iterator->second;
-				}
-				
-				const auto structType = TypeGenerator(module).getForwardDeclaredStructType(module.getCString("ref_t"));
-				
-				module.typeInstanceMap().insert(std::make_pair(&typeInstance_, structType));
-				return structType;
-			} else if (argType->isInterface()) {
-				// Argument type is definitely virtual.
-				return interfaceStructType(module).second;
-			} else {
-				// Argument type is definitely not virtual.
-				return typeGenerator.getPtrType();
 			}
 		}
 		
@@ -129,7 +105,7 @@ namespace locic {
 			}
 			
 			llvm::Type* getVirtualRefLLVMType(Module& module) {
-				return interfaceStructType(module).second;
+				return module.getLLVMType(interfaceStructType(module));
 			}
 			
 			llvm::Type* getNotVirtualLLVMType(Module& module) {
@@ -290,7 +266,7 @@ namespace locic {
 								const auto nonVirtualAlign = module.abi().typeInfo().getTypeRequiredAlign(llvm_abi::PointerTy);
 								return ConstantGenerator(module).getSizeTValue(nonVirtualAlign.asBytes() - 1);
 							} else {
-								const auto virtualAlign = module.abi().typeInfo().getTypeRequiredAlign(interfaceStructType(module).first);
+								const auto virtualAlign = module.abi().typeInfo().getTypeRequiredAlign(interfaceStructType(module));
 								return ConstantGenerator(module).getSizeTValue(virtualAlign.asBytes() - 1);
 							}
 						}
@@ -303,7 +279,7 @@ namespace locic {
 								const auto nonVirtualSize = module.abi().typeInfo().getTypeRawSize(llvm_abi::PointerTy);
 								return ConstantGenerator(module).getSizeTValue(nonVirtualSize.asBytes());
 							} else {
-								const auto virtualSize = module.abi().typeInfo().getTypeRawSize(interfaceStructType(module).first);
+								const auto virtualSize = module.abi().typeInfo().getTypeRawSize(interfaceStructType(module));
 								return ConstantGenerator(module).getSizeTValue(virtualSize.asBytes());
 							}
 						}

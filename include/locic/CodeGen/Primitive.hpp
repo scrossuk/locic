@@ -73,18 +73,6 @@ namespace locic {
 			                                  llvm::ArrayRef<AST::Value> templateArguments) const = 0;
 			
 			/**
-			 * \brief Get the IR type corresponding to the primitive.
-			 * 
-			 * \param module Current module. FIXME: Remove this argument.
-			 * \param typeGenerator The IR type generator.
-			 * \param templateArguments The template arguments provided to the primitive type.
-			 * \return The IR type.
-			 */
-			virtual llvm::Type* getIRType(Module& module,
-			                              const TypeGenerator& typeGenerator,
-			                              llvm::ArrayRef<AST::Value> templateArguments) const = 0;
-			
-			/**
 			 * \brief Emit method code for primitive.
 			 * 
 			 * This functions emits the IR code for a selected method

@@ -74,14 +74,6 @@ namespace locic {
 			return abiTypeBuilder.getStructTy(memberTypes);
 		}
 		
-		llvm::Type* RangePrimitive::getIRType(Module& module,
-		                                      const TypeGenerator& typeGenerator,
-		                                      llvm::ArrayRef<AST::Value> templateArguments) const {
-			const auto memberType = genType(module, templateArguments.front().typeRefType());
-			llvm::Type* const memberTypes[] = { memberType, memberType };
-			return typeGenerator.getStructType(memberTypes);
-		}
-		
 		class RangeElementAccess {
 		public:
 			RangeElementAccess(IREmitter& irEmitter, const AST::Type* const targetType)

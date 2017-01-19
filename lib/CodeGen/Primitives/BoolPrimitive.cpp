@@ -73,12 +73,6 @@ namespace locic {
 			return llvm_abi::BoolTy;
 		}
 		
-		llvm::Type* BoolPrimitive::getIRType(Module& /*module*/,
-		                                     const TypeGenerator& typeGenerator,
-		                                     llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
-			return typeGenerator.getI8Type();
-		}
-		
 		llvm::Value* BoolPrimitive::emitMethod(IREmitter& irEmitter,
 		                                       const MethodID methodID,
 		                                       llvm::ArrayRef<AST::Value> typeTemplateArguments,

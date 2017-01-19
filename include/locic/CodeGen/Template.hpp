@@ -3,8 +3,6 @@
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
-
-
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TemplateBuilder.hpp>
@@ -19,14 +17,14 @@ namespace locic {
 		 * 
 		 * Generates struct { void* rootFn; uint32_t path; }.
 		 */
-		TypePair templateGeneratorType(Module& module);
+		llvm_abi::Type templateGeneratorType(Module& module);
 		
 		/**
 		 * \brief Type info type.
 		 * 
 		 * Generates struct { void* vtable; struct { void* rootFn, uint32_t path; } generator; }.
 		 */
-		TypePair typeInfoType(Module& module);
+		llvm_abi::Type typeInfoType(Module& module);
 		
 		/**
 		 * \brief Root function arg info.

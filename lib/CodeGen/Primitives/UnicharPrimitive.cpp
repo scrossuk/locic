@@ -74,16 +74,6 @@ namespace locic {
 			return llvm_abi::UInt32Ty;
 		}
 		
-		llvm::Type*
-		UnicharPrimitive::getIRType(Module& module,
-		                            const TypeGenerator& typeGenerator,
-		                            llvm::ArrayRef<AST::Value> templateArguments) const {
-			const auto abiType = this->getABIType(module,
-			                                      module.abiTypeBuilder(),
-			                                      templateArguments);
-			return typeGenerator.getIntType(module.abi().typeInfo().getTypeAllocSize(abiType).asBytes() * 8);
-		}
-		
 		llvm::Value*
 		UnicharPrimitive::emitMethod(IREmitter& irEmitter, const MethodID methodID,
 		                             llvm::ArrayRef<AST::Value> typeTemplateArguments,

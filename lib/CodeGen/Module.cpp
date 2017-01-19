@@ -13,7 +13,6 @@
 #include <locic/Support/Map.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 
-
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -74,8 +73,13 @@ namespace locic {
 			return *abi_;
 		}
 		
-		const llvm_abi::TypeBuilder& Module::abiTypeBuilder() {
+		const llvm_abi::TypeBuilder& Module::abiTypeBuilder() const {
 			return abi().typeInfo().typeBuilder();
+		}
+		
+		llvm::Type*
+		Module::getLLVMType(const llvm_abi::Type type) const {
+			return abi().typeInfo().getLLVMType(type);
 		}
 		
 		VirtualCallABI& Module::virtualCallABI() {

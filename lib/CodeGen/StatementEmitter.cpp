@@ -31,11 +31,8 @@ namespace locic {
 	namespace CodeGen {
 		
 		ArgInfo assertFailedArgInfo(Module& module) {
-			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
-			const auto voidPtr = std::make_pair(llvm_abi::PointerTy, TypeGenerator(module).getPtrType());
-			
-			const TypePair argTypes[] = { voidPtr };
-			return ArgInfo::Basic(module, voidType, argTypes).withNoExcept().withNoReturn();
+			const llvm_abi::Type argTypes[] = { llvm_abi::PointerTy };
+			return ArgInfo::Basic(module, llvm_abi::VoidTy, argTypes).withNoExcept().withNoReturn();
 		}
 		
 		llvm::Function* getAssertFailedFunction(Module& module) {
@@ -52,8 +49,7 @@ namespace locic {
 		}
 		
 		ArgInfo unreachableFailedArgInfo(Module& module) {
-			const auto voidType = std::make_pair(llvm_abi::VoidTy, TypeGenerator(module).getVoidType());
-			return ArgInfo::Basic(module, voidType, {}).withNoExcept().withNoReturn();
+			return ArgInfo::Basic(module, llvm_abi::VoidTy, {}).withNoExcept().withNoReturn();
 		}
 		
 		llvm::Function* getUnreachableFailedFunction(Module& module) {

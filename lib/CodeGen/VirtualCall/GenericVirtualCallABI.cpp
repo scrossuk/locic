@@ -44,18 +44,17 @@ namespace locic {
 			
 			TypeGenerator typeGen(module_);
 			
-			llvm::SmallVector<TypePair, 2> arguments;
+			llvm::SmallVector<llvm_abi::Type, 2> arguments;
 			
 			// Hash value type.
-			arguments.push_back(std::make_pair(llvm_abi::Int64Ty, typeGen.getI64Type()));
+			arguments.push_back(llvm_abi::Int64Ty);
 			
 			// Arguments struct pointer type.
-			arguments.push_back(std::make_pair(llvm_abi::PointerTy, typeGen.getPtrType()));
+			arguments.push_back(llvm_abi::PointerTy);
 			
 			return ArgInfo(module_, hasReturnVarArgument,
 			               hasTemplateGenerator, hasContextArgument,
-			               isVarArg, voidTypePair(module_),
-			               arguments);
+			               isVarArg, llvm_abi::VoidTy, arguments);
 		}
 		
 		llvm::AttributeSet
@@ -348,7 +347,7 @@ namespace locic {
 			                                                          vtablePointer,
 			                                                          vtableEntryGEP);
 			
-			const auto argInfo = ArgInfo::TemplateOnly(module_, sizeTypePair(module_)).withNoMemoryAccess().withNoExcept();
+			const auto argInfo = ArgInfo::TemplateOnly(module_, llvm_abi::SizeTy).withNoMemoryAccess().withNoExcept();
 			
 			// Load the slot.
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,

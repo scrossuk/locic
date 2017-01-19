@@ -28,13 +28,6 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		llvm::Type* getPrimitiveType(Module& module, const AST::Type* const type) {
-			const auto& primitive = module.getPrimitive(*(type->getObjectType()));
-			return primitive.getIRType(module,
-			                           TypeGenerator(module),
-			                           arrayRef(type->templateArguments()));
-		}
-		
 		llvm_abi::Type getPrimitiveABIIntegerType(const PrimitiveID id) {
 			switch (id) {
 				case PrimitiveCompareResult:
@@ -89,87 +82,6 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* getBasicPrimitiveType(Module& module, const PrimitiveID id) {
-			switch (id) {
-				case PrimitiveVoid:
-					return TypeGenerator(module).getVoidType();
-				case PrimitiveNull:
-					return TypeGenerator(module).getPtrType();
-				case PrimitiveCompareResult:
-					return TypeGenerator(module).getI8Type();
-				case PrimitiveBool:
-					return TypeGenerator(module).getI1Type();
-				case PrimitiveInt8:
-				case PrimitiveUInt8:
-				case PrimitiveInt16:
-				case PrimitiveUInt16:
-				case PrimitiveInt32:
-				case PrimitiveUInt32:
-				case PrimitiveInt64:
-				case PrimitiveUInt64:
-				case PrimitiveByte:
-				case PrimitiveUByte:
-				case PrimitiveShort:
-				case PrimitiveUShort:
-				case PrimitiveInt:
-				case PrimitiveUInt:
-				case PrimitiveLong:
-				case PrimitiveULong:
-				case PrimitiveLongLong:
-				case PrimitiveULongLong:
-				case PrimitiveSize:
-				case PrimitiveSSize:
-				case PrimitivePtrDiff: {
-					const auto intAbiType = getPrimitiveABIIntegerType(id);
-					const auto typeSize = module.abi().typeInfo().getTypeRawSize(intAbiType);
-					return TypeGenerator(module).getIntType(typeSize.asBits());
-				}
-				case PrimitiveFloat:
-					return TypeGenerator(module).getFloatType();
-				case PrimitiveDouble:
-					return TypeGenerator(module).getDoubleType();
-				case PrimitiveLongDouble:
-					return TypeGenerator(module).getLongDoubleType();
-				case PrimitivePtr:
-				CASE_CALLABLE_ID(PrimitiveFunctionPtr):
-				CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):
-				CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr):
-					return TypeGenerator(module).getPtrType();
-				CASE_CALLABLE_ID(PrimitiveTemplatedFunctionPtr):
-				CASE_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr): {
-					llvm::Type* const memberTypes[] = {
-						TypeGenerator(module).getPtrType(),
-						templateGeneratorType(module).second
-					};
-					return TypeGenerator(module).getStructType(memberTypes);
-				}
-				CASE_CALLABLE_ID(PrimitiveMethod): {
-					llvm::Type* const memberTypes[] = {
-						TypeGenerator(module).getPtrType(),
-						getBasicPrimitiveType(module, PrimitiveMethodFunctionPtr0)
-					};
-					return TypeGenerator(module).getStructType(memberTypes);
-				}
-				CASE_CALLABLE_ID(PrimitiveTemplatedMethod): {
-					llvm::Type* const memberTypes[] = {
-						TypeGenerator(module).getPtrType(),
-						getBasicPrimitiveType(module, PrimitiveTemplatedMethodFunctionPtr0)
-					};
-					return TypeGenerator(module).getStructType(memberTypes);
-				}
-				CASE_CALLABLE_ID(PrimitiveInterfaceMethod): {
-					return interfaceMethodType(module).second;
-				}
-				CASE_CALLABLE_ID(PrimitiveStaticInterfaceMethod): {
-					return staticInterfaceMethodType(module).second;
-				}
-				case PrimitiveTypename:
-					return typeInfoType(module).second;
-				default:
-					llvm_unreachable("Unrecognised primitive type.");
-			}
-		}
-		
 		llvm_abi::Type getBasicPrimitiveABIType(Module& module, const PrimitiveID id) {
 			auto& abiTypeBuilder = module.abiTypeBuilder();
 			
@@ -187,7 +99,7 @@ namespace locic {
 					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
 					types.push_back(llvm_abi::PointerTy);
-					types.push_back(templateGeneratorType(module).first);
+					types.push_back(templateGeneratorType(module));
 					return llvm_abi::Type::AutoStruct(abiTypeBuilder, types);
 				}
 				CASE_CALLABLE_ID(PrimitiveMethod): {
@@ -205,10 +117,10 @@ namespace locic {
 					return llvm_abi::Type::AutoStruct(abiTypeBuilder, types);
 				}
 				CASE_CALLABLE_ID(PrimitiveInterfaceMethod): {
-					return interfaceMethodType(module).first;
+					return interfaceMethodType(module);
 				}
 				CASE_CALLABLE_ID(PrimitiveStaticInterfaceMethod): {
-					return staticInterfaceMethodType(module).first;
+					return staticInterfaceMethodType(module);
 				}
 				case PrimitiveCompareResult:
 				case PrimitiveBool:

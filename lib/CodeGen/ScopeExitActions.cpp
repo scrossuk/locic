@@ -87,8 +87,8 @@ namespace locic {
 							break;
 						}
 						case UnwindStateReturn: {
-							const auto returnType = function.getArgInfo().returnType().second;
-							if (function.getArgInfo().hasReturnVarArgument() || returnType->isVoidTy()) {
+							const auto returnType = function.getArgInfo().returnType();
+							if (function.getArgInfo().hasReturnVarArgument() || returnType.isVoid()) {
 								irEmitter.emitReturnVoid();
 							} else {
 								function.returnValue(function.getRawReturnValue());

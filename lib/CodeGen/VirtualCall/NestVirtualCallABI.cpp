@@ -39,9 +39,7 @@ namespace locic {
 			TypeGenerator typeGen(module_);
 			
 			// Return i64 as a generic register sized value.
-			const auto i64Type = std::make_pair(llvm_abi::Int64Ty, typeGen.getI64Type());
-			
-			return ArgInfo::VarArgs(module_, i64Type, {}).withNestArgument();
+			return ArgInfo::VarArgs(module_, llvm_abi::Int64Ty, {}).withNestArgument();
 		}
 		
 		llvm::AttributeSet
@@ -236,7 +234,7 @@ namespace locic {
 			                                                          vtablePointer,
 			                                                          vtableEntryGEP);
 			
-			const auto argInfo = ArgInfo::TemplateOnly(module_, sizeTypePair(module_)).withNoMemoryAccess().withNoExcept();
+			const auto argInfo = ArgInfo::TemplateOnly(module_, llvm_abi::SizeTy).withNoMemoryAccess().withNoExcept();
 			
 			// Load the slot.
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,

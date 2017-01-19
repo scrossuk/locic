@@ -72,12 +72,6 @@ namespace locic {
 			return genABIType(module, templateArguments.front().typeRefType());
 		}
 		
-		llvm::Type* ValueLvalPrimitive::getIRType(Module& module,
-		                                          const TypeGenerator& /*typeGenerator*/,
-		                                          llvm::ArrayRef<AST::Value> templateArguments) const {
-			return genType(module, templateArguments.front().typeRefType());
-		}
-		
 		namespace {
 			
 			llvm::Value* genValueLvalDeadMethod(Function& functionGenerator, const AST::Type* const targetType, llvm::Value* const resultPtr) {

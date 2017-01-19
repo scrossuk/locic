@@ -85,15 +85,6 @@ namespace locic {
 			                                 elementType);
 		}
 		
-		llvm::Type* StaticArrayPrimitive::getIRType(Module& module,
-		                                            const TypeGenerator& typeGenerator,
-		                                            llvm::ArrayRef<AST::Value> templateArguments) const {
-			const auto elementType = genType(module, templateArguments.front().typeRefType());
-			const auto& elementCount = templateArguments.back().constant().integerValue();
-			return typeGenerator.getArrayType(elementType,
-			                                  elementCount.asUint64());
-		}
-		
 		namespace {
 			
 			llvm::Value* getArrayIndex(IREmitter& irEmitter,

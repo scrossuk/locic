@@ -78,7 +78,7 @@ namespace locic {
 					std::vector<llvm_abi::Type> types;
 					types.reserve(2);
 					types.push_back(llvm_abi::PointerTy);
-					types.push_back(templateGeneratorType(module).first);
+					types.push_back(templateGeneratorType(module));
 					return abiTypeBuilder.getStructTy(types);
 				}
 				CASE_CALLABLE_ID(PrimitiveMethod): {
@@ -96,51 +96,10 @@ namespace locic {
 					return abiTypeBuilder.getStructTy(types);
 				}
 				CASE_CALLABLE_ID(PrimitiveInterfaceMethod): {
-					return interfaceMethodType(module).first;
+					return interfaceMethodType(module);
 				}
 				CASE_CALLABLE_ID(PrimitiveStaticInterfaceMethod): {
-					return staticInterfaceMethodType(module).first;
-				}
-				default:
-					llvm_unreachable("Invalid functionptr primitive ID.");
-			}
-		}
-		
-		llvm::Type* FunctionPtrPrimitive::getIRType(Module& module,
-		                                            const TypeGenerator& typeGenerator,
-		                                            llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
-			switch (typeInstance_.primitiveID()) {
-				CASE_CALLABLE_ID(PrimitiveFunctionPtr):
-				CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):
-				CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr):
-					return typeGenerator.getPtrType();
-				CASE_CALLABLE_ID(PrimitiveTemplatedFunctionPtr):
-				CASE_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr): {
-					llvm::Type* const memberTypes[] = {
-						typeGenerator.getPtrType(),
-						templateGeneratorType(module).second
-					};
-					return typeGenerator.getStructType(memberTypes);
-				}
-				CASE_CALLABLE_ID(PrimitiveMethod): {
-					llvm::Type* const memberTypes[] = {
-						typeGenerator.getPtrType(),
-						getBasicPrimitiveType(module, PrimitiveMethodFunctionPtr0)
-					};
-					return typeGenerator.getStructType(memberTypes);
-				}
-				CASE_CALLABLE_ID(PrimitiveTemplatedMethod): {
-					llvm::Type* const memberTypes[] = {
-						typeGenerator.getPtrType(),
-						getBasicPrimitiveType(module, PrimitiveTemplatedMethodFunctionPtr0)
-					};
-					return typeGenerator.getStructType(memberTypes);
-				}
-				CASE_CALLABLE_ID(PrimitiveInterfaceMethod): {
-					return interfaceMethodType(module).second;
-				}
-				CASE_CALLABLE_ID(PrimitiveStaticInterfaceMethod): {
-					return staticInterfaceMethodType(module).second;
+					return staticInterfaceMethodType(module);
 				}
 				default:
 					llvm_unreachable("Invalid functionptr primitive ID.");

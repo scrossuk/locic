@@ -36,25 +36,25 @@ namespace locic {
 		
 		ArgInfo alignMaskArgInfo(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto argInfo = !typeInstance->templateVariables().empty() ?
-				ArgInfo::TemplateOnly(module, sizeTypePair(module)) :
-				ArgInfo::Basic(module, sizeTypePair(module), {});
+				ArgInfo::TemplateOnly(module, llvm_abi::SizeTy) :
+				ArgInfo::Basic(module, llvm_abi::SizeTy, {});
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
 		ArgInfo sizeOfArgInfo(Module& module, const AST::TypeInstance* const typeInstance) {
 			const auto argInfo = !typeInstance->templateVariables().empty() ?
-				ArgInfo::TemplateOnly(module, sizeTypePair(module)) :
-				ArgInfo::Basic(module, sizeTypePair(module), {});
+				ArgInfo::TemplateOnly(module, llvm_abi::SizeTy) :
+				ArgInfo::Basic(module, llvm_abi::SizeTy, {});
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		
 		ArgInfo memberOffsetArgInfo(Module& module, const AST::TypeInstance* typeInstance) {
-			std::vector<TypePair> argTypes;
-			argTypes.push_back(sizeTypePair(module));
+			std::vector<llvm_abi::Type> argTypes;
+			argTypes.push_back(llvm_abi::SizeTy);
 			
 			const auto argInfo = !typeInstance->templateVariables().empty() ?
-				ArgInfo::Templated(module, sizeTypePair(module), std::move(argTypes)) :
-				ArgInfo::Basic(module, sizeTypePair(module), std::move(argTypes));
+				ArgInfo::Templated(module, llvm_abi::SizeTy, std::move(argTypes)) :
+				ArgInfo::Basic(module, llvm_abi::SizeTy, std::move(argTypes));
 			return argInfo.withNoMemoryAccess().withNoExcept();
 		}
 		

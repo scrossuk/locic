@@ -83,21 +83,6 @@ namespace locic {
 			}
 		}
 		
-		llvm::Type* FloatPrimitive::getIRType(Module& /*module*/,
-		                                      const TypeGenerator& typeGenerator,
-		                                      llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
-			switch (typeInstance_.primitiveID()) {
-				case PrimitiveFloat:
-					return typeGenerator.getFloatType();
-				case PrimitiveDouble:
-					return typeGenerator.getDoubleType();
-				case PrimitiveLongDouble:
-					return typeGenerator.getLongDoubleType();
-				default:
-					llvm_unreachable("Invalid float primitive ID.");
-			}
-		}
-		
 		llvm::Value* FloatPrimitive::emitMethod(IREmitter& irEmitter,
 		                                        const MethodID methodID,
 		                                        llvm::ArrayRef<AST::Value> typeTemplateArguments,
@@ -143,9 +128,10 @@ namespace locic {
 				case METHOD_CASTFROM: {
 					const auto argPrimitiveID = methodID.primitiveID();
 					const auto operand = args[0].resolve(function);
-					const auto selfType = this->getIRType(module,
-					                                      irEmitter.typeGenerator(),
-					                                      typeTemplateArguments);
+					const auto selfABIType = this->getABIType(module,
+					                                          module.abiTypeBuilder(),
+					                                          typeTemplateArguments);
+					const auto selfType = module.getLLVMType(selfABIType);
 					if (argPrimitiveID.isFloat()) {
 						return builder.CreateFPCast(operand, selfType);
 					} else if (argPrimitiveID.isUnsignedInteger()) {

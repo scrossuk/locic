@@ -70,12 +70,6 @@ namespace locic {
 			return llvm_abi::VoidTy;
 		}
 		
-		llvm::Type* VoidPrimitive::getIRType(Module& /*module*/,
-		                                     const TypeGenerator& typeGenerator,
-		                                     llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
-			return typeGenerator.getVoidType();
-		}
-		
 		llvm::Value* VoidPrimitive::emitMethod(IREmitter& irEmitter,
 		                                       const MethodID methodID,
 		                                       llvm::ArrayRef<AST::Value> /*typeTemplateArguments*/,

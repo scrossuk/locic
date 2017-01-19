@@ -71,12 +71,6 @@ namespace locic {
 			return llvm_abi::Int8Ty;
 		}
 		
-		llvm::Type* CompareResultPrimitive::getIRType(Module& /*module*/,
-		                                              const TypeGenerator& typeGenerator,
-		                                              llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
-			return typeGenerator.getI8Type();
-		}
-		
 		llvm::Value* CompareResultPrimitive::emitMethod(IREmitter& irEmitter,
 		                                                const MethodID methodID,
 		                                                llvm::ArrayRef<AST::Value> typeTemplateArguments,

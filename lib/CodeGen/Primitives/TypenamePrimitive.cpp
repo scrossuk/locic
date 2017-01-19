@@ -67,13 +67,7 @@ namespace locic {
 		llvm_abi::Type TypenamePrimitive::getABIType(Module& module,
 		                                             const llvm_abi::TypeBuilder& /*abiTypeBuilder*/,
 		                                             llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
-			return typeInfoType(module).first;
-		}
-		
-		llvm::Type* TypenamePrimitive::getIRType(Module& module,
-		                                         const TypeGenerator& /*typeGenerator*/,
-		                                         llvm::ArrayRef<AST::Value> /*templateArguments*/) const {
-			return typeInfoType(module).second;
+			return typeInfoType(module);
 		}
 		
 		llvm::Value* TypenamePrimitive::emitMethod(IREmitter& irEmitter,
