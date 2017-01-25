@@ -39,7 +39,7 @@ namespace locic {
 		                                     const LivenessIndicator livenessIndicator,
 		                                     llvm::Value* const objectPointerValue) {
 			const auto byteOffsetValue = emitLivenessByteOffset(typeInstance, livenessIndicator);
-			return irEmitter_.emitInBoundsGEP(irEmitter_.typeGenerator().getI8Type(),
+			return irEmitter_.emitInBoundsGEP(llvm_abi::Int8Ty,
 			                                  objectPointerValue,
 			                                  byteOffsetValue);
 		}

@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
 
 #include <locic/AST/Function.hpp>
 #include <locic/AST/Type.hpp>
@@ -92,15 +93,13 @@ namespace locic {
 		                                      llvm::ArrayRef<llvm::Value*> args) {
 			assert(argTypes.size() == args.size());
 			
-			const auto ptrType = TypeGenerator(module_).getPtrType();
-			
 			if (args.empty()) {
 				// Don't allocate struct when it's not needed.
 				return ConstantGenerator(module_).getNullPointer();
 			}
 			
-			llvm::SmallVector<llvm::Type*, 10> llvmArgTypes(args.size(), ptrType);
-			const auto argsStructType = TypeGenerator(module_).getStructType(llvmArgTypes);
+			llvm::SmallVector<llvm_abi::Type, 10> argABITypes(args.size(), llvm_abi::PointerTy);
+			const auto argsStructType = module_.abiTypeBuilder().getStructTy(argABITypes);
 			
 			const auto argsStructPtr = irEmitter.emitRawAlloca(argsStructType);
 			
@@ -110,7 +109,7 @@ namespace locic {
 				                                                       0, offset);
 				
 				if (TypeInfo(module_).isPassedByValue(argTypes[offset])) {
-					const auto argAlloca = irEmitter.emitRawAlloca(args[offset]->getType());
+					const auto argAlloca = irEmitter.emitAlloca(argTypes[offset]);
 					irEmitter.emitRawStore(args[offset], argAlloca);
 					irEmitter.emitRawStore(argAlloca, argPtr);
 				} else {
@@ -191,23 +190,21 @@ namespace locic {
 				
 				// Build the args struct type, which is just a struct
 				// containing i8* for each parameter.
-				llvm::SmallVector<llvm::Type*, 10> llvmArgsTypes(numArgs, TypeGenerator(module_).getPtrType());
-				
-				const auto llvmArgsStructType = typeGen.getStructType(llvmArgsTypes);
+				llvm::SmallVector<llvm_abi::Type, 10> argTypes(numArgs, llvm_abi::PointerTy);
+				const auto argsStructType = module_.abiTypeBuilder().getStructTy(argTypes);
 				
 				// Extract the arguments.
 				for (size_t offset = 0; offset < numArgs; offset++) {
 					const auto& paramType = paramTypes.at(offset);
 					
-					const auto argPtrPtr = irEmitter.emitConstInBoundsGEP2_32(llvmArgsStructType,
+					const auto argPtrPtr = irEmitter.emitConstInBoundsGEP2_32(argsStructType,
 					                                                          llvmArgsStructPtr,
 					                                                          0, offset);
-					const auto argPtr = irEmitter.emitRawLoad(argPtrPtr,
-					                                          irEmitter.typeGenerator().getPtrType());
+					const auto argPtr = irEmitter.emitRawLoad(argPtrPtr, llvm_abi::PointerTy);
 					
 					if (TypeInfo(module_).isPassedByValue(paramType)) {
 						parameters.push_back(irEmitter.emitRawLoad(argPtr,
-						                                           genType(module_, paramType)));
+						                                           genABIType(module_, paramType)));
 					} else {
 						parameters.push_back(argPtr);
 					}
@@ -266,7 +263,7 @@ namespace locic {
 			
 			// Load the slot.
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
-			                                                         irEmitter.typeGenerator().getPtrType());
+			                                                         llvm_abi::PointerTy);
 			
 			const auto callArgInfo = getFunctionArgInfo(module_, functionType);
 			auto argInfo = getStubArgInfo();
@@ -351,7 +348,7 @@ namespace locic {
 			
 			// Load the slot.
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
-			                                                         irEmitter.typeGenerator().getPtrType());
+			                                                         llvm_abi::PointerTy);
 			
 			return genRawFunctionCall(irEmitter.function(), argInfo,
 			                          methodFunctionPointer,

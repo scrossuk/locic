@@ -44,7 +44,8 @@ namespace locic {
 		}
 		
 		llvm::Value* genVTable(Module& module, const AST::TypeInstance* const typeInstance) {
-			const auto llvmVtableType = vtableType(module);
+			const auto vtableABIType = vtableType(module);
+			const auto vtableIRType = module.getLLVMType(vtableABIType);
 			
 			if (typeInstance->isInterface()) {
 				// Interfaces are abstract types so can't have a vtable;
@@ -61,7 +62,7 @@ namespace locic {
 			
 			TypeGenerator typeGen(module);
 			
-			const auto globalVariable = module.createConstGlobal(mangledName, llvmVtableType, llvm::Function::InternalLinkage);
+			const auto globalVariable = module.createConstGlobal(mangledName, vtableIRType, llvm::Function::InternalLinkage);
 			
 			// Generate the vtable.
 			const auto functionHashMap = CreateFunctionHashMap(typeInstance);
@@ -99,7 +100,8 @@ namespace locic {
 			const auto methodSlotTable = ConstantGenerator(module).getArray(slotTableType, methodSlotElements);
 			vtableStructElements.push_back(methodSlotTable);
 			
-			const auto vtableStruct = ConstantGenerator(module).getStruct(vtableType(module), vtableStructElements);
+			const auto vtableStruct = ConstantGenerator(module).getStruct(static_cast<llvm::StructType*>(vtableIRType),
+			                                                              vtableStructElements);
 			
 			globalVariable->setInitializer(vtableStruct);
 			

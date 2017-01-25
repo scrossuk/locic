@@ -108,8 +108,7 @@ namespace locic {
 				// Use 'musttail' to ensure perfect forwarding.
 				const auto result = genRawFunctionCall(function, stubArgInfo, llvmMethod, parameters,
 				                                       /*musttail=*/true);
-				
-				irEmitter.emitReturn(result->getType(), result);
+				irEmitter.emitReturn(result);
 				
 				irEmitter.selectBasicBlock(tryNextMethodBasicBlock);
 			}
@@ -149,7 +148,7 @@ namespace locic {
 			
 			// Load the slot.
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
-			                                                         irEmitter.typeGenerator().getPtrType());
+			                                                         llvm_abi::PointerTy);
 			
 			// Cast hash value to pointer so we can pass it through
 			// as the 'nest' parameter.
@@ -238,7 +237,7 @@ namespace locic {
 			
 			// Load the slot.
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
-			                                                         irEmitter.typeGenerator().getPtrType());
+			                                                         llvm_abi::PointerTy);
 			
 			return genRawFunctionCall(irEmitter.function(), argInfo,
 			                          methodFunctionPointer,

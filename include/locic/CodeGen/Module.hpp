@@ -82,7 +82,7 @@ namespace locic {
 		typedef FastMap<StandardTypeKind, llvm_abi::Type> StandardTypeMap;
 		typedef FastMap<TemplatedObject, TemplateBuilder> TemplateBuilderMap;
 		typedef FastMap<TemplateInst, llvm::Function*> TemplateRootFunctionMap;
-		typedef FastMap<String, llvm::StructType*> TypeMap;
+		typedef FastMap<String, llvm_abi::Type> TypeMap;
 		typedef std::unordered_map<const AST::TypeInstance*, llvm::StructType*> TypeInstanceMap;
 		
 		class InternalContext;

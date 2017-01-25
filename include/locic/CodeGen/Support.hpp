@@ -11,7 +11,7 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		llvm::StructType* vtableType(Module& module);
+		llvm_abi::Type vtableType(Module& module);
 		
 		template <typename T, size_t BaseSize>
 		llvm::ArrayRef<T> arrayRef(const Array<T, BaseSize>& array) {

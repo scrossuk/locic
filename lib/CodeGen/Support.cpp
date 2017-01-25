@@ -1,16 +1,18 @@
 #include <vector>
 
+#include <llvm-abi/Type.hpp>
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
-#include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/VTable.hpp>
 
 namespace locic {
-
-	namespace CodeGen {
 	
-		llvm::StructType* vtableType(Module& module) {
+	namespace CodeGen {
+		
+		llvm_abi::Type vtableType(Module& module) {
 			const auto name = module.getCString("__vtable");
 			
 			const auto iterator = module.getTypeMap().find(name);
@@ -18,23 +20,22 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			TypeGenerator typeGen(module);
-			const auto structType = typeGen.getForwardDeclaredStructType(name);
+			const auto& typeBuilder = module.abiTypeBuilder();
 			
-			module.getTypeMap().insert(std::make_pair(name, structType));
-			
-			std::vector<llvm::Type*> structElements;
+			llvm::SmallVector<llvm_abi::Type, 4> structElements;
 			
 			// Alignof.
-			structElements.push_back(typeGen.getPtrType());
-									 
-			// Sizeof.
-			structElements.push_back(typeGen.getPtrType());
-									 
-			// Hash table.
-			structElements.push_back(typeGen.getArrayType(typeGen.getPtrType(), VTABLE_SIZE));
+			structElements.push_back(llvm_abi::PointerTy);
 			
-			structType->setBody(structElements);
+			// Sizeof.
+			structElements.push_back(llvm_abi::PointerTy);
+			
+			// Hash table.
+			structElements.push_back(typeBuilder.getArrayTy(VTABLE_SIZE, llvm_abi::PointerTy));
+			
+			const auto structType = typeBuilder.getStructTy(structElements, name.asStdString());
+			
+			module.getTypeMap().insert(std::make_pair(name, structType));
 			
 			return structType;
 		}

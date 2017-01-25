@@ -93,9 +93,9 @@ namespace locic {
 				TypeInfo typeInfo(module);
 				if (typeInfo.isSizeAlwaysKnown(targetType_)) {
 					// If possible use a GEP rather than a bitcast.
-					const auto targetIRType = genType(module, targetType_);
-					llvm::Type* const memberTypes[] = { targetIRType, targetIRType };
-					const auto structType = irEmitter_.typeGenerator().getStructType(memberTypes);
+					const auto targetABIType = genABIType(module, targetType_);
+					const llvm_abi::Type memberTypes[] = { targetABIType, targetABIType };
+					const auto structType = module.abiTypeBuilder().getStructTy(memberTypes);
 					return irEmitter_.emitConstInBoundsGEP2_32(structType,
 					                                           ptr, 0, 0);
 				} else {
@@ -108,13 +108,13 @@ namespace locic {
 				
 				TypeInfo typeInfo(module);
 				if (typeInfo.isSizeAlwaysKnown(targetType_)) {
-					const auto targetIRType = genType(module, targetType_);
-					llvm::Type* const memberTypes[] = { targetIRType, targetIRType };
-					const auto structType = irEmitter_.typeGenerator().getStructType(memberTypes);
+					const auto targetABIType = genABIType(module, targetType_);
+					const llvm_abi::Type memberTypes[] = { targetABIType, targetABIType };
+					const auto structType = module.abiTypeBuilder().getStructTy(memberTypes);
 					return irEmitter_.emitConstInBoundsGEP2_32(structType,
 					                                           ptr, 0, 1);
 				} else {
-					return irEmitter_.emitInBoundsGEP(irEmitter_.typeGenerator().getI8Type(),
+					return irEmitter_.emitInBoundsGEP(llvm_abi::Int8Ty,
 					                                  ptr, getTargetSize());
 				}
 			}

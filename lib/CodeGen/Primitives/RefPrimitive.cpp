@@ -104,18 +104,18 @@ namespace locic {
 				return getRefTarget(type)->isInterface();
 			}
 			
-			llvm::Type* getVirtualRefLLVMType(Module& module) {
-				return module.getLLVMType(interfaceStructType(module));
+			llvm_abi::Type getVirtualRefABIType(Module& module) {
+				return interfaceStructType(module);
 			}
 			
-			llvm::Type* getNotVirtualLLVMType(Module& module) {
-				return TypeGenerator(module).getPtrType();
+			llvm_abi::Type getNotVirtualABIType(Module& /*module*/) {
+				return llvm_abi::PointerTy;
 			}
 			
-			llvm::Type* getRefLLVMType(Module& module, const AST::Type* const type) {
+			llvm_abi::Type getRefABIType(Module& module, const AST::Type* const type) {
 				return isRefVirtual(type) ?
-					getVirtualRefLLVMType(module) :
-					getNotVirtualLLVMType(module);
+					getVirtualRefABIType(module) :
+					getNotVirtualABIType(module);
 			}
 			
 			template <typename Fn>
@@ -130,7 +130,7 @@ namespace locic {
 					// pointer (i.e. a struct containing a pointer to the object
 					// as well as the vtable and the template generator), so we
 					// only generate for this known case.
-					return f(getRefLLVMType(module, type));
+					return f(getRefABIType(module, type));
 				}
 				
 				// If the reference target type is a template variable, we need
@@ -156,12 +156,12 @@ namespace locic {
 				                         ifNotVirtualBlock);
 				
 				irEmitter.selectBasicBlock(ifVirtualBlock);
-				const auto virtualType = getVirtualRefLLVMType(module);
+				const auto virtualType = getVirtualRefABIType(module);
 				const auto virtualResult = f(virtualType);
 				irEmitter.emitBranch(mergeBlock);
 				
 				irEmitter.selectBasicBlock(ifNotVirtualBlock);
-				const auto notVirtualType = getNotVirtualLLVMType(module);
+				const auto notVirtualType = getNotVirtualABIType(module);
 				const auto notVirtualResult = f(notVirtualType);
 				irEmitter.emitBranch(mergeBlock);
 				
@@ -213,7 +213,7 @@ namespace locic {
 				}
 				
 			public:
-				llvm::Value* get(llvm::Type* const llvmType) {
+				llvm::Value* get(const llvm_abi::Type abiType) {
 					if (loaded_) {
 						// If the virtual-ness of the reference is known
 						// then the reference is already loaded, otherwise it
@@ -223,7 +223,7 @@ namespace locic {
 						} else {
 							IREmitter irEmitter(function_);
 							return irEmitter.emitRawLoad(value_,
-							                             llvmType);
+							                             abiType);
 						}
 					} else {
 						return value_;
@@ -261,8 +261,8 @@ namespace locic {
 			switch (methodID) {
 				case METHOD_ALIGNMASK: {
 					return genRefPrimitiveMethodForVirtualCases(function, type,
-						[&](llvm::Type* const llvmType) {
-							if (llvmType->isPointerTy()) {
+						[&](const llvm_abi::Type abiType) {
+							if (abiType.isPointer()) {
 								const auto nonVirtualAlign = module.abi().typeInfo().getTypeRequiredAlign(llvm_abi::PointerTy);
 								return ConstantGenerator(module).getSizeTValue(nonVirtualAlign.asBytes() - 1);
 							} else {
@@ -274,8 +274,8 @@ namespace locic {
 				}
 				case METHOD_SIZEOF: {
 					return genRefPrimitiveMethodForVirtualCases(function, type,
-						[&](llvm::Type* const llvmType) {
-							if (llvmType->isPointerTy()) {
+						[&](const llvm_abi::Type abiType) {
+							if (abiType.isPointer()) {
 								const auto nonVirtualSize = module.abi().typeInfo().getTypeRawSize(llvm_abi::PointerTy);
 								return ConstantGenerator(module).getSizeTValue(nonVirtualSize.asBytes());
 							} else {
@@ -298,8 +298,8 @@ namespace locic {
 					auto methodOwner = RefMethodOwner::AsValue(function, type, args);
 					
 					return genRefPrimitiveMethodForVirtualCases(function, type,
-						[&](llvm::Type* const llvmType) {
-							const auto loadedValue = methodOwner.get(llvmType);
+						[&](const llvm_abi::Type abiType) {
+							const auto loadedValue = methodOwner.get(abiType);
 							if (!isRefVirtualnessKnown(type)) {
 								assert(resultPtr != nullptr);
 								irEmitter.emitRawStore(loadedValue,
@@ -314,9 +314,10 @@ namespace locic {
 					auto methodOwner = RefMethodOwner::AsValue(function, type, args);
 					
 					return genRefPrimitiveMethodForVirtualCases(function, type,
-						[&](llvm::Type* const llvmType) {
-							const auto methodOwnerValue = methodOwner.get(llvmType);
-							if (llvmType->isPointerTy()) {
+						[&](const llvm_abi::Type abiType) {
+							const auto methodOwnerValue = methodOwner.get(abiType);
+							if (abiType.isPointer()) {
+								const auto llvmType = module.getLLVMType(abiType);
 								const auto nullValue = ConstantGenerator(module).getNull(llvmType);
 								return irEmitter.emitI1ToBool(builder.CreateICmpNE(methodOwnerValue, nullValue));
 							} else {
@@ -330,8 +331,9 @@ namespace locic {
 					auto methodOwner = RefMethodOwner::AsRef(function, type, args);
 					
 					return genRefPrimitiveMethodForVirtualCases(function, type,
-						[&](llvm::Type* const llvmType) {
-							const auto methodOwnerPtr = methodOwner.get(llvmType);
+						[&](const llvm_abi::Type abiType) {
+							const auto methodOwnerPtr = methodOwner.get(abiType);
+							const auto llvmType = module.getLLVMType(abiType);
 							const auto nullValue = ConstantGenerator(module).getNull(llvmType);
 							irEmitter.emitRawStore(nullValue, methodOwnerPtr);
 							return ConstantGenerator(module).getVoidUndef();
@@ -351,9 +353,9 @@ namespace locic {
 					auto methodOwner = RefMethodOwner::AsValue(function, type, args);
 					
 					return genRefPrimitiveMethodForVirtualCases(function, type,
-						[&](llvm::Type* const llvmType) {
-							const auto refValue = methodOwner.get(llvmType);
-							if (llvmType->isPointerTy()) {
+						[&](const llvm_abi::Type abiType) {
+							const auto refValue = methodOwner.get(abiType);
+							if (abiType.isPointer()) {
 								return refValue;
 							}
 							

@@ -314,7 +314,7 @@ namespace locic {
 			} else if (result->getType()->isVoidTy()) {
 				irEmitter.emitReturnVoid();
 			} else {
-				functionGenerator.returnValue(result);
+				irEmitter.emitReturn(result);
 			}
 			
 			// Check the generated function is correct.

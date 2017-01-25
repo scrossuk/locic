@@ -10,8 +10,9 @@
 
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
+#include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/LivenessEmitter.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
@@ -263,7 +264,7 @@ namespace locic {
 					const auto memberVar = memberVars.at((memberVars.size() - 1) - i);
 					const auto memberOffsetValue = genMemberOffset(functionGenerator_, typeInstance.selfType(),
 					                                               memberVar->index());
-					const auto ptrToMember = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					const auto ptrToMember = irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 					                                                   thisValue,
 					                                                   memberOffsetValue);
 					irEmitter.emitDestructorCall(ptrToMember, memberVar->type());
@@ -380,7 +381,7 @@ namespace locic {
 				                                             destPtr);
 				TypeGenerator typeGenerator(module);
 				const auto loadedTag = irEmitter.emitRawLoad(sourcePointers.first,
-				                                             typeGenerator.getI8Type());
+				                                             llvm_abi::Int8Ty);
 				
 				// Store tag.
 				irEmitter.emitRawStore(loadedTag, destPointers.first);
@@ -671,7 +672,7 @@ namespace locic {
 					                                        livenessIndicator,
 					                                        contextValue);
 					const auto oneValue = ConstantGenerator(module).getI8(1);
-					const auto byteValue = irEmitter.emitRawLoad(bytePtr, oneValue->getType());
+					const auto byteValue = irEmitter.emitRawLoad(bytePtr, llvm_abi::Int8Ty);
 					// Live if suffix/gap byte == 1.
 					return irEmitter.emitI1ToBool(builder.CreateICmpEQ(byteValue, oneValue));
 				}
@@ -812,7 +813,7 @@ namespace locic {
 			const auto i8Type = TypeGenerator(module).getI8Type();
 			
 			if (typeInstance.isEnum()) {
-				const auto intType = genType(module, type);
+				const auto intType = genABIType(module, type);
 				const auto thisValue = irEmitter.emitRawLoad(thisPointer, intType);
 				const auto otherValue = irEmitter.emitRawLoad(otherPointer, intType);
 				

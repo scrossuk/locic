@@ -58,17 +58,6 @@ namespace locic {
 				Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* templateBuilder = nullptr);
 				
 				/**
-				 * \brief Generate return instruction
-				 * 
-				 * This creates a return instruction for the value, passing
-				 * it out of the function by value (rather than setting a
-				 * return value pointer).
-				 * 
-				 * This method handles encoding the value according to the ABI.
-				 */
-				llvm::Instruction* returnValue(llvm::Value* value);
-				
-				/**
 				 * \brief Set return value for later return
 				 * 
 				 * This creates an instruction that stores the value into
@@ -108,6 +97,8 @@ namespace locic {
 				const Module& module() const;
 				
 				const ArgInfo& getArgInfo() const;
+				
+				llvm_abi::FunctionEncoder& abiEncoder();
 				
 				llvm::Value* getRawArg(size_t index) const;
 				

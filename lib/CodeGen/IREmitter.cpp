@@ -9,6 +9,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
+#include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -106,15 +107,17 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		IREmitter::emitRawAlloca(llvm::Type* const type) {
-			return functionGenerator_.getEntryBuilder().CreateAlloca(type);
+		IREmitter::emitRawAlloca(const llvm_abi::Type type) {
+			const auto irType = module().getLLVMType(type);
+			return functionGenerator_.getEntryBuilder().CreateAlloca(irType);
 		}
 		
 		llvm::Value*
 		IREmitter::emitRawLoad(llvm::Value* const valuePtr,
-		                       llvm::Type* const type) {
+		                       const llvm_abi::Type type) {
 			assert(valuePtr->getType()->isPointerTy());
-			const auto castVar = emitPointerCast(valuePtr, type->getPointerTo());
+			const auto irType = module().getLLVMType(type);
+			const auto castVar = emitPointerCast(valuePtr, irType->getPointerTo());
 			return functionGenerator_.getBuilder().CreateLoad(castVar);
 		}
 		
@@ -128,35 +131,38 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		IREmitter::emitInBoundsGEP(llvm::Type* const type,
+		IREmitter::emitInBoundsGEP(const llvm_abi::Type type,
 		                           llvm::Value* const ptrValue,
 		                           llvm::Value* const indexValue) {
 			assert(ptrValue->getType()->isPointerTy());
 			assert(indexValue->getType()->isIntegerTy());
-			const auto castValue = emitPointerCast(ptrValue, type->getPointerTo());
+			const auto irType = module().getLLVMType(type);
+			const auto castValue = emitPointerCast(ptrValue, irType->getPointerTo());
 			return functionGenerator_.getBuilder().CreateInBoundsGEP(castValue,
 			                                                         indexValue);
 		}
 		
 		llvm::Value*
-		IREmitter::emitInBoundsGEP(llvm::Type* const type,
+		IREmitter::emitInBoundsGEP(const llvm_abi::Type type,
 		                           llvm::Value* const ptrValue,
 		                           llvm::ArrayRef<llvm::Value*> indexArray) {
 			assert(ptrValue->getType()->isPointerTy());
-			const auto castValue = emitPointerCast(ptrValue, type->getPointerTo());
+			const auto irType = module().getLLVMType(type);
+			const auto castValue = emitPointerCast(ptrValue, irType->getPointerTo());
 			return functionGenerator_.getBuilder().CreateInBoundsGEP(castValue,
 			                                                         indexArray);
 		}
 		
 		llvm::Value*
-		IREmitter::emitConstInBoundsGEP2_32(llvm::Type* const type,
+		IREmitter::emitConstInBoundsGEP2_32(const llvm_abi::Type type,
 		                                    llvm::Value* const ptrValue,
 		                                    const unsigned index0,
 		                                    const unsigned index1) {
 			assert(ptrValue->getType()->isPointerTy());
-			const auto castValue = emitPointerCast(ptrValue, type->getPointerTo());
+			const auto irType = module().getLLVMType(type);
+			const auto castValue = emitPointerCast(ptrValue, irType->getPointerTo());
 #if LOCIC_LLVM_VERSION >= 307
-			return functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(type,
+			return functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(irType,
 			                                                                  castValue,
 			                                                                  index0,
 			                                                                  index1);
@@ -294,15 +300,15 @@ namespace locic {
 		}
 		
 		llvm::ReturnInst*
-		IREmitter::emitReturn(llvm::Type* const type,
-		                      llvm::Value* const value) {
+		IREmitter::emitReturn(llvm::Value* value) {
+			assert(!functionGenerator_.getArgInfo().hasReturnVarArgument());
+			assert(!value->getType()->isVoidTy());
+			
 			if (value->getType()->isPointerTy()) {
-				assert(type->isPointerTy());
-				return builder().CreateRet(emitPointerCast(value, type));
-			} else {
-				assert(!type->isPointerTy());
-				return builder().CreateRet(value);
+				value = emitPointerCast(value, TypeGenerator(module()).getPtrType());
 			}
+			
+			return functionGenerator_.abiEncoder().returnValue(value);
 		}
 		
 		llvm::ReturnInst*
@@ -402,8 +408,8 @@ namespace locic {
 		                    const AST::Type* const type) {
 			assert(ptr->getType()->isPointerTy());
 			if (TypeInfo(module()).isPassedByValue(type)) {
-				const auto llvmType = genType(module(), type);
-				return emitRawLoad(ptr, llvmType);
+				const auto abiType = genABIType(module(), type);
+				return emitRawLoad(ptr, abiType);
 			} else {
 				return ptr;
 			}
@@ -497,8 +503,7 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::emitLoadVariantTag(llvm::Value* const variantPtr) {
-			return emitRawLoad(variantPtr,
-			                   TypeGenerator(module()).getI8Type());
+			return emitRawLoad(variantPtr, llvm_abi::Int8Ty);
 		}
 		
 		void
@@ -520,12 +525,12 @@ namespace locic {
 			// Try to use a plain GEP if possible.
 			TypeInfo typeInfo(module());
 			if (typeInfo.isSizeKnownInThisModule(variantType)) {
-				valuePtr = emitConstInBoundsGEP2_32(genType(module(), variantType),
+				valuePtr = emitConstInBoundsGEP2_32(genABIType(module(), variantType),
 				                                    variantPtr, 0, 1);
 			} else {
 				const auto unionAlignValue = genAlignOf(functionGenerator_,
 				                                        variantType);
-				valuePtr = emitInBoundsGEP(typeGenerator().getI8Type(),
+				valuePtr = emitInBoundsGEP(llvm_abi::Int8Ty,
 				                           variantPtr, unionAlignValue);
 			}
 			

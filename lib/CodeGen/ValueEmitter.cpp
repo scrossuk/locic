@@ -2,6 +2,8 @@
 
 #include <boost/optional.hpp>
 
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/Constant.hpp>
 
 #include <locic/AST/Alias.hpp>
@@ -17,6 +19,7 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
+#include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
@@ -50,7 +53,7 @@ namespace locic {
 				
 				TypeInfo typeInfo(module);
 				if (typeInfo.isSizeAlwaysKnown(elementType)) {
-					return irEmitter.emitInBoundsGEP(genType(module, elementType),
+					return irEmitter.emitInBoundsGEP(genABIType(module, elementType),
 					                                 arrayPtr,
 					                                 elementIndex);
 				} else {
@@ -58,7 +61,7 @@ namespace locic {
 					                                   elementType);
 					const auto indexPos = builder.CreateMul(elementSize,
 					                                        elementIndex);
-					return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					return irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 					                                 arrayPtr,
 					                                 indexPos);
 				}
@@ -182,15 +185,15 @@ namespace locic {
 				case locic::Constant::STRING: {
 					const auto& stringValue = value.constant().stringValue();
 					
-					const auto arrayType =
-						irEmitter_.typeGenerator().getArrayType(
-							irEmitter_.typeGenerator().getI8Type(),
-							stringValue.size() + 1);
+					const auto& typeBuilder = irEmitter_.module().abiTypeBuilder();
+					const auto arrayType = typeBuilder.getArrayTy(stringValue.size() + 1,
+					                                              llvm_abi::Int8Ty);
+					const auto arrayIRType = irEmitter_.module().getLLVMType(arrayType);
 					const auto constArray = irEmitter_.constantGenerator().getString(stringValue);
 					
 					const auto globalName = irEmitter_.module().getCString("cstring_constant");
 					const auto globalArray =
-						irEmitter_.module().createConstGlobal(globalName, arrayType,
+						irEmitter_.module().createConstGlobal(globalName, arrayIRType,
 						                                      llvm::GlobalValue::InternalLinkage,
 						                                      constArray);
 					globalArray->setAlignment(1);
@@ -470,11 +473,11 @@ namespace locic {
 				irEmitter_.emitRawStore(emitValue(parameterValues.front(), objectValue),
 				                        objectValue);
 			} else if (typeInfo.isSizeKnownInThisModule(type)) {
-				const auto objectIRType = genType(irEmitter_.module(), type);
+				const auto objectABIType = genABIType(irEmitter_.module(), type);
 				
 				for (size_t i = 0; i < parameterValues.size(); i++) {
 					const auto var = parameterVars.at(i);
-					const auto llvmInsertPointer = irEmitter_.emitConstInBoundsGEP2_32(objectIRType,
+					const auto llvmInsertPointer = irEmitter_.emitConstInBoundsGEP2_32(objectABIType,
 					                                                                   objectValue,
 					                                                                   0, i);
 					const auto llvmParamValue = emitValue(parameterValues.at(i), llvmInsertPointer);
@@ -491,7 +494,7 @@ namespace locic {
 					offsetValue = makeAligned(irEmitter_.function(), offsetValue,
 					                          varAlign);
 					
-					const auto llvmInsertPointer = irEmitter_.emitInBoundsGEP(irEmitter_.typeGenerator().getI8Type(),
+					const auto llvmInsertPointer = irEmitter_.emitInBoundsGEP(llvm_abi::Int8Ty,
 					                                                          objectValue, offsetValue);
 					const auto llvmParamValue = emitValue(parameterValues.at(i), llvmInsertPointer);
 					irEmitter_.emitStore(llvmParamValue, llvmInsertPointer, var->type());
@@ -644,7 +647,7 @@ namespace locic {
 			const auto typeRefPtr = emitValue(value.staticInterfaceMethodOwner(),
 			                                  /*resultPtr=*/nullptr);
 			
-			const auto typeRefTy = irEmitter_.module().getLLVMType(typeInfoType(irEmitter_.module()));
+			const auto typeRefTy = typeInfoType(irEmitter_.module());
 			const auto typeRef = irEmitter_.emitRawLoad(typeRefPtr, typeRefTy);
 			
 			assert(method.kind() == AST::Value::FUNCTIONREF);

@@ -1,6 +1,8 @@
 #include <stdexcept>
 #include <vector>
 
+#include <llvm-abi/TypeBuilder.hpp>
+
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Exception.hpp>
@@ -18,7 +20,7 @@ namespace locic {
 		llvm::Value* getIsCurrentUnwindState(Function& function, UnwindState state) {
 			IREmitter irEmitter(function);
 			const auto currentUnwindStateValue = irEmitter.emitRawLoad(function.unwindState(),
-			                                                           irEmitter.typeGenerator().getI8Type());
+			                                                           llvm_abi::Int8Ty);
 			const auto targetUnwindStateValue = getUnwindStateValue(function.module(), state);
 			return function.getBuilder().CreateICmpEQ(currentUnwindStateValue, targetUnwindStateValue);
 		}
@@ -79,8 +81,8 @@ namespace locic {
 				case UnwindAction::FUNCTIONMARKER: {
 					switch (unwindState) {
 						case UnwindStateThrow: {
-							TypeGenerator typeGen(function.module());
-							const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getPtrType(), typeGen.getI32Type()});
+							const auto& typeBuilder = function.module().abiTypeBuilder();
+							const auto exceptionInfoType = typeBuilder.getStructTy({ llvm_abi::PointerTy, llvm_abi::Int32Ty });
 							const auto exceptionInfo = irEmitter.emitRawLoad(function.exceptionInfo(),
 							                                                 exceptionInfoType);
 							function.getBuilder().CreateResume(exceptionInfo);
@@ -91,7 +93,7 @@ namespace locic {
 							if (function.getArgInfo().hasReturnVarArgument() || returnType.isVoid()) {
 								irEmitter.emitReturnVoid();
 							} else {
-								function.returnValue(function.getRawReturnValue());
+								irEmitter.emitReturn(function.getRawReturnValue());
 							}
 							break;
 						}
@@ -290,7 +292,7 @@ namespace locic {
 							// Replace the existing branch with a switch.
 							irEmitter.selectBasicBlock(branchInst->getParent());
 							const auto currentUnwindStateValue = irEmitter.emitRawLoad(function.unwindState(),
-							                                                           TypeGenerator(module).getI8Type());
+							                                                           llvm_abi::Int8Ty);
 							const auto switchInst = function.getBuilder().CreateSwitch(currentUnwindStateValue, branchInst->getSuccessor(0));
 							branchInst->eraseFromParent();
 							switchInst->addCase(getUnwindStateValue(module, unwindState), nextBB);

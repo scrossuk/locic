@@ -253,8 +253,7 @@ namespace locic {
 				irEmitter.emitCondBranch(compareResult, exitBB, nextBB);
 				
 				irEmitter.selectBasicBlock(exitBB);
-				irEmitter.emitReturn(offsetValue->getType(),
-				                     offsetValue);
+				irEmitter.emitReturn(offsetValue);
 				
 				irEmitter.selectBasicBlock(nextBB);
 				
@@ -375,12 +374,12 @@ namespace locic {
 			
 			TypeInfo typeInfo(module);
 			if (typeInfo.isSizeKnownInThisModule(objectType) && !objectType->isUnion()) {
-				return irEmitter.emitConstInBoundsGEP2_32(genType(module, objectType),
+				return irEmitter.emitConstInBoundsGEP2_32(genABIType(module, objectType),
 				                                          objectPointer,
 				                                          0, memberIndex);
 			} else {
 				const auto memberOffset = genMemberOffset(function, objectType, memberIndex);
-				return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+				return irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 				                                 objectPointer,
 				                                 memberOffset);
 			}
@@ -394,15 +393,15 @@ namespace locic {
 			
 			TypeInfo typeInfo(module);
 			if (typeInfo.isSizeKnownInThisModule(type)) {
-				const auto irType = genType(module, type);
-				const auto loadedTagPtr = irEmitter.emitConstInBoundsGEP2_32(irType,
+				const auto abiType = genABIType(module, type);
+				const auto loadedTagPtr = irEmitter.emitConstInBoundsGEP2_32(abiType,
 				                                                             objectPtr, 0, 0);
-				const auto unionValuePtr = irEmitter.emitConstInBoundsGEP2_32(irType,
+				const auto unionValuePtr = irEmitter.emitConstInBoundsGEP2_32(abiType,
 				                                                              objectPtr, 0, 1);
 				return std::make_pair(loadedTagPtr, unionValuePtr);
 			} else {
 				const auto unionAlignValue = genAlignOf(function, type);
-				const auto unionValuePtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+				const auto unionValuePtr = irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 				                                                     objectPtr,
 				                                                     unionAlignValue);
 				return std::make_pair(objectPtr, unionValuePtr);

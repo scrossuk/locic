@@ -1,6 +1,7 @@
-#include <assert.h>
-
+#include <cassert>
 #include <stdexcept>
+
+#include <llvm-abi/TypeBuilder.hpp>
 
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
@@ -331,7 +332,6 @@ namespace locic {
 			assert(switchValue.type()->isVariant());
 			
 			auto& function = irEmitter_.function();
-			auto& module = irEmitter_.module();
 			ValueEmitter valueEmitter(irEmitter_);
 			
 			const auto switchType = switchValue.type();
@@ -347,7 +347,7 @@ namespace locic {
 			const auto variantPointers = getVariantPointers(function, switchType, switchValuePtr);
 			
 			const auto loadedTag = irEmitter_.emitRawLoad(variantPointers.first,
-			                                              TypeGenerator(module).getI8Type());
+			                                              llvm_abi::Int8Ty);
 			
 			const auto defaultBB = irEmitter_.createBasicBlock("");
 			const auto endBB = irEmitter_.createBasicBlock("switchEnd");
@@ -604,7 +604,7 @@ namespace locic {
 						irEmitter_.emitReturnVoid();
 					} else {
 						const auto returnValue = valueEmitter.emitValue(value);
-						function.returnValue(returnValue);
+						irEmitter_.emitReturn(returnValue);
 					}
 				} else {
 					irEmitter_.emitReturnVoid();
@@ -650,8 +650,8 @@ namespace locic {
 			irEmitter_.selectBasicBlock(catchBB);
 			
 			// Load selector of exception thrown.
-			TypeGenerator typeGen(module);
-			const auto exceptionInfoType = typeGen.getStructType(std::vector<llvm::Type*> {typeGen.getPtrType(), typeGen.getI32Type()});
+			const auto& typeBuilder = module.abiTypeBuilder();
+			const auto exceptionInfoType = typeBuilder.getStructTy({ llvm_abi::PointerTy, llvm_abi::Int32Ty });
 			const auto exceptionInfo = irEmitter_.emitRawLoad(function.exceptionInfo(),
 			                                                  exceptionInfoType);
 			const auto thrownExceptionValue = function.getBuilder().CreateExtractValue(exceptionInfo, std::vector<unsigned> {0});
@@ -863,11 +863,12 @@ namespace locic {
 			irEmitter_.selectBasicBlock(failBB);
 			
 			if (!module.buildOptions().unsafe) {
-				const auto arrayType = TypeGenerator(module).getArrayType(TypeGenerator(module).getI8Type(),
-				                                                          assertName.size() + 1);
+				const auto arrayType = module.abiTypeBuilder().getArrayTy(assertName.size() + 1,
+				                                                          llvm_abi::Int8Ty);
+				const auto arrayIRType = module.getLLVMType(arrayType);
 				const auto constArray = ConstantGenerator(module).getString(assertName);
 				const auto globalArray = module.createConstGlobal(module.getCString("assert_name_constant"),
-				                                                  arrayType, llvm::GlobalValue::InternalLinkage,
+				                                                  arrayIRType, llvm::GlobalValue::InternalLinkage,
 				                                                  constArray);
 				globalArray->setAlignment(1);
 				const auto stringGlobal = irEmitter_.emitConstInBoundsGEP2_32(arrayType,

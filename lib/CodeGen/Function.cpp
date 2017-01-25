@@ -95,18 +95,6 @@ namespace locic {
 			                                                        argValues);
 		}
 		
-		llvm::Instruction* Function::returnValue(llvm::Value* value) {
-			assert(!argInfo_.hasReturnVarArgument());
-			assert(!value->getType()->isVoidTy());
-			
-			if (value->getType()->isPointerTy()) {
-				IREmitter irEmitter(*this);
-				value = irEmitter.emitPointerCast(value, TypeGenerator(module()).getPtrType());
-			}
-			
-			return functionEncoder_->returnValue(value);
-		}
-		
 		void Function::setReturnValue(llvm::Value* const value) {
 			assert(!argInfo_.hasReturnVarArgument());
 			assert(!value->getType()->isVoidTy());
@@ -135,7 +123,7 @@ namespace locic {
 			}
 			
 			IREmitter irEmitter(*this);
-			return irEmitter.emitRawLoad(returnValuePtr_, returnIRType);
+			return irEmitter.emitRawLoad(returnValuePtr_, argInfo_.returnType());
 		}
 		
 		llvm::Value* Function::getVarAddress(const AST::Var& var) {
@@ -155,7 +143,7 @@ namespace locic {
 			for (size_t i = 0; i < var.varList()->size(); i++) {
 				const auto& childVar = (*(var.varList()))[i];
 				const auto memberOffsetValue = genMemberOffset(*this, var.type(), i);
-				const auto memberPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+				const auto memberPtr = irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 				                                                 varPtr, memberOffsetValue);
 				setVarAddress(*childVar, memberPtr);
 			}
@@ -183,6 +171,10 @@ namespace locic {
 		
 		const ArgInfo& Function::getArgInfo() const {
 			return argInfo_;
+		}
+		
+		llvm_abi::FunctionEncoder& Function::abiEncoder() {
+			return *functionEncoder_;
 		}
 		
 		llvm::Value* Function::getRawArg(size_t index) const {

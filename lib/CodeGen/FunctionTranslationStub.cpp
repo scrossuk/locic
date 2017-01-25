@@ -178,17 +178,14 @@ namespace locic {
 			const auto result = genRawFunctionCall(functionGenerator, argInfo, function, arguments);
 			
 			if (argInfo.hasReturnVarArgument() && !translatedArgInfo.hasReturnVarArgument()) {
-				const auto returnVarType = llvmFunction->getFunctionType()->getReturnType();
-				irEmitter.emitReturn(returnVarType,
-				                     irEmitter.emitRawLoad(returnVar,
+				const auto returnVarType = translatedArgInfo.returnType();
+				irEmitter.emitReturn(irEmitter.emitRawLoad(returnVar,
 						                           returnVarType));
 			} else {
 				if (llvmTranslatedFunctionType->getReturnType()->isVoidTy()) {
 					irEmitter.emitReturnVoid();
 				} else {
-					const auto returnVarType = llvmFunction->getFunctionType()->getReturnType();
-					irEmitter.emitReturn(returnVarType,
-					                     result);
+					irEmitter.emitReturn(result);
 				}
 			}
 			

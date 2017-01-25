@@ -96,7 +96,7 @@ namespace locic {
 				
 				TypeInfo typeInfo(module);
 				if (typeInfo.isSizeAlwaysKnown(elementType)) {
-					return irEmitter.emitInBoundsGEP(genType(module, elementType),
+					return irEmitter.emitInBoundsGEP(genABIType(module, elementType),
 					                                 arrayPtr,
 					                                 elementIndex);
 				} else {
@@ -104,7 +104,7 @@ namespace locic {
 					                                   elementType);
 					const auto indexPos = builder.CreateMul(elementSize,
 					                                        elementIndex);
-					return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+					return irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 					                                 arrayPtr,
 					                                 indexPos);
 				}
@@ -313,7 +313,7 @@ namespace locic {
 					const auto operand = args[1].resolve(function);
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeAlwaysKnown(elementType)) {
-						return irEmitter.emitInBoundsGEP(genType(module, elementType),
+						return irEmitter.emitInBoundsGEP(genABIType(module, elementType),
 						                                 methodOwner,
 						                                 operand);
 					} else {
@@ -321,7 +321,7 @@ namespace locic {
 						                                   elementType);
 						const auto indexPos = builder.CreateMul(elementSize,
 						                                        operand);
-						const auto elementPtr = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+						const auto elementPtr = irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 						                                                  methodOwner,
 						                                                  indexPos);
 						return elementPtr;

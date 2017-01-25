@@ -128,7 +128,7 @@ namespace locic {
 				                    returnType);
 				irEmitter.emitReturnVoid();
 			} else if (!returnType->isBuiltInVoid()) {
-				functionGenerator_.returnValue(result);
+				irEmitter.emitReturn(result);
 			} else {
 				irEmitter.emitReturnVoid();
 			}

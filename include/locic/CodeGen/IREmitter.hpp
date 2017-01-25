@@ -75,26 +75,26 @@ namespace locic {
 			emitBoolToI1(llvm::Value* value);
 			
 			llvm::Value*
-			emitRawAlloca(llvm::Type* type);
+			emitRawAlloca(llvm_abi::Type type);
 			
 			llvm::Value*
-			emitRawLoad(llvm::Value* valuePtr, llvm::Type* type);
+			emitRawLoad(llvm::Value* valuePtr, llvm_abi::Type type);
 			
 			void
 			emitRawStore(llvm::Value* value, llvm::Value* var);
 			
 			llvm::Value*
-			emitInBoundsGEP(llvm::Type* type,
+			emitInBoundsGEP(llvm_abi::Type type,
 			                llvm::Value* ptrValue,
 			                llvm::Value* indexValue);
 			
 			llvm::Value*
-			emitInBoundsGEP(llvm::Type* type,
+			emitInBoundsGEP(llvm_abi::Type type,
 			                llvm::Value* ptrValue,
 			                llvm::ArrayRef<llvm::Value*> indexArray);
 			
 			llvm::Value*
-			emitConstInBoundsGEP2_32(llvm::Type* type,
+			emitConstInBoundsGEP2_32(llvm_abi::Type type,
 			                         llvm::Value* ptrValue,
 			                         unsigned index0,
 			                         unsigned index1);
@@ -147,8 +147,7 @@ namespace locic {
 			           llvm::ArrayRef<llvm::Value*> args);
 			
 			llvm::ReturnInst*
-			emitReturn(llvm::Type* type,
-			           llvm::Value* value);
+			emitReturn(llvm::Value* value);
 			
 			llvm::ReturnInst*
 			emitReturnVoid();

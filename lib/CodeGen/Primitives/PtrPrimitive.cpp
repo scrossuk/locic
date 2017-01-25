@@ -81,16 +81,15 @@ namespace locic {
 			auto& function = irEmitter.function();
 			auto& module = irEmitter.module();
 			
-			const auto irType = irEmitter.typeGenerator().getPtrType();
-			
 			const auto targetType = typeTemplateArguments.front().typeRefType();
 			const auto methodOwnerPointer = methodID.isConstructor() ? nullptr : args[0].resolve(function);
 			const auto methodOwner = methodOwnerPointer != nullptr ?
-			                         irEmitter.emitRawLoad(methodOwnerPointer, irType) :
+			                         irEmitter.emitRawLoad(methodOwnerPointer, llvm_abi::PointerTy) :
 			                         nullptr;
 			
 			switch (methodID) {
 				case METHOD_NULL: {
+					const auto irType = irEmitter.typeGenerator().getPtrType();
 					return ConstantGenerator(module).getNull(irType);
 				}
 				case METHOD_ALIGNMASK: {
@@ -119,13 +118,13 @@ namespace locic {
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						const auto one = ConstantGenerator(module).getI32(1);
-						const auto newPointer = irEmitter.emitInBoundsGEP(genType(module, targetType),
+						const auto newPointer = irEmitter.emitInBoundsGEP(genABIType(module, targetType),
 						                                                  methodOwner,
 						                                                  one);
 						irEmitter.emitRawStore(newPointer, methodOwnerPointer);
 					} else {
 						const auto targetSize = genSizeOf(function, targetType);
-						const auto newPointer = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+						const auto newPointer = irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 						                                                  methodOwner,
 						                                                  targetSize);
 						irEmitter.emitRawStore(newPointer, methodOwnerPointer);
@@ -136,14 +135,14 @@ namespace locic {
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
 						const auto minusOne = ConstantGenerator(module).getI32(-1);
-						const auto newPointer = irEmitter.emitInBoundsGEP(genType(module, targetType),
+						const auto newPointer = irEmitter.emitInBoundsGEP(genABIType(module, targetType),
 						                                                  methodOwner,
 						                                                  minusOne);
 						irEmitter.emitRawStore(newPointer, methodOwnerPointer);
 					} else {
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto minusTargetSize = builder.CreateNeg(targetSize);
-						const auto newPointer = irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+						const auto newPointer = irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 						                                                  methodOwner,
 						                                                  minusTargetSize);
 						irEmitter.emitRawStore(newPointer, methodOwnerPointer);
@@ -155,13 +154,13 @@ namespace locic {
 					
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
-						return irEmitter.emitInBoundsGEP(genType(module, targetType),
+						return irEmitter.emitInBoundsGEP(genABIType(module, targetType),
 						                                 methodOwner,
 						                                 operand);
 					} else {
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto adjustedOffset = builder.CreateMul(operand, targetSize);
-						return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+						return irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 						                                 methodOwner,
 						                                 adjustedOffset);
 					}
@@ -181,14 +180,14 @@ namespace locic {
 					const auto operand = args[1].resolve(function);
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeKnownInThisModule(targetType)) {
-						return irEmitter.emitInBoundsGEP(genType(module, targetType),
+						return irEmitter.emitInBoundsGEP(genABIType(module, targetType),
 						                                 methodOwner,
 						                                 operand);
 					} else {
 						const auto targetSize = genSizeOf(function, targetType);
 						const auto offset = builder.CreateIntCast(operand, sizeTType, true);
 						const auto adjustedOffset = builder.CreateMul(offset, targetSize);
-						return irEmitter.emitInBoundsGEP(irEmitter.typeGenerator().getI8Type(),
+						return irEmitter.emitInBoundsGEP(llvm_abi::Int8Ty,
 						                                 methodOwner,
 						                                 adjustedOffset);
 					}

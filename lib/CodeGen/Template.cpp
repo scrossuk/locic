@@ -141,8 +141,8 @@ namespace locic {
 			auto& module = function.module();
 			
 			IREmitter irEmitter(function);
-			const auto typeInfoArrayIRType = module.getLLVMType(typeInfoArrayType(module));
-			const auto typesPtrArg = irEmitter.emitRawAlloca(typeInfoArrayIRType);
+			const auto arrayType = typeInfoArrayType(module);
+			const auto typesPtrArg = irEmitter.emitRawAlloca(arrayType);
 			
 			const auto generatorRootFn = builder.CreateExtractValue(generatorValue, { 0 }, "rootFn");
 			const auto generatorPath = builder.CreateExtractValue(generatorValue, { 1 }, "path");
@@ -150,7 +150,7 @@ namespace locic {
 			const auto argInfo = rootFunctionArgInfo(function.module());
 			llvm::Value* const args[] = { typesPtrArg, generatorPath };
 			genRawFunctionCall(function, argInfo, generatorRootFn, args);
-			const auto result = irEmitter.emitRawLoad(typesPtrArg, typeInfoArrayIRType);
+			const auto result = irEmitter.emitRawLoad(typesPtrArg, arrayType);
 			result->setName("templateArgs");
 			return result;
 		}
@@ -285,7 +285,7 @@ namespace locic {
 				                    value.type());
 				irEmitter.emitReturnVoid();
 			} else if (!value.type()->isBuiltInVoid()) {
-				functionGenerator.returnValue(result);
+				irEmitter.emitReturn(result);
 			} else {
 				irEmitter.emitReturnVoid();
 			}
@@ -319,7 +319,7 @@ namespace locic {
 			const auto typesPtrArg = function.getArg(0);
 			const auto pathArg = function.getArg(1);
 			
-			const auto typeInfoArrayIRType = module.getLLVMType(typeInfoArrayType(module));
+			const auto arrayType = typeInfoArrayType(module);
 			
 			ConstantGenerator constGen(module);
 			
@@ -342,7 +342,7 @@ namespace locic {
 					typeInfo = irEmitter.emitInsertValue(typeInfo, generator, { 1 });
 				}
 				
-				const auto typeInfoGEP = irEmitter.emitConstInBoundsGEP2_32(typeInfoArrayIRType,
+				const auto typeInfoGEP = irEmitter.emitConstInBoundsGEP2_32(arrayType,
 				                                                            typesPtrArg,
 				                                                            0, i);
 				irEmitter.emitRawStore(typeInfo, typeInfoGEP);
@@ -452,31 +452,31 @@ namespace locic {
 			}
 			
 			void emitActions(IREmitter& irEmitter, llvm::Value* const typesPtrArg) {
-				const auto typeInfoIRType = irEmitter.module().getLLVMType(typeInfoType(irEmitter.module()));
-				const auto typeInfoArrayIRType = irEmitter.module().getLLVMType(typeInfoArrayType(irEmitter.module()));
+				const auto type = typeInfoType(irEmitter.module());
+				const auto arrayType = typeInfoArrayType(irEmitter.module());
 				
 				llvm::SmallVector<llvm::Value*, 8> loadedValues;
 				loadedValues.reserve(moveActions_.size());
 				
 				// First load old values.
 				for (const auto& moveAction: moveActions_) {
-					const auto loadGEP = irEmitter.emitConstInBoundsGEP2_32(typeInfoArrayIRType,
+					const auto loadGEP = irEmitter.emitConstInBoundsGEP2_32(arrayType,
 					                                                        typesPtrArg,
 					                                                        0, moveAction.sourceIndex);
-					loadedValues.push_back(irEmitter.emitRawLoad(loadGEP, typeInfoIRType));
+					loadedValues.push_back(irEmitter.emitRawLoad(loadGEP, type));
 				}
 				
 				// Then store the new values.
 				for (size_t i = 0; i < moveActions_.size(); i++) {
 					const auto& moveAction = moveActions_[i];
-					const auto storeGEP = irEmitter.emitConstInBoundsGEP2_32(typeInfoArrayIRType,
+					const auto storeGEP = irEmitter.emitConstInBoundsGEP2_32(arrayType,
 					                                                         typesPtrArg,
 					                                                         0, moveAction.destIndex);
 					irEmitter.emitRawStore(loadedValues[i], storeGEP);
 				}
 				
 				for (const auto& setAction: setActions_) {
-					const auto storeGEP = irEmitter.emitConstInBoundsGEP2_32(typeInfoArrayIRType,
+					const auto storeGEP = irEmitter.emitConstInBoundsGEP2_32(arrayType,
 					                                                         typesPtrArg,
 					                                                         0, setAction.index);
 					irEmitter.emitRawStore(setAction.value, storeGEP);
