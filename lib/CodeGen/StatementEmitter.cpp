@@ -567,49 +567,16 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitReturnVoid() {
-			auto& function = irEmitter_.function();
-			if (anyUnwindActions(function, UnwindStateReturn)) {
-				genUnwind(function, UnwindStateReturn);
-			} else {
-				irEmitter_.emitReturnVoid();
-			}
+			irEmitter_.emitReturnVoid();
 		}
 		
 		void StatementEmitter::emitReturn(const AST::Value& value) {
 			auto& function = irEmitter_.function();
 			ValueEmitter valueEmitter(irEmitter_);
 			
-			if (anyUnwindActions(function, UnwindStateReturn)) {
-				if (!value.type()->isBuiltInVoid()) {
-					if (function.getArgInfo().hasReturnVarArgument()) {
-						const auto returnValue = valueEmitter.emitValue(value,
-						                                                function.getReturnVar());
-						irEmitter_.emitStore(returnValue, function.getReturnVar(), value.type());
-					} else {
-						const auto returnValue = valueEmitter.emitValue(value);
-						
-						// Set the return value to be returned directly later
-						// (after executing unwind actions).
-						function.setReturnValue(returnValue);
-					}
-				}
-				
-				genUnwind(function, UnwindStateReturn);
-			} else {
-				if (!value.type()->isBuiltInVoid()) {
-					if (function.getArgInfo().hasReturnVarArgument()) {
-						const auto returnValue = valueEmitter.emitValue(value,
-						                                                function.getReturnVar());
-						irEmitter_.emitStore(returnValue, function.getReturnVar(), value.type());
-						irEmitter_.emitReturnVoid();
-					} else {
-						const auto returnValue = valueEmitter.emitValue(value);
-						irEmitter_.emitReturn(returnValue);
-					}
-				} else {
-					irEmitter_.emitReturnVoid();
-				}
-			}
+			const auto returnValue =
+				valueEmitter.emitValue(value, function.getReturnVarOrNull());
+			irEmitter_.emitReturn(returnValue);
 		}
 		
 		void StatementEmitter::emitTry(const AST::Scope& scope,
@@ -716,7 +683,7 @@ namespace locic {
 			}
 			
 			// If not matched, keep unwinding.
-			genUnwind(function, UnwindStateThrow);
+			irEmitter_.emitUnwind(UnwindStateThrow);
 			
 			if (!allTerminate) {
 				irEmitter_.selectBasicBlock(afterCatchBB);
@@ -841,11 +808,11 @@ namespace locic {
 		}
 		
 		void StatementEmitter::emitBreak() {
-			genUnwind(irEmitter_.function(), UnwindStateBreak);
+			irEmitter_.emitUnwind(UnwindStateBreak);
 		}
 		
 		void StatementEmitter::emitContinue() {
-			genUnwind(irEmitter_.function(), UnwindStateContinue);
+			irEmitter_.emitUnwind(UnwindStateContinue);
 		}
 		
 		void StatementEmitter::emitAssert(const AST::Value& value,

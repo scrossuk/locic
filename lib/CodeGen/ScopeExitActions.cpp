@@ -89,12 +89,10 @@ namespace locic {
 							break;
 						}
 						case UnwindStateReturn: {
-							const auto returnType = function.getArgInfo().returnType();
-							if (function.getArgInfo().hasReturnVarArgument() || returnType.isVoid()) {
-								irEmitter.emitReturnVoid();
-							} else {
-								irEmitter.emitReturn(function.getRawReturnValue());
-							}
+							// The return value is saved while unwind actions
+							// are executed; we can now load and return it.
+							const auto returnValue = irEmitter.emitUnwindLoadReturnValue();
+							irEmitter.emitRawReturn(returnValue);
 							break;
 						}
 						default:

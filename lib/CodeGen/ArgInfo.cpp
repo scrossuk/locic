@@ -292,9 +292,9 @@ namespace locic {
 			const bool hasTemplateGeneratorArg = attributes.isTemplated();
 			const bool hasContextArg = attributes.isMethod();
 			
-			const bool hasReturnVarArg = !TypeInfo(module).isPassedByValue(functionType.returnType());
-			
-			const auto returnType = genABIArgType(module, astReturnType);
+			const bool hasReturnVarArg = !TypeInfo(module).isPassedByValue(astReturnType);
+			const auto returnType =
+				hasReturnVarArg ? llvm_abi::VoidTy : genABIType(module, astReturnType);
 			
 			std::vector<llvm_abi::Type> argTypes;
 			argTypes.reserve(functionType.parameterTypes().size());

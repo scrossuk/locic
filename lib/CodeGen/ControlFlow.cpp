@@ -3,6 +3,7 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/ControlFlow.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/LLVMIncludes.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/ScopeExitActions.hpp>
@@ -14,11 +15,11 @@ namespace locic {
 	namespace CodeGen {
 	
 		void genControlFlowBreak(Function& function) {
-			genUnwind(function, UnwindStateBreak);
+			IREmitter(function).emitUnwind(UnwindStateBreak);
 		}
 		
 		void genControlFlowContinue(Function& function) {
-			genUnwind(function, UnwindStateContinue);
+			IREmitter(function).emitUnwind(UnwindStateContinue);
 		}
 		
 		ControlFlowScope::ControlFlowScope(Function& function, llvm::BasicBlock* breakBlock, llvm::BasicBlock* continueBlock)

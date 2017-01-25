@@ -17,6 +17,7 @@ namespace locic {
 	namespace CodeGen {
 		
 		class ArgInfo;
+		class Function;
 		class IREmitter;
 		class Module;
 		struct VirtualMethodComponents;
@@ -47,7 +48,12 @@ namespace locic {
 			llvm::Constant*
 			emitVTableSlot(const AST::TypeInstance& typeInstance,
 			               llvm::ArrayRef<AST::Function*> methods);
-		
+			
+			void
+			emitVTableSlotCall(Function& function,
+			                   const AST::TypeInstance& typeInstance,
+			                   const AST::Function& method);
+			
 			void
 			emitCallWithReturnVar(IREmitter& irEmitter,
 			                      const AST::FunctionType functionType,

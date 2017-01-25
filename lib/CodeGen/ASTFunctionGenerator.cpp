@@ -298,24 +298,13 @@ namespace locic {
 			
 			const auto argList = functionGenerator.getArgList();
 			
-			const bool hasReturnVar = !TypeInfo(module_).isPassedByValue(functionType.returnType());
-			
 			IREmitter irEmitter(functionGenerator);
 			const auto result = module_.virtualCallABI().emitCall(irEmitter,
 			                                                      functionType,
 			                                                      methodComponents,
 			                                                      argList,
 			                                                      functionGenerator.getReturnVarOrNull());
-			
-			if (hasReturnVar) {
-				irEmitter.emitStore(result, functionGenerator.getReturnVar(),
-				                    functionType.returnType());
-				irEmitter.emitReturnVoid();
-			} else if (result->getType()->isVoidTy()) {
-				irEmitter.emitReturnVoid();
-			} else {
-				irEmitter.emitReturn(result);
-			}
+			irEmitter.emitReturn(result);
 			
 			// Check the generated function is correct.
 			functionGenerator.verify();

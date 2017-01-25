@@ -4,6 +4,7 @@
 #include <llvm-abi/Type.hpp>
 
 #include <locic/CodeGen/PendingResult.hpp>
+#include <locic/CodeGen/UnwindState.hpp>
 
 namespace locic {
 	
@@ -75,7 +76,7 @@ namespace locic {
 			emitBoolToI1(llvm::Value* value);
 			
 			llvm::Value*
-			emitRawAlloca(llvm_abi::Type type);
+			emitRawAlloca(llvm_abi::Type type, const llvm::Twine& name="");
 			
 			llvm::Value*
 			emitRawLoad(llvm::Value* valuePtr, llvm_abi::Type type);
@@ -146,11 +147,79 @@ namespace locic {
 			           llvm::BasicBlock* unwindDest,
 			           llvm::ArrayRef<llvm::Value*> args);
 			
-			llvm::ReturnInst*
+			/**
+			 * \brief Emit code to return void.
+			 * 
+			 * This is a convenience method for calling
+			 * emitRawReturn() with a void value.
+			 * 
+			 * WARNING: This method does not perform unwinding; it
+			 *          assumes there are no unwind actions (e.g.
+			 *          destructors) to be executed.
+			 */
+			void
+			emitRawReturnVoid();
+			
+			/**
+			 * \brief Emit code to return given value.
+			 * 
+			 * This method emits code that returns the value,
+			 * performing ABI-encoding as necessary.
+			 * 
+			 * WARNING: This method does not perform unwinding; it
+			 *          assumes there are no unwind actions (e.g.
+			 *          destructors) to be executed.
+			 */
+			void
+			emitRawReturn(llvm::Value* value);
+			
+			/**
+			 * \brief Emit unwind actions for given state.
+			 * 
+			 * This method emits code for all current unwind actions
+			 * relevant to the given state.
+			 */
+			void
+			emitUnwind(UnwindState unwindState);
+			
+			/**
+			 * \brief Emit code to unwind and return void.
+			 * 
+			 * This is a convenience method for calling emitReturn()
+			 * with a void value.
+			 */
+			void
+			emitReturnVoid();
+			
+			/**
+			 * \brief Emit code to unwind and return given value.
+			 * 
+			 * This method emits code that executes all unwind
+			 * actions and returns the value, performing
+			 * ABI-encoding as necessary.
+			 */
+			void
 			emitReturn(llvm::Value* value);
 			
-			llvm::ReturnInst*
-			emitReturnVoid();
+			/**
+			 * \brief Emit code to load return value after unwind.
+			 * 
+			 * Return values are saved to the stack while unwind
+			 * actions are executed. This method loads the value
+			 * once unwinding is complete.
+			 */
+			llvm::Value*
+			emitUnwindLoadReturnValue();
+			
+			/**
+			 * \brief Emit code to store return value before unwind.
+			 * 
+			 * Return values are saved to the stack while unwind
+			 * actions are executed. This method stores the value
+			 * before executing unwind actions.
+			 */
+			void
+			emitUnwindSaveReturnValue(llvm::Value* value);
 			
 			llvm::LandingPadInst*
 			emitLandingPad(llvm::StructType* type,

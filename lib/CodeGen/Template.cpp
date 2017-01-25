@@ -279,16 +279,7 @@ namespace locic {
 			
 			const auto result = valueEmitter.emitValue(value,
 			                                           functionGenerator.getReturnVarOrNull());
-			
-			if (argInfo.hasReturnVarArgument()) {
-				irEmitter.emitStore(result, functionGenerator.getReturnVar(),
-				                    value.type());
-				irEmitter.emitReturnVoid();
-			} else if (!value.type()->isBuiltInVoid()) {
-				irEmitter.emitReturn(result);
-			} else {
-				irEmitter.emitReturnVoid();
-			}
+			irEmitter.emitReturn(result);
 			
 			return llvmFunction;
 		}

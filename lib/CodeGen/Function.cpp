@@ -66,8 +66,8 @@ namespace locic {
 			  personalityFunction_(nullptr),
 #endif
 			  exceptionInfo_(nullptr),
-			  returnValuePtr_(nullptr),
 			  templateArgs_(nullptr),
+			  unwindReturnPtr_(nullptr),
 			  unwindState_(nullptr) {
 			assert(function.isDeclaration());
 			
@@ -95,35 +95,18 @@ namespace locic {
 			                                                        argValues);
 		}
 		
-		void Function::setReturnValue(llvm::Value* const value) {
-			assert(!argInfo_.hasReturnVarArgument());
-			assert(!value->getType()->isVoidTy());
-			
-			const auto returnIRType = module().getLLVMType(argInfo_.returnType());
-			
-			if (returnValuePtr_ == nullptr) {
-				returnValuePtr_ = getEntryBuilder().CreateAlloca(returnIRType,
-				                                                 nullptr, "returnvalueptr");
-			}
-			
-			IREmitter irEmitter(*this);
-			irEmitter.emitRawStore(value, returnValuePtr_);
+		llvm::Value* Function::getUnwindReturnPtr() {
+			assert(unwindReturnPtr_ != nullptr);
+			return unwindReturnPtr_;
 		}
 		
-		llvm::Value* Function::getRawReturnValue() {
-			if (argInfo_.hasReturnVarArgument() || argInfo_.returnType().isVoid()) {
-				return nullptr;
-			}
-			
-			const auto returnIRType = module().getLLVMType(argInfo_.returnType());
-			
-			if (returnValuePtr_ == nullptr) {
-				returnValuePtr_ = getEntryBuilder().CreateAlloca(returnIRType,
-				                                                 nullptr, "returnvalueptr");
-			}
-			
-			IREmitter irEmitter(*this);
-			return irEmitter.emitRawLoad(returnValuePtr_, argInfo_.returnType());
+		llvm::Value* Function::getUnwindReturnPtrOrNull() {
+			return unwindReturnPtr_;
+		}
+		
+		void Function::setUnwindReturnPtr(llvm::Value* const ptr) {
+			assert(unwindReturnPtr_ == nullptr && ptr != nullptr);
+			unwindReturnPtr_ = ptr;
 		}
 		
 		llvm::Value* Function::getVarAddress(const AST::Var& var) {

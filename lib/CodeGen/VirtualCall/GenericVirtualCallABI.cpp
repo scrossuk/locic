@@ -12,6 +12,7 @@
 #include <locic/CodeGen/ASTFunctionGenerator.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
@@ -142,7 +143,6 @@ namespace locic {
 			IREmitter irEmitter(function);
 			
 			const auto llvmHashValue = function.getArg(0);
-			const auto llvmArgsStructPtr = function.getArg(1);
 			
 			auto& builder = function.getBuilder();
 			
@@ -158,72 +158,7 @@ namespace locic {
 				
 				irEmitter.selectBasicBlock(callMethodBasicBlock);
 				
-				const auto argInfo = getFunctionArgInfo(module_, method->type());
-				
-				auto& astFunctionGenerator = module_.astFunctionGenerator();
-				const auto llvmMethod = astFunctionGenerator.getDecl(&typeInstance,
-				                                                     *method);
-				
-				const auto functionType = method->type();
-				const auto returnType = functionType.returnType();
-				const auto& paramTypes = functionType.parameterTypes();
-				
-				llvm::SmallVector<llvm::Value*, 10> parameters;
-				
-				// If the function uses a return value pointer, just pass
-				// the pointer we received from our caller.
-				if (argInfo.hasReturnVarArgument()) {
-					parameters.push_back(function.getReturnVar());
-				}
-				
-				// If type is templated, pass the template generator.
-				if (argInfo.isVarArg() && argInfo.hasTemplateGeneratorArgument()) {
-					parameters.push_back(function.getTemplateGenerator());
-				}
-				
-				// If this is not a static method, pass the object pointer.
-				if (argInfo.hasContextArgument()) {
-					parameters.push_back(function.getContextValue());
-				}
-				
-				const auto numArgs = functionType.parameterTypes().size();
-				
-				// Build the args struct type, which is just a struct
-				// containing i8* for each parameter.
-				llvm::SmallVector<llvm_abi::Type, 10> argTypes(numArgs, llvm_abi::PointerTy);
-				const auto argsStructType = module_.abiTypeBuilder().getStructTy(argTypes);
-				
-				// Extract the arguments.
-				for (size_t offset = 0; offset < numArgs; offset++) {
-					const auto& paramType = paramTypes.at(offset);
-					
-					const auto argPtrPtr = irEmitter.emitConstInBoundsGEP2_32(argsStructType,
-					                                                          llvmArgsStructPtr,
-					                                                          0, offset);
-					const auto argPtr = irEmitter.emitRawLoad(argPtrPtr, llvm_abi::PointerTy);
-					
-					if (TypeInfo(module_).isPassedByValue(paramType)) {
-						parameters.push_back(irEmitter.emitRawLoad(argPtr,
-						                                           genABIType(module_, paramType)));
-					} else {
-						parameters.push_back(argPtr);
-					}
-				}
-				
-				// If type is templated, pass the template generator.
-				if (!argInfo.isVarArg() && argInfo.hasTemplateGeneratorArgument()) {
-					parameters.push_back(function.getTemplateGenerator());
-				}
-				
-				// Call the method.
-				const auto llvmCallReturnValue = genRawFunctionCall(function, argInfo, llvmMethod, parameters);
-				
-				// Store return value.
-				if (!argInfo.hasReturnVarArgument() && !returnType->isBuiltInVoid()) {
-					irEmitter.emitRawStore(llvmCallReturnValue, function.getReturnVar());
-				}
-				
-				irEmitter.emitReturnVoid();
+				emitVTableSlotCall(function, typeInstance, *method);
 				
 				irEmitter.selectBasicBlock(tryNextMethodBasicBlock);
 			}
@@ -234,6 +169,62 @@ namespace locic {
 			irEmitter.emitUnreachable();
 			
 			return llvmFunction;
+		}
+		
+		void
+		GenericVirtualCallABI::emitVTableSlotCall(Function& function,
+		                                          const AST::TypeInstance& typeInstance,
+		                                          const AST::Function& method) {
+			const auto llvmArgsStructPtr = function.getArg(1);
+			
+			auto& astFunctionGenerator = module_.astFunctionGenerator();
+			const auto llvmMethod = astFunctionGenerator.getDecl(&typeInstance,
+			                                                     method);
+			
+			const auto functionType = method.type();
+			
+			FunctionCallInfo callInfo;
+			callInfo.functionPtr = llvmMethod;
+			callInfo.templateGenerator = function.getTemplateGenerator();
+			callInfo.contextPointer = function.getContextValue();
+			
+			// Build the args struct type, which is just a struct
+			// containing i8* for each parameter.
+			const auto numArgs = functionType.parameterTypes().size();
+			llvm::SmallVector<llvm_abi::Type, 10> argTypes(numArgs, llvm_abi::PointerTy);
+			const auto argsStructType = module_.abiTypeBuilder().getStructTy(argTypes);
+			
+			llvm::SmallVector<llvm_abi::TypedValue, 10> parameters;
+			
+			IREmitter irEmitter(function);
+			
+			// Extract the arguments.
+			for (size_t offset = 0; offset < numArgs; offset++) {
+				const auto& paramType = functionType.parameterTypes().at(offset);
+				
+				const auto argPtrPtr = irEmitter.emitConstInBoundsGEP2_32(argsStructType,
+				                                                          llvmArgsStructPtr,
+				                                                          0, offset);
+				const auto argPtr = irEmitter.emitRawLoad(argPtrPtr, llvm_abi::PointerTy);
+				
+				const auto arg = irEmitter.emitLoad(argPtr, paramType);
+				const auto argABIType = genABIArgType(module_, paramType);
+				parameters.push_back(llvm_abi::TypedValue(arg, argABIType));
+			}
+			
+			auto callReturnValue = genFunctionCall(function, functionType,
+			                                       callInfo, parameters,
+			                                       function.getReturnVar());
+			
+			if (!getFunctionArgInfo(module_, functionType).hasReturnVarArgument()) {
+				// The callee returns by-value, but we're forced to return by
+				// pointer, so we store the value into our return pointer.
+				irEmitter.emitStore(callReturnValue, function.getReturnVar(),
+				                    functionType.returnType());
+				callReturnValue = function.getReturnVar();
+			}
+			
+			irEmitter.emitReturn(callReturnValue);
 		}
 		
 		void

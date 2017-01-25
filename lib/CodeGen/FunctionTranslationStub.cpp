@@ -4,7 +4,9 @@
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/FunctionTranslationStub.hpp>
+#include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -60,52 +62,33 @@ namespace locic {
 			}
 		}
 		
-		using TranslatedArguments = llvm::SmallVector<llvm::Value*, 10>;
-		
-		llvm::Value* getSingleTranslatedArgument(Function& functionGenerator,
-		                                         llvm::Value* const argValue,
-		                                         const AST::Type* const parameterType,
-		                                         const AST::Type* const translatedParameterType) {
-			auto& module = functionGenerator.module();
+		llvm::Value*
+		emitTranslate(IREmitter& irEmitter, llvm::Value* const value,
+		              const AST::Type* const fromType, const AST::Type* const toType,
+		              llvm::Value* const resultPtr) {
+			auto& module = irEmitter.module();
 			TypeInfo typeInfo(module);
 			
-			// Being able to pass the inner parameter type by value must imply
-			// that the outer parameter type can be passed by value.
-			assert(checkImplies(typeInfo.isPassedByValue(parameterType),
-			                    typeInfo.isPassedByValue(translatedParameterType)));
-			
-			if (!typeInfo.isPassedByValue(parameterType) && typeInfo.isPassedByValue(translatedParameterType)) {
+			if (typeInfo.isPassedByValue(fromType) && !typeInfo.isPassedByValue(toType)) {
 				// Create an alloca to hold the parameter so it can be passed by pointer
 				// into the target function.
-				IREmitter irEmitter(functionGenerator);
-				const auto argAlloca = irEmitter.emitAlloca(translatedParameterType);
-				assert(genType(module, translatedParameterType) == argValue->getType());
-				irEmitter.emitRawStore(argValue, argAlloca);
+				const auto argAlloca = irEmitter.emitAlloca(fromType, resultPtr);
+				irEmitter.emitStore(value, argAlloca, fromType);
 				return argAlloca;
+			} else if (!typeInfo.isPassedByValue(fromType) && typeInfo.isPassedByValue(toType)) {
+				return irEmitter.emitLoad(value, toType);
 			} else {
-				return argValue;
+				return value;
 			}
 		}
 		
-		TranslatedArguments getTranslatedArguments(Function& functionGenerator,
-		                                           AST::FunctionType functionType,
-		                                           AST::FunctionType translatedFunctionType,
-		                                           llvm::Value* const returnVar,
-		                                           const ArgInfo& argInfo,
-		                                           const ArgInfo& translatedArgInfo) {
-			TranslatedArguments args;
-			
-			if (argInfo.hasReturnVarArgument()) {
-				args.push_back(returnVar);
-			}
-			
-			if (translatedArgInfo.isVarArg() && translatedArgInfo.hasTemplateGeneratorArgument()) {
-				args.push_back(functionGenerator.getTemplateGenerator());
-			}
-			
-			if (translatedArgInfo.hasContextArgument()) {
-				args.push_back(functionGenerator.getContextValue());
-			}
+		using TranslatedArguments = llvm::SmallVector<llvm_abi::TypedValue, 10>;
+		
+		TranslatedArguments
+		emitTranslateArguments(IREmitter& irEmitter, const Function& functionGenerator,
+		                       const AST::FunctionType functionType,
+		                       const AST::FunctionType translatedFunctionType) {
+			TranslatedArguments arguments;
 			
 			const auto& parameterTypes = functionType.parameterTypes();
 			const auto& translatedParameterTypes = translatedFunctionType.parameterTypes();
@@ -113,17 +96,29 @@ namespace locic {
 			
 			for (size_t i = 0; i < parameterTypes.size(); i++) {
 				const auto argValue = functionGenerator.getArg(i);
-				const auto& parameterType = parameterTypes[i];
-				const auto& translatedParameterType = translatedParameterTypes[i];
+				const auto& fromType = translatedParameterTypes[i];
+				const auto& toType = parameterTypes[i];
 				
-				args.push_back(getSingleTranslatedArgument(functionGenerator, argValue, parameterType, translatedParameterType));
+				const auto translatedArg = emitTranslate(irEmitter, argValue,
+				                                         fromType, toType,
+				                                         /*resultPtr=*/nullptr);
+				const auto argType = genABIArgType(irEmitter.module(), toType);
+				arguments.push_back(llvm_abi::TypedValue(translatedArg, argType));
 			}
 			
-			if (!translatedArgInfo.isVarArg() && translatedArgInfo.hasTemplateGeneratorArgument()) {
-				args.push_back(functionGenerator.getTemplateGenerator());
-			}
+			return arguments;
+		}
+		
+		llvm::Value*
+		emitTranslateResult(IREmitter& irEmitter, llvm::Value* const result,
+		                    const AST::FunctionType functionType,
+		                    const AST::FunctionType translatedFunctionType,
+		                    llvm::Value* const resultPtr) {
+			const auto& fromType = functionType.returnType();
+			const auto& toType = translatedFunctionType.returnType();
 			
-			return args;
+			return emitTranslate(irEmitter, result, fromType, toType,
+			                     resultPtr);
 		}
 		
 		llvm::Function* createTranslationStubFunction(Module& module,
@@ -161,33 +156,27 @@ namespace locic {
 			Function functionGenerator(module, *llvmFunction, translatedArgInfo);
 			IREmitter irEmitter(functionGenerator);
 			
-			const auto returnVar =
-				argInfo.hasReturnVarArgument() ?
-					translatedArgInfo.hasReturnVarArgument() ?
-						functionGenerator.getReturnVar() :
-						irEmitter.emitAlloca(translatedFunctionType.returnType())
-					: nullptr;
-			
-			TranslatedArguments arguments = getTranslatedArguments(functionGenerator,
-			                                                       functionType,
-			                                                       translatedFunctionType,
-			                                                       returnVar,
-			                                                       argInfo,
-			                                                       translatedArgInfo);
-			
-			const auto result = genRawFunctionCall(functionGenerator, argInfo, function, arguments);
-			
-			if (argInfo.hasReturnVarArgument() && !translatedArgInfo.hasReturnVarArgument()) {
-				const auto returnVarType = translatedArgInfo.returnType();
-				irEmitter.emitReturn(irEmitter.emitRawLoad(returnVar,
-						                           returnVarType));
-			} else {
-				if (llvmTranslatedFunctionType->getReturnType()->isVoidTy()) {
-					irEmitter.emitReturnVoid();
-				} else {
-					irEmitter.emitReturn(result);
-				}
+			FunctionCallInfo callInfo;
+			callInfo.functionPtr = function;
+			if (translatedArgInfo.hasTemplateGeneratorArgument()) {
+				callInfo.templateGenerator = functionGenerator.getTemplateGenerator();
 			}
+			if (translatedArgInfo.hasContextArgument()) {
+				callInfo.contextPointer = functionGenerator.getContextValue();
+			}
+			
+			const auto arguments = emitTranslateArguments(irEmitter, functionGenerator,
+			                                              functionType, translatedFunctionType);
+			
+			const auto result = genFunctionCall(functionGenerator, functionType,
+			                                    callInfo, arguments,
+			                                    functionGenerator.getReturnVarOrNull());
+			
+			const auto translatedResult = emitTranslateResult(irEmitter, result,
+			                                                  functionType, translatedFunctionType,
+			                                                  functionGenerator.getReturnVarOrNull());
+			
+			irEmitter.emitReturn(translatedResult);
 			
 			return llvmFunction;
 		}

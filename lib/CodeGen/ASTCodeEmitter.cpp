@@ -117,21 +117,7 @@ namespace locic {
 			                                                std::move(args),
 			                                                functionGenerator_.getReturnVarOrNull());
 			
-			const auto returnType = function.type().returnType();
-			
-			IREmitter irEmitter(functionGenerator_);
-			
-			// Return the result in the appropriate way.
-			if (argInfo.hasReturnVarArgument()) {
-				irEmitter.emitStore(result,
-				                    functionGenerator_.getReturnVar(),
-				                    returnType);
-				irEmitter.emitReturnVoid();
-			} else if (!returnType->isBuiltInVoid()) {
-				irEmitter.emitReturn(result);
-			} else {
-				irEmitter.emitReturnVoid();
-			}
+			IREmitter(functionGenerator_).emitReturn(result);
 		}
 		
 		void

@@ -14,6 +14,7 @@
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/MethodInfo.hpp>
+#include <locic/CodeGen/ScopeExitActions.hpp>
 #include <locic/CodeGen/SizeOf.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -107,15 +108,18 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		IREmitter::emitRawAlloca(const llvm_abi::Type type) {
+		IREmitter::emitRawAlloca(const llvm_abi::Type type, const llvm::Twine& name) {
 			const auto irType = module().getLLVMType(type);
-			return functionGenerator_.getEntryBuilder().CreateAlloca(irType);
+			return functionGenerator_.getEntryBuilder().CreateAlloca(irType,
+			                                                         /*arraySize=*/nullptr,
+			                                                         name);
 		}
 		
 		llvm::Value*
 		IREmitter::emitRawLoad(llvm::Value* const valuePtr,
 		                       const llvm_abi::Type type) {
 			assert(valuePtr->getType()->isPointerTy());
+			assert(!type.isVoid());
 			const auto irType = module().getLLVMType(type);
 			const auto castVar = emitPointerCast(valuePtr, irType->getPointerTo());
 			return functionGenerator_.getBuilder().CreateLoad(castVar);
@@ -124,6 +128,7 @@ namespace locic {
 		void
 		IREmitter::emitRawStore(llvm::Value* const value,
 		                        llvm::Value* const var) {
+			assert(!value->getType()->isVoidTy());
 			assert(var->getType()->isPointerTy());
 			const auto castVar = emitPointerCast(var, value->getType()->getPointerTo());
 			(void) functionGenerator_.getBuilder().CreateStore(value,
@@ -299,21 +304,110 @@ namespace locic {
 			                              newArgs);
 		}
 		
-		llvm::ReturnInst*
-		IREmitter::emitReturn(llvm::Value* value) {
-			assert(!functionGenerator_.getArgInfo().hasReturnVarArgument());
+		void
+		IREmitter::emitRawReturnVoid() {
+			emitRawReturn(constantGenerator().getVoidUndef());
+		}
+		
+		void
+		IREmitter::emitRawReturn(llvm::Value* value) {
+			const auto argInfo = functionGenerator_.getArgInfo();
+			
+			if (argInfo.hasReturnVarArgument()) {
+				// Value should already be in return pointer.
+				assert(argInfo.returnType().isVoid());
+				assert(value->getType()->isPointerTy());
+				assert(value->stripPointerCasts() == functionGenerator_.getReturnVar()->stripPointerCasts());
+				(void) builder().CreateRetVoid();
+				return;
+			}
+			
+			if (argInfo.returnType().isVoid()) {
+				assert(value->getType()->isVoidTy());
+				assert(!argInfo.hasReturnVarArgument());
+				(void) builder().CreateRetVoid();
+				return;
+			}
+			
 			assert(!value->getType()->isVoidTy());
 			
 			if (value->getType()->isPointerTy()) {
 				value = emitPointerCast(value, TypeGenerator(module()).getPtrType());
 			}
 			
-			return functionGenerator_.abiEncoder().returnValue(value);
+			(void) functionGenerator_.abiEncoder().returnValue(value);
 		}
 		
-		llvm::ReturnInst*
+		void
+		IREmitter::emitUnwind(const UnwindState unwindState) {
+			genUnwind(functionGenerator_, unwindState);
+		}
+		
+		void
 		IREmitter::emitReturnVoid() {
-			return builder().CreateRetVoid();
+			emitReturn(constantGenerator().getVoidUndef());
+		}
+		
+		void
+		IREmitter::emitReturn(llvm::Value* const value) {
+			if (anyUnwindActions(functionGenerator_, UnwindStateReturn)) {
+				// If there are unwind actions then we need to save
+				// the return value; it will be returned later after
+				// the unwind actions have been executed.
+				emitUnwindSaveReturnValue(value);
+				emitUnwind(UnwindStateReturn);
+				return;
+			}
+			
+			emitRawReturn(value);
+		}
+		
+		llvm::Value*
+		IREmitter::emitUnwindLoadReturnValue() {
+			const auto argInfo = functionGenerator_.getArgInfo();
+			
+			if (argInfo.hasReturnVarArgument()) {
+				// Return value should already be saved in return pointer.
+				assert(argInfo.returnType().isVoid());
+				return functionGenerator_.getReturnVar();
+			}
+			
+			if (argInfo.returnType().isVoid()) {
+				// No need to save 'void' value.
+				return constantGenerator().getVoidUndef();
+			}
+			
+			const auto unwindReturnPtr = functionGenerator_.getUnwindReturnPtr();
+			return emitRawLoad(unwindReturnPtr, argInfo.returnType());
+		}
+		
+		void
+		IREmitter::emitUnwindSaveReturnValue(llvm::Value* const value) {
+			const auto argInfo = functionGenerator_.getArgInfo();
+			
+			if (argInfo.hasReturnVarArgument()) {
+				// Return value should already be saved in return pointer.
+				assert(argInfo.returnType().isVoid());
+				assert(value->getType()->isPointerTy());
+				assert(value->stripPointerCasts() == functionGenerator_.getReturnVar()->stripPointerCasts());
+				return;
+			}
+			
+			if (argInfo.returnType().isVoid()) {
+				// No need to save 'void' value.
+				assert(value->getType()->isVoidTy());
+				return;
+			}
+			
+			auto unwindReturnPtr = functionGenerator_.getUnwindReturnPtrOrNull();
+			
+			if (unwindReturnPtr == nullptr) {
+				// We might need to allocate the memory if not already allocated.
+				unwindReturnPtr = emitRawAlloca(argInfo.returnType(), "unwind.returnptr");
+				functionGenerator_.setUnwindReturnPtr(unwindReturnPtr);
+			}
+			
+			emitRawStore(value, unwindReturnPtr);
 		}
 		
 		llvm::LandingPadInst*
@@ -395,7 +489,7 @@ namespace locic {
 		                    const AST::Type* const type) {
 			if (TypeInfo(module()).isPassedByValue(type)) {
 				const auto ptr = emitAlloca(type);
-				emitRawStore(value, ptr);
+				emitStore(value, ptr, type);
 				return ptr;
 			} else {
 				assert(value->getType()->isPointerTy());
@@ -408,6 +502,10 @@ namespace locic {
 		                    const AST::Type* const type) {
 			assert(ptr->getType()->isPointerTy());
 			if (TypeInfo(module()).isPassedByValue(type)) {
+				if (type->isBuiltInVoid()) {
+					// A special case for LLVM.
+					return constantGenerator().getVoidUndef();
+				}
 				const auto abiType = genABIType(module(), type);
 				return emitRawLoad(ptr, abiType);
 			} else {
@@ -421,6 +519,10 @@ namespace locic {
 		                     const AST::Type* const type) {
 			assert(ptr->getType()->isPointerTy());
 			if (TypeInfo(module()).isPassedByValue(type)) {
+				if (type->isBuiltInVoid()) {
+					// A special case for LLVM.
+					return;
+				}
 				emitRawStore(value, ptr);
 			} else {
 				assert(value->getType()->isPointerTy());

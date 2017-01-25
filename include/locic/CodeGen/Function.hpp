@@ -58,28 +58,26 @@ namespace locic {
 				Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* templateBuilder = nullptr);
 				
 				/**
-				 * \brief Set return value for later return
+				 * \brief Get unwind return pointer.
 				 * 
-				 * This creates an instruction that stores the value into
-				 * allocated stack memory. A subsequent call to
-				 * getRawReturnValue() can then retrieve this.
-				 * 
-				 * This functionality is useful if the return value must
-				 * be stored before executing some number of unwind
-				 * actions (e.g. calling destructors) and then eventually
-				 * loading and returning this value.
-				 * 
-				 * This method handles encoding the value according to the ABI.
+				 * This returns a previously set pointer given
+				 * to setUnwindReturnPtr().
 				 */
-				void setReturnValue(llvm::Value* value);
+				llvm::Value* getUnwindReturnPtr();
 				
 				/**
-				 * \brief Retrieve previously stored return value
+				 * \brief Get unwind return pointer or NULL.
 				 * 
-				 * Retrieves the previously stored return value from
-				 * setReturnValue().
+				 * This returns a previously set pointer given
+				 * to setUnwindReturnPtr(), or NULL if none has
+				 * been set.
 				 */
-				llvm::Value* getRawReturnValue();
+				llvm::Value* getUnwindReturnPtrOrNull();
+				
+				/**
+				 * \brief Set unwind return pointer.
+				 */
+				void setUnwindReturnPtr(llvm::Value* ptr);
 				
 				llvm::Value* getVarAddress(const AST::Var& var);
 				
@@ -226,8 +224,8 @@ namespace locic {
 				std::unique_ptr<llvm_abi::FunctionEncoder> functionEncoder_;
 				
 				llvm::Value* exceptionInfo_;
-				llvm::Value* returnValuePtr_;
 				llvm::Value* templateArgs_;
+				llvm::Value* unwindReturnPtr_;
 				llvm::Value* unwindState_;
 				
 		};

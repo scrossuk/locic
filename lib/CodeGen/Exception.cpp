@@ -206,7 +206,7 @@ namespace locic {
 			irEmitter.emitRawStore(landingPad, function.exceptionInfo());
 			
 			// Unwind stack due to exception.
-			genUnwind(function, unwindState);
+			irEmitter.emitUnwind(unwindState);
 			
 			// Save the landing pad so it can be re-used.
 			setLatestLandingPadBlock(function, unwindState, landingPadBB);
