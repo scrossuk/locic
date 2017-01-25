@@ -8,11 +8,11 @@
 #include <locic/AST/ValueDecl.hpp>
 #include <locic/AST/Var.hpp>
 
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/LivenessEmitter.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
@@ -659,7 +659,7 @@ namespace locic {
 					const auto memberType = memberVar.type();
 					const MethodInfo methodInfo(memberType, module.getCString("__isvalid"), functionType, {});
 					const auto contextArg = RefPendingResult(memberPtr, memberType);
-					return genDynamicMethodCall(functionGenerator_, methodInfo, contextArg, {});
+					return CallEmitter(irEmitter).emitDynamicMethodCall(methodInfo, contextArg, {});
 				}
 				case LivenessIndicator::CUSTOM_METHODS: {
 					llvm_unreachable("No custom __islive method exists for liveness indicator that references custom methods!");

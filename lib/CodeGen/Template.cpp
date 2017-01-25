@@ -14,9 +14,9 @@
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ASTFunctionGenerator.hpp>
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
@@ -149,7 +149,10 @@ namespace locic {
 			
 			const auto argInfo = rootFunctionArgInfo(function.module());
 			llvm::Value* const args[] = { typesPtrArg, generatorPath };
-			genRawFunctionCall(function, argInfo, generatorRootFn, args);
+			
+			CallEmitter callEmitter(irEmitter);
+			callEmitter.emitRawCall(argInfo, generatorRootFn, args);
+			
 			const auto result = irEmitter.emitRawLoad(typesPtrArg, arrayType);
 			result->setName("templateArgs");
 			return result;
@@ -359,7 +362,10 @@ namespace locic {
 			const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateInst.object());
 			
 			llvm::Value* const args[] = { typesPtrArg, llvmFunction, pathArg, startPosition };
-			genRawFunctionCall(function, intermediateFunctionArgInfo(module), nextFunction, args);
+			
+			CallEmitter callEmitter(irEmitter);
+			callEmitter.emitRawCall(intermediateFunctionArgInfo(module), nextFunction, args);
+			
 			irEmitter.emitReturnVoid();
 			return llvmFunction;
 		}
@@ -635,7 +641,10 @@ namespace locic {
 					const auto nextFunction = genTemplateIntermediateFunctionDecl(module, templateUseInst.object());
 					
 					llvm::Value* const args[] = { typesPtrArg, rootFnArg, pathArg, position };
-					genRawFunctionCall(function, argInfo, nextFunction, args);
+					
+					CallEmitter callEmitter(irEmitter);
+					callEmitter.emitRawCall(argInfo, nextFunction, args);
+					
 					irEmitter.emitReturnVoid();
 				}
 			}

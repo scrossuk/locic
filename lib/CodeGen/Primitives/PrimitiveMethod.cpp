@@ -9,12 +9,12 @@
 #include <locic/AST/TypeInstance.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
@@ -56,7 +56,11 @@ namespace locic {
 			if (castFromValue != nullptr) {
 				args.push_back(contextPendingResult);
 			}
-			return genStaticMethodCall(function, std::move(methodInfo), std::move(args), resultPtr);
+			
+			IREmitter irEmitter(function);
+			CallEmitter callEmitter(irEmitter);
+			return callEmitter.emitStaticMethodCall(std::move(methodInfo), std::move(args),
+			                                        resultPtr);
 		}
 		
 		String getCastMethodName(Module& module, const MethodID methodID) {

@@ -5,10 +5,10 @@
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeInstance.hpp>
 
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
@@ -565,9 +565,11 @@ namespace locic {
 			const auto functionType = moveFunctionType(type);
 			MethodInfo methodInfo(type, module().getCString("__move"),
 			                      functionType, /*templateArgs=*/{});
-			return genDynamicMethodCall(function(), methodInfo,
-			                            std::move(value), /*args=*/{},
-			                            resultPtr);
+			CallEmitter callEmitter(*this);
+			return callEmitter.emitDynamicMethodCall(methodInfo,
+			                                         std::move(value),
+			                                         /*args=*/{},
+			                                         resultPtr);
 		}
 		
 		llvm::Value*
@@ -593,8 +595,10 @@ namespace locic {
 			callInfo.templateGenerator = functionGenerator_.getTemplateGeneratorOrNull();
 			
 			const auto functionType = moveFunctionType(type);
-			return genFunctionCall(functionGenerator_, functionType, callInfo,
-			                       /*args=*/{}, resultPtr);
+			
+			CallEmitter callEmitter(*this);
+			return callEmitter.emitCall(functionType, callInfo,
+			                            /*args=*/{}, resultPtr);
 		}
 		
 		llvm::Value*
@@ -651,8 +655,11 @@ namespace locic {
 			assert(functionType.attributes().isTemplated() == isTemplated);
 			
 			MethodInfo methodInfo(type, name, functionType, /*templateArgs=*/{});
-			return genStaticMethodCall(functionGenerator_, methodInfo,
-			                           std::move(args), resultPtr);
+			
+			CallEmitter callEmitter(*this);
+			return callEmitter.emitStaticMethodCall(methodInfo,
+			                                        std::move(args),
+			                                        resultPtr);
 		}
 		
 		AST::FunctionType
@@ -685,8 +692,10 @@ namespace locic {
 			                      functionType, /*templateArgs=*/{});
 			
 			RefPendingResult thisPendingResult(value, type);
-			const auto result = genDynamicMethodCall(function(), methodInfo,
-			                                         thisPendingResult, /*args=*/{});
+			CallEmitter callEmitter(*this);
+			const auto result = callEmitter.emitDynamicMethodCall(methodInfo,
+			                                                      thisPendingResult,
+			                                                      /*args=*/{});
 			assert(result->getType()->isVoidTy());
 			(void) result;
 		}
@@ -715,8 +724,9 @@ namespace locic {
 			callInfo.templateGenerator = functionGenerator_.getTemplateGeneratorOrNull();
 			
 			const auto functionType = destroyFunctionType(module(), type);
-			const auto result = genFunctionCall(functionGenerator_, functionType, callInfo,
-			                                    /*args=*/{}, /*resultPtr=*/nullptr);
+			CallEmitter callEmitter(*this);
+			const auto result = callEmitter.emitCall(functionType, callInfo,
+			                                         /*args=*/{}, /*resultPtr=*/nullptr);
 			assert(result->getType()->isVoidTy());
 			(void) result;
 		}
@@ -784,11 +794,11 @@ namespace locic {
 			
 			RefPendingResult thisPendingResult(value, type);
 			
-			return genMethodCall(functionGenerator_,
-			                     methodInfo,
-			                     Optional<PendingResult>(thisPendingResult),
-			                     /*args=*/{},
-			                     resultPtr);
+			CallEmitter callEmitter(*this);
+			return callEmitter.emitDynamicMethodCall(methodInfo,
+			                                         thisPendingResult,
+			                                         /*args=*/{},
+			                                         resultPtr);
 		}
 		
 		static const AST::Type*
@@ -829,10 +839,10 @@ namespace locic {
 			RefPendingResult leftValuePendingResult(leftValue, type);
 			RefPendingResult rightValuePendingResult(rightValue, type);
 			
-			return genMethodCall(functionGenerator_,
-			                     methodInfo,
-			                     Optional<PendingResult>(leftValuePendingResult),
-			                     /*args=*/{ rightValuePendingResult });
+			CallEmitter callEmitter(*this);
+			return callEmitter.emitDynamicMethodCall(methodInfo,
+			                                         leftValuePendingResult,
+								 /*args=*/{ rightValuePendingResult });
 		}
 		
 		llvm::Value*
@@ -863,10 +873,10 @@ namespace locic {
 			                      functionType,
 			                      {});
 			
-			return genMethodCall(functionGenerator_,
-			                     methodInfo,
-			                     Optional<PendingResult>(std::move(leftValue)),
-			                     /*args=*/{ std::move(rightValue) });
+			CallEmitter callEmitter(*this);
+			return callEmitter.emitDynamicMethodCall(methodInfo,
+			                                         std::move(leftValue),
+			                                         /*args=*/{ std::move(rightValue) });
 		}
 		
 		llvm::Value*
@@ -896,10 +906,10 @@ namespace locic {
 			
 			RefPendingResult objectPendingResult(value, type);
 			
-			return genMethodCall(functionGenerator_,
-			                     methodInfo,
-			                     Optional<PendingResult>(objectPendingResult),
-			                     /*args=*/{});
+			CallEmitter callEmitter(*this);
+			return callEmitter.emitDynamicMethodCall(methodInfo,
+			                                         objectPendingResult,
+			                                         /*args=*/{});
 		}
 		
 		llvm::Value*
@@ -925,9 +935,10 @@ namespace locic {
 			
 			RefPendingResult objectPendingResult(value, type);
 			
-			return genMethodCall(functionGenerator_, methodInfo,
-			                     Optional<PendingResult>(objectPendingResult),
-			                     /*args=*/{});
+			CallEmitter callEmitter(*this);
+			return callEmitter.emitDynamicMethodCall(methodInfo,
+			                                         objectPendingResult,
+			                                         /*args=*/{});
 		}
 		
 		llvm::Value*
@@ -954,9 +965,11 @@ namespace locic {
 			
 			RefPendingResult objectPendingResult(value, type);
 			
-			return genMethodCall(functionGenerator_, methodInfo,
-			                     Optional<PendingResult>(objectPendingResult),
-			                     /*args=*/{}, resultPtr);
+			CallEmitter callEmitter(*this);
+			return callEmitter.emitDynamicMethodCall(methodInfo,
+			                                         objectPendingResult,
+			                                         /*args=*/{},
+			                                         resultPtr);
 		}
 		
 		void
@@ -982,9 +995,10 @@ namespace locic {
 			
 			RefPendingResult objectPendingResult(value, type);
 			
-			(void) genMethodCall(functionGenerator_, methodInfo,
-			                     Optional<PendingResult>(objectPendingResult),
-			                     /*args=*/{});
+			CallEmitter callEmitter(*this);
+			(void) callEmitter.emitDynamicMethodCall(methodInfo,
+			                                         objectPendingResult,
+			                                         /*args=*/{});
 		}
 		
 		llvm::IRBuilder<>& IREmitter::builder() {

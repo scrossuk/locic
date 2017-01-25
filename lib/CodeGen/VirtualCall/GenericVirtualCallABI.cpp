@@ -10,11 +10,11 @@
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ASTFunctionGenerator.hpp>
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -212,9 +212,10 @@ namespace locic {
 				parameters.push_back(llvm_abi::TypedValue(arg, argABIType));
 			}
 			
-			auto callReturnValue = genFunctionCall(function, functionType,
-			                                       callInfo, parameters,
-			                                       function.getReturnVar());
+			CallEmitter callEmitter(irEmitter);
+			auto callReturnValue = callEmitter.emitCall(functionType,
+			                                            callInfo, parameters,
+			                                            function.getReturnVar());
 			
 			if (!getFunctionArgInfo(module_, functionType).hasReturnVarArgument()) {
 				// The callee returns by-value, but we're forced to return by
@@ -289,8 +290,9 @@ namespace locic {
 			parameters.push_back(methodComponents.object.typeInfo.templateGenerator);
 			
 			// Call the stub function.
-			(void) genRawFunctionCall(irEmitter.function(), argInfo,
-			                          methodFunctionPointer, parameters);
+			CallEmitter callEmitter(irEmitter);
+			(void) callEmitter.emitRawCall(argInfo, methodFunctionPointer,
+			                               parameters);
 		}
 		
 		llvm::Value*
@@ -341,9 +343,9 @@ namespace locic {
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 			                                                         llvm_abi::PointerTy);
 			
-			return genRawFunctionCall(irEmitter.function(), argInfo,
-			                          methodFunctionPointer,
-			                          { templateGeneratorValue });
+			CallEmitter callEmitter(irEmitter);
+			return callEmitter.emitRawCall(argInfo, methodFunctionPointer,
+			                               { templateGeneratorValue });
 		}
 		
 	}

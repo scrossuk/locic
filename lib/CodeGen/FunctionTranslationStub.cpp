@@ -2,12 +2,12 @@
 
 #include <locic/AST/FunctionType.hpp>
 #include <locic/CodeGen/ArgInfo.hpp>
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/FunctionTranslationStub.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -168,9 +168,9 @@ namespace locic {
 			const auto arguments = emitTranslateArguments(irEmitter, functionGenerator,
 			                                              functionType, translatedFunctionType);
 			
-			const auto result = genFunctionCall(functionGenerator, functionType,
-			                                    callInfo, arguments,
-			                                    functionGenerator.getReturnVarOrNull());
+			CallEmitter callEmitter(irEmitter);
+			const auto result = callEmitter.emitCall(functionType, callInfo, arguments,
+			                                         functionGenerator.getReturnVarOrNull());
 			
 			const auto translatedResult = emitTranslateResult(irEmitter, result,
 			                                                  functionType, translatedFunctionType,

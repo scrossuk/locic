@@ -13,12 +13,12 @@
 #include <locic/AST/Var.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/Exception.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
@@ -583,7 +583,8 @@ namespace locic {
 				return genTrivialFunctionCall(function, astCallValue, arrayRef(astArgumentValues), resultPtr);
 			}
 			
-			return genASTFunctionCall(function, astCallValue, arrayRef(astArgumentValues), resultPtr);
+			CallEmitter callEmitter(irEmitter_);
+			return callEmitter.emitASTCall(astCallValue, arrayRef(astArgumentValues), resultPtr);
 		}
 		
 		llvm::Value*
@@ -680,11 +681,9 @@ namespace locic {
 			FunctionCallInfo callInfo;
 			callInfo.functionPtr = valueEntry;
 			
-			return genFunctionCall(irEmitter_.function(),
-			                       functionType,
-			                       callInfo,
-			                       /*args=*/{},
-			                       resultPtr);
+			CallEmitter callEmitter(irEmitter_);
+			return callEmitter.emitCall(functionType, callInfo,
+			                            /*args=*/{}, resultPtr);
 		}
 		
 		llvm::Value*

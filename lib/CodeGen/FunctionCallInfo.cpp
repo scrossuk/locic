@@ -8,10 +8,10 @@
 #include <locic/AST/Value.hpp>
 
 #include <locic/CodeGen/ASTFunctionGenerator.hpp>
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionTranslationStub.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/InternalContext.hpp>

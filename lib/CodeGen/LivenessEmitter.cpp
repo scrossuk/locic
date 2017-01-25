@@ -4,9 +4,9 @@
 #include <locic/AST/Type.hpp>
 #include <locic/AST/TypeInstance.hpp>
 
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/CodeGen/LivenessInfo.hpp>
@@ -80,7 +80,6 @@ namespace locic {
 		void
 		LivenessEmitter::emitSetDeadCall(const AST::Type* const rawType, llvm::Value* const value) {
 			const auto type = rawType->resolveAliases();
-			auto& function = irEmitter_.function();
 			auto& module = irEmitter_.module();
 			
 			// Call __setdead method.
@@ -90,7 +89,9 @@ namespace locic {
 				
 				MethodInfo methodInfo(type, methodName, functionType, {});
 				const auto contextArg = RefPendingResult(value, type);
-				genDynamicMethodCall(function, methodInfo, contextArg, {});
+				
+				CallEmitter callEmitter(irEmitter_);
+				callEmitter.emitDynamicMethodCall(methodInfo, contextArg, {});
 				return;
 			} else if (type->isTemplateVar()) {
 				// TODO!
@@ -102,7 +103,6 @@ namespace locic {
 		
 		void
 		LivenessEmitter::emitSetInvalidCall(const AST::Type* const type, llvm::Value* const value) {
-			auto& function = irEmitter_.function();
 			auto& module = irEmitter_.module();
 			
 			// Call __setinvalid method.
@@ -112,7 +112,9 @@ namespace locic {
 				
 				MethodInfo methodInfo(type, methodName, functionType, {});
 				const auto contextArg = RefPendingResult(value, type);
-				genDynamicMethodCall(function, methodInfo, contextArg, {});
+				
+				CallEmitter callEmitter(irEmitter_);
+				callEmitter.emitDynamicMethodCall(methodInfo, contextArg, {});
 				return;
 			} else if (type->isTemplateVar()) {
 				// TODO!
@@ -124,7 +126,6 @@ namespace locic {
 		
 		llvm::Value*
 		LivenessEmitter::emitIsLiveCall(const AST::Type* const type, llvm::Value* const value) {
-			auto& function = irEmitter_.function();
 			auto& module = irEmitter_.module();
 			
 			// Call __islive method.
@@ -141,7 +142,9 @@ namespace locic {
 				
 				MethodInfo methodInfo(type, methodName, functionType, {});
 				const auto contextArg = RefPendingResult(value, type);
-				return genDynamicMethodCall(function, methodInfo, contextArg, {});
+				
+				CallEmitter callEmitter(irEmitter_);
+				return callEmitter.emitDynamicMethodCall(methodInfo, contextArg, {});
 			}
 			
 			llvm_unreachable("Unknown __islive value type.");

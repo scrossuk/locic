@@ -11,10 +11,10 @@
 #include <locic/AST/Var.hpp>
 
 #include <locic/CodeGen/ASTFunctionGenerator.hpp>
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
@@ -78,6 +78,8 @@ namespace locic {
 			auto& module = function.module();
 			auto& abi = module.abi();
 			
+			IREmitter irEmitter(function);
+			
 			switch (type->kind()) {
 				case AST::Type::OBJECT: {
 					TypeInfo typeInfo(module);
@@ -96,14 +98,16 @@ namespace locic {
 					
 					const bool hasTemplate = !type->templateArguments().empty();
 					const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)) } : std::vector<llvm::Value*>{};
-					const auto callResult = genRawFunctionCall(function, alignMaskArgInfo(module, type->getObjectType()), alignMaskFunction, args);
+					
+					CallEmitter callEmitter(irEmitter);
+					const auto callResult = callEmitter.emitRawCall(alignMaskArgInfo(module, type->getObjectType()),
+					                                                alignMaskFunction, args);
 					callResult->setName(callName);
 					return callResult;
 				}
 				
 				case AST::Type::TEMPLATEVAR: {
 					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-					IREmitter irEmitter(function);
 					return module.virtualCallABI().emitCountFnCall(irEmitter,
 					                                               typeInfo,
 					                                               VirtualCallABI::ALIGNOF);
@@ -139,6 +143,8 @@ namespace locic {
 			auto& module = function.module();
 			auto& abi = module.abi();
 			
+			IREmitter irEmitter(function);
+			
 			switch (type->kind()) {
 				case AST::Type::OBJECT: {
 					TypeInfo typeInfo(module);
@@ -160,14 +166,16 @@ namespace locic {
 					
 					const bool hasTemplate = !type->templateArguments().empty();
 					const auto args = hasTemplate ? std::vector<llvm::Value*> { getTemplateGenerator(function, TemplateInst::Type(type)) } : std::vector<llvm::Value*>{};
-					const auto callResult = genRawFunctionCall(function, sizeOfArgInfo(module, type->getObjectType()), sizeOfFunction, args);
+					
+					CallEmitter callEmitter(irEmitter);
+					const auto callResult = callEmitter.emitRawCall(sizeOfArgInfo(module, type->getObjectType()),
+					                                                sizeOfFunction, args);
 					callResult->setName(callName);
 					return callResult;
 				}
 				
 				case AST::Type::TEMPLATEVAR: {
 					const auto typeInfo = function.getBuilder().CreateExtractValue(function.getTemplateArgs(), { (unsigned int) type->getTemplateVar()->index() });
-					IREmitter irEmitter(function);
 					return module.virtualCallABI().emitCountFnCall(irEmitter,
 					                                               typeInfo,
 					                                               VirtualCallABI::SIZEOF);
@@ -354,7 +362,11 @@ namespace locic {
 			const auto args = hasTemplate ?
 				std::vector<llvm::Value*> { memberIndexValue, getTemplateGenerator(function, TemplateInst::Type(type)) } :
 				std::vector<llvm::Value*>{ memberIndexValue };
-			const auto callResult = genRawFunctionCall(function, memberOffsetArgInfo(module, type->getObjectType()), memberOffsetFunction, args);
+			
+			IREmitter irEmitter(function);
+			CallEmitter callEmitter(irEmitter);
+			const auto callResult = callEmitter.emitRawCall(memberOffsetArgInfo(module, type->getObjectType()),
+			                                                memberOffsetFunction, args);
 			callResult->setName(callName);
 			
 			memberOffsetMap.insert(std::make_pair(offsetPair, callResult));

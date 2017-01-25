@@ -9,10 +9,10 @@
 
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ASTFunctionGenerator.hpp>
+#include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenFunctionCall.hpp>
 #include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -106,8 +106,9 @@ namespace locic {
 				llvm::Value* const parameters[] = { llvmHashValuePtr };
 				
 				// Use 'musttail' to ensure perfect forwarding.
-				const auto result = genRawFunctionCall(function, stubArgInfo, llvmMethod, parameters,
-				                                       /*musttail=*/true);
+				CallEmitter callEmitter(irEmitter);
+				const auto result = callEmitter.emitRawCall(stubArgInfo, llvmMethod, parameters,
+				                                            /*musttail=*/true);
 				irEmitter.emitReturn(result);
 				
 				irEmitter.selectBasicBlock(tryNextMethodBasicBlock);
@@ -185,8 +186,9 @@ namespace locic {
 			}
 			
 			// Call the stub function.
-			return genRawFunctionCall(irEmitter.function(), argInfo.withNestArgument(),
-			                          methodFunctionPointer, newArgs);
+			CallEmitter callEmitter(irEmitter);
+			return callEmitter.emitRawCall(argInfo.withNestArgument(),
+			                               methodFunctionPointer, newArgs);
 		}
 		
 		llvm::Value*
@@ -239,9 +241,9 @@ namespace locic {
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 			                                                         llvm_abi::PointerTy);
 			
-			return genRawFunctionCall(irEmitter.function(), argInfo,
-			                          methodFunctionPointer,
-			                          { templateGeneratorValue });
+			CallEmitter callEmitter(irEmitter);
+			return callEmitter.emitRawCall(argInfo, methodFunctionPointer,
+			                               { templateGeneratorValue });
 		}
 		
 	}

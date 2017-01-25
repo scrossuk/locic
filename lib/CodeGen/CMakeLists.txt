@@ -4,6 +4,7 @@ add_library(locic-codegen
 	ArgInfo.cpp
 	ASTCodeEmitter.cpp
 	ASTFunctionGenerator.cpp
+	CallEmitter.cpp
 	CodeGenerator.cpp
 	ConstantGenerator.cpp
 	Context.cpp
@@ -15,7 +16,6 @@ add_library(locic-codegen
 	FunctionCallInfo.cpp
 	FunctionTranslationStub.cpp
 	GenABIType.cpp
-	GenFunctionCall.cpp
 	GenType.cpp
 	GenVTable.cpp
 	Interface.cpp
