@@ -108,10 +108,12 @@ namespace locic {
 		}
 		
 		llvm::Value*
-		IREmitter::emitRawAlloca(const llvm_abi::Type type, const llvm::Twine& name) {
+		IREmitter::emitRawAlloca(const llvm_abi::Type type,
+		                         llvm::Value* const arraySize,
+		                         const llvm::Twine& name) {
 			const auto irType = module().getLLVMType(type);
 			return functionGenerator_.getEntryBuilder().CreateAlloca(irType,
-			                                                         /*arraySize=*/nullptr,
+			                                                         arraySize,
 			                                                         name);
 		}
 		
@@ -403,7 +405,9 @@ namespace locic {
 			
 			if (unwindReturnPtr == nullptr) {
 				// We might need to allocate the memory if not already allocated.
-				unwindReturnPtr = emitRawAlloca(argInfo.returnType(), "unwind.returnptr");
+				unwindReturnPtr = emitRawAlloca(argInfo.returnType(),
+				                                /*arraySize=*/nullptr,
+				                                "unwind.returnptr");
 				functionGenerator_.setUnwindReturnPtr(unwindReturnPtr);
 			}
 			
@@ -434,54 +438,44 @@ namespace locic {
 			return genSizeOf(functionGenerator_, type);
 		}
 		
-		static llvm::Value*
-		genRawAlloca(IREmitter& irEmitter, const AST::Type* const type, llvm::Value* const resultPtr) {
+		llvm::Value*
+		IREmitter::emitUninitialisedAlloca(const AST::Type* const type,
+		                                   llvm::Value* const resultPtr,
+		                                   const llvm::Twine& name) {
 			if (resultPtr != nullptr) {
 				assert(resultPtr->getType()->isPointerTy());
 				return resultPtr;
 			}
 			
-			auto& function = irEmitter.function();
-			auto& module = function.module();
-			
-			SetUseEntryBuilder setUseEntryBuilder(function);
-			
-			TypeInfo typeInfo(module);
-			if (typeInfo.isSizeKnownInThisModule(type)) {
-				const auto llvmType = genType(module, type);
-				assert(!llvmType->isVoidTy());
-				return function.getBuilder().CreateAlloca(llvmType);
+			if (TypeInfo(module()).isSizeKnownInThisModule(type)) {
+				if (type->isBuiltInVoid()) {
+					// A special case for LLVM.
+					return emitRawAlloca(llvm_abi::Int8Ty);
+				}
+				
+				return emitRawAlloca(genABIType(module(), type),
+				                     /*arraySize=*/nullptr, name);
 			} else {
-				return function.getEntryBuilder().CreateAlloca(
-						TypeGenerator(module).getI8Type(),
-						irEmitter.emitSizeOf(type));
+				return emitRawAlloca(llvm_abi::Int8Ty,
+				                     emitSizeOf(type), name);
 			}
-		}
-		
-		static llvm::Value*
-		genAlloca(IREmitter& irEmitter, const AST::Type* const type, llvm::Value* const resultPtr) {
-			auto& module = irEmitter.module();
-			const bool shouldZeroAlloca = module.buildOptions().zeroAllAllocas;
-			
-			const auto allocaValue = genRawAlloca(irEmitter,
-			                                      type,
-			                                      resultPtr);
-			
-			if (shouldZeroAlloca && resultPtr == nullptr) {
-				const auto typeSizeValue = irEmitter.emitSizeOf(type);
-				irEmitter.emitMemSet(allocaValue,
-				                     ConstantGenerator(module).getI8(0),
-				                     typeSizeValue,
-				                     /*align=*/1);
-			}
-			
-			return allocaValue;
 		}
 		
 		llvm::Value*
 		IREmitter::emitAlloca(const AST::Type* const type,
-		                      llvm::Value* const resultPtr) {
-			return genAlloca(*this, type, resultPtr);
+		                      llvm::Value* const resultPtr,
+		                      const llvm::Twine& name) {
+			const auto allocaValue =
+				emitUninitialisedAlloca(type, resultPtr, name);
+			
+			const bool shouldZeroAlloca = module().buildOptions().zeroAllAllocas;
+			if (shouldZeroAlloca && resultPtr == nullptr) {
+				const auto typeSizeValue = emitSizeOf(type);
+				emitMemSet(allocaValue, constantGenerator().getI8(0),
+				           typeSizeValue, /*align=*/1);
+			}
+			
+			return allocaValue;
 		}
 		
 		llvm::Value*

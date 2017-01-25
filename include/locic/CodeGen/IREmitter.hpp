@@ -76,7 +76,9 @@ namespace locic {
 			emitBoolToI1(llvm::Value* value);
 			
 			llvm::Value*
-			emitRawAlloca(llvm_abi::Type type, const llvm::Twine& name="");
+			emitRawAlloca(llvm_abi::Type type,
+			              llvm::Value* arraySize = nullptr,
+			              const llvm::Twine& name = "");
 			
 			llvm::Value*
 			emitRawLoad(llvm::Value* valuePtr, llvm_abi::Type type);
@@ -232,14 +234,30 @@ namespace locic {
 			emitSizeOf(const AST::Type* type);
 			
 			/**
-			 * \brief Create a stack object.
+			 * \brief Create uninitialised stack object.
 			 * 
 			 * This will allocate stack space for the given
 			 * type, and return a pointer to that space.
 			 */
 			llvm::Value*
+			emitUninitialisedAlloca(const AST::Type* type,
+			                        llvm::Value* resultPtr,
+			                        const llvm::Twine& name = "");
+			
+			/**
+			 * \brief Create a stack object.
+			 * 
+			 * This will allocate stack space for the given
+			 * type, and return a pointer to that space.
+			 * 
+			 * Unless the compiler has been requested to always
+			 * zero allocas, this will return an identical result to
+			 * emitUninitialisedAlloca().
+			 */
+			llvm::Value*
 			emitAlloca(const AST::Type* type,
-			           llvm::Value* const resultPtr=nullptr);
+			           llvm::Value* const resultPtr = nullptr,
+			           const llvm::Twine& name = "");
 			
 			/**
 			 * \brief Bind value to address.
