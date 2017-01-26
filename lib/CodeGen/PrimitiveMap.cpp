@@ -20,6 +20,7 @@
 
 #include <locic/AST/TypeInstance.hpp>
 
+#include <locic/Support/Compiler.hpp>
 #include <locic/Support/PrimitiveID.hpp>
 
 namespace locic {
@@ -97,6 +98,9 @@ namespace locic {
 				case PrimitiveTypename: {
 					return new TypenamePrimitive(typeInstance);
 				}
+				case PrimitiveAbstractTypename: {
+					locic_unreachable("TODO");
+				}
 				case PrimitiveRange:
 				case PrimitiveRangeIncl:
 				case PrimitiveReverseRange:
@@ -108,7 +112,7 @@ namespace locic {
 				}
 			}
 			
-			llvm_unreachable("Invalid PrimitiveID.");
+			locic_unreachable("Invalid PrimitiveID.");
 		}
 		
 		PrimitiveMap::PrimitiveMap() { }
