@@ -23,8 +23,8 @@ namespace locic {
 		bool areTypesFunctionallyEquivalent(Module& module,
 		                                    const AST::Type* const firstType,
 		                                    const AST::Type* const secondType) {
-			return firstType == secondType ||
-				genArgType(module, firstType) == genArgType(module, secondType);
+			TypeInfo typeInfo(module);
+			return typeInfo.isPassedByValue(firstType) == typeInfo.isPassedByValue(secondType);
 		}
 		
 		bool doFunctionTypesMatch(Module& module,
