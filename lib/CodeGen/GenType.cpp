@@ -27,11 +27,6 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		llvm::Type* genType(Module& module, const AST::Type* type) {
-			const auto abiType = genABIType(module, type);
-			return module.abi().typeInfo().getLLVMType(abiType);
-		}
-		
 		DISubroutineType genDebugFunctionType(Module& module, AST::FunctionType type) {
 			// TODO!
 			const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");

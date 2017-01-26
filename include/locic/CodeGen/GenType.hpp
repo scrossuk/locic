@@ -14,8 +14,6 @@ namespace locic {
 		
 		class Module;
 		
-		llvm::Type* genType(Module& module, const AST::Type* type);
-		
 		DISubroutineType genDebugFunctionType(Module& module, AST::FunctionType type);
 		
 		DIType genDebugType(Module& module, const AST::Type* type);
