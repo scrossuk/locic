@@ -232,7 +232,7 @@ namespace locic {
 			
 			// Currently, reinterpret_cast is only implemented for pointers.
 			assert(sourceValue->getType()->isPointerTy());
-			assert(genType(irEmitter_.module(), value.type())->isPointerTy());
+			assert(genABIType(irEmitter_.module(), value.type()).isPointer());
 			
 			return sourceValue;
 		}
