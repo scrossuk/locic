@@ -40,6 +40,8 @@ namespace locic {
 		
 		class ArgInfo {
 			public:
+				static ArgInfo FromAST(Module& module, AST::FunctionType functionType);
+				
 				static ArgInfo VoidNone(Module& module);
 				
 				static ArgInfo VoidContextOnly(Module& module);
@@ -136,8 +138,6 @@ namespace locic {
 				llvm::SmallVector<llvm_abi::Type, 10> argumentTypes_;
 				
 		};
-		
-		ArgInfo getFunctionArgInfo(Module& module, AST::FunctionType functionType);
 		
 	}
 	

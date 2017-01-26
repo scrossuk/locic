@@ -20,6 +20,45 @@ namespace locic {
 	
 	namespace CodeGen {
 		
+		ArgInfo ArgInfo::FromAST(Module& module,
+		                         const AST::FunctionType functionType) {
+			const auto astReturnType = functionType.returnType();
+			
+			const auto& attributes = functionType.attributes();
+			
+			const bool isVarArg = attributes.isVarArg();
+			const bool hasTemplateGeneratorArg = attributes.isTemplated();
+			const bool hasContextArg = attributes.isMethod();
+			
+			const bool hasReturnVarArg = !TypeInfo(module).isPassedByValue(astReturnType);
+			const auto returnType =
+				hasReturnVarArg ? llvm_abi::VoidTy : genABIType(module, astReturnType);
+			
+			llvm::SmallVector<llvm_abi::Type, 10> argTypes;
+			argTypes.reserve(functionType.parameterTypes().size());
+			
+			for (const auto& paramType: functionType.parameterTypes()) {
+				argTypes.push_back(genABIArgType(module, paramType));
+			}
+			
+			auto argInfo = ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
+			
+			// Some functions will only be noexcept in certain cases (e.g.
+			// when they have a noexcept predicate that queries whether a
+			// templated type has a method that is marked noexcept) but for
+			// CodeGen purposes we're looking for a guarantee of noexcept
+			// in all cases, hence we look for always-true noexcept predicates.
+			if (!attributes.noExceptPredicate().isTrivialBool()) {
+				assert(!attributes.noExceptPredicate().dependsOnOnly({}));
+			}
+			
+			if (attributes.noExceptPredicate().isTrue()) {
+				argInfo = argInfo.withNoExcept();
+			}
+			
+			return argInfo;
+		}
+		
 		ArgInfo ArgInfo::VoidNone(Module& module) {
 			return ArgInfo(module, false, false, false, false, llvm_abi::VoidTy, {});
 		}
@@ -281,44 +320,6 @@ namespace locic {
 				noMemoryAccess() ? "true" : "false",
 				noExcept() ? "true" : "false",
 				noReturn() ? "true" : "false");
-		}
-		
-		ArgInfo getFunctionArgInfo(Module& module, const AST::FunctionType functionType) {
-			const auto astReturnType = functionType.returnType();
-			
-			const auto& attributes = functionType.attributes();
-			
-			const bool isVarArg = attributes.isVarArg();
-			const bool hasTemplateGeneratorArg = attributes.isTemplated();
-			const bool hasContextArg = attributes.isMethod();
-			
-			const bool hasReturnVarArg = !TypeInfo(module).isPassedByValue(astReturnType);
-			const auto returnType =
-				hasReturnVarArg ? llvm_abi::VoidTy : genABIType(module, astReturnType);
-			
-			std::vector<llvm_abi::Type> argTypes;
-			argTypes.reserve(functionType.parameterTypes().size());
-			
-			for (const auto& paramType: functionType.parameterTypes()) {
-				argTypes.push_back(genABIArgType(module, paramType));
-			}
-			
-			auto argInfo = ArgInfo(module, hasReturnVarArg, hasTemplateGeneratorArg, hasContextArg, isVarArg, returnType, argTypes);
-			
-			// Some functions will only be noexcept in certain cases (e.g.
-			// when they have a noexcept predicate that queries whether a
-			// templated type has a method that is marked noexcept) but for
-			// CodeGen purposes we're looking for a guarantee of noexcept
-			// in all cases, hence we look for always-true noexcept predicates.
-			if (!attributes.noExceptPredicate().isTrivialBool()) {
-				assert(!attributes.noExceptPredicate().dependsOnOnly({}));
-			}
-			
-			if (attributes.noExceptPredicate().isTrue()) {
-				argInfo = argInfo.withNoExcept();
-			}
-			
-			return argInfo;
 		}
 		
 	}
