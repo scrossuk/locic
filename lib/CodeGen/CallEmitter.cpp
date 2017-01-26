@@ -214,21 +214,26 @@ namespace locic {
 			llvm::Value* returnVar = nullptr;
 			if (argInfo.hasReturnVarArgument()) {
 				returnVar = irEmitter_.emitAlloca(functionType.returnType(), resultPtr);
+				assert(llvmArgs.size() == argInfo.returnVarArgumentOffset());
 				llvmArgs.push_back(llvm_abi::TypedValue(returnVar,
 				                                        llvm_abi::PointerTy));
 			}
 			
 			if (argInfo.isVarArg() && argInfo.hasTemplateGeneratorArgument()) {
 				assert(callInfo.templateGenerator != nullptr);
+				assert(llvmArgs.size() == argInfo.templateGeneratorArgumentOffset());
 				llvmArgs.push_back(llvm_abi::TypedValue(callInfo.templateGenerator,
 				                                        templateGeneratorType(module)));
 			}
 			
 			if (argInfo.hasContextArgument()) {
 				assert(callInfo.contextPointer != nullptr);
+				assert(llvmArgs.size() == argInfo.contextArgumentOffset());
 				llvmArgs.push_back(llvm_abi::TypedValue(callInfo.contextPointer,
 				                                        llvm_abi::PointerTy));
 			}
+			
+			assert(llvmArgs.size() == argInfo.standardArgumentOffset());
 			
 			for (const auto& arg: args) {
 				llvmArgs.push_back(arg);
@@ -236,6 +241,7 @@ namespace locic {
 			
 			if (!argInfo.isVarArg() && argInfo.hasTemplateGeneratorArgument()) {
 				assert(callInfo.templateGenerator != nullptr);
+				assert(llvmArgs.size() == argInfo.templateGeneratorArgumentOffset());
 				llvmArgs.push_back(llvm_abi::TypedValue(callInfo.templateGenerator,
 				                                        templateGeneratorType(module)));
 			}
