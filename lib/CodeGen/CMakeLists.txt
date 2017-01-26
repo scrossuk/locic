@@ -16,7 +16,7 @@ add_library(locic-codegen
 	FunctionCallInfo.cpp
 	FunctionTranslationStub.cpp
 	GenABIType.cpp
-	GenType.cpp
+	GenDebugType.cpp
 	GenVTable.cpp
 	Interface.cpp
 	InternalContext.cpp

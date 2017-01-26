@@ -10,7 +10,6 @@
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/MethodInfo.hpp>

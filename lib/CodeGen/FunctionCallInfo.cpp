@@ -12,7 +12,6 @@
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
 #include <locic/CodeGen/FunctionTranslationStub.hpp>
-#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>

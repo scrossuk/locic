@@ -13,7 +13,6 @@
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/SizeOf.hpp>

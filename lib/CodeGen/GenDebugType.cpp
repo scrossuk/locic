@@ -13,7 +13,7 @@
 #include <locic/CodeGen/ArgInfo.hpp>
 #include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/GenDebugType.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>

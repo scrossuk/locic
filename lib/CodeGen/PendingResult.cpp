@@ -1,5 +1,4 @@
 #include <locic/AST/Type.hpp>
-#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/PendingResult.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>

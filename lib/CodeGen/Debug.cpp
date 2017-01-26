@@ -14,7 +14,7 @@
 
 #include <locic/CodeGen/ASTFunctionGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
-#include <locic/CodeGen/GenType.hpp>
+#include <locic/CodeGen/GenDebugType.hpp>
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 

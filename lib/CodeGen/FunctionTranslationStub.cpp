@@ -8,7 +8,6 @@
 #include <locic/CodeGen/FunctionCallInfo.hpp>
 #include <locic/CodeGen/FunctionTranslationStub.hpp>
 #include <locic/CodeGen/GenABIType.hpp>
-#include <locic/CodeGen/GenType.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
