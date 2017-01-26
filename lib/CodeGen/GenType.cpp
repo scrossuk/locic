@@ -27,18 +27,6 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		llvm::Type* genArgType(Module& module, const AST::Type* type) {
-			if (!TypeInfo(module).isPassedByValue(type)) {
-				return TypeGenerator(module).getPtrType();
-			}
-			
-			return genType(module, type);
-		}
-		
-		llvm::FunctionType* genFunctionType(Module& module, AST::FunctionType type) {
-			return getFunctionArgInfo(module, type).makeFunctionType();
-		}
-		
 		llvm::Type* genType(Module& module, const AST::Type* type) {
 			const auto abiType = genABIType(module, type);
 			return module.abi().typeInfo().getLLVMType(abiType);
