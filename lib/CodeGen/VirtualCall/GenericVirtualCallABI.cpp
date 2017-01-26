@@ -74,11 +74,6 @@ namespace locic {
 			// Always inline stubs.
 			attributes = attributes.addAttribute(context, llvm::AttributeSet::FunctionIndex, llvm::Attribute::AlwaysInline);
 			
-			// Return value pointer attributes.
-			attributes = attributes.addAttribute(context, 1, llvm::Attribute::StructRet);
-			attributes = attributes.addAttribute(context, 1, llvm::Attribute::NoAlias);
-			attributes = attributes.addAttribute(context, 1, llvm::Attribute::NoCapture);
-			
 			// Arguments struct pointer attributes.
 			attributes = attributes.addAttribute(context, 4, llvm::Attribute::NoAlias);
 			attributes = attributes.addAttribute(context, 4, llvm::Attribute::NoCapture);
