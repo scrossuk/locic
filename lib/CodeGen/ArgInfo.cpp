@@ -1,19 +1,20 @@
-#include <stdint.h>
+#include <locic/CodeGen/ArgInfo.hpp>
 
-#include <vector>
+#include <stdint.h>
 
 #include <llvm-abi/FunctionType.hpp>
 #include <llvm-abi/Type.hpp>
 #include <llvm-abi/TypeBuilder.hpp>
 
 #include <locic/AST/Type.hpp>
-#include <locic/CodeGen/ArgInfo.hpp>
+
 #include <locic/CodeGen/GenABIType.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
 #include <locic/CodeGen/TypeInfo.hpp>
+
 #include <locic/Support/String.hpp>
 
 namespace locic {
