@@ -178,7 +178,7 @@ namespace locic {
 		                                const FunctionCallInfo callInfo,
 		                                PendingResultArray args,
 		                                llvm::Value* const resultPtr) {
-			const auto argInfo = getFunctionArgInfo(irEmitter_.module(), functionType);
+			const auto argInfo = ArgInfo::FromAST(irEmitter_.module(), functionType);
 			assert(!argInfo.isVarArg() && "This method doesn't support calling varargs functions.");
 			assert(args.size() == argInfo.numStandardArguments());
 			
@@ -200,7 +200,7 @@ namespace locic {
 		                      llvm::Value* const resultPtr) {
 			auto& module = irEmitter_.module();
 			
-			const auto argInfo = getFunctionArgInfo(module, functionType);
+			const auto argInfo = ArgInfo::FromAST(module, functionType);
 			
 			llvm::SmallVector<llvm_abi::TypedValue, 10> llvmArgs;
 			llvmArgs.reserve(3 + args.size());

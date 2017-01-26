@@ -71,41 +71,6 @@ namespace locic {
 			}
 		}
 		
-		void
-		ASTFunctionGenerator::addStandardFunctionAttributes(const AST::FunctionType type,
-		                                                    llvm::Function& llvmFunction) {
-			if (TypeInfo(module_).isPassedByValue(type.returnType())) {
-				// Passed by value, so we don't need to add any pointer
-				// attributes.
-				return;
-			}
-			
-			// Class return values are allocated by the caller,
-			// which passes a pointer to the callee. The caller
-			// and callee must, for the sake of optimisation,
-			// ensure that the following attributes hold...
-			
-			// Caller must ensure pointer is always valid.
-			llvmFunction.addAttribute(1, llvm::Attribute::StructRet);
-			
-			// Caller must ensure pointer does not alias with
-			// any other arguments.
-			llvmFunction.addAttribute(1, llvm::Attribute::NoAlias);
-			
-			// Callee must not capture the pointer.
-			llvmFunction.addAttribute(1, llvm::Attribute::NoCapture);
-		}
-		
-		llvm::Function*
-		ASTFunctionGenerator::createNamedFunction(const String& name,
-		                                          const AST::FunctionType type,
-		                                          const llvm::GlobalValue::LinkageTypes linkage) {
-			const auto argInfo = getFunctionArgInfo(module_, type);
-			const auto llvmFunction = createLLVMFunction(module_, argInfo, linkage, name);
-			addStandardFunctionAttributes(type, *llvmFunction);
-			return llvmFunction;
-		}
-		
 		llvm::Function*
 		ASTFunctionGenerator::getNamedFunction(const String& name,
 		                                       const AST::FunctionType type,
@@ -115,9 +80,8 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto llvmFunction = createNamedFunction(name,
-			                                              type,
-			                                              linkage);
+			const auto argInfo = ArgInfo::FromAST(module_, type);
+			const auto llvmFunction = argInfo.createFunction(name.c_str(), linkage);
 			
 			module_.getFunctionMap().insert(std::make_pair(name, llvmFunction));
 			
@@ -224,7 +188,7 @@ namespace locic {
 					TemplatedObject::TypeInstance(typeInstance);
 			
 			auto& templateBuilder = module_.templateBuilder(templatedObject);
-			const auto argInfo = getFunctionArgInfo(module_, function.type());
+			const auto argInfo = ArgInfo::FromAST(module_, function.type());
 			Function functionGenerator(module_, *llvmFunction, argInfo, &templateBuilder);
 			
 			if (argInfo.hasTemplateGeneratorArgument() || (typeInstance != nullptr && typeInstance->isPrimitive())) {
@@ -272,13 +236,12 @@ namespace locic {
 		                                              AST::FunctionType functionType,
 		                                              llvm::DebugLoc debugLoc) {
 			// --- Generate function declaration.
-			const auto argInfo = getFunctionArgInfo(module_, functionType);
-			const auto llvmFunction = createLLVMFunction(module_, argInfo, llvm::Function::InternalLinkage, module_.getCString("templateFunctionStub"));
+			const auto argInfo = ArgInfo::FromAST(module_, functionType);
+			const auto llvmFunction = argInfo.createFunction("templateFunctionStub",
+			                                                 llvm::Function::InternalLinkage);
 			
 			// Always inline template function stubs.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
-			
-			addStandardFunctionAttributes(functionType, *llvmFunction);
 			
 			// --- Generate function code.
 			

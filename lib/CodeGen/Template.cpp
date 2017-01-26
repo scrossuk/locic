@@ -265,9 +265,9 @@ namespace locic {
 			                               /*returnType=*/value.type(),
 			                               /*parameterTypes=*/{});
 			
-			const auto argInfo = getFunctionArgInfo(module, functionType);
-			
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString("template_value"));
+			const auto argInfo = ArgInfo::FromAST(module, functionType);
+			const auto llvmFunction = argInfo.createFunction("template_value",
+			                                                 llvm::Function::InternalLinkage);
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			Function functionGenerator(module, *llvmFunction, argInfo);
@@ -298,7 +298,8 @@ namespace locic {
 			}
 			
 			const auto argInfo = rootFunctionArgInfo(module);
-			const auto llvmFunction = createLLVMFunction(module, argInfo, llvm::Function::InternalLinkage, module.getCString("template_root"));
+			const auto llvmFunction = argInfo.createFunction("template_root",
+			                                                 llvm::Function::InternalLinkage);
 			
 			module.templateRootFunctionMap().insert(std::make_pair(templateInst.copy(), llvmFunction));
 			
@@ -420,10 +421,10 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto llvmFunction = createLLVMFunction(module,
-			                                             intermediateFunctionArgInfo(module),
-			                                             getTemplatedObjectLinkage(module, templatedObject),
-			                                             mangledName);
+			const auto argInfo = intermediateFunctionArgInfo(module);
+			const auto llvmFunction =
+				argInfo.createFunction(mangledName.c_str(),
+				                       getTemplatedObjectLinkage(module, templatedObject));
 			module.getFunctionMap().insert(std::make_pair(mangledName, llvmFunction));
 			return llvmFunction;
 		}

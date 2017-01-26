@@ -30,7 +30,8 @@ namespace locic {
 			const llvm_abi::Type argTypes[] = { llvm_abi::SizeTy };
 			const auto argInfo = ArgInfo::Basic(module, llvm_abi::PointerTy, argTypes).withNoExcept();
 			
-			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
+			const auto function = argInfo.createFunction(functionName.c_str(),
+			                                             llvm::Function::ExternalLinkage);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
@@ -46,7 +47,8 @@ namespace locic {
 			const llvm_abi::Type argTypes[] = { llvm_abi::PointerTy };
 			const auto argInfo = ArgInfo::Basic(module, llvm_abi::VoidTy, argTypes).withNoExcept();
 			
-			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
+			const auto function = argInfo.createFunction(functionName.c_str(),
+			                                             llvm::Function::ExternalLinkage);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
@@ -62,7 +64,8 @@ namespace locic {
 			const llvm_abi::Type argTypes[] = { llvm_abi::PointerTy, llvm_abi::PointerTy, llvm_abi::PointerTy };
 			const auto argInfo = ArgInfo::Basic(module, llvm_abi::VoidTy, argTypes).withNoReturn();
 			
-			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
+			const auto function = argInfo.createFunction(functionName.c_str(),
+			                                             llvm::Function::ExternalLinkage);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
@@ -78,7 +81,8 @@ namespace locic {
 			const llvm_abi::Type argTypes[] = { llvm_abi::PointerTy };
 			const auto argInfo = ArgInfo::Basic(module, llvm_abi::VoidTy, argTypes).withNoReturn();
 			
-			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
+			const auto function = argInfo.createFunction(functionName.c_str(),
+			                                             llvm::Function::ExternalLinkage);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			
 			return function;
@@ -94,7 +98,8 @@ namespace locic {
 			
 			const auto argInfo = ArgInfo::VarArgs(module, llvm_abi::Int32Ty, {}).withNoExcept();
 			
-			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
+			const auto function = argInfo.createFunction(functionName.c_str(),
+			                                             llvm::Function::ExternalLinkage);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
@@ -110,7 +115,8 @@ namespace locic {
 			const llvm_abi::Type argTypes[] = { llvm_abi::PointerTy };
 			const auto argInfo = ArgInfo::Basic(module, llvm_abi::PointerTy, argTypes).withNoExcept().withNoMemoryAccess();
 			
-			const auto function = createLLVMFunction(module, argInfo, llvm::Function::ExternalLinkage, functionName);
+			const auto function = argInfo.createFunction(functionName.c_str(),
+			                                             llvm::Function::ExternalLinkage);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			
 			return function;

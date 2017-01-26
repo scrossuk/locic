@@ -48,15 +48,6 @@ namespace locic {
 			llvm::GlobalValue::LinkageTypes
 			getTypeLinkage(const AST::TypeInstance& typeInstance) const;
 			
-			void
-			addStandardFunctionAttributes(AST::FunctionType type,
-			                              llvm::Function& llvmFunction);
-			
-			llvm::Function*
-			createNamedFunction(const String& name,
-			                    AST::FunctionType type,
-			                    llvm::GlobalValue::LinkageTypes linkage);
-			
 			llvm::Function*
 			getNamedFunction(const String& name,
 			                 AST::FunctionType type,

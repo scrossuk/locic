@@ -121,12 +121,11 @@ namespace locic {
 			                     resultPtr);
 		}
 		
-		llvm::Function* createTranslationStubFunction(Module& module,
-		                                              llvm::Function* function,
+		llvm::Function* createTranslationStubFunction(llvm::Function* function,
 		                                              const ArgInfo& translatedArgInfo) {
-			const auto functionName = module.getCString("translateStub_") + function->getName();
-			const auto linkage = llvm::Function::InternalLinkage;
-			const auto llvmFunction = createLLVMFunction(module, translatedArgInfo, linkage, functionName);
+			const auto llvmFunction =
+				translatedArgInfo.createFunction(std::string("translateStub_") + function->getName(),
+				                                 llvm::Function::InternalLinkage);
 			
 			// Always inline if possible.
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
@@ -138,7 +137,9 @@ namespace locic {
 		                                           llvm::Function* function,
 		                                           AST::FunctionType functionType,
 		                                           AST::FunctionType translatedFunctionType) {
-			const auto llvmTranslatedFunctionType = genFunctionType(module, translatedFunctionType);
+			
+			const auto translatedArgInfo = ArgInfo::FromAST(module, translatedFunctionType);
+			const auto llvmTranslatedFunctionType = translatedArgInfo.makeFunctionType();
 			
 			const auto stubIdPair = std::make_pair(function, llvmTranslatedFunctionType);
 			const auto iterator = module.functionPtrStubMap().find(stubIdPair);
@@ -146,10 +147,9 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto argInfo = getFunctionArgInfo(module, functionType);
-			const auto translatedArgInfo = getFunctionArgInfo(module, translatedFunctionType);
+			const auto argInfo = ArgInfo::FromAST(module, functionType);
 			
-			const auto llvmFunction = createTranslationStubFunction(module, function, translatedArgInfo);
+			const auto llvmFunction = createTranslationStubFunction(function, translatedArgInfo);
 			
 			module.functionPtrStubMap().insert(std::make_pair(stubIdPair, llvmFunction));
 			

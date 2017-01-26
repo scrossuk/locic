@@ -75,8 +75,8 @@ namespace locic {
 			const auto stubArgInfo = getStubArgInfo();
 			const auto linkage = llvm::Function::InternalLinkage;
 			
-			const auto llvmFunction = createLLVMFunction(module_, stubArgInfo, linkage,
-			                                             module_.getCString("__slot_conflict_resolution_stub"));
+			const auto llvmFunction = stubArgInfo.createFunction("__slot_conflict_resolution_stub",
+			                                                     linkage);
 			llvmFunction->setAttributes(conflictResolutionStubAttributes(llvmFunction->getAttributes()));
 			
 			Function function(module_, *llvmFunction, stubArgInfo);
@@ -197,8 +197,8 @@ namespace locic {
 		                             const VirtualMethodComponents methodComponents,
 		                             llvm::ArrayRef<llvm::Value*> args,
 		                             llvm::Value* const resultPtr) {
-			const auto argInfo = getFunctionArgInfo(irEmitter.module(),
-			                                        functionType);
+			const auto argInfo = ArgInfo::FromAST(irEmitter.module(),
+			                                      functionType);
 			
 			// If necessary allocate space on the stack for the return value.
 			const auto returnType = functionType.returnType();

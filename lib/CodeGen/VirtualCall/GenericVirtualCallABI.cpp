@@ -134,8 +134,8 @@ namespace locic {
 			const auto stubArgInfo = getStubArgInfo();
 			const auto linkage = llvm::Function::InternalLinkage;
 			
-			const auto llvmFunction = createLLVMFunction(module_, stubArgInfo, linkage,
-			                                             module_.getCString("__slot_conflict_resolution_stub"));
+			const auto llvmFunction = stubArgInfo.createFunction("__slot_conflict_resolution_stub",
+			                                                     linkage);
 			llvmFunction->setAttributes(conflictResolutionStubAttributes(llvmFunction->getAttributes()));
 			
 			Function function(module_, *llvmFunction, stubArgInfo);
@@ -217,7 +217,7 @@ namespace locic {
 			                                            callInfo, parameters,
 			                                            function.getReturnVar());
 			
-			if (!getFunctionArgInfo(module_, functionType).hasReturnVarArgument()) {
+			if (!ArgInfo::FromAST(module_, functionType).hasReturnVarArgument()) {
 				// The callee returns by-value, but we're forced to return by
 				// pointer, so we store the value into our return pointer.
 				irEmitter.emitStore(callReturnValue, function.getReturnVar(),
@@ -257,7 +257,7 @@ namespace locic {
 			const auto methodFunctionPointer = irEmitter.emitRawLoad(vtableEntryPointer,
 			                                                         llvm_abi::PointerTy);
 			
-			const auto callArgInfo = getFunctionArgInfo(module_, functionType);
+			const auto callArgInfo = ArgInfo::FromAST(module_, functionType);
 			auto argInfo = getStubArgInfo();
 			if (callArgInfo.noMemoryAccess()) {
 				argInfo = argInfo.withNoMemoryAccess();

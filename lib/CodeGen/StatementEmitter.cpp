@@ -44,7 +44,9 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto function = createLLVMFunction(module, assertFailedArgInfo(module), llvm::Function::ExternalLinkage, functionName);
+			const auto argInfo = assertFailedArgInfo(module);
+			const auto function = argInfo.createFunction(functionName.c_str(),
+			                                             llvm::Function::ExternalLinkage);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}
@@ -61,7 +63,9 @@ namespace locic {
 				return iterator->second;
 			}
 			
-			const auto function = createLLVMFunction(module, unreachableFailedArgInfo(module), llvm::Function::ExternalLinkage, functionName);
+			const auto argInfo = unreachableFailedArgInfo(module);
+			const auto function = argInfo.createFunction(functionName.c_str(),
+			                                             llvm::Function::ExternalLinkage);
 			module.getFunctionMap().insert(std::make_pair(functionName, function));
 			return function;
 		}

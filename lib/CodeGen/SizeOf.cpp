@@ -228,9 +228,8 @@ namespace locic {
 			const auto argInfo = memberOffsetArgInfo(module, typeInstance);
 			
 			auto& astFunctionGenerator = module.astFunctionGenerator();
-			const auto llvmFunction = createLLVMFunction(module, argInfo,
-			                                             astFunctionGenerator.getTypeLinkage(*typeInstance),
-			                                             mangledName);
+			const auto llvmFunction = argInfo.createFunction(mangledName.c_str(),
+			                                                 astFunctionGenerator.getTypeLinkage(*typeInstance));
 			
 			module.memberOffsetFunctionMap().insert(std::make_pair(typeInstance, llvmFunction));
 			
