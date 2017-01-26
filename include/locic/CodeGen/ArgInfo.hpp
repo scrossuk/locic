@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
 
 #include <llvm-abi/FunctionType.hpp>
 #include <llvm-abi/Type.hpp>
