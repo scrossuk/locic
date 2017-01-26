@@ -41,8 +41,6 @@ namespace locic {
 		class TemplateInst;
 		class UnwindAction;
 		
-		static const std::string NO_FUNCTION_NAME = "";
-		
 		typedef std::unordered_map<const AST::Type*, llvm::Value*> AlignMaskMap;
 		typedef Map<const AST::Var*, llvm::Value*> LocalVarMap;
 		typedef std::pair<const AST::Type*, size_t> OffsetPair;
