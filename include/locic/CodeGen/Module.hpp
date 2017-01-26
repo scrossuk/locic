@@ -89,112 +89,112 @@ namespace locic {
 		class Primitive;
 		
 		class Module {
-			public:
-				Module(InternalContext& context, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions);
-				
-				InternalContext& context();
-				
-				String getCString(const char* cString) const;
-				
-				String getString(std::string stringValue) const;
-				
-				void dump() const;
-				
-				void dumpToFile(const std::string& fileName) const;
-				
-				void writeBitCodeToFile(const std::string& fileName) const;
-				
-				llvm_abi::ABI& abi();
-				
-				const llvm_abi::ABI& abi() const;
-				
-				const llvm_abi::TypeBuilder& abiTypeBuilder() const;
-				
-				llvm::Type* getLLVMType(llvm_abi::Type type) const;
-				
-				VirtualCallABI& virtualCallABI();
-				
-				llvm::LLVMContext& getLLVMContext() const;
-				
-				std::unique_ptr<llvm::Module> releaseLLVMModule();
-				
-				llvm::Module& getLLVMModule() const;
-				
-				llvm::Module* getLLVMModulePtr() const;
-				
-				AttributeMap& attributeMap();
-				
-				BitsRequiredGlobalMap& bitsRequiredGlobalMap();
-				
-				DestructorMap& getDestructorMap();
-				
-				FunctionMap& getFunctionMap();
-				
-				FunctionDeclMap& getFunctionDeclMap();
-				
-				FunctionPtrStubMap& functionPtrStubMap();
-				
-				MangledNameMap& mangledNameMap();
-				
-				MemberOffsetFunctionMap& memberOffsetFunctionMap();
-				
-				MoveFunctionMap& getMoveFunctionMap();
-				
-				const Primitive& getPrimitive(const AST::TypeInstance& typeInstance) const;
-				
-				StandardTypeMap& standardTypeMap();
-				
-				TemplateBuilder& templateBuilder(TemplatedObject templatedObject);
-				
-				TemplateRootFunctionMap& templateRootFunctionMap();
-				
-				TypeMap& getTypeMap();
-				
-				const TypeMap& getTypeMap() const;
-				
-				TypeInstanceMap& typeInstanceMap();
-				
-				llvm::GlobalVariable* createConstGlobal(const String& name,
-					llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
-					llvm::Constant* value = nullptr);
-				
-				DebugBuilder& debugBuilder();
-				
-				Debug::Module& debugModule();
-				
-				const BuildOptions& buildOptions() const;
-				
-				PrimitiveID primitiveID(const String& name) const;
-				
-				ASTFunctionGenerator& astFunctionGenerator();
-				
-				void verify() const;
-				
-			private:
-				InternalContext& context_;
-				std::unique_ptr<llvm::Module> module_;
-				std::unique_ptr<llvm_abi::ABI> abi_;
-				std::unique_ptr<VirtualCallABI> virtualCallABI_;
-				AttributeMap attributeMap_;
-				BitsRequiredGlobalMap bitsRequiredGlobalMap_;
-				DestructorMap destructorMap_;
-				FunctionMap functionMap_;
-				FunctionDeclMap functionDeclMap_;
-				FunctionPtrStubMap functionPtrStubMap_;
-				MangledNameMap mangledNameMap_;
-				MemberOffsetFunctionMap memberOffsetFunctionMap_;
-				MoveFunctionMap moveFunctionMap_;
-				PrimitiveMap primitiveMap_;
-				StandardTypeMap standardTypeMap_;
-				TemplateBuilderMap templateBuilderMap_;
-				TemplateRootFunctionMap templateRootFunctionMap_;
-				TypeMap typeMap_;
-				TypeInstanceMap typeInstanceMap_;
-				DebugBuilder debugBuilder_;
-				Debug::Module& debugModule_;
-				BuildOptions buildOptions_;
-				ASTFunctionGenerator astFunctionGenerator_;
-				
+		public:
+			Module(InternalContext& context, const std::string& name, Debug::Module& pDebugModule, const BuildOptions& pBuildOptions);
+			
+			InternalContext& context();
+			
+			String getCString(const char* cString) const;
+			
+			String getString(std::string stringValue) const;
+			
+			void dump() const;
+			
+			void dumpToFile(const std::string& fileName) const;
+			
+			void writeBitCodeToFile(const std::string& fileName) const;
+			
+			llvm_abi::ABI& abi();
+			
+			const llvm_abi::ABI& abi() const;
+			
+			const llvm_abi::TypeBuilder& abiTypeBuilder() const;
+			
+			llvm::Type* getLLVMType(llvm_abi::Type type) const;
+			
+			VirtualCallABI& virtualCallABI();
+			
+			llvm::LLVMContext& getLLVMContext() const;
+			
+			std::unique_ptr<llvm::Module> releaseLLVMModule();
+			
+			llvm::Module& getLLVMModule() const;
+			
+			llvm::Module* getLLVMModulePtr() const;
+			
+			AttributeMap& attributeMap();
+			
+			BitsRequiredGlobalMap& bitsRequiredGlobalMap();
+			
+			DestructorMap& getDestructorMap();
+			
+			FunctionMap& getFunctionMap();
+			
+			FunctionDeclMap& getFunctionDeclMap();
+			
+			FunctionPtrStubMap& functionPtrStubMap();
+			
+			MangledNameMap& mangledNameMap();
+			
+			MemberOffsetFunctionMap& memberOffsetFunctionMap();
+			
+			MoveFunctionMap& getMoveFunctionMap();
+			
+			const Primitive& getPrimitive(const AST::TypeInstance& typeInstance) const;
+			
+			StandardTypeMap& standardTypeMap();
+			
+			TemplateBuilder& templateBuilder(TemplatedObject templatedObject);
+			
+			TemplateRootFunctionMap& templateRootFunctionMap();
+			
+			TypeMap& getTypeMap();
+			
+			const TypeMap& getTypeMap() const;
+			
+			TypeInstanceMap& typeInstanceMap();
+			
+			llvm::GlobalVariable* createConstGlobal(const String& name,
+				llvm::Type* type, llvm::GlobalValue::LinkageTypes linkage,
+				llvm::Constant* value = nullptr);
+			
+			DebugBuilder& debugBuilder();
+			
+			Debug::Module& debugModule();
+			
+			const BuildOptions& buildOptions() const;
+			
+			PrimitiveID primitiveID(const String& name) const;
+			
+			ASTFunctionGenerator& astFunctionGenerator();
+			
+			void verify() const;
+			
+		private:
+			InternalContext& context_;
+			std::unique_ptr<llvm::Module> module_;
+			std::unique_ptr<llvm_abi::ABI> abi_;
+			std::unique_ptr<VirtualCallABI> virtualCallABI_;
+			AttributeMap attributeMap_;
+			BitsRequiredGlobalMap bitsRequiredGlobalMap_;
+			DestructorMap destructorMap_;
+			FunctionMap functionMap_;
+			FunctionDeclMap functionDeclMap_;
+			FunctionPtrStubMap functionPtrStubMap_;
+			MangledNameMap mangledNameMap_;
+			MemberOffsetFunctionMap memberOffsetFunctionMap_;
+			MoveFunctionMap moveFunctionMap_;
+			PrimitiveMap primitiveMap_;
+			StandardTypeMap standardTypeMap_;
+			TemplateBuilderMap templateBuilderMap_;
+			TemplateRootFunctionMap templateRootFunctionMap_;
+			TypeMap typeMap_;
+			TypeInstanceMap typeInstanceMap_;
+			DebugBuilder debugBuilder_;
+			Debug::Module& debugModule_;
+			BuildOptions buildOptions_;
+			ASTFunctionGenerator astFunctionGenerator_;
+			
 		};
 		
 	}
