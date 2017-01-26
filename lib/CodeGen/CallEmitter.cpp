@@ -120,7 +120,8 @@ namespace locic {
 					}
 					
 					if (argInfo.hasNestArgument()) {
-						invokeInst->addAttribute(1, llvm::Attribute::Nest);
+						invokeInst->addAttribute(argInfo.nestArgumentOffset() + 1,
+						                         llvm::Attribute::Nest);
 					}
 					
 					const auto attributes = module.abi().getAttributes(functionABIType,
@@ -155,7 +156,8 @@ namespace locic {
 #endif
 					
 					if (argInfo.hasNestArgument()) {
-						callInst->addAttribute(1, llvm::Attribute::Nest);
+						callInst->addAttribute(argInfo.nestArgumentOffset() + 1,
+						                       llvm::Attribute::Nest);
 					}
 					
 					const auto attributes = module.abi().getAttributes(functionABIType,
