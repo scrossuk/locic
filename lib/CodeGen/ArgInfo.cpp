@@ -193,6 +193,59 @@ namespace locic {
 			return module_->abi().getFunctionType(getABIFunctionType());
 		}
 		
+		llvm::Function*
+		ArgInfo::createFunction(const llvm::Twine& name,
+		                        const llvm::GlobalValue::LinkageTypes linkage) const {
+			const auto llvmFunction =
+				llvm::Function::Create(makeFunctionType(),
+				                       linkage, name,
+				                       module_->getLLVMModulePtr());
+			
+			if (noMemoryAccess()) {
+				llvmFunction->setDoesNotAccessMemory();
+			}
+			
+			if (noExcept()) {
+				llvmFunction->setDoesNotThrow();
+			}
+			
+			if (noReturn()) {
+				llvmFunction->setDoesNotReturn();
+			}
+			
+			if (hasNestArgument()) {
+				llvmFunction->addAttribute(nestArgumentOffset() + 1,
+				                           llvm::Attribute::Nest);
+			}
+			
+			if (hasReturnVarArgument()) {
+				// Class return values are allocated by the caller,
+				// which passes a pointer to the callee. The caller
+				// and callee must, for the sake of optimisation,
+				// ensure that the following attributes hold...
+				
+				const auto offset = returnVarArgumentOffset() + 1;
+				
+				// Caller must ensure pointer is always valid.
+				llvmFunction->addAttribute(offset, llvm::Attribute::StructRet);
+				
+				// Caller must ensure pointer does not alias with
+				// any other arguments.
+				llvmFunction->addAttribute(offset, llvm::Attribute::NoAlias);
+				
+				// Callee must not capture the pointer.
+				llvmFunction->addAttribute(offset, llvm::Attribute::NoCapture);
+			}
+			
+			const auto abiFunctionType = getABIFunctionType();
+			const auto attributes = module_->abi().getAttributes(abiFunctionType,
+			                                                     abiFunctionType.argumentTypes(),
+			                                                     llvmFunction->getAttributes());
+			llvmFunction->setAttributes(attributes);
+			
+			return llvmFunction;
+		}
+		
 		bool ArgInfo::hasReturnVarArgument() const {
 			return hasReturnVarArgument_;
 		}

@@ -85,6 +85,10 @@ namespace locic {
 				
 				llvm::FunctionType* makeFunctionType() const;
 				
+				llvm::Function*
+				createFunction(const llvm::Twine& name,
+				               llvm::GlobalValue::LinkageTypes linkage) const;
+				
 				bool hasReturnVarArgument() const;
 				
 				bool hasTemplateGeneratorArgument() const;

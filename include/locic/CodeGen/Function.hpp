@@ -43,8 +43,6 @@ namespace locic {
 		
 		static const std::string NO_FUNCTION_NAME = "";
 		
-		llvm::Function* createLLVMFunction(Module& module, const ArgInfo& argInfo, llvm::GlobalValue::LinkageTypes linkage, const String& name);
-		
 		typedef std::unordered_map<const AST::Type*, llvm::Value*> AlignMaskMap;
 		typedef Map<const AST::Var*, llvm::Value*> LocalVarMap;
 		typedef std::pair<const AST::Type*, size_t> OffsetPair;

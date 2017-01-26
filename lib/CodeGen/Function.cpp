@@ -22,36 +22,8 @@
 #include <locic/CodeGen/UnwindAction.hpp>
 
 namespace locic {
-
-	namespace CodeGen {
 	
-		llvm::Function* createLLVMFunction(Module& module, const ArgInfo& argInfo, llvm::GlobalValue::LinkageTypes linkage, const String& name) {
-			const auto llvmFunction = llvm::Function::Create(argInfo.makeFunctionType(), linkage, name.c_str(), module.getLLVMModulePtr());
-			
-			if (argInfo.noMemoryAccess()) {
-				llvmFunction->setDoesNotAccessMemory();
-			}
-			
-			if (argInfo.noExcept()) {
-				llvmFunction->setDoesNotThrow();
-			}
-			
-			if (argInfo.noReturn()) {
-				llvmFunction->setDoesNotReturn();
-			}
-			
-			if (argInfo.hasNestArgument()) {
-				llvmFunction->addAttribute(1, llvm::Attribute::Nest);
-			}
-			
-			const auto abiFunctionType = argInfo.getABIFunctionType();
-			const auto attributes = module.abi().getAttributes(abiFunctionType,
-			                                                   abiFunctionType.argumentTypes(),
-			                                                   llvmFunction->getAttributes());
-			llvmFunction->setAttributes(attributes);
-			
-			return llvmFunction;
-		}
+	namespace CodeGen {
 		
 		Function::Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* pTemplateBuilder)
 			: module_(pModule), function_(function),
