@@ -124,7 +124,6 @@ namespace locic {
 						return module.debugBuilder().createUnspecifiedType(module.getCString("ref_t"));
 					}
 				}
-					return module.debugBuilder().createReferenceType(genDebugType(module, type->templateArguments().front().typeRefType()));
 				CASE_CALLABLE_ID(PrimitiveFunctionPtr):
 				CASE_CALLABLE_ID(PrimitiveMethodFunctionPtr):
 				CASE_CALLABLE_ID(PrimitiveTemplatedFunctionPtr):
