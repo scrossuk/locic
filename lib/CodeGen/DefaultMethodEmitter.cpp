@@ -107,7 +107,7 @@ namespace locic {
 			
 			if (typeInstance.isUnion()) {
 				assert(resultPtr == nullptr);
-				return ConstantGenerator(module).getNull(genType(module, type));
+				return ConstantGenerator(module).getNull(genABIType(module, type));
 			} else if (typeInstance.isException()) {
 				return emitExceptionConstructor(type, std::move(args), resultPtr);
 			} else {

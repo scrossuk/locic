@@ -593,8 +593,8 @@ namespace locic {
 			                                          value);
 			
 			if (callInfo.templateGenerator != nullptr) {
-				const auto type = genType(irEmitter_.module(), value.type());
-				llvm::Value* functionValue = irEmitter_.constantGenerator().getUndef(type);
+				const auto type = genABIType(irEmitter_.module(), value.type());
+				llvm::Value* functionValue = irEmitter_.getUndef(type);
 				functionValue = irEmitter_.emitInsertValue(functionValue, callInfo.functionPtr, { 0 });
 				functionValue = irEmitter_.emitInsertValue(functionValue, callInfo.templateGenerator, { 1 });
 				return functionValue;
@@ -620,8 +620,8 @@ namespace locic {
 				functionValue = callInfo.functionPtr;
 			}
 			
-			const auto type = genType(irEmitter_.module(), value.type());
-			llvm::Value* methodValue = irEmitter_.constantGenerator().getUndef(type);
+			const auto type = genABIType(irEmitter_.module(), value.type());
+			llvm::Value* methodValue = irEmitter_.getUndef(type);
 			methodValue = irEmitter_.emitInsertValue(methodValue, callInfo.contextPointer, { 0 });
 			methodValue = irEmitter_.emitInsertValue(methodValue, functionValue, { 1 });
 			return methodValue;

@@ -718,7 +718,7 @@ namespace locic {
 			// Call 'throw' function.
 			const auto throwFunction = getExceptionThrowFunction(module);
 			const auto throwTypeInfo = genThrowInfo(module, throwType->getObjectType());
-			const auto nullPtr = ConstantGenerator(module).getNull(TypeGenerator(module).getPtrType());
+			const auto nullPtr = ConstantGenerator(module).getNullPointer();
 			llvm::Value* const args[] = { allocatedException, throwTypeInfo, nullPtr };
 			
 			if (anyUnwindActions(function, UnwindStateThrow)) {

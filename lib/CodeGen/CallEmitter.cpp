@@ -278,7 +278,7 @@ namespace locic {
 			
 			const auto contextPointer = methodOwner ?
 			                            methodOwner->resolve(function) :
-			                            ConstantGenerator(module).getNull(TypeGenerator(module).getPtrType());
+			                            ConstantGenerator(module).getNullPointer();
 			
 			llvm::SmallVector<llvm::Value*, 10> llvmArgs;
 			llvmArgs.reserve(args.size());

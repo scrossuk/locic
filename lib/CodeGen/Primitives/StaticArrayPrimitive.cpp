@@ -146,7 +146,7 @@ namespace locic {
 					// TODO: set elements to dead state.
 					TypeInfo typeInfo(module);
 					if (typeInfo.isSizeAlwaysKnown(type)) {
-						return ConstantGenerator(module).getUndef(genType(module, type));
+						return irEmitter.constantGenerator().getUndef(genABIType(module, type));
 					} else {
 						const auto result = irEmitter.emitAlloca(type, resultPtr);
 						// TODO

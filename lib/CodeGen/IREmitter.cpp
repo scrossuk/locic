@@ -81,8 +81,7 @@ namespace locic {
 		
 		llvm::Value*
 		IREmitter::getUndef(const llvm_abi::Type type) {
-			const auto llvmType = module().getLLVMType(type);
-			return constantGenerator().getUndef(llvmType);
+			return constantGenerator().getUndef(type);
 		}
 		
 		llvm::Value*

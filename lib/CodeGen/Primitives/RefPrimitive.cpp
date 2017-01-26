@@ -316,12 +316,11 @@ namespace locic {
 						[&](const llvm_abi::Type abiType) {
 							const auto methodOwnerValue = methodOwner.get(abiType);
 							if (abiType.isPointer()) {
-								const auto llvmType = module.getLLVMType(abiType);
-								const auto nullValue = ConstantGenerator(module).getNull(llvmType);
+								const auto nullValue = ConstantGenerator(module).getNull(abiType);
 								return irEmitter.emitI1ToBool(builder.CreateICmpNE(methodOwnerValue, nullValue));
 							} else {
 								const auto pointerValue = builder.CreateExtractValue(methodOwnerValue, { 0 });
-								const auto nullValue = ConstantGenerator(module).getNull(pointerValue->getType());
+								const auto nullValue = ConstantGenerator(module).getNullPointer();
 								return irEmitter.emitI1ToBool(builder.CreateICmpNE(pointerValue, nullValue));
 							}
 						});
@@ -332,8 +331,7 @@ namespace locic {
 					return genRefPrimitiveMethodForVirtualCases(function, type,
 						[&](const llvm_abi::Type abiType) {
 							const auto methodOwnerPtr = methodOwner.get(abiType);
-							const auto llvmType = module.getLLVMType(abiType);
-							const auto nullValue = ConstantGenerator(module).getNull(llvmType);
+							const auto nullValue = ConstantGenerator(module).getNull(abiType);
 							irEmitter.emitRawStore(nullValue, methodOwnerPtr);
 							return ConstantGenerator(module).getVoidUndef();
 						});

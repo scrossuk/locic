@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <llvm-abi/Type.hpp>
+
 #include <locic/CodeGen/LLVMIncludes.hpp>
 
 namespace locic {
@@ -20,9 +22,9 @@ namespace locic {
 			
 			llvm::UndefValue* getVoidUndef() const;
 			
-			llvm::UndefValue* getUndef(llvm::Type* type) const;
+			llvm::UndefValue* getUndef(llvm_abi::Type type) const;
 			
-			llvm::Constant* getNull(llvm::Type* type) const;
+			llvm::Constant* getNull(llvm_abi::Type type) const;
 			
 			llvm::ConstantPointerNull* getNullPointer() const;
 			

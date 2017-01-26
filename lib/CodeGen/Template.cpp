@@ -162,7 +162,7 @@ namespace locic {
 			ConstantGenerator constGen(module);
 			
 			llvm::Constant* const values[] = {
-				constGen.getNull(TypeGenerator(module).getPtrType()),
+				constGen.getNullPointer(),
 				constGen.getI64(0)
 			};
 			

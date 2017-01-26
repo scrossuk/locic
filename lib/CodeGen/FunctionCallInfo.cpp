@@ -340,7 +340,7 @@ namespace locic {
 					
 					const auto& interfaceFunction = method.functionRefFunction();
 					
-					const auto contextPointer = ConstantGenerator(function.module()).getNull(TypeGenerator(function.module()).getPtrType());
+					const auto contextPointer = irEmitter.constantGenerator().getNullPointer();
 					
 					const auto methodHash = CreateMethodNameHash(interfaceFunction.fullName().last());
 					const auto methodHashValue = ConstantGenerator(module).getI64(methodHash);

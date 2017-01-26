@@ -83,7 +83,7 @@ namespace locic {
 			
 			switch (methodID) {
 				case METHOD_CREATE:
-					return ConstantGenerator(module).getNull(TypeGenerator(module).getPtrType());
+					return ConstantGenerator(module).getNullPointer();
 				case METHOD_ALIGNMASK: {
 					const auto abiType = this->getABIType(module,
 					                                      module.abiTypeBuilder(),
@@ -98,7 +98,7 @@ namespace locic {
 				}
 				case METHOD_IMPLICITCOPY:
 				case METHOD_COPY: {
-					return ConstantGenerator(module).getNull(TypeGenerator(module).getPtrType());
+					return ConstantGenerator(module).getNullPointer();
 				}
 				case METHOD_IMPLICITCAST:
 				case METHOD_CAST: {

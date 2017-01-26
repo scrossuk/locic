@@ -15,16 +15,19 @@ namespace locic {
 			: module_(module) { }
 		
 		llvm::UndefValue* ConstantGenerator::getVoidUndef() const {
+			return getUndef(llvm_abi::VoidTy);
 			return llvm::UndefValue::get(
 				llvm::Type::getVoidTy(module_.getLLVMContext()));
 		}
 		
-		llvm::UndefValue* ConstantGenerator::getUndef(llvm::Type* type) const {
-			return llvm::UndefValue::get(type);
+		llvm::UndefValue*
+		ConstantGenerator::getUndef(const llvm_abi::Type type) const {
+			return llvm::UndefValue::get(module_.getLLVMType(type));
 		}
 		
-		llvm::Constant* ConstantGenerator::getNull(llvm::Type* type) const {
-			return llvm::Constant::getNullValue(type);
+		llvm::Constant*
+		ConstantGenerator::getNull(const llvm_abi::Type type) const {
+			return llvm::Constant::getNullValue(module_.getLLVMType(type));
 		}
 		
 		llvm::ConstantPointerNull* ConstantGenerator::getNullPointer() const {

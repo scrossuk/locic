@@ -88,8 +88,7 @@ namespace locic {
 			
 			switch (methodID) {
 				case METHOD_NULL: {
-					const auto irType = irEmitter.typeGenerator().getPtrType();
-					return ConstantGenerator(module).getNull(irType);
+					return ConstantGenerator(module).getNullPointer();
 				}
 				case METHOD_ALIGNMASK: {
 					const auto abiType = this->getABIType(module,

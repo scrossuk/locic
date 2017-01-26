@@ -111,8 +111,8 @@ namespace locic {
 			llvm::Value* genFunctionPtrNullMethod(Function& function, const AST::Type* const type) {
 				auto& module = function.module();
 				
-				const auto llvmType = genType(module, type);
-				return ConstantGenerator(module).getNull(llvmType);
+				const auto abiType = genABIType(module, type);
+				return ConstantGenerator(module).getNull(abiType);
 			}
 			
 			llvm::Value* genFunctionPtrCopyMethod(Function& function, PendingResultArray args) {
