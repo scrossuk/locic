@@ -53,18 +53,18 @@ This will print:
 	i = 4
 	i = 5
 
-reverse_range()
-~~~~~~~~~~~~~~~
+reversed()
+~~~~~~~~~~
+
+Any range can be reversed using this function.
 
 .. Note::
-	``reverse_range()`` is planned to be replaced by ``reversed(range(...))``.
-
-A reverse counter simply starts at the upper bound (inclusive) and decrements by the specified value until it reaches the lower bound (exclusive). For example:
+	Currently the template parameters for ``reversed()`` must be explicitly specified, so ``reversed(range(1, 2))`` is currently ``reversed<int, range_t<int>>(range<int>(1, 2))``; once template argument deduction is implemented this will no longer be necessary.
 
 .. code-block:: c++
 
 	void example() {
-		for (int i: reverse_range<int>(5, 0)) {
+		for (int i: reversed(range(0, 5))) {
 			printf(C"i = %d\n", i);
 		}
 	}
@@ -73,13 +73,11 @@ This will print:
 
 ::
 
-	i = 5
 	i = 4
 	i = 3
 	i = 2
 	i = 1
-
-As with ``range()``, there's also a variant of this called ``reverse_range_incl()``.
+	i = 0
 
 Custom Value Generators
 -----------------------
@@ -93,9 +91,8 @@ Developers need not restrict themselves to the generators available in the stand
 			return @(1, 1);
 		}
 		
-		lval ptr_lval_t<const int> front() const noexcept {
-			// This is a bit convoluted as we need to return an lval type by-value (this allows ranges to support multiple kinds of lval).
-			return *(&@currentValue);
+		const int& front() const noexcept {
+			return @currentValue;
 		}
 		
 		void skip_front() noexcept {

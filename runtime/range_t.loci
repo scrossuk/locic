@@ -1,26 +1,82 @@
 template <typename T>
-__primitive range_t {
-	static range_t<T> create(T begin, T end) noexcept require(movable<T>);
+class range_t(T front, T back, bool empty) {
+	static range_t<T> create(T begin, T end)
+	noexcept(noexcept_decrementable<T> and noexcept_comparable<T>)
+	require(movable<T> and decrementable<T> and comparable<T>) {
+		if (begin < end) {
+			end--;
+			return @(move begin, move end, false);
+		} else {
+			return @(move begin, move end, true);
+		}
+	}
 	
-	static size_t __alignmask() noexcept require(sized_type<T>);
-	static size_t __sizeof() noexcept require(sized_type<T>);
+	static range_t<T> inclusive(T begin, T end)
+	noexcept(noexcept_comparable<T>)
+	require(movable<T> and comparable<T>) {
+		if (begin <= end) {
+			return @(move begin, move end, false);
+		} else {
+			return @(move begin, move end, true);
+		}
+	}
 	
-	void __destroy() noexcept require(destructible<T>);
+	implicit_copy = default;
+	copy = default;
 	
-	size_t implicit_copy() const noexcept require(implicit_copyable<T>);
-	size_t copy() const noexcept require(copyable<T>);
+	const T& front() const noexcept {
+		assert !self.empty();
+		return @front;
+	}
 	
-	void __setdead() noexcept;
-	bool __islive() const noexcept;
+	void skip_front() noexcept(noexcept_incrementable<T> and noexcept_comparable<T>)
+	require(incrementable<T> and comparable<T>) {
+		assert !self.empty();
+		
+		// Check if front and back are equal before incrementing,
+		// otherwise we could advance beyond the range.
+		if (@front == @back) {
+			@empty = true;
+			return;
+		}
+		
+		@front++;
+	}
 	
-	const T& front() const noexcept;
+	const T& back() const noexcept {
+		assert !self.empty();
+		return @back;
+	}
 	
-	void skip_front() noexcept(noexcept_incrementable<T>) require(incrementable<T>);
+	void skip_back() noexcept(noexcept_decrementable<T> and noexcept_comparable<T>)
+	require(decrementable<T> and comparable<T>) {
+		assert !self.empty();
+		
+		// Check if front and back are equal before decrementing,
+		// otherwise we could advance beyond the range.
+		if (@front == @back) {
+			@empty = true;
+			return;
+		}
+		
+		@back--;
+	}
 	
-	bool empty() const noexcept(noexcept_lessthancomparable<T>) require(lessthancomparable<T>);
-	
-	range_t<T> __move() noexcept require(movable<T>);
+	bool empty() const noexcept {
+		return @empty;
+	}
 }
 
 template <movable T>
-__primitivefunction range_t<T> range(T begin, T end) noexcept;
+range_t<T> range(T begin, T end)
+		noexcept(noexcept_decrementable<T> and noexcept_comparable<T>)
+		require(movable<T> and decrementable<T> and comparable<T>) {
+	return range_t<T>(move begin, move end);
+}
+
+template <movable T>
+range_t<T> range_incl(T begin, T end)
+		noexcept(noexcept_comparable<T>)
+		require(movable<T> and comparable<T>) {
+	return range_t<T>.inclusive(move begin, move end);
+}

@@ -1,26 +1,74 @@
-template <typename T>
-__primitive reverse_range_t {
-	static reverse_range_t<T> create(T begin, T end) noexcept require(movable<T>);
-	
-	static size_t __alignmask() noexcept require(sized_type<T>);
-	static size_t __sizeof() noexcept require(sized_type<T>);
-	
-	size_t implicit_copy() const noexcept require(implicit_copyable<T>);
-	size_t copy() const noexcept require(copyable<T>);
-	
-	void __destroy() noexcept require(destructible<T>);
-	
-	void __setdead() noexcept;
-	bool __islive() const noexcept;
-	
-	const T& front() const noexcept;
-	
-	void skip_front() noexcept(noexcept_incrementable<T>) require(incrementable<T>);
-	
-	bool empty() const noexcept(noexcept_lessthancomparable<T>) require(lessthancomparable<T>);
-	
-	reverse_range_t<T> __move() noexcept require(movable<T>);
+interface has_empty_t {
+	bool empty() const;
 }
 
-template <movable T>
-__primitivefunction reverse_range_t<T> reverse_range(T begin, T end) noexcept;
+interface noexcept_has_empty_t {
+	bool empty() const noexcept;
+}
+
+template <typename T>
+interface forward_range_t {
+	const T& front() const noexcept;
+	
+	void skip_front();
+}
+
+template <typename T>
+interface noexcept_forward_range_t {
+	const T& front() const noexcept;
+	
+	void skip_front() noexcept;
+}
+
+template <typename T>
+interface backward_range_t {
+	const T& back() const noexcept;
+	
+	void skip_back();
+}
+
+template <typename T>
+interface noexcept_backward_range_t {
+	const T& back() const noexcept;
+	
+	void skip_back() noexcept;
+}
+
+template <typename T, typename Range>
+class reverse_range_t(Range range) {
+	static reverse_range_t<T, Range>
+	create(Range range) noexcept require(movable<Range>) {
+		return @(move range);
+	}
+	
+	implicit_copy = default;
+	copy = default;
+	
+	const T& front() const noexcept require(Range : backward_range_t<T>) {
+		return @range.back();
+	}
+	
+	void skip_front() noexcept(Range : noexcept_backward_range_t<T>)
+	require(Range : backward_range_t<T>) {
+		@range.skip_back();
+	}
+	
+	const T& back() const noexcept require(Range : forward_range_t<T>) {
+		return @range.front();
+	}
+	
+	void skip_back() noexcept(Range : noexcept_forward_range_t<T>)
+	require(Range : forward_range_t<T>) {
+		@range.skip_front();
+	}
+	
+	bool empty() const noexcept(Range : noexcept_has_empty_t)
+	require(Range : has_empty_t) {
+		return @range.empty();
+	}
+}
+
+template <typename T, movable Range>
+reverse_range_t<T, Range> reversed(Range range) noexcept {
+	return reverse_range_t<T, Range>(move range);
+}

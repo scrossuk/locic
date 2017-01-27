@@ -116,10 +116,6 @@ namespace locic {
 		
 		impl_->add(METHOD_MIN);
 		impl_->add(METHOD_MAX);
-		impl_->add(METHOD_RANGE);
-		impl_->add(METHOD_RANGE_INCL);
-		impl_->add(METHOD_REVERSE_RANGE);
-		impl_->add(METHOD_REVERSE_RANGE_INCL);
 	}
 	
 	MethodIDMap::~MethodIDMap() { }

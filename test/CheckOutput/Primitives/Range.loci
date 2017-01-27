@@ -1,0 +1,48 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK:      Check empty unsigned range.
+// CHECK-NEXT: Check unsigned range.
+// CHECK-NEXT: i = 0
+// CHECK-NEXT: i = 1
+// CHECK-NEXT: i = 2
+// CHECK-NEXT: i = 3
+// CHECK-NEXT: i = 4
+// CHECK-NEXT: Check signed range.
+// CHECK-NEXT: i = 0
+// CHECK-NEXT: i = 1
+// CHECK-NEXT: i = 2
+// CHECK-NEXT: i = 3
+// CHECK-NEXT: i = 4
+// CHECK-NEXT: Check reversed range.
+// CHECK-NEXT: i = 4
+// CHECK-NEXT: i = 3
+// CHECK-NEXT: i = 2
+// CHECK-NEXT: i = 1
+// CHECK-NEXT: i = 0
+
+import void printf(const ubyte * str, ...) noexcept;
+
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"Check empty unsigned range.\n");
+	for (auto i: range<unsigned>(0, 0)) {
+		printf(C"i = %d\n", i);
+	}
+	
+	printf(C"Check unsigned range.\n");
+	for (auto i: range<unsigned>(0, 5)) {
+		printf(C"i = %u\n", i);
+	}
+	
+	printf(C"Check signed range.\n");
+	for (auto i: range<int>(0, 5)) {
+		printf(C"i = %d\n", i);
+	}
+	
+	printf(C"Check reversed range.\n");
+	for (auto i: reversed<int, range_t<int>>(range<int>(0, 5))) {
+		printf(C"i = %d\n", i);
+	}
+	return 0;
+}
+

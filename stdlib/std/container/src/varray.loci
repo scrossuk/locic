@@ -12,8 +12,8 @@ export std.container 0.1.0 {
 			}
 			
 			void __destroy() noexcept require(destructible<T>) {
-				for (auto i: reverse_range<size_t>(@size, 0)) {
-					@data[i - 1u].__destroy();
+				for (auto i: reversed<size_t, range_t<size_t>>(range<size_t>(0, @size))) {
+					@data[i].__destroy();
 				}
 				
 				release(reinterpret_cast<T*, void*>(@data));
@@ -35,7 +35,7 @@ export std.container 0.1.0 {
 				
 				T* newData = reinterpret_cast<void*, T*>(allocate(size * sizeof(T)));
 				
-				for (auto i: counter<size_t>(0u, @size, 1u)) {
+				for (auto i: range<size_t>(0, @size)) {
 					new(&newData[i]) move @data[i];
 				}
 				
@@ -52,11 +52,11 @@ export std.container 0.1.0 {
 			void resize(size_t size, const T element) require(destructible<T> and movable<T> and copyable<T>) {
 				self.reserve(size);
 				if (size < self.size()) {
-					for (auto i: reverse_counter<size_t>(self.size(), size, 1u)) {
+					for (auto i: reversed<size_t, range_t<size_t>>(range<size_t>(size, self.size()))) {
 						@data[i].__destroy();
 					}
 				} else {
-					for (auto i: counter<size_t>(self.size(), size, 1u)) {
+					for (auto i: range<size_t>(self.size(), size)) {
 						new(&@data[i]) element.copy();
 					}
 				}
@@ -83,7 +83,7 @@ export std.container 0.1.0 {
 			}
 			
 			void clear() noexcept require(destructible<T>) {
-				for (auto i: reverse_counter<size_t>(@size, 0u, 1u)) {
+				for (auto i: reversed<size_t, range_t<size_t>>(range<size_t>(0, @size))) {
 					@data[i].__destroy();
 				}
 				@size = 0u;
@@ -97,14 +97,14 @@ export std.container 0.1.0 {
 			
 			void pop_back() noexcept require(destructible<T>) {
 				assert !self.empty();
-				@size = @size - 1u;
+				@size--;
 				@data[@size].__destroy();
 			}
 			
 			varray<T> copy() const require(movable<T> and copyable<T>) {
 				auto array = varray<T>();
 				array.reserve(@size);
-				for (auto i: counter<size_t>(0u, @size, 1u)) {
+				for (auto i: range<size_t>(0, @size)) {
 					array.push_back(self[i].copy());
 				}
 				return move array;

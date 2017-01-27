@@ -97,11 +97,6 @@ namespace locic {
 		impl_->add(PrimitiveAbstractTypename);
 		impl_->add(PrimitiveTypename);
 		
-		impl_->add(PrimitiveRange);
-		impl_->add(PrimitiveRangeIncl);
-		impl_->add(PrimitiveReverseRange);
-		impl_->add(PrimitiveReverseRangeIncl);
-		
 		impl_->add(PrimitiveStaticArray);
 	}
 	

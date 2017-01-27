@@ -37,10 +37,8 @@ set(RUNTIME_FILES
 	null_t.loci
 	ptrdiff_t.loci
 	ptr_t.loci
-	range_incl_t.loci
 	range_t.loci
 	ref_t.loci
-	reverse_range_incl_t.loci
 	reverse_range_t.loci
 	short_t.loci
 	size_t.loci

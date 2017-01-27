@@ -81,11 +81,6 @@ namespace locic {
 		PrimitiveAbstractTypename,
 		PrimitiveTypename,
 		
-		PrimitiveRange,
-		PrimitiveRangeIncl,
-		PrimitiveReverseRange,
-		PrimitiveReverseRangeIncl,
-		
 		PrimitiveStaticArray
 	};
 	
@@ -188,14 +183,6 @@ namespace locic {
 			return prefix "abstracttypename_t"; \
 		case PrimitiveTypename: \
 			return prefix "typename_t"; \
-		case PrimitiveRange: \
-			return prefix "range_t"; \
-		case PrimitiveRangeIncl: \
-			return prefix "range_incl_t"; \
-		case PrimitiveReverseRange: \
-			return prefix "reverse_range_t"; \
-		case PrimitiveReverseRangeIncl: \
-			return prefix "reverse_range_incl_t"; \
 		case PrimitiveStaticArray: \
 			return prefix "static_array_t"; \
 	} \

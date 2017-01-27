@@ -134,11 +134,9 @@ namespace ANN {
 			auto gradient = std::varray<double>();
 			gradient.resize(@numOutputs, 1.0);
 			
-			for (auto i: reverse_range<size_t>(@layers.size() - 1u, 0)) {
+			for (auto i: reversed<size_t, range_t<size_t>>(range<size_t>(0, @layers.size()))) {
 				@layers[i].gradient(index, gradient);
 			}
-			
-			@layers[0u].gradient(index, gradient);
 		}
 		
 		void error(size_t index, double error) {

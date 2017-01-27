@@ -99,11 +99,7 @@ namespace locic {
 		
 		// Functions.
 		METHOD_MIN,
-		METHOD_MAX,
-		METHOD_RANGE,
-		METHOD_RANGE_INCL,
-		METHOD_REVERSE_RANGE,
-		METHOD_REVERSE_RANGE_INCL
+		METHOD_MAX
 	};
 	
 	/**

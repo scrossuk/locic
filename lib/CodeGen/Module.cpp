@@ -205,6 +205,7 @@ namespace locic {
 			const bool result = llvm::verifyModule(*module_, &cerrStream);
 			if (result)
 			{
+				dump();
 				throw std::runtime_error("Verification failed for module.");
 			}
 #else

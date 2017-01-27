@@ -96,10 +96,6 @@ namespace locic {
 			
 			case METHOD_MIN:
 			case METHOD_MAX:
-			case METHOD_RANGE:
-			case METHOD_RANGE_INCL:
-			case METHOD_REVERSE_RANGE:
-			case METHOD_REVERSE_RANGE_INCL:
 				return FUNCTION;
 		}
 		
@@ -294,14 +290,6 @@ namespace locic {
 				return "min";
 			case METHOD_MAX:
 				return "max";
-			case METHOD_RANGE:
-				return "range";
-			case METHOD_RANGE_INCL:
-				return "rangeincl";
-			case METHOD_REVERSE_RANGE:
-				return "reverserange";
-			case METHOD_REVERSE_RANGE_INCL:
-				return "reverserangeincl";
 		}
 		
 		locic_unreachable("Unknown Method ID.");
