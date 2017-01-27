@@ -1,8 +1,21 @@
+
+template <typename T>
+using range_constructible = movable<T> and decrementable<T> and comparable<T>;
+
+template <typename T>
+using noexcept_range_constructible = noexcept_decrementable<T> and noexcept_comparable<T>;
+
+template <typename T>
+using range_incl_constructible = movable<T> and comparable<T>;
+
+template <typename T>
+using noexcept_range_incl_constructible = noexcept_comparable<T>;
+
 template <typename T>
 class range_t(T front, T back, bool empty) {
 	static range_t<T> create(T begin, T end)
-	noexcept(noexcept_decrementable<T> and noexcept_comparable<T>)
-	require(movable<T> and decrementable<T> and comparable<T>) {
+			noexcept(noexcept_range_constructible<T>)
+			require(range_constructible<T>) {
 		if (begin < end) {
 			end--;
 			return @(move begin, move end, false);
@@ -12,8 +25,8 @@ class range_t(T front, T back, bool empty) {
 	}
 	
 	static range_t<T> inclusive(T begin, T end)
-	noexcept(noexcept_comparable<T>)
-	require(movable<T> and comparable<T>) {
+			noexcept(noexcept_range_incl_constructible<T>)
+			require(range_incl_constructible<T>) {
 		if (begin <= end) {
 			return @(move begin, move end, false);
 		} else {
@@ -67,16 +80,14 @@ class range_t(T front, T back, bool empty) {
 	}
 }
 
-template <movable T>
-range_t<T> range(T begin, T end)
-		noexcept(noexcept_decrementable<T> and noexcept_comparable<T>)
-		require(movable<T> and decrementable<T> and comparable<T>) {
+template <range_constructible T>
+range_t<T>
+range(T begin, T end) noexcept(noexcept_range_constructible<T>) {
 	return range_t<T>(move begin, move end);
 }
 
-template <movable T>
-range_t<T> range_incl(T begin, T end)
-		noexcept(noexcept_comparable<T>)
-		require(movable<T> and comparable<T>) {
+template <range_incl_constructible T>
+range_t<T>
+range_incl(T begin, T end) noexcept(noexcept_range_incl_constructible<T>) {
 	return range_t<T>.inclusive(move begin, move end);
 }
