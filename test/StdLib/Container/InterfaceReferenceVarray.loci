@@ -58,11 +58,11 @@ export int main(unused int argc, unused ubyte ** argv) {
 	
 	auto varray = std::varray<TestInterface&>();
 	
-	for (auto i: std::counter<int>(0, 10, 1)) {
+	for (auto i: range<int>(0, 10)) {
 		varray.push_back(interfaceRef);
 	}
 	
-	for (auto i: std::counter<size_t>(0u, 10u, 1u)) {
+	for (auto i: range<size_t>(0, 10)) {
 		printf(C"TestInterface& objectRef = varray[%llu];\n", i.cast<ulonglong_t>());
 		TestInterface& objectRef = varray[i];
 		printf(C"objectRef.doSomething();\n");

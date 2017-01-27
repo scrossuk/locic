@@ -23,7 +23,7 @@ export std.string 0.1.0 {
 				
 				auto byteArray = std::varray<ubyte>();
 				
-				for (auto i: std::counter<size_t>(0u, length, 1u)) {
+				for (auto i: range<size_t>(0, length)) {
 					byteArray.push_back(stringConstant[i]);
 				}
 				
@@ -33,7 +33,7 @@ export std.string 0.1.0 {
 			string implicit_copy() const {
 				auto byteArray = std::varray<ubyte>();
 				
-				for (auto i: std::counter<size_t>(0u, @byteArray.size(), 1u)) {
+				for (auto i: range<size_t>(0, @byteArray.size())) {
 					byteArray.push_back(@byteArray[i]);
 				}
 				
@@ -48,27 +48,27 @@ export std.string 0.1.0 {
 				auto newLength = @length + other.length();
 				auto byteArray = std::varray<ubyte>();
 				
-				for (auto i: std::counter<size_t>(0u, @length, 1u)) {
+				for (auto i: range<size_t>(0, @length)) {
 					byteArray.push_back(@byteArray[i]);
 				}
 				
-				for (auto i: std::counter<size_t>(0u, other.length(), 1u)) {
+				for (auto i: range<size_t>(0, other.length())) {
 					byteArray.push_back(other._data()[i]);
 				}
 				
 				return @(newLength, move byteArray);
 			}
 			
-			string substr(string_range range) const {
+			string substr(string_range substrRange) const {
 				auto byteArray = std::varray<ubyte>();
 				
-				for (auto i: std::counter<size_t>(range._beginPos(), range._endPos(), 1u)) {
-					byteArray .push_back(@byteArray[i]);
+				for (auto i: range<size_t>(substrRange._beginPos(), substrRange._endPos())) {
+					byteArray.push_back(@byteArray[i]);
 				}
 				
 				byteArray.push_back(0u);
 				
-				return @(range.length(), move byteArray);
+				return @(substrRange.length(), move byteArray);
 			}
 			
 			string_range all() const {
@@ -137,7 +137,7 @@ export std.string 0.1.0 {
 			
 			utf8_buffer make_buffer() const {
 				auto buffer = utf8_buffer();
-				for (auto i: std::counter<size_t>(0u, @byteArray.size(), 1u)) {
+				for (auto i: range<size_t>(0, @byteArray.size())) {
 					buffer.append(@byteArray[i]);
 				}
 				return move buffer;

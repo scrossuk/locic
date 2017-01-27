@@ -65,7 +65,7 @@ This allows access to information about a type from a reference or pointer to an
 		// Get the type's size.
 		size_t typeSize = typeInfo.size;
 		
-		for (const auto i: std::counter<size_t>(0, typeInfo.methods.size())) {
+		for (const auto i: range<size_t>(0, typeInfo.methods.size())) {
 			rtti::method_info methodInfo = typeInfo.methods[i];
 			
 			// Get method name.

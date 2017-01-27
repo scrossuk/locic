@@ -37,7 +37,7 @@ export int main(unused int argc, unused ubyte ** argv) {
 		auto iterator = string.begin();
 		assert iterator.is_begin();
 		
-		for (auto i: std::counter<size_t>(0u, string.length(), 1u)) {
+		for (auto i: range<size_t>(0, string.length())) {
 			printf(C"string[%llu] = %llu\n",
 				  i.cast<ulonglong>(),
 				  (*iterator).cast<ulonglong>());
@@ -52,7 +52,7 @@ export int main(unused int argc, unused ubyte ** argv) {
 		auto iterator = string.end();
 		assert iterator.is_end();
 		
-		for (auto i: std::counter<size_t>(0u, string.length(), 1u)) {
+		for (auto i: range<size_t>(0, string.length())) {
 			iterator--;
 			printf(C"string[%llu] = %llu\n",
 				  (string.length() - i - 1u).cast<ulonglong>(),

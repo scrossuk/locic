@@ -62,7 +62,7 @@ export std.container 0.1.0 {
 			
 			template <bool IsConst>
 			const<IsConst>(Value)& index(const Key& key) const(IsConst) noexcept require(noexcept_comparable<Key>) {
-				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+				for (const auto i: range<size_t>(0, @array.size())) {
 					if (@array[i].first == key) {
 						return *(&(@array[i].second));
 					}
@@ -72,8 +72,8 @@ export std.container 0.1.0 {
 			
 			void internal_sort() require(noexcept_comparable<Key> and movable<Key> and movable<Value>) {
 				// Bubble sort! TODO: fix this!
-				for (const size_t c: std::counter<size_t>(0u, @array.size(), 1u)) {
-					for (const size_t i: std::counter<size_t>(1u, @array.size(), 1u)) {
+				for (const auto c: range<size_t>(0, @array.size())) {
+					for (const auto i: range<size_t>(1, @array.size())) {
 						if (@array[i].first < @array[i - 1u].first) {
 							auto tmp = move @array[i];
 							new(&@array[i]) move @array[i - 1u];
@@ -84,7 +84,7 @@ export std.container 0.1.0 {
 			}
 			
 			void insert(pair<Key, Value> value) require(noexcept_comparable<Key> and movable<Key> and movable<Value>) {
-				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+				for (const auto i: range<size_t>(0, @array.size())) {
 					assert @array[i].first != value.first;
 				}
 				@array.push_back(move value);
@@ -92,7 +92,7 @@ export std.container 0.1.0 {
 			}
 			
 			bool try_insert(pair<Key, Value> value) require(noexcept_comparable<Key> and movable<Key> and movable<Value>) {
-				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+				for (const auto i: range<size_t>(0, @array.size())) {
 					if (@array[i].first == value.first) {
 						return false;
 					}
@@ -103,7 +103,7 @@ export std.container 0.1.0 {
 			}
 			
 			Value& get_or_insert(const Key& key) require(movable<Key> and noexcept_comparable<Key> and copyable<Key> and default_constructible<Value> and movable<Value>) {
-				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+				for (const auto i: range<size_t>(0, @array.size())) {
 					if (@array[i].first == key) {
 						return @array[i].second;
 					}
@@ -115,7 +115,7 @@ export std.container 0.1.0 {
 			
 			void erase(const Key& key) require(noexcept_comparable<Key> and movable<Key> and movable<Value>) {
 				auto array = std::varray<pair<Key, Value>>();
-				for (const size_t i: std::counter<size_t>(0u, @array.size(), 1u)) {
+				for (const auto i: range<size_t>(0, @array.size())) {
 					if (@array[i].first != key) {
 						array.push_back(move @array[i]);
 					}

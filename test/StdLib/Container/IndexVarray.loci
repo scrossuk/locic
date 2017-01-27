@@ -19,11 +19,11 @@ import void printf(const ubyte * str, ...) noexcept;
 export int main(unused int argc, unused ubyte ** argv) {
 	auto varray = std::varray<int>();
 	
-	for (auto i: std::counter<int>(0, 10, 1)) {
+	for (auto i: range<int>(0, 10)) {
 		varray.push_back(i);
 	}
 	
-	for (auto i: std::counter<size_t>(0u, 10u, 1u)) {
+	for (auto i: range<size_t>(0, 10)) {
 		printf(C"varray[%llu] = %d\n", i.cast<ulonglong_t>(), varray[i]);
 	}
 	

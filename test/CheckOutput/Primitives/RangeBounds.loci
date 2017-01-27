@@ -1,41 +1,41 @@
-// RUN: %locic %s std.container:0.1.0 --interpret > %t
+// RUN: %locic %s --interpret > %t
 // RUN: FileCheck < %t %s
 
-// CHECK: Counting from 250 to 255 in increments of 1.
+// CHECK: Counting from 250 to 255.
 // CHECK: CountObject: compare 250 and 255
+// CHECK: CountObject: decrement 255
+// CHECK: Value 0 = 250.
+// CHECK: CountObject: compare 250 and 254
+// CHECK: CountObject: increment 250
+// CHECK: Value 1 = 251.
+// CHECK: CountObject: compare 251 and 254
+// CHECK: CountObject: increment 251
+// CHECK: Value 2 = 252.
+// CHECK: CountObject: compare 252 and 254
+// CHECK: CountObject: increment 252
+// CHECK: Value 3 = 253.
+// CHECK: CountObject: compare 253 and 254
+// CHECK: CountObject: increment 253
+// CHECK: Value 4 = 254.
+// CHECK: CountObject: compare 254 and 254
+
+// CHECK: Counting inclusively from 250 to 255.
 // CHECK: CountObject: compare 250 and 255
 // CHECK: Value 0 = 250.
-// CHECK: CountObject: 250 + 1
-// CHECK: CountObject: compare 251 and 255
-// CHECK: Value 1 = 251.
-// CHECK: CountObject: 251 + 1
-// CHECK: CountObject: compare 252 and 255
-// CHECK: Value 2 = 252.
-// CHECK: CountObject: 252 + 1
-// CHECK: CountObject: compare 253 and 255
-// CHECK: Value 3 = 253.
-// CHECK: CountObject: 253 + 1
-// CHECK: CountObject: compare 254 and 255
-// CHECK: Value 4 = 254.
-// CHECK: CountObject: 254 + 1
-// CHECK: CountObject: compare 255 and 255
-// CHECK: Counting inclusively from 250 to 255 in increments of 1.
 // CHECK: CountObject: compare 250 and 255
-// CHECK: Value 0 = 250.
-// CHECK: CountObject: compare 250 and 255
-// CHECK: CountObject: 250 + 1
+// CHECK: CountObject: increment 250
 // CHECK: Value 1 = 251.
 // CHECK: CountObject: compare 251 and 255
-// CHECK: CountObject: 251 + 1
+// CHECK: CountObject: increment 251
 // CHECK: Value 2 = 252.
 // CHECK: CountObject: compare 252 and 255
-// CHECK: CountObject: 252 + 1
+// CHECK: CountObject: increment 252
 // CHECK: Value 3 = 253.
 // CHECK: CountObject: compare 253 and 255
-// CHECK: CountObject: 253 + 1
+// CHECK: CountObject: increment 253
 // CHECK: Value 4 = 254.
 // CHECK: CountObject: compare 254 and 255
-// CHECK: CountObject: 254 + 1
+// CHECK: CountObject: increment 254
 // CHECK: Value 5 = 255.
 // CHECK: CountObject: compare 255 and 255
 
@@ -54,9 +54,14 @@ class CountObject(ubyte_t value) {
 		return @value.compare(other.getValue());
 	}
 	
-	CountObject add(const CountObject& other) const noexcept {
-		printf(C"CountObject: %u + %u\n", @value, other.getValue());
-		return @(@value + other.getValue());
+	void increment() noexcept {
+		printf(C"CountObject: increment %d\n", @value);
+		@value++;
+	}
+	
+	void decrement() noexcept {
+		printf(C"CountObject: decrement %d\n", @value);
+		@value--;
 	}
 	
 	ubyte_t getValue() const noexcept {
@@ -66,21 +71,21 @@ class CountObject(ubyte_t value) {
 
 // Entry point.
 export int main(unused int argc, unused ubyte ** argv) {
-	printf(C"Counting from 250 to 255 in increments of 1.\n");
+	printf(C"Counting from 250 to 255.\n");
 	{
 		int position = 0;
 		
-		for (auto i: std::counter<CountObject>(CountObject(250u), CountObject(255u), CountObject(1u))) {
+		for (auto i: range<CountObject>(CountObject(250u), CountObject(255u))) {
 			printf(C"Value %d = %u.\n", position, i.getValue());
 			position += 1;
 		}
 	}
 	
-	printf(C"Counting inclusively from 250 to 255 in increments of 1.\n");
+	printf(C"Counting inclusively from 250 to 255.\n");
 	{
 		int position = 0;
 		
-		for (auto i: std::counter_incl<CountObject>(CountObject(250u), CountObject(255u), CountObject(1u))) {
+		for (auto i: range_incl<CountObject>(CountObject(250u), CountObject(255u))) {
 			printf(C"Value %d = %u.\n", position, i.getValue());
 			position += 1;
 		}

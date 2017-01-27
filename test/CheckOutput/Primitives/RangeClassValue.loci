@@ -1,0 +1,154 @@
+// RUN: %locic %s --interpret > %t
+// RUN: FileCheck < %t %s
+
+// CHECK: Counting from 0 to 0.
+// CHECK: CountObject: compare 0 and 0
+
+// CHECK: Counting from 0 to 10.
+// CHECK: CountObject: compare 0 and 10
+// CHECK: CountObject: decrement 10
+// CHECK: Value 0 = 0.
+// CHECK: CountObject: compare 0 and 9
+// CHECK: CountObject: increment 0
+// CHECK: Value 1 = 1.
+// CHECK: CountObject: compare 1 and 9
+// CHECK: CountObject: increment 1
+// CHECK: Value 2 = 2.
+// CHECK: CountObject: compare 2 and 9
+// CHECK: CountObject: increment 2
+// CHECK: Value 3 = 3.
+// CHECK: CountObject: compare 3 and 9
+// CHECK: CountObject: increment 3
+// CHECK: Value 4 = 4.
+// CHECK: CountObject: compare 4 and 9
+// CHECK: CountObject: increment 4
+// CHECK: Value 5 = 5.
+// CHECK: CountObject: compare 5 and 9
+// CHECK: CountObject: increment 5
+// CHECK: Value 6 = 6.
+// CHECK: CountObject: compare 6 and 9
+// CHECK: CountObject: increment 6
+// CHECK: Value 7 = 7.
+// CHECK: CountObject: compare 7 and 9
+// CHECK: CountObject: increment 7
+// CHECK: Value 8 = 8.
+// CHECK: CountObject: compare 8 and 9
+// CHECK: CountObject: increment 8
+// CHECK: Value 9 = 9.
+// CHECK: CountObject: compare 9 and 9
+
+// CHECK: Counting inclusively from 0 to 0.
+// CHECK: CountObject: compare 0 and 0
+// CHECK: Value 0 = 0.
+// CHECK: CountObject: compare 0 and 0
+
+// CHECK: Counting inclusively from 0 to 10.
+// CHECK: CountObject: compare 0 and 10
+// CHECK: Value 0 = 0.
+// CHECK: CountObject: compare 0 and 10
+// CHECK: CountObject: increment 0
+// CHECK: Value 1 = 1.
+// CHECK: CountObject: compare 1 and 10
+// CHECK: CountObject: increment 1
+// CHECK: Value 2 = 2.
+// CHECK: CountObject: compare 2 and 10
+// CHECK: CountObject: increment 2
+// CHECK: Value 3 = 3.
+// CHECK: CountObject: compare 3 and 10
+// CHECK: CountObject: increment 3
+// CHECK: Value 4 = 4.
+// CHECK: CountObject: compare 4 and 10
+// CHECK: CountObject: increment 4
+// CHECK: Value 5 = 5.
+// CHECK: CountObject: compare 5 and 10
+// CHECK: CountObject: increment 5
+// CHECK: Value 6 = 6.
+// CHECK: CountObject: compare 6 and 10
+// CHECK: CountObject: increment 6
+// CHECK: Value 7 = 7.
+// CHECK: CountObject: compare 7 and 10
+// CHECK: CountObject: increment 7
+// CHECK: Value 8 = 8.
+// CHECK: CountObject: compare 8 and 10
+// CHECK: CountObject: increment 8
+// CHECK: Value 9 = 9.
+// CHECK: CountObject: compare 9 and 10
+// CHECK: CountObject: increment 9
+// CHECK: Value 10 = 10.
+// CHECK: CountObject: compare 10 and 10
+
+// Test output.
+import void printf(const ubyte * str, ...) noexcept;
+
+class CountObject(int value) {
+	static create = default;
+	
+	CountObject implicitCopy() const noexcept {
+		return @(@value);
+	}
+	
+	compare_result_t compare(const CountObject& other) const noexcept {
+		printf(C"CountObject: compare %d and %d\n", @value, other.getValue());
+		return @value.compare(other.getValue());
+	}
+	
+	void increment() noexcept {
+		printf(C"CountObject: increment %d\n", @value);
+		@value++;
+	}
+	
+	void decrement() noexcept {
+		printf(C"CountObject: decrement %d\n", @value);
+		@value--;
+	}
+	
+	int getValue() const noexcept {
+		return @value;
+	}
+}
+
+// Entry point.
+export int main(unused int argc, unused ubyte ** argv) {
+	printf(C"Counting from 0 to 0.\n");
+	{
+		int position = 0;
+		
+		for (auto i: range<CountObject>(CountObject(0), CountObject(0))) {
+			printf(C"Value %d = %d.\n", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	printf(C"Counting from 0 to 10.\n");
+	{
+		int position = 0;
+		
+		for (auto i: range<CountObject>(CountObject(0), CountObject(10))) {
+			printf(C"Value %d = %d.\n", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	printf(C"Counting inclusively from 0 to 0.\n");
+	{
+		int position = 0;
+		
+		for (auto i: range_incl<CountObject>(CountObject(0), CountObject(0))) {
+			printf(C"Value %d = %d.\n", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	printf(C"Counting inclusively from 0 to 10.\n");
+	{
+		int position = 0;
+		
+		for (auto i: range_incl<CountObject>(CountObject(0), CountObject(10))) {
+			printf(C"Value %d = %d.\n", position, i.getValue());
+			position += 1;
+		}
+	}
+	
+	return 0;
+}
+

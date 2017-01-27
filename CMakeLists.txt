@@ -240,7 +240,6 @@ set (STD_CONCURRENCY_DEPENDENCIES
 
 set (STD_CONTAINER_API_FILES
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/circular_queue.loci"
-	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/counter.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/hash.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/list.loci"
 	"${CMAKE_SOURCE_DIR}/stdlib/std/container/api/map.loci"

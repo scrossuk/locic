@@ -40,7 +40,7 @@ class TestClass(int value) {
 export int main(unused int argc, unused ubyte ** argv) {
 	auto varray = std::varray<TestClass>();
 	
-	for (auto i: std::counter<int>(0, 10, 1)) {
+	for (auto i: range<int>(0, 10)) {
 		varray.push_back(TestClass(i));
 	}
 	

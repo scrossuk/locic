@@ -12,7 +12,7 @@ export int main(unused int argc, unused ubyte ** argv) {
 	
 	varray.reserve(10000u);
 	
-	for (auto i: std::counter<uint32_t>(0u, 10000u, 1u)) {
+	for (auto i: range<uint32_t>(0, 10000)) {
 		varray.push_back(i);
 	}
 	

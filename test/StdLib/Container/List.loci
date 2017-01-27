@@ -64,7 +64,7 @@ import void printf(const ubyte * str, ...) noexcept;
 export int main(unused int argc, unused ubyte ** argv) {
 	auto list = std::list<int>();
 	
-	for (auto i: std::counter<int>(0, 10, 1)) {
+	for (auto i: range<int>(0, 10)) {
 		list.push_back(i);
 	}
 	
