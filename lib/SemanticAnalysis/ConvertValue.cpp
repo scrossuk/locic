@@ -213,6 +213,21 @@ namespace locic {
 			return functionSearchResult;
 		}
 		
+		class VarCannotHaveTemplateArgumentsDiag: public Error {
+		public:
+			VarCannotHaveTemplateArgumentsDiag(const String name)
+			: name_(name) { }
+			
+			std::string toString() const {
+				return makeString("variable '%s' cannot have template arguments",
+				                  name_.c_str());
+			}
+			
+		private:
+			String name_;
+			
+		};
+		
 		class UseOfUndeclaredIdentifierDiag: public Error {
 		public:
 			UseOfUndeclaredIdentifierDiag(Name name)
@@ -503,9 +518,15 @@ namespace locic {
 						// and be a relative name (so no precending '::').
 						assert(astSymbolNode->size() == 1);
 						assert(astSymbolNode->isRelative());
-						assert(astSymbolNode->first()->templateArguments()->empty());
+						
 						auto& var = searchResult.var();
 						var.setUsed();
+						
+						if (!astSymbolNode->first()->templateArguments()->empty()) {
+							context.issueDiag(VarCannotHaveTemplateArgumentsDiag(var.name()),
+							                  astSymbolNode.location());
+						}
+						
 						return AST::Value::LocalVar(var, getBuiltInType(context, context.getCString("ref_t"), { var.type() }));
 					} else if (searchResult.isTemplateVar()) {
 						assert(templateVarMap.empty() && "Template vars cannot have template arguments.");
