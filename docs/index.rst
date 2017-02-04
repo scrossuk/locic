@@ -173,6 +173,7 @@ These features are either still in the design stage or are awaiting implementati
 	proposals/ClassInheritance
 	proposals/ExceptionSpecifications
 	proposals/FutureStandardLibraryModules
+	proposals/ImprovementsToAPIs
 	proposals/InteractingWithC++
 	proposals/LateMoveParameters
 	proposals/MergeTemplateGeneratorsAndVtables

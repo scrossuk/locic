@@ -3,6 +3,7 @@ set(PROPOSAL_FILES
 	proposals/ClassInheritance.rst
 	proposals/ExceptionSpecifications.rst
 	proposals/FutureStandardLibraryModules.rst
+	proposals/ImprovementsToAPIs.rst
 	proposals/InteractingWithC++.rst
 	proposals/LateMoveParameters.rst
 	proposals/MergeTemplateGeneratorsAndVtables.rst
