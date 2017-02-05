@@ -18,7 +18,7 @@ Design
 
 The key points of the design are:
 
-* New keywords: ``api`` and ``implement``.
+* New keywords: ``api``, ``implement`` and ``depends``.
 * Every file must be describing or implementing an API. This is expressed on the first line (either ``api ...`` or ``implement api ...``).
 * ``namespace`` is removed; modules can reference the api name if needed to resolve clashes.
 
@@ -29,26 +29,27 @@ As an example, here is how the API description for TCP streams might look:
 
 .. code-block:: c++
 
-	api std::tcp 0.1.0;
+	api std::tcp 0.1.0 depends {
+		primitives 0.1.0,
+		std::event 0.1.0,
+		std::string 0.1.0
+	}
 
-	import primitives 0.1.0;
-	import std::{event, string} 0.1.0;
+	exception socket_error(string error);
 
-	export exception socket_error(string error);
-
-	export interface in_buffer {
+	interface in_buffer {
 		const uint8_t* data() const;
 		
 		size_t size() const;
 	}
 
-	export interface out_buffer {
+	interface out_buffer {
 		uint8_t* data();
 		
 		size_t size() const;
 	}
 
-	export class tcp_stream {
+	class tcp_stream {
 		event_source all_events() const noexcept;
 		
 		event_source read_events() const noexcept;
@@ -104,11 +105,9 @@ We use ``implement api ...`` rather than just ``implement ...`` to give a clear 
 Main function
 ~~~~~~~~~~~~~
 
-The main function could be in a special ``entry`` API:
+The main function would be in a special unnamed API:
 
 .. code-block:: c++
-
-	implement api entry;
 
 	import std::{io, string} 0.1.0;
 
@@ -167,39 +166,96 @@ This helps to avoid unnecessary imports (and hence name clashes). It can be fixe
 		drive_car(car());
 	}
 
-Unnecessary imports
-~~~~~~~~~~~~~~~~~~~
+Dependencies vs implementation imports
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The compiler should issue warnings for imports that aren't required by the module.
+``depends`` indicates dependencies of the API, whereas ``import ...`` in an implementation is a dependency of the **implementation**. A dependency of an API implies a dependency of the implementation, but not vice versa.
 
-Generating API dependencies from implementation imports
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``import`` in an API means a dependency of the API, whereas ``import`` in the implementation means a dependency of the module; if the module completely encapsulates an API imported by its implementation then that API shouldn't be exposed as a dependency of its own API.
-
-Any tool generates API imports will need to strip any non-dependency imports. An alternative is to make the dependencies explicit:
+The compiler should issue warnings for dependencies that aren't required by the API:
 
 .. code-block:: c++
 
 	implement api test 0.1.0 depends {
-		api_that_we_expose 0.1.0
+		// ERROR: no constructs within 'car_api' are exposed by 'test'
+		car_api 0.1.0
 	}
 
-	import api_that_we_encapsulate 0.1.0;
+	import drive_car_api 0.1.0;
 
-	export void f(api_that_we_expose::Type value) {
-		api_that_we_encapsulate::f(value);
+	export void f() {
+		// OK
+		drive_car(car());
 	}
 
-Interacting with C++
-~~~~~~~~~~~~~~~~~~~~
-
-Since this proposal suggests removing namespaces, it creates interaction issues with C++. To address this, C++ namespaces would become Loci APIs:
+The compiler should also issue warnings for imports that aren't by the implementation:
 
 .. code-block:: c++
 
-	api c++::outer_namespace;
+	implement api test 0.1.0;
 
-	import c++::outer_namespace::inner_namespace;
+	import car_api 0.1.0;
+	import drive_car_api 0.1.0;
+	
+	// ERROR: no constructs within 'blah' are used by 'test'
+	import blah 0.1.0;
+
+	export void f() {
+		// OK
+		drive_car(car());
+	}
+
+Interacting with other languages
+--------------------------------
+
+With C
+~~~~~~
+
+Loci would able to inport C headers directly:
+
+.. code-block:: c++
+
+	implement api test 0.1.0;
+
+	import c::memory 1.0.0: lang(c) <memory.h>;
+
+	export void f() {
+		(void) malloc(10);
+	}
+
+Internally the compiler would produce something like:
+
+.. code-block:: c++
+
+	api c::memory 1.0.0;
+
+	void* malloc(size_t size);
+
+	// etc..
+
+With C++
+~~~~~~~~
+
+Similarly for C++:
+
+.. code-block:: c++
+
+	implement api test 0.1.0;
+
+	import c++::vector 1.0.0: lang(c++) <vector>;
+
+	export void f() {
+		auto array = std::vector<int>();
+	}
+
+Internally the compiler would produce something like:
+
+.. code-block:: c++
+
+	api c++::vector 1.0.0;
+
+	template <typename T>
+	class std::vector {
+		// etc.
+	}
 
 This proposal changes the syntax of APIs to now use ``::`` rather than ``.`` to make this more seamless.
