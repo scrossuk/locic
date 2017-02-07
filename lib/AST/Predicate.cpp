@@ -260,39 +260,28 @@ namespace locic {
 		}
 		
 		bool Predicate::implies(const AST::Predicate& other) const {
-			switch (kind()) {
-				case TRUE:
-					// Drop through.
-					break;
-				case FALSE:
-					return true;
-				case AND:
-					// (A and B) => C is true iff ((A => C) or (B => C)).
-					return andLeft().implies(other) || andRight().implies(other);
-				case OR:
-					// (A or B) => C is true iff ((A => C) and (B => C)).
-					return orLeft().implies(other) && orRight().implies(other);
-				case SATISFIES:
-				case VARIABLE:
-					// Drop through.
-					break;
+			if (kind() == FALSE || other.kind() == TRUE) {
+				return true;
 			}
 			
-			switch (other.kind()) {
-				case TRUE:
-					return true;
-				case FALSE:
-					return false;
-				case AND:
-					// A => (B and C) is true iff ((A => B) and (A => C)).
-					return implies(other.andLeft()) && implies(other.andRight());
-				case OR:
-					// A => (B or C) is true iff ((A => B) or (A => C)).
-					return implies(other.orLeft()) || implies(other.orRight());
-				case SATISFIES:
-				case VARIABLE:
-					// Drop through.
-					break;
+			if (kind() == OR) {
+				// (A or B) => C is true iff ((A => C) and (B => C)).
+				return orLeft().implies(other) && orRight().implies(other);
+			}
+			
+			if (other.kind() == AND) {
+				// A => (B and C) is true iff ((A => B) and (A => C)).
+				return implies(other.andLeft()) && implies(other.andRight());
+			}
+			
+			if (kind() == AND) {
+				// (A and B) => C is true iff ((A => C) or (B => C)).
+				return andLeft().implies(other) || andRight().implies(other);
+			}
+			
+			if (other.kind() == OR) {
+				// A => (B or C) is true iff ((A => B) or (A => C)).
+				return implies(other.orLeft()) || implies(other.orRight());
 			}
 			
 			if (kind() != other.kind()) {
