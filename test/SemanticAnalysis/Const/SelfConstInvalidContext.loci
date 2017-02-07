@@ -1,0 +1,16 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+bool f() {
+	// CHECK: .loci:6:9: error: cannot use 'selfconst' in non-method function
+	return selfconst;
+}
+
+class TestClass() {
+	static bool get() {
+		// CHECK: .loci:12:10: error: cannot use 'selfconst' in static method
+		return selfconst;
+	}
+}
+
+// CHECK: 2 errors generated.
