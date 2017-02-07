@@ -276,48 +276,42 @@ namespace locic {
 			
 			auto templateVariableAssignments = type->generateTemplateVarMap();
 			
-			const auto function = type->isObject() ? &(type->getObjectType()->getFunction(canonicalMethodName)) : nullptr;
+			const auto& templateVariables = methodElement.templateVariables();
+			if (templateVariables.size() != templateArguments.size()) {
+				// Try to apply some basic deduction...
+				if (templateVariables.size() == 1 && templateArguments.size() == 0 &&
+				    methodElement.constPredicate().isVariable() &&
+				    methodElement.constPredicate().variableTemplateVar() == templateVariables[0]
+				) {
+					const auto boolType = context.typeBuilder().getBoolType();
+					templateArguments.push_back(AST::Value::PredicateExpr(objectConstPredicate.copy(), boolType));
+				} else {
+					context.issueDiag(InvalidMethodTemplateArgCountDiag(methodName,
+					                                                    templateVariables.size(),
+					                                                    templateArguments.size()),
+					                  location);
+				}
+			}
 			
-			if (function != nullptr) {
-				const auto& templateVariables = function->templateVariables();
-				if (templateVariables.size() != templateArguments.size()) {
-					// Try to apply some basic deduction...
-					if (templateVariables.size() == 1 && templateArguments.size() == 0 &&
-						function->constPredicate().isVariable() &&
-						function->constPredicate().variableTemplateVar() == templateVariables[0]
-					) {
-						const auto boolType = context.typeBuilder().getBoolType();
-						templateArguments.push_back(AST::Value::PredicateExpr(objectConstPredicate.copy(), boolType));
-					} else {
-						context.issueDiag(InvalidMethodTemplateArgCountDiag(function->fullName().last(),
-						                                                    templateVariables.size(),
-						                                                    templateArguments.size()),
+			// Add method template variable => argument mapping.
+			for (size_t i = 0; i < std::min(templateVariables.size(), templateArguments.size()); i++) {
+				const auto templateVariable = templateVariables.at(i);
+				const auto& templateValue = templateArguments.at(i);
+				
+				if (templateValue.isTypeRef()) {
+					const auto templateTypeValue = templateValue.typeRefType()->resolveAliases();
+					
+					if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
+						context.issueDiag(InvalidMethodTemplateArgDiag(templateTypeValue,
+						                                               templateVariable->fullName().last(),
+						                                               methodName),
 						                  location);
 					}
-				}
-				
-				// Add function template variable => argument mapping.
-				for (size_t i = 0; i < std::min(templateVariables.size(), templateArguments.size()); i++) {
-					const auto templateVariable = templateVariables.at(i);
-					const auto& templateValue = templateArguments.at(i);
 					
-					if (templateValue.isTypeRef()) {
-						const auto templateTypeValue = templateValue.typeRefType()->resolveAliases();
-						
-						if (!templateTypeValue->isObjectOrTemplateVar() || templateTypeValue->isInterface()) {
-							context.issueDiag(InvalidMethodTemplateArgDiag(templateTypeValue,
-							                                               templateVariable->fullName().last(),
-							                                               function->fullName().last()),
-							                  location);
-						}
-						
-						templateVariableAssignments.insert(std::make_pair(templateVariable, AST::Value::TypeRef(templateTypeValue, templateValue.type())));
-					} else {
-						templateVariableAssignments.insert(std::make_pair(templateVariable, templateValue.copy()));
-					}
+					templateVariableAssignments.insert(std::make_pair(templateVariable, AST::Value::TypeRef(templateTypeValue, templateValue.type())));
+				} else {
+					templateVariableAssignments.insert(std::make_pair(templateVariable, templateValue.copy()));
 				}
-			} else {
-				assert(templateArguments.empty());
 			}
 			
 			const auto methodConstPredicate = methodElement.constPredicate().substitute(templateVariableAssignments);
@@ -340,6 +334,7 @@ namespace locic {
 			
 			auto& typeBuilder = context.typeBuilder();
 			
+			const auto function = type->isObject() ? &(type->getObjectType()->getFunction(canonicalMethodName)) : nullptr;
 			if (function != nullptr) {
 				const auto functionType = simplifyFunctionType(context, function->type().substitute(templateVariableAssignments));
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
