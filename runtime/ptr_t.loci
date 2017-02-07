@@ -14,14 +14,11 @@ __primitive ptr_t {
 	void __setdead() noexcept;
 	bool __islive() const noexcept;
 	
-	template <bool IsConst>
-	const<IsConst>(T)& deref() const(IsConst) noexcept;
+	selfconst(T)& deref() const noexcept;
 	
-	template <bool IsConst>
-	const<IsConst>(T)& index(size_t index) const(IsConst) noexcept require(sized_type<T>);
+	selfconst(T)& index(size_t index) const noexcept require(sized_type<T>);
 	
-	template <bool IsConst>
-	ptr_t<const<IsConst>(T)> add(const ptrdiff_t& v) const(IsConst) noexcept require(sized_type<T>);
+	ptr_t<selfconst(T)> add(const ptrdiff_t& v) const noexcept require(sized_type<T>);
 	
 	ptrdiff_t subtract(const ptr_t<T>& v) const noexcept require(sized_type<T>);
 	

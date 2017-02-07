@@ -15,6 +15,5 @@ __primitive ref_t {
 	
 	ref_t<T> __move() noexcept;
 	
-	template <bool IsConst>
-	const<IsConst>(T)* address() const(IsConst) noexcept;
+	selfconst(T)* address() const noexcept;
 }

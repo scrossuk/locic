@@ -19,13 +19,11 @@ __primitive value_lval_t {
 	
 	value_lval_t<T> implicit_copy() const noexcept(noexcept_implicit_copyable<T>) require(implicit_copyable<T>);
 	
-	template <bool IsConst>
-	const<IsConst>(T)* address() const(IsConst) noexcept;
+	selfconst(T)* address() const noexcept;
 	
 	void assign(T value) noexcept require(movable<T>);
 	
-	template <bool IsConst>
-	const<IsConst>(T)& dissolve() const(IsConst) noexcept;
+	selfconst(T)& dissolve() const noexcept;
 	
 	bool __islive() const noexcept require(T : queryislive);
 	void __setdead() noexcept require(T : deadstateable);
