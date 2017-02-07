@@ -178,6 +178,7 @@ These features are either still in the design stage or are awaiting implementati
 	proposals/LateMoveParameters
 	proposals/MergeTemplateGeneratorsAndVtables
 	proposals/NamedParameters
+	proposals/ObjectProperties
 	proposals/RemoveLifetimeMethods
 	proposals/RTTI
 	proposals/SelfConst

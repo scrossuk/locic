@@ -8,6 +8,7 @@ set(PROPOSAL_FILES
 	proposals/LateMoveParameters.rst
 	proposals/MergeTemplateGeneratorsAndVtables.rst
 	proposals/NamedParameters.rst
+	proposals/ObjectProperties.rst
 	proposals/RemoveLifetimeMethods.rst
 	proposals/RTTI.rst
 	proposals/SelfConst.rst
