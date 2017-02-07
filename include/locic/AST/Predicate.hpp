@@ -55,10 +55,6 @@ namespace locic {
 			Predicate copy() const;
 			Predicate substitute(const TemplateVarMap& templateVarMap) const;
 			
-			/*bool isEvaluatable() const;
-			Optional<bool> evaluate() const;
-			bool evaluateWithDefault(bool defaultValue) const;*/
-			
 			bool dependsOn(const TemplateVar* templateVar) const;
 			
 			/**
