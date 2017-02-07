@@ -32,7 +32,7 @@ namespace locic {
 				
 				for (size_t i = 0; i < arguments.size(); i++) {
 					auto& argumentValue = arguments.at(i);
-					const auto& argLocation = argumentValue.debugInfo() ?
+					const auto argLocation = argumentValue.debugInfo() ?
 						argumentValue.debugInfo()->location : location;
 					
 					// Cast arguments to the function type's corresponding
