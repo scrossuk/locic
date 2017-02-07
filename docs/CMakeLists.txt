@@ -10,6 +10,7 @@ set(PROPOSAL_FILES
 	proposals/NamedParameters.rst
 	proposals/RemoveLifetimeMethods.rst
 	proposals/RTTI.rst
+	proposals/SelfConst.rst
 	proposals/VariadicTemplates.rst
 	proposals/VectorTypes.rst
 )
