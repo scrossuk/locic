@@ -1,0 +1,17 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+// Not yet implemented.
+// XFAIL: *
+
+class TestClass(int value) {
+	static create = default;
+	
+	selfconst(int)& get() const {
+		return @value;
+	}
+}
+
+export int f(TestClass object) {
+	object.get() = 20;
+	return object.get();
+}
