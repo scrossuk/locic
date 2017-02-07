@@ -253,8 +253,11 @@ namespace locic {
 			const auto& attributes = functionType.attributes();
 			
 			if (attributes.isVarArg()) {
+				assert(!attributes.isMethod() && !attributes.isTemplated());
 				return getVarArgFunctionPointerType(functionType);
-			} else if (attributes.isMethod()) {
+			}
+			
+			if (attributes.isMethod()) {
 				if (attributes.isTemplated()) {
 					return getTemplatedMethodFunctionPointerType(functionType);
 				} else {
