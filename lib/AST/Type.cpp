@@ -528,7 +528,10 @@ namespace locic {
 			return Value::TypeRef(this, typenameType);
 		}
 		
-		static const Type* basicSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
+		static const Type*
+		basicSubstitute(const Type* const type,
+		                const TemplateVarMap& templateVarMap,
+		                const Predicate& selfconst) {
 			switch (type->kind()) {
 				case Type::AUTO: {
 					return type->withoutTags();
@@ -540,7 +543,8 @@ namespace locic {
 					bool changed = false;
 					
 					for (const auto& templateArg: type->templateArguments()) {
-						auto appliedArg = templateArg.substitute(templateVarMap);
+						auto appliedArg = templateArg.substitute(templateVarMap,
+						                                         selfconst);
 						changed |= (appliedArg != templateArg);
 						templateArgs.push_back(std::move(appliedArg));
 					}
@@ -568,7 +572,8 @@ namespace locic {
 					bool changed = false;
 					
 					for (const auto& templateArg : type->aliasArguments()) {
-						auto appliedArg = templateArg.substitute(templateVarMap);
+						auto appliedArg = templateArg.substitute(templateVarMap,
+						                                         selfconst);
 						changed |= (appliedArg != templateArg);
 						templateArgs.push_back(std::move(appliedArg));
 					}
@@ -584,23 +589,29 @@ namespace locic {
 			locic_unreachable("Unknown type kind.");
 		}
 		
-		const Type* doSubstitute(const Type* const type, const TemplateVarMap& templateVarMap) {
-			const auto basicType = basicSubstitute(type, templateVarMap);
+		const Type*
+		doSubstitute(const Type* const type, const TemplateVarMap& templateVarMap,
+		             const Predicate& selfconst) {
+			const auto basicType = basicSubstitute(type, templateVarMap,
+			                                       selfconst);
 			
 			return basicType->createConstType(
 					Predicate::Or(
-						basicType->constPredicate().substitute(templateVarMap),
-						type->constPredicate().substitute(templateVarMap)
+						basicType->constPredicate().substitute(templateVarMap,
+						                                       selfconst),
+						type->constPredicate().substitute(templateVarMap,
+						                                  selfconst)
 					)
 				);
 		}
 		
-		const Type* Type::substitute(const TemplateVarMap& templateVarMap) const {
-			if (templateVarMap.empty()) {
+		const Type* Type::substitute(const TemplateVarMap& templateVarMap,
+		                             const Predicate& selfconst) const {
+			if (templateVarMap.empty() && selfconst.isSelfConst()) {
 				return this;
 			}
 			
-			return doSubstitute(this, templateVarMap);
+			return doSubstitute(this, templateVarMap, selfconst);
 		}
 		
 		const Type* Type::resolveAliases() const {
@@ -624,7 +635,9 @@ namespace locic {
 							templateVarMap.insert(std::make_pair(templateVars.at(i), templateArgs.at(i).copy()));
 						}
 						
-						return type->alias().value().substitute(templateVarMap).typeRefType()->resolveAliases();
+						auto value = type->alias().value().substitute(templateVarMap,
+						                                              /*selfconst=*/Predicate::SelfConst());
+						return value.typeRefType()->resolveAliases();
 					} else {
 						return type;
 					}

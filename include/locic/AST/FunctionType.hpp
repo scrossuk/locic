@@ -128,7 +128,9 @@ namespace locic {
 				return data_->parameterTypes();
 			}
 			
-			FunctionType substitute(const TemplateVarMap& templateVarMap) const;
+			FunctionType
+			substitute(const TemplateVarMap& templateVarMap,
+			           const Predicate& selfConst) const;
 			
 			FunctionType makeTemplated() const;
 			

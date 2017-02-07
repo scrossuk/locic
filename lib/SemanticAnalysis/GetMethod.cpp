@@ -104,7 +104,8 @@ namespace locic {
 				const auto& function = targetType->getObjectType()->getFunction(canonicalMethodName);
 				const auto functionTypeTemplateMap = targetType->generateTemplateVarMap();
 				
-				const auto functionType = simplifyFunctionType(context, function.type().substitute(functionTypeTemplateMap));
+				const auto functionType = simplifyFunctionType(context, function.type().substitute(functionTypeTemplateMap,
+				                                                                                   /*selfconst=*/AST::Predicate::SelfConst()));
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				
 				auto functionRef = addDebugInfo(AST::Value::FunctionRef(targetType, function, {}, functionRefType), location);
@@ -314,7 +315,8 @@ namespace locic {
 				}
 			}
 			
-			const auto methodConstPredicate = methodElement.constPredicate().substitute(templateVariableAssignments);
+			const auto methodConstPredicate = methodElement.constPredicate().substitute(templateVariableAssignments,
+			                                                                            /*selfconst=*/AST::Predicate::SelfConst());
 			
 			if (!objectConstPredicate.implies(methodConstPredicate)) {
 				context.issueDiag(CannotReferToMutatorMethodFromConstDiag(methodName, type),
@@ -326,7 +328,8 @@ namespace locic {
 			
 			auto result = evaluatePredicate(context, requirePredicate, templateVariableAssignments);
 			if (!result) {
-				const auto substitutedRequirePredicate = requirePredicate.substitute(templateVariableAssignments);
+				const auto substitutedRequirePredicate = requirePredicate.substitute(templateVariableAssignments,
+				                                                                     /*selfconst=*/AST::Predicate::SelfConst());
 				context.issueDiag(TemplateArgsDoNotSatisfyMethodRequirePredicateDiag(substitutedRequirePredicate,
 				                                                                     methodName),
 				                  location, std::move(result));
@@ -336,7 +339,9 @@ namespace locic {
 			
 			const auto function = type->isObject() ? &(type->getObjectType()->getFunction(canonicalMethodName)) : nullptr;
 			if (function != nullptr) {
-				const auto functionType = simplifyFunctionType(context, function->type().substitute(templateVariableAssignments));
+				const auto substitutedType = function->type().substitute(templateVariableAssignments,
+				                                                         /*selfconst=*/objectConstPredicate);
+				const auto functionType = simplifyFunctionType(context, substitutedType);
 				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
 				
 				auto functionRef = addDebugInfo(AST::Value::FunctionRef(type, *function, std::move(templateArguments), functionRefType), location);
@@ -354,13 +359,15 @@ namespace locic {
 			} else {
 				const bool isTemplated = true;
 				const auto functionType = methodElement.createFunctionType(isTemplated);
-				const auto functionRefType = typeBuilder.getFunctionPointerType(functionType);
+				const auto substitutedType = functionType.substitute(templateVariableAssignments,
+				                                                     /*selfconst=*/objectConstPredicate);
+				const auto functionRefType = typeBuilder.getFunctionPointerType(substitutedType);
 				auto functionRef = addDebugInfo(AST::Value::TemplateFunctionRef(type, methodName, functionRefType), location);
 				if (methodElement.isStatic()) {
 					return functionRef;
 				}
 				
-				const auto methodType = typeBuilder.getMethodType(functionType);
+				const auto methodType = typeBuilder.getMethodType(substitutedType);
 				return addDebugInfo(AST::Value::MethodObject(std::move(functionRef), std::move(value), methodType), location);
 			}
 		}

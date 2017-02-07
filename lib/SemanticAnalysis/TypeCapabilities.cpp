@@ -86,7 +86,8 @@ namespace locic {
 					if (!function->type().parameterTypes().empty()) return false;
 					if (function->templateVariables().size() != 1) return false;
 					
-					const auto returnType = function->type().returnType()->substitute(type->generateTemplateVarMap());
+					const auto returnType = function->type().returnType()->substitute(type->generateTemplateVarMap(),
+					                                                                  /*selfconst=*/AST::Predicate::SelfConst());
 					
 					if (!returnType->isTemplateVar()) return false;
 					if (returnType->getTemplateVar() != function->templateVariables().front()) return false;

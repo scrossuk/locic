@@ -258,7 +258,8 @@ namespace locic {
 				                                          requireFunctionElement.isStatic()));
 			}
 			
-			const auto reducedConstPredicate = reducePredicate(context, checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap));
+			const auto reducedConstPredicate = reducePredicate(context, checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap,
+			                                                                                                             /*selfconst=*/AST::Predicate::SelfConst()));
 			
 			// The method set's const predicate needs to imply the method's
 			// const predicate.
@@ -295,7 +296,8 @@ namespace locic {
 				                                                        reducedConstPredicate));
 			}
 			
-			const auto reducedRequirePredicate = reducePredicate(context, checkFunctionElement.requirePredicate().substitute(satisfyTemplateVarMap));
+			const auto reducedRequirePredicate = reducePredicate(context, checkFunctionElement.requirePredicate().substitute(satisfyTemplateVarMap,
+			                                                                                                                 /*selfconst=*/AST::Predicate::SelfConst()));
 			
 			// The requirement method's require predicate needs to imply the
 			// require predicate of the provided method.
@@ -312,7 +314,8 @@ namespace locic {
 				                                                          reducedRequirePredicate));
 			}
 			
-			const auto reducedNoexceptPredicate = reducePredicate(context, checkFunctionElement.noexceptPredicate().substitute(satisfyTemplateVarMap));
+			const auto reducedNoexceptPredicate = reducePredicate(context, checkFunctionElement.noexceptPredicate().substitute(satisfyTemplateVarMap,
+			                                                                                                                   /*selfconst=*/AST::Predicate::SelfConst()));
 			
 			// Can't cast throwing method to noexcept method.
 			if (!requireFunctionElement.noexceptPredicate().implies(reducedNoexceptPredicate)) {
@@ -344,7 +347,8 @@ namespace locic {
 			}
 			
 			for (size_t i = 0; i < firstList.size(); i++) {
-				const auto sourceParamType = firstList.at(i)->substitute(satisfyTemplateVarMap);
+				const auto sourceParamType = firstList.at(i)->substitute(satisfyTemplateVarMap,
+				                                                         /*selfconst=*/AST::Predicate::SelfConst());
 				const auto requireParamType = secondList.at(i);
 				const auto castParamType =
 				    ImplicitCastTypeFormatOnly(context, requireParamType, sourceParamType,
@@ -365,7 +369,8 @@ namespace locic {
 			}
 
 			const auto sourceReturnType =
-			    checkFunctionElement.returnType()->substitute(satisfyTemplateVarMap);
+			    checkFunctionElement.returnType()->substitute(satisfyTemplateVarMap,
+			                                                  /*selfconst=*/AST::Predicate::SelfConst());
 			const auto requireReturnType = requireFunctionElement.returnType();
 			const auto castReturnType =
 			    ImplicitCastTypeFormatOnly(context, sourceReturnType, requireReturnType,

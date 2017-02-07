@@ -148,24 +148,29 @@ namespace locic {
 			*this = argReturnType->context().getFunctionType(std::move(functionTypeData));
 		}
 		
-		FunctionType FunctionType::substitute(const TemplateVarMap& templateVarMap) const {
-			if (templateVarMap.empty()) {
+		FunctionType
+		FunctionType::substitute(const TemplateVarMap& templateVarMap,
+		                         const Predicate& selfconst) const {
+			if (templateVarMap.empty() && selfconst.isSelfConst()) {
 				return *this;
 			}
 			
-			const auto substitutedReturnType = returnType()->substitute(templateVarMap);
+			const auto substitutedReturnType = returnType()->substitute(templateVarMap,
+			                                                            selfconst);
 			
 			bool changed = (substitutedReturnType != returnType());
 			
 			TypeArray substitutedParameterTypes;
 			
 			for (const auto parameterType: parameterTypes()) {
-				const auto substitutedParameterType = parameterType->substitute(templateVarMap);
+				const auto substitutedParameterType = parameterType->substitute(templateVarMap,
+				                                                                selfconst);
 				changed |= (substitutedParameterType != parameterType);
 				substitutedParameterTypes.push_back(substitutedParameterType);
 			}
 			
-			auto noExceptPredicate = attributes().noExceptPredicate().substitute(templateVarMap);
+			auto noExceptPredicate = attributes().noExceptPredicate().substitute(templateVarMap,
+			                                                                     selfconst);
 			changed |= (noExceptPredicate != attributes().noExceptPredicate());
 			
 			if (changed) {

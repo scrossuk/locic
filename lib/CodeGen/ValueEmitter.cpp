@@ -215,7 +215,8 @@ namespace locic {
 			
 			AST::TemplateVarMap assignments(alias.templateVariables().copy(),
 			                                value.aliasTemplateArguments().copy());
-			auto resolvedValue = alias.value().substitute(assignments);
+			auto resolvedValue = alias.value().substitute(assignments,
+			                                              /*selfconst=*/AST::Predicate::SelfConst());
 			return emitValue(resolvedValue, resultPtr);
 		}
 		

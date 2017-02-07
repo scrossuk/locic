@@ -31,6 +31,10 @@ namespace locic {
 			return Predicate(FALSE);
 		}
 		
+		Predicate Predicate::SelfConst() {
+			return Predicate(SELFCONST);
+		}
+		
 		Predicate Predicate::And(Predicate left, Predicate right) {
 			if (left.isFalse() || right.isFalse()) {
 				return Predicate::False();
@@ -99,6 +103,10 @@ namespace locic {
 				{
 					return Predicate::False();
 				}
+				case SELFCONST:
+				{
+					return Predicate::SelfConst();
+				}
 				case AND:
 				{
 					return Predicate::And(andLeft().copy(), andRight().copy());
@@ -120,7 +128,8 @@ namespace locic {
 			locic_unreachable("Unknown predicate kind.");
 		}
 		
-		Predicate Predicate::substitute(const TemplateVarMap& templateVarMap) const {
+		Predicate Predicate::substitute(const TemplateVarMap& templateVarMap,
+		                                const Predicate& selfconst) const {
 			switch (kind()) {
 				case TRUE:
 				{
@@ -130,17 +139,30 @@ namespace locic {
 				{
 					return Predicate::False();
 				}
+				case SELFCONST:
+				{
+					return selfconst.copy();
+				}
 				case AND:
 				{
-					return Predicate::And(andLeft().substitute(templateVarMap), andRight().substitute(templateVarMap));
+					return Predicate::And(andLeft().substitute(templateVarMap,
+					                                           selfconst),
+					                      andRight().substitute(templateVarMap,
+							                            selfconst));
 				}
 				case OR:
 				{
-					return Predicate::Or(orLeft().substitute(templateVarMap), orRight().substitute(templateVarMap));
+					return Predicate::Or(orLeft().substitute(templateVarMap,
+					                                         selfconst),
+					                     orRight().substitute(templateVarMap,
+							                          selfconst));
 				}
 				case SATISFIES:
 				{
-					return Predicate::Satisfies(satisfiesType()->substitute(templateVarMap), satisfiesRequirement()->substitute(templateVarMap));
+					return Predicate::Satisfies(satisfiesType()->substitute(templateVarMap,
+					                                                        selfconst),
+					                            satisfiesRequirement()->substitute(templateVarMap,
+								                                       selfconst));
 				}
 				case VARIABLE:
 				{
@@ -162,6 +184,7 @@ namespace locic {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:
+				case SELFCONST:
 				{
 					return false;
 				}
@@ -199,6 +222,7 @@ namespace locic {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:
+				case SELFCONST:
 				{
 					return true;
 				}
@@ -227,6 +251,7 @@ namespace locic {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:
+				case SELFCONST:
 				{
 					return copy();
 				}
@@ -289,6 +314,8 @@ namespace locic {
 			}
 			
 			switch (kind()) {
+				case SELFCONST:
+					return true;
 				case SATISFIES:
 					// TODO: this needs to be improved to allow covariant
 					// treatment of the requirement type (e.g. T : copyable_and_movable<T>
@@ -315,6 +342,10 @@ namespace locic {
 		
 		bool Predicate::isFalse() const {
 			return kind() == FALSE;
+		}
+		
+		bool Predicate::isSelfConst() const {
+			return kind() == SELFCONST;
 		}
 		
 		bool Predicate::isAnd() const {
@@ -376,6 +407,7 @@ namespace locic {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:
+				case SELFCONST:
 				{
 					return true;
 				}
@@ -408,6 +440,7 @@ namespace locic {
 			switch (kind()) {
 				case TRUE:
 				case FALSE:
+				case SELFCONST:
 				{
 					break;
 				}
@@ -448,6 +481,10 @@ namespace locic {
 				case FALSE:
 				{
 					return "false";
+				}
+				case SELFCONST:
+				{
+					return "selfconst";
 				}
 				case AND:
 				{

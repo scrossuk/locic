@@ -645,7 +645,8 @@ namespace locic {
 			const auto name = module().getCString("create");
 			const auto functionType = type->getObjectType()->getFunction(name).type();
 			
-			assert(functionType.returnType()->substitute(type->generateTemplateVarMap()) == type);
+			assert(functionType.returnType()->substitute(type->generateTemplateVarMap(),
+			                                             /*selfconst=*/AST::Predicate::SelfConst()) == type);
 			assert(functionType.parameterTypes().size() == args.size());
 			assert(!functionType.attributes().isMethod());
 			

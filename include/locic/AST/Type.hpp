@@ -121,7 +121,10 @@ namespace locic {
 				FunctionType asFunctionType() const;
 				Value asValue() const;
 				
-				const Type* substitute(const TemplateVarMap& templateVarMap) const;
+				const Type*
+				substitute(const TemplateVarMap& templateVarMap,
+				           const Predicate& selfconst) const;
+				
 				const Type* resolveAliases() const;
 				
 				bool dependsOn(const TemplateVar* const templateVar) const;

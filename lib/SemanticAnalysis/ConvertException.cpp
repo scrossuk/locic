@@ -179,7 +179,8 @@ namespace locic {
 					// implicitly cast for it; if there isn't a variable this is
 					// an error that we reported above, so we fail silently here.
 					const auto var = parentTypeInstance.variables()[i];
-					const auto varType = var->type()->substitute(parentTemplateMap);
+					const auto varType = var->type()->substitute(parentTemplateMap,
+					                                             /*selfconst=*/parentType->constPredicate().copy());
 					value = ImplicitCast(context, std::move(value), varType,
 					                     astValueNode.location());
 				}

@@ -139,6 +139,7 @@ namespace locic {
 			switch (requiresPredicate.kind()) {
 				case AST::Predicate::TRUE:
 				case AST::Predicate::FALSE:
+				case AST::Predicate::SELFCONST:
 				case AST::Predicate::VARIABLE:
 				{
 					return AST::MethodSet::getEmpty(context.astContext());
@@ -345,10 +346,14 @@ namespace locic {
 			const auto templateVarMap = objectType->generateTemplateVarMap();
 			
 			for (const auto& function: typeInstance->functions()) {
-				auto constPredicate = function->constPredicate().substitute(templateVarMap);
-				auto noexceptPredicate = function->type().attributes().noExceptPredicate().substitute(templateVarMap);
-				auto requirePredicate = function->requiresPredicate().substitute(templateVarMap);
-				const auto functionType = function->type().substitute(templateVarMap);
+				auto constPredicate = function->constPredicate().substitute(templateVarMap,
+				                                                            /*selfconst=*/AST::Predicate::SelfConst());
+				auto noexceptPredicate = function->type().attributes().noExceptPredicate().substitute(templateVarMap,
+				                                                                                      /*selfconst=*/AST::Predicate::SelfConst());
+				auto requirePredicate = function->requiresPredicate().substitute(templateVarMap,
+				                                                                 /*selfconst=*/AST::Predicate::SelfConst());
+				const auto functionType = function->type().substitute(templateVarMap,
+				                                                      /*selfconst=*/AST::Predicate::SelfConst());
 				const bool isStatic = function->isStaticMethod();
 				
 				AST::MethodSetElement functionElement(
@@ -366,7 +371,8 @@ namespace locic {
 			// Sort the elements.
 			std::sort(elements.begin(), elements.end(), comparePairKeys<AST::MethodSet::Element>);
 			
-			auto constObjectPredicate = objectType->constPredicate().substitute(templateVarMap);
+			auto constObjectPredicate = objectType->constPredicate().substitute(templateVarMap,
+			                                                                    /*selfconst=*/AST::Predicate::SelfConst());
 			
 			return AST::MethodSet::get(context.astContext(), std::move(constObjectPredicate), std::move(elements));
 		}

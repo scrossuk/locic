@@ -138,6 +138,9 @@ namespace locic {
 					const auto constTarget = resolveType(type->getConstPredicateTarget());
 					return constTarget->createConstType(std::move(constPredicate));
 				}
+				case AST::TypeDecl::SELFCONST: {
+					return resolveType(type->getSelfConstTarget())->createConstType(AST::Predicate::SelfConst());
+				}
 				case AST::TypeDecl::VOID: {
 					return context_.typeBuilder().getVoidType();
 				}
@@ -285,7 +288,8 @@ namespace locic {
 			auto templateVarMap = GenerateTemplateVarMap(context_, *alias,
 			                                             std::move(values),
 			                                             type.location());
-			const auto aliasValue = alias->value().substitute(templateVarMap);
+			const auto aliasValue = alias->value().substitute(templateVarMap,
+			                                                  /*selfconst=*/AST::Predicate::SelfConst());
 			if (!aliasValue.type()->isBuiltInBool()) {
 				context_.issueDiag(PredicateAliasNotBoolDiag(type->symbol()->createName(),
 				                                             aliasValue.type()),

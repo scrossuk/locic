@@ -100,6 +100,9 @@ namespace locic {
 				case AST::PredicateDecl::FALSE: {
 					return AST::Predicate::False();
 				}
+				case AST::PredicateDecl::SELFCONST: {
+					return AST::Predicate::SelfConst();
+				}
 				case AST::PredicateDecl::BRACKET: {
 					return ConvertPredicate(context, astPredicateNode->bracketExpr());
 				}
@@ -124,7 +127,8 @@ namespace locic {
 						auto& alias = searchResult.alias();
 						(void) context.aliasTypeResolver().resolveAliasType(alias);
 						
-						const auto aliasValue = alias.value().substitute(templateVarMap);
+						const auto aliasValue = alias.value().substitute(templateVarMap,
+						                                                 /*selfconst=*/AST::Predicate::SelfConst());
 						if (!aliasValue.type()->isBuiltInBool()) {
 							context.issueDiag(PredicateAliasNotBoolDiag(name, aliasValue.type()),
 							                  location);
@@ -235,6 +239,16 @@ namespace locic {
 			
 		};
 		
+		class PredicateHasLiteralSelfConstDiag: public Error {
+		public:
+			PredicateHasLiteralSelfConstDiag() { }
+			
+			std::string toString() const {
+				return "predicate has literal 'selfconst'";
+			}
+			
+		};
+		
 		class PredicateVariableNotFoundDiag: public Error {
 		public:
 			PredicateVariableNotFoundDiag(const String name)
@@ -260,6 +274,10 @@ namespace locic {
 				case AST::Predicate::FALSE:
 				{
 					return OptionalDiag(PredicateHasLiteralFalseDiag());
+				}
+				case AST::Predicate::SELFCONST:
+				{
+					return OptionalDiag(PredicateHasLiteralSelfConstDiag());
 				}
 				case AST::Predicate::AND:
 				{
@@ -290,8 +308,10 @@ namespace locic {
 					const auto requireType = predicate.satisfiesRequirement();
 					
 					// Some of the requirements can depend on the template values provided.
-					const auto substitutedCheckType = checkType->substitute(variableAssignments);
-					const auto substitutedRequireType = requireType->substitute(variableAssignments);
+					const auto substitutedCheckType = checkType->substitute(variableAssignments,
+					                                                        /*selfconst=*/AST::Predicate::SelfConst());
+					const auto substitutedRequireType = requireType->substitute(variableAssignments,
+					                                                            /*selfconst=*/AST::Predicate::SelfConst());
 					
 					if (substitutedCheckType->isAuto()) {
 						// Presumably this will work.
@@ -344,6 +364,7 @@ namespace locic {
 			switch (predicate.kind()) {
 				case AST::Predicate::TRUE:
 				case AST::Predicate::FALSE:
+				case AST::Predicate::SELFCONST:
 				{
 					return predicate;
 				}

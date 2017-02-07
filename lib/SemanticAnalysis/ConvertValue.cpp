@@ -443,6 +443,26 @@ namespace locic {
 			
 		};
 		
+		class SelfConstInNonMethodDiag: public Error {
+		public:
+			SelfConstInNonMethodDiag() { }
+			
+			std::string toString() const {
+				return "cannot use 'selfconst' in non-method function";
+			}
+			
+		};
+		
+		class SelfConstInStaticMethodDiag: public Error {
+		public:
+			SelfConstInStaticMethodDiag() { }
+			
+			std::string toString() const {
+				return "cannot use 'selfconst' in static method";
+			}
+			
+		};
+		
 		AST::Value ConvertValueData(Context& context, const AST::Node<AST::ValueDecl>& astValueNode) {
 			assert(astValueNode.get() != nullptr);
 			const auto& location = astValueNode.location();
@@ -456,6 +476,22 @@ namespace locic {
 				}
 				case AST::ValueDecl::THIS: {
 					return getThisValue(context, location);
+				}
+				case AST::ValueDecl::SELFCONST: {
+					const auto thisTypeInstance = lookupParentType(context.scopeStack());
+					const auto thisFunction = lookupParentFunction(context.scopeStack());
+					
+					if (thisTypeInstance == nullptr) {
+						context.issueDiag(SelfConstInNonMethodDiag(), location);
+					}
+					
+					if (thisFunction->isStaticMethod()) {
+						context.issueDiag(SelfConstInStaticMethodDiag(), location);
+					}
+					
+					const auto boolType = context.typeBuilder().getBoolType();
+					return AST::Value::PredicateExpr(AST::Predicate::SelfConst(),
+					                                 boolType);
 				}
 				case AST::ValueDecl::LITERAL: {
 					const auto& specifier = astValueNode->literal.specifier;
@@ -480,7 +516,9 @@ namespace locic {
 						
 						auto functionTemplateArguments = GetTemplateValues(templateVarMap, function.templateVariables());
 						auto& typeBuilder = context.typeBuilder();
-						const auto functionType = typeBuilder.getFunctionPointerType(function.type().substitute(templateVarMap));
+						const auto functionType = typeBuilder.getFunctionPointerType(
+							function.type().substitute(templateVarMap,
+							                           /*selfconst=*/AST::Predicate::SelfConst()));
 						
 						if (function.isMethod()) {
 							assert(function.isStaticMethod());
@@ -876,9 +914,10 @@ namespace locic {
 						auto astValue = ConvertValue(context, astParameterValueNodes->at(i));
 						if (i < thisTypeInstance->variables().size()) {
 							const auto astVar = thisTypeInstance->variables().at(i);
+							const auto varType = astVar->type()->substitute(templateVarMap,
+							                                                /*selfconst=*/AST::Predicate::SelfConst());
 							auto astParam = ImplicitCast(context, std::move(astValue),
-							                             astVar->type()->substitute(templateVarMap),
-							                             location);
+							                             varType, location);
 							astValues.push_back(std::move(astParam));
 						} else {
 							astValues.push_back(std::move(astValue));

@@ -248,7 +248,8 @@ namespace locic {
 							auto& patternChildVarNode = patternChildVarNodes->at(i);
 							const auto& objectChildVar = objectChildVars.at(i);
 							
-							const auto childInitialiseType = objectChildVar->type()->substitute(templateVarMap);
+							const auto childInitialiseType = objectChildVar->type()->substitute(templateVarMap,
+							                                                                    /*selfconst=*/AST::Predicate::SelfConst());
 							const bool childIsTopLevel = false;
 							(void) ConvertInitialisedVarRecurse(context, patternChildVarNode,
 							                                    childInitialiseType,

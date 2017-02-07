@@ -28,6 +28,7 @@ namespace locic {
 			enum Kind {
 				TRUE,
 				FALSE,
+				SELFCONST,
 				AND,
 				OR,
 				SATISFIES,
@@ -39,6 +40,8 @@ namespace locic {
 			static Predicate True();
 			
 			static Predicate False();
+			
+			static Predicate SelfConst();
 			
 			static Predicate And(Predicate left, Predicate right);
 			
@@ -53,7 +56,8 @@ namespace locic {
 			Predicate& operator=(Predicate&&) = default;
 			
 			Predicate copy() const;
-			Predicate substitute(const TemplateVarMap& templateVarMap) const;
+			Predicate substitute(const TemplateVarMap& templateVarMap,
+			                     const Predicate& selfconst) const;
 			
 			bool dependsOn(const TemplateVar* templateVar) const;
 			
@@ -97,6 +101,7 @@ namespace locic {
 			bool isTrivialBool() const;
 			bool isTrue() const;
 			bool isFalse() const;
+			bool isSelfConst() const;
 			bool isAnd() const;
 			bool isOr() const;
 			bool isSatisfies() const;

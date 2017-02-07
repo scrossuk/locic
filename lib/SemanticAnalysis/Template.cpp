@@ -89,7 +89,8 @@ namespace locic {
 			
 			auto result = evaluatePredicate(context, requiresPredicate, variableAssignments);
 			if (!result) {
-				const auto substitutedRequirePredicate = requiresPredicate.substitute(variableAssignments);
+				const auto substitutedRequirePredicate = requiresPredicate.substitute(variableAssignments,
+				                                                                      /*selfconst=*/AST::Predicate::SelfConst());
 				context.issueDiag(TemplateArgsDoNotSatisfyRequirePredicateDiag(substitutedRequirePredicate,
 				                                                               templatedObject.fullName()),
 				                  location, std::move(result));
@@ -98,7 +99,8 @@ namespace locic {
 			for (const auto& assignment: variableAssignments) {
 				const auto& templateVar = assignment.first;
 				const auto& templateValue = assignment.second;
-				const auto templateVarType = templateVar->type()->substitute(variableAssignments)->resolveAliases();
+				const auto templateVarType = templateVar->type()->substitute(variableAssignments,
+				                                                             /*selfconst=*/AST::Predicate::SelfConst())->resolveAliases();
 				const auto templateValueType = templateValue.type()->resolveAliases();
 				
 				// Allow typename_t<T> -> abstracttypename_t.
@@ -152,7 +154,8 @@ namespace locic {
 				// In future, this code needs to perform an actual
 				// cast and the issue mentioned above needs to be
 				// resolved.
-				const auto templateVarType = templateVar->type()->substitute(variableAssignments);
+				const auto templateVarType = templateVar->type()->substitute(variableAssignments,
+				                                                             /*selfconst=*/AST::Predicate::SelfConst());
 				templateValue = AST::Value::Constant(templateValue.constant(),
 				                                     templateVarType);
 			}

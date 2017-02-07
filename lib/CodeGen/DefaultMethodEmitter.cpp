@@ -460,7 +460,8 @@ namespace locic {
 				llvm::Value* classAlignMask = zero;
 				
 				for (const auto& var: typeInstance.variables()) {
-					const auto varType = var->type()->substitute(type->generateTemplateVarMap());
+					const auto varType = var->type()->substitute(type->generateTemplateVarMap(),
+					                                             /*selfconst=*/AST::Predicate::SelfConst());
 					const auto varAlignMask = irEmitter.emitAlignMask(varType);
 					classAlignMask = functionGenerator_.getBuilder().CreateOr(classAlignMask, varAlignMask);
 				}
@@ -541,7 +542,8 @@ namespace locic {
 				llvm::Value* classAlignMask = zero;
 				
 				for (const auto& var: typeInstance.variables()) {
-					const auto varType = var->type()->substitute(type->generateTemplateVarMap());
+					const auto varType = var->type()->substitute(type->generateTemplateVarMap(),
+					                                             /*selfconst=*/AST::Predicate::SelfConst());
 					const auto memberAlignMask = irEmitter.emitAlignMask(varType);
 					const auto memberSize = irEmitter.emitSizeOf(varType);
 					

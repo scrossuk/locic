@@ -390,7 +390,8 @@ namespace locic {
 				bool dependsOnAny(const TemplateVarArray& array) const;
 				bool dependsOnOnly(const TemplateVarArray& array) const;
 				
-				Value substitute(const TemplateVarMap& templateVarMap) const;
+				Value substitute(const TemplateVarMap& templateVarMap,
+				                 const Predicate& selfconst) const;
 				Predicate makePredicate() const;
 				
 				std::string toString() const;

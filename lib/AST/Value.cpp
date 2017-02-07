@@ -873,7 +873,9 @@ namespace locic {
 			}
 		}
 		
-		Value Value::substitute(const TemplateVarMap& templateVarMap) const {
+		Value
+		Value::substitute(const TemplateVarMap& templateVarMap,
+		                  const Predicate& selfconst) const {
 			switch (kind()) {
 				case CONSTANT:
 					return copy();
@@ -881,18 +883,26 @@ namespace locic {
 					ValueArray arguments;
 					arguments.reserve(aliasTemplateArguments().size());
 					for (const auto& argument: aliasTemplateArguments()) {
-						arguments.push_back(argument.substitute(templateVarMap));
+						arguments.push_back(argument.substitute(templateVarMap,
+						                                        selfconst));
 					}
 					return Value::Alias(alias(), std::move(arguments),
-					                    type()->substitute(templateVarMap));
+					                    type()->substitute(templateVarMap,
+							                       selfconst));
 				}
 				case TERNARY: {
-					return Value::Ternary(ternaryCondition().substitute(templateVarMap),
-					                      ternaryIfTrue().substitute(templateVarMap),
-					                      ternaryIfFalse().substitute(templateVarMap));
+					return Value::Ternary(ternaryCondition().substitute(templateVarMap,
+					                                                    selfconst),
+					                      ternaryIfTrue().substitute(templateVarMap,
+							                                 selfconst),
+					                      ternaryIfFalse().substitute(templateVarMap,
+							                                  selfconst));
 				}
 				case TYPEREF:
-					return Value::TypeRef(typeRefType()->substitute(templateVarMap), type()->substitute(templateVarMap));
+					return Value::TypeRef(typeRefType()->substitute(templateVarMap,
+					                                                selfconst),
+					                      type()->substitute(templateVarMap,
+							                         selfconst));
 				case TEMPLATEVARREF: {
 					const auto iterator = templateVarMap.find(templateVar());
 					if (iterator != templateVarMap.end()) {
@@ -902,12 +912,14 @@ namespace locic {
 					}
 				}
 				case CALL: {
-					auto value = callValue().substitute(templateVarMap);
+					auto value = callValue().substitute(templateVarMap,
+					                                    selfconst);
 					ValueArray parameters;
 					parameters.reserve(callParameters().size());
 					
 					for (const auto& parameter: callParameters()) {
-						parameters.push_back(parameter.substitute(templateVarMap));
+						parameters.push_back(parameter.substitute(templateVarMap,
+						                                          selfconst));
 					}
 					
 					return Call(std::move(value), std::move(parameters));
@@ -917,18 +929,27 @@ namespace locic {
 					templateArguments.reserve(functionRefTemplateArguments().size());
 					
 					for (const auto& templateArgument: functionRefTemplateArguments()) {
-						templateArguments.push_back(templateArgument.substitute(templateVarMap));
+						templateArguments.push_back(templateArgument.substitute(templateVarMap,
+						                                                        selfconst));
 					}
 					
-					return FunctionRef(functionRefParentType()->substitute(templateVarMap),
+					return FunctionRef(functionRefParentType()->substitute(templateVarMap,
+					                                                       selfconst),
 					                   functionRefFunction(),
 					                   std::move(templateArguments),
-					                   type()->substitute(templateVarMap));
+					                   type()->substitute(templateVarMap,
+							                      selfconst));
 				}
 				case CAPABILITYTEST: {
-					return CapabilityTest(capabilityTestCheckType()->substitute(templateVarMap),
-					                      capabilityTestCapabilityType()->substitute(templateVarMap),
+					return CapabilityTest(capabilityTestCheckType()->substitute(templateVarMap,
+					                                                            selfconst),
+					                      capabilityTestCapabilityType()->substitute(templateVarMap,
+							                                                 selfconst),
 					                      type());
+				}
+				case PREDICATE: {
+					return PredicateExpr(predicate().substitute(templateVarMap,
+					                                            selfconst), type());
 				}
 				default:
 					locic_unreachable("Invalid value kind for substitute().");
@@ -943,7 +964,8 @@ namespace locic {
 				case ALIAS: {
 					TemplateVarMap assignments(alias().templateVariables().copy(),
 					                                aliasTemplateArguments().copy());
-					return alias().value().substitute(assignments).makePredicate();
+					return alias().value().substitute(assignments,
+					                                  /*selfconst=*/Predicate::SelfConst()).makePredicate();
 				}
 				case PREDICATE:
 					return predicate().copy();
