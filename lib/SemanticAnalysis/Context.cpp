@@ -276,7 +276,10 @@ namespace locic {
 			}
 			
 			const auto selfType = thisTypeInstance != nullptr ? thisTypeInstance->selfType() : context.typeBuilder().getVoidType();
-			const auto selfConstType = selfType->createConstType(thisFunction->constPredicate().copy());
+			
+			auto predicate = thisFunction->constPredicate().copy();
+			predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::SelfConst());
+			const auto selfConstType = selfType->createConstType(std::move(predicate));
 			return createSelfRef(context, selfConstType);
 		}
 		
@@ -313,7 +316,10 @@ namespace locic {
 			}
 			
 			const auto selfType = thisTypeInstance != nullptr ? thisTypeInstance->selfType() : context.typeBuilder().getVoidType();
-			const auto selfConstType = selfType->createConstType(thisFunction->constPredicate().copy());
+			
+			auto predicate = thisFunction->constPredicate().copy();
+			predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::SelfConst());
+			const auto selfConstType = selfType->createConstType(std::move(predicate));
 			return AST::Value::This(getBuiltInType(context, context.getCString("ptr_t"), { selfConstType }));
 		}
 		
