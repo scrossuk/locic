@@ -9,7 +9,7 @@ class TestClass(int value) {
 	}
 	
 	void modifyConst() const {
-		// CHECK: .loci:13:3: error: cannot assign non-movable type 'const(int_t)'
+		// CHECK: .loci:13:3: error: cannot assign non-movable type 'const<selfconst>(int_t)'
 		@value = 100;
 	}
 }
