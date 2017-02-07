@@ -38,6 +38,7 @@ namespace locic {
 			Token lexPrefix__();
 			
 			Token lexPrefix__p();
+			Token lexPrefix__primitive();
 			
 			Token lexPrefixA();
 			
@@ -75,6 +76,8 @@ namespace locic {
 			Token lexPrefixRe();
 			
 			Token lexPrefixS();
+			Token lexPrefixSe();
+			Token lexPrefixSelf();
 			Token lexPrefixSi();
 			Token lexPrefixSt();
 			

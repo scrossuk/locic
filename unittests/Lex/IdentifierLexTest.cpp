@@ -77,6 +77,7 @@ TEST(IdentifierLexTest, Keywords) {
 	
 	testKeyword("scope", locic::Lex::Token::Kind::SCOPE);
 	testKeyword("self", locic::Lex::Token::Kind::SELF);
+	testKeyword("selfconst", locic::Lex::Token::Kind::SELFCONST);
 	testKeyword("short", locic::Lex::Token::Kind::SHORT);
 	testKeyword("signed", locic::Lex::Token::Kind::SIGNED);
 	testKeyword("sizeof", locic::Lex::Token::Kind::SIZEOF);

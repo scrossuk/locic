@@ -155,13 +155,14 @@ namespace locic {
 		}
 		
 		Token IdentifierLexer::lexPrefix__p() {
-			const std::string c = "rimitive";
-			for (size_t i = 0; i < c.size(); i++) {
-				if (get() != c[i]) {
-					return lexGeneralIdentifier();
-				}
+			if (lexCommonPrefix("__primitive")) {
+				return lexPrefix__primitive();
+			} else {
+				return lexGeneralIdentifier();
 			}
-			
+		}
+		
+		Token IdentifierLexer::lexPrefix__primitive() {
 			switch (get().value()) {
 				case 0:
 					return lexPossibleKeyword("__primitive", Token::PRIMITIVE);
@@ -445,7 +446,7 @@ namespace locic {
 				case 'c':
 					return lexPossibleKeyword("scope", Token::SCOPE);
 				case 'e':
-					return lexPossibleKeyword("self", Token::SELF);
+					return lexPrefixSe();
 				case 'h':
 					return lexPossibleKeyword("short", Token::SHORT);
 				case 'i':
@@ -454,6 +455,25 @@ namespace locic {
 					return lexPrefixSt();
 				case 'w':
 					return lexPossibleKeyword("switch", Token::SWITCH);
+				default:
+					return lexGeneralIdentifier();
+			}
+		}
+		
+		Token IdentifierLexer::lexPrefixSe() {
+			if (lexCommonPrefix("self")) {
+				return lexPrefixSelf();
+			} else {
+				return lexGeneralIdentifier();
+			}
+		}
+		
+		Token IdentifierLexer::lexPrefixSelf() {
+			switch (get().value()) {
+				case 0:
+					return lexPossibleKeyword("self", Token::SELF);
+				case 'c':
+					return lexPossibleKeyword("selfconst", Token::SELFCONST);
 				default:
 					return lexGeneralIdentifier();
 			}

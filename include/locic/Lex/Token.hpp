@@ -108,6 +108,7 @@ namespace locic {
 				CONST,
 				MUTABLE,
 				OVERRIDE_CONST,
+				SELFCONST,
 
 				STAR,
 				COMMA,
@@ -340,6 +341,7 @@ namespace locic {
 					case CONST: return "CONST";
 					case MUTABLE: return "MUTABLE";
 					case OVERRIDE_CONST: return "OVERRIDE_CONST";
+					case SELFCONST: return "SELFCONST";
 					case STAR: return "STAR";
 					case COMMA: return "COMMA";
 					case IF: return "IF";
