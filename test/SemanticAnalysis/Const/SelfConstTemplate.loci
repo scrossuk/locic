@@ -1,0 +1,35 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+interface TestAPI {
+	selfconst(int)& mutatorMethod();
+	selfconst(int)& constMethod() const;
+}
+
+template <typename T : TestAPI>
+class TestClass(T value) {
+	static create = default;
+	
+	void mutatorMethod() {
+		unused int& a = @value.mutatorMethod();
+		unused const int& b = @value.mutatorMethod();
+		unused int& c = @value.constMethod();
+		unused const int& d = @value.constMethod();
+	}
+	
+	void constMethod() const {
+		// CHECK: .loci:23:3: error: Can't implicitly cast value of type 'const<selfconst>(int_t)&' to type 'int_t&'.
+		// CHECK: .loci:23:19: error: cannot refer to mutator method 'mutatorMethod' from const object of type 'const<selfconst>(T)'
+		unused int& a = @value.mutatorMethod();
+		
+		// CHECK: .loci:26:25: error: cannot refer to mutator method 'mutatorMethod' from const object of type 'const<selfconst>(T)'
+		unused const int& b = @value.mutatorMethod();
+		
+		// CHECK: .loci:29:3: error: Can't implicitly cast value of type 'const<selfconst>(int_t)&' to type 'int_t&'.
+		unused int& c = @value.constMethod();
+		
+		unused const int& d = @value.constMethod();
+	}
+}
+
+// CHECK: 4 errors generated.

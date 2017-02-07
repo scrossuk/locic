@@ -1,0 +1,41 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+class ObjectType(int value) {
+	static create = default;
+	
+	selfconst(int)& mutatorMethod() {
+		return @value;
+	}
+	
+	selfconst(int)& constMethod() const {
+		return @value;
+	}
+}
+
+class TestClass(ObjectType value) {
+	static create = default;
+	
+	void mutatorMethod() {
+		unused int& a = @value.mutatorMethod();
+		unused const int& b = @value.mutatorMethod();
+		unused int& c = @value.constMethod();
+		unused const int& d = @value.constMethod();
+	}
+	
+	void constMethod() const {
+		// CHECK: .loci:29:3: error: Can't implicitly cast value of type 'const<selfconst>(int_t)&' to type 'int_t&'.
+		// CHECK: .loci:29:19: error: cannot refer to mutator method 'mutatorMethod' from const object of type 'const<selfconst>(ObjectType)'
+		unused int& a = @value.mutatorMethod();
+		
+		// CHECK: .loci:32:25: error: cannot refer to mutator method 'mutatorMethod' from const object of type 'const<selfconst>(ObjectType)'
+		unused const int& b = @value.mutatorMethod();
+		
+		// CHECK: .loci:35:3: error: Can't implicitly cast value of type 'const<selfconst>(int_t)&' to type 'int_t&'.
+		unused int& c = @value.constMethod();
+		
+		unused const int& d = @value.constMethod();
+	}
+}
+
+// CHECK: 4 errors generated.
