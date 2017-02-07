@@ -417,7 +417,7 @@ namespace locic {
 				const auto sourceTarget = sourceType->referenceTarget();
 				const auto destTarget = destType->referenceTarget();
 				
-				if (doesPredicateImplyPredicate(context, sourceTarget->constPredicate(), destTarget->constPredicate())) {
+				if (sourceTarget->constPredicate().implies(destTarget->constPredicate())) {
 					auto castResult = PolyCastRefValueToType(context, value.copy(), destType);
 					if (castResult) {
 						return castResult;
@@ -430,7 +430,7 @@ namespace locic {
 				const auto sourceTarget = sourceType->typenameTarget();
 				const auto destTarget = destType->typenameTarget();
 				
-				if (doesPredicateImplyPredicate(context, sourceTarget->constPredicate(), destTarget->constPredicate())) {
+				if (sourceTarget->constPredicate().implies(destTarget->constPredicate())) {
 					auto castResult = PolyCastTypenameValueToType(context, value.copy(), destType);
 					if (castResult) {
 						return castResult;
@@ -465,11 +465,11 @@ namespace locic {
 			
 			// Try to use implicitCopy to make a value non-const.
 			if (getRefCount(sourceType) == getRefCount(destType) &&
-			    !doesPredicateImplyPredicate(context, sourceType->constPredicate(), destType->constPredicate()) &&
+			    !sourceType->constPredicate().implies(destType->constPredicate()) &&
 			    sourceType->isObjectOrTemplateVar() && TypeCapabilities(context).supportsImplicitCopy(sourceType)) {
 				auto boundValue = bindReference(context, value.copy());
 				auto copyValue = CallValue(context, GetSpecialMethod(context, std::move(boundValue), context.getCString("implicitcopy"), location), {}, location);
-				assert(doesPredicateImplyPredicate(context, copyValue.type()->constPredicate(), destType->constPredicate()));
+				assert(copyValue.type()->constPredicate().implies(destType->constPredicate()));
 				
 				const bool nextAllowBind = false;
 				auto convertCast = ImplicitCastConvert(context, errors, std::move(copyValue), destType, location, nextAllowBind);
@@ -480,7 +480,7 @@ namespace locic {
 			
 			// Try to bind value to reference (e.g. T -> T&).
 			if (allowBind && !sourceType->isReference() && destType->isReference() &&
-			    doesPredicateImplyPredicate(context, sourceType->constPredicate(), destType->referenceTarget()->constPredicate()) &&
+			    sourceType->constPredicate().implies(destType->referenceTarget()->constPredicate()) &&
 			    isStructurallyEqual(sourceType, destType->referenceTarget())) {
 				auto refValue = bindReference(context, value.copy());
 				auto castResult = ImplicitCastConvert(context, errors, std::move(refValue), destType, location, allowBind);

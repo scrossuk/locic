@@ -49,8 +49,6 @@ namespace locic {
 		OptionalDiag
 		evaluatePredicate(Context& context, const AST::Predicate& predicate, const AST::TemplateVarMap& variableAssignments);
 		
-		bool doesPredicateImplyPredicate(Context& context, const AST::Predicate& firstPredicate, const AST::Predicate& secondPredicate);
-		
 		AST::Predicate reducePredicate(Context& context, AST::Predicate predicate);
 		
 	}

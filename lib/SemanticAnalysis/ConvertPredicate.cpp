@@ -340,21 +340,6 @@ namespace locic {
 			locic_unreachable("Unknown predicate kind.");
 		}
 		
-		bool doesPredicateImplyPredicate(Context& /*context*/, const AST::Predicate& firstPredicate, const AST::Predicate& secondPredicate) {
-			// TODO: actually prove in the general case that one implies the other.
-			
-			if (firstPredicate == secondPredicate) {
-				// Equivalent predicates imply each other.
-				return true;
-			} else if (firstPredicate.isFalse() || secondPredicate.isTrue()) {
-				// F => anything
-				// anything => T
-				return true;
-			} else {
-				return false;
-			}
-		}
-		
 		AST::Predicate reducePredicate(Context& context, AST::Predicate predicate) {
 			switch (predicate.kind()) {
 				case AST::Predicate::TRUE:
