@@ -182,6 +182,7 @@ These features are either still in the design stage or are awaiting implementati
 	proposals/RemoveLifetimeMethods
 	proposals/RTTI
 	proposals/SelfConst
+	proposals/StyleRules
 	proposals/VariadicTemplates
 	proposals/VectorTypes
 

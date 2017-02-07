@@ -12,6 +12,7 @@ set(PROPOSAL_FILES
 	proposals/RemoveLifetimeMethods.rst
 	proposals/RTTI.rst
 	proposals/SelfConst.rst
+	proposals/StyleRules.rst
 	proposals/VariadicTemplates.rst
 	proposals/VectorTypes.rst
 )
