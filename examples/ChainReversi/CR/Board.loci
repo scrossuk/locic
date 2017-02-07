@@ -77,8 +77,7 @@ namespace CR {
 			return true;
 		}
 		
-		template <bool IsConst>
-		const<IsConst>(Value)& index(Position position) const(IsConst) noexcept {
+		selfconst(Value)& index(Position position) const noexcept {
 			return @data[position.x + position.y * @size.width];
 		}
 		
