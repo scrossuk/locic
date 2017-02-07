@@ -1,0 +1,22 @@
+// RUN: %locic %s --verify > %t
+// RUN: FileCheck < %t %s
+
+// Currently references aren't properly transitive.
+// XFAIL: *
+
+class ObjectType(int value) {
+	void mutator() {
+		@value++;
+	}
+}
+
+class TestClass(ObjectType& value) {
+	static create = default;
+	
+	void constMethod() const {
+		// CHECK: .loci:18:3: error: cannot refer to mutator method 'mutator' from const object of type 'const<selfconst>(ObjectType)'
+		@value.mutator();
+	}
+}
+
+// CHECK: 1 error generated.
