@@ -1,9 +1,6 @@
 // RUN: %locic %s --verify > %t
 // RUN: FileCheck < %t %s
 
-// Not yet implemented.
-// XFAIL: *
-
 class TestClass(int value) {
 	static create = default;
 	
@@ -13,7 +10,7 @@ class TestClass(int value) {
 }
 
 export int f(const TestClass object) {
-	// CHECK: .loci:17:2: error: cannot assign non-movable type 'const(int_t)'
+	// CHECK: .loci:14:2: error: cannot assign non-movable type 'const(int_t)'
 	object.get() = 20;
 	return object.get();
 }
