@@ -5,12 +5,12 @@ export std.container 0.1.0 {
 		template <typename T>
 		datatype list_node(list_node<T>* previous, list_node<T>* next, T value);
 		
-		template <typename T, bool IsListConst>
-		class list_range (const<IsListConst>(list_node<T>)* begin, const<IsListConst>(list_node<T>)* end) {
+		template <typename T, bool IsConst>
+		class list_range (const<IsConst>(list_node<T>)* begin,
+		                  const<IsConst>(list_node<T>)* end) {
 			static create = default;
 			
-			template <bool IsConst>
-			const<IsConst or IsListConst>(T)& front() const(IsConst) {
+			selfconst(const<IsConst>(T))& front() const {
 				assert !self.empty();
 				return *(&(@begin->value));
 			}
@@ -25,8 +25,7 @@ export std.container 0.1.0 {
 				}
 			}
 			
-			template <bool IsConst>
-			const<IsConst or IsListConst>(T)& back() const(IsConst) {
+			selfconst(const<IsConst>(T))& back() const {
 				assert !self.empty();
 				return *(&(@end->value));
 			}
@@ -94,14 +93,12 @@ export std.container 0.1.0 {
 				@size = 0u;
 			}
 			
-			template <bool IsConst>
-			const<IsConst>(T)& front() const(IsConst) {
+			selfconst(T)& front() const {
 				assert !self.empty();
 				return *(&(@begin->value));
 			}
 			
-			template <bool IsConst>
-			const<IsConst>(T)& back() const(IsConst) {
+			selfconst(T)& back() const {
 				assert !self.empty();
 				return *(&(@end->value));
 			}
@@ -166,9 +163,8 @@ export std.container 0.1.0 {
 				@size -= 1u;
 			}
 			
-			template <bool IsConst>
-			list_range<T, IsConst> all() const(IsConst) noexcept {
-				return list_range<T, IsConst>(@begin, @end);
+			list_range<T, selfconst> all() const noexcept {
+				return list_range<T, selfconst>(@begin, @end);
 			}
 			
 		}

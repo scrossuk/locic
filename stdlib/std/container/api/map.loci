@@ -20,9 +20,7 @@ import std.container 0.1.0 {
 			
 			void clear() noexcept require(destructible<Key> and destructible<Value>);
 			
-			template <bool IsConst>
-			const<IsConst>(Value)&
-			index(const Key& key) const(IsConst) noexcept require(noexcept_comparable<Key>);
+			selfconst(Value)& index(const Key& key) const noexcept require(noexcept_comparable<Key>);
 			
 			void insert(pair<Key, Value> value) require(noexcept_comparable<Key> and movable<Key> and movable<Value>);
 			
@@ -32,26 +30,20 @@ import std.container 0.1.0 {
 			
 			void erase(const Key& key) require(noexcept_comparable<Key> and movable<Key> and movable<Value>);
 			
-			template <bool IsConst>
-			map_range<Key, Value, IsConst> all() const(IsConst) noexcept;
+			map_range<selfconst(pair<Key, Value>)> all() const noexcept;
 		}
 		
-		template <typename Key, typename Value, bool IsMapConst>
-		require(sized_type<Key> and sized_type<Value>)
+		template <sized_type Pair>
 		class map_range {
-			map_range<Key, Value, IsMapConst> implicit_copy() const noexcept;
+			map_range<Pair> implicit_copy() const noexcept;
 			
-			map_range<Key, Value, IsMapConst> copy() const noexcept;
+			map_range<Pair> copy() const noexcept;
 			
-			template <bool IsConst>
-			const<IsConst or IsMapConst>(pair<Key, Value>)&
-			front() const(IsConst) noexcept;
+			selfconst(Pair)& front() const noexcept;
 			
 			void skip_front() noexcept;
 			
-			template <bool IsConst>
-			const<IsConst or IsMapConst>(pair<Key, Value>)&
-			back() const(IsConst) noexcept;
+			selfconst(Pair)& back() const noexcept;
 			
 			void skip_back() noexcept;
 			

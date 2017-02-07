@@ -3,15 +3,13 @@ import std.container 0.1.0 {
 	
 	namespace std {
 	
-		template <typename T, bool IsListConst>
+		template <typename T, bool IsConst>
 		class list_range {
-			template <bool IsConst>
-			const<IsConst or IsListConst>(T)& front() const(IsConst);
+			selfconst(const<IsConst>(T))& front() const;
 			
 			void skip_front();
 			
-			template <bool IsConst>
-			const<IsConst or IsListConst>(T)& back() const(IsConst);
+			selfconst(const<IsConst>(T))& back() const;
 			
 			void skip_back();
 			
@@ -33,11 +31,9 @@ import std.container 0.1.0 {
 			
 			void clear() noexcept require(destructible<T>);
 			
-			template <bool IsConst>
-			const<IsConst>(T)& front() const(IsConst);
+			selfconst(T)& front() const;
 			
-			template <bool IsConst>
-			const<IsConst>(T)& back() const(IsConst);
+			selfconst(T)& back() const;
 			
 			void push_front(T value) require(movable<T>);
 			
@@ -47,8 +43,7 @@ import std.container 0.1.0 {
 			
 			void pop_back() noexcept require(destructible<T>);
 			
-			template <bool IsConst>
-			list_range<T, IsConst> all() const(IsConst) noexcept;
+			list_range<T, selfconst> all() const noexcept;
 			
 		}
 		

@@ -17,14 +17,11 @@ import std.container 0.1.0 {
 			size_t size() const noexcept;
 			size_t capacity() const noexcept;
 			
-			template <bool IsConst>
-			const<IsConst>(T)& front() const(IsConst) noexcept;
+			selfconst(T)& front() const noexcept;
 			
-			template <bool IsConst>
-			const<IsConst>(T)& back() const(IsConst) noexcept;
+			selfconst(T)& back() const noexcept;
 			
-			template <bool IsConst>
-			const<IsConst>(T)& index(size_t index) const(IsConst) noexcept;
+			selfconst(T)& index(size_t index) const noexcept;
 			
 			void clear() noexcept require(destructible<T>);
 			
@@ -32,21 +29,19 @@ import std.container 0.1.0 {
 			
 			void pop_front() noexcept require(destructible<T>);
 			
-			template <bool IsConst>
-			circular_queue_range<T, IsConst> all() const(IsConst) noexcept;
+			circular_queue_range<selfconst(T)> all() const noexcept;
 			
 		}
 		
-		template <sized_type T, bool IsQueueConst>
+		template <sized_type T>
 		class circular_queue_range {
-			circular_queue_range<T, IsQueueConst> implicit_copy() const noexcept;
+			circular_queue_range<T> implicit_copy() const noexcept;
 			
 			bool empty() const noexcept;
 			
 			void skip_front();
 			
-			template <bool IsConst>
-			const<IsConst or IsQueueConst>(T)& front() const(IsConst) noexcept;
+			selfconst(T)& front() const noexcept;
 		}
 		
 	}

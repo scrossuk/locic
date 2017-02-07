@@ -67,8 +67,7 @@ export std.container 0.1.0 {
 				return @size == 0u;
 			}
 			
-			template <bool IsConst>
-			const<IsConst>(T)* data() const(IsConst) noexcept {
+			selfconst(T)* data() const noexcept {
 				return @data;
 			}
 			
@@ -76,8 +75,7 @@ export std.container 0.1.0 {
 				return @size;
 			}
 			
-			template <bool IsConst>
-			const<IsConst>(T)& index(size_t index) const(IsConst) noexcept {
+			selfconst(T)& index(size_t index) const noexcept {
 				assert index < @size;
 				return @data[index];
 			}
@@ -110,17 +108,15 @@ export std.container 0.1.0 {
 				return move array;
 			}
 			
-			template <bool IsConst>
-			varray_range<T, IsConst> all() const(IsConst) noexcept {
-				return varray_range<T, IsConst>(self);
+			varray_range<selfconst(T)> all() const noexcept {
+				return varray_range<selfconst(T)>(@data, 0, @size);
 			}
-			
 		}
 		
-		template <sized_type T, bool IsArrayConst>
-		class varray_range(const<IsArrayConst>(varray<T>)& array, size_t begin, size_t end) {
-			static create(const<IsArrayConst>(varray<T>)& array) noexcept {
-				return @(array, 0u, array.size());
+		template <sized_type T>
+		class varray_range(T* data, size_t begin, size_t end) {
+			static create(T* data, size_t begin, size_t end) noexcept {
+				return @(data, begin, end);
 			}
 			
 			implicitCopy = default;
@@ -134,10 +130,9 @@ export std.container 0.1.0 {
 				@begin += 1u;
 			}
 			
-			template <bool IsConst>
-			const<IsConst or IsArrayConst>(T)& front() const(IsConst) noexcept {
+			selfconst(T)& front() const noexcept {
 				assert !self.empty();
-				return @array[@begin];
+				return @data[@begin];
 			}
 			
 			void skip_back() noexcept {
@@ -145,10 +140,9 @@ export std.container 0.1.0 {
 				@end -= 1u;
 			}
 			
-			template <bool IsConst>
-			const<IsConst or IsArrayConst>(T)& back() const(IsConst) noexcept {
+			selfconst(T)& back() const noexcept {
 				assert !self.empty();
-				return @array[@end - 1u];
+				return @data[@end - 1u];
 			}
 		}
 		

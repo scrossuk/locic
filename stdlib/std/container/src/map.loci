@@ -7,15 +7,13 @@ export std.container 0.1.0 {
 		move(movable<T0> and movable<T1>)
 		datatype pair(T0 first, T1 second);
 		
-		template <typename Key, typename Value, bool IsMapConst>
-		require(sized_type<Key> and sized_type<Value>)
-		class map_range(varray_range<const<IsMapConst>(pair<Key, Value>), IsMapConst> range) {
+		template <sized_type Pair>
+		class map_range(varray_range<Pair> range) {
 			static create = default;
 			
 			implicit_copy = default;
 			
-			template <bool IsConst>
-			const<IsConst or IsMapConst>(pair<Key, Value>)& front() const(IsConst) noexcept {
+			selfconst(Pair)& front() const noexcept {
 				return @range.front();
 			}
 			
@@ -23,8 +21,7 @@ export std.container 0.1.0 {
 				@range.skip_front();
 			}
 			
-			template <bool IsConst>
-			const<IsConst or IsMapConst>(pair<Key, Value>)& back() const(IsConst) noexcept {
+			selfconst(Pair)& back() const noexcept {
 				return @range.back();
 			}
 			
@@ -40,9 +37,7 @@ export std.container 0.1.0 {
 		/**
 		 * \brief Map.
 		 */
-		template <typename Key, typename Value>
-		require(sized_type<Key> and sized_type<Value>)
-		// TODO: use a proper tree structure rather than an array!
+		template <sized_type Key, sized_type Value>
 		class map(std::varray<pair<Key, Value>> array) {
 			static map<Key, Value> create() {
 				return @(std::varray<pair<Key, Value>>());
@@ -60,8 +55,7 @@ export std.container 0.1.0 {
 				@array.clear();
 			}
 			
-			template <bool IsConst>
-			const<IsConst>(Value)& index(const Key& key) const(IsConst) noexcept require(noexcept_comparable<Key>) {
+			selfconst(Value)& index(const Key& key) const noexcept require(noexcept_comparable<Key>) {
 				for (const auto i: range<size_t>(0, @array.size())) {
 					if (@array[i].first == key) {
 						return *(&(@array[i].second));
@@ -123,9 +117,8 @@ export std.container 0.1.0 {
 				@array = move array;
 			}
 			
-			template <bool IsConst>
-			map_range<Key, Value, IsConst> all() const(IsConst) noexcept {
-				return map_range<Key, Value, IsConst>(@array.all());
+			map_range<selfconst(pair<Key, Value>)> all() const noexcept {
+				return map_range<selfconst(pair<Key, Value>)>(@array.all());
 			}
 		}
 		

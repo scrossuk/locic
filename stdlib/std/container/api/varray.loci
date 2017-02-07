@@ -19,13 +19,11 @@ import std.container 0.1.0 {
 			
 			bool empty() const noexcept;
 			
-			template <bool IsConst>
-			const<IsConst>(T)* data() const(IsConst) noexcept;
+			selfconst(T)* data() const noexcept;
 			
 			size_t size() const noexcept;
 			
-			template <bool IsConst>
-			const<IsConst>(T)& index(size_t index) const(IsConst) noexcept;
+			selfconst(T)& index(size_t index) const noexcept;
 			
 			void clear() noexcept require(destructible<T>);
 			
@@ -35,25 +33,22 @@ import std.container 0.1.0 {
 			
 			varray<T> copy() const require(movable<T> and copyable<T>);
 			
-			template <bool IsConst>
-			varray_range<T, IsConst> all() const(IsConst) noexcept;
+			varray_range<selfconst(T)> all() const noexcept;
 		}
 		
-		template <sized_type T, bool IsArrayConst>
+		template <sized_type T>
 		class varray_range {
-			varray_range<T, IsArrayConst> implicitCopy() const noexcept;
+			varray_range<selfconst(T)> implicitCopy() const noexcept;
 			
 			bool empty() const noexcept;
 			
 			void skip_front() noexcept;
 			
-			template <bool IsConst>
-			const<IsConst or IsArrayConst>(T)& front() const(IsConst) noexcept;
+			selfconst(T)& front() const noexcept;
 			
 			void skip_back() noexcept;
 			
-			template <bool IsConst>
-			const<IsConst or IsArrayConst>(T)& back() const(IsConst) noexcept;
+			selfconst(T)& back() const noexcept;
 		}
 		
 	}

@@ -17,8 +17,7 @@ import std.container 0.1.0 {
 			
 			void clear() noexcept require(destructible<T>);
 			
-			template <bool IsConst>
-			const<IsConst>(T)& index(const T& value) const(IsConst) noexcept require(noexcept_comparable<T>);
+			selfconst(T)& index(const T& value) const noexcept require(noexcept_comparable<T>);
 			
 			void insert(T value) require(movable<T> and noexcept_comparable<T>);
 			
@@ -28,24 +27,21 @@ import std.container 0.1.0 {
 			
 			void erase(const T& value) require(movable<T> and noexcept_comparable<T>);
 			
-			template <bool IsConst>
-			set_range<T, IsConst> all() const(IsConst) noexcept;
+			set_range<selfconst(T)> all() const noexcept;
 		}
 		
-		template <typename T, bool IsSetConst>
+		template <typename T>
 		require(sized_type<T>)
 		class set_range {
-			set_range<T, IsSetConst> implicit_copy() const noexcept;
+			set_range<T> implicit_copy() const noexcept;
 			
-			set_range<T, IsSetConst> copy() const noexcept;
+			set_range<T> copy() const noexcept;
 			
-			template <bool IsConst>
-			const<IsConst or IsSetConst>(T)& front() const(IsConst);
+			selfconst(T)& front() const;
 			
 			void skip_front();
 			
-			template <bool IsConst>
-			const<IsConst or IsSetConst>(T)& back() const(IsConst);
+			selfconst(T)& back() const;
 			
 			void skip_back();
 			

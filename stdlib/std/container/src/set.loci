@@ -3,15 +3,13 @@ export std.container 0.1.0 {
 	
 	namespace std {
 		
-		template <typename T, bool IsSetConst>
-		require(sized_type<T>)
-		class set_range(varray_range<const<IsSetConst>(T), IsSetConst> range) {
+		template <sized_type T>
+		class set_range(varray_range<T> range) {
 			static create = default;
 			
 			implicit_copy = default;
 			
-			template <bool IsConst>
-			const<IsConst or IsSetConst>(T)& front() const(IsConst) noexcept {
+			selfconst(T)& front() const noexcept {
 				return @range.front();
 			}
 			
@@ -19,8 +17,7 @@ export std.container 0.1.0 {
 				@range.skip_front();
 			}
 			
-			template <bool IsConst>
-			const<IsConst or IsSetConst>(T)& back() const(IsConst) noexcept {
+			selfconst(T)& back() const noexcept {
 				return @range.back();
 			}
 			
@@ -56,8 +53,7 @@ export std.container 0.1.0 {
 				@array.clear();
 			}
 			
-			template <bool IsConst>
-			const<IsConst>(T)& index(const T& value) const(IsConst) noexcept require(noexcept_comparable<T>) {
+			selfconst(T)& index(const T& value) const noexcept require(noexcept_comparable<T>) {
 				for (const auto i: range<size_t>(0, @array.size())) {
 					if (@array[i] == value) {
 						return *(&(@array[i]));
@@ -119,9 +115,8 @@ export std.container 0.1.0 {
 				@array = move array;
 			}
 			
-			template <bool IsConst>
-			set_range<T, IsConst> all() const(IsConst) noexcept {
-				return set_range<T, IsConst>(@array.all());
+			set_range<selfconst(T)> all() const noexcept {
+				return set_range<selfconst(T)>(@array.all());
 			}
 		}
 		
