@@ -267,6 +267,7 @@ namespace locic {
 				case Token::DOUBLE:
 				case Token::UNICHAR:
 				case Token::CONST:
+				case Token::SELFCONST:
 				case Token::MUTABLE:
 				case Token::SIGNED:
 				case Token::UNSIGNED:

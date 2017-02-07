@@ -41,8 +41,13 @@ namespace locic {
 			                       AST::Node<AST::TypeDecl> targetType,
 			                       const Debug::SourcePosition& start);
 			
-			AST::Node<AST::TypeDecl> makeConstType(AST::Node<AST::TypeDecl> targetType,
-			                                   const Debug::SourcePosition& start);
+			AST::Node<AST::TypeDecl>
+			makeConstType(AST::Node<AST::TypeDecl> targetType,
+			              const Debug::SourcePosition& start);
+			
+			AST::Node<AST::TypeDecl>
+			makeSelfConstType(AST::Node<AST::TypeDecl> targetType,
+			                  const Debug::SourcePosition& start);
 			
 			AST::Node<AST::TypeDecl>
 			makeFunctionPointerType(AST::Node<AST::TypeDecl> returnType,

@@ -32,6 +32,7 @@ namespace locic {
 				AUTO,
 				CONST,
 				CONSTPREDICATE,
+				SELFCONST,
 				VOID,
 				BOOL,
 				INTEGER,
@@ -52,6 +53,10 @@ namespace locic {
 				Node<PredicateDecl> predicate;
 				Node<TypeDecl> targetType;
 			} constPredicateType;
+			
+			struct {
+				Node<TypeDecl> targetType;
+			} selfConstType;
 			
 			struct {
 				Node<TypeDecl> targetType;
@@ -107,6 +112,8 @@ namespace locic {
 			static TypeDecl* Const(Node<TypeDecl> targetType);
 			
 			static TypeDecl* ConstPredicate(Node<PredicateDecl> predicate, Node<TypeDecl> targetType);
+			
+			static TypeDecl* SelfConst(Node<TypeDecl> targetType);
 			
 			static TypeDecl* Integer(SignedModifier signedModifier, const String& name);
 			
@@ -174,6 +181,20 @@ namespace locic {
 			const Node<TypeDecl>& getConstPredicateTarget() const {
 				assert(isConstPredicate());
 				return constPredicateType.targetType;
+			}
+			
+			bool isSelfConst() const {
+				return typeEnum == SELFCONST;
+			}
+			
+			Node<TypeDecl>& getSelfConstTarget() {
+				assert(isSelfConst());
+				return selfConstType.targetType;
+			}
+			
+			const Node<TypeDecl>& getSelfConstTarget() const {
+				assert(isSelfConst());
+				return selfConstType.targetType;
 			}
 			
 			bool isReference() const {

@@ -31,6 +31,9 @@ namespace locic {
 			makeFalsePredicate(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::PredicateDecl>
+			makeSelfConstPredicate(const Debug::SourcePosition& start);
+			
+			AST::Node<AST::PredicateDecl>
 			makeBracketPredicate(AST::Node<AST::PredicateDecl> predicate,
 			                     const Debug::SourcePosition& start);
 			

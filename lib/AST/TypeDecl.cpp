@@ -40,6 +40,12 @@ namespace locic {
 			return type;
 		}
 		
+		TypeDecl* TypeDecl::SelfConst(Node<TypeDecl> targetType) {
+			TypeDecl* type = new TypeDecl(SELFCONST);
+			type->selfConstType.targetType = std::move(targetType);
+			return type;
+		}
+		
 		TypeDecl* TypeDecl::Integer(SignedModifier signedModifier, const String& name) {
 			TypeDecl* type = new TypeDecl(INTEGER);
 			type->integerType.signedModifier = signedModifier;
@@ -120,6 +126,9 @@ namespace locic {
 					
 				case CONSTPREDICATE:
 					return std::string("const<[TODO]> ") + getConstPredicateTarget()->toString();
+					
+				case SELFCONST:
+					return std::string("selfconst ") + getSelfConstTarget()->toString();
 					
 				case VOID:
 					return "void";

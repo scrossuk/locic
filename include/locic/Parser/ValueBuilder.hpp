@@ -125,6 +125,9 @@ namespace locic {
 			makeThisValue(const Debug::SourcePosition& start);
 			
 			AST::Node<AST::ValueDecl>
+			makeSelfConstValue(const Debug::SourcePosition& start);
+			
+			AST::Node<AST::ValueDecl>
 			makeAlignOfValue(AST::Node<AST::TypeDecl> operand,
 			                 const Debug::SourcePosition& start);
 			

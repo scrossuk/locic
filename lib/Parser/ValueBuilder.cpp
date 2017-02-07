@@ -174,6 +174,11 @@ namespace locic {
 		}
 		
 		AST::Node<AST::ValueDecl>
+		ValueBuilder::makeSelfConstValue(const Debug::SourcePosition& start) {
+			return makeValueNode(AST::ValueDecl::SelfConst(), start);
+		}
+		
+		AST::Node<AST::ValueDecl>
 		ValueBuilder::makeAlignOfValue(AST::Node<AST::TypeDecl> operand,
 		                               const Debug::SourcePosition& start) {
 			return makeValueNode(AST::ValueDecl::AlignOf(std::move(operand)), start);

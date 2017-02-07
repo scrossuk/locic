@@ -92,6 +92,8 @@ namespace locic {
 			switch (token.kind()) {
 				case Token::CONST:
 					return parseConstType();
+				case Token::SELFCONST:
+					return parseSelfConstType();
 				case Token::LROUNDBRACKET: {
 					if (reader_.peek(/*offset=*/1).kind() == Token::STAR) {
 						return parseFunctionPointerType();
@@ -122,6 +124,13 @@ namespace locic {
 			
 			auto targetType = parseQualifiedType();
 			return builder_.makeConstType(std::move(targetType), start);
+		}
+		
+		AST::Node<AST::TypeDecl> TypeParser::parseSelfConstType() {
+			const auto start = reader_.position();
+			reader_.expect(Token::SELFCONST);
+			auto targetType = parseQualifiedType();
+			return builder_.makeSelfConstType(std::move(targetType), start);
 		}
 		
 		AST::Node<AST::TypeDecl> TypeParser::parseFunctionPointerType() {
@@ -348,6 +357,7 @@ namespace locic {
 				case Token::DOUBLE:
 				case Token::UNICHAR:
 				case Token::CONST:
+				case Token::SELFCONST:
 				case Token::NAME:
 				case Token::LROUNDBRACKET:
 					return true;

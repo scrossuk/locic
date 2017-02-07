@@ -19,6 +19,8 @@ namespace locic {
 					return "self";
 				case THIS:
 					return "this";
+				case SELFCONST:
+					return "selfconst";
 				case BRACKET:
 					return "bracket";
 				case LITERAL:

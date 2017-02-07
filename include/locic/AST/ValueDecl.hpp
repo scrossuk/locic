@@ -54,6 +54,7 @@ namespace locic {
 			enum TypeEnum {
 				SELF,
 				THIS,
+				SELFCONST,
 				BRACKET,
 				LITERAL,
 				SYMBOLREF,
@@ -190,6 +191,10 @@ namespace locic {
 			
 			static ValueDecl* This() {
 				return new ValueDecl(THIS);
+			}
+			
+			static ValueDecl* SelfConst() {
+				return new ValueDecl(SELFCONST);
 			}
 			
 			static ValueDecl* Bracket(Node<ValueDecl> operand) {
@@ -336,6 +341,10 @@ namespace locic {
 			}
 			
 			TypeEnum kind() const;
+			
+			bool isSelfConst() const {
+				return kind() == SELFCONST;
+			}
 			
 			bool isLiteral() const {
 				return kind() == LITERAL;

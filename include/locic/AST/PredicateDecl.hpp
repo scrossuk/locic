@@ -18,6 +18,7 @@ namespace locic {
 				enum Kind {
 					TRUE,
 					FALSE,
+					SELFCONST,
 					BRACKET,
 					TYPESPEC,
 					SYMBOL,
@@ -28,6 +29,8 @@ namespace locic {
 				static PredicateDecl* True();
 				
 				static PredicateDecl* False();
+				
+				static PredicateDecl* SelfConst();
 				
 				static PredicateDecl* Bracket(Node<PredicateDecl> expr);
 				

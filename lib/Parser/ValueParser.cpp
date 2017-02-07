@@ -106,6 +106,7 @@ namespace locic {
 				case Token::DOUBLE:
 				case Token::UNICHAR:
 				case Token::CONST:
+				case Token::SELFCONST:
 				case Token::SIGNED:
 				case Token::UNSIGNED:
 					return true;
@@ -700,6 +701,7 @@ namespace locic {
 			switch (operand->kind()) {
 				case AST::ValueDecl::SELF:
 				case AST::ValueDecl::THIS:
+				case AST::ValueDecl::SELFCONST:
 				case AST::ValueDecl::BRACKET:
 				case AST::ValueDecl::LITERAL:
 				case AST::ValueDecl::SYMBOLREF:
@@ -835,6 +837,7 @@ namespace locic {
 					       canInterpretValueAsType(value->merge.second);
 				case AST::ValueDecl::SELF:
 				case AST::ValueDecl::THIS:
+				case AST::ValueDecl::SELFCONST:
 				case AST::ValueDecl::LITERAL:
 				case AST::ValueDecl::MEMBERREF:
 				case AST::ValueDecl::ALIGNOF:
@@ -873,6 +876,7 @@ namespace locic {
 					}
 				case AST::ValueDecl::SELF:
 				case AST::ValueDecl::THIS:
+				case AST::ValueDecl::SELFCONST:
 				case AST::ValueDecl::LITERAL:
 				case AST::ValueDecl::MEMBERREF:
 				case AST::ValueDecl::ALIGNOF:
@@ -965,6 +969,14 @@ namespace locic {
 				case Token::REINTERPRET_CAST: {
 					return parseCastValue();
 				}
+				case Token::SELFCONST: {
+					const auto next = reader_.peek(/*offset=*/1).kind();
+					if (TypeParser(reader_).isTypeStartToken(next)) {
+						break;
+					}
+					reader_.consume();
+					return builder_.makeSelfConstValue(start);
+				}
 				default:
 					break;
 			}
@@ -990,6 +1002,7 @@ namespace locic {
 			switch (operand->kind()) {
 				case AST::ValueDecl::SELF:
 				case AST::ValueDecl::THIS:
+				case AST::ValueDecl::SELFCONST:
 				case AST::ValueDecl::BRACKET:
 				case AST::ValueDecl::LITERAL:
 				case AST::ValueDecl::SYMBOLREF:

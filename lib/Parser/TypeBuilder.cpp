@@ -54,6 +54,12 @@ namespace locic {
 		}
 		
 		AST::Node<AST::TypeDecl>
+		TypeBuilder::makeSelfConstType(AST::Node<AST::TypeDecl> targetType,
+		                               const Debug::SourcePosition& start) {
+			return makeTypeNode(AST::TypeDecl::SelfConst(std::move(targetType)), start);
+		}
+		
+		AST::Node<AST::TypeDecl>
 		TypeBuilder::makeFunctionPointerType(AST::Node<AST::TypeDecl> returnType,
 		                                     AST::Node<AST::TypeDeclList> paramTypes,
 		                                     const bool isVarArg,

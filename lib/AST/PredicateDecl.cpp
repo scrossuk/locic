@@ -20,6 +20,10 @@ namespace locic {
 			return new PredicateDecl(FALSE);
 		}
 		
+		PredicateDecl* PredicateDecl::SelfConst() {
+			return new PredicateDecl(SELFCONST);
+		}
+		
 		PredicateDecl* PredicateDecl::Bracket(Node<PredicateDecl>expr) {
 			PredicateDecl* predicate = new PredicateDecl(BRACKET);
 			predicate->bracket_.expr = std::move(expr);
@@ -117,6 +121,8 @@ namespace locic {
 					return "True";
 				case FALSE:
 					return "False";
+				case SELFCONST:
+					return "SelfConst";
 				case  BRACKET:
 					return makeString("Bracket(%s)", bracketExpr().toString().c_str());
 				case TYPESPEC:

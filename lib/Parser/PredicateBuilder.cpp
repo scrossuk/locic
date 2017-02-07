@@ -30,6 +30,11 @@ namespace locic {
 		}
 		
 		AST::Node<AST::PredicateDecl>
+		PredicateBuilder::makeSelfConstPredicate(const Debug::SourcePosition& start) {
+			return makePredicateNode(AST::PredicateDecl::SelfConst(), start);
+		}
+		
+		AST::Node<AST::PredicateDecl>
 		PredicateBuilder::makeBracketPredicate(AST::Node<AST::PredicateDecl> predicate,
 		                                       const Debug::SourcePosition& start) {
 			return makePredicateNode(AST::PredicateDecl::Bracket(std::move(predicate)), start);

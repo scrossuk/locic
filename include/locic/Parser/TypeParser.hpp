@@ -34,6 +34,8 @@ namespace locic {
 			
 			AST::Node<AST::TypeDecl> parseConstType();
 			
+			AST::Node<AST::TypeDecl> parseSelfConstType();
+			
 			AST::Node<AST::TypeDecl> parseFunctionPointerType();
 			
 			AST::Node<AST::TypeDeclList> parseTypeList();

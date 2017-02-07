@@ -59,6 +59,9 @@ namespace locic {
 				case Token::FALSEVAL:
 					reader_.consume();
 					return builder_.makeFalsePredicate(start);
+				case Token::SELFCONST:
+					reader_.consume();
+					return builder_.makeSelfConstPredicate(start);
 				case Token::LROUNDBRACKET: {
 					reader_.consume();
 					auto predicate = parsePredicate();
