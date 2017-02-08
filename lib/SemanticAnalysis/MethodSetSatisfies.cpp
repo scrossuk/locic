@@ -238,10 +238,21 @@ namespace locic {
 		constexpr bool DEBUG_METHOD_SET = false;
 		
 		OptionalDiag
-		methodSetElementSatisfiesRequirement(Context& context, const AST::Predicate& checkConstPredicate,
+		methodSetElementSatisfiesRequirement(Context& context, const AST::Predicate& checkSelfConst,
+		                                     const AST::Predicate& requireSelfConst,
 		                                     const String& functionName,
 		                                     const AST::MethodSetElement& checkFunctionElement,
 		                                     const AST::MethodSetElement& requireFunctionElement) {
+			
+			const auto requireConst = reducePredicate(context, requireFunctionElement.constPredicate().substitute(AST::TemplateVarMap(),
+			                                                                                                      /*selfconst=*/requireSelfConst));
+			
+			if (!requireFunctionElement.isStatic() && !requireSelfConst.implies(requireConst)) {
+				// Skip because required method is non-const
+				// inside const parent.
+				return OptionalDiag();
+			}
+			
 			const auto satisfyTemplateVarMap = generateSatisfyTemplateVarMap(checkFunctionElement, requireFunctionElement);
 			
 			// Can't cast between static/non-static methods.
@@ -258,77 +269,81 @@ namespace locic {
 				                                          requireFunctionElement.isStatic()));
 			}
 			
-			const auto reducedConstPredicate = reducePredicate(context, checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap,
-			                                                                                                             /*selfconst=*/AST::Predicate::SelfConst()));
+			const auto checkConst = reducePredicate(context, checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap,
+			                                                                                                  /*selfconst=*/checkSelfConst));
 			
 			// The method set's const predicate needs to imply the method's
 			// const predicate.
-			if (!checkFunctionElement.isStatic() && !checkConstPredicate.implies(reducedConstPredicate)) {
+			if (!checkFunctionElement.isStatic() && !checkSelfConst.implies(checkConst)) {
 				if (DEBUG_METHOD_SET_ELEMENT) {
 					printf("\nConst parent predicate implication failed for '%s'.\n    Parent: %s\n    Method: %s\n\n",
 					       functionName.c_str(),
-					       checkConstPredicate.toString().c_str(),
-					       reducedConstPredicate.toString().c_str()
+					       checkSelfConst.toString().c_str(),
+					       checkConst.toString().c_str()
 					);
 				}
-				if (checkConstPredicate.isTrue() && reducedConstPredicate.isFalse()) {
+				if (checkSelfConst.isTrue() && checkConst.isFalse()) {
 					return OptionalDiag(ParentIsConstMethodIsNotDiag(functionName));
 				}
 				
-				return OptionalDiag(ParentConstPredicateImplicationFailedDiag(functionName, checkConstPredicate,
-				                                                              reducedConstPredicate));
+				return OptionalDiag(ParentConstPredicateImplicationFailedDiag(functionName, checkSelfConst,
+				                                                              checkSelfConst));
 			}
 			
 			// The requirement method's const predicate needs to imply the
 			// const predicate of the provided method (e.g. if the requirement
 			// method is const, then the provided method must also be, but not
 			// vice versa).
-			if (!requireFunctionElement.constPredicate().implies(reducedConstPredicate)) {
+			if (!requireConst.implies(checkConst)) {
 				if (DEBUG_METHOD_SET_ELEMENT) {
 					printf("\nConst predicate implication failed for '%s'.\n    Source: %s\n    Require: %s\n\n",
 					       functionName.c_str(),
-					       reducedConstPredicate.toString().c_str(),
-					       requireFunctionElement.constPredicate().toString().c_str()
+					       checkConst.toString().c_str(),
+					       requireConst.toString().c_str()
 					);
 				}
 				return OptionalDiag(ConstPredicateImplicationFailedDiag(functionName,
-				                                                        requireFunctionElement.constPredicate(),
-				                                                        reducedConstPredicate));
+				                                                        requireConst,
+				                                                        checkConst));
 			}
 			
-			const auto reducedRequirePredicate = reducePredicate(context, checkFunctionElement.requirePredicate().substitute(satisfyTemplateVarMap,
-			                                                                                                                 /*selfconst=*/AST::Predicate::SelfConst()));
+			const auto checkRequire = reducePredicate(context, checkFunctionElement.requirePredicate().substitute(satisfyTemplateVarMap,
+			                                                                                                        /*selfconst=*/checkSelfConst));
+			const auto requireRequire = reducePredicate(context, requireFunctionElement.requirePredicate().substitute(AST::TemplateVarMap(),
+			                                                                                                          /*selfconst=*/requireSelfConst));
 			
 			// The requirement method's require predicate needs to imply the
 			// require predicate of the provided method.
-			if (!requireFunctionElement.requirePredicate().implies(reducedRequirePredicate)) {
+			if (!requireRequire.implies(checkRequire)) {
 				if (DEBUG_METHOD_SET_ELEMENT) {
 					printf("\nRequire predicate implication failed for '%s'.\n    Source: %s\n    Require: %s\n\n",
 					       functionName.c_str(),
-					       reducedRequirePredicate.toString().c_str(),
-					       requireFunctionElement.requirePredicate().toString().c_str()
+					       checkRequire.toString().c_str(),
+					       requireRequire.toString().c_str()
 					);
 				}
 				return OptionalDiag(RequirePredicateImplicationFailedDiag(functionName,
-				                                                          requireFunctionElement.requirePredicate(),
-				                                                          reducedRequirePredicate));
+				                                                          requireRequire,
+				                                                          checkRequire));
 			}
 			
-			const auto reducedNoexceptPredicate = reducePredicate(context, checkFunctionElement.noexceptPredicate().substitute(satisfyTemplateVarMap,
-			                                                                                                                   /*selfconst=*/AST::Predicate::SelfConst()));
+			const auto checkNoexcept = reducePredicate(context, checkFunctionElement.noexceptPredicate().substitute(satisfyTemplateVarMap,
+			                                                                                                        /*selfconst=*/checkSelfConst));
+			const auto requireNoexcept = reducePredicate(context, requireFunctionElement.noexceptPredicate().substitute(AST::TemplateVarMap(),
+			                                                                                                            /*selfconst=*/requireSelfConst));
 			
 			// Can't cast throwing method to noexcept method.
-			if (!requireFunctionElement.noexceptPredicate().implies(reducedNoexceptPredicate)) {
+			if (!requireNoexcept.implies(checkNoexcept)) {
 				if (DEBUG_METHOD_SET_ELEMENT) {
 					printf("\nNoexcept predicate implication failed for '%s'.\n    Source: %s\n    Require: %s\n\n",
 					       functionName.c_str(),
-					       reducedNoexceptPredicate.toString().c_str(),
-					       requireFunctionElement.noexceptPredicate().toString().c_str()
+					       checkNoexcept.toString().c_str(),
+					       requireNoexcept.toString().c_str()
 					);
 				}
 				return OptionalDiag(NoexceptPredicateImplicationFailedDiag(functionName,
-				                                                           requireFunctionElement.noexceptPredicate(),
-				                                                           reducedNoexceptPredicate));
+				                                                           requireNoexcept,
+				                                                           checkNoexcept));
 			}
 			
 			const auto& firstList = checkFunctionElement.parameterTypes();
@@ -347,11 +362,12 @@ namespace locic {
 			}
 			
 			for (size_t i = 0; i < firstList.size(); i++) {
-				const auto sourceParamType = firstList.at(i)->substitute(satisfyTemplateVarMap,
-				                                                         /*selfconst=*/AST::Predicate::SelfConst());
-				const auto requireParamType = secondList.at(i);
+				const auto checkParamType = firstList.at(i)->substitute(satisfyTemplateVarMap,
+				                                                         /*selfconst=*/checkSelfConst);
+				const auto requireParamType = secondList.at(i)->substitute(AST::TemplateVarMap(),
+				                                                           /*selfconst=*/requireSelfConst);
 				const auto castParamType =
-				    ImplicitCastTypeFormatOnly(context, requireParamType, sourceParamType,
+				    ImplicitCastTypeFormatOnly(context, requireParamType, checkParamType,
 				                               Debug::SourceLocation::Null());
 				
 				if (castParamType == nullptr) {
@@ -359,32 +375,34 @@ namespace locic {
 						printf("\nParameter types don't match for '%s' (param %llu).\n    Source: %s\n    Require: %s\n\n",
 						       functionName.c_str(),
 						       (unsigned long long) i,
-						       sourceParamType->toString().c_str(),
+						       checkParamType->toString().c_str(),
 						       requireParamType->toString().c_str()
 						);
 					}
-					return OptionalDiag(ParamTypeMismatchDiag(functionName, i, sourceParamType,
+					return OptionalDiag(ParamTypeMismatchDiag(functionName, i, checkParamType,
 					                                          requireParamType));
 				}
 			}
 
-			const auto sourceReturnType =
+			const auto checkReturnType =
 			    checkFunctionElement.returnType()->substitute(satisfyTemplateVarMap,
-			                                                  /*selfconst=*/AST::Predicate::SelfConst());
-			const auto requireReturnType = requireFunctionElement.returnType();
+			                                                  /*selfconst=*/checkSelfConst);
+			const auto requireReturnType =
+			    requireFunctionElement.returnType()->substitute(AST::TemplateVarMap(),
+			                                                    /*selfconst=*/requireSelfConst);
 			const auto castReturnType =
-			    ImplicitCastTypeFormatOnly(context, sourceReturnType, requireReturnType,
+			    ImplicitCastTypeFormatOnly(context, checkReturnType, requireReturnType,
 			                               Debug::SourceLocation::Null());
 
 			if (castReturnType == nullptr) {
 				if (DEBUG_METHOD_SET_ELEMENT) {
 					printf("\nReturn type doesn't match for '%s'.\n    Source: %s\n    Require: %s\n\n",
 					       functionName.c_str(),
-					       sourceReturnType->toString().c_str(),
+					       checkReturnType->toString().c_str(),
 					       requireReturnType->toString().c_str()
 					);
 				}
-				return OptionalDiag(ReturnTypeMismatchDiag(functionName, sourceReturnType,
+				return OptionalDiag(ReturnTypeMismatchDiag(functionName, checkReturnType,
 				                                           requireReturnType));
 			}
 			
@@ -412,8 +430,8 @@ namespace locic {
 			auto checkIterator = checkSet->begin();
 			auto requireIterator = requireSet->begin();
 			
-			const auto checkConstPredicate = reducePredicate(context, checkSet->constPredicate().copy());
-			const auto requireConstPredicate = reducePredicate(context, requireSet->constPredicate().copy());
+			const auto checkSelfConst = reducePredicate(context, checkSet->constPredicate().copy());
+			const auto requireSelfConst = reducePredicate(context, requireSet->constPredicate().copy());
 			
 			for (; requireIterator != requireSet->end(); ++checkIterator) {
 				const auto& requireFunctionName = requireIterator->first;
@@ -442,16 +460,9 @@ namespace locic {
 					continue;
 				}
 				
-				const auto requireMethodConstPredicate = reducePredicate(context, requireFunctionElement.constPredicate().copy());
-				
-				if (!requireConstPredicate.implies(requireMethodConstPredicate)) {
-					// Skip because required method is non-const inside
-					// const parent.
-					continue;
-				}
-				
 				auto optionalDiag =
-				    methodSetElementSatisfiesRequirement(context, checkConstPredicate,
+				    methodSetElementSatisfiesRequirement(context, checkSelfConst,
+				                                         requireSelfConst,
 				                                         checkFunctionName, checkFunctionElement,
 				                                         requireFunctionElement);
 				if (!optionalDiag) {
