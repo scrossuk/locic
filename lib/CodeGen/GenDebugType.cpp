@@ -18,6 +18,7 @@
 #include <locic/CodeGen/Mangling.hpp>
 #include <locic/CodeGen/Module.hpp>
 #include <locic/CodeGen/Primitives.hpp>
+#include <locic/CodeGen/Primitives/RefPrimitive.hpp>
 #include <locic/CodeGen/Support.hpp>
 #include <locic/CodeGen/Template.hpp>
 #include <locic/CodeGen/TypeGenerator.hpp>
@@ -69,31 +70,6 @@ namespace locic {
 			}
 		}
 		
-		namespace {
-			
-			bool isVirtualnessKnown(const AST::Type* const type) {
-				// Virtual template variables may or may not be
-				// instantiated with virtual types.
-				return !type->isTemplateVar() ||
-					!type->getTemplateVar()->isVirtual();
-			}
-			
-			const AST::Type* getRefTarget(const AST::Type* const type) {
-				const auto refTarget = type->templateArguments().at(0).typeRefType();
-				return refTarget->resolveAliases();
-			}
-			
-			bool isRefVirtualnessKnown(const AST::Type* const type) {
-				return isVirtualnessKnown(getRefTarget(type));
-			}
-			
-			bool isRefVirtual(const AST::Type* const type) {
-				assert(isRefVirtualnessKnown(type));
-				return getRefTarget(type)->isInterface();
-			}
-			
-		}
-		
 		DIType genPrimitiveDebugType(Module& module, const AST::Type* const type) {
 			switch (type->primitiveID()) {
 				case PrimitiveVoid:
@@ -106,10 +82,11 @@ namespace locic {
 					// TODO: Add other integer types.
 					return module.debugBuilder().createIntType(PrimitiveInt);
 				case PrimitiveRef: {
-					if (isRefVirtualnessKnown(type)) {
-						const auto targetDebugType = genDebugType(module,
-						                                          type->templateArguments().front().typeRefType());
-						if (isRefVirtual(type)) {
+					RefPrimitive refPrimitive(*(type->getObjectType()));
+					const auto targetType = type->templateArguments()[0].typeRefType();
+					if (refPrimitive.isAbstractnessKnown(targetType)) {
+						const auto targetDebugType = genDebugType(module, targetType);
+						if (refPrimitive.isAbstract(targetType)) {
 							// TODO?
 							return module.debugBuilder().createUnspecifiedType(module.getCString("ref_t"));
 						} else {
