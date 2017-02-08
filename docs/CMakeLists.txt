@@ -14,6 +14,7 @@ set(PROPOSAL_FILES
 	proposals/StyleRules.rst
 	proposals/VariadicTemplates.rst
 	proposals/VectorTypes.rst
+	proposals/VirtualTemplateVariables.rst
 )
 
 set(SPHINX_INPUT_FILES

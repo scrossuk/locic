@@ -184,6 +184,7 @@ These features are either still in the design stage or are awaiting implementati
 	proposals/StyleRules
 	proposals/VariadicTemplates
 	proposals/VectorTypes
+	proposals/VirtualTemplateVariables
 
 Additional Topics
 -----------------
