@@ -12,7 +12,7 @@ export std.container 0.1.0 {
 			
 			selfconst(const<IsConst>(T))& front() const {
 				assert !self.empty();
-				return *(&(@begin->value));
+				return @begin->value;
 			}
 			
 			void skip_front() {
@@ -27,7 +27,7 @@ export std.container 0.1.0 {
 			
 			selfconst(const<IsConst>(T))& back() const {
 				assert !self.empty();
-				return *(&(@end->value));
+				return @end->value;
 			}
 			
 			void skip_back() {
