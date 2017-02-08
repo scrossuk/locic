@@ -48,9 +48,6 @@ namespace locic {
 			const Type* type() const;
 			void setType(const Type* type);
 			
-			bool isVirtual() const;
-			void setVirtual(bool isVirtual);
-			
 			Value selfRefValue() const;
 			const Type* selfRefType() const;
 			
@@ -67,7 +64,6 @@ namespace locic {
 			String name_;
 			Name fullName_;
 			size_t index_;
-			bool isVirtual_;
 			Node<TypeDecl> specType_;
 			Optional<Debug::TemplateVarInfo> debugInfo_;
 			

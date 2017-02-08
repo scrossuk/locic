@@ -169,9 +169,6 @@ namespace locic {
 				
 				templateVarNode->setContext(context.astContext());
 				
-				// TODO!
-				templateVarNode->setVirtual(typeInstanceName == "ref_t");
-				
 				templateVarNode->setFullName(fullTypeName + templateVarName);
 				
 				templateVarNode->setIndex(templateVarIndex++);

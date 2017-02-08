@@ -36,7 +36,7 @@ namespace locic {
 		
 		TemplateVar::TemplateVar()
 		: context_(nullptr), type_(nullptr), selfRefType_(nullptr),
-		index_(-1), isVirtual_(false) { }
+		index_(-1) { }
 		
 		Context& TemplateVar::context() const {
 			assert(context_ != nullptr);
@@ -110,14 +110,6 @@ namespace locic {
 				templateArgs.push_back(std::move(typeRef));
 				type_ = Type::Object(&typenameTypeInstance, std::move(templateArgs));
 			}
-		}
-		
-		bool TemplateVar::isVirtual() const {
-			return isVirtual_;
-		}
-		
-		void TemplateVar::setVirtual(bool pIsVirtual) {
-			isVirtual_ = pIsVirtual;
 		}
 		
 		Value TemplateVar::selfRefValue() const {
