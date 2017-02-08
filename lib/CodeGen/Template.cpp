@@ -169,16 +169,6 @@ namespace locic {
 			return constGen.getStruct(static_cast<llvm::StructType*>(type), values);
 		}
 		
-		bool hasTemplateVirtualTypeArgument(llvm::ArrayRef<const AST::Type*> arguments) {
-			for (size_t i = 0; i < arguments.size(); i++) {
-				if (arguments[i]->isInterface()) {
-					return true;
-				}
-			}
-			
-			return false;
-		}
-		
 		llvm::Value* computeTemplateGenerator(Function& function, const TemplateInst& templateInst) {
 			auto& module = function.module();
 			auto& builder = function.getEntryBuilder();
