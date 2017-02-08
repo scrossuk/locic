@@ -89,6 +89,21 @@ It's possible to specify a :ref:`predicate <const-predicates>` within the ``cons
 
 The ``run()`` method of ``RunWrapper`` requires that ``T`` has a ``run()`` method, using a :ref:`require() predicate <require-predicates>`. Furthermore, if the ``run()`` method of ``T`` is ``const`` then the ``run()`` method of ``RunWrapper`` will **also** be ``const``.
 
+selfconst
++++++++++
+
+``selfconst`` is a convenient mechanism to indicate that a method signature (typically the return type) depends on whether ``self`` is ``const``:
+
+.. code-block:: c++
+
+	class Array {
+		selfconst(int)& index(size_t size) const noexcept;
+	}
+
+This tells the compiler that the ``index()`` method won't modify the ``Array`` object, however it can return a non-``const`` reference if ``self`` is non-``const``.
+
+``selfconst`` can also be used as a predicate value; ``selfconst(Type)`` is equivalent to ``const<selfconst>(Type)``.
+
 Properties
 ----------
 
