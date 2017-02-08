@@ -56,7 +56,7 @@ namespace locic {
 				
 				// 'auto' is pattern matching, so in this
 				// case it can match the source type.
-				return sourceType->withoutTags();
+				return sourceType->stripConst();
 			}
 			
 			if (sourceType->kind() != destType->kind()) {
@@ -130,7 +130,7 @@ namespace locic {
 						                  location);
 						throw SkipException();
 					}
-					return sourceType->withoutTags();
+					return sourceType->stripConst();
 				}
 			}
 			
@@ -172,7 +172,7 @@ namespace locic {
 			
 			// Non-const 'auto' can match 'const T', and in that case
 			// the resulting type must be const.
-			return resultType->createConstType(AST::Predicate::Or(sourceType->constPredicate().copy(), destType->constPredicate().copy()));
+			return resultType->applyConst(AST::Predicate::Or(sourceType->constPredicate().copy(), destType->constPredicate().copy()));
 		}
 
 		inline static const AST::Type*

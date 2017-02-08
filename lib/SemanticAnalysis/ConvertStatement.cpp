@@ -487,7 +487,7 @@ namespace locic {
 				case AST::StatementDecl::SWITCH: {
 					auto value = ConvertValue(context, statement->switchValue());
 					
-					const auto switchType = getDerefType(value.type())->resolveAliases()->withoutConst();
+					const auto switchType = getDerefType(value.type())->resolveAliases()->stripConst();
 					
 					std::map<const AST::TypeInstance*, const AST::Type*> switchCaseTypes;
 					

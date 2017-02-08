@@ -47,10 +47,8 @@ namespace locic {
 				
 				const Predicate& constPredicate() const;
 				
-				const Type* createConstType(Predicate predicate) const;
-				
-				const Type* withoutConst() const;
-				const Type* withoutTags() const;
+				const Type* applyConst(Predicate predicate) const;
+				const Type* stripConst() const;
 				
 				bool isAuto() const;
 				bool isAlias() const;
@@ -173,7 +171,7 @@ namespace locic {
 				} data_;
 				
 				mutable const Type* cachedResolvedType_;
-				mutable const Type* cachedWithoutTagsType_;
+				mutable const Type* cachedStripConstType_;
 				mutable Optional<size_t> cachedHashValue_;
 				mutable Optional<FunctionType> cachedFunctionType_;
 				

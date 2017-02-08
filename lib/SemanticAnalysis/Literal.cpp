@@ -241,7 +241,7 @@ namespace locic {
 					const auto byteType = getBuiltInType(context, context.getCString("ubyte_t"), {});
 					
 					// Generate type 'const ubyte'.
-					const auto constByteType = byteType->createConstType(AST::Predicate::True());
+					const auto constByteType = byteType->applyConst(AST::Predicate::True());
 					
 					// Generate type 'const ubyte *'.
 					return getBuiltInType(context, context.getCString("ptr_t"), { constByteType });

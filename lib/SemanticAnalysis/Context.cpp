@@ -279,7 +279,7 @@ namespace locic {
 			
 			auto predicate = thisFunction->constPredicate().copy();
 			predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::SelfConst());
-			const auto selfConstType = selfType->createConstType(std::move(predicate));
+			const auto selfConstType = selfType->applyConst(std::move(predicate));
 			return createSelfRef(context, selfConstType);
 		}
 		
@@ -319,7 +319,7 @@ namespace locic {
 			
 			auto predicate = thisFunction->constPredicate().copy();
 			predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::SelfConst());
-			const auto selfConstType = selfType->createConstType(std::move(predicate));
+			const auto selfConstType = selfType->applyConst(std::move(predicate));
 			return AST::Value::This(getBuiltInType(context, context.getCString("ptr_t"), { selfConstType }));
 		}
 		

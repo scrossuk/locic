@@ -135,7 +135,7 @@ namespace locic {
 				predicate = AST::Predicate::And(std::move(predicate),
 				                                AST::Predicate::SelfConst());
 			}
-			return substitutedVarType->createConstType(std::move(predicate));
+			return substitutedVarType->applyConst(std::move(predicate));
 		}
 		
 		AST::Value createMemberVarRef(Context& context, AST::Value object, const AST::Var& var,

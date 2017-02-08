@@ -94,7 +94,7 @@ namespace locic {
 			
 			const auto basicType = preFunction(doApplyType<CheckFunction, PreFunction, PostFunction>(type, checkFunction, preFunction, postFunction));
 			
-			const auto constType = basicType->createConstType(Predicate::Or(basicType->constPredicate().copy(), type->constPredicate().copy()));
+			const auto constType = basicType->applyConst(type->constPredicate().copy());
 			
 			return postFunction(constType);
 		}
@@ -143,7 +143,7 @@ namespace locic {
 			context_(pContext), kind_(pKind),
 			constPredicate_(Predicate::False()),
 			cachedResolvedType_(nullptr),
-			cachedWithoutTagsType_(nullptr) { }
+			cachedStripConstType_(nullptr) { }
 		
 		const Context& Type::context() const {
 			return context_;
@@ -157,27 +157,26 @@ namespace locic {
 			return constPredicate_;
 		}
 		
-		const Type* Type::createConstType(Predicate predicate) const {
-			if (constPredicate() == predicate) {
+		const Type* Type::applyConst(Predicate predicate) const {
+			if (constPredicate() == predicate || predicate.isFalse()) {
+				// const<A>(const<A>(T)) == const<A>(T)
+				// const<false>(const<A>(T)) == const<A>(T)
 				return this;
 			}
 			
 			Type typeCopy = copy();
-			typeCopy.constPredicate_ = std::move(predicate);
+			typeCopy.constPredicate_ = Predicate::Or(constPredicate().copy(),
+			                                         std::move(predicate));
 			return context_.getType(std::move(typeCopy));
 		}
 		
-		const Type* Type::withoutConst() const {
-			return createConstType(Predicate::False());
-		}
-		
-		const Type* Type::withoutTags() const {
-			if (cachedWithoutTagsType_ != nullptr) {
-				return cachedWithoutTagsType_;
+		const Type* Type::stripConst() const {
+			if (cachedStripConstType_ != nullptr) {
+				return cachedStripConstType_;
 			}
 			
 			if (constPredicate().isFalse()) {
-				cachedWithoutTagsType_ = this;
+				cachedStripConstType_ = this;
 				return this;
 			}
 			
@@ -185,7 +184,7 @@ namespace locic {
 			typeCopy.constPredicate_ = Predicate::False();
 			
 			const auto result = context_.getType(std::move(typeCopy));
-			cachedWithoutTagsType_ = result;
+			cachedStripConstType_ = result;
 			return result;
 		}
 		
@@ -534,7 +533,7 @@ namespace locic {
 		                const Predicate& selfconst) {
 			switch (type->kind()) {
 				case Type::AUTO: {
-					return type->withoutTags();
+					return type->stripConst();
 				}
 				case Type::OBJECT: {
 					ValueArray templateArgs;
@@ -552,7 +551,7 @@ namespace locic {
 					if (changed) {
 						return Type::Object(type->getObjectType(), std::move(templateArgs));
 					} else {
-						return type->withoutTags();
+						return type->stripConst();
 					}
 				}
 				case Type::TEMPLATEVAR: {
@@ -562,7 +561,7 @@ namespace locic {
 						assert(substituteValue.isTypeRef());
 						return substituteValue.typeRefType();
 					} else {
-						return type->withoutTags();
+						return type->stripConst();
 					}
 				}
 				case Type::ALIAS: {
@@ -581,7 +580,7 @@ namespace locic {
 					if (changed) {
 						return Type::Alias(type->alias(), std::move(templateArgs));
 					} else {
-						return type->withoutTags();
+						return type->stripConst();
 					}
 				}
 			}
@@ -595,13 +594,9 @@ namespace locic {
 			const auto basicType = basicSubstitute(type, templateVarMap,
 			                                       selfconst);
 			
-			return basicType->createConstType(
-					Predicate::Or(
-						basicType->constPredicate().substitute(templateVarMap,
-						                                       selfconst),
-						type->constPredicate().substitute(templateVarMap,
-						                                  selfconst)
-					)
+			return basicType->applyConst(
+					type->constPredicate().substitute(templateVarMap,
+					                                  selfconst)
 				);
 		}
 		

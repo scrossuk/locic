@@ -131,15 +131,15 @@ namespace locic {
 					return AST::Type::Auto(context_.astContext());
 				}
 				case AST::TypeDecl::CONST: {
-					return resolveType(type->getConstTarget())->createConstType(AST::Predicate::True());
+					return resolveType(type->getConstTarget())->applyConst(AST::Predicate::True());
 				}
 				case AST::TypeDecl::CONSTPREDICATE: {
 					auto constPredicate = ConvertPredicate(context_, type->getConstPredicate());
 					const auto constTarget = resolveType(type->getConstPredicateTarget());
-					return constTarget->createConstType(std::move(constPredicate));
+					return constTarget->applyConst(std::move(constPredicate));
 				}
 				case AST::TypeDecl::SELFCONST: {
-					return resolveType(type->getSelfConstTarget())->createConstType(AST::Predicate::SelfConst());
+					return resolveType(type->getSelfConstTarget())->applyConst(AST::Predicate::SelfConst());
 				}
 				case AST::TypeDecl::VOID: {
 					return context_.typeBuilder().getVoidType();

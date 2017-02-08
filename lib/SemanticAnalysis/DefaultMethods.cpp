@@ -110,17 +110,16 @@ namespace locic {
 			
 			// All member variables need to be copyable.
 			for (const auto& var: typeInstance->variables()) {
-				const auto varType = var->type()->withoutTags();
-				const auto copyableType = getBuiltInType(context, propertyName, { varType });
-				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
+				const auto requireType = getBuiltInType(context, propertyName, { var->type() });
+				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(var->type(), requireType));
 			}
 			
 			if (!typeInstance->isVariant()) return predicate;
 			
 			// All variants need to be copyable.
 			for (const auto variantType: typeInstance->variantTypes()) {
-				const auto copyableType = getBuiltInType(context, propertyName, { variantType });
-				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(variantType, copyableType));
+				const auto requireType = getBuiltInType(context, propertyName, { variantType });
+				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(variantType, requireType));
 			}
 			
 			return predicate;
@@ -147,17 +146,16 @@ namespace locic {
 			
 			// All member variables need to be copyable.
 			for (const auto& var: typeInstance->variables()) {
-				const auto varType = var->type()->withoutTags();
-				const auto copyableType = getBuiltInType(context, propertyName, { varType });
-				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(varType, copyableType));
+				const auto requireType = getBuiltInType(context, propertyName, { var->type() });
+				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(var->type(), requireType));
 			}
 			
 			if (!typeInstance->isVariant()) return predicate;
 			
 			// All variants need to be copyable.
 			for (const auto variantType: typeInstance->variantTypes()) {
-				const auto copyableType = getBuiltInType(context, propertyName, { variantType });
-				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(variantType, copyableType));
+				const auto requireType = getBuiltInType(context, propertyName, { variantType });
+				predicate = AST::Predicate::And(std::move(predicate), AST::Predicate::Satisfies(variantType, requireType));
 			}
 			
 			return predicate;
@@ -449,7 +447,7 @@ namespace locic {
 			auto noExceptPredicate = getDefaultCompareNoExceptPredicate(context_, typeInstance);
 			
 			const auto selfType = typeInstance->selfType();
-			const auto argType = createReferenceType(context_, selfType->createConstType(AST::Predicate::True()));
+			const auto argType = createReferenceType(context_, selfType->applyConst(AST::Predicate::True()));
 			const auto compareResultType = getBuiltInType(context_, context_.getCString("compare_result_t"), {});
 			
 			AST::TypeArray argTypes;

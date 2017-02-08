@@ -102,49 +102,49 @@ namespace locic {
 		
 		bool
 		TypeCapabilities::supportsImplicitCopy(const AST::Type* const type) {
-			return isSized(type->resolveAliases()->withoutTags()) &&
+			return isSized(type) &&
 				checkCapability(type, context_.getCString("implicit_copyable_t"),
-				                { type->resolveAliases()->withoutTags() });
+				                { type });
 		}
 		
 		bool
 		TypeCapabilities::supportsNoExceptImplicitCopy(const AST::Type* const type) {
-			return isSized(type->resolveAliases()->withoutTags()) &&
+			return isSized(type) &&
 				checkCapability(type, context_.getCString("noexcept_implicit_copyable_t"),
-				                { type->resolveAliases()->withoutTags() });
+				                { type });
 		}
 		
 		bool
 		TypeCapabilities::supportsExplicitCopy(const AST::Type* const type) {
-			return isSized(type->resolveAliases()->withoutTags()) &&
+			return isSized(type) &&
 				checkCapability(type, context_.getCString("copyable_t"),
-				                { type->resolveAliases()->withoutTags() });
+				                { type });
 		}
 		
 		bool
 		TypeCapabilities::supportsNoExceptExplicitCopy(const AST::Type* const type) {
-			return isSized(type->resolveAliases()->withoutTags()) &&
+			return isSized(type) &&
 				checkCapability(type, context_.getCString("noexcept_copyable_t"),
-				                { type->resolveAliases()->withoutTags() });
+				                { type });
 		}
 		
 		bool
 		TypeCapabilities::supportsCompare(const AST::Type* const type) {
 			return checkCapability(type, context_.getCString("comparable_t"),
-			                       { type->resolveAliases()->withoutTags() });
+			                       { type });
 		}
 		
 		bool
 		TypeCapabilities::supportsNoExceptCompare(const AST::Type* const type) {
 			return checkCapability(type, context_.getCString("noexcept_comparable_t"),
-			                       { type->resolveAliases()->withoutTags() });
+			                       { type });
 		}
 		
 		bool
 		TypeCapabilities::supportsMove(const AST::Type* const type) {
 			return isSized(type) &&
 				checkCapability(type, context_.getCString("movable_t"),
-				                { type->resolveAliases()->withoutTags() });
+				                { type });
 		}
 		
 		bool
