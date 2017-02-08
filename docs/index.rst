@@ -170,6 +170,7 @@ These features are either still in the design stage or are awaiting implementati
 	:maxdepth: 1
 	
 	proposals/AtomicOperations
+	proposals/CastingRules
 	proposals/ClassInheritance
 	proposals/ExceptionSpecifications
 	proposals/FutureStandardLibraryModules

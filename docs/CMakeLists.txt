@@ -1,5 +1,6 @@
 set(PROPOSAL_FILES
 	proposals/AtomicOperations.rst
+	proposals/CastingRules.rst
 	proposals/ClassInheritance.rst
 	proposals/ExceptionSpecifications.rst
 	proposals/FutureStandardLibraryModules.rst
