@@ -186,7 +186,8 @@ namespace locic {
 				if (typeInstance->isDatatype() || typeInstance->isException() || typeInstance->isStruct() || typeInstance->isUnion()) {
 					const auto variableIterator = typeInstance->namedVariables().find(memberName);
 					if (variableIterator != typeInstance->namedVariables().end()) {
-						return createMemberVarRef(context, std::move(value), *(variableIterator->second));
+						return createMemberVarRef(context, std::move(value), *(variableIterator->second),
+						                          /*isInternalAccess=*/false);
 					}
 				}
 			}
@@ -595,7 +596,8 @@ namespace locic {
 						return AST::Value::Constant(Constant::Integer(0), context.typeBuilder().getIntType());
 					}
 					
-					return createMemberVarRef(context, std::move(selfValue), *(variableIterator->second));
+					return createMemberVarRef(context, std::move(selfValue), *(variableIterator->second),
+					                          /*isInternalAccess=*/true);
 				}
 				case AST::ValueDecl::ALIGNOF: {
 					const auto type = TypeResolver(context).resolveType(astValueNode->alignOf.type);

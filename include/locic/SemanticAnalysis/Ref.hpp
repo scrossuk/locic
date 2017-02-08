@@ -38,7 +38,8 @@ namespace locic {
 		
 		AST::Value createLocalVarRef(Context& context, const AST::Var& var);
 		
-		AST::Value createMemberVarRef(Context& context, AST::Value object, const AST::Var& var);
+		AST::Value createMemberVarRef(Context& context, AST::Value object, const AST::Var& var,
+		                              bool isInternalAccess);
 		
 	}
 	

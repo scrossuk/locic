@@ -102,11 +102,19 @@ namespace locic {
 			return AST::Value::LocalVar(var, createReferenceType(context, var.type()));
 		}
 		
-		const AST::Type* getMemberType(const AST::Type* const objectType, const AST::Var& var) {
+		const AST::Type* getMemberType(const AST::Type* const objectType, const AST::Var& var,
+		                               const bool isInternalAccess) {
 			const auto derefType = getDerefType(objectType);
 			const auto varType = var.type();
-			const auto substitutedVarType = varType->substitute(derefType->generateTemplateVarMap(),
-			                                                    /*selfconst=*/AST::Predicate::SelfConst());
+			
+			// If the access is internal (i.e. '@member') then we want
+			// to keep the selfconst, whereas external accesses will
+			// need to substitute selfconst.
+			const auto substitutedVarType =
+				varType->substitute(derefType->generateTemplateVarMap(),
+				                    /*selfconst=*/isInternalAccess ?
+				                        AST::Predicate::SelfConst() :
+				                        derefType->constPredicate().copy());
 			
 			if (var.isOverrideConst()) {
 				// Don't apply const predicate to variables marked
@@ -114,24 +122,25 @@ namespace locic {
 				return substitutedVarType;
 			}
 			
-			// Create (const_predicate AND selfconst).
-			// 
-			// It is actually true that selfconst => const_predicate, so
-			// we could encode that knowledge into the compiler and return
-			// selfconst(T) here.
-			// 
-			// However it's easier to use an AND expression, which allows
-			// casts to both selfconst(T)& and const_predicate(T)&.
 			auto predicate = derefType->constPredicate().copy();
-			predicate = AST::Predicate::And(std::move(predicate),
-			                                AST::Predicate::SelfConst());
+			if (isInternalAccess) {
+				// Create (const_predicate AND selfconst).
+				// 
+				// It is actually true that selfconst => const_predicate, so
+				// we could encode that knowledge into the compiler and return
+				// selfconst(T) here.
+				// 
+				// However it's easier to use an AND expression, which allows
+				// casts to both selfconst(T)& and const_predicate(T)&.
+				predicate = AST::Predicate::And(std::move(predicate),
+				                                AST::Predicate::SelfConst());
+			}
 			return substitutedVarType->createConstType(std::move(predicate));
 		}
 		
-		AST::Value createMemberVarRef(Context& context, AST::Value object, const AST::Var& var) {
-			// If the object type is const, then the members must
-			// also be, *UNLESS* the variable is marked '__override_const'.
-			const auto memberType = getMemberType(object.type(), var);
+		AST::Value createMemberVarRef(Context& context, AST::Value object, const AST::Var& var,
+		                              const bool isInternalAccess) {
+			const auto memberType = getMemberType(object.type(), var, isInternalAccess);
 			const auto memberRefType = createReferenceType(context, memberType);
 			return AST::Value::MemberAccess(derefOrBindValue(context, std::move(object)), var,
 			                                memberRefType);
