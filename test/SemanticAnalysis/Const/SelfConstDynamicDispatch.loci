@@ -1,0 +1,21 @@
+// RUN: %locic %s --emit-llvm -o %t
+
+class ArrayType(int[10] value) {
+	static create = default;
+	
+	selfconst(int)& index(size_t index) const noexcept {
+		return @value[index];
+	}
+}
+
+interface ArrayAPI {
+	selfconst(int)& index(size_t index) const;
+}
+
+export ArrayAPI& nonConstToNonConst(ArrayType& object) {
+	return object;
+}
+
+export const ArrayAPI& constToConst(const ArrayType& object) {
+	return object;
+}
