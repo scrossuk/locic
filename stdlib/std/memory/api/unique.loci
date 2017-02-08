@@ -10,11 +10,9 @@ import std.memory 0.1.0 {
 			
 			void __destroy() noexcept require(destructible<T>);
 			
-			template <bool IsConst>
-			const<IsConst>(T)& deref() const(IsConst) noexcept;
+			selfconst(T)& deref() const noexcept;
 			
-			template <bool IsConst>
-			const<IsConst>(T)* get() const(IsConst) noexcept;
+			selfconst(T)* get() const noexcept;
 			
 			void reset(T* pointer) noexcept require(destructible<T>);
 			

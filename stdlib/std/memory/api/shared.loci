@@ -12,10 +12,9 @@ import std.memory 0.1.0 {
 			
 			void __destroy() noexcept require(destructible<T>);
 			
-			shared_ptr<T> implicit_copy() const noexcept;
+			shared_ptr<selfconst(T)> implicit_copy() const noexcept;
 			
-			template <bool IsConst>
-			const<IsConst>(T)& deref() const(IsConst) noexcept;
+			selfconst(T)& deref() const noexcept;
 		}
 		
 		template <movable T>

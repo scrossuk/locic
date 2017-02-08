@@ -2,8 +2,7 @@ template <typename T>
 class wrap_buffer(T* data, size_t size) {
 	static create = default;
 	
-	template <bool IsConst>
-	const<IsConst>(T)* data() const(IsConst) noexcept {
+	selfconst(T)* data() const noexcept {
 		return @data;
 	}
 	

@@ -43,14 +43,12 @@ export std.memory 0.1.0 {
 				return true;
 			}
 			
-			template <bool IsConst>
-			shared_ptr<const<IsConst>(T)> implicit_copy() const(IsConst) noexcept {
+			shared_ptr<selfconst(T)> implicit_copy() const noexcept {
 				(*@countField) += 1u;
-				return @<const<IsConst>(T)>(@countField, @ptr);
+				return @<selfconst(T)>(@countField, @ptr);
 			}
 			
-			template <bool IsConst>
-			const<IsConst>(T)& deref() const(IsConst) noexcept {
+			selfconst(T)& deref() const noexcept {
 				return *@ptr;
 			}
 		}

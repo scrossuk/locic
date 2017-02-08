@@ -31,13 +31,11 @@ export std.memory 0.1.0 {
 				return true;
 			}
 			
-			template <bool IsConst>
-			const<IsConst>(T)& deref() const(IsConst) noexcept {
+			selfconst(T)& deref() const noexcept {
 				return *@ptr;
 			}
 			
-			template <bool IsConst>
-			const<IsConst>(T)* get() const(IsConst) noexcept {
+			selfconst(T)* get() const noexcept {
 				return @ptr;
 			}
 			
