@@ -15,8 +15,8 @@ namespace locic {
 	
 		size_t getRefCount(const AST::Type* type) {
 			size_t count = 0;
-			while (type->isReference()) {
-				type = type->referenceTarget();
+			while (type->isRef()) {
+				type = type->refTarget();
 				count++;
 			}
 			return count;
@@ -24,32 +24,32 @@ namespace locic {
 		
 		const AST::Type* getLastRefType(const AST::Type* type) {
 			while (getRefCount(type) > 1) {
-				type = type->referenceTarget();
+				type = type->refTarget();
 			}
 			return type;
 		}
 		
 		const AST::Type* getSingleDerefType(const AST::Type* type) {
-			return type->isReference() ? type->referenceTarget() : type;
+			return type->isRef() ? type->refTarget() : type;
 		}
 		
 		const AST::Type* getDerefType(const AST::Type* type) {
-			while (type->isReference()) {
-				type = type->referenceTarget();
+			while (type->isRef()) {
+				type = type->refTarget();
 			}
 			return type;
 		}
 		
 		AST::Value derefOne(AST::Value value) {
-			assert(value.type()->isReference() &&
-			       value.type()->referenceTarget()->isReference());
+			assert(value.type()->isRef() &&
+			       value.type()->refTarget()->isRef());
 			// TODO: add support for custom ref types.
 			return AST::Value::DerefReference(std::move(value));
 		}
 		
 		AST::Value derefValue(AST::Value value) {
-			while (value.type()->isReference() &&
-			       value.type()->referenceTarget()->isReference()) {
+			while (value.type()->isRef() &&
+			       value.type()->refTarget()->isRef()) {
 				// TODO: add support for custom ref types.
 				value = AST::Value::DerefReference(std::move(value));
 			}
@@ -57,7 +57,7 @@ namespace locic {
 		}
 		
 		AST::Value derefAll(AST::Value value) {
-			while (value.type()->isReference()) {
+			while (value.type()->isRef()) {
 				// TODO: add support for custom ref types.
 				value = AST::Value::DerefReference(std::move(value));
 			}

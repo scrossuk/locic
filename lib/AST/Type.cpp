@@ -218,12 +218,12 @@ namespace locic {
 			return templateArguments().front().typeRefType();
 		}
 		
-		bool Type::isReference() const {
+		bool Type::isRef() const {
 			return isPrimitive() && primitiveID() == PrimitiveRef;
 		}
 		
-		const Type* Type::referenceTarget() const {
-			assert(isReference());
+		const Type* Type::refTarget() const {
+			assert(isRef());
 			return templateArguments().front().typeRefType();
 		}
 		
@@ -711,9 +711,8 @@ namespace locic {
 				case AUTO:
 					return "Auto";
 				case OBJECT: {
-					if (isReference()) {
-						assert(templateArguments().size() == 1);
-						return templateArguments().front().typeRefType()->nameToString() + "&";
+					if (isRef()) {
+						return refTarget()->nameToString() + "&";
 					}
 					
 					const auto objectName = getObjectType()->fullName().toString(false);
@@ -775,9 +774,8 @@ namespace locic {
 					return "Auto";
 				}
 				case OBJECT: {
-					if (isReference()) {
-						assert(templateArguments().size() == 1);
-						return templateArguments().front().typeRefType()->toString() + "&";
+					if (isRef()) {
+						return refTarget()->toString() + "&";
 					}
 					
 					const auto objectName = getObjectType()->fullName().toString(false);
@@ -856,9 +854,8 @@ namespace locic {
 					return "auto";
 				}
 				case OBJECT: {
-					if (isReference()) {
-						assert(templateArguments().size() == 1);
-						return referenceTarget()->toDiagString() + "&";
+					if (isRef()) {
+						return refTarget()->toDiagString() + "&";
 					}
 					
 					const auto objectName = getObjectType()->fullName().toString(false);

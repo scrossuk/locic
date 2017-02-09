@@ -199,8 +199,8 @@ namespace locic {
 		
 		void StatementEmitter::emitAssign(const AST::Value& lvalue,
 		                                  const AST::Value& rvalue) {
-			assert(lvalue.type()->isReference());
-			//assert(lvalue.type()->referenceTarget() == rvalue.type());
+			assert(lvalue.type()->isRef());
+			//assert(lvalue.type()->refTarget() == rvalue.type());
 			
 			ValueEmitter valueEmitter(irEmitter_);
 			const auto rvalueIR = valueEmitter.emitValue(rvalue);

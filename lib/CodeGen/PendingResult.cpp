@@ -28,7 +28,7 @@ namespace locic {
 			if (type_ == nullptr) {
 				llvm_unreachable("This pending result wasn't supposed to be loaded.");
 			}
-			assert(type_->isReference());
+			assert(type_->isRef());
 			assert(value_->getType()->isPointerTy());
 			
 			const auto refTargetType = type_->templateArguments().front().typeRefType();

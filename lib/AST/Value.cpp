@@ -126,7 +126,7 @@ namespace locic {
 		}
 		
 		Value Value::LocalVar(const Var& var, const Type* const type) {
-			assert(type->isReference());
+			assert(type->isRef());
 			Value value(LOCALVAR, type, ExitStates::Normal());
 			value.impl_->union_.localVar.var = &var;
 			return value;
@@ -139,9 +139,9 @@ namespace locic {
 		}
 		
 		Value Value::DerefReference(Value operand) {
-			assert(operand.type()->isReference());
-			assert(operand.type()->referenceTarget()->isReference());
-			Value value(DEREF_REFERENCE, operand.type()->referenceTarget(), operand.exitStates());
+			assert(operand.type()->isRef());
+			assert(operand.type()->refTarget()->isRef());
+			Value value(DEREF_REFERENCE, operand.type()->refTarget(), operand.exitStates());
 			value.impl_->value0 = std::move(operand);
 			return value;
 		}
@@ -180,8 +180,8 @@ namespace locic {
 		}
 		
 		Value Value::MemberAccess(Value object, const Var& var, const Type* const type) {
-			assert(object.type()->isReference());
-			assert(type->isReference());
+			assert(object.type()->isRef());
+			assert(type->isRef());
 			Value value(MEMBERACCESS, type, object.exitStates());
 			value.impl_->value0 = std::move(object);
 			value.impl_->union_.memberAccess.memberVar = &var;
@@ -189,8 +189,8 @@ namespace locic {
 		}
 		
 		Value Value::BindReference(Value operand, const Type* const type) {
-			assert(type->isReference());
-			assert(operand.type() == type->referenceTarget());
+			assert(type->isRef());
+			assert(operand.type() == type->refTarget());
 			Value value(BIND_REFERENCE, type, operand.exitStates());
 			value.impl_->value0 = std::move(operand);
 			return value;
@@ -253,7 +253,7 @@ namespace locic {
 		
 		Value Value::MethodObject(Value method, Value methodOwner, const Type* const methodType) {
 			assert(method.type()->isCallable());
-			assert(methodOwner.type()->isReference());
+			assert(methodOwner.type()->isRef());
 			assert(methodType->isBuiltInMethod() || methodType->isBuiltInTemplatedMethod());
 			
 			Value value(METHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
@@ -264,8 +264,8 @@ namespace locic {
 		
 		Value Value::InterfaceMethodObject(Value method, Value methodOwner, const Type* const methodType) {
 			assert(method.type()->isCallable());
-			assert(methodOwner.type()->isReference());
-			assert(methodOwner.type()->referenceTarget()->isInterface());
+			assert(methodOwner.type()->isRef());
+			assert(methodOwner.type()->refTarget()->isInterface());
 			assert(methodType->isBuiltInInterfaceMethod());
 			Value value(INTERFACEMETHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
 			value.impl_->value0 = std::move(method);
@@ -275,7 +275,7 @@ namespace locic {
 		
 		Value Value::StaticInterfaceMethodObject(Value method, Value methodOwner, const Type* const methodType) {
 			assert(method.type()->isCallable());
-			assert(methodOwner.type()->isReference());
+			assert(methodOwner.type()->isRef());
 			assert(methodType->isBuiltInStaticInterfaceMethod());
 			Value value(STATICINTERFACEMETHODOBJECT, methodType, method.exitStates() | methodOwner.exitStates());
 			value.impl_->value0 = std::move(method);

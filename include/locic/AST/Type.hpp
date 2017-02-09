@@ -61,8 +61,8 @@ namespace locic {
 				bool isBuiltInPointer() const;
 				const Type* pointeeType() const;
 				
-				bool isReference() const;
-				const Type* referenceTarget() const;
+				bool isRef() const;
+				const Type* refTarget() const;
 				
 				bool isAbstractTypename() const;
 				bool isTypename() const;

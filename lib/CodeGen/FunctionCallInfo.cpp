@@ -68,7 +68,7 @@ namespace locic {
 			}
 			
 			llvm::Value* generateLoadedValue(Function& function) const {
-				assert(value_.type()->isReference());
+				assert(value_.type()->isRef());
 				if (value_.isCast() && !value_.castOperand().type()->isDatatype()) {
 					// Some cast operations have no effect, so just pass
 					// straight through them.
@@ -86,7 +86,7 @@ namespace locic {
 				
 				const auto result = valueEmitter.emitValue(value_);
 				
-				return irEmitter.emitLoad(result, value_.type()->referenceTarget());
+				return irEmitter.emitLoad(result, value_.type()->refTarget());
 			}
 			
 		private:
@@ -237,7 +237,7 @@ namespace locic {
 					callInfo.templateGenerator = functionCallInfo.templateGenerator;
 					
 					const auto& dataRefValue = value.methodOwner();
-					assert(dataRefValue.type()->isReference());
+					assert(dataRefValue.type()->isRef());
 					
 					const auto llvmDataRefValue = valueEmitter.emitValue(dataRefValue);
 					

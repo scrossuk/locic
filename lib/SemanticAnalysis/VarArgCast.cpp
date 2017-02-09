@@ -61,9 +61,9 @@ namespace locic {
 			}
 			
 			const auto derefType = getDerefType(value.type()->resolveAliases());
-			assert(!derefType->isReference());
+			assert(!derefType->isRef());
 			
-			if (value.type()->isReference() && TypeCapabilities(context).supportsImplicitCopy(derefType)) {
+			if (value.type()->isRef() && TypeCapabilities(context).supportsImplicitCopy(derefType)) {
 				// Call implicitcopy() method.
 				auto copyValue = CallValue(context, GetMethod(context, std::move(value),
 				                                              context.getCString("implicitcopy"), location),

@@ -675,8 +675,8 @@ namespace locic {
 					
 					const AST::Type* castType;
 					
-					if (astLvalue.type()->isReference()) {
-						castType = astLvalue.type()->referenceTarget();
+					if (astLvalue.type()->isRef()) {
+						castType = astLvalue.type()->refTarget();
 					} else {
 						castType = astLvalue.type();
 						context.issueDiag(CannotAssignToNonLvalueDiag(astLvalue.type()),
@@ -688,7 +688,7 @@ namespace locic {
 						                  location);
 					}
 					
-					assert(!castType->isReference());
+					assert(!castType->isRef());
 					
 					// TODO: fix this to not copy the value!
 					auto astAssignValue = GetAssignValue(context, assignKind, astLvalue.copy(), std::move(astRvalue), location);
