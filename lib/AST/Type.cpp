@@ -227,6 +227,16 @@ namespace locic {
 			return templateArguments().front().typeRefType();
 		}
 		
+		size_t Type::refDepth() const {
+			size_t depth = 0;
+			auto type = this;
+			while (type->isRef()) {
+				depth++;
+				type = type->refTarget();
+			}
+			return depth;
+		}
+		
 		bool Type::isAbstractTypename() const {
 			return isPrimitive() && primitiveID() == PrimitiveAbstractTypename;
 		}

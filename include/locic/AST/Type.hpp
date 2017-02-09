@@ -63,6 +63,7 @@ namespace locic {
 				
 				bool isRef() const;
 				const Type* refTarget() const;
+				size_t refDepth() const;
 				
 				bool isAbstractTypename() const;
 				bool isTypename() const;
