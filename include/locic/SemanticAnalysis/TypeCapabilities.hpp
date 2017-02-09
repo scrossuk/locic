@@ -38,6 +38,9 @@ namespace locic {
 			
 			bool supportsImplicitCast(const AST::Type* type);
 			
+			bool supportsImplicitCast(const AST::Type* type,
+			                          const AST::Type* toType);
+			
 			bool supportsImplicitCopy(const AST::Type* type);
 			
 			bool supportsExplicitCopy(const AST::Type* type);

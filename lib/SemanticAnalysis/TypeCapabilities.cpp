@@ -101,6 +101,22 @@ namespace locic {
 		}
 		
 		bool
+		TypeCapabilities::supportsImplicitCast(const AST::Type* const type,
+		                                       const AST::Type* const toType) {
+			if (!supportsImplicitCast(type)) return false;
+			
+			const auto& castFunction = type->getObjectType()->getFunction(context_.getCString("implicitcast"));
+			
+			const auto& requiresPredicate = castFunction.requiresPredicate();
+			
+			auto combinedTemplateVarMap = type->generateTemplateVarMap();
+			const auto& castTemplateVar = castFunction.templateVariables().front();
+			combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, AST::Value::TypeRef(toType, castTemplateVar->type())));
+			
+			return evaluatePredicate(context_, requiresPredicate, combinedTemplateVarMap).success();
+		}
+		
+		bool
 		TypeCapabilities::supportsImplicitCopy(const AST::Type* const type) {
 			return isSized(type) &&
 				checkCapability(type, context_.getCString("implicit_copyable_t"),
