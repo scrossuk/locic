@@ -10,6 +10,9 @@ namespace locic {
 	OptionalDiag::OptionalDiag()
 	: diag_(nullptr) { }
 	
+	OptionalDiag::OptionalDiag(NoDiagType)
+	: diag_(nullptr) { }
+	
 	OptionalDiag::~OptionalDiag() { }
 	
 	OptionalDiag::OptionalDiag(std::unique_ptr<Diag> argDiag,
@@ -27,10 +30,6 @@ namespace locic {
 	
 	bool OptionalDiag::hasDiag() const {
 		return diag_.get() != nullptr;
-	}
-	
-	OptionalDiag::operator bool() const {
-		return !hasDiag();
 	}
 	
 	const Diag& OptionalDiag::diag() const {

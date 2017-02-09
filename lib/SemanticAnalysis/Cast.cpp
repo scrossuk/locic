@@ -82,11 +82,8 @@ namespace locic {
 						const auto sourceMethodSet = getTypeMethodSet(context, sourceType);
 						const auto requireMethodSet = getTypeMethodSet(context, destType);
 						
-						if (methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet)) {
-							return destType;
-						} else {
-							return nullptr;
-						}
+						auto diag = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
+						return diag.success() ? destType : nullptr;
 					}
 					
 					// Need to check template arguments.
@@ -230,7 +227,7 @@ namespace locic {
 			const auto sourceMethodSet = getTypeMethodSet(context, sourceTargetType);
 			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
 			
-			return methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet) ?
+			return methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet).success() ?
 				make_optional(AST::Value::PolyCast(destType, std::move(value))) :
 				Optional<AST::Value>();
 		}
@@ -246,7 +243,7 @@ namespace locic {
 			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
 			
 			auto result = methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet);
-			return result ?
+			return result.success() ?
 				make_optional(AST::Value::PolyCast(destType, std::move(value))) :
 				Optional<AST::Value>();
 		}
@@ -274,7 +271,7 @@ namespace locic {
 				const auto& castTemplateVar = castFunction.templateVariables().front();
 				combinedTemplateVarMap.insert(std::make_pair(castTemplateVar, AST::Value::TypeRef(destDerefType, castTemplateVar->type())));
 				
-				if (evaluatePredicate(context, requiresPredicate, combinedTemplateVarMap)) {
+				if (evaluatePredicate(context, requiresPredicate, combinedTemplateVarMap).success()) {
 					auto boundValue = bindReference(context, std::move(value));
 					auto method = GetTemplatedMethod(context, std::move(boundValue), context.getCString("implicitcast"), makeTemplateArgs(context, { destDerefType }), location);
 					auto castValue = CallValue(context, std::move(method), {}, location);

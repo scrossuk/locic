@@ -327,7 +327,7 @@ namespace locic {
 			const auto& requirePredicate = methodElement.requirePredicate();
 			
 			auto result = evaluatePredicate(context, requirePredicate, templateVariableAssignments);
-			if (!result) {
+			if (result.failed()) {
 				const auto substitutedRequirePredicate = requirePredicate.substitute(templateVariableAssignments,
 				                                                                     /*selfconst=*/AST::Predicate::SelfConst());
 				context.issueDiag(TemplateArgsDoNotSatisfyMethodRequirePredicateDiag(substitutedRequirePredicate,

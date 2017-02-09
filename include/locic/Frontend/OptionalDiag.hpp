@@ -10,9 +10,14 @@ namespace locic {
 	
 	struct DiagInfo;
 	
+	struct NoDiagType { NoDiagType() { } };
+	static const NoDiagType SUCCESS;
+	
 	class OptionalDiag {
 	public:
 		OptionalDiag();
+		
+		OptionalDiag(NoDiagType);
 		
 		OptionalDiag(std::unique_ptr<Diag> argDiag, Debug::SourceLocation argLocation,
 		             OptionalDiag argChain);
@@ -29,8 +34,8 @@ namespace locic {
 		OptionalDiag& operator=(OptionalDiag&&);
 		
 		bool hasDiag() const;
-		
-		operator bool() const;
+		bool success() const { return !hasDiag(); }
+		bool failed() const { return hasDiag(); }
 		
 		const Diag& diag() const;
 		const Debug::SourceLocation& location() const;

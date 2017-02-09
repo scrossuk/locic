@@ -26,7 +26,7 @@ namespace locic {
 				const auto astPredicate = ConvertPredicate(context, astPredicateNode);
 				
 				auto evaluateResult = evaluatePredicate(context, astPredicate, AST::TemplateVarMap());
-				if (!evaluateResult) {
+				if (evaluateResult.failed()) {
 					context.issueDiag(StaticAssertPredicateIsFalseDiag(),
 					                  astPredicateNode.location(),
 					                  std::move(evaluateResult));

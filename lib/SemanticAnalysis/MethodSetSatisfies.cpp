@@ -250,7 +250,7 @@ namespace locic {
 			if (!requireFunctionElement.isStatic() && !requireSelfConst.implies(requireConst)) {
 				// Skip because required method is non-const
 				// inside const parent.
-				return OptionalDiag();
+				return SUCCESS;
 			}
 			
 			const auto satisfyTemplateVarMap = generateSatisfyTemplateVarMap(checkFunctionElement, requireFunctionElement);
@@ -264,9 +264,9 @@ namespace locic {
 					       requireFunctionElement.isStatic() ? "static" : "not static"
 					);
 				}
-				return OptionalDiag(MismatchingStaticDiag(functionName,
-				                                          checkFunctionElement.isStatic(),
-				                                          requireFunctionElement.isStatic()));
+				return MismatchingStaticDiag(functionName,
+				                             checkFunctionElement.isStatic(),
+				                             requireFunctionElement.isStatic());
 			}
 			
 			const auto checkConst = reducePredicate(context, checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap,
@@ -283,11 +283,11 @@ namespace locic {
 					);
 				}
 				if (checkSelfConst.isTrue() && checkConst.isFalse()) {
-					return OptionalDiag(ParentIsConstMethodIsNotDiag(functionName));
+					return ParentIsConstMethodIsNotDiag(functionName);
 				}
 				
-				return OptionalDiag(ParentConstPredicateImplicationFailedDiag(functionName, checkSelfConst,
-				                                                              checkSelfConst));
+				return ParentConstPredicateImplicationFailedDiag(functionName, checkSelfConst,
+				                                                 checkSelfConst);
 			}
 			
 			// The requirement method's const predicate needs to imply the
@@ -302,9 +302,9 @@ namespace locic {
 					       requireConst.toString().c_str()
 					);
 				}
-				return OptionalDiag(ConstPredicateImplicationFailedDiag(functionName,
-				                                                        requireConst,
-				                                                        checkConst));
+				return ConstPredicateImplicationFailedDiag(functionName,
+				                                           requireConst,
+				                                           checkConst);
 			}
 			
 			const auto checkRequire = reducePredicate(context, checkFunctionElement.requirePredicate().substitute(satisfyTemplateVarMap,
@@ -322,9 +322,9 @@ namespace locic {
 					       requireRequire.toString().c_str()
 					);
 				}
-				return OptionalDiag(RequirePredicateImplicationFailedDiag(functionName,
-				                                                          requireRequire,
-				                                                          checkRequire));
+				return RequirePredicateImplicationFailedDiag(functionName,
+				                                             requireRequire,
+				                                             checkRequire);
 			}
 			
 			const auto checkNoexcept = reducePredicate(context, checkFunctionElement.noexceptPredicate().substitute(satisfyTemplateVarMap,
@@ -341,9 +341,9 @@ namespace locic {
 					       requireNoexcept.toString().c_str()
 					);
 				}
-				return OptionalDiag(NoexceptPredicateImplicationFailedDiag(functionName,
-				                                                           requireNoexcept,
-				                                                           checkNoexcept));
+				return NoexceptPredicateImplicationFailedDiag(functionName,
+				                                              requireNoexcept,
+				                                              checkNoexcept);
 			}
 			
 			const auto& firstList = checkFunctionElement.parameterTypes();
@@ -357,8 +357,8 @@ namespace locic {
 					       (unsigned long long) secondList.size()
 					);
 				}
-				return OptionalDiag(ParamCountMismatchDiag(functionName, firstList.size(),
-				                                           secondList.size()));
+				return ParamCountMismatchDiag(functionName, firstList.size(),
+				                              secondList.size());
 			}
 			
 			for (size_t i = 0; i < firstList.size(); i++) {
@@ -379,8 +379,8 @@ namespace locic {
 						       requireParamType->toString().c_str()
 						);
 					}
-					return OptionalDiag(ParamTypeMismatchDiag(functionName, i, checkParamType,
-					                                          requireParamType));
+					return ParamTypeMismatchDiag(functionName, i, checkParamType,
+					                             requireParamType);
 				}
 			}
 
@@ -402,11 +402,11 @@ namespace locic {
 					       requireReturnType->toString().c_str()
 					);
 				}
-				return OptionalDiag(ReturnTypeMismatchDiag(functionName, checkReturnType,
-				                                           requireReturnType));
+				return ReturnTypeMismatchDiag(functionName, checkReturnType,
+				                              requireReturnType);
 			}
 			
-			return OptionalDiag();
+			return SUCCESS;
 		}
 		
 		class MethodNotFoundDiag: public Error {
@@ -450,7 +450,7 @@ namespace locic {
 							formatMessage(checkSet->toString()).c_str(),
 							formatMessage(requireSet->toString()).c_str());
 					}
-					return OptionalDiag(MethodNotFoundDiag(requireFunctionName));
+					return MethodNotFoundDiag(requireFunctionName);
 				}
 				
 				const auto& checkFunctionName = checkIterator->first;
@@ -465,7 +465,7 @@ namespace locic {
 				                                         requireSelfConst,
 				                                         checkFunctionName, checkFunctionElement,
 				                                         requireFunctionElement);
-				if (!optionalDiag) {
+				if (optionalDiag.failed()) {
 					if (DEBUG_METHOD_SET) {
 						printf("\n...in methodSetSatisfiesRequirement:\n    Source: %s\n    Require: %s\n\n",
 							formatMessage(checkSet->toString()).c_str(),
@@ -477,7 +477,7 @@ namespace locic {
 				++requireIterator;
 			}
 			
-			return OptionalDiag();
+			return SUCCESS;
 		}
 		
 	}

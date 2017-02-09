@@ -48,10 +48,10 @@ namespace locic {
 			const auto sourceMethodSet = getTypeMethodSet(context_, type);
 			const auto requireMethodSet = getTypeMethodSet(context_, requireType);
 			
-			const bool result = methodSetSatisfiesRequirement(context_, sourceMethodSet,
+			const auto result = methodSetSatisfiesRequirement(context_, sourceMethodSet,
 			                                                  requireMethodSet);
-			context_.setCapability(type, capability, result);
-			return result;
+			context_.setCapability(type, capability, result.success());
+			return result.success();
 		}
 		
 		bool
@@ -82,7 +82,7 @@ namespace locic {
 					if (!function->isMethod()) return false;
 					if (function->isStaticMethod()) return false;
 					
-					if (!evaluatePredicate(context_, function->constPredicate(), type->generateTemplateVarMap())) return false;
+					if (evaluatePredicate(context_, function->constPredicate(), type->generateTemplateVarMap()).failed()) return false;
 					if (!function->type().parameterTypes().empty()) return false;
 					if (function->templateVariables().size() != 1) return false;
 					

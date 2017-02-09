@@ -269,20 +269,20 @@ namespace locic {
 			switch (predicate.kind()) {
 				case AST::Predicate::TRUE:
 				{
-					return OptionalDiag();
+					return SUCCESS;
 				}
 				case AST::Predicate::FALSE:
 				{
-					return OptionalDiag(PredicateHasLiteralFalseDiag());
+					return PredicateHasLiteralFalseDiag();
 				}
 				case AST::Predicate::SELFCONST:
 				{
-					return OptionalDiag(PredicateHasLiteralSelfConstDiag());
+					return PredicateHasLiteralSelfConstDiag();
 				}
 				case AST::Predicate::AND:
 				{
 					auto leftResult = evaluatePredicate(context, predicate.andLeft(), variableAssignments);
-					if (!leftResult) {
+					if (leftResult.failed()) {
 						return leftResult;
 					}
 					
@@ -291,12 +291,12 @@ namespace locic {
 				case AST::Predicate::OR:
 				{
 					auto leftResult = evaluatePredicate(context, predicate.orLeft(), variableAssignments);
-					if (leftResult) {
+					if (leftResult.success()) {
 						return leftResult;
 					}
 					
 					auto rightResult = evaluatePredicate(context, predicate.orRight(), variableAssignments);
-					if (rightResult) {
+					if (rightResult.success()) {
 						return rightResult;
 					}
 					
@@ -316,7 +316,7 @@ namespace locic {
 					if (substitutedCheckType->isAuto()) {
 						// Presumably this will work.
 						// TODO: fix this by removing auto type!
-						return OptionalDiag();
+						return SUCCESS;
 					}
 					
 					// Avoid cycles such as:
@@ -331,7 +331,7 @@ namespace locic {
 					// this is being used to compute whether it is itself true
 					// and a cyclic dependency like this is acceptable).
 					if (context.isAssumedSatisfies(substitutedCheckType, substitutedRequireType)) {
-						return OptionalDiag();
+						return SUCCESS;
 					}
 					
 					PushAssumedSatisfies assumedSatisfies(context, substitutedCheckType, substitutedRequireType);
@@ -411,9 +411,9 @@ namespace locic {
 					const auto sourceMethodSet = getTypeMethodSet(context, checkType);
 					const auto requireMethodSet = getTypeMethodSet(context, requireType);
 					
-					const bool result = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
+					const auto result = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
 					
-					if (result) {
+					if (result.success()) {
 						// If the result is true then we
 						// know for sure that the check
 						// type satisfies the requirement,
