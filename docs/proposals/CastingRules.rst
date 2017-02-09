@@ -95,8 +95,8 @@ This pseudocode gives some more detail:
 		
 		// Either we perform a user implicitCast() call or we cast from
 		// a variant type to its parent variant object.
-		return source.hasUserImplicitCast(destValueType) ||
-		       destValueType.hasVariantType(source);
+		return source.hasUserImplicitCast(dest) ||
+		       dest.hasVariantType(source);
 	}
 	
 	bool implicitCastNoop(Type source, Type dest) {

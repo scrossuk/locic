@@ -3,6 +3,7 @@ add_library(locic-semanalysis
 	Analysis.cpp
 	CallValue.cpp
 	Cast.cpp
+	CastGenerator.cpp
 	Context.cpp
 	ConvertException.cpp
 	ConvertForLoop.cpp

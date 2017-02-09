@@ -188,6 +188,25 @@ namespace locic {
 			return result;
 		}
 		
+		bool Type::canBeUsedAsValue() const {
+			// TODO: This is really a capability check for
+			//       sized_type<T> and destructible<T>.
+			
+			if (!constPredicate().isFalse()) {
+				// If a type may sometimes be const, then it
+				// cannot be handled as a value.
+				return false;
+			}
+			
+			if (isInterface()) {
+				// Interface types have unknown size so cannot
+				// be handled as a value.
+				return false;
+			}
+			
+			return true;
+		}
+		
 		bool Type::isAuto() const {
 			return kind() == AUTO;
 		}

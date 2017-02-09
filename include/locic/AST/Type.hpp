@@ -50,6 +50,17 @@ namespace locic {
 				const Type* applyConst(Predicate predicate) const;
 				const Type* stripConst() const;
 				
+				/**
+				 * \brief Can be used as value.
+				 * 
+				 * This returns whether objects of the type could
+				 * be handled as values, which means they must:
+				 * 
+				 *   - Always be non-const.
+				 *   - Not be an interface type.
+				 */
+				bool canBeUsedAsValue() const;
+				
 				bool isAuto() const;
 				bool isAlias() const;
 				

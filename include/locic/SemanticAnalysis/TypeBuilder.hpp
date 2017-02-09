@@ -63,6 +63,9 @@ namespace locic {
 			getMovableInterfaceType(const AST::Type* type);
 			
 			const AST::Type*
+			getRefType(const AST::Type* targetType);
+			
+			const AST::Type*
 			getPointerType(const AST::Type* elementType);
 		
 			const AST::Type*
