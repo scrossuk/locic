@@ -112,11 +112,6 @@ namespace locic {
 				void pushComputingMethodSet(const AST::TemplateVar* templateVar, const AST::Predicate& predicate);
 				void popComputingMethodSet();
 				
-				// For handling cycles in require predicates.
-				bool isAssumedSatisfies(const AST::Type* checkType, const AST::Type* requireType) const;
-				void pushAssumeSatisfies(const AST::Type* checkType, const AST::Type* requireType);
-				void popAssumeSatisfies();
-				
 			private:
 				// Non-copyable.
 				Context(const Context&) = delete;

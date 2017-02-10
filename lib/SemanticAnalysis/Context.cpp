@@ -73,7 +73,6 @@ namespace locic {
 			std::unordered_map<std::pair<const AST::TemplatedObject*, const AST::Type*>, const AST::MethodSet*,
 				hashPair<const AST::TemplatedObject*, const AST::Type*>> templateVarMethodSetMap;
 			
-			std::vector<std::pair<const AST::Type*, const AST::Type*>> assumedSatisfyPairs;
 			std::vector<std::pair<const AST::TemplateVar*, const AST::Predicate*>> computingMethodSetTemplateVars;
 		};
 		
@@ -222,25 +221,6 @@ namespace locic {
 		
 		void Context::popComputingMethodSet() {
 			impl_->computingMethodSetTemplateVars.pop_back();
-		}
-		
-		bool Context::isAssumedSatisfies(const AST::Type* const checkType, const AST::Type* const requireType) const {
-			const auto pair = std::make_pair(checkType, requireType);
-			for (const auto& assumedSatisfyPair: impl_->assumedSatisfyPairs) {
-				if (pair == assumedSatisfyPair) {
-					return true;
-				}
-			}
-			return false;
-		}
-		
-		void Context::pushAssumeSatisfies(const AST::Type* const checkType, const AST::Type* const requireType) {
-			const auto pair = std::make_pair(checkType, requireType);
-			impl_->assumedSatisfyPairs.push_back(pair);
-		}
-		
-		void Context::popAssumeSatisfies() {
-			impl_->assumedSatisfyPairs.pop_back();
 		}
 		
 		class SelfInNonMethodDiag: public Error {

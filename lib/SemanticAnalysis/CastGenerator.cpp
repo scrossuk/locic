@@ -6,7 +6,7 @@
 #include <locic/Frontend/OptionalDiag.hpp>
 
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
-#include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
+#include <locic/SemanticAnalysis/SatisfyChecker.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/SemanticAnalysis/TypeCapabilities.hpp>
 
@@ -169,10 +169,9 @@ namespace locic {
 				return implicitCastNoop(destType);
 			}
 			
-			const auto sourceMethodSet = getTypeMethodSet(context_, type()->refTarget());
-			const auto requireMethodSet = getTypeMethodSet(context_, destType->refTarget());
-			auto diag = methodSetSatisfiesRequirement(context_, sourceMethodSet, requireMethodSet);
-			if (diag.failed()) {
+			auto result = SatisfyChecker(context_).satisfies(type()->refTarget(),
+			                                                 destType->refTarget());
+			if (result.failed()) {
 				// TODO: chain satisfy failure diagnostic.
 				return PolyCastFailedDiag(type(), destType);
 			}
@@ -261,107 +260,13 @@ namespace locic {
 			return SUCCESS;
 		}
 		
-		class CannotCastIncompatibleTypesDiag: public Error {
-		public:
-			CannotCastIncompatibleTypesDiag(const AST::Type* const sourceType,
-			                                const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("cannot cast from type '%s' to incompatible type '%s'",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
-		
-		class CannotPolyCastInNoopDiag: public Error {
-		public:
-			CannotPolyCastInNoopDiag(const AST::Type* const sourceType,
-			                         const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("cannot perform polymorphic cast from  '%s' to '%s' in noop cast context",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
-		
 		OptionalDiag
 		CastGenerator::implicitCastNoop(const AST::Type* const destType) {
 			assert(!type()->isAuto());
-			assert(!type()->isAlias() && !destType->isAlias());
-			assert(type()->refDepth() == destType->refDepth());
-			assert(destType->canBeUsedAsValue());
+			assert(!type()->isInterface() && !destType->isInterface());
 			
-			if (type() == destType) {
-				// Nothing to do.
-				return SUCCESS;
-			}
-			
-			if (destType->isAuto()) {
-				// Everything matches auto (except for
-				// references, but this method can only be
-				// called with a non-reference source type).
-				return SUCCESS;
-			}
-			
-			if (type()->kind() != destType->kind()) {
-				// At this point types need to be in the same group.
-				return CannotCastIncompatibleTypesDiag(type(),
-				                                       destType);
-			}
-			
-			// Don't allow casts between different object types or
-			// template variables.
-			if (destType->isObject()) {
-				if (type()->getObjectType() != destType->getObjectType()) {
-					return CannotCastIncompatibleTypesDiag(type(),
-					                                       destType);
-				}
-			} else {
-				assert(destType->isTemplateVar());
-				if (type()->getTemplateVar() != destType->getTemplateVar()) {
-					return CannotCastIncompatibleTypesDiag(type(),
-					                                       destType);
-				}
-			}
-			
-			// Handle reference cast as special cases.
-			if (type()->isRef()) {
-				assert(destType->isRef());
-				
-				if (!type()->refTarget()->isInterface() &&
-				    destType->refTarget()->isInterface()) {
-					// Can't do polymorphic casts here as it
-					// is not a NOOP.
-					return CannotPolyCastInNoopDiag(type(), destType);
-				}
-				
-				// Check that the requirements of the destination type are
-				// satisfied, automatically handling issues like const.
-				const auto sourceMethodSet = getTypeMethodSet(context_, type()->refTarget());
-				const auto requireMethodSet = getTypeMethodSet(context_, destType->refTarget());
-				auto diag = methodSetSatisfiesRequirement(context_, sourceMethodSet, requireMethodSet);
-				if (diag.failed()) return diag;
-			} else {
-				// Do a capability test to work out things like template
-				// arguments.
-				const auto sourceMethodSet = getTypeMethodSet(context_, type());
-				const auto requireMethodSet = getTypeMethodSet(context_, destType);
-				auto diag = methodSetSatisfiesRequirement(context_, sourceMethodSet, requireMethodSet);
-				if (diag.failed()) return diag;
-			}
+			auto diag = SatisfyChecker(context_).satisfies(type(), destType);
+			if (diag.failed()) return diag;
 			
 			setSourceType(destType); //castChain_.addNoopCast(destType);
 			return SUCCESS;

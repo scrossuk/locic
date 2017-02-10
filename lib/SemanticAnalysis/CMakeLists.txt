@@ -21,7 +21,6 @@ add_library(locic-semanalysis
 	GetMethod.cpp
 	GetMethodSet.cpp
 	Literal.cpp
-	MethodSetSatisfies.cpp
 	NameSearch.cpp
 	Passes/AddAliasValuesPass.cpp
 	Passes/AddFunctionDeclsPass.cpp
@@ -35,6 +34,7 @@ add_library(locic-semanalysis
 	Passes/EvaluateStaticAssertsPass.cpp
 	Passes/GenerateDefaultMethodsPass.cpp
 	Ref.cpp
+	SatisfyChecker.cpp
 	ScopeElement.cpp
 	ScopeStack.cpp
 	SearchResult.cpp

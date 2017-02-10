@@ -14,8 +14,8 @@
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/GetMethod.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
-#include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
 #include <locic/SemanticAnalysis/Ref.hpp>
+#include <locic/SemanticAnalysis/SatisfyChecker.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeCapabilities.hpp>
 
@@ -79,10 +79,7 @@ namespace locic {
 							return nullptr;
 						}
 						
-						const auto sourceMethodSet = getTypeMethodSet(context, sourceType);
-						const auto requireMethodSet = getTypeMethodSet(context, destType);
-						
-						auto diag = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
+						auto diag = SatisfyChecker(context).satisfies(sourceType, destType);
 						return diag.success() ? destType : nullptr;
 					}
 					
@@ -224,10 +221,8 @@ namespace locic {
 			const auto sourceTargetType = sourceType->refTarget();
 			const auto destTargetType = destType->refTarget();
 			
-			const auto sourceMethodSet = getTypeMethodSet(context, sourceTargetType);
-			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
-			
-			return methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet).success() ?
+			const auto result = SatisfyChecker(context).satisfies(sourceTargetType, destTargetType);
+			return result.success() ?
 				make_optional(AST::Value::PolyCast(destType, std::move(value))) :
 				Optional<AST::Value>();
 		}
@@ -239,10 +234,7 @@ namespace locic {
 			const auto sourceTargetType = sourceType->typenameTarget();
 			const auto destTargetType = destType->typenameTarget();
 			
-			const auto sourceMethodSet = getTypeMethodSet(context, sourceTargetType);
-			const auto destMethodSet = getTypeMethodSet(context, destTargetType);
-			
-			auto result = methodSetSatisfiesRequirement(context, sourceMethodSet, destMethodSet);
+			const auto result = SatisfyChecker(context).satisfies(sourceTargetType, destTargetType);
 			return result.success() ?
 				make_optional(AST::Value::PolyCast(destType, std::move(value))) :
 				Optional<AST::Value>();

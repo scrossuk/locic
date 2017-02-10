@@ -9,7 +9,7 @@
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
-#include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
+#include <locic/SemanticAnalysis/SatisfyChecker.hpp>
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/SemanticAnalysis/TypeCapabilities.hpp>
@@ -45,11 +45,7 @@ namespace locic {
 				return *previousResult;
 			}
 			
-			const auto sourceMethodSet = getTypeMethodSet(context_, type);
-			const auto requireMethodSet = getTypeMethodSet(context_, requireType);
-			
-			const auto result = methodSetSatisfiesRequirement(context_, sourceMethodSet,
-			                                                  requireMethodSet);
+			auto result = SatisfyChecker(context_).satisfies(type, requireType);
 			context_.setCapability(type, capability, result.success());
 			return result.success();
 		}

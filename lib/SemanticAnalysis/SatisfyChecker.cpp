@@ -1,31 +1,250 @@
-#include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
-
-#include <cassert>
-
-#include <algorithm>
-#include <map>
-#include <string>
-
-#include <boost/functional/hash.hpp>
+#include <locic/SemanticAnalysis/SatisfyChecker.hpp>
 
 #include <locic/AST/MethodSet.hpp>
+#include <locic/AST/MethodSetElement.hpp>
+#include <locic/AST/Predicate.hpp>
+#include <locic/AST/TemplateVar.hpp>
+#include <locic/AST/TemplateVarMap.hpp>
 #include <locic/AST/Type.hpp>
+#include <locic/AST/ValueDecl.hpp>
 
 #include <locic/Frontend/OptionalDiag.hpp>
 
-#include <locic/SemanticAnalysis/Cast.hpp>
-#include <locic/SemanticAnalysis/Context.hpp>
-#include <locic/SemanticAnalysis/ConvertPredicate.hpp>
-#include <locic/SemanticAnalysis/ScopeElement.hpp>
-#include <locic/SemanticAnalysis/ScopeStack.hpp>
+#include <locic/SemanticAnalysis/GetMethodSet.hpp>
+
+#include <locic/Constant.hpp>
 
 namespace locic {
 	
 	namespace SemanticAnalysis {
 		
+		constexpr size_t MAX_STACK_DEPTH = 20;
+		
+		SatisfyChecker::SatisfyChecker(Context& context)
+		: context_(context) { }
+		
+		class StackMaxDepthExceededDiag: public Error {
+		public:
+			StackMaxDepthExceededDiag(const AST::Type* const sourceType,
+			                          const AST::Type* const destType)
+			: sourceType_(sourceType), destType_(destType) { }
+
+			std::string toString() const {
+				return makeString("max stack depth exceeded evaluating '%s' : '%s'",
+				                  sourceType_->toDiagString().c_str(),
+				                  destType_->toDiagString().c_str());
+			}
+			
+		private:
+			const AST::Type* sourceType_;
+			const AST::Type* destType_;
+			
+		};
+		
+		class PushStack {
+		public:
+			PushStack(SatisfyChecker::Stack& stack,
+			          const AST::Type* const checkType,
+			          const AST::Type* const requireType)
+			: stack_(stack) {
+				stack_.push_back(std::make_pair(checkType, requireType));
+			}
+			
+			~PushStack() {
+				stack_.pop_back();
+			}
+			
+		private:
+			SatisfyChecker::Stack& stack_;
+			
+		};
+		
+		OptionalDiag
+		SatisfyChecker::satisfies(const AST::Type* checkType,
+		                          const AST::Type* requireType) {
+			checkType = checkType->resolveAliases();
+			requireType = requireType->resolveAliases();
+			
+			// Avoid cycles such as:
+			// 
+			// template <typename T : SomeType<T>>
+			// interface SomeType { }
+			// 
+			// This is done by first checking if T : SomeType<T>,
+			// which itself will check that T : SomeType<T> (since T
+			// is an argument to 'SomeType') but on the second (nested)
+			// check simply assuming that the result is true (since
+			// this is being used to compute whether it is itself true
+			// and a cyclic dependency like this is acceptable).
+			const auto pair = std::make_pair(checkType, requireType);
+			for (const auto& checkPair: satisfyCheckStack_) {
+				if (pair == checkPair) {
+					return SUCCESS;
+				}
+			}
+			
+			if (satisfyCheckStack_.size() > MAX_STACK_DEPTH) {
+				printf("Depth exceeded!\n");
+				for (const auto& checkPair: satisfyCheckStack_) {
+					printf("    %s : %s\n",
+					       checkPair.first->toDiagString().c_str(),
+					       checkPair.second->toDiagString().c_str());
+				}
+				return StackMaxDepthExceededDiag(checkType,
+				                                 requireType);
+			}
+			
+			PushStack stackElement(satisfyCheckStack_, checkType, requireType);
+			return typeSatisfies(checkType, requireType);
+		}
+		
+		class RefCannotMatchAutoDiag: public Error {
+		public:
+			RefCannotMatchAutoDiag(const AST::Type* const sourceType,
+			                       const AST::Type* const destType)
+			: sourceType_(sourceType), destType_(destType) { }
+
+			std::string toString() const {
+				return makeString("reference type '%s' cannot match auto type '%s'",
+				                  sourceType_->toDiagString().c_str(),
+				                  destType_->toDiagString().c_str());
+			}
+			
+		private:
+			const AST::Type* sourceType_;
+			const AST::Type* destType_;
+			
+		};
+		
+		class CannotMatchIncompatibleTypesDiag: public Error {
+		public:
+			CannotMatchIncompatibleTypesDiag(const AST::Type* const sourceType,
+			                                 const AST::Type* const destType)
+			: sourceType_(sourceType), destType_(destType) { }
+
+			std::string toString() const {
+				return makeString("cannot match incompatible types '%s' and '%s'",
+				                  sourceType_->toDiagString().c_str(),
+				                  destType_->toDiagString().c_str());
+			}
+			
+		private:
+			const AST::Type* sourceType_;
+			const AST::Type* destType_;
+			
+		};
+		
+		class CannotPolyCastInNoopDiag: public Error {
+		public:
+			CannotPolyCastInNoopDiag(const AST::Type* const sourceType,
+			                         const AST::Type* const destType)
+			: sourceType_(sourceType), destType_(destType) { }
+
+			std::string toString() const {
+				return makeString("cannot perform polymorphic cast from  '%s' to '%s' in noop cast context",
+				                  sourceType_->toDiagString().c_str(),
+				                  destType_->toDiagString().c_str());
+			}
+			
+		private:
+			const AST::Type* sourceType_;
+			const AST::Type* destType_;
+			
+		};
+		
+		class RefConstImplicationFailedDiag: public Error {
+		public:
+			RefConstImplicationFailedDiag(const AST::Type* const sourceType,
+			                              const AST::Type* const destType)
+			: sourceType_(sourceType), destType_(destType) { }
+			
+			std::string toString() const {
+				return makeString("const predicate of reference type  '%s' does not imply const predicate of '%s'",
+				                  sourceType_->toDiagString().c_str(),
+				                  destType_->toDiagString().c_str());
+			}
+			
+		private:
+			const AST::Type* sourceType_;
+			const AST::Type* destType_;
+			
+		};
+		
+		OptionalDiag
+		SatisfyChecker::typeSatisfies(const AST::Type* const checkType,
+		                              const AST::Type* const requireType) {
+			assert(!checkType->isAuto());
+			assert(!checkType->isAlias() && !requireType->isAlias());
+			
+			if (checkType == requireType) {
+				return SUCCESS;
+			}
+			
+			if (requireType->isAuto()) {
+				if (checkType->isRef()) {
+					return RefCannotMatchAutoDiag(checkType,
+					                              requireType);
+				}
+				
+				// Everything other than references matches auto.
+				// TODO: check const implication?
+				return SUCCESS;
+			}
+			
+			if (!requireType->isInterface()) {
+				// Don't allow casts between different object types or
+				// template variables.
+				
+				if (checkType->kind() != requireType->kind()) {
+					// Cannot mix object types and template vars.
+					return CannotMatchIncompatibleTypesDiag(checkType,
+					                                        requireType);
+				}
+				
+				if (requireType->isObject()) {
+					if (checkType->getObjectType() != requireType->getObjectType()) {
+						return CannotMatchIncompatibleTypesDiag(checkType,
+						                                        requireType);
+					}
+				} else {
+					assert(requireType->isTemplateVar());
+					if (checkType->getTemplateVar() != requireType->getTemplateVar()) {
+						return CannotMatchIncompatibleTypesDiag(checkType,
+						                                        requireType);
+					}
+				}
+			}
+			
+			if (checkType->isRef() && requireType->isRef()) {
+				// Prevent polymorphic cast since it is NOT a noop.
+				// TODO: generalise this!
+				if (!checkType->refTarget()->isInterface() &&
+				    requireType->refTarget()->isInterface()) {
+					// Can't do polymorphic casts here as it
+					// is not a NOOP.
+					return CannotPolyCastInNoopDiag(checkType,
+					                                requireType);
+				}
+				
+				if (!checkType->constPredicate().implies(requireType->constPredicate())) {
+					return RefConstImplicationFailedDiag(checkType,
+					                                     requireType);
+				}
+				
+				return satisfies(checkType->refTarget(),
+				                 requireType->refTarget());
+			}
+			
+			const auto sourceMethodSet = getTypeMethodSet(context_, checkType);
+			const auto requireMethodSet = getTypeMethodSet(context_, requireType);
+			
+			// TODO: chain diagnostics here.
+			return methodSetSatisfies(sourceMethodSet, requireMethodSet);
+		}
+		
 		AST::TemplateVarMap
-		generateSatisfyTemplateVarMap(const AST::MethodSetElement& checkElement,
-		                              const AST::MethodSetElement& requireElement) {
+		SatisfyChecker::generateSatisfyTemplateVarMap(const AST::MethodSetElement& checkElement,
+		                                              const AST::MethodSetElement& requireElement) {
 			AST::TemplateVarMap templateVarMap;
 			
 			// Very basic template deduction.
@@ -238,14 +457,18 @@ namespace locic {
 		constexpr bool DEBUG_METHOD_SET = false;
 		
 		OptionalDiag
-		methodSetElementSatisfiesRequirement(Context& context, const AST::Predicate& checkSelfConst,
-		                                     const AST::Predicate& requireSelfConst,
-		                                     const String& functionName,
-		                                     const AST::MethodSetElement& checkFunctionElement,
-		                                     const AST::MethodSetElement& requireFunctionElement) {
+		SatisfyChecker::methodSatisfies(const AST::Predicate& checkSelfConst,
+		                                const AST::Predicate& requireSelfConst,
+		                                const String& functionName,
+		                                const AST::MethodSetElement& checkFunctionElement,
+		                                const AST::MethodSetElement& requireFunctionElement) {
+			if (!requireFunctionElement.templateVariables().empty()) {
+				// FIXME: We shouldn't have to skip over these.
+				return SUCCESS;
+			}
 			
-			const auto requireConst = reducePredicate(context, requireFunctionElement.constPredicate().substitute(AST::TemplateVarMap(),
-			                                                                                                      /*selfconst=*/requireSelfConst));
+			const auto requireConst = reducePredicate(requireFunctionElement.constPredicate().substitute(AST::TemplateVarMap(),
+			                                                                                             /*selfconst=*/requireSelfConst));
 			
 			if (!requireFunctionElement.isStatic() && !requireSelfConst.implies(requireConst)) {
 				// Skip because required method is non-const
@@ -269,8 +492,8 @@ namespace locic {
 				                             requireFunctionElement.isStatic());
 			}
 			
-			const auto checkConst = reducePredicate(context, checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap,
-			                                                                                                  /*selfconst=*/checkSelfConst));
+			const auto checkConst = reducePredicate(checkFunctionElement.constPredicate().substitute(satisfyTemplateVarMap,
+			                                                                                         /*selfconst=*/checkSelfConst));
 			
 			// The method set's const predicate needs to imply the method's
 			// const predicate.
@@ -307,10 +530,10 @@ namespace locic {
 				                                           checkConst);
 			}
 			
-			const auto checkRequire = reducePredicate(context, checkFunctionElement.requirePredicate().substitute(satisfyTemplateVarMap,
-			                                                                                                        /*selfconst=*/checkSelfConst));
-			const auto requireRequire = reducePredicate(context, requireFunctionElement.requirePredicate().substitute(AST::TemplateVarMap(),
-			                                                                                                          /*selfconst=*/requireSelfConst));
+			const auto checkRequire = reducePredicate(checkFunctionElement.requirePredicate().substitute(satisfyTemplateVarMap,
+			                                                                                             /*selfconst=*/checkSelfConst));
+			const auto requireRequire = reducePredicate(requireFunctionElement.requirePredicate().substitute(AST::TemplateVarMap(),
+			                                                                                                 /*selfconst=*/requireSelfConst));
 			
 			// The requirement method's require predicate needs to imply the
 			// require predicate of the provided method.
@@ -327,10 +550,10 @@ namespace locic {
 				                                             checkRequire);
 			}
 			
-			const auto checkNoexcept = reducePredicate(context, checkFunctionElement.noexceptPredicate().substitute(satisfyTemplateVarMap,
-			                                                                                                        /*selfconst=*/checkSelfConst));
-			const auto requireNoexcept = reducePredicate(context, requireFunctionElement.noexceptPredicate().substitute(AST::TemplateVarMap(),
-			                                                                                                            /*selfconst=*/requireSelfConst));
+			const auto checkNoexcept = reducePredicate(checkFunctionElement.noexceptPredicate().substitute(satisfyTemplateVarMap,
+			                                                                                               /*selfconst=*/checkSelfConst));
+			const auto requireNoexcept = reducePredicate(requireFunctionElement.noexceptPredicate().substitute(AST::TemplateVarMap(),
+			                                                                                                   /*selfconst=*/requireSelfConst));
 			
 			// Can't cast throwing method to noexcept method.
 			if (!requireNoexcept.implies(checkNoexcept)) {
@@ -366,11 +589,8 @@ namespace locic {
 				                                                         /*selfconst=*/checkSelfConst);
 				const auto requireParamType = secondList.at(i)->substitute(AST::TemplateVarMap(),
 				                                                           /*selfconst=*/requireSelfConst);
-				const auto castParamType =
-				    ImplicitCastTypeFormatOnly(context, requireParamType, checkParamType,
-				                               Debug::SourceLocation::Null());
-				
-				if (castParamType == nullptr) {
+				auto result = satisfies(requireParamType, checkParamType);
+				if (result.failed()) {
 					if (DEBUG_METHOD_SET_ELEMENT) {
 						printf("\nParameter types don't match for '%s' (param %llu).\n    Source: %s\n    Require: %s\n\n",
 						       functionName.c_str(),
@@ -383,27 +603,27 @@ namespace locic {
 					                             requireParamType);
 				}
 			}
-
-			const auto checkReturnType =
-			    checkFunctionElement.returnType()->substitute(satisfyTemplateVarMap,
-			                                                  /*selfconst=*/checkSelfConst);
-			const auto requireReturnType =
-			    requireFunctionElement.returnType()->substitute(AST::TemplateVarMap(),
-			                                                    /*selfconst=*/requireSelfConst);
-			const auto castReturnType =
-			    ImplicitCastTypeFormatOnly(context, checkReturnType, requireReturnType,
-			                               Debug::SourceLocation::Null());
-
-			if (castReturnType == nullptr) {
-				if (DEBUG_METHOD_SET_ELEMENT) {
-					printf("\nReturn type doesn't match for '%s'.\n    Source: %s\n    Require: %s\n\n",
-					       functionName.c_str(),
-					       checkReturnType->toString().c_str(),
-					       requireReturnType->toString().c_str()
-					);
+			
+			{
+				const auto checkReturnType =
+				    checkFunctionElement.returnType()->substitute(satisfyTemplateVarMap,
+				                                                  /*selfconst=*/checkSelfConst);
+				const auto requireReturnType =
+				    requireFunctionElement.returnType()->substitute(AST::TemplateVarMap(),
+				                                                    /*selfconst=*/requireSelfConst);
+				
+				auto result = satisfies(checkReturnType, requireReturnType);
+				if (result.failed()) {
+					if (DEBUG_METHOD_SET_ELEMENT) {
+						printf("\nReturn type doesn't match for '%s'.\n    Source: %s\n    Require: %s\n\n",
+						       functionName.c_str(),
+						       checkReturnType->toString().c_str(),
+						       requireReturnType->toString().c_str()
+						);
+					}
+					return ReturnTypeMismatchDiag(functionName, checkReturnType,
+					                              requireReturnType);
 				}
-				return ReturnTypeMismatchDiag(functionName, checkReturnType,
-				                              requireReturnType);
 			}
 			
 			return SUCCESS;
@@ -425,13 +645,13 @@ namespace locic {
 		};
 		
 		OptionalDiag
-		methodSetSatisfiesRequirement(Context& context, const AST::MethodSet* const checkSet,
-		                              const AST::MethodSet* const requireSet) {
+		SatisfyChecker::methodSetSatisfies(const AST::MethodSet* const checkSet,
+		                                   const AST::MethodSet* const requireSet) {
 			auto checkIterator = checkSet->begin();
 			auto requireIterator = requireSet->begin();
 			
-			const auto checkSelfConst = reducePredicate(context, checkSet->constPredicate().copy());
-			const auto requireSelfConst = reducePredicate(context, requireSet->constPredicate().copy());
+			const auto checkSelfConst = reducePredicate(checkSet->constPredicate().copy());
+			const auto requireSelfConst = reducePredicate(requireSet->constPredicate().copy());
 			
 			for (; requireIterator != requireSet->end(); ++checkIterator) {
 				const auto& requireFunctionName = requireIterator->first;
@@ -460,18 +680,17 @@ namespace locic {
 					continue;
 				}
 				
-				auto optionalDiag =
-				    methodSetElementSatisfiesRequirement(context, checkSelfConst,
-				                                         requireSelfConst,
-				                                         checkFunctionName, checkFunctionElement,
-				                                         requireFunctionElement);
-				if (optionalDiag.failed()) {
+				auto result = methodSatisfies(checkSelfConst,
+				                              requireSelfConst,
+				                              checkFunctionName, checkFunctionElement,
+				                              requireFunctionElement);
+				if (result.failed()) {
 					if (DEBUG_METHOD_SET) {
 						printf("\n...in methodSetSatisfiesRequirement:\n    Source: %s\n    Require: %s\n\n",
 							formatMessage(checkSet->toString()).c_str(),
 							formatMessage(requireSet->toString()).c_str());
 					}
-					return optionalDiag;
+					return result;
 				}
 				
 				++requireIterator;
@@ -480,7 +699,64 @@ namespace locic {
 			return SUCCESS;
 		}
 		
+		AST::Predicate
+		SatisfyChecker::reducePredicate(AST::Predicate predicate) {
+			switch (predicate.kind()) {
+				case AST::Predicate::TRUE:
+				case AST::Predicate::FALSE:
+				case AST::Predicate::SELFCONST:
+				{
+					return predicate;
+				}
+				case AST::Predicate::AND:
+				{
+					auto left = reducePredicate(predicate.andLeft().copy());
+					auto right = reducePredicate(predicate.andRight().copy());
+					return AST::Predicate::And(std::move(left), std::move(right));
+				}
+				case AST::Predicate::OR:
+				{
+					auto left = reducePredicate(predicate.orLeft().copy());
+					auto right = reducePredicate(predicate.orRight().copy());
+					return AST::Predicate::Or(std::move(left), std::move(right));
+				}
+				case AST::Predicate::SATISFIES:
+				{
+					const auto checkType = predicate.satisfiesType();
+					const auto requireType = predicate.satisfiesRequirement();
+					
+					if (checkType->isAuto()) {
+						// Presumably this is OK...
+						// TODO: remove auto from here.
+						return AST::Predicate::True();
+					}
+					
+					const auto result = satisfies(checkType, requireType);
+					if (result.success()) {
+						// If the result is true then we
+						// know for sure that the check
+						// type satisfies the requirement,
+						// but a false result might just
+						// be a lack of information.
+						return AST::Predicate::True();
+					}
+					
+					if (!checkType->dependsOnOnly({}) || !requireType->dependsOnOnly({})) {
+						// Types still depend on some template variables, so can't reduce.
+						return predicate;
+					}
+					
+					return AST::Predicate::False();
+				}
+				case AST::Predicate::VARIABLE:
+				{
+					return predicate;
+				}
+			}
+			
+			locic_unreachable("Unknown predicate kind.");
+		}
+		
 	}
 	
 }
-

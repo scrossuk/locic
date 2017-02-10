@@ -13,8 +13,8 @@
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
-#include <locic/SemanticAnalysis/MethodSetSatisfies.hpp>
 #include <locic/SemanticAnalysis/NameSearch.hpp>
+#include <locic/SemanticAnalysis/SatisfyChecker.hpp>
 #include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeResolver.hpp>
@@ -213,22 +213,6 @@ namespace locic {
 			locic_unreachable("Unknown AST RequireSpecifier kind.");
 		}
 		
-		class PushAssumedSatisfies {
-		public:
-			PushAssumedSatisfies(Context& context, const AST::Type* const checkType, const AST::Type* const requireType)
-			: context_(context) {
-				context_.pushAssumeSatisfies(checkType, requireType);
-			}
-			
-			~PushAssumedSatisfies() {
-				context_.popAssumeSatisfies();
-			}
-			
-		private:
-			Context& context_;
-			
-		};
-		
 		class PredicateHasLiteralFalseDiag: public Error {
 		public:
 			PredicateHasLiteralFalseDiag() { }
@@ -319,27 +303,8 @@ namespace locic {
 						return SUCCESS;
 					}
 					
-					// Avoid cycles such as:
-					// 
-					// template <typename T : SomeType<T>>
-					// interface SomeType { }
-					// 
-					// This is done by first checking if T : SomeType<T>,
-					// which itself will check that T : SomeType<T> (since T
-					// is an argument to 'SomeType') but on the second (nested)
-					// check simply assuming that the result is true (since
-					// this is being used to compute whether it is itself true
-					// and a cyclic dependency like this is acceptable).
-					if (context.isAssumedSatisfies(substitutedCheckType, substitutedRequireType)) {
-						return SUCCESS;
-					}
-					
-					PushAssumedSatisfies assumedSatisfies(context, substitutedCheckType, substitutedRequireType);
-					
-					const auto sourceMethodSet = getTypeMethodSet(context, substitutedCheckType);
-					const auto requireMethodSet = getTypeMethodSet(context, substitutedRequireType);
-					
-					return methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
+					return SatisfyChecker(context).satisfies(substitutedCheckType,
+					                                         substitutedRequireType);
 				}
 				case AST::Predicate::VARIABLE:
 				{
@@ -361,81 +326,7 @@ namespace locic {
 		}
 		
 		AST::Predicate reducePredicate(Context& context, AST::Predicate predicate) {
-			switch (predicate.kind()) {
-				case AST::Predicate::TRUE:
-				case AST::Predicate::FALSE:
-				case AST::Predicate::SELFCONST:
-				{
-					return predicate;
-				}
-				case AST::Predicate::AND:
-				{
-					auto left = reducePredicate(context, predicate.andLeft().copy());
-					auto right = reducePredicate(context, predicate.andRight().copy());
-					return AST::Predicate::And(std::move(left), std::move(right));
-				}
-				case AST::Predicate::OR:
-				{
-					auto left = reducePredicate(context, predicate.orLeft().copy());
-					auto right = reducePredicate(context, predicate.orRight().copy());
-					return AST::Predicate::Or(std::move(left), std::move(right));
-				}
-				case AST::Predicate::SATISFIES:
-				{
-					const auto checkType = predicate.satisfiesType();
-					const auto requireType = predicate.satisfiesRequirement();
-					
-					// Avoid cycles such as:
-					// 
-					// template <typename T : SomeType<T>>
-					// interface SomeType { }
-					// 
-					// This is done by first checking if T : SomeType<T>,
-					// which itself will check that T : SomeType<T> (since T
-					// is an argument to 'SomeType') but on the second (nested)
-					// check simply assuming that the result is true (since
-					// this is being used to compute whether it is itself true
-					// and a cyclic dependency like this is acceptable).
-					if (context.isAssumedSatisfies(checkType, requireType)) {
-						return AST::Predicate::True();
-					}
-					
-					PushAssumedSatisfies assumedSatisfies(context, checkType, requireType);
-					
-					if (checkType->isAuto()) {
-						// Presumably this is OK...
-						// TODO: remove auto from here.
-						return AST::Predicate::True();
-					}
-					
-					const auto sourceMethodSet = getTypeMethodSet(context, checkType);
-					const auto requireMethodSet = getTypeMethodSet(context, requireType);
-					
-					const auto result = methodSetSatisfiesRequirement(context, sourceMethodSet, requireMethodSet);
-					
-					if (result.success()) {
-						// If the result is true then we
-						// know for sure that the check
-						// type satisfies the requirement,
-						// but a false result might just
-						// be a lack of information.
-						return AST::Predicate::True();
-					}
-					
-					if (!checkType->dependsOnOnly({}) || !requireType->dependsOnOnly({})) {
-						// Types still depend on some template variables, so can't reduce.
-						return predicate;
-					}
-					
-					return AST::Predicate::False();
-				}
-				case AST::Predicate::VARIABLE:
-				{
-					return predicate;
-				}
-			}
-			
-			locic_unreachable("Unknown predicate kind.");
+			return SatisfyChecker(context).reducePredicate(std::move(predicate));
 		}
 		
 	}
