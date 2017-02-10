@@ -20,7 +20,7 @@ namespace locic {
 		: context_(context),
 		type_(sourceType),
 		canBind_(canBind) {
-			assert(type_->canBeUsedAsValue());
+			assert(!type_->isInterface());
 		}
 		
 		const AST::Type*
@@ -30,13 +30,13 @@ namespace locic {
 		
 		void
 		CastGenerator::setSourceType(const AST::Type* const sourceType) {
-			assert(sourceType->canBeUsedAsValue());
+			assert(!sourceType->isInterface());
 			type_ = sourceType;
 		}
 		
 		OptionalDiag
 		CastGenerator::implicitCast(const AST::Type* const destType) {
-			assert(destType->canBeUsedAsValue());
+			assert(!destType->isInterface());
 			
 			// Keep removing references from source type until we
 			// reach depth of destination type.
@@ -183,9 +183,10 @@ namespace locic {
 		OptionalDiag
 		CastGenerator::implicitCastValueToValue(const AST::Type* const destType) {
 			assert(!type()->isRef() && !destType->isRef());
-			assert(destType->canBeUsedAsValue());
+			assert(!destType->isInterface());
 			
-			if (implicitCastNoop(destType).success()) {
+			auto diag = implicitCastNoop(destType);
+			if (diag.success()) {
 				return SUCCESS;
 			}
 			
@@ -216,7 +217,6 @@ namespace locic {
 		
 		OptionalDiag
 		CastGenerator::implicitCastVariant(const AST::Type* const destType) {
-			assert(destType->canBeUsedAsValue());
 			assert(destType->isVariant());
 			
 			for (const auto variantChildType: destType->getObjectType()->variantTypes()) {
@@ -249,7 +249,7 @@ namespace locic {
 		
 		OptionalDiag
 		CastGenerator::implicitCastUser(const AST::Type* const destType) {
-			assert(destType->canBeUsedAsValue());
+			assert(!destType->isInterface());
 			
 			TypeCapabilities capabilities(context_);
 			if (!capabilities.supportsImplicitCast(type(), destType)) {
@@ -291,13 +291,15 @@ namespace locic {
 		CastGenerator::implicitCopyRefToValue() {
 			assert(type()->isRef());
 			
+			// We assume that copying gives the reference target without const.
+			const auto copyType = type()->refTarget()->stripConst();
+			
 			TypeCapabilities capabilities(context_);
-			if (!capabilities.supportsImplicitCopy(type()->refTarget())) {
-				return CannotCopyDiag(type()->refTarget());
+			if (!capabilities.supportsImplicitCopy(copyType)) {
+				return CannotCopyDiag(copyType);
 			}
 			
-			// We assume that copying gives the reference target without const.
-			setSourceType(type()->refTarget()->stripConst()); //castChain_.addImplicitCopy(type()->refTarget()->stripConst());
+			setSourceType(copyType); //castChain_.addImplicitCopy(type()->refTarget()->stripConst());
 			return SUCCESS;
 		}
 		
