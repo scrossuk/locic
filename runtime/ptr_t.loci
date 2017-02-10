@@ -20,19 +20,19 @@ __primitive ptr_t {
 	
 	ptr_t<selfconst(T)> add(const ptrdiff_t& v) const noexcept require(sized_type<T>);
 	
-	ptrdiff_t subtract(const ptr_t<T>& v) const noexcept require(sized_type<T>);
+	ptrdiff_t subtract(const ptr_t<const T>& v) const noexcept require(sized_type<T>);
 	
-	bool equal(const ptr_t<T>& value) const noexcept;
-	bool not_equal(const ptr_t<T>& value) const noexcept;
-	bool less_than(const ptr_t<T>& v) const noexcept;
-	bool less_than_or_equal(const ptr_t<T>& v) const noexcept;
-	bool greater_than(const ptr_t<T>& v) const noexcept;
-	bool greater_than_or_equal(const ptr_t<T>& v) const noexcept;
+	bool equal(const ptr_t<const T>& value) const noexcept;
+	bool not_equal(const ptr_t<const T>& value) const noexcept;
+	bool less_than(const ptr_t<const T>& v) const noexcept;
+	bool less_than_or_equal(const ptr_t<const T>& v) const noexcept;
+	bool greater_than(const ptr_t<const T>& v) const noexcept;
+	bool greater_than_or_equal(const ptr_t<const T>& v) const noexcept;
 	
 	void increment() noexcept require(sized_type<T>);
 	void decrement() noexcept require(sized_type<T>);
 	
-	compare_result_t compare(const ptr_t<T>& value) const noexcept;
+	compare_result_t compare(const ptr_t<const T>& value) const noexcept;
 	
 	ptr_t<T> __move() noexcept;
 }
