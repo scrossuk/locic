@@ -13,7 +13,7 @@ interface B {
 static assert A : B;
 
 // CHECK: .loci:17:15: error: static assert predicate evaluates to false
-// CHECK: .loci:17:15: note: because: method '__alignmask' not found
+// CHECK: .loci:17:15: note: because: cannot match incompatible types 'B' and 'A'
 static assert B : A;
 
 // CHECK: 1 error generated.
