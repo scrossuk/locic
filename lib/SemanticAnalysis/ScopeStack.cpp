@@ -108,7 +108,13 @@ namespace locic {
 			for (size_t i = 0; i < templateArgs.size(); i++) {
 				const auto& argVar = templateVariables[i];
 				const auto& argType = templateArgs[i];
+				AST::TemplateVarMap templateVarMap;
+				templateVarMap.insert(std::make_pair(argVar, AST::Value::TypeRef(argType, argVar->type())));
 				templateArgValues.push_back(AST::Value::TypeRef(argType, argVar->type()));
+				
+				// Substitute to fix the type of the template argument.
+				templateArgValues[i] = templateArgValues[i].substitute(templateVarMap,
+				                                                       /*selfconst=*/AST::Predicate::SelfConst());
 			}
 			
 			if (value.isTypeInstance()) {
