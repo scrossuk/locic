@@ -100,6 +100,13 @@ namespace locic {
 		}
 		
 		const AST::Type*
+		TypeBuilder::getRefType(const AST::Type* const elementType) {
+			AST::ValueArray array;
+			array.push_back(elementType->asValue());
+			return getPrimitiveType(PrimitiveRef, std::move(array));
+		}
+		
+		const AST::Type*
 		TypeBuilder::getPointerType(const AST::Type* const elementType) {
 			AST::ValueArray array;
 			array.push_back(elementType->asValue());
