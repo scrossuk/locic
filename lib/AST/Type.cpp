@@ -165,6 +165,11 @@ namespace locic {
 			}
 			
 			Type typeCopy = copy();
+			if (!hasConst()) {
+				typeCopy.cachedStripConstType_ = this;
+			} else {
+				typeCopy.cachedStripConstType_ = cachedStripConstType_;
+			}
 			typeCopy.constPredicate_ = Predicate::Or(constPredicate().copy(),
 			                                         std::move(predicate));
 			return context_.getType(std::move(typeCopy));
