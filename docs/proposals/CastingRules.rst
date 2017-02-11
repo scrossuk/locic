@@ -6,6 +6,57 @@ Proposal: Casting Rules
 
 This is a proposal outlining potential rules for implicit casts.
 
+Cast Operations
+---------------
+
+A cast operation is performed from one value type to another value type. A value type:
+
+* Cannot be ``const``.
+* Cannot be an interface.
+
+Cast operations are implemented using ``cast`` methods:
+
+.. code-block:: c++
+
+	class Example {
+		static int cast(Example value) noexcept;
+	}
+
+Satisfies
+~~~~~~~~~
+
+``A : B`` is a satisfies check, where ``A`` and ``B`` are two types. ``A : B`` can only be true if ``A`` contains all the methods required by ``B``.
+
+However if ``B`` is **not** an interface then ``A`` and ``B`` must have the same type (ignoring template arguments), which prevents two different but API-equivalent types from being cast to one another.
+
+Many casts will depend on the result of a satisfies check:
+
+.. code-block:: c++
+
+	template <typename T>
+	class ref_t {
+		template <typename S>
+		static ref_t<S> cast(ref_t<T> value) noexcept
+			require(T : S);
+	}
+
+Hence to cast from ``T&`` to ``S&`` it is necessary to check that ``T : S``.
+
+Noop
+~~~~
+
+The ``noop`` tag indicates that a method doesn't require any run-time code. It would be used on ``cast`` methods to indicate that they are equivalent to omitting the call:
+
+.. code-block:: c++
+
+	template <typename T>
+	class RefWrap(T& value) {
+		template <typename S>
+		static RefWrap<S> cast(RefWrap<T> value) noexcept noop = default;
+	}
+
+The ``noop`` property can only be achieved using ``= default`` and has method-specific meaning (e.g. it is different for destructors).
+
 Cast Sequence
 -------------
 
