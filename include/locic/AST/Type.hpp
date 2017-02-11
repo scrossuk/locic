@@ -49,6 +49,7 @@ namespace locic {
 				
 				const Type* applyConst(Predicate predicate) const;
 				const Type* stripConst() const;
+				bool hasConst() const;
 				
 				/**
 				 * \brief Can be used as value.

@@ -175,7 +175,7 @@ namespace locic {
 				return cachedStripConstType_;
 			}
 			
-			if (constPredicate().isFalse()) {
+			if (!hasConst()) {
 				cachedStripConstType_ = this;
 				return this;
 			}
@@ -186,6 +186,10 @@ namespace locic {
 			const auto result = context_.getType(std::move(typeCopy));
 			cachedStripConstType_ = result;
 			return result;
+		}
+		
+		bool Type::hasConst() const {
+			return !constPredicate().isFalse();
 		}
 		
 		bool Type::canBeUsedAsValue() const {
