@@ -10,7 +10,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		class StaticAssertPredicateIsFalseDiag: public Error {
+		class StaticAssertPredicateIsFalseDiag: public ErrorDiag {
 		public:
 			StaticAssertPredicateIsFalseDiag() { }
 			

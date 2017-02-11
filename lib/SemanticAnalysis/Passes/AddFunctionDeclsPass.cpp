@@ -22,7 +22,7 @@ namespace locic {
 			return functionInfo;
 		}
 		
-		class CannotNestImportedFunctionInModuleScopeDiag: public Error {
+		class CannotNestImportedFunctionInModuleScopeDiag: public ErrorDiag {
 		public:
 			CannotNestImportedFunctionInModuleScopeDiag(Name name)
 			: name_(std::move(name)) { }
@@ -37,7 +37,7 @@ namespace locic {
 			
 		};
 		
-		class CannotNestExportedFunctionInModuleScopeDiag: public Error {
+		class CannotNestExportedFunctionInModuleScopeDiag: public ErrorDiag {
 		public:
 			CannotNestExportedFunctionInModuleScopeDiag(Name name)
 			: name_(std::move(name)) { }
@@ -72,7 +72,7 @@ namespace locic {
 			}
 		}
 		
-		class DefinitionRequiredForInternalFunctionDiag: public Error {
+		class DefinitionRequiredForInternalFunctionDiag: public ErrorDiag {
 		public:
 			DefinitionRequiredForInternalFunctionDiag(Name name)
 			: name_(std::move(name)) { }
@@ -87,7 +87,7 @@ namespace locic {
 			
 		};
 		
-		class CannotDefineImportedFunctionDiag: public Error {
+		class CannotDefineImportedFunctionDiag: public ErrorDiag {
 		public:
 			CannotDefineImportedFunctionDiag(Name name)
 			: name_(std::move(name)) { }
@@ -102,7 +102,7 @@ namespace locic {
 			
 		};
 		
-		class DefinitionRequiredForExportedFunctionDiag: public Error {
+		class DefinitionRequiredForExportedFunctionDiag: public ErrorDiag {
 		public:
 			DefinitionRequiredForExportedFunctionDiag(Name name)
 			: name_(std::move(name)) { }
@@ -171,7 +171,7 @@ namespace locic {
 			function->setDebugInfo(functionInfo);
 		}
 		
-		class FunctionClashesWithExistingNameDiag: public Error {
+		class FunctionClashesWithExistingNameDiag: public ErrorDiag {
 		public:
 			FunctionClashesWithExistingNameDiag(const Name& name)
 			: name_(name.copy()) { }
@@ -186,7 +186,7 @@ namespace locic {
 			
 		};
 		
-		class UnknownParentTypeForExceptionMethodDiag: public Error {
+		class UnknownParentTypeForExceptionMethodDiag: public ErrorDiag {
 		public:
 			UnknownParentTypeForExceptionMethodDiag(Name parentName, String methodName)
 			: parentName_(std::move(parentName)), methodName_(methodName) { }
@@ -203,7 +203,7 @@ namespace locic {
 			
 		};
 		
-		class ParentOfExtentionMethodIsNotATypeDiag: public Error {
+		class ParentOfExtentionMethodIsNotATypeDiag: public ErrorDiag {
 		public:
 			ParentOfExtentionMethodIsNotATypeDiag(Name parentName, String methodName)
 			: parentName_(std::move(parentName)), methodName_(methodName) { }
@@ -222,7 +222,7 @@ namespace locic {
 		
 		namespace {
 			
-			class PreviousDefinedDiag: public Error {
+			class PreviousDefinedDiag: public ErrorDiag {
 			public:
 				PreviousDefinedDiag() { }
 				
@@ -285,7 +285,7 @@ namespace locic {
 			}
 		}
 		
-		class DestructorMethodClashDiag: public Error {
+		class DestructorMethodClashDiag: public ErrorDiag {
 		public:
 			DestructorMethodClashDiag() { }
 			
@@ -295,7 +295,7 @@ namespace locic {
 			
 		};
 		
-		class MethodNameClashDiag: public Error {
+		class MethodNameClashDiag: public ErrorDiag {
 		public:
 			MethodNameClashDiag(String methodName)
 			: methodName_(methodName) { }
@@ -310,7 +310,7 @@ namespace locic {
 			
 		};
 		
-		class MethodNameCanonicalizationClashDiag: public Error {
+		class MethodNameCanonicalizationClashDiag: public ErrorDiag {
 		public:
 			MethodNameCanonicalizationClashDiag(String methodName, String previousMethodName)
 			: methodName_(methodName), previousMethodName_(previousMethodName) { }
@@ -353,7 +353,7 @@ namespace locic {
 			parentTypeInstance.attachFunction(*function);
 		}
 		
-		class EnumConstructorClashesWithExistingNameDiag: public Error {
+		class EnumConstructorClashesWithExistingNameDiag: public ErrorDiag {
 		public:
 			EnumConstructorClashesWithExistingNameDiag(const Name& name)
 			: name_(name.copy()) { }

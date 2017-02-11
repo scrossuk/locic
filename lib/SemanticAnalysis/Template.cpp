@@ -42,7 +42,7 @@ namespace locic {
 			
 		}
 		
-		class TemplateArgsDoNotSatisfyRequirePredicateDiag : public Error {
+		class TemplateArgsDoNotSatisfyRequirePredicateDiag : public ErrorDiag {
 		public:
 			TemplateArgsDoNotSatisfyRequirePredicateDiag(const AST::Predicate& requirePredicate,
 			                                             const Name& name)
@@ -60,7 +60,7 @@ namespace locic {
 			
 		};
 		
-		class TemplateArgHasInvalidTypeDiag : public Error {
+		class TemplateArgHasInvalidTypeDiag : public ErrorDiag {
 		public:
 			TemplateArgHasInvalidTypeDiag(const String& name, const AST::Type* expectedType,
 			                              const AST::Type* actualType)
@@ -187,7 +187,7 @@ namespace locic {
 			return variableAssignments;
 		}
 		
-		class InvalidTemplateArgCountDiag: public Error {
+		class InvalidTemplateArgCountDiag: public ErrorDiag {
 		public:
 			InvalidTemplateArgCountDiag(const Name& name, size_t argsExpected,
 			                            size_t argsGiven)
@@ -208,7 +208,7 @@ namespace locic {
 			
 		};
 		
-		class UnexpectedTemplateArgDiag: public Error {
+		class UnexpectedTemplateArgDiag: public ErrorDiag {
 		public:
 			UnexpectedTemplateArgDiag(const Name& name, size_t argsGiven)
 			: name_(name.copy()), argsGiven_(argsGiven) { }

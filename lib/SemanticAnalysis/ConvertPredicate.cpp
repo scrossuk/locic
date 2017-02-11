@@ -25,7 +25,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		class PredicateAliasNotBoolDiag: public Error {
+		class PredicateAliasNotBoolDiag: public ErrorDiag {
 		public:
 			PredicateAliasNotBoolDiag(const Name& name, const AST::Type* const type)
 			: name_(name.copy()), typeString_(type->toDiagString()) { }
@@ -43,7 +43,7 @@ namespace locic {
 			
 		};
 		
-		class PredicateTemplateVarNotBoolDiag: public Error {
+		class PredicateTemplateVarNotBoolDiag: public ErrorDiag {
 		public:
 			PredicateTemplateVarNotBoolDiag(const Name& name, const AST::Type* const type)
 			: name_(name.copy()), typeString_(type->toDiagString()) { }
@@ -61,7 +61,7 @@ namespace locic {
 			
 		};
 		
-		class InvalidSymbolInPredicateDiag: public Error {
+		class InvalidSymbolInPredicateDiag: public ErrorDiag {
 		public:
 			InvalidSymbolInPredicateDiag(const Name& name)
 			: name_(name.copy()) { }
@@ -76,20 +76,11 @@ namespace locic {
 			
 		};
 		
-		class UnknownSymbolInPredicateDiag: public Error {
-		public:
-			UnknownSymbolInPredicateDiag(const Name& name)
-			: name_(name.copy()) { }
-			
-			std::string toString() const {
-				return makeString("unknown symbol '%s' cannot be used in predicate",
-				                  name_.toString(/*addPrefix=*/false).c_str());
-			}
-			
-		private:
-			Name name_;
-			
-		};
+		Diag
+		UnknownSymbolInPredicateDiag(const Name& name) {
+			return Error("unknown symbol '%s' cannot be used in predicate",
+			             name.toString(/*addPrefix=*/false).c_str());
+		}
 		
 		AST::Predicate ConvertPredicate(Context& context, const AST::Node<AST::PredicateDecl>& astPredicateNode) {
 			const auto& location = astPredicateNode.location();
@@ -214,40 +205,21 @@ namespace locic {
 			locic_unreachable("Unknown AST RequireSpecifier kind.");
 		}
 		
-		class PredicateHasLiteralFalseDiag: public Error {
-		public:
-			PredicateHasLiteralFalseDiag() { }
-			
-			std::string toString() const {
-				return "predicate has literal 'false'";
-			}
-			
-		};
+		Diag
+		PredicateHasLiteralFalseDiag() {
+			return Error("predicate has literal 'false'");
+		}
 		
-		class PredicateHasLiteralSelfConstDiag: public Error {
-		public:
-			PredicateHasLiteralSelfConstDiag() { }
-			
-			std::string toString() const {
-				return "predicate has literal 'selfconst'";
-			}
-			
-		};
+		Diag
+		PredicateHasLiteralSelfConstDiag() {
+			return Error("predicate has literal 'selfconst'");
+		}
 		
-		class PredicateVariableNotFoundDiag: public Error {
-		public:
-			PredicateVariableNotFoundDiag(const String name)
-			: name_(name) { }
-			
-			std::string toString() const {
-				return makeString("predicate variable '%s' not found",
-				                  name_.c_str());
-			}
-			
-		private:
-			String name_;
-			
-		};
+		Diag
+		PredicateVariableNotFoundDiag(const String name) {
+			return Error("predicate variable '%s' not found",
+			             name.c_str());
+		}
 		
 		OptionalDiag
 		evaluatePredicate(Context& context, const AST::Predicate& predicate, const AST::TemplateVarMap& variableAssignments) {

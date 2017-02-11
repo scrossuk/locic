@@ -37,13 +37,13 @@ namespace locic {
 			
 			template <typename DiagType>
 			void issueDiag(DiagType diag, const Debug::SourcePosition& start) {
-				diagReceiver_.issueDiag(std::unique_ptr<Diag>(new DiagType(std::move(diag))),
+				diagReceiver_.issueDiag(std::unique_ptr<DiagAPI>(new DiagType(std::move(diag))),
 				                        locationWithRangeFrom(start));
 			}
 			
 			template <typename DiagType>
 			void issueDiagWithLoc(DiagType diag, const Debug::SourceLocation& location) {
-				diagReceiver_.issueDiag(std::unique_ptr<Diag>(new DiagType(std::move(diag))),
+				diagReceiver_.issueDiag(std::unique_ptr<DiagAPI>(new DiagType(std::move(diag))),
 				                        location);
 			}
 			

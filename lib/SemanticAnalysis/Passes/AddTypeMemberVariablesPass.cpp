@@ -10,7 +10,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		class ExceptionCircularInheritanceDiag: public Error {
+		class ExceptionCircularInheritanceDiag: public ErrorDiag {
 		public:
 			ExceptionCircularInheritanceDiag(std::string typeName)
 			: typeName_(std::move(typeName)) { }
@@ -58,7 +58,7 @@ namespace locic {
 			}
 		}
 		
-		class ExceptionCannotInheritNonExceptionTypeDiag: public Error {
+		class ExceptionCannotInheritNonExceptionTypeDiag: public ErrorDiag {
 		public:
 			ExceptionCannotInheritNonExceptionTypeDiag(const AST::TypeInstance& exceptionType,
 			                                           const AST::Type* inheritType)
@@ -76,7 +76,7 @@ namespace locic {
 			
 		};
 		
-		class PatternMemberVarsNotSupportedDiag: public Error {
+		class PatternMemberVarsNotSupportedDiag: public ErrorDiag {
 		public:
 			PatternMemberVarsNotSupportedDiag() { }
 			

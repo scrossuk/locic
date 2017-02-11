@@ -28,7 +28,7 @@ namespace locic {
 		stream << RESET_COLOR;
 	}
 	
-	void DiagnosticRenderer::emitDiagnostic(std::ostream& stream, const Diag& diagnostic,
+	void DiagnosticRenderer::emitDiagnostic(std::ostream& stream, const DiagAPI& diagnostic,
 	                                        const Debug::SourceLocation& location,
 	                                        const OptionalDiag& chain) {
 		emitDiagnosticMessage(stream, diagnostic, location, /*isChain=*/false);
@@ -43,13 +43,13 @@ namespace locic {
 		}
 	}
 	
-	void DiagnosticRenderer::emitChainDiagnostic(std::ostream& stream, const Diag& diagnostic,
+	void DiagnosticRenderer::emitChainDiagnostic(std::ostream& stream, const DiagAPI& diagnostic,
 	                                             const Debug::SourceLocation& location) {
 		emitDiagnosticMessage(stream, diagnostic, location, /*isChain=*/true);
 		emitCodeContext(stream, location);
 	}
 	
-	void DiagnosticRenderer::emitDiagnosticMessage(std::ostream& stream, const Diag& diagnostic,
+	void DiagnosticRenderer::emitDiagnosticMessage(std::ostream& stream, const DiagAPI& diagnostic,
 	                                               const Debug::SourceLocation& location,
 	                                               const bool isChain) {
 		setColor(stream, MESSAGE_COLOR);

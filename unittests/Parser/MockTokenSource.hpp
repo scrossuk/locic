@@ -64,7 +64,7 @@ namespace locic {
 				return position_ == tokenKinds_.size();
 			}
 			
-			void issueDiag(std::unique_ptr<Diag> /*diag*/,
+			void issueDiag(std::unique_ptr<DiagAPI> /*diag*/,
 			               const Debug::SourceLocation& /*location*/,
 			               OptionalDiag /*chain*/) {
 				throw std::logic_error("Unexpected parser error.");

@@ -50,7 +50,7 @@ namespace locic {
 			
 		}
 		
-		class VariableDuplicatesExistingVariableDiag: public Error {
+		class VariableDuplicatesExistingVariableDiag: public ErrorDiag {
 		public:
 			VariableDuplicatesExistingVariableDiag(const String& name)
 			: name_(name) { }
@@ -65,7 +65,7 @@ namespace locic {
 			
 		};
 		
-		class PreviousVariableDiag: public Error {
+		class PreviousVariableDiag: public ErrorDiag {
 		public:
 			PreviousVariableDiag() { }
 			
@@ -96,7 +96,7 @@ namespace locic {
 			return TypeResolver(context).resolveType(astVarNode->declType())->resolveAliases();
 		}
 		
-		class VariableShadowsExistingVariableDiag: public Error {
+		class VariableShadowsExistingVariableDiag: public ErrorDiag {
 		public:
 			VariableShadowsExistingVariableDiag(const String& name)
 			: name_(name) { }
@@ -111,7 +111,7 @@ namespace locic {
 			
 		};
 		
-		class VariableCannotHaveVoidTypeDiag: public Error {
+		class VariableCannotHaveVoidTypeDiag: public ErrorDiag {
 		public:
 			VariableCannotHaveVoidTypeDiag(const String& name)
 			: name_(name) { }
@@ -126,7 +126,7 @@ namespace locic {
 			
 		};
 		
-		class CannotPatternMatchNonDatatypeDiag: public Error {
+		class CannotPatternMatchNonDatatypeDiag: public ErrorDiag {
 		public:
 			CannotPatternMatchNonDatatypeDiag(const AST::Type* const type)
 			: name_(type->toDiagString()) { }
@@ -141,7 +141,7 @@ namespace locic {
 			
 		};
 		
-		class PatternMatchIncorrectVarCountDiag: public Error {
+		class PatternMatchIncorrectVarCountDiag: public ErrorDiag {
 		public:
 			PatternMatchIncorrectVarCountDiag(const size_t varCount,
 			                                  const AST::Type* const type,
@@ -265,7 +265,7 @@ namespace locic {
 			
 		}
 		
-		class AnyVarsNotImplementedForUninitialisedVariablesDiag: public Error {
+		class AnyVarsNotImplementedForUninitialisedVariablesDiag: public ErrorDiag {
 		public:
 			AnyVarsNotImplementedForUninitialisedVariablesDiag() { }
 			

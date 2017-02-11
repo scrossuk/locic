@@ -8,11 +8,11 @@
 
 class MockDiagnosticReceiver: public locic::DiagnosticReceiver {
 public:
-	using DiagPair = std::pair<std::unique_ptr<locic::Diag>, locic::Debug::SourceLocation>;
+	using DiagPair = std::pair<std::unique_ptr<locic::DiagAPI>, locic::Debug::SourceLocation>;
 	
 	MockDiagnosticReceiver() { }
 	
-	void issueDiag(std::unique_ptr<locic::Diag> diag,
+	void issueDiag(std::unique_ptr<locic::DiagAPI> diag,
 	               const locic::Debug::SourceLocation& location,
 	               locic::OptionalDiag /*optionalDiag*/) {
 		diags_.push_back(DiagPair(std::move(diag), location));

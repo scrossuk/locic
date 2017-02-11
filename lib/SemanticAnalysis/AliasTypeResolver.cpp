@@ -63,20 +63,11 @@ namespace locic {
 			
 		}
 		
-		class AliasDependsOnItselfDiag: public Error {
-		public:
-			AliasDependsOnItselfDiag(Name name)
-			: name_(std::move(name)) { }
-			
-			std::string toString() const {
-				return makeString("alias '%s' depends on itself via a cycle",
-				                  name_.toString(/*addPrefix=*/false).c_str());
-			}
-			
-		private:
-			Name name_;
-			
-		};
+		Diag
+		AliasDependsOnItselfDiag(Name name) {
+			return Error("alias '%s' depends on itself via a cycle",
+			             name.toString(/*addPrefix=*/false).c_str());
+		}
 		
 		class AliasTypeResolverImpl {
 		public:

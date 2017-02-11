@@ -28,7 +28,7 @@ namespace locic {
 		TypeResolver::TypeResolver(Context& context)
 		: context_(context) { }
 		
-		class UnknownTypeNameDiag: public Error {
+		class UnknownTypeNameDiag: public ErrorDiag {
 		public:
 			UnknownTypeNameDiag(Name name)
 			: name_(std::move(name)) { }
@@ -98,7 +98,7 @@ namespace locic {
 			return getBuiltInType(context_, fullNameString, {});
 		}
 		
-		class FunctionTypeParameterCannotBeVoidDiag: public Error {
+		class FunctionTypeParameterCannotBeVoidDiag: public ErrorDiag {
 		public:
 			FunctionTypeParameterCannotBeVoidDiag() { }
 			
@@ -108,7 +108,7 @@ namespace locic {
 			
 		};
 		
-		class ArrayElementTypeCannotBeAbstractDiag: public Error {
+		class ArrayElementTypeCannotBeAbstractDiag: public ErrorDiag {
 		public:
 			ArrayElementTypeCannotBeAbstractDiag(const AST::Type* const type)
 			: type_(type) { }
@@ -236,7 +236,7 @@ namespace locic {
 			return resolvedType;
 		}
 		
-		class PredicateAliasNotBoolDiag: public Error {
+		class PredicateAliasNotBoolDiag: public ErrorDiag {
 		public:
 			PredicateAliasNotBoolDiag(const Name& name, const AST::Type* const type)
 			: name_(name.copy()), typeString_(type->toDiagString()) { }

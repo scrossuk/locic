@@ -83,7 +83,7 @@ namespace locic {
 			locic_unreachable("Unknown statement kind.");
 		}
 		
-		class CodeNeverExecutedDiag: public Warning {
+		class CodeNeverExecutedDiag: public WarningDiag {
 		public:
 			CodeNeverExecutedDiag() { }
 			
@@ -93,7 +93,7 @@ namespace locic {
 			
 		};
 		
-		class ScopeExitNeverExecutedDiag: public Warning {
+		class ScopeExitNeverExecutedDiag: public WarningDiag {
 		public:
 			ScopeExitNeverExecutedDiag() { }
 			
@@ -103,7 +103,7 @@ namespace locic {
 			
 		};
 		
-		class ScopeFailureNeverExecutedDiag: public Warning {
+		class ScopeFailureNeverExecutedDiag: public WarningDiag {
 		public:
 			ScopeFailureNeverExecutedDiag() { }
 			
@@ -113,7 +113,7 @@ namespace locic {
 			
 		};
 		
-		class ScopeSuccessNeverExecutedDiag: public Warning {
+		class ScopeSuccessNeverExecutedDiag: public WarningDiag {
 		public:
 			ScopeSuccessNeverExecutedDiag() { }
 			
@@ -220,7 +220,7 @@ namespace locic {
 			}
 		}
 		
-		class NoExceptFunctionThrowsDiag: public Error {
+		class NoExceptFunctionThrowsDiag: public ErrorDiag {
 		public:
 			NoExceptFunctionThrowsDiag(std::string functionName)
 			: functionName_(std::move(functionName)) { }
@@ -235,7 +235,7 @@ namespace locic {
 			
 		};
 		
-		class UnusedParameterVarDiag: public Warning {
+		class UnusedParameterVarDiag: public WarningDiag {
 		public:
 			UnusedParameterVarDiag(String varName)
 			: varName_(varName) { }
@@ -250,7 +250,7 @@ namespace locic {
 			
 		};
 		
-		class UsedParameterVarMarkedUnusedDiag: public Warning {
+		class UsedParameterVarMarkedUnusedDiag: public WarningDiag {
 		public:
 			UsedParameterVarMarkedUnusedDiag(String varName)
 			: varName_(varName) { }
@@ -265,7 +265,7 @@ namespace locic {
 			
 		};
 		
-		class ReturnTypeIsUnsizedDiag: public Error {
+		class ReturnTypeIsUnsizedDiag: public ErrorDiag {
 		public:
 			ReturnTypeIsUnsizedDiag(const AST::Type* const type,
 			                        const Name& functionName)
@@ -283,7 +283,7 @@ namespace locic {
 			
 		};
 		
-		class ParamTypeIsUnsizedDiag: public Error {
+		class ParamTypeIsUnsizedDiag: public ErrorDiag {
 		public:
 			ParamTypeIsUnsizedDiag(const AST::Type* const type,
 			                       const Name& functionName)
@@ -301,7 +301,7 @@ namespace locic {
 			
 		};
 		
-		class MissingReturnStatementDiag: public Error {
+		class MissingReturnStatementDiag: public ErrorDiag {
 		public:
 			MissingReturnStatementDiag(const Name& functionName)
 			: functionNameString_(functionName.toString(/*addPrefix=*/false)) { }
@@ -316,7 +316,7 @@ namespace locic {
 			
 		};
 		
-		class NoExceptPredicateIsntImpliedDiag: public Error {
+		class NoExceptPredicateIsntImpliedDiag: public ErrorDiag {
 		public:
 			NoExceptPredicateIsntImpliedDiag(const Name& functionName,
 			                                 const AST::Predicate& noexceptPredicate,

@@ -145,7 +145,7 @@ namespace locic {
 			return GetMethod(context, std::move(value), binaryOpName(context, opKind), location);
 		}
 		
-		class CannotFindMemberInTypeDiag: public Error {
+		class CannotFindMemberInTypeDiag: public ErrorDiag {
 		public:
 			CannotFindMemberInTypeDiag(String name, const AST::Type* type)
 			: name_(name), typeString_(type->toDiagString()) { }
@@ -214,7 +214,7 @@ namespace locic {
 			return functionSearchResult;
 		}
 		
-		class VarCannotHaveTemplateArgumentsDiag: public Error {
+		class VarCannotHaveTemplateArgumentsDiag: public ErrorDiag {
 		public:
 			VarCannotHaveTemplateArgumentsDiag(const String name)
 			: name_(name) { }
@@ -229,7 +229,7 @@ namespace locic {
 			
 		};
 		
-		class UseOfUndeclaredIdentifierDiag: public Error {
+		class UseOfUndeclaredIdentifierDiag: public ErrorDiag {
 		public:
 			UseOfUndeclaredIdentifierDiag(Name name)
 			: name_(std::move(name)) { }
@@ -244,7 +244,7 @@ namespace locic {
 			
 		};
 		
-		class CannotFindMemberVariableDiag: public Error {
+		class CannotFindMemberVariableDiag: public ErrorDiag {
 		public:
 			CannotFindMemberVariableDiag(const String name)
 			: name_(name) { }
@@ -259,7 +259,7 @@ namespace locic {
 			
 		};
 		
-		class EmptyArrayLiteralNotSupportedDiag: public Error {
+		class EmptyArrayLiteralNotSupportedDiag: public ErrorDiag {
 		public:
 			 EmptyArrayLiteralNotSupportedDiag() { }
 			
@@ -269,7 +269,7 @@ namespace locic {
 			
 		};
 		
-		class NonMatchingArrayLiteralTypesDiag: public Error {
+		class NonMatchingArrayLiteralTypesDiag: public ErrorDiag {
 		public:
 			NonMatchingArrayLiteralTypesDiag(const AST::Type* const firstType,
 			                                 const AST::Type* const secondType)
@@ -287,7 +287,7 @@ namespace locic {
 			
 		};
 		
-		class CannotConstructInterfaceTypeDiag: public Error {
+		class CannotConstructInterfaceTypeDiag: public ErrorDiag {
 		public:
 			CannotConstructInterfaceTypeDiag(const Name& name)
 			: name_(name.copy()) { }
@@ -302,7 +302,7 @@ namespace locic {
 			
 		};
 		
-		class ConstCastNotImplementedDiag: public Error {
+		class ConstCastNotImplementedDiag: public ErrorDiag {
 		public:
 			ConstCastNotImplementedDiag() { }
 			
@@ -312,7 +312,7 @@ namespace locic {
 			
 		};
 		
-		class DynamicCastNotImplementedDiag: public Error {
+		class DynamicCastNotImplementedDiag: public ErrorDiag {
 		public:
 			DynamicCastNotImplementedDiag() { }
 			
@@ -322,7 +322,7 @@ namespace locic {
 			
 		};
 		
-		class ReinterpretCastOnlySupportsPointersDiag: public Error {
+		class ReinterpretCastOnlySupportsPointersDiag: public ErrorDiag {
 		public:
 			ReinterpretCastOnlySupportsPointersDiag(const AST::Type* sourceType,
 			                                        const AST::Type* destType)
@@ -341,7 +341,7 @@ namespace locic {
 			
 		};
 		
-		class CannotApplyRefToRefDiag: public Error {
+		class CannotApplyRefToRefDiag: public ErrorDiag {
 		public:
 			CannotApplyRefToRefDiag() { }
 			
@@ -351,7 +351,7 @@ namespace locic {
 			
 		};
 		
-		class CannotApplyNoRefToNonRefDiag: public Error {
+		class CannotApplyNoRefToNonRefDiag: public ErrorDiag {
 		public:
 			CannotApplyNoRefToNonRefDiag() { }
 			
@@ -361,7 +361,7 @@ namespace locic {
 			
 		};
 		
-		class CannotCallInternalConstructorInNonMethodDiag: public Error {
+		class CannotCallInternalConstructorInNonMethodDiag: public ErrorDiag {
 		public:
 			CannotCallInternalConstructorInNonMethodDiag() { }
 			
@@ -371,7 +371,7 @@ namespace locic {
 			
 		};
 		
-		class InternalConstructorIncorrectTemplateArgCountDiag: public Error {
+		class InternalConstructorIncorrectTemplateArgCountDiag: public ErrorDiag {
 		public:
 			InternalConstructorIncorrectTemplateArgCountDiag(size_t argsGiven, size_t argsRequired)
 			: argsGiven_(argsGiven), argsRequired_(argsRequired) { }
@@ -388,7 +388,7 @@ namespace locic {
 			
 		};
 		
-		class InternalConstructorIncorrectArgCountDiag: public Error {
+		class InternalConstructorIncorrectArgCountDiag: public ErrorDiag {
 		public:
 			InternalConstructorIncorrectArgCountDiag(size_t argsGiven, size_t argsRequired)
 			: argsGiven_(argsGiven), argsRequired_(argsRequired) { }
@@ -405,7 +405,7 @@ namespace locic {
 			
 		};
 		
-		class InvalidOperandCapabilityCheckDiag: public Error {
+		class InvalidOperandCapabilityCheckDiag: public ErrorDiag {
 		public:
 			InvalidOperandCapabilityCheckDiag() { }
 			
@@ -444,7 +444,7 @@ namespace locic {
 			
 		};
 		
-		class SelfConstInNonMethodDiag: public Error {
+		class SelfConstInNonMethodDiag: public ErrorDiag {
 		public:
 			SelfConstInNonMethodDiag() { }
 			
@@ -454,7 +454,7 @@ namespace locic {
 			
 		};
 		
-		class SelfConstInStaticMethodDiag: public Error {
+		class SelfConstInStaticMethodDiag: public ErrorDiag {
 		public:
 			SelfConstInStaticMethodDiag() { }
 			

@@ -19,13 +19,13 @@ namespace locic {
 		
 		OptionalDiag(NoDiagType);
 		
-		OptionalDiag(std::unique_ptr<Diag> argDiag, Debug::SourceLocation argLocation,
+		OptionalDiag(std::unique_ptr<DiagAPI> argDiag, Debug::SourceLocation argLocation,
 		             OptionalDiag argChain);
 		
 		template <typename DiagType>
 		OptionalDiag(DiagType argDiag, Debug::SourceLocation argLocation = Debug::SourceLocation::Null(),
 		             OptionalDiag argChain = OptionalDiag())
-		: OptionalDiag(std::unique_ptr<Diag>(new DiagType(std::move(argDiag))),
+		: OptionalDiag(std::unique_ptr<DiagAPI>(new DiagType(std::move(argDiag))),
 		               argLocation, std::move(argChain)) { }
 		
 		~OptionalDiag();
@@ -37,7 +37,7 @@ namespace locic {
 		bool success() const { return !hasDiag(); }
 		bool failed() const { return hasDiag(); }
 		
-		const Diag& diag() const;
+		const DiagAPI& diag() const;
 		const Debug::SourceLocation& location() const;
 		const OptionalDiag& chain() const;
 		

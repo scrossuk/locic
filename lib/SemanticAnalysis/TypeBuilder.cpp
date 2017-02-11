@@ -124,7 +124,7 @@ namespace locic {
 			                          location);
 		}
 		
-		class StaticArraySizeInvalidTypeDiag: public Error {
+		class StaticArraySizeInvalidTypeDiag: public ErrorDiag {
 		public:
 			StaticArraySizeInvalidTypeDiag(const AST::Type* actualType,
 			                               const AST::Type* expectedType)

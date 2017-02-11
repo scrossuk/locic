@@ -88,41 +88,21 @@ namespace locic {
 			return noopDiag;
 		}
 		
-		class CannotBindDiag: public Error {
-		public:
-			CannotBindDiag(const AST::Type* const sourceType,
-			               const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("context does not allow binding type '%s' to '%s'",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		CannotBindDiag(const AST::Type* const sourceType,
+		               const AST::Type* const destType) {
+			return Error("context does not allow binding type '%s' to '%s'",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
-		class CannotBindMoreThanOnceDiag: public Error {
-		public:
-			CannotBindMoreThanOnceDiag(const AST::Type* const sourceType,
-			                           const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("cannot perform multiple binds (from '%s' to '%s') in a single cast",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		CannotBindMoreThanOnceDiag(const AST::Type* const sourceType,
+		                           const AST::Type* const destType) {
+			return Error("cannot perform multiple binds (from '%s' to '%s') in a single cast",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
 		OptionalDiag
 		CastGenerator::implicitCastValueToRef(const AST::Type* const destType) {
@@ -152,41 +132,21 @@ namespace locic {
 			return implicitCastNoop(destType);
 		}
 		
-		class PolyCastFailedDiag: public Error {
-		public:
-			PolyCastFailedDiag(const AST::Type* const sourceType,
-			                   const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("polymorphic cast failed from type '%s' to interface '%s'",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		PolyCastFailedDiag(const AST::Type* const sourceType,
+		                   const AST::Type* const destType) {
+			return Error("polymorphic cast failed from type '%s' to interface '%s'",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
-		class CannotPolyCastInNoopContextDiag: public Error {
-		public:
-			CannotPolyCastInNoopContextDiag(const AST::Type* const sourceType,
-			                                const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("cannot perform polymorphic cast from type '%s' to interface '%s' in noop cast context",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		CannotPolyCastInNoopContextDiag(const AST::Type* const sourceType,
+		                                const AST::Type* const destType) {
+			return Error("cannot perform polymorphic cast from type '%s' to interface '%s' in noop cast context",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
 		OptionalDiag
 		CastGenerator::implicitCastPolyRefToRef(const AST::Type* const destType) {
@@ -214,41 +174,21 @@ namespace locic {
 			return SUCCESS;
 		}
 		
-		class CannotVariantCastInNoopContextDiag: public Error {
-		public:
-			CannotVariantCastInNoopContextDiag(const AST::Type* const sourceType,
-			                                   const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("cannot cast from type '%s' to parent variant '%s' in noop cast context",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		CannotVariantCastInNoopContextDiag(const AST::Type* const sourceType,
+		                                   const AST::Type* const destType) {
+			return Error("cannot cast from type '%s' to parent variant '%s' in noop cast context",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
-		class CannotUserCastInNoopContextDiag: public Error {
-		public:
-			CannotUserCastInNoopContextDiag(const AST::Type* const sourceType,
-			                                const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("cannot perform user-specified cast from type '%s' to type '%s' in noop cast context",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		CannotUserCastInNoopContextDiag(const AST::Type* const sourceType,
+		                                const AST::Type* const destType) {
+			return Error("cannot perform user-specified cast from type '%s' to type '%s' in noop cast context",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
 		OptionalDiag
 		CastGenerator::implicitCastValueToValue(const AST::Type* const destType) {
@@ -279,23 +219,13 @@ namespace locic {
 			return noopDiag;
 		}
 		
-		class TypeNotInVariantDiag: public Error {
-		public:
-			TypeNotInVariantDiag(const AST::Type* const sourceType,
-			                     const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("type '%s' is not a member of variant '%s'",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		TypeNotInVariantDiag(const AST::Type* const sourceType,
+		                     const AST::Type* const destType) {
+			return Error("type '%s' is not a member of variant '%s'",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
 		OptionalDiag
 		CastGenerator::implicitCastVariant(const AST::Type* const destType) {
@@ -311,23 +241,13 @@ namespace locic {
 			return TypeNotInVariantDiag(type(), destType);
 		}
 		
-		class CannotUserCastDiag: public Error {
-		public:
-			CannotUserCastDiag(const AST::Type* const sourceType,
-			                   const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("no user-specified cast exists from '%s' to '%s'",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		CannotUserCastDiag(const AST::Type* const sourceType,
+		                   const AST::Type* const destType) {
+			return Error("no user-specified cast exists from '%s' to '%s'",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
 		OptionalDiag
 		CastGenerator::implicitCastUser(const AST::Type* const destType) {
@@ -375,35 +295,17 @@ namespace locic {
 			return SUCCESS;
 		}
 		
-		class CannotCopyInNoopContext: public Error {
-		public:
-			CannotCopyInNoopContext(const AST::Type* const type)
-			: type_(type) { }
-
-			std::string toString() const {
-				return makeString("cannot copy type '%s' in noop cast context",
-				                  type_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* type_;
-			
-		};
+		Diag
+		CannotCopyInNoopContext(const AST::Type* const type) {
+			return Error("cannot copy type '%s' in noop cast context",
+			             type->toDiagString().c_str());
+		}
 		
-		class CannotCopyDiag: public Error {
-		public:
-			CannotCopyDiag(const AST::Type* const type)
-			: type_(type) { }
-
-			std::string toString() const {
-				return makeString("type '%s' is not implicitly copyable",
-				                  type_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* type_;
-			
-		};
+		Diag
+		CannotCopyDiag(const AST::Type* const type) {
+			return Error("type '%s' is not implicitly copyable",
+			             type->toDiagString().c_str());
+		}
 		
 		OptionalDiag
 		CastGenerator::implicitCopyRefToValue() {

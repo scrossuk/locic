@@ -25,23 +25,13 @@ namespace locic {
 		SatisfyChecker::SatisfyChecker(Context& context, Unifier& unifier)
 		: context_(context), unifier_(unifier) { }
 		
-		class StackMaxDepthExceededDiag: public Error {
-		public:
-			StackMaxDepthExceededDiag(const AST::Type* const sourceType,
-			                          const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("max stack depth exceeded evaluating '%s' : '%s'",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		StackMaxDepthExceededDiag(const AST::Type* const sourceType,
+		                          const AST::Type* const destType) {
+			return Error("max stack depth exceeded evaluating '%s' : '%s'",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
 		class PushStack {
 		public:
@@ -100,83 +90,43 @@ namespace locic {
 			return typeSatisfies(checkType, requireType);
 		}
 		
-		class CannotMatchIncompatibleTypesDiag: public Error {
-		public:
-			CannotMatchIncompatibleTypesDiag(const AST::Type* const sourceType,
-			                                 const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("cannot match incompatible types '%s' and '%s'",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		CannotMatchIncompatibleTypesDiag(const AST::Type* const sourceType,
+		                                 const AST::Type* const destType) {
+			return Error("cannot match incompatible types '%s' and '%s'",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
-		class ConstNotImpliedDiag: public Error {
-		public:
-			ConstNotImpliedDiag(const AST::Type* const sourceType,
-			                    const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				if (sourceType_->hasConst() && !destType_->hasConst()) {
-					return makeString("const type '%s' cannot satisfy non-const type '%s'",
-					                  sourceType_->toDiagString().c_str(),
-					                  destType_->toDiagString().c_str());
-				} else {
-					return makeString("const predicate of '%s' does not imply const predicate of '%s'",
-					                  sourceType_->toDiagString().c_str(),
-					                  destType_->toDiagString().c_str());
-				}
+		Diag
+		ConstNotImpliedDiag(const AST::Type* const sourceType,
+		                    const AST::Type* const destType) {
+			if (sourceType->hasConst() && !destType->hasConst()) {
+				return Error("const type '%s' cannot satisfy non-const type '%s'",
+				             sourceType->toDiagString().c_str(),
+				             destType->toDiagString().c_str());
+			} else {
+				return Error("const predicate of '%s' does not imply const predicate of '%s'",
+				             sourceType->toDiagString().c_str(),
+				             destType->toDiagString().c_str());
 			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		}
 		
-		class RefCannotMatchAutoDiag: public Error {
-		public:
-			RefCannotMatchAutoDiag(const AST::Type* const sourceType,
-			                       const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("reference type '%s' cannot satisfy auto type '%s'",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		RefCannotMatchAutoDiag(const AST::Type* const sourceType,
+		                       const AST::Type* const destType) {
+			return Error("reference type '%s' cannot satisfy auto type '%s'",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
-		class AutoCannotMatchRefDiag: public Error {
-		public:
-			AutoCannotMatchRefDiag(const AST::Type* const sourceType,
-			                       const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("auto type '%s' cannot satisfy reference type '%s'",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		AutoCannotMatchRefDiag(const AST::Type* const sourceType,
+		                       const AST::Type* const destType) {
+			return Error("auto type '%s' cannot satisfy reference type '%s'",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
 		OptionalDiag
 		SatisfyChecker::typeSatisfies(const AST::Type* const checkType,
@@ -301,186 +251,81 @@ namespace locic {
 			return templateVarMap;
 		}
 		
-		class MismatchingStaticDiag: public Error {
-		public:
-			MismatchingStaticDiag(const String name, bool sourceIsStatic,
-			                      bool requireIsStatic)
-			: name_(name), sourceIsStatic_(sourceIsStatic),
-			requireIsStatic_(requireIsStatic) {
-				assert(sourceIsStatic != requireIsStatic);
-			}
-			
-			std::string toString() const {
-				return makeString("method '%s' is %s in source type but %s in required type",
-				                  name_.c_str(), sourceIsStatic_ ? "static" : "non-static",
-				                  requireIsStatic_ ? "static" : "non-static");
-			}
-			
-		private:
-			String name_;
-			bool sourceIsStatic_;
-			bool requireIsStatic_;
-			
-		};
+		Diag
+		MismatchingStaticDiag(const String name, bool sourceIsStatic,
+		                      bool requireIsStatic) {
+			assert(sourceIsStatic != requireIsStatic);
+			return Error("method '%s' is %s in source type but %s in required type",
+			             name.c_str(), sourceIsStatic ? "static" : "non-static",
+			             requireIsStatic ? "static" : "non-static");
+		}
 		
-		class ParentIsConstMethodIsNotDiag: public Error {
-		public:
-			ParentIsConstMethodIsNotDiag(const String name)
-			: name_(name) { }
-			
-			std::string toString() const {
-				return makeString("mutator method '%s' is required but type is const",
-				                  name_.c_str());
-			}
-			
-		private:
-			String name_;
-			
-		};
+		Diag
+		ParentIsConstMethodIsNotDiag(const String name) {
+			return Error("mutator method '%s' is required but type is const",
+			             name.c_str());
+		}
 		
-		class ParentConstPredicateImplicationFailedDiag: public Error {
-		public:
-			ParentConstPredicateImplicationFailedDiag(const String name, const AST::Predicate& parentPredicate,
-			                                          const AST::Predicate& methodPredicate)
-			: name_(name), parentPredicateString_(parentPredicate.toString()),
-			methodPredicateString_(methodPredicate.toString()) { }
-			
-			std::string toString() const {
-				return makeString("const predicate '%s' in type doesn't imply const "
-				                  "predicate '%s' in method '%s'", parentPredicateString_.c_str(),
-				                  methodPredicateString_.c_str(), name_.c_str());
-			}
-			
-		private:
-			String name_;
-			std::string parentPredicateString_;
-			std::string methodPredicateString_;
-			
-		};
+		Diag
+		ParentConstPredicateImplicationFailedDiag(const String name, const AST::Predicate& parentPredicate,
+		                                          const AST::Predicate& methodPredicate) {
+			return Error("const predicate '%s' in type doesn't imply const "
+			             "predicate '%s' in method '%s'", parentPredicate.toString().c_str(),
+			             methodPredicate.toString().c_str(), name.c_str());
+		}
 		
-		class ConstPredicateImplicationFailedDiag: public Error {
-		public:
-			ConstPredicateImplicationFailedDiag(const String name, const AST::Predicate& requirePredicate,
-			                                    const AST::Predicate& sourcePredicate)
-			: name_(name), requirePredicateString_(requirePredicate.toString()),
-			sourcePredicateString_(sourcePredicate.toString()) { }
-			
-			std::string toString() const {
-				return makeString("method '%s' has const predicate '%s' in required type "
-				                  "which doesn't imply const predicate '%s' in source type",
-				                  name_.c_str(), requirePredicateString_.c_str(),
-				                  sourcePredicateString_.c_str());
-			}
-			
-		private:
-			String name_;
-			std::string requirePredicateString_;
-			std::string sourcePredicateString_;
-			
-		};
+		Diag
+		ConstPredicateImplicationFailedDiag(const String name, const AST::Predicate& requirePredicate,
+		                                    const AST::Predicate& sourcePredicate) {
+			return Error("method '%s' has const predicate '%s' in required type "
+			             "which doesn't imply const predicate '%s' in source type",
+			             name.c_str(), requirePredicate.toString().c_str(),
+			             sourcePredicate.toString().c_str());
+		}
 		
-		class RequirePredicateImplicationFailedDiag: public Error {
-		public:
-			RequirePredicateImplicationFailedDiag(const String name, const AST::Predicate& requirePredicate,
-			                                      const AST::Predicate& sourcePredicate)
-			: name_(name), requirePredicateString_(requirePredicate.toString()),
-			sourcePredicateString_(sourcePredicate.toString()) { }
-			
-			std::string toString() const {
-				return makeString("method '%s' has require predicate '%s' in required type "
-				                  "which doesn't imply require predicate '%s' in source type",
-				                  name_.c_str(), requirePredicateString_.c_str(),
-				                  sourcePredicateString_.c_str());
-			}
-			
-		private:
-			String name_;
-			std::string requirePredicateString_;
-			std::string sourcePredicateString_;
-			
-		};
+		Diag
+		RequirePredicateImplicationFailedDiag(const String name, const AST::Predicate& requirePredicate,
+		                                      const AST::Predicate& sourcePredicate) {
+			return Error("method '%s' has require predicate '%s' in required type "
+			             "which doesn't imply require predicate '%s' in source type",
+			             name.c_str(), requirePredicate.toString().c_str(),
+			             sourcePredicate.toString().c_str());
+		}
 		
-		class NoexceptPredicateImplicationFailedDiag: public Error {
-		public:
-			NoexceptPredicateImplicationFailedDiag(const String name, const AST::Predicate& requirePredicate,
-			                                       const AST::Predicate& sourcePredicate)
-			: name_(name), requirePredicateString_(requirePredicate.toString()),
-			sourcePredicateString_(sourcePredicate.toString()) { }
-			
-			std::string toString() const {
-				return makeString("method '%s' has noexcept predicate '%s' in required type "
-				                  "which doesn't imply noexcept predicate '%s' in source type",
-				                  name_.c_str(), requirePredicateString_.c_str(),
-				                  sourcePredicateString_.c_str());
-			}
-			
-		private:
-			String name_;
-			std::string requirePredicateString_;
-			std::string sourcePredicateString_;
-			
-		};
+		Diag
+		NoexceptPredicateImplicationFailedDiag(const String name, const AST::Predicate& requirePredicate,
+		                                       const AST::Predicate& sourcePredicate) {
+			return Error("method '%s' has noexcept predicate '%s' in required type "
+			             "which doesn't imply noexcept predicate '%s' in source type",
+			             name.c_str(), requirePredicate.toString().c_str(),
+			             sourcePredicate.toString().c_str());
+		}
 		
-		class ParamCountMismatchDiag: public Error {
-		public:
-			ParamCountMismatchDiag(const String name, const size_t sourceParamCount,
-			                       const size_t requireParamCount)
-			: name_(name), sourceParamCount_(sourceParamCount),
-			requireParamCount_(requireParamCount) { }
-			
-			std::string toString() const {
-				return makeString("method '%s' has %zu parameter(s) in source type "
-				                  "but %zu parameter(s) in required type",
-				                  name_.c_str(), sourceParamCount_, requireParamCount_);
-			}
-			
-		private:
-			String name_;
-			size_t sourceParamCount_;
-			size_t requireParamCount_;
-			
-		};
+		Diag
+		ParamCountMismatchDiag(const String name, const size_t sourceParamCount,
+		                       const size_t requireParamCount) {
+			return Error("method '%s' has %zu parameter(s) in source type "
+			             "but %zu parameter(s) in required type",
+			             name.c_str(), sourceParamCount, requireParamCount);
+		}
 		
-		class ParamTypeMismatchDiag: public Error {
-		public:
-			ParamTypeMismatchDiag(const String name, const size_t index,
-			                      const AST::Type* sourceType, const AST::Type* requireType)
-			: name_(name), index_(index), sourceType_(sourceType),
-			requireType_(requireType) { }
-			
-			std::string toString() const {
-				return makeString("cannot cast type '%s' to '%s' for parameter %zu in method '%s'",
-				                  requireType_->toDiagString().c_str(), sourceType_->toDiagString().c_str(),
-				                  index_, name_.c_str());
-			}
-			
-		private:
-			String name_;
-			size_t index_;
-			const AST::Type* sourceType_;
-			const AST::Type* requireType_;
-			
-		};
+		Diag
+		ParamTypeMismatchDiag(const String name, const size_t index,
+		                      const AST::Type* const sourceType,
+		                      const AST::Type* const requireType) {
+			return Error("cannot cast type '%s' to '%s' for parameter %zu in method '%s'",
+			             requireType->toDiagString().c_str(), sourceType->toDiagString().c_str(),
+			             index, name.c_str());
+		}
 		
-		class ReturnTypeMismatchDiag: public Error {
-		public:
-			ReturnTypeMismatchDiag(const String name, const AST::Type* sourceType,
-			                       const AST::Type* requireType)
-			: name_(name), sourceType_(sourceType), requireType_(requireType) { }
-			
-			std::string toString() const {
-				return makeString("return type in method '%s' has type %s in source "
-				                  "but type %s in requirement", name_.c_str(),
-				                  sourceType_->toDiagString().c_str(),
-				                  requireType_->toDiagString().c_str());
-			}
-			
-		private:
-			String name_;
-			const AST::Type* sourceType_;
-			const AST::Type* requireType_;
-			
-		};
+		Diag
+		ReturnTypeMismatchDiag(const String name, const AST::Type* const sourceType,
+		                       const AST::Type* const requireType) {
+			return Error("return type in method '%s' has type %s in source "
+			             "but type %s in requirement", name.c_str(),
+			             sourceType->toDiagString().c_str(),
+			             requireType->toDiagString().c_str());
+		}
 		
 		constexpr bool DEBUG_METHOD_SET_ELEMENT = false;
 		constexpr bool DEBUG_METHOD_SET = false;
@@ -660,20 +505,10 @@ namespace locic {
 			return SUCCESS;
 		}
 		
-		class MethodNotFoundDiag: public Error {
-		public:
-			MethodNotFoundDiag(const String name)
-			: name_(name) { }
-			
-			std::string toString() const {
-				return makeString("method '%s' not found",
-				                  name_.c_str());
-			}
-			
-		private:
-			String name_;
-			
-		};
+		Diag
+		MethodNotFoundDiag(const String name) {
+			return Error("method '%s' not found", name.c_str());
+		}
 		
 		OptionalDiag
 		SatisfyChecker::methodSetSatisfies(const AST::MethodSet* const checkSet,

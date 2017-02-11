@@ -20,7 +20,7 @@ namespace locic {
 		~DiagnosticReceiver() { }
 		
 	public:
-		virtual void issueDiag(std::unique_ptr<Diag> diag,
+		virtual void issueDiag(std::unique_ptr<DiagAPI> diag,
 		                       const Debug::SourceLocation& location,
 		                       OptionalDiag chain = OptionalDiag()) = 0;
 		

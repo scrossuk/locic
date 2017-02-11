@@ -55,11 +55,11 @@ namespace locic {
 				template <typename DiagType>
 				void issueDiag(DiagType diag, const Debug::SourceLocation& location,
 				               OptionalDiag chain = OptionalDiag()) {
-					issueDiagPtr(std::unique_ptr<Diag>(new DiagType(std::move(diag))),
+					issueDiagPtr(std::unique_ptr<DiagAPI>(new DiagType(std::move(diag))),
 					             location, std::move(chain));
 				}
 				
-				void issueDiagPtr(std::unique_ptr<Diag> diag,
+				void issueDiagPtr(std::unique_ptr<DiagAPI> diag,
 				                  const Debug::SourceLocation& location,
 				                  OptionalDiag chain);
 				

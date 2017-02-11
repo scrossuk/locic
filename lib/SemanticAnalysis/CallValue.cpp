@@ -51,79 +51,35 @@ namespace locic {
 			
 		}
 		
-		class TypeNotCallableDiag: public Error {
-		public:
-			TypeNotCallableDiag(const AST::Type* type)
-			: typeString_(type->toDiagString()) { }
-			
-			std::string toString() const {
-				return makeString("type '%s' is not callable; it needs a 'call' method",
-				                  typeString_.c_str());
-			}
-			
-		private:
-			std::string typeString_;
-			
-		};
+		Diag
+		TypeNotCallableDiag(const AST::Type* const type) {
+			return Error("type '%s' is not callable; it needs a 'call' method",
+			             type->toDiagString().c_str());
+		}
 		
-		class CallIncorrectArgCountDiag: public Error {
-		public:
-			CallIncorrectArgCountDiag(std::string valueString,
-			                          size_t argsGiven, size_t argsRequired)
-			: valueString_(std::move(valueString)), argsGiven_(argsGiven),
-			argsRequired_(argsRequired) { }
-			
-			std::string toString() const {
-				return makeString("function '%s' called with %llu "
-				                  "parameter(s); expected %llu",
-				                  valueString_.c_str(),
-				                  static_cast<unsigned long long>(argsGiven_),
-				                  static_cast<unsigned long long>(argsRequired_));
-			}
-			
-		private:
-			std::string valueString_;
-			size_t argsGiven_;
-			size_t argsRequired_;
-			
-		};
+		Diag
+		CallIncorrectArgCountDiag(std::string valueString, const size_t argsGiven,
+		                          const size_t argsRequired) {
+			return Error("function '%s' called with %zu "
+			             "parameter(s); expected %zu",
+			             valueString.c_str(), argsGiven,
+			             argsRequired);
+		}
 		
-		class VarArgTooFewArgsDiag: public Error {
-		public:
-			VarArgTooFewArgsDiag(std::string valueString,
-			                     size_t argsGiven, size_t argsRequired)
-			: valueString_(std::move(valueString)), argsGiven_(argsGiven),
-			argsRequired_(argsRequired) { }
-			
-			std::string toString() const {
-				return makeString("vararg function '%s' called with %llu "
-				                  "parameter(s); expected at least %llu",
-				                  valueString_.c_str(),
-				                  static_cast<unsigned long long>(argsGiven_),
-				                  static_cast<unsigned long long>(argsRequired_));
-			}
-			
-		private:
-			std::string valueString_;
-			size_t argsGiven_;
-			size_t argsRequired_;
-			
-		};
+		Diag
+		VarArgTooFewArgsDiag(std::string valueString, const size_t argsGiven,
+		                     const size_t argsRequired) {
+			return Error("vararg function '%s' called with %zu "
+			             "parameter(s); expected at least %zu",
+			             valueString.c_str(), argsGiven,
+			             argsRequired);
+		}
 		
-		class CallReturnTypeIsUnsizedDiag: public Error {
-		public:
-			CallReturnTypeIsUnsizedDiag(const AST::Type* const type)
-			: typeString_(type->toDiagString()) { }
-			
-			std::string toString() const {
-				return makeString("return type '%s' of function call does not have a size",
-				                  typeString_.c_str());
-			}
-			
-		private:
-			std::string typeString_;
-			
-		};
+		Diag
+		CallReturnTypeIsUnsizedDiag(const AST::Type* const type) {
+			return Error("return type '%s' of function call does not have a size",
+			             type->toDiagString().c_str());
+		}
 		
 		AST::Value CallValue(Context& context, AST::Value rawValue, HeapArray<AST::Value> args, const Debug::SourceLocation& location) {
 			auto value = derefValue(std::move(rawValue));

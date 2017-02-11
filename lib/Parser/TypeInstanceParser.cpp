@@ -16,7 +16,7 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class UnexpectedMethodDeclDiag: public Error {
+		class UnexpectedMethodDeclDiag: public ErrorDiag {
 		public:
 			UnexpectedMethodDeclDiag() { }
 			
@@ -26,7 +26,7 @@ namespace locic {
 			
 		};
 		
-		class UnexpectedMethodDefDiag: public Error {
+		class UnexpectedMethodDefDiag: public ErrorDiag {
 		public:
 			UnexpectedMethodDefDiag() { }
 			

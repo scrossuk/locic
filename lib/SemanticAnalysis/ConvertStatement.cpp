@@ -57,7 +57,7 @@ namespace locic {
 			locic_unreachable("Unknown assign kind.");
 		}
 		
-		class CannotAssignToNonLvalueDiag: public Error {
+		class CannotAssignToNonLvalueDiag: public ErrorDiag {
 		public:
 			CannotAssignToNonLvalueDiag(const AST::Type* const type)
 			: typeString_(type->toDiagString()) { }
@@ -72,7 +72,7 @@ namespace locic {
 			
 		};
 		
-		class CannotAssignNonMovableDiag: public Error {
+		class CannotAssignNonMovableDiag: public ErrorDiag {
 		public:
 			CannotAssignNonMovableDiag(const AST::Type* const type)
 			: typeString_(type->toDiagString()) { }
@@ -87,7 +87,7 @@ namespace locic {
 			
 		};
 		
-		class ScopeActionCanThrowDiag: public Error {
+		class ScopeActionCanThrowDiag: public ErrorDiag {
 		public:
 			ScopeActionCanThrowDiag(String scopeActionState)
 			: scopeActionState_(std::move(scopeActionState)) { }
@@ -102,7 +102,7 @@ namespace locic {
 			
 		};
 		
-		class ThrowNonExceptionValueDiag: public Error {
+		class ThrowNonExceptionValueDiag: public ErrorDiag {
 		public:
 			ThrowNonExceptionValueDiag(std::string typeString)
 			: typeString_(std::move(typeString)) { }
@@ -117,7 +117,7 @@ namespace locic {
 			
 		};
 		
-		class RethrowInTryScopeDiag: public Error {
+		class RethrowInTryScopeDiag: public ErrorDiag {
 		public:
 			RethrowInTryScopeDiag() { }
 			
@@ -127,7 +127,7 @@ namespace locic {
 			
 		};
 		
-		class ThrowInAssertNoExceptDiag: public Warning {
+		class ThrowInAssertNoExceptDiag: public WarningDiag {
 		public:
 			ThrowInAssertNoExceptDiag() { }
 			
@@ -137,7 +137,7 @@ namespace locic {
 			
 		};
 		
-		class RethrowInAssertNoExceptDiag: public Warning {
+		class RethrowInAssertNoExceptDiag: public WarningDiag {
 		public:
 			RethrowInAssertNoExceptDiag() { }
 			
@@ -147,7 +147,7 @@ namespace locic {
 			
 		};
 		
-		class ThrowInScopeActionDiag: public Error {
+		class ThrowInScopeActionDiag: public ErrorDiag {
 		public:
 			ThrowInScopeActionDiag(String scopeActionState)
 			: scopeActionState_(std::move(scopeActionState)) { }
@@ -162,7 +162,7 @@ namespace locic {
 			
 		};
 		
-		class RethrowInScopeActionDiag: public Error {
+		class RethrowInScopeActionDiag: public ErrorDiag {
 		public:
 			RethrowInScopeActionDiag(String scopeActionState)
 			: scopeActionState_(std::move(scopeActionState)) { }
@@ -177,7 +177,7 @@ namespace locic {
 			
 		};
 		
-		class RethrowOutsideCatchDiag: public Error {
+		class RethrowOutsideCatchDiag: public ErrorDiag {
 		public:
 			RethrowOutsideCatchDiag() { }
 			
@@ -187,7 +187,7 @@ namespace locic {
 			
 		};
 		
-		class AssertNoExceptAroundNoexceptScopeDiag: public Warning {
+		class AssertNoExceptAroundNoexceptScopeDiag: public WarningDiag {
 		public:
 			AssertNoExceptAroundNoexceptScopeDiag() { }
 			
@@ -197,7 +197,7 @@ namespace locic {
 			
 		};
 		
-		class BreakInScopeExitActionDiag: public Error {
+		class BreakInScopeExitActionDiag: public ErrorDiag {
 		public:
 			BreakInScopeExitActionDiag(String scopeActionState)
 			: scopeActionState_(std::move(scopeActionState)) { }
@@ -212,7 +212,7 @@ namespace locic {
 			
 		};
 		
-		class BreakNotInCorrectScopeDiag: public Error {
+		class BreakNotInCorrectScopeDiag: public ErrorDiag {
 		public:
 			BreakNotInCorrectScopeDiag() { }
 			
@@ -222,7 +222,7 @@ namespace locic {
 			
 		};
 		
-		class ContinueInScopeExitActionDiag: public Error {
+		class ContinueInScopeExitActionDiag: public ErrorDiag {
 		public:
 			ContinueInScopeExitActionDiag(String scopeActionState)
 			: scopeActionState_(std::move(scopeActionState)) { }
@@ -237,7 +237,7 @@ namespace locic {
 			
 		};
 		
-		class ContinueNotInCorrectScopeDiag: public Error {
+		class ContinueNotInCorrectScopeDiag: public ErrorDiag {
 		public:
 			ContinueNotInCorrectScopeDiag() { }
 			
@@ -247,7 +247,7 @@ namespace locic {
 			
 		};
 		
-		class DuplicateCaseDiag: public Error {
+		class DuplicateCaseDiag: public ErrorDiag {
 		public:
 			DuplicateCaseDiag(const AST::TypeInstance& typeInstance)
 			: typeInstance_(typeInstance) { }
@@ -262,7 +262,7 @@ namespace locic {
 			
 		};
 		
-		class SwitchCaseTypeNotMemberOfDatatype: public Error {
+		class SwitchCaseTypeNotMemberOfDatatype: public ErrorDiag {
 		public:
 			SwitchCaseTypeNotMemberOfDatatype(const AST::TypeInstance& caseTypeInstance,
 			                                  const AST::TypeInstance& switchTypeInstance)
@@ -281,7 +281,7 @@ namespace locic {
 			
 		};
 		
-		class SwitchTypeNotObjectDiag: public Error {
+		class SwitchTypeNotObjectDiag: public ErrorDiag {
 		public:
 			SwitchTypeNotObjectDiag(const AST::Type* type)
 			: type_(type) { }
@@ -298,7 +298,7 @@ namespace locic {
 		
 		constexpr auto MAX_DIAG_LIST_SIZE = 4;
 		
-		class SwitchCasesNotHandledDiag: public Error {
+		class SwitchCasesNotHandledDiag: public ErrorDiag {
 		public:
 			SwitchCasesNotHandledDiag(const Array<const AST::Type*, 8>& unhandledCases) {
 				assert(!unhandledCases.empty());
@@ -321,7 +321,7 @@ namespace locic {
 			
 		};
 		
-		class UnnecessaryDefaultCaseDiag: public Warning {
+		class UnnecessaryDefaultCaseDiag: public WarningDiag {
 		public:
 			UnnecessaryDefaultCaseDiag() { }
 			
@@ -331,7 +331,7 @@ namespace locic {
 			
 		};
 		
-		class VoidExplicitlyIgnoredDiag: public Warning {
+		class VoidExplicitlyIgnoredDiag: public WarningDiag {
 		public:
 			VoidExplicitlyIgnoredDiag() { }
 			
@@ -341,7 +341,7 @@ namespace locic {
 			
 		};
 		
-		class NonVoidNotExplicitlyIgnoredDiag: public Warning {
+		class NonVoidNotExplicitlyIgnoredDiag: public WarningDiag {
 		public:
 			NonVoidNotExplicitlyIgnoredDiag() { }
 			
@@ -351,7 +351,7 @@ namespace locic {
 			
 		};
 		
-		class TryWrapsScopeThatCannotThrowDiag: public Warning {
+		class TryWrapsScopeThatCannotThrowDiag: public WarningDiag {
 		public:
 			TryWrapsScopeThatCannotThrowDiag() { }
 			
@@ -361,7 +361,7 @@ namespace locic {
 			
 		};
 		
-		class CatchClauseCannotUsePatternMatchingDiag: public Error {
+		class CatchClauseCannotUsePatternMatchingDiag: public ErrorDiag {
 		public:
 			CatchClauseCannotUsePatternMatchingDiag() { }
 			
@@ -371,7 +371,7 @@ namespace locic {
 			
 		};
 		
-		class CannotCatchNonExceptionTypeDiag: public Error {
+		class CannotCatchNonExceptionTypeDiag: public ErrorDiag {
 		public:
 			CannotCatchNonExceptionTypeDiag(const AST::Type* const type)
 			: typeString_(type->toDiagString()) { }
@@ -386,7 +386,7 @@ namespace locic {
 			
 		};
 		
-		class InvalidScopeExitStateDiag: public Error {
+		class InvalidScopeExitStateDiag: public ErrorDiag {
 		public:
 			InvalidScopeExitStateDiag(const String exitState)
 			: exitState_(exitState) { }
@@ -401,7 +401,7 @@ namespace locic {
 			
 		};
 		
-		class CannotReturnVoidInNonVoidFunctionDiag: public Error {
+		class CannotReturnVoidInNonVoidFunctionDiag: public ErrorDiag {
 		public:
 			CannotReturnVoidInNonVoidFunctionDiag(const Name& functionName)
 			: functionNameString_(functionName.toString(/*addPrefix=*/false)) { }
@@ -416,7 +416,7 @@ namespace locic {
 			
 		};
 		
-		class CannotReturnNonVoidInVoidFunctionDiag: public Error {
+		class CannotReturnNonVoidInVoidFunctionDiag: public ErrorDiag {
 		public:
 			CannotReturnNonVoidInVoidFunctionDiag(const Name& functionName)
 			: functionNameString_(functionName.toString(/*addPrefix=*/false)) { }
@@ -431,7 +431,7 @@ namespace locic {
 			
 		};
 		
-		class CannotReturnInScopeActionDiag: public Error {
+		class CannotReturnInScopeActionDiag: public ErrorDiag {
 		public:
 			CannotReturnInScopeActionDiag() { }
 			

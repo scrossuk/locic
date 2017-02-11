@@ -17,9 +17,9 @@ namespace locic {
 		Notice
 	};
 	
-	class Diag {
+	class DiagAPI {
 	public:
-		virtual ~Diag() { }
+		virtual ~DiagAPI() { }
 		
 		virtual DiagLevel level() const = 0;
 		
@@ -30,34 +30,68 @@ namespace locic {
 		virtual std::string toString() const = 0;
 		
 	protected:
-		Diag() = default;
-		Diag(const Diag&) = default;
-		Diag& operator=(const Diag&) = default;
-		Diag(Diag&&) = default;
-		Diag& operator=(Diag&&) = default;
+		DiagAPI() = default;
+		DiagAPI(const DiagAPI&) = default;
+		DiagAPI& operator=(const DiagAPI&) = default;
+		DiagAPI(DiagAPI&&) = default;
+		DiagAPI& operator=(DiagAPI&&) = default;
 		
 	};
 	
-	class Error: public Diag {
-	protected:
+	class Diag: public DiagAPI {
+	public:
+		Diag(DiagLevel level, std::string text)
+		: level_(level), text_(std::move(text)) { }
+		
+		DiagLevel level() const {
+			return level_;
+		}
+		
+		std::string toString() const {
+			return text_;
+		}
+		
+	private:
+		DiagLevel level_;
+		std::string text_;
+		
+	};
+	
+	class ErrorDiag: public DiagAPI {
+	public:
 		DiagLevel level() const {
 			return DiagLevel::Error;
 		}
 	};
 	
-	class Warning: public Diag {
-	protected:
+	class WarningDiag: public DiagAPI {
+	public:
 		DiagLevel level() const {
 			return DiagLevel::Warning;
 		}
 	};
 	
-	class Notice: public Diag {
-	protected:
+	class NoticeDiag: public DiagAPI {
+	public:
 		DiagLevel level() const {
 			return DiagLevel::Notice;
 		}
 	};
+	
+	template <typename... Args>
+	Diag Error(const char* const str, const Args&... args) {
+		return Diag(DiagLevel::Error, makeString(str, args...));
+	}
+	
+	template <typename... Args>
+	Diag Warning(const char* const str, const Args&... args) {
+		return Diag(DiagLevel::Warning, makeString(str, args...));
+	}
+	
+	template <typename... Args>
+	Diag Notice(const char* const str, const Args&... args) {
+		return Diag(DiagLevel::Notice, makeString(str, args...));
+	}
 	
 }
 

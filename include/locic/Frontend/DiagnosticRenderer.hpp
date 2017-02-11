@@ -11,7 +11,7 @@ namespace locic {
 		
 	}
 	
-	class Diag;
+	class DiagAPI;
 	enum class DiagLevel;
 	class OptionalDiag;
 	
@@ -23,14 +23,14 @@ namespace locic {
 		
 		void resetColor(std::ostream& stream);
 		
-		void emitDiagnostic(std::ostream& stream, const Diag& diagnostic,
+		void emitDiagnostic(std::ostream& stream, const DiagAPI& diagnostic,
 		                    const Debug::SourceLocation& location,
 		                    const OptionalDiag& chain);
 		
-		void emitChainDiagnostic(std::ostream& stream, const Diag& diagnostic,
+		void emitChainDiagnostic(std::ostream& stream, const DiagAPI& diagnostic,
 		                         const Debug::SourceLocation& location);
 		
-		void emitDiagnosticMessage(std::ostream& stream, const Diag& diagnostic,
+		void emitDiagnosticMessage(std::ostream& stream, const DiagAPI& diagnostic,
 		                           const Debug::SourceLocation& location, bool isChain);
 		
 		void emitDiagnosticLevel(std::ostream& stream, DiagLevel level);

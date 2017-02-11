@@ -16,7 +16,7 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class ElseWithoutPreviousIfDiag: public Error {
+		class ElseWithoutPreviousIfDiag: public ErrorDiag {
 		public:
 			ElseWithoutPreviousIfDiag() { }
 			
@@ -26,7 +26,7 @@ namespace locic {
 			
 		};
 		
-		class InvalidLvalueDiag: public Warning {
+		class InvalidLvalueDiag: public WarningDiag {
 		public:
 			InvalidLvalueDiag() { }
 			

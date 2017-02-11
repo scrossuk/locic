@@ -76,7 +76,7 @@ namespace locic {
 			return Optional<AST::Value>();
 		}
 		
-		class VarArgInvalidTypeDiag: public Error {
+		class VarArgInvalidTypeDiag: public ErrorDiag {
 		public:
 			VarArgInvalidTypeDiag(const AST::Type* const type)
 			: typeString_(type->toDiagString()) { }

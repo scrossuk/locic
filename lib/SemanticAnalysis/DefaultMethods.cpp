@@ -519,7 +519,7 @@ namespace locic {
 			                                   boolType, {}));
 		}
 		
-		class DefaultMethodMustBeStaticDiag: public Error {
+		class DefaultMethodMustBeStaticDiag: public ErrorDiag {
 		public:
 			DefaultMethodMustBeStaticDiag(const Name& name)
 			: nameString_(name.toString(/*addPrefix=*/false)) { }
@@ -534,7 +534,7 @@ namespace locic {
 			
 		};
 		
-		class DefaultMethodMustBeNonStaticDiag: public Error {
+		class DefaultMethodMustBeNonStaticDiag: public ErrorDiag {
 		public:
 			DefaultMethodMustBeNonStaticDiag(const Name& name)
 			: nameString_(name.toString(/*addPrefix=*/false)) { }
@@ -549,7 +549,7 @@ namespace locic {
 			
 		};
 		
-		class UnknownDefaultMethodDiag: public Error {
+		class UnknownDefaultMethodDiag: public ErrorDiag {
 		public:
 			UnknownDefaultMethodDiag(String functionName)
 			: functionName_(std::move(functionName)) { }
@@ -759,7 +759,7 @@ namespace locic {
 			// TODO: Need to check if default constructor can be created.
 		}
 		
-		class CannotGenerateImplicitCopyDiag: public Error {
+		class CannotGenerateImplicitCopyDiag: public ErrorDiag {
 		public:
 			CannotGenerateImplicitCopyDiag() { }
 			
@@ -784,7 +784,7 @@ namespace locic {
 			return true;
 		}
 		
-		class CannotGenerateExplicitCopyDiag: public Error {
+		class CannotGenerateExplicitCopyDiag: public ErrorDiag {
 		public:
 			CannotGenerateExplicitCopyDiag() { }
 			
@@ -809,7 +809,7 @@ namespace locic {
 			return true;
 		}
 		
-		class CannotGenerateCompareDiag: public Error {
+		class CannotGenerateCompareDiag: public ErrorDiag {
 		public:
 			CannotGenerateCompareDiag() { }
 			

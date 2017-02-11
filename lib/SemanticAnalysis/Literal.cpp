@@ -27,7 +27,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		class InvalidLiteralSpecifierDiag: public Error {
+		class InvalidLiteralSpecifierDiag: public ErrorDiag {
 		public:
 			InvalidLiteralSpecifierDiag(const String specifier)
 			: specifier_(specifier) { }
@@ -88,7 +88,7 @@ namespace locic {
 			locic_unreachable("Invalid integer type.");
 		}
 		
-		class InvalidLiteralExceedsSpecifierMaximumDiag: public Error {
+		class InvalidLiteralExceedsSpecifierMaximumDiag: public ErrorDiag {
 		public:
 			InvalidLiteralExceedsSpecifierMaximumDiag(const String specifier)
 			: specifier_(specifier) { }
@@ -103,7 +103,7 @@ namespace locic {
 			
 		};
 		
-		class InvalidLiteralTooLargeForFixedWidthTypeDiag: public Error {
+		class InvalidLiteralTooLargeForFixedWidthTypeDiag: public ErrorDiag {
 		public:
 			InvalidLiteralTooLargeForFixedWidthTypeDiag() { }
 			
@@ -149,7 +149,7 @@ namespace locic {
 			return types.back();
 		}
 		
-		class InvalidFloatingPointLiteralSpecifierDiag: public Error {
+		class InvalidFloatingPointLiteralSpecifierDiag: public ErrorDiag {
 		public:
 			InvalidFloatingPointLiteralSpecifierDiag(const String specifier)
 			: specifier_(specifier) { }
@@ -180,7 +180,7 @@ namespace locic {
 			}
 		}
 		
-		class InvalidCharacterLiteralSpecifierDiag: public Error {
+		class InvalidCharacterLiteralSpecifierDiag: public ErrorDiag {
 		public:
 			InvalidCharacterLiteralSpecifierDiag(const String specifier)
 			: specifier_(specifier) { }
@@ -253,7 +253,7 @@ namespace locic {
 			}
 		}
 		
-		class NoFunctionForStringLiteralSpecifierDiag: public Error {
+		class NoFunctionForStringLiteralSpecifierDiag: public ErrorDiag {
 		public:
 			NoFunctionForStringLiteralSpecifierDiag(const String function, const String specifier)
 			: function_(function), specifier_(specifier) { }

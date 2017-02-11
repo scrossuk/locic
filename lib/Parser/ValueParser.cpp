@@ -17,7 +17,7 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class InvalidValidDiag: public Error {
+		class InvalidValidDiag: public ErrorDiag {
 		public:
 			InvalidValidDiag(const Token::Kind actual)
 			: actual_(actual) { }
@@ -32,7 +32,7 @@ namespace locic {
 			
 		};
 		
-		class InvalidOperandDiag: public Warning {
+		class InvalidOperandDiag: public WarningDiag {
 		public:
 			InvalidOperandDiag(const std::string& opName)
 			: opName_(opName) { }
@@ -47,7 +47,7 @@ namespace locic {
 			
 		};
 		
-		class CannotInterpretValueAsType: public Error {
+		class CannotInterpretValueAsType: public ErrorDiag {
 		public:
 			CannotInterpretValueAsType()  { }
 			

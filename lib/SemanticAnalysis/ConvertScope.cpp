@@ -14,7 +14,7 @@ namespace locic {
 
 	namespace SemanticAnalysis {
 		
-		class UnusedLocalVarDiag: public Warning {
+		class UnusedLocalVarDiag: public WarningDiag {
 		public:
 			UnusedLocalVarDiag(String varName)
 			: varName_(varName) { }
@@ -29,7 +29,7 @@ namespace locic {
 			
 		};
 		
-		class UsedLocalVarMarkedUnusedDiag: public Warning {
+		class UsedLocalVarMarkedUnusedDiag: public WarningDiag {
 		public:
 			UsedLocalVarMarkedUnusedDiag(String varName)
 			: varName_(varName) { }

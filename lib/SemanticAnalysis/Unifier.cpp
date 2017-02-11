@@ -12,72 +12,35 @@ namespace locic {
 		
 		Unifier::Unifier() { }
 		
-		class UnifyIncompatibleTypesDiag: public Error {
-		public:
-			UnifyIncompatibleTypesDiag(const AST::Type* const sourceType,
-			                           const AST::Type* const destType)
-			: sourceType_(sourceType), destType_(destType) { }
-
-			std::string toString() const {
-				return makeString("cannot unify incompatible types '%s' and '%s'",
-				                  sourceType_->toDiagString().c_str(),
-				                  destType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* sourceType_;
-			const AST::Type* destType_;
-			
-		};
+		Diag
+		UnifyIncompatibleTypesDiag(const AST::Type* const sourceType,
+		                           const AST::Type* const destType) {
+			return Error("cannot unify incompatible types '%s' and '%s'",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 		
-		class UnifyAutoWithRefDiag: public Error {
-		public:
-			UnifyAutoWithRefDiag(const AST::Type* const refType)
-			: refType_(refType) { }
-
-			std::string toString() const {
-				return makeString("cannot unify auto with reference type '%s'",
-				                  refType_->toDiagString().c_str());
-			}
-			
-		private:
-			const AST::Type* refType_;
-			
-		};
+		Diag
+		UnifyAutoWithRefDiag(const AST::Type* const refType) {
+			return Error("cannot unify auto with reference type '%s'",
+			             refType->toDiagString().c_str());
+		}
 		
-		class UnifyMismatchingTemplateArgDiag: public Error {
-		public:
-			UnifyMismatchingTemplateArgDiag(const AST::Value& first,
-			                                const AST::Value& second)
-			: str_(makeString("cannot unify template arguments '%s' and '%s'",
-			                  first.toDiagString().c_str(),
-			                  second.toDiagString().c_str())) { }
-
-			std::string toString() const {
-				return str_;
-			}
-			
-		private:
-			std::string str_;
-			
-		};
+		Diag
+		UnifyMismatchingTemplateArgDiag(const AST::Value& first,
+		                                const AST::Value& second) {
+			return Error("cannot unify template arguments '%s' and '%s'",
+			             first.toDiagString().c_str(),
+			             second.toDiagString().c_str());
+		}
 		
-		class UnifyMismatchingConstPredicates: public Error {
-		public:
-			UnifyMismatchingConstPredicates(const AST::Predicate& first,
-			                                const AST::Predicate& second)
-			: str_(makeString("cannot unify const predicates '%s' and '%s'",
-			                  first.toString().c_str(),
-			                  second.toString().c_str())) { }
-
-			std::string toString() const {
-				return str_;
-			}
-			
-		private:
-			std::string str_;
-			
-		};
+		Diag
+		UnifyMismatchingConstPredicatesDiag(const AST::Predicate& first,
+		                                    const AST::Predicate& second) {
+			return Error("cannot unify const predicates '%s' and '%s'",
+			             first.toString().c_str(),
+			             second.toString().c_str());
+		}
 		
 		OptionalDiag
 		Unifier::unifyTypes(const AST::Type* first,
@@ -157,7 +120,7 @@ namespace locic {
 		Unifier::unifyConstPredicates(const AST::Predicate& first,
 		                              const AST::Predicate& second) {
 			if (first != second) {
-				return UnifyMismatchingConstPredicates(first, second);
+				return UnifyMismatchingConstPredicatesDiag(first, second);
 			}
 			
 			return SUCCESS;

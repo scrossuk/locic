@@ -9,7 +9,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		class TemplateVarHasNonPrimitiveTypeDiag: public Error {
+		class TemplateVarHasNonPrimitiveTypeDiag: public ErrorDiag {
 		public:
 			TemplateVarHasNonPrimitiveTypeDiag(const String& name,
 			                                   const AST::Type* type)

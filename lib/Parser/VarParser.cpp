@@ -10,7 +10,7 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class UnexpectedInheritDiag: public Error {
+		class UnexpectedInheritDiag: public ErrorDiag {
 		public:
 			UnexpectedInheritDiag() { }
 			
@@ -20,7 +20,7 @@ namespace locic {
 			
 		};
 		
-		class InheritNotImplementedDiag: public Error {
+		class InheritNotImplementedDiag: public ErrorDiag {
 		public:
 			InheritNotImplementedDiag() { }
 			

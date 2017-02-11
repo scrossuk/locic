@@ -20,7 +20,7 @@ namespace locic {
 			return templateVarInfo;
 		}
 		
-		class TypeInstanceClashesWithExistingNameDiag: public Error {
+		class TypeInstanceClashesWithExistingNameDiag: public ErrorDiag {
 		public:
 			TypeInstanceClashesWithExistingNameDiag(const Name& name)
 			: name_(name.copy()) { }
@@ -35,7 +35,7 @@ namespace locic {
 			
 		};
 		
-		class PreviousDefinedDiag: public Error {
+		class PreviousDefinedDiag: public ErrorDiag {
 		public:
 			PreviousDefinedDiag() { }
 			
@@ -47,7 +47,7 @@ namespace locic {
 		
 		namespace {
 			
-			class ShadowsTemplateParameterDiag: public Error {
+			class ShadowsTemplateParameterDiag: public ErrorDiag {
 			public:
 				ShadowsTemplateParameterDiag(String name)
 				: name_(std::move(name)) { }
@@ -64,7 +64,7 @@ namespace locic {
 			
 		}
 		
-		class DefinitionRequiredForInternalClassDiag: public Error {
+		class DefinitionRequiredForInternalClassDiag: public ErrorDiag {
 		public:
 			DefinitionRequiredForInternalClassDiag(Name name)
 			: name_(std::move(name)) { }
@@ -79,7 +79,7 @@ namespace locic {
 			
 		};
 		
-		class CannotDefineImportedClassDiag: public Error {
+		class CannotDefineImportedClassDiag: public ErrorDiag {
 		public:
 			CannotDefineImportedClassDiag(Name name)
 			: name_(std::move(name)) { }
@@ -94,7 +94,7 @@ namespace locic {
 			
 		};
 		
-		class DefinitionRequiredForExportedClassDiag: public Error {
+		class DefinitionRequiredForExportedClassDiag: public ErrorDiag {
 		public:
 			DefinitionRequiredForExportedClassDiag(Name name)
 			: name_(std::move(name)) { }
@@ -197,7 +197,7 @@ namespace locic {
 			parentNamespace.items().insert(std::make_pair(typeInstanceName, AST::NamespaceItem::TypeInstance(*typeInstanceNode)));
 		}
 		
-		class CannotNestModuleScopesDiag: public Error {
+		class CannotNestModuleScopesDiag: public ErrorDiag {
 		public:
 			CannotNestModuleScopesDiag() { }
 			
@@ -207,7 +207,7 @@ namespace locic {
 			
 		};
 		
-		class AliasClashesWithExistingNameDiag: public Error {
+		class AliasClashesWithExistingNameDiag: public ErrorDiag {
 		public:
 			AliasClashesWithExistingNameDiag(const Name& name)
 			: name_(name.copy()) { }
@@ -222,7 +222,7 @@ namespace locic {
 			
 		};
 		
-		class TemplateVarClashesWithExistingNameDiag: public Error {
+		class TemplateVarClashesWithExistingNameDiag: public ErrorDiag {
 		public:
 			TemplateVarClashesWithExistingNameDiag(const String& name)
 			: name_(name) { }

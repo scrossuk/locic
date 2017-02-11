@@ -28,18 +28,12 @@ namespace locic {
 		ImplicitCastTypeFormatOnlyChain(Context& context, const AST::Type* sourceType,
 		                                const AST::Type* destType, bool hasParentConstChain,
 		                                const Debug::SourceLocation& location, bool isTopLevel = false);
-
-		class CannotCastTemplateTypeDiag : public Error {
-		public:
-			CannotCastTemplateTypeDiag(const AST::Type* sourceType, const AST::Type* destType)
-			: message_(makeString("Cannot cast from template type '%s' to template type '%s'.",
-			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
-
-			std::string toString() const { return message_; }
-
-		private:
-			std::string message_;
-		};
+		
+		Diag
+		CannotCastTemplateTypeDiag(const AST::Type* const sourceType, const AST::Type* const destType) {
+			return Error("Cannot cast from template type '%s' to template type '%s'.",
+			             sourceType->toDiagString().c_str(), destType->toDiagString().c_str());
+		}
 
 		static const AST::Type*
 		ImplicitCastTypeFormatOnlyChainCheckType(Context& context, const AST::Type* sourceType,
@@ -327,18 +321,12 @@ namespace locic {
 			// in the destination type.
 			return sourcePrimitiveID.asUnsigned().isSubsetOf(destPrimitiveID);
 		}
-
-		class FormatOnlyCastFailedDiag : public Error {
-		public:
-			FormatOnlyCastFailedDiag(const AST::Type* sourceType, const AST::Type* destType)
-			: message_(makeString("Format only cast failed from type %s to type %s.",
-			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
-
-			std::string toString() const { return message_; }
-
-		private:
-			std::string message_;
-		};
+		
+		Diag FormatOnlyCastFailedDiag(const AST::Type* const sourceType,
+		                              const AST::Type* const destType) {
+			return Error("Format only cast failed from type %s to type %s.",
+			             sourceType->toDiagString().c_str(), destType->toDiagString().c_str());
+		}
 
 		Optional<AST::Value> ImplicitCastConvert(Context& context, std::vector<std::string>& errors, const AST::Value value, const AST::Type* destType, const Debug::SourceLocation& location, bool allowBind, bool formatOnly) {
 			{
@@ -496,39 +484,26 @@ namespace locic {
 			return Optional<AST::Value>();
 		}
 
-		class CannotImplicitlyCastTypeDiag : public Error {
-		public:
-			CannotImplicitlyCastTypeDiag(const AST::Type* sourceType, const AST::Type* destType)
-			: message_(makeString("Can't implicitly cast type '%s' to type '%s'.",
-			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
+		Diag
+		CannotImplicitlyCastTypeDiag(const AST::Type* const sourceType,
+		                             const AST::Type* const destType) {
+			return Error("Can't implicitly cast type '%s' to type '%s'.",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 
-			std::string toString() const { return message_; }
+		Diag
+		CannotImplicitlyCastValueToTypeDiag(const AST::Type* const sourceType,
+		                                    const AST::Type* const destType) {
+			return Error("Can't implicitly cast value of type '%s' to type '%s'.",
+			             sourceType->toDiagString().c_str(),
+			             destType->toDiagString().c_str());
+		}
 
-		private:
-			std::string message_;
-		};
-
-		class CannotImplicitlyCastValueToTypeDiag : public Error {
-		public:
-			CannotImplicitlyCastValueToTypeDiag(const AST::Type* sourceType, const AST::Type* destType)
-			: message_(makeString("Can't implicitly cast value of type '%s' to type '%s'.",
-			                      sourceType->toDiagString().c_str(), destType->toDiagString().c_str())) {}
-
-			std::string toString() const { return message_; }
-
-		private:
-			std::string message_;
-		};
-
-		class CastErrorDiag : public Error {
-		public:
-			CastErrorDiag(std::string message) : message_(std::move(message)) {}
-
-			std::string toString() const { return message_; }
-
-		private:
-			std::string message_;
-		};
+		Diag
+		CastErrorDiag(std::string message) {
+			return Error(message.c_str());
+		}
 
 		AST::Value ImplicitCast(Context& context, AST::Value value, const AST::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
 			std::vector<std::string> errors;

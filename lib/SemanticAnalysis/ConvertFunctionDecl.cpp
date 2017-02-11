@@ -30,90 +30,38 @@ namespace locic {
 			}
 		}
 		
-		namespace {
-			
-			class ShadowsTemplateParameterDiag: public Error {
-			public:
-				ShadowsTemplateParameterDiag(String name)
-				: name_(std::move(name)) { }
-				
-				std::string toString() const {
-					return makeString("declaration of '%s' shadows template parameter",
-					                  name_.c_str());
-				}
-				
-			private:
-				String name_;
-				
-			};
-			
+		Diag
+		ShadowsTemplateParameterDiag(String name) {
+			return Error("declaration of '%s' shadows template parameter",
+			             name.c_str());
 		}
 		
-		class InterfaceMethodCannotBeTemplatedDiag: public Error {
-		public:
-			InterfaceMethodCannotBeTemplatedDiag(String name)
-			: name_(std::move(name)) { }
-			
-			std::string toString() const {
-				return makeString("interface method '%s' cannot be templated",
-				                  name_.c_str());
-			}
-			
-		private:
-			String name_;
-			
-		};
+		Diag
+		InterfaceMethodCannotBeTemplatedDiag(String name) {
+			return Error("interface method '%s' cannot be templated",
+			             name.c_str());
+		}
 		
-		class FunctionCannotHaveConstSpecifierDiag: public Warning {
-		public:
-			FunctionCannotHaveConstSpecifierDiag(const Name& name)
-			: name_(name.toString(/*addPrefix=*/false)) { }
-			
-			std::string toString() const {
-				return makeString("non-method function '%s' cannot have const specifier",
-				                  name_.c_str());
-			}
-			
-		private:
-			std::string name_;
-			
-		};
+		Diag
+		FunctionCannotHaveConstSpecifierDiag(const Name& name) {
+			return Warning("non-method function '%s' cannot have const specifier",
+			               name.toString(/*addPrefix=*/false).c_str());
+		}
 		
-		class FunctionCannotBeStaticDiag: public Warning {
-		public:
-			FunctionCannotBeStaticDiag(const Name& name)
-			: name_(name.toString(/*addPrefix=*/false)) { }
-			
-			std::string toString() const {
-				return makeString("non-method function '%s' cannot be static",
-				                  name_.c_str());
-			}
-			
-		private:
-			std::string name_;
-			
-		};
+		Diag
+		FunctionCannotBeStaticDiag(const Name& name) {
+			return Warning("non-method function '%s' cannot be static",
+			               name.toString(/*addPrefix=*/false).c_str());
+		}
 		
-		class FunctionTemplateHasNonPrimitiveTypeDiag: public Error {
-		public:
-			FunctionTemplateHasNonPrimitiveTypeDiag(const String& varName,
-			                                        const AST::Type* type,
-			                                        const Name& functionName)
-			: varName_(varName), type_(type),
-			functionName_(functionName.toString(/*addPrefix=*/false)) { }
-			
-			std::string toString() const {
-				return makeString("template variable '%s' has non-primitive type '%s' in function '%s'",
-				                  varName_.c_str(), type_->toDiagString().c_str(),
-				                  functionName_.c_str());
-			}
-			
-		private:
-			String varName_;
-			const AST::Type* type_;
-			std::string functionName_;
-			
-		};
+		Diag
+		FunctionTemplateHasNonPrimitiveTypeDiag(const String& varName,
+		                                        const AST::Type* const type,
+		                                        const Name& functionName) {
+			return Error("template variable '%s' has non-primitive type '%s' in function '%s'",
+			             varName.c_str(), type->toDiagString().c_str(),
+			             functionName.toString(/*addPrefix=*/false).c_str());
+		}
 		
 		void
 		ConvertFunctionDecl(Context& context, AST::Node<AST::Function>& function) {
@@ -328,7 +276,7 @@ namespace locic {
 			}
 		}
 		
-		class UnknownLifetimeMethodDiag: public Error {
+		class UnknownLifetimeMethodDiag: public ErrorDiag {
 		public:
 			UnknownLifetimeMethodDiag(String functionName)
 			: functionName_(std::move(functionName)) { }
@@ -343,7 +291,7 @@ namespace locic {
 			
 		};
 		
-		class LifetimeMethodInvalidReturnTypeDiag: public Error {
+		class LifetimeMethodInvalidReturnTypeDiag: public ErrorDiag {
 		public:
 			LifetimeMethodInvalidReturnTypeDiag(std::string functionName)
 			: functionName_(std::move(functionName)) { }
@@ -358,7 +306,7 @@ namespace locic {
 			
 		};
 		
-		class LifetimeMethodInvalidArgumentCountDiag: public Error {
+		class LifetimeMethodInvalidArgumentCountDiag: public ErrorDiag {
 		public:
 			LifetimeMethodInvalidArgumentCountDiag(std::string functionName)
 			: functionName_(std::move(functionName)) { }
@@ -373,7 +321,7 @@ namespace locic {
 			
 		};
 		
-		class LifetimeMethodInvalidArgumentTypesDiag: public Error {
+		class LifetimeMethodInvalidArgumentTypesDiag: public ErrorDiag {
 		public:
 			LifetimeMethodInvalidArgumentTypesDiag(std::string functionName)
 			: functionName_(std::move(functionName)) { }
@@ -388,7 +336,7 @@ namespace locic {
 			
 		};
 		
-		class LifetimeMethodShouldBeStaticDiag: public Error {
+		class LifetimeMethodShouldBeStaticDiag: public ErrorDiag {
 		public:
 			LifetimeMethodShouldBeStaticDiag(std::string functionName)
 			: functionName_(std::move(functionName)) { }
@@ -403,7 +351,7 @@ namespace locic {
 			
 		};
 		
-		class LifetimeMethodShouldNotBeStaticDiag: public Error {
+		class LifetimeMethodShouldNotBeStaticDiag: public ErrorDiag {
 		public:
 			LifetimeMethodShouldNotBeStaticDiag(std::string functionName)
 			: functionName_(std::move(functionName)) { }
@@ -418,7 +366,7 @@ namespace locic {
 			
 		};
 		
-		class LifetimeMethodInvalidConstPredicateDiag: public Error {
+		class LifetimeMethodInvalidConstPredicateDiag: public ErrorDiag {
 		public:
 			LifetimeMethodInvalidConstPredicateDiag(std::string functionName)
 			: functionName_(std::move(functionName)) { }
@@ -478,7 +426,7 @@ namespace locic {
 			}
 		}
 		
-		class LifetimeMethodNotNoExceptDiag: public Error {
+		class LifetimeMethodNotNoExceptDiag: public ErrorDiag {
 		public:
 			LifetimeMethodNotNoExceptDiag(std::string functionName)
 			: functionName_(std::move(functionName)) { }
@@ -493,7 +441,7 @@ namespace locic {
 			
 		};
 		
-		class PatternMatchingNotSupportedForParameterVariablesDiag: public Error {
+		class PatternMatchingNotSupportedForParameterVariablesDiag: public ErrorDiag {
 		public:
 			PatternMatchingNotSupportedForParameterVariablesDiag() { }
 			

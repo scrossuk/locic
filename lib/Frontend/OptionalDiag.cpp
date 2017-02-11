@@ -15,7 +15,7 @@ namespace locic {
 	
 	OptionalDiag::~OptionalDiag() { }
 	
-	OptionalDiag::OptionalDiag(std::unique_ptr<Diag> argDiag,
+	OptionalDiag::OptionalDiag(std::unique_ptr<DiagAPI> argDiag,
 	                           Debug::SourceLocation argLocation,
 	                           OptionalDiag argChain)
 	: diag_(new DiagInfo(std::move(argDiag), argLocation, std::move(argChain))) { }
@@ -32,7 +32,7 @@ namespace locic {
 		return diag_.get() != nullptr;
 	}
 	
-	const Diag& OptionalDiag::diag() const {
+	const DiagAPI& OptionalDiag::diag() const {
 		return *(diag_->diag);
 	}
 	

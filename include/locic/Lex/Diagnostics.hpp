@@ -18,7 +18,7 @@ namespace locic {
 		};
 		
 #define LEXERROR(name, msg) \
-	class name ## Diag: public Error { \
+	class name ## Diag: public ErrorDiag { \
 	public: \
 		name ## Diag() { } \
 		DiagID lexId() const { return DiagID::name; } \

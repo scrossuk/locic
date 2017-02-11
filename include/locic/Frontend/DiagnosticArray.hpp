@@ -13,11 +13,11 @@
 namespace locic {
 	
 	struct DiagInfo {
-		std::unique_ptr<Diag> diag;
+		std::unique_ptr<DiagAPI> diag;
 		Debug::SourceLocation location;
 		OptionalDiag chain;
 		
-		DiagInfo(std::unique_ptr<Diag> d, const Debug::SourceLocation& l,
+		DiagInfo(std::unique_ptr<DiagAPI> d, const Debug::SourceLocation& l,
 		         OptionalDiag c)
 		: diag(std::move(d)), location(l), chain(std::move(c)) { }
 	};
@@ -36,7 +36,7 @@ namespace locic {
 			return false;
 		}
 		
-		void issueDiag(std::unique_ptr<Diag> diag, const Debug::SourceLocation& location,
+		void issueDiag(std::unique_ptr<DiagAPI> diag, const Debug::SourceLocation& location,
 		               OptionalDiag chain = OptionalDiag()) {
 			diags_.push_back(DiagInfo(std::move(diag), location, std::move(chain)));
 			std::sort(diags_.begin(), diags_.end(), [](const DiagInfo& a, const DiagInfo& b) {

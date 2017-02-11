@@ -91,7 +91,7 @@ namespace locic {
 			impl_->diagReceiver = &receiver;
 		}
 		
-		void Context::issueDiagPtr(std::unique_ptr<Diag> diag,
+		void Context::issueDiagPtr(std::unique_ptr<DiagAPI> diag,
 		                           const Debug::SourceLocation& location,
 		                           OptionalDiag chain) {
 			diagnosticReceiver().issueDiag(std::move(diag), location, std::move(chain));
@@ -223,7 +223,7 @@ namespace locic {
 			impl_->computingMethodSetTemplateVars.pop_back();
 		}
 		
-		class SelfInNonMethodDiag: public Error {
+		class SelfInNonMethodDiag: public ErrorDiag {
 		public:
 			SelfInNonMethodDiag() { }
 			
@@ -233,7 +233,7 @@ namespace locic {
 			
 		};
 		
-		class SelfInStaticMethodDiag: public Error {
+		class SelfInStaticMethodDiag: public ErrorDiag {
 		public:
 			SelfInStaticMethodDiag() { }
 			
@@ -263,7 +263,7 @@ namespace locic {
 			return createSelfRef(context, selfConstType);
 		}
 		
-		class ThisInNonMethodDiag: public Error {
+		class ThisInNonMethodDiag: public ErrorDiag {
 		public:
 			ThisInNonMethodDiag() { }
 			
@@ -273,7 +273,7 @@ namespace locic {
 			
 		};
 		
-		class ThisInStaticMethodDiag: public Error {
+		class ThisInStaticMethodDiag: public ErrorDiag {
 		public:
 			ThisInStaticMethodDiag() { }
 			

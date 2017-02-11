@@ -102,27 +102,15 @@ namespace locic {
 			return function;
 		}
 		
-		class ParentExceptionIncorrectArgCountDiag: public Error {
-		public:
-			ParentExceptionIncorrectArgCountDiag(const AST::Type* const parentType,
-			                                     size_t argsGiven, size_t argsRequired)
-			: parentType_(parentType), argsGiven_(argsGiven),
-			argsRequired_(argsRequired) { }
-			
-			std::string toString() const {
-				return makeString("exception parent '%s' called with %llu "
-				                  "parameter(s); expected %llu",
-				                  parentType_->toDiagString().c_str(),
-				                  static_cast<unsigned long long>(argsGiven_),
-				                  static_cast<unsigned long long>(argsRequired_));
-			}
-			
-		private:
-			const AST::Type* parentType_;
-			size_t argsGiven_;
-			size_t argsRequired_;
-			
-		};
+		Diag
+		ParentExceptionIncorrectArgCountDiag(const AST::Type* const parentType,
+		                                     const size_t argsGiven,
+		                                     const size_t argsRequired) {
+			return Error("exception parent '%s' called with %zu "
+			             "parameter(s); expected %zu",
+			             parentType->toDiagString().c_str(), argsGiven,
+			             argsRequired);
+		}
 		
 		void CreateExceptionConstructor(Context& context, AST::Node<AST::TypeInstance>& typeInstanceNode,
 		                                AST::Function& function) {

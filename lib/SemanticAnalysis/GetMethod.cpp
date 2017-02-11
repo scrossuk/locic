@@ -40,37 +40,17 @@ namespace locic {
 			return AST::FunctionType(AST::FunctionAttributes(isVarArg, isMethod, isTemplated, std::move(noexceptPredicate)), returnType, argTypes.copy());
 		}
 		
-		class CannotFindStaticMethodDiag: public Error {
-		public:
-			CannotFindStaticMethodDiag(const String name, const AST::Type* type)
-			: name_(name), typeString_(type->toDiagString()) { }
-			
-			std::string toString() const {
-				return makeString("cannot find static method '%s' for type '%s'",
-				                  name_.c_str(), typeString_.c_str());
-			}
-			
-		private:
-			String name_;
-			std::string typeString_;
-			
-		};
+		Diag
+		CannotFindStaticMethodDiag(const String name, const AST::Type* const type) {
+			return Error("cannot find static method '%s' for type '%s'",
+			             name.c_str(), type->toDiagString().c_str());
+		}
 		
-		class CannotCallNonStaticMethodDiag: public Error {
-		public:
-			CannotCallNonStaticMethodDiag(const String name, const AST::Type* type)
-			: name_(name), typeString_(type->toDiagString()) { }
-			
-			std::string toString() const {
-				return makeString("cannot call non-static method '%s' for type '%s'",
-				                  name_.c_str(), typeString_.c_str());
-			}
-			
-		private:
-			String name_;
-			std::string typeString_;
-			
-		};
+		Diag
+		CannotCallNonStaticMethodDiag(const String name, const AST::Type* const type) {
+			return Error("cannot call non-static method '%s' for type '%s'",
+			             name.c_str(), type->toDiagString().c_str());
+		}
 		
 		AST::Value GetStaticMethod(Context& context, AST::Value rawValue, const String& methodName, const Debug::SourceLocation& location) {
 			auto value = derefOrBindValue(context, std::move(rawValue));
@@ -144,114 +124,51 @@ namespace locic {
 			return GetTemplatedMethodWithoutResolution(context, std::move(value), type, methodName, {}, location);
 		}
 		
-		class CannotFindMethodDiag: public Error {
-		public:
-			CannotFindMethodDiag(const String name, const AST::Type* type)
-			: name_(name), typeString_(type->toDiagString()) { }
-			
-			std::string toString() const {
-				return makeString("cannot find method '%s' for type '%s'",
-				                  name_.c_str(), typeString_.c_str());
-			}
-			
-		private:
-			String name_;
-			std::string typeString_;
-			
-		};
+		Diag
+		CannotFindMethodDiag(const String name, const AST::Type* const type) {
+			return Error("cannot find method '%s' for type '%s'",
+			             name.c_str(), type->toDiagString().c_str());
+		}
 		
-		class CannotAccessStaticMethodDiag: public Error {
-		public:
-			CannotAccessStaticMethodDiag(const String name, const AST::Type* type)
-			: name_(name), typeString_(type->toDiagString()) { }
-			
-			std::string toString() const {
-				return makeString("cannot access static method '%s' for value of type '%s'",
-				                  name_.c_str(), typeString_.c_str());
-			}
-			
-		private:
-			String name_;
-			std::string typeString_;
-			
-		};
+		Diag
+		CannotAccessStaticMethodDiag(const String name, const AST::Type* const type) {
+			return Error("cannot access static method '%s' for value of type '%s'",
+			             name.c_str(), type->toDiagString().c_str());
+		}
 		
-		class InvalidMethodTemplateArgCountDiag: public Error {
-		public:
-			InvalidMethodTemplateArgCountDiag(const String name,
-			                                  size_t argsExpected,
-			                                  size_t argsGiven)
-			: name_(name), argsExpected_(argsExpected), argsGiven_(argsGiven) { }
-			
-			std::string toString() const {
-				return makeString("incorrect number of template arguments provided "
-				                  "for method '%s'; %zu were required, but %zu "
-						  "were provided", name_.c_str(), argsExpected_,
-				                  argsGiven_);
-			}
-			
-		private:
-			String name_;
-			size_t argsExpected_;
-			size_t argsGiven_;
-			
-		};
+		Diag
+		InvalidMethodTemplateArgCountDiag(const String name,
+		                                  const size_t argsExpected,
+		                                  const size_t argsGiven) {
+			return Error("incorrect number of template arguments provided "
+			             "for method '%s'; %zu were required, but %zu "
+			             "were provided", name.c_str(), argsExpected,
+			             argsGiven);
+		}
 		
-		class InvalidMethodTemplateArgDiag: public Error {
-		public:
-			InvalidMethodTemplateArgDiag(const AST::Type* type, const String varName,
-			                             const String methodName)
-			: typeString_(type->toDiagString()), varName_(varName),
-			methodName_(methodName) { }
-			
-			std::string toString() const {
-				return makeString("invalid type '%s' passed as template parameter "
-				                  "'%s' for method '%s'", typeString_.c_str(),
-				                  varName_.c_str(), methodName_.c_str());
-			}
-			
-		private:
-			std::string typeString_;
-			String varName_;
-			String methodName_;
-			
-		};
+		Diag
+		InvalidMethodTemplateArgDiag(const AST::Type* const type, const String varName,
+		                             const String methodName) {
+			return Error("invalid type '%s' passed as template parameter "
+			             "'%s' for method '%s'", type->toDiagString().c_str(),
+			             varName.c_str(), methodName.c_str());
+		}
 		
-		class CannotReferToMutatorMethodFromConstDiag: public Error {
-		public:
-			CannotReferToMutatorMethodFromConstDiag(const String name,
-			                                        const AST::Type* type)
-			: name_(name), typeString_(type->toDiagString()) { }
-			
-			std::string toString() const {
-				return makeString("cannot refer to mutator method '%s' from "
-				                  "const object of type '%s'", name_.c_str(),
-				                  typeString_.c_str());
-			}
-			
-		private:
-			String name_;
-			std::string typeString_;
-			
-		};
+		Diag
+		CannotReferToMutatorMethodFromConstDiag(const String name,
+		                                        const AST::Type* const type) {
+			return Error("cannot refer to mutator method '%s' from "
+			             "const object of type '%s'", name.c_str(),
+			             type->toDiagString().c_str());
+		}
 		
-		class TemplateArgsDoNotSatisfyMethodRequirePredicateDiag : public Error {
-		public:
-			TemplateArgsDoNotSatisfyMethodRequirePredicateDiag(const AST::Predicate& requirePredicate,
-			                                                   const String& name)
-			: requirePredicateString_(requirePredicate.toString()), name_(name) { }
-
-			std::string toString() const {
-				return makeString("template arguments do not satisfy require predicate "
-				                  "'%s' of method '%s'", requirePredicateString_.c_str(),
-				                  name_.c_str());
-			}
-
-		private:
-			std::string requirePredicateString_;
-			String name_;
-			
-		};
+		Diag
+		TemplateArgsDoNotSatisfyMethodRequirePredicateDiag(const AST::Predicate& requirePredicate,
+		                                                   const String& name) {
+			return Error("template arguments do not satisfy require predicate "
+			             "'%s' of method '%s'", requirePredicate.toString().c_str(),
+			             name.c_str());
+		}
 		
 		AST::Value GetTemplatedMethodWithoutResolution(Context& context, AST::Value value, const AST::Type* const type, const String& methodName, AST::ValueArray templateArguments, const Debug::SourceLocation& location) {
 			assert(value.type()->isRef());

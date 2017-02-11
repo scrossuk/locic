@@ -17,7 +17,7 @@ namespace locic {
 	
 	namespace Parser {
 		
-		class StaticMethodCannotBeConstDiag: public Warning {
+		class StaticMethodCannotBeConstDiag: public WarningDiag {
 		public:
 			StaticMethodCannotBeConstDiag() { }
 			
@@ -27,7 +27,7 @@ namespace locic {
 			
 		};
 		
-		class OverrideNotImplementedDiag: public Error {
+		class OverrideNotImplementedDiag: public ErrorDiag {
 		public:
 			OverrideNotImplementedDiag() { }
 			
