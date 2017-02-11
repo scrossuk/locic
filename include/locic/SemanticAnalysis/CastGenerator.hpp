@@ -14,10 +14,12 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		class Context;
+		class SatisfyChecker;
 		
 		class CastGenerator {
 		public:
-			CastGenerator(Context& context, const AST::Type* sourceType,
+			CastGenerator(Context& context, SatisfyChecker& checker,
+			              const AST::Type* sourceType, bool isNoop,
 			              bool canBind);
 			
 			const AST::Type* type() const;
@@ -53,7 +55,9 @@ namespace locic {
 			
 		private:
 			Context& context_;
+			SatisfyChecker& checker_;
 			const AST::Type* type_;
+			bool isNoop_;
 			bool canBind_;
 			
 		};
