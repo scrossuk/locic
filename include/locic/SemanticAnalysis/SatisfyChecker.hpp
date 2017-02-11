@@ -26,12 +26,13 @@ namespace locic {
 	namespace SemanticAnalysis {
 		
 		class Context;
+		class Unifier;
 		
 		class SatisfyChecker {
 		public:
 			using Stack = Array<std::pair<const AST::Type*, const AST::Type*>, 10>;
 			
-			SatisfyChecker(Context& context);
+			SatisfyChecker(Context& context, Unifier& unifier);
 			
 			OptionalDiag
 			satisfies(const AST::Type* checkType,
@@ -40,18 +41,6 @@ namespace locic {
 			OptionalDiag
 			typeSatisfies(const AST::Type* checkType,
 			              const AST::Type* requireType);
-			
-			OptionalDiag
-			unifyTypes(const AST::Type* const first,
-			           const AST::Type* const second);
-			
-			OptionalDiag
-			unifyTemplateArgs(const AST::ValueArray& first,
-			                  const AST::ValueArray& second);
-			
-			OptionalDiag
-			unifyConstPredicates(const AST::Predicate& first,
-			                     const AST::Predicate& second);
 			
 			OptionalDiag
 			methodSetElementTypeCast(const AST::Type* sourceType,
@@ -76,6 +65,7 @@ namespace locic {
 			
 		private:
 			Context& context_;
+			Unifier& unifier_;
 			Stack satisfyCheckStack_;
 			
 		};

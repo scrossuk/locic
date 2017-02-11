@@ -18,6 +18,7 @@
 #include <locic/SemanticAnalysis/SatisfyChecker.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeCapabilities.hpp>
+#include <locic/SemanticAnalysis/Unifier.hpp>
 
 namespace locic {
 
@@ -79,7 +80,9 @@ namespace locic {
 							return nullptr;
 						}
 						
-						auto diag = SatisfyChecker(context).satisfies(sourceType, destType);
+						Unifier unifier;
+						auto diag = SatisfyChecker(context, unifier).satisfies(sourceType,
+						                                                       destType);
 						return diag.success() ? destType : nullptr;
 					}
 					
@@ -221,7 +224,9 @@ namespace locic {
 			const auto sourceTargetType = sourceType->refTarget();
 			const auto destTargetType = destType->refTarget();
 			
-			const auto result = SatisfyChecker(context).satisfies(sourceTargetType, destTargetType);
+			Unifier unifier;
+			const auto result = SatisfyChecker(context, unifier).satisfies(sourceTargetType,
+			                                                               destTargetType);
 			return result.success() ?
 				make_optional(AST::Value::PolyCast(destType, std::move(value))) :
 				Optional<AST::Value>();
@@ -234,7 +239,9 @@ namespace locic {
 			const auto sourceTargetType = sourceType->typenameTarget();
 			const auto destTargetType = destType->typenameTarget();
 			
-			const auto result = SatisfyChecker(context).satisfies(sourceTargetType, destTargetType);
+			Unifier unifier;
+			const auto result = SatisfyChecker(context, unifier).satisfies(sourceTargetType,
+			                                                               destTargetType);
 			return result.success() ?
 				make_optional(AST::Value::PolyCast(destType, std::move(value))) :
 				Optional<AST::Value>();

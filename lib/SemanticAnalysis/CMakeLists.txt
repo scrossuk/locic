@@ -42,5 +42,6 @@ add_library(locic-semanalysis
 	TypeBuilder.cpp
 	TypeCapabilities.cpp
 	TypeResolver.cpp
+	Unifier.cpp
 	VarArgCast.cpp
 )

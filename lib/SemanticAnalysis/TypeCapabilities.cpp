@@ -13,6 +13,7 @@
 #include <locic/SemanticAnalysis/ScopeStack.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/SemanticAnalysis/TypeCapabilities.hpp>
+#include <locic/SemanticAnalysis/Unifier.hpp>
 
 namespace locic {
 
@@ -45,7 +46,8 @@ namespace locic {
 				return *previousResult;
 			}
 			
-			auto result = SatisfyChecker(context_).satisfies(type, requireType);
+			Unifier unifier;
+			auto result = SatisfyChecker(context_, unifier).satisfies(type, requireType);
 			context_.setCapability(type, capability, result.success());
 			return result.success();
 		}

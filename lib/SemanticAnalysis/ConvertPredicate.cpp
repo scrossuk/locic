@@ -18,6 +18,7 @@
 #include <locic/SemanticAnalysis/SearchResult.hpp>
 #include <locic/SemanticAnalysis/Template.hpp>
 #include <locic/SemanticAnalysis/TypeResolver.hpp>
+#include <locic/SemanticAnalysis/Unifier.hpp>
 #include <locic/Support/Optional.hpp>
 
 namespace locic {
@@ -303,8 +304,9 @@ namespace locic {
 						return SUCCESS;
 					}
 					
-					return SatisfyChecker(context).satisfies(substitutedCheckType,
-					                                         substitutedRequireType);
+					Unifier unifier;
+					return SatisfyChecker(context, unifier).satisfies(substitutedCheckType,
+					                                                  substitutedRequireType);
 				}
 				case AST::Predicate::VARIABLE:
 				{
@@ -326,7 +328,8 @@ namespace locic {
 		}
 		
 		AST::Predicate reducePredicate(Context& context, AST::Predicate predicate) {
-			return SatisfyChecker(context).reducePredicate(std::move(predicate));
+			Unifier unifier;
+			return SatisfyChecker(context, unifier).reducePredicate(std::move(predicate));
 		}
 		
 	}
