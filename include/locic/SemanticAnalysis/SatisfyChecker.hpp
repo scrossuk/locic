@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <locic/AST/ValueArray.hpp>
+
 #include <locic/Support/Array.hpp>
 
 namespace locic {
@@ -17,6 +19,7 @@ namespace locic {
 		class Predicate;
 		class TemplateVarMap;
 		class Type;
+		class Value;
 		
 	}
 	
@@ -37,6 +40,22 @@ namespace locic {
 			OptionalDiag
 			typeSatisfies(const AST::Type* checkType,
 			              const AST::Type* requireType);
+			
+			OptionalDiag
+			unifyTypes(const AST::Type* const first,
+			           const AST::Type* const second);
+			
+			OptionalDiag
+			unifyTemplateArgs(const AST::ValueArray& first,
+			                  const AST::ValueArray& second);
+			
+			OptionalDiag
+			unifyConstPredicates(const AST::Predicate& first,
+			                     const AST::Predicate& second);
+			
+			OptionalDiag
+			methodSetElementTypeCast(const AST::Type* sourceType,
+			                         const AST::Type* destType);
 			
 			AST::TemplateVarMap
 			generateSatisfyTemplateVarMap(const AST::MethodSetElement& checkElement,
