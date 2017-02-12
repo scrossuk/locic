@@ -13,52 +13,60 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
+		class CastOperation;
 		class Context;
 		class SatisfyChecker;
 		
 		class CastGenerator {
 		public:
-			CastGenerator(Context& context, SatisfyChecker& checker,
-			              const AST::Type* sourceType, bool isNoop,
-			              bool canBind);
-			
-			const AST::Type* type() const;
-			
-			void setSourceType(const AST::Type* sourceType);
+			CastGenerator(Context& context, SatisfyChecker& checker);
 			
 			OptionalDiag
-			implicitCast(const AST::Type* destType);
+			implicitCast(const AST::Type* sourceType,
+			             const AST::Type* destType, bool canBind);
 			
 			OptionalDiag
-			implicitCastRefToRef(const AST::Type* destType);
+			implicitCastNoop(const AST::Type* sourceType,
+			                 const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastValueToRef(const AST::Type* destType);
+			implicitCastAnyToAny(CastOperation& cast,
+			                     const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastPolyRefToRef(const AST::Type* destType);
+			implicitCastRefToRef(CastOperation& cast,
+			                     const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastValueToValue(const AST::Type* destType);
+			implicitCastValueToRef(CastOperation& cast,
+			                       const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastVariant(const AST::Type* destType);
+			implicitCastPolyRefToRef(CastOperation& cast,
+			                         const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastUser(const AST::Type* destType);
+			implicitCastValueToValue(CastOperation& cast,
+			                         const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastNoop(const AST::Type* destType);
+			implicitCastVariant(CastOperation& cast,
+			                    const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCopyRefToValue();
+			implicitCastUser(CastOperation& cast,
+			                 const AST::Type* destType);
+			
+			OptionalDiag
+			implicitCastNoopOnly(CastOperation& cast,
+			                     const AST::Type* destType);
+			
+			OptionalDiag
+			implicitCopyRefToValue(CastOperation& cast);
 			
 		private:
 			Context& context_;
 			SatisfyChecker& checker_;
-			const AST::Type* type_;
-			bool isNoop_;
-			bool canBind_;
 			
 		};
 		

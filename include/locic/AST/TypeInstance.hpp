@@ -212,6 +212,8 @@ namespace locic {
 				std::vector<const Type*>& variantTypes();
 				const std::vector<const Type*>& variantTypes() const;
 				
+				bool isMemberOfVariant(const TypeInstance& variantType) const;
+				
 				/**
 				 * \brief Get template variables.
 				 * 

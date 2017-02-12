@@ -217,6 +217,17 @@ namespace locic {
 			return variantTypes_;
 		}
 		
+		bool
+		TypeInstance::isMemberOfVariant(const TypeInstance& variantType) const {
+			assert(variantType.isVariant());
+			for (const auto& variantChildType: variantType.variantTypes()) {
+				if (variantChildType->getObjectType() == this) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
 		FastMap<String, Var*>& TypeInstance::namedVariables() {
 			return namedVariables_;
 		}

@@ -216,9 +216,8 @@ namespace locic {
 			// All casts in method set elements (return type or argument type)
 			// must be NOOP, since there's no ability for Code Generation to
 			// insert any instructions.
-			CastGenerator castGenerator(context_, *this, sourceType,
-			                            /*isNoop=*/true, /*canBind=*/false);
-			return castGenerator.implicitCast(destType);
+			CastGenerator castGenerator(context_, *this);
+			return castGenerator.implicitCastNoop(sourceType, destType);
 		}
 		
 		AST::TemplateVarMap
