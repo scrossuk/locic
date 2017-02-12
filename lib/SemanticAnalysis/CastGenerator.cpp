@@ -257,7 +257,6 @@ namespace locic {
 				                               destType->pointeeType());
 				if (diag.failed()) { return diag; }
 			} else {
-				// TODO: Support user-specified noop casts.
 				auto diag = checker_.satisfies(cast.type(), destType);
 				if (diag.failed()) { return diag; }
 			}
