@@ -148,23 +148,33 @@ namespace locic {
 				                 requireType->stripConst());
 			}
 			
-			if (checkType->isAuto() || requireType->isAuto()) {
-				if (!constImplied) {
-					return ConstNotImpliedDiag(checkType,
-					                           requireType);
-				}
-				
+			if (requireType->isAuto()) {
 				if (checkType->isRef()) {
 					return RefCannotMatchAutoDiag(checkType,
 					                              requireType);
 				}
 				
+				// Note that 'const T : auto' is always TRUE because
+				// we resolve 'auto' to be 'const T' itself.
+				//
+				// Note also that 'const auto : auto' is always
+				// TRUE because the two auto types are completely
+				// distinct, so the second 'auto' is resolved to
+				// being const(first auto).
+				return SUCCESS;
+			}
+			
+			if (checkType->isAuto()) {
 				if (requireType->isRef()) {
 					return AutoCannotMatchRefDiag(checkType,
 					                              requireType);
 				}
 				
-				return SUCCESS;
+				// If we have 'const auto : T' we resolve 'auto' to
+				// 'T' and so we have to check 'const T : T'
+				// (which can be true for interface types).
+				return satisfies(requireType->applyConst(checkType->constPredicate().copy()),
+				                 requireType);
 			}
 			
 			if (!requireType->isInterface()) {
