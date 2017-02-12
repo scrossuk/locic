@@ -133,21 +133,6 @@ namespace locic {
 		                              const AST::Type* const requireType) {
 			assert(!checkType->isAlias() && !requireType->isAlias());
 			
-			// Try to unify the types, which will handle things like
-			// 'auto 'in template arguments.
-			if (unifier_.unifyTypes(checkType, requireType).success()) {
-				return SUCCESS;
-			}
-			
-			const auto constImplied = checkType->constPredicate().implies(requireType->constPredicate());
-			
-			if ((checkType->hasConst() || requireType->hasConst()) && constImplied) {
-				// All types must be covariant in regards to 'const'
-				// (i.e. T : const T for all T).
-				return satisfies(checkType->stripConst(),
-				                 requireType->stripConst());
-			}
-			
 			if (requireType->isAuto()) {
 				if (checkType->isRef()) {
 					return RefCannotMatchAutoDiag(checkType,
@@ -177,41 +162,47 @@ namespace locic {
 				                 requireType);
 			}
 			
-			if (!requireType->isInterface()) {
-				// Don't allow casts between different object types or
-				// template variables.
-				
-				if (checkType->kind() != requireType->kind()) {
-					// Cannot mix object types and template vars.
+			if (requireType->isInterface()) {
+				// For 'T : Interface' we want to check the method sets, since
+				// we know we'll have a complete method set for the interface
+				// type.
+				//
+				// Note that 'const T : Interface' can be true if the interface
+				// only contains methods marked 'const'.
+				const auto sourceMethodSet = getTypeMethodSet(context_, checkType);
+				const auto requireMethodSet = getTypeMethodSet(context_, requireType);
+				// TODO: chain diagnostics here.
+				return methodSetSatisfies(sourceMethodSet, requireMethodSet);
+			}
+			
+			if (checkType->kind() != requireType->kind()) {
+				return CannotMatchIncompatibleTypesDiag(checkType,
+				                                        requireType);
+			}
+			
+			if (requireType->isObject()) {
+				if (checkType->getObjectType() != requireType->getObjectType()) {
 					return CannotMatchIncompatibleTypesDiag(checkType,
 					                                        requireType);
 				}
-				
-				if (requireType->isObject()) {
-					if (checkType->getObjectType() != requireType->getObjectType()) {
-						return CannotMatchIncompatibleTypesDiag(checkType,
-						                                        requireType);
-					}
-				} else {
-					assert(requireType->isTemplateVar());
-					if (checkType->getTemplateVar() != requireType->getTemplateVar()) {
-						return CannotMatchIncompatibleTypesDiag(checkType,
-						                                        requireType);
-					}
-				}
-				
-				if (!constImplied) {
-					// 'const T : T' is always FALSE for non-interface
-					// types because we may NOT know the full method
-					// set.
-					return ConstNotImpliedDiag(checkType, requireType);
+			} else {
+				assert(requireType->isTemplateVar());
+				if (checkType->getTemplateVar() != requireType->getTemplateVar()) {
+					return CannotMatchIncompatibleTypesDiag(checkType,
+					                                        requireType);
 				}
 			}
 			
-			const auto sourceMethodSet = getTypeMethodSet(context_, checkType);
-			const auto requireMethodSet = getTypeMethodSet(context_, requireType);
-			// TODO: chain diagnostics here.
-			return methodSetSatisfies(sourceMethodSet, requireMethodSet);
+			if (!checkType->constPredicate().implies(requireType->constPredicate())) {
+				// 'const T : T' is always FALSE for non-interface
+				// types because, in general, we don't necessarily know
+				// the complete method set. So 'T' could contain a
+				// non-const method that we can't see.
+				return ConstNotImpliedDiag(checkType, requireType);
+			}
+			
+			return unifier_.unifyTypes(checkType->stripConst(),
+			                           requireType->stripConst());
 		}
 		
 		OptionalDiag
