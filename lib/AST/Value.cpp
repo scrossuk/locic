@@ -327,6 +327,7 @@ namespace locic {
 		Value::Value(const Kind argKind, const Type* const argType, const ExitStates argExitStates)
 		: impl_(std::make_shared<ValueImpl>()) {
 			assert(argType != NULL);
+			assert(argType->canBeUsedAsValue());
 			assert(argExitStates.hasNormalExit() || argExitStates.hasThrowExit());
 			
 			impl_->kind = argKind;
