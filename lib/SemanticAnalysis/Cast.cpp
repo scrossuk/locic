@@ -506,6 +506,9 @@ namespace locic {
 		}
 
 		AST::Value ImplicitCast(Context& context, AST::Value value, const AST::Type* destType, const Debug::SourceLocation& location, bool formatOnly) {
+			assert(value.type()->canBeUsedAsValue());
+			assert(destType->canBeUsedAsValue());
+			
 			std::vector<std::string> errors;
 			const auto valueKind = value.kind();
 			const auto valueType = value.type();
@@ -530,6 +533,9 @@ namespace locic {
 		}
 		
 		bool CanDoImplicitCast(Context& context, const AST::Type* sourceType, const AST::Type* destType, const Debug::SourceLocation& location) {
+			assert(sourceType->canBeUsedAsValue());
+			assert(destType->canBeUsedAsValue());
+			
 			const bool allowBind = true;
 			const bool formatOnly = false;
 			std::vector<std::string> errors;
