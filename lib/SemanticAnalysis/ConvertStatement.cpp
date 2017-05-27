@@ -694,7 +694,7 @@ namespace locic {
 					// TODO: fix this to not copy the value!
 					auto astAssignValue = GetAssignValue(context, assignKind, astLvalue.copy(), std::move(astRvalue), location);
 					
-					auto castAssignvalue = ImplicitCast(context, std::move(astAssignValue), castType,
+					auto castAssignvalue = ImplicitCast(context, std::move(astAssignValue), castType->stripConst(),
 					                                    statement->assignRvalue().location());
 					
 					return AST::Statement::AssignStmt(std::move(astLvalue), std::move(castAssignvalue));
