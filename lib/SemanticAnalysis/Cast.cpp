@@ -179,16 +179,15 @@ namespace locic {
 		const AST::Type*
 		ImplicitCastTypeFormatOnly(Context& context, const AST::Type* sourceType, const AST::Type* destType,
 		                           const Debug::SourceLocation& location) {
-			// Needed for the main format-only cast function to ensure the
-			// const chaining rule from root is followed; since this
-			// is root there is a valid chain of (zero) const parent types.
-			const bool hasParentConstChain = true;
+			Unifier unifier;
+			SatisfyChecker satisfyChecker(context, unifier);
+			CastGenerator castGenerator(context, satisfyChecker);
 			
-			const bool isTopLevel = true;
-
-			return ImplicitCastTypeFormatOnlyChain(context, sourceType->resolveAliases(),
-			                                       destType->resolveAliases(), hasParentConstChain,
-			                                       location, isTopLevel);
+			auto result = castGenerator.implicitCastNoop(sourceType->resolveAliases(),
+			                                             destType->resolveAliases());
+			if (result.failed()) return nullptr;
+			
+			return result.value().type();
 		}
 
 		Optional<AST::Value>
