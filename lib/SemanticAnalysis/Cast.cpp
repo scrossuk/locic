@@ -247,7 +247,7 @@ namespace locic {
 		                                             const Debug::SourceLocation& location, bool allowBind) {
 			auto value = derefValue(std::move(rawValue));
 			const auto sourceDerefType = getDerefType(value.type());
-			const auto destDerefType = getDerefType(destType);
+			const auto destDerefType = getDerefType(destType)->stripConst();
 			
 			if (sourceDerefType->isObject() && destDerefType->isObjectOrTemplateVar() &&
 			    TypeCapabilities(context).supportsImplicitCast(sourceDerefType)) {
