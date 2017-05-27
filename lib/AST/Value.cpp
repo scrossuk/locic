@@ -141,7 +141,8 @@ namespace locic {
 		Value Value::DerefReference(Value operand) {
 			assert(operand.type()->isRef());
 			assert(operand.type()->refTarget()->isRef());
-			Value value(DEREF_REFERENCE, operand.type()->refTarget(), operand.exitStates());
+			Value value(DEREF_REFERENCE, operand.type()->refTarget()->stripConst(),
+			            operand.exitStates());
 			value.impl_->value0 = std::move(operand);
 			return value;
 		}
