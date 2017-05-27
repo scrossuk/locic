@@ -176,8 +176,9 @@ namespace locic {
 			AST::Var*
 			ConvertInitialisedVarRecurse(Context& context,
 			                             AST::Node<AST::Var>& astVarNode,
-			                             const AST::Type* initialiseType,
+			                             const AST::Type* const initialiseType,
 			                             bool isTopLevel) {
+				assert(!initialiseType->isAuto());
 				const auto& location = astVarNode.location();
 				
 				switch (astVarNode->kind()) {
