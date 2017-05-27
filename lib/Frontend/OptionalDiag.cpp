@@ -36,6 +36,10 @@ namespace locic {
 		return *(diag_->diag);
 	}
 	
+	std::unique_ptr<DiagAPI> OptionalDiag::extractDiag() {
+		return std::move(diag_->diag);
+	}
+	
 	const Debug::SourceLocation& OptionalDiag::location() const {
 		return diag_->location;
 	}

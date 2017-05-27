@@ -5,6 +5,8 @@
 
 #include <locic/AST/ValueArray.hpp>
 
+#include <locic/Frontend/ResultOrDiag.hpp>
+
 #include <locic/Support/Array.hpp>
 
 namespace locic {
@@ -34,11 +36,11 @@ namespace locic {
 			
 			SatisfyChecker(Context& context, Unifier& unifier);
 			
-			OptionalDiag
+			ResultOrDiag<const AST::Type*>
 			satisfies(const AST::Type* checkType,
 			          const AST::Type* requireType);
 			
-			OptionalDiag
+			ResultOrDiag<const AST::Type*>
 			typeSatisfies(const AST::Type* checkType,
 			              const AST::Type* requireType);
 			

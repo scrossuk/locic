@@ -8,6 +8,7 @@
 #include <locic/SemanticAnalysis/CastOperation.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/SatisfyChecker.hpp>
+#include <locic/SemanticAnalysis/TypeBuilder.hpp>
 #include <locic/SemanticAnalysis/TypeCapabilities.hpp>
 
 namespace locic {
@@ -19,7 +20,7 @@ namespace locic {
 		: context_(context),
 		checker_(checker) { }
 		
-		OptionalDiag
+		ResultOrDiag<CastOperation>
 		CastGenerator::implicitCast(const AST::Type* const sourceType,
 		                            const AST::Type* const destType,
 		                            const bool canBind) {
@@ -28,10 +29,14 @@ namespace locic {
 			
 			CastOperation cast(context_, sourceType,
 			                   /*isNoop=*/false, canBind);
-			return implicitCastAnyToAny(cast, destType);
+			
+			auto result = implicitCastAnyToAny(cast, destType);
+			if (result.failed()) return result.extractDiag();
+			
+			return cast;
 		}
 		
-		OptionalDiag
+		ResultOrDiag<CastOperation>
 		CastGenerator::implicitCastNoop(const AST::Type* const sourceType,
 		                                const AST::Type* const destType) {
 			assert(sourceType->canBeUsedAsValue());
@@ -39,7 +44,11 @@ namespace locic {
 			
 			CastOperation cast(context_, sourceType,
 			                   /*isNoop=*/true, /*canBind=*/false);
-			return implicitCastAnyToAny(cast, destType);
+			
+			auto result = implicitCastAnyToAny(cast, destType);
+			if (result.failed()) return result.extractDiag();
+			
+			return cast;
 		}
 		
 		OptionalDiag
@@ -248,21 +257,37 @@ namespace locic {
 					                                       destType);
 				}
 				
-				auto diag = checker_.satisfies(cast.type()->refTarget(),
-				                               destType->refTarget());
-				if (diag.failed()) { return diag; }
+				auto result = checker_.satisfies(cast.type()->refTarget(),
+				                                 destType->refTarget());
+				if (result.failed()) { return result; }
+				
+				// No need to apply const to resolved type.
+				assert(!cast.type()->hasConst() && !destType->hasConst());
+				
+				TypeBuilder typeBuilder(cast.context());
+				const auto resolvedType = typeBuilder.getRefType(result.value());
+				cast.addNoopCast(resolvedType);
+				return SUCCESS;
 			} else if (cast.type()->isBuiltInPointer() &&
 			           destType->isBuiltInPointer()) {
-				auto diag = checker_.satisfies(cast.type()->pointeeType(),
-				                               destType->pointeeType());
-				if (diag.failed()) { return diag; }
+				auto result = checker_.satisfies(cast.type()->pointeeType(),
+				                                 destType->pointeeType());
+				if (result.failed()) { return result; }
+				
+				// No need to apply const to resolved type.
+				assert(!cast.type()->hasConst() && !destType->hasConst());
+				
+				TypeBuilder typeBuilder(cast.context());
+				const auto resolvedType = typeBuilder.getPointerType(result.value());
+				cast.addNoopCast(resolvedType);
+				return SUCCESS;
 			} else {
-				auto diag = checker_.satisfies(cast.type(), destType);
-				if (diag.failed()) { return diag; }
+				auto result = checker_.satisfies(cast.type(), destType);
+				if (result.failed()) { return result; }
+				
+				cast.addNoopCast(result.value());
+				return SUCCESS;
 			}
-			
-			cast.addNoopCast(destType);
-			return SUCCESS;
 		}
 		
 		Diag

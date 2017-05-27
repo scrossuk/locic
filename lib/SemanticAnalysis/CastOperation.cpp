@@ -21,6 +21,10 @@ namespace locic {
 			assert(type_->canBeUsedAsValue());
 		}
 		
+		Context& CastOperation::context() {
+			return context_;
+		}
+		
 		const AST::Type* CastOperation::type() const {
 			return type_;
 		}

@@ -3,9 +3,9 @@
 
 #include <locic/AST/ValueArray.hpp>
 
+#include <locic/Frontend/ResultOrDiag.hpp>
+
 namespace locic {
-	
-	class OptionalDiag;
 	
 	namespace AST {
 		
@@ -20,15 +20,19 @@ namespace locic {
 		public:
 			Unifier();
 			
-			OptionalDiag
+			ResultOrDiag<const AST::Type*>
 			unifyTypes(const AST::Type* first,
 			           const AST::Type* second);
 			
-			OptionalDiag
+			ResultOrDiag<const AST::Type*>
+			unifyNonConstTypes(const AST::Type* first,
+			                   const AST::Type* second);
+			
+			ResultOrDiag<AST::ValueArray>
 			unifyTemplateArgs(const AST::ValueArray& first,
 			                  const AST::ValueArray& second);
 			
-			OptionalDiag
+			ResultOrDiag<const AST::Predicate*>
 			unifyConstPredicates(const AST::Predicate& first,
 			                     const AST::Predicate& second);
 			

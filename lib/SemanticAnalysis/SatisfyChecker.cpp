@@ -11,6 +11,7 @@
 #include <locic/Frontend/OptionalDiag.hpp>
 
 #include <locic/SemanticAnalysis/CastGenerator.hpp>
+#include <locic/SemanticAnalysis/CastOperation.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/Unifier.hpp>
 
@@ -51,7 +52,7 @@ namespace locic {
 			
 		};
 		
-		OptionalDiag
+		ResultOrDiag<const AST::Type*>
 		SatisfyChecker::satisfies(const AST::Type* checkType,
 		                          const AST::Type* requireType) {
 			checkType = checkType->resolveAliases();
@@ -71,7 +72,7 @@ namespace locic {
 			const auto pair = std::make_pair(checkType, requireType);
 			for (const auto& checkPair: satisfyCheckStack_) {
 				if (pair == checkPair) {
-					return SUCCESS;
+					return requireType;
 				}
 			}
 			
@@ -128,7 +129,7 @@ namespace locic {
 			             destType->toDiagString().c_str());
 		}
 		
-		OptionalDiag
+		ResultOrDiag<const AST::Type*>
 		SatisfyChecker::typeSatisfies(const AST::Type* const checkType,
 		                              const AST::Type* const requireType) {
 			assert(!checkType->isAlias() && !requireType->isAlias());
@@ -146,7 +147,7 @@ namespace locic {
 				// TRUE because the two auto types are completely
 				// distinct, so the second 'auto' is resolved to
 				// being const(first auto).
-				return SUCCESS;
+				return checkType->applyConst(requireType->constPredicate().copy());
 			}
 			
 			if (checkType->isAuto()) {
@@ -171,8 +172,12 @@ namespace locic {
 				// only contains methods marked 'const'.
 				const auto sourceMethodSet = getTypeMethodSet(context_, checkType);
 				const auto requireMethodSet = getTypeMethodSet(context_, requireType);
+				
+				auto result = methodSetSatisfies(sourceMethodSet, requireMethodSet);
 				// TODO: chain diagnostics here.
-				return methodSetSatisfies(sourceMethodSet, requireMethodSet);
+				if (result.failed()) return result.extractDiag();
+				
+				return requireType;
 			}
 			
 			if (checkType->kind() != requireType->kind()) {

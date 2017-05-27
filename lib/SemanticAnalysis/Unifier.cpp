@@ -42,22 +42,37 @@ namespace locic {
 			             second.toString().c_str());
 		}
 		
-		OptionalDiag
+		ResultOrDiag<const AST::Type*>
 		Unifier::unifyTypes(const AST::Type* first,
 		                    const AST::Type* second) {
 			if (first->isAlias() || second->isAlias()) {
-				printf("ALIASES: %s or %s\n", first->toDiagString().c_str(),
-				       second->toDiagString().c_str());
 				first = first->resolveAliases();
 				second = second->resolveAliases();
 			}
 			assert(!first->isAlias() && !second->isAlias());
 			
-			if (first == second) { return SUCCESS; }
+			if (first == second) { return second; }
 			
-			auto diag = unifyConstPredicates(first->constPredicate(),
-			                                 second->constPredicate());
-			if (diag.failed()) return diag;
+			auto constPredicateResult = unifyConstPredicates(first->constPredicate(),
+			                                                 second->constPredicate());
+			if (constPredicateResult.failed()) return constPredicateResult;
+			
+			auto nonConstUnifyResult = unifyNonConstTypes(first->stripConst(),
+			                                              second->stripConst());
+			if (nonConstUnifyResult.failed()) return nonConstUnifyResult;
+			
+			if (nonConstUnifyResult.value() == second->stripConst()) {
+				return second;
+			} else {
+				return nonConstUnifyResult.value()->applyConst(constPredicateResult.value()->copy());
+			}
+		}
+		
+		
+		ResultOrDiag<const AST::Type*>
+		Unifier::unifyNonConstTypes(const AST::Type* const first,
+		                            const AST::Type* const second) {
+			assert(!first->hasConst() && !second->hasConst());
 			
 			if (first->isAuto() || second->isAuto()) {
 				const auto otherType = first->isAuto() ? second : first;
@@ -65,7 +80,7 @@ namespace locic {
 				if (!otherType->isRef()) {
 					// Auto can unify with any non-reference
 					// type.
-					return SUCCESS;
+					return otherType;
 				} else {
 					return UnifyAutoWithRefDiag(otherType);
 				}
@@ -81,6 +96,9 @@ namespace locic {
 					return UnifyIncompatibleTypesDiag(first,
 					                                  second);
 				}
+				
+				assert(first == second);
+				return first;
 			}
 			
 			assert(first->isObject() && second->isObject());
@@ -91,39 +109,53 @@ namespace locic {
 			
 			assert(first->templateArguments().size() == second->templateArguments().size());
 			
-			return unifyTemplateArgs(first->templateArguments(),
-			                         second->templateArguments());
+			auto argumentsOrDiag = unifyTemplateArgs(first->templateArguments(),
+			                                         second->templateArguments());
+			if (argumentsOrDiag.failed()) { return argumentsOrDiag; }
+			
+			return AST::Type::Object(first->getObjectType(),
+			                         std::move(argumentsOrDiag.value()));
 		}
 		
-		OptionalDiag
+		ResultOrDiag<AST::ValueArray>
 		Unifier::unifyTemplateArgs(const AST::ValueArray& first,
 		                           const AST::ValueArray& second) {
 			assert(first.size() == second.size());
+			
+			AST::ValueArray unifiedArgs;
+			unifiedArgs.reserve(first.size());
 			
 			for (size_t i = 0; i < first.size(); i++) {
 				const auto& firstArg = first[i];
 				const auto& secondArg = second[i];
 				if (firstArg.isTypeRef() && secondArg.isTypeRef()) {
-					auto diag = unifyTypes(firstArg.typeRefType(),
-					                       secondArg.typeRefType());
-					if (diag.failed()) return diag;
-				} else if (firstArg != secondArg) {
-					return UnifyMismatchingTemplateArgDiag(firstArg,
-					                                       secondArg);
+					auto typeOrDiag = unifyTypes(firstArg.typeRefType(),
+					                             secondArg.typeRefType());
+					if (typeOrDiag.failed()) return typeOrDiag;
+					
+					unifiedArgs.push_back(AST::Value::TypeRef(typeOrDiag.value(),
+					                                          firstArg.type()));
+				} else {
+					if (firstArg != secondArg) {
+						return UnifyMismatchingTemplateArgDiag(firstArg,
+						                                       secondArg);
+					}
+					
+					unifiedArgs.push_back(firstArg.copy());
 				}
 			}
 			
-			return SUCCESS;
+			return ResultOrDiag<AST::ValueArray>(std::move(unifiedArgs));
 		}
 		
-		OptionalDiag
+		ResultOrDiag<const AST::Predicate*>
 		Unifier::unifyConstPredicates(const AST::Predicate& first,
 		                              const AST::Predicate& second) {
 			if (first != second) {
 				return UnifyMismatchingConstPredicatesDiag(first, second);
 			}
 			
-			return SUCCESS;
+			return &first;
 		}
 		
 	}

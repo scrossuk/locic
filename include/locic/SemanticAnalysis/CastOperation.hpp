@@ -21,6 +21,8 @@ namespace locic {
 			              const AST::Type* sourceType, bool isNoop,
 			              bool canBind);
 			
+			Context& context();
+			
 			const AST::Type* type() const;
 			
 			bool isNoop() const;

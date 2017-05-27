@@ -1,6 +1,8 @@
 #ifndef LOCIC_SEMANTICANALYSIS_CASTGENERATOR_HPP
 #define LOCIC_SEMANTICANALYSIS_CASTGENERATOR_HPP
 
+#include <locic/Frontend/ResultOrDiag.hpp>
+
 namespace locic {
 	
 	class OptionalDiag;
@@ -21,11 +23,11 @@ namespace locic {
 		public:
 			CastGenerator(Context& context, SatisfyChecker& checker);
 			
-			OptionalDiag
+			ResultOrDiag<CastOperation>
 			implicitCast(const AST::Type* sourceType,
 			             const AST::Type* destType, bool canBind);
 			
-			OptionalDiag
+			ResultOrDiag<CastOperation>
 			implicitCastNoop(const AST::Type* sourceType,
 			                 const AST::Type* destType);
 			

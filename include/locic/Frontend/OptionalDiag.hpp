@@ -38,6 +38,7 @@ namespace locic {
 		bool failed() const { return hasDiag(); }
 		
 		const DiagAPI& diag() const;
+		std::unique_ptr<DiagAPI> extractDiag();
 		const Debug::SourceLocation& location() const;
 		const OptionalDiag& chain() const;
 		

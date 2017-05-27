@@ -10,6 +10,8 @@
 
 #include <locic/SemanticAnalysis/CallValue.hpp>
 #include <locic/SemanticAnalysis/Cast.hpp>
+#include <locic/SemanticAnalysis/CastGenerator.hpp>
+#include <locic/SemanticAnalysis/CastOperation.hpp>
 #include <locic/SemanticAnalysis/ConvertPredicate.hpp>
 #include <locic/SemanticAnalysis/Exception.hpp>
 #include <locic/SemanticAnalysis/GetMethod.hpp>

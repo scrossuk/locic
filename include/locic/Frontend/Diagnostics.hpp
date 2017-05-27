@@ -4,6 +4,7 @@
 #include <string>
 
 #include <locic/Support/ErrorHandling.hpp>
+#include <locic/Support/MakeString.hpp>
 
 namespace locic {
 	
