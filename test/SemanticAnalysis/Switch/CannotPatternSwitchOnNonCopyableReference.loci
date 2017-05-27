@@ -10,7 +10,7 @@ class NonCopyable() { }
 datatype Data = A(NonCopyable a) | B();
 
 void doSwitch(const Data& data) {
-	// CHECK: .loci:14:10: error: Can't implicitly cast value of type 'const(Data)&&' to type 'Data'.
+	// CHECK: .loci:14:10: error: unable to copy type 'const(Data)' because it doesn't have a valid 'implicitcopy' method, in cast from type 'const(Data)&&' to type 'Data'
 	switch (data) {
 		case A(unused NonCopyable a) {
 			unused_result a;
