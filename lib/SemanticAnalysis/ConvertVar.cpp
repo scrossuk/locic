@@ -169,8 +169,8 @@ namespace locic {
 				// to format only casts.
 				const bool formatOnly = !isTopLevel;
 				
-				const auto value = ImplicitCast(context, AST::Value::CastDummy(sourceType), destType, location, formatOnly);
-				return value.type();
+				const auto value = ImplicitCast(context, AST::Value::CastDummy(sourceType), destType->stripConst(), location, formatOnly);
+				return value.type()->applyConst(destType->constPredicate().copy());
 			}
 			
 			AST::Var*

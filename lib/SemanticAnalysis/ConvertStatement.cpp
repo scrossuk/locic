@@ -653,7 +653,8 @@ namespace locic {
 					const auto varDeclType = getVarType(context, astVarNode, astValue.type());
 					
 					// Cast the initialise value to the variable's type.
-					auto astInitialiseValue = ImplicitCast(context, std::move(astValue), varDeclType, location);
+					auto astInitialiseValue = ImplicitCast(context, std::move(astValue),
+					                                       varDeclType->stripConst(), location);
 					
 					// Convert the AST type var.
 					const auto varType = astInitialiseValue.type();
