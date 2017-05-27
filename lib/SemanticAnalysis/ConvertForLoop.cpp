@@ -90,7 +90,7 @@ namespace locic {
 						iterationScope->variables().push_back(loopVar);
 						
 						iterationScope->statements().push_back(AST::Statement::InitialiseStmt(*loopVar,
-							ImplicitCast(context, std::move(currentValue), loopVar->type(), location)));
+							ImplicitCast(context, std::move(currentValue), loopVar->type()->stripConst(), location)));
 						
 						ConvertScope(context, scopeNode);
 						iterationScope->statements().push_back(AST::Statement::ScopeStmt(std::move(scopeNode)));
