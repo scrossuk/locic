@@ -40,7 +40,7 @@ namespace locic {
 					// one of the allowed types (since there's no specific
 					// destination type).
 					auto castArgumentValue = (i < types.size()) ?
-						ImplicitCast(context, std::move(argumentValue), types.at(i), argLocation) :
+						ImplicitCast(context, std::move(argumentValue), types.at(i)->stripConst(), argLocation) :
 						VarArgCast(context, std::move(argumentValue), argLocation);
 					
 					castValues.push_back(std::move(castArgumentValue));
