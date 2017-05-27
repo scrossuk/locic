@@ -364,7 +364,7 @@ namespace locic {
 					}
 					
 					if (found) {
-						auto castValue = AST::Value::Cast(destDerefType, value.copy());
+						auto castValue = AST::Value::Cast(destDerefType->stripConst(), value.copy());
 						auto castResult = ImplicitCastConvert(context, errors, std::move(castValue), destType, location, allowBind);
 						if (castResult) {
 							return castResult;
