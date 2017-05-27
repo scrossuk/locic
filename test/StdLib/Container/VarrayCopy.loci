@@ -60,7 +60,7 @@ void testCopyMutableArray() {
 	unused auto varrayCopy = varray.copy();
 }
 
-std::varray<const TestClass> copyConstElementArray(const std::varray<TestClass>& array) {
+std::varray<TestClass> copyConstElementArray(const std::varray<TestClass>& array) {
 	return array.copy();
 }
 
