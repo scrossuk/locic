@@ -171,6 +171,12 @@ namespace locic {
 			return checkCapability(type, context_.getCString("sized_type_t"), {});
 		}
 		
+		bool
+		TypeCapabilities::isDestructible(const AST::Type* const type) {
+			return isSized(type) &&
+				checkCapability(type, context_.getCString("destructible_t"), {});
+		}
+		
 	}
 	
 }

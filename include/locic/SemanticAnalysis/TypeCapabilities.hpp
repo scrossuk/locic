@@ -59,6 +59,8 @@ namespace locic {
 			
 			bool isSized(const AST::Type* type);
 			
+			bool isDestructible(const AST::Type* type);
+			
 		private:
 			Context& context_;
 			
