@@ -25,7 +25,7 @@ class TestClass(int value) {
 	}
 }
 
-class OwnerClass(int id, std::shared_ptr<const TestClass> ptr) {
+class OwnerClass(int id, std::shared_ptr<TestClass> ptr) {
 	static create(int id, std::shared_ptr<TestClass> ptr) {
 		printf(C"Create owner%d.\n", id);
 		return @(id, move ptr);
@@ -35,7 +35,7 @@ class OwnerClass(int id, std::shared_ptr<const TestClass> ptr) {
 		printf(C"Destroy owner%d.\n", @id);
 	}
 	
-	OwnerClass implicitCopy() const {
+	OwnerClass copy() {
 		int newId = 2;
 		printf(C"Copy owner%d as owner%d.\n", @id, newId);
 		return @(newId, @ptr);
@@ -50,7 +50,7 @@ export int main(unused int argc, unused ubyte ** argv) {
 	auto owner1 = OwnerClass(1, sharedPtr);
 	
 	{
-		unused auto owner2 = owner0;
+		unused auto owner2 = owner0.copy();
 	}
 	
 	unused_result move sharedPtr;
