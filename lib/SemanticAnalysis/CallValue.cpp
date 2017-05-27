@@ -81,6 +81,12 @@ namespace locic {
 			             type->toDiagString().c_str());
 		}
 		
+		Diag
+		CallReturnTypeIsConstDiag(const AST::Type* const type) {
+			return Error("return type '%s' of function call is const",
+			             type->toDiagString().c_str());
+		}
+		
 		AST::Value CallValue(Context& context, AST::Value rawValue, HeapArray<AST::Value> args, const Debug::SourceLocation& location) {
 			auto value = derefValue(std::move(rawValue));
 			
@@ -124,7 +130,13 @@ namespace locic {
 				                  location);
 			}
 			
-			return addDebugInfo(AST::Value::Call(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location)), location);
+			if (functionType.returnType()->hasConst()) {
+				context.issueDiag(CallReturnTypeIsConstDiag(functionType.returnType()),
+						  location);
+			}
+			
+			return addDebugInfo(AST::Value::Call(std::move(value), CastFunctionArguments(context, std::move(args), typeList, location),
+							     functionType.returnType()->stripConst()), location);
 		}
 		
 	}

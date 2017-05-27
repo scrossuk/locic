@@ -29,14 +29,14 @@ export std.string 0.1.0 {
 		
 		exception utf8_decode_error(const ubyte* error);
 		
-		void utf8_encode(input_range<const unichar>& source, output_range<ubyte>& dest) {
+		void utf8_encode(input_range<unichar>& source, output_range<ubyte>& dest) {
 			while (!source.empty()) {
 				utf8_encode_character(source.front(), dest);
 				source.skip_front();
 			}
 		}
 		
-		void utf8_decode(input_range<const ubyte>& source, output_range<unichar>& dest) {
+		void utf8_decode(input_range<ubyte>& source, output_range<unichar>& dest) {
 			while (!source.empty()) {
 				dest.push_back(utf8_decode_character(source));
 			}
@@ -63,7 +63,7 @@ export std.string 0.1.0 {
 			}
 		}
 		
-		unichar utf8_decode_character(input_range<const ubyte>& source) {
+		unichar utf8_decode_character(input_range<ubyte>& source) {
 			if (source.empty()) {
 				throw utf8_decode_error(C"Failed to read first UTF-8 byte.");
 			}

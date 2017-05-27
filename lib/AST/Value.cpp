@@ -210,9 +210,8 @@ namespace locic {
 			return value;
 		}
 		
-		Value Value::Call(Value functionValue, ValueArray parameters) {
+		Value Value::Call(Value functionValue, ValueArray parameters, const Type* const type) {
 			assert(functionValue.type()->isCallable());
-			const auto functionType = functionValue.type()->asFunctionType();
 			
 			ExitStates exitStates = functionValue.exitStates();
 			
@@ -220,11 +219,12 @@ namespace locic {
 				exitStates.add(param.exitStates());
 			}
 			
+			const auto functionType = functionValue.type()->asFunctionType();
 			if (!functionType.attributes().noExceptPredicate().isTrue()) {
 				exitStates.add(ExitStates::Throw(functionType.attributes().noExceptPredicate().copy()));
 			}
 			
-			Value value(CALL, functionType.returnType(), exitStates);
+			Value value(CALL, type, exitStates);
 			value.impl_->value0 = std::move(functionValue);
 			value.impl_->valueArray = std::move(parameters);
 			return value;
@@ -922,7 +922,8 @@ namespace locic {
 						                                          selfconst));
 					}
 					
-					return Call(std::move(value), std::move(parameters));
+					return Call(std::move(value), std::move(parameters),
+					            type()->substitute(templateVarMap, selfconst));
 				}
 				case FUNCTIONREF: {
 					ValueArray templateArguments;

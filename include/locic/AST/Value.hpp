@@ -198,7 +198,7 @@ namespace locic {
 				 * 
 				 * Calls a (callable) value with the given parameters.
 				 */
-				static Value Call(Value functionValue, ValueArray parameters);
+				static Value Call(Value functionValue, ValueArray parameters, const Type* type);
 				
 				/**
 				 * \brief Function Reference
