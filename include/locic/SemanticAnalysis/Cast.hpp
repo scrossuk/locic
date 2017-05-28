@@ -42,8 +42,6 @@ namespace locic {
 		Optional<AST::Value>
 		ImplicitCastFormatOnly(Context& context, AST::Value value, const AST::Type* destType,
 		                       const Debug::SourceLocation& location);
-
-		bool TypeSatisfiesInterface(Context& context, const AST::Type* objectType, const AST::Type* interfaceType);
 		
 		const AST::Type* UnifyTypes(Context& context, const AST::Type* first, const AST::Type* second, const Debug::SourceLocation& location);
 		
