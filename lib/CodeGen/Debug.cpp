@@ -48,9 +48,9 @@ namespace locic {
 			const unsigned language = llvm::dwarf::DW_LANG_lo_user;
 			const bool isOptimized = false;
 			const unsigned runtimeVersion = 0;
+			const auto file = builder_.createFile(compileUnitInfo.fileName, compileUnitInfo.directoryName);
 			builder_.createCompileUnit(language,
-			                           compileUnitInfo.fileName,
-			                           compileUnitInfo.directoryName,
+			                           file,
 			                           compileUnitInfo.compilerName,
 			                           isOptimized,
 			                           compileUnitInfo.flags,
