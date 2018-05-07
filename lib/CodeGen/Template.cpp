@@ -17,6 +17,7 @@
 #include <locic/CodeGen/CallEmitter.hpp>
 #include <locic/CodeGen/ConstantGenerator.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/GenDebugType.hpp>
 #include <locic/CodeGen/GenVTable.hpp>
 #include <locic/CodeGen/Interface.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
@@ -260,7 +261,18 @@ namespace locic {
 			llvmFunction->addFnAttr(llvm::Attribute::AlwaysInline);
 			
 			Function functionGenerator(module, *llvmFunction, argInfo);
-			functionGenerator.attachDebugInfo(parentFunction.debugInfo());
+			
+			const auto parentInfo = parentFunction.debugInfo();
+			
+			const auto debugFunctionType = genDebugFunctionType(module, functionType);
+			const auto debugInfo = module.debugBuilder().createFunction(/*scope=*/parentInfo,
+			                                            value.debugInfo() ? value.debugInfo()->location.range().start().lineNumber() : 0,
+			                                            /*isInternal=*/true,
+			                                            /*isDefinition=*/true,
+			                                            Name::Relative(),
+			                                            debugFunctionType,
+			                                            llvmFunction);
+			functionGenerator.attachDebugInfo(debugInfo);
 			
 			if (value.debugInfo()) {
 				functionGenerator.setDebugPosition(value.debugInfo()->location.range().start());
