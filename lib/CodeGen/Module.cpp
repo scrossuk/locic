@@ -50,7 +50,7 @@ namespace locic {
 		}
 		
 		void Module::dump() const {
-			module_->dump();
+			module_->print(llvm::dbgs(), nullptr, /*ShouldPreserveUseListOrder=*/false, /*IsForDebug=*/true);
 		}
 		
 		void Module::dumpToFile(const std::string& fileName) const {
