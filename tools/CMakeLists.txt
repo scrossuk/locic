@@ -3,6 +3,10 @@ find_package(ZLIB REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${LOCIC_BUILD_WARNINGS}")
 
+# Need rdynamic to ensure runtime symbols (e.g. __loci_assert_failed) are available
+# for tests when interpreting.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -rdynamic")
+
 set(FILE_LISTS "")
 set(FILE_LISTS "${FILE_LISTS}struct module_info {\n")
 set(FILE_LISTS "${FILE_LISTS}    const char* name;\n")
