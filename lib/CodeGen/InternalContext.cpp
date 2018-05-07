@@ -146,7 +146,7 @@ namespace locic {
 #else
 			llvm::Reloc::Model relocModel = llvm::Reloc::Default;
 #endif
-			llvm::CodeModel::Model codeModel = llvm::CodeModel::Default;
+			llvm::Optional<llvm::CodeModel::Model> codeModel;
 			llvm::CodeGenOpt::Level optimisationLevel = llvm::CodeGenOpt::Default;
 			
 			targetMachine_ = std::unique_ptr<llvm::TargetMachine>(
