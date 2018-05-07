@@ -167,7 +167,7 @@ namespace locic {
 		                                      const size_t alignInBits) {
 			// TODO!
 			const auto offsetInBits = 0;
-			const auto flags = 0;
+			const auto flags = llvm::DINode::FlagZero;
 			const auto derivedFrom = createVoidType();
 			const auto elements = builder_.getOrCreateArray({});
 			
