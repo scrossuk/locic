@@ -26,8 +26,10 @@ def upload_file(ftp, filename):
 	dest_filename = os.path.basename(filename)
 	server_file_path = os.path.join(server_path, dest_filename)
 	sys.stdout.write("Uploading artifacts file '%s' to server..." % filename)
+	sys.stdout.flush()
 	ftp.storbinary('STOR %s' % os.path.basename(filename), file)
 	sys.stdout.write(" done! File available at %s\n" % server_file_path)
+	sys.stdout.flush()
 	file.close()
 
 def get_branch_builds_to_delete(artifact_archives):
@@ -58,8 +60,10 @@ def delete_old_artifacts(ftp):
 	for artifact_file in artifact_archives:
 		if artifact_file.build_number in delete_branch_builds[artifact_file.branch]:
 			sys.stdout.write("Deleting old artifact '%s'..." % artifact_file.get_filename())
+			sys.stdout.flush()
 			ftp.delete(artifact_file.get_filename())
 			sys.stdout.write(" done!\n")
+			sys.stdout.flush()
 
 if len(sys.argv) != 5:
 	print "Usage: %s [host] [username] [password] [file]" % sys.argv[0]
@@ -70,7 +74,11 @@ username = sys.argv[2]
 password = sys.argv[3]
 filename = sys.argv[4]
 
+sys.stdout.write("Connecting to server...")
+sys.stdout.flush()
 ftp = ftplib.FTP(host, username, password)
+sys.stdout.write(" done!\n")
+sys.stdout.flush()
 
 if artifact.parse_filename(os.path.basename(filename)) is None:
 	print "Invalid artifacts file '%s'." % filename
