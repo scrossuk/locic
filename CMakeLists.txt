@@ -136,17 +136,19 @@ endif(NOT "${CLANG_ROOT_DIR}" STREQUAL "")
 
 # --- Dependencies
 
+set(LLVM_SUPPORTED_VERSION "6.0")
+
 # Find LLVM (for code generation).
-set(LLVM_REQ_COMPONENTS all-targets bitreader bitwriter core irreader jit linker mcjit nativecodegen native ipo option)
+set(LLVM_REQ_COMPONENTS all-targets bitreader bitwriter core irreader linker mcjit nativecodegen native ipo option)
 find_package(LLVM REQUIRED ${LLVM_REQ_COMPONENTS})
 
 # Check LLVM version.
 set(LLVM_VERSION_SIMPLE_STRING "${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}")
 
-if("${LLVM_VERSION_SIMPLE_STRING}" VERSION_LESS "3.3")
-	message(FATAL_ERROR "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not supported (first supported version is 3.3).")
-elseif("${LLVM_VERSION_SIMPLE_STRING}" VERSION_GREATER "3.9")
-	message(WARNING "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not officially supported for this release (last supported version is 3.9).")
+if("${LLVM_VERSION_SIMPLE_STRING}" VERSION_LESS "${LLVM_SUPPORTED_VERSION}")
+	message(FATAL_ERROR "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not supported (supported version is ${LLVM_SUPPORTED_VERSION}).")
+elseif("${LLVM_VERSION_SIMPLE_STRING}" VERSION_GREATER "${LLVM_SUPPORTED_VERSION}")
+	message(WARNING "LLVM version ${LLVM_VERSION_SIMPLE_STRING} is not officially supported for this release (supported version is ${LLVM_SUPPORTED_VERSION}).")
 endif()
 
 math(EXPR LOCIC_LLVM_VERSION ${LLVM_VERSION_MAJOR}*100+${LLVM_VERSION_MINOR})
