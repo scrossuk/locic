@@ -71,7 +71,7 @@ namespace locic {
 			return builder_.createFile(components.second, components.first);
 		}
 		
-		DISubprogram DebugBuilder::createFunction(DIFile file,
+		DISubprogram DebugBuilder::createFunction(DIScope scope,
 		                                          const unsigned int lineNumber,
 		                                          const bool isInternal,
 		                                          const bool isDefinition,
@@ -84,8 +84,8 @@ namespace locic {
 			const auto flags = DINode::FlagPrototyped;
 			const bool isOptimised = false;
 			
-			return builder_.createFunction(file, name.toString(false), "",
-				file, lineNumber, functionType,
+			return builder_.createFunction(scope, name.toString(false), "",
+				scope->getFile(), lineNumber, functionType,
 				isLocalToUnit, isDefinition, scopeLine,
 				flags, isOptimised);
 		}

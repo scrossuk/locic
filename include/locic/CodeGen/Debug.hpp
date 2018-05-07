@@ -46,7 +46,7 @@ namespace locic {
 				
 				DIFile createFile(const std::string& path);
 				
-				DISubprogram createFunction(DIFile file,
+				DISubprogram createFunction(DIScope scope,
 				                            unsigned int lineNumber,
 				                            bool isInternal,
 				                            bool isDefinition,
