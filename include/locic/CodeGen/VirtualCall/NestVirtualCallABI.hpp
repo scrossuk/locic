@@ -32,8 +32,8 @@ namespace locic {
 			ArgInfo
 			getStubArgInfo();
 			
-			llvm::AttributeSet
-			conflictResolutionStubAttributes(const llvm::AttributeSet& existingAttributes);
+			llvm::AttributeList
+			conflictResolutionStubAttributes(const llvm::AttributeList& existingAttributes);
 			
 			llvm::Constant*
 			emitVTableSlot(const AST::TypeInstance& typeInstance,

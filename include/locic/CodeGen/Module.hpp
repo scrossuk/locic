@@ -70,7 +70,7 @@ namespace locic {
 			}
 		};
 		
-		typedef FastMap<AttributeKind, llvm::AttributeSet> AttributeMap;
+		typedef FastMap<AttributeKind, llvm::AttributeList> AttributeMap;
 		typedef std::unordered_map<TemplateBuilder*, llvm::GlobalAlias*> BitsRequiredGlobalMap;
 		typedef std::unordered_map<const AST::TypeInstance*, llvm::Function*> DestructorMap;
 		typedef FastMap<String, llvm::Function*> FunctionMap;

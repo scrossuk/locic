@@ -58,8 +58,8 @@ namespace locic {
 			               isVarArg, llvm_abi::VoidTy, arguments);
 		}
 		
-		llvm::AttributeSet
-		GenericVirtualCallABI::conflictResolutionStubAttributes(const llvm::AttributeSet& existingAttributes) {
+		llvm::AttributeList
+		GenericVirtualCallABI::conflictResolutionStubAttributes(const llvm::AttributeList& existingAttributes) {
 			const auto iterator = module_.attributeMap().find(AttributeVirtualCallStub);
 			
 			if (iterator != module_.attributeMap().end()) {
@@ -71,7 +71,7 @@ namespace locic {
 			auto attributes = existingAttributes;
 			
 			// Always inline stubs.
-			attributes = attributes.addAttribute(context, llvm::AttributeSet::FunctionIndex, llvm::Attribute::AlwaysInline);
+			attributes = attributes.addAttribute(context, llvm::AttributeList::FunctionIndex, llvm::Attribute::AlwaysInline);
 			
 			// Arguments struct pointer attributes.
 			attributes = attributes.addAttribute(context, 4, llvm::Attribute::NoAlias);

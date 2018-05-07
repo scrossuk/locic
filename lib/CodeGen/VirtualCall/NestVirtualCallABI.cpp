@@ -41,14 +41,14 @@ namespace locic {
 			return ArgInfo::VarArgs(module_, llvm_abi::Int64Ty, {}).withNestArgument();
 		}
 		
-		llvm::AttributeSet
-		NestVirtualCallABI::conflictResolutionStubAttributes(const llvm::AttributeSet& existingAttributes) {
+		llvm::AttributeList
+		NestVirtualCallABI::conflictResolutionStubAttributes(const llvm::AttributeList& existingAttributes) {
 			auto& context = module_.getLLVMContext();
 			
 			auto attributes = existingAttributes;
 			
 			// Always inline stubs.
-			attributes = attributes.addAttribute(context, llvm::AttributeSet::FunctionIndex, llvm::Attribute::AlwaysInline);
+			attributes = attributes.addAttribute(context, llvm::AttributeList::FunctionIndex, llvm::Attribute::AlwaysInline);
 			
 			return attributes;
 		}
