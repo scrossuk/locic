@@ -5,6 +5,7 @@
 
 #include <locic/AST/TemplateVarArray.hpp>
 #include <locic/AST/ValueArray.hpp>
+#include <locic/Debug/ValueInfo.hpp>
 #include <locic/Support/HeapArray.hpp>
 #include <locic/Support/Map.hpp>
 #include <locic/Support/Optional.hpp>
@@ -13,12 +14,6 @@
 namespace locic {
 	
 	class Constant;
-	
-	namespace Debug {
-		
-		class ValueInfo;
-		
-	}
 	
 	namespace AST {
 		

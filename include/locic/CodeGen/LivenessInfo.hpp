@@ -1,6 +1,7 @@
 #ifndef LOCIC_CODEGEN_LIVENESSINFO_HPP
 #define LOCIC_CODEGEN_LIVENESSINFO_HPP
 
+#include <locic/CodeGen/LivenessIndicator.hpp>
 #include <locic/Support/Optional.hpp>
 
 namespace locic {
@@ -13,7 +14,6 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-		class LivenessIndicator;
 		class Module;
 		
 		class LivenessInfo {
