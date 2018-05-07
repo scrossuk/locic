@@ -156,7 +156,6 @@ namespace locic {
 			                      llvm::dwarf::DW_ATE_unsigned;
 			return builder_.createBasicType(primitiveID.toCString(),
 			                                abi.typeInfo().getTypeRawSize(abiType).asBits(),
-			                                abi.typeInfo().getTypeRequiredAlign(abiType).asBits(),
 			                                encoding);
 		}
 		
