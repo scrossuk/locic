@@ -13,7 +13,8 @@
 #include <llvm/Analysis/Verifier.h>
 #endif
 
-#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
 
 #if LOCIC_LLVM_VERSION >= 305
 #include <llvm/IR/DebugInfo.h>
@@ -69,7 +70,6 @@
 #include <llvm/PassManager.h>
 #endif
 
-#include <llvm/Support/Dwarf.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/Path.h>
@@ -77,10 +77,6 @@
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
-
-#if LOCIC_LLVM_VERSION >= 306
-#include <llvm/Target/TargetSubtargetInfo.h>
-#endif
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
