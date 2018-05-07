@@ -1,6 +1,6 @@
 # --- Script Setup
 
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.4.3)
 
 # Use Debug build by default.
 if(NOT CMAKE_BUILD_TYPE)
