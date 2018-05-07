@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdexcept>
 
 #include <locic/CodeGen/InternalContext.hpp>
@@ -131,7 +132,8 @@ namespace locic {
 			std::string errorString;
 			target_ = llvm::TargetRegistry::lookupTarget(targetOptions.arch, targetTriple_, errorString);
 			if (target_ == nullptr) {
-				llvm::TargetRegistry::printRegisteredTargetsForVersion();
+				llvm::raw_os_ostream out(std::cout);
+				llvm::TargetRegistry::printRegisteredTargetsForVersion(out);
 				throw std::runtime_error(makeString("Failed to find target for triple '%s'.", targetTriple_.getTriple().c_str()));
 			}
 			
