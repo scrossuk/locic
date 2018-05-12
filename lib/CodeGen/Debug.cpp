@@ -44,6 +44,10 @@ namespace locic {
 			builder_.finalize();
 		}
 		
+		void DebugBuilder::finalizeSubprogram(const DISubprogram subprogram) {
+			builder_.finalizeSubprogram(subprogram);
+		}
+		
 		DICompileUnit DebugBuilder::createCompileUnit(const DebugCompileUnit& compileUnitInfo) {
 			const unsigned language = llvm::dwarf::DW_LANG_lo_user;
 			const bool isOptimized = false;
@@ -103,7 +107,8 @@ namespace locic {
 				                                        argIndex,
 				                                        file,
 				                                        lineNumber,
-				                                        type);
+				                                        type,
+				                                        /*alwaysPreserve=*/true);
 			} else {
 				return builder_.createAutoVariable(scope, name.c_str(),
 				                                   file, lineNumber,

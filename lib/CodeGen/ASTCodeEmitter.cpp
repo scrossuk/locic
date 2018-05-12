@@ -4,8 +4,10 @@
 #include <locic/AST/Type.hpp>
 
 #include <locic/CodeGen/ArgInfo.hpp>
+#include <locic/CodeGen/Debug.hpp>
 #include <locic/CodeGen/DefaultMethodEmitter.hpp>
 #include <locic/CodeGen/Function.hpp>
+#include <locic/CodeGen/GenDebugType.hpp>
 #include <locic/CodeGen/InternalContext.hpp>
 #include <locic/CodeGen/IREmitter.hpp>
 #include <locic/CodeGen/Module.hpp>
@@ -152,6 +154,14 @@ namespace locic {
 				irEmitter.scheduleDestructorCall(varPtr, paramType);
 				
 				functionGenerator_.setVarAddress(paramVar, varPtr);
+				
+				if (paramVar.debugInfo()) {
+					genDebugVar(functionGenerator_,
+					            *(paramVar.debugInfo()),
+					            genDebugType(module, paramType),
+					            paramIR,
+					            /*argIndex=*/i + 1);
+				}
 			}
 		}
 		

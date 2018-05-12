@@ -40,6 +40,8 @@ namespace locic {
 				
 				void finalize();
 				
+				void finalizeSubprogram(DISubprogram subprogram);
+				
 				DICompileUnit createCompileUnit(const DebugCompileUnit& compileUnit);
 				
 				DICompileUnit compileUnit() const;

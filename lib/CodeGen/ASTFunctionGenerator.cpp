@@ -225,6 +225,7 @@ namespace locic {
 				templateBuilder.updateAllInstructions(module_);
 			}
 			
+			module_.debugBuilder().finalizeSubprogram(*debugSubprogram);
 			
 			return llvmFunction;
 		}
