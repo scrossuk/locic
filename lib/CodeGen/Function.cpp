@@ -1,4 +1,3 @@
-#include <iostream>
 #include <stack>
 #include <stdexcept>
 #include <string>
@@ -33,9 +32,6 @@ namespace locic {
 			  argInfo_(argInfo),
 			  templateBuilder_(pTemplateBuilder),
 			  debugInfo_(nullptr),
-#if LOCIC_LLVM_VERSION < 307
-			  personalityFunction_(nullptr),
-#endif
 			  exceptionInfo_(nullptr),
 			  templateArgs_(nullptr),
 			  unwindReturnPtr_(nullptr),
@@ -64,6 +60,10 @@ namespace locic {
 			functionEncoder_ = module().abi().createFunctionEncoder(/*builder=*/*this,
 			                                                        argInfo.getABIFunctionType(),
 			                                                        argValues);
+		}
+		
+		void Function::dump() const {
+			function_.print(llvm::dbgs(), nullptr, /*ShouldPreserveUseListOrder=*/false, /*IsForDebug=*/true);
 		}
 		
 		llvm::Value* Function::getUnwindReturnPtr() {
@@ -273,21 +273,12 @@ namespace locic {
 		void Function::verify() const {
 			// Only verify functions when built in debug mode.
 #if !defined(NDEBUG)
-#if LOCIC_LLVM_VERSION >= 306 || LOCIC_LLVM_VERSION <= 308
-			// This causes lots of failures in LLVM 3.6 to 3.8 due to debugging information.
-			// TODO: find a way to fix this (if possible).
-#elif LOCIC_LLVM_VERSION >= 305
-			llvm::raw_os_ostream cerrStream(std::cerr);
-			const bool result = llvm::verifyFunction(function_, &cerrStream);
-			if (result)
-			{
+			const bool result = llvm::verifyFunction(function_, &(llvm::dbgs()));
+			if (result) {
 				const std::string functionName = getLLVMFunction().getName();
-				getLLVMFunction().dump();
+				dump();
 				throw std::runtime_error(makeString("Verification failed for function '%s'.", functionName.c_str()));
 			}
-#else
-			(void) llvm::verifyFunction(function_, llvm::AbortProcessAction);
-#endif
 #endif
 		}
 		
@@ -358,9 +349,7 @@ namespace locic {
 		
 		void Function::attachDebugInfo(const DISubprogram subprogram) {
 			debugInfo_ = subprogram;
-#if LOCIC_LLVM_VERSION >= 308
 			function_.setSubprogram(subprogram);
-#endif
 		}
 		
 		DISubprogram Function::debugInfo() const {
@@ -378,19 +367,11 @@ namespace locic {
 		}
 		
 		void Function::setPersonalityFunction(llvm::Constant* const argPersonalityFunction) {
-#if LOCIC_LLVM_VERSION >= 307
 			function_.setPersonalityFn(argPersonalityFunction);
-#else
-			personalityFunction_ = argPersonalityFunction;
-#endif
 		}
 		
 		llvm::Constant* Function::personalityFunction() const {
-#if LOCIC_LLVM_VERSION >= 307
 			return function_.getPersonalityFn();
-#else
-			return personalityFunction_;
-#endif
 		}
 		
 	}

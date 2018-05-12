@@ -9,21 +9,8 @@ namespace locic {
 	namespace CodeGen {
 		
 		std::unique_ptr<llvm::Module> loadBitcodeFile(const std::string& fileName, llvm::LLVMContext& context) {
-#if LOCIC_LLVM_VERSION >= 306
 			llvm::SMDiagnostic error;
 			return llvm::parseIRFile(fileName, error, context);
-#elif LOCIC_LLVM_VERSION >= 304
-			llvm::SMDiagnostic error;
-			return std::unique_ptr<llvm::Module>(llvm::ParseIRFile(fileName, error, context));
-#else
-			llvm::sys::Path fileNamePath;
-			if (!fileNamePath.set(fileName)) {
-				throw Exception(STR("Invalid file name '%s'.", fileName.c_str()));
-			}
-			
-			llvm::SMDiagnostic error;
-			return std::unique_ptr<llvm::Module>(llvm::ParseIRFile(fileNamePath.str(), error, context));
-#endif
 		}
 		
 		class LinkerImpl {
@@ -62,19 +49,7 @@ namespace locic {
 			}
 			
 			std::string errorMessage;
-#if LOCIC_LLVM_VERSION >= 308
 			const bool linkFailed = llvm::Linker::linkModules(impl_->linkedModule().getLLVMModule(), std::move(loadedModule));
-#elif LOCIC_LLVM_VERSION >= 306
-			const bool linkFailed = llvm::Linker::LinkModules(impl_->linkedModule().getLLVMModulePtr(), loadedModule.release(),
-				[&](const llvm::DiagnosticInfo& info) {
-					llvm::raw_string_ostream rawStream(errorMessage);
-					llvm::DiagnosticPrinterRawOStream diagnosticStream(rawStream);
-					info.print(diagnosticStream);
-				}
-			);
-#else
-			const bool linkFailed = llvm::Linker::LinkModules(impl_->linkedModule().getLLVMModulePtr(), loadedModule.release(), llvm::Linker::DestroySource, &errorMessage);
-#endif
 			if (linkFailed) {
 				throw std::runtime_error(makeString("Couldn't link with module '%s'; error given was '%s'.",
 					fileName.c_str(), errorMessage.c_str()));

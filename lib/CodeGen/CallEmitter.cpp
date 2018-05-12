@@ -146,13 +146,9 @@ namespace locic {
 						callInst->setDoesNotAccessMemory();
 					}
 					
-#if LOCIC_LLVM_VERSION >= 305
 					if (musttail) {
 						callInst->setTailCallKind(llvm::CallInst::TCK_MustTail);
 					}
-#else
-					assert(!musttail && "musttail not supported with this version of LLVM");
-#endif
 					
 					if (argInfo.hasNestArgument()) {
 						callInst->addAttribute(argInfo.nestArgumentOffset() + 1,

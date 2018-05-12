@@ -47,22 +47,11 @@ namespace locic {
 			llvm::InitializeNativeTargetAsmPrinter();
 			
 			llvm::TargetOptions targetOptions;
-#if LOCIC_LLVM_VERSION < 304
-			targetOptions.JITExceptionHandling = true;
-#endif
-
-#if LOCIC_LLVM_VERSION >= 306
+			
 			llvm::EngineBuilder engineBuilder(module->releaseLLVMModule());
-#else
-			llvm::EngineBuilder engineBuilder(module->releaseLLVMModule().release());
-#endif
 			
 			engineBuilder.setEngineKind(llvm::EngineKind::JIT);
 			engineBuilder.setTargetOptions(targetOptions);
-			
-#if LOCIC_LLVM_VERSION < 306
-			engineBuilder.setUseMCJIT(true);
-#endif
 			
 			std::string errorString;
 			llvm::ExecutionEngine* const executionEngine = engineBuilder.setErrorStr(&errorString).create();

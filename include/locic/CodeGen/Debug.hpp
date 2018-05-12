@@ -80,8 +80,7 @@ namespace locic {
 				                        size_t sizeInBits,
 				                        size_t alignInBits);
 				
-				DISubroutineType createFunctionType(DIFile file,
-				                                    const std::vector<LLVMMetadataValue*>& parameters);
+				DISubroutineType createFunctionType(const std::vector<LLVMMetadataValue*>& parameters);
 				
 				llvm::Instruction* insertVariableDeclare(Function& function,
 				                                         DILocalVariable variable,

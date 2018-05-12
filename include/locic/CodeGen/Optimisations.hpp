@@ -9,13 +9,8 @@ namespace locic {
 	
 	namespace CodeGen {
 		
-#if LOCIC_LLVM_VERSION >= 307
 		using FunctionPassManager = llvm::legacy::FunctionPassManager;
 		using PassManager = llvm::legacy::PassManager;
-#else
-		using FunctionPassManager = llvm::FunctionPassManager;
-		using PassManager = llvm::PassManager;
-#endif
 		
 		class Optimisations {
 			public:

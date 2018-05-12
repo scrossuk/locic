@@ -166,16 +166,10 @@ namespace locic {
 			assert(ptrValue->getType()->isPointerTy());
 			const auto irType = module().getLLVMType(type);
 			const auto castValue = emitPointerCast(ptrValue, irType->getPointerTo());
-#if LOCIC_LLVM_VERSION >= 307
 			return functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(irType,
 			                                                                  castValue,
 			                                                                  index0,
 			                                                                  index1);
-#else
-			return functionGenerator_.getBuilder().CreateConstInBoundsGEP2_32(castValue,
-			                                                                  index0,
-			                                                                  index1);
-#endif
 		}
 		
 		llvm::Value*
@@ -416,14 +410,8 @@ namespace locic {
 		IREmitter::emitLandingPad(llvm::StructType* const type,
 		                          const unsigned numClauses) {
 			assert(functionGenerator_.personalityFunction() != nullptr);
-#if LOCIC_LLVM_VERSION >= 307
 			return functionGenerator_.getBuilder().CreateLandingPad(type,
 			                                                        numClauses);
-#else
-			return functionGenerator_.getBuilder().CreateLandingPad(type,
-			                                                        functionGenerator_.personalityFunction(),
-			                                                        numClauses);
-#endif
 		}
 		
 		llvm::Value*

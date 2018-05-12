@@ -53,6 +53,8 @@ namespace locic {
 		public:
 			Function(Module& pModule, llvm::Function& function, const ArgInfo& argInfo, TemplateBuilder* templateBuilder = nullptr);
 			
+			void dump() const;
+			
 			/**
 			 * \brief Get unwind return pointer.
 			 * 
@@ -212,10 +214,6 @@ namespace locic {
 			std::stack<UnwindStack> unwindStackStack_;
 			
 			DISubprogram debugInfo_;
-			
-#if LOCIC_LLVM_VERSION < 307
-			llvm::Constant* personalityFunction_;
-#endif
 			
 			std::unique_ptr<llvm_abi::FunctionEncoder> functionEncoder_;
 			

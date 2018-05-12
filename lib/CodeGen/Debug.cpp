@@ -97,7 +97,6 @@ namespace locic {
 		                                        unsigned lineNumber,
 		                                        DIType type,
 		                                        const size_t argIndex) {
-#if LOCIC_LLVM_VERSION >= 308
 			if (isParam) {
 				return builder_.createParameterVariable(scope,
 				                                        name.c_str(),
@@ -110,11 +109,6 @@ namespace locic {
 				                                   file, lineNumber,
 				                                   type);
 			}
-#else
-			(void) argIndex;
-			const auto tag = isParam ? llvm::dwarf::DW_TAG_arg_variable : llvm::dwarf::DW_TAG_auto_variable;
-			return builder_.createLocalVariable(tag, scope, name.c_str(), file, lineNumber, type);
-#endif
 		}
 		
 		DIType DebugBuilder::createUnspecifiedType(const String& name) {
@@ -122,19 +116,11 @@ namespace locic {
 		}
 		
 		DIType DebugBuilder::createVoidType() {
-#if LOCIC_LLVM_VERSION >= 307
 			return builder_.createUnspecifiedType("void");
-#else
-			return llvm::DIType();
-#endif
 		}
 		
 		DIType DebugBuilder::createNullType() {
-#if LOCIC_LLVM_VERSION < 304
-			return builder_.createNullPtrType("null");
-#else
 			return builder_.createNullPtrType();
-#endif
 		}
 		
 		DIType DebugBuilder::createReferenceType(DIType type) {
@@ -175,45 +161,19 @@ namespace locic {
 				flags, derivedFrom, elements);
 		}
 		
-		DISubroutineType DebugBuilder::createFunctionType(DIFile file, const std::vector<LLVMMetadataValue*>& parameters) {
-#if LOCIC_LLVM_VERSION >= 308
-			(void) file;
+		DISubroutineType DebugBuilder::createFunctionType(const std::vector<LLVMMetadataValue*>& parameters) {
 			return builder_.createSubroutineType(builder_.getOrCreateTypeArray(parameters));
-#elif LOCIC_LLVM_VERSION >= 306
-			return builder_.createSubroutineType(file, builder_.getOrCreateTypeArray(parameters));
-#else
-			return builder_.createSubroutineType(file, builder_.getOrCreateArray(parameters));
-#endif
 		}
 		
 		llvm::Instruction* DebugBuilder::insertVariableDeclare(Function& function,
 		                                                       DILocalVariable variable,
 		                                                       llvm::DebugLoc location,
 		                                                       llvm::Value* varValue) {
-#if LOCIC_LLVM_VERSION >= 308
 			return builder_.insertDeclare(varValue,
 			                              variable,
 			                              builder_.createExpression(),
 			                              location,
 			                              function.getEntryBuilder().GetInsertBlock());
-#elif LOCIC_LLVM_VERSION >= 307
-			return builder_.insertDeclare(varValue,
-			                              variable,
-			                              builder_.createExpression(),
-			                              location,
-			                              function.getEntryBuilder().GetInsertPoint());
-#elif LOCIC_LLVM_VERSION >= 306
-			(void) location;
-			return builder_.insertDeclare(varValue,
-			                              variable,
-			                              builder_.createExpression(),
-			                              function.getEntryBuilder().GetInsertPoint());
-#else
-			(void) location;
-			return builder_.insertDeclare(varValue,
-			                              variable,
-			                              function.getEntryBuilder().GetInsertPoint());
-#endif
 		}
 		
 		DISubprogram genDebugFunction(Module& module,

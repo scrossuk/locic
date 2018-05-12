@@ -143,11 +143,7 @@ namespace locic {
 			// TODO: make these options configurable.
 			llvm::TargetOptions llvmTargetOptions;
 			
-#if LOCIC_LLVM_VERSION >= 309
 			llvm::Optional<llvm::Reloc::Model> relocModel;
-#else
-			llvm::Reloc::Model relocModel = llvm::Reloc::Default;
-#endif
 			llvm::Optional<llvm::CodeModel::Model> codeModel;
 			llvm::CodeGenOpt::Level optimisationLevel = llvm::CodeGenOpt::Default;
 			
@@ -198,15 +194,7 @@ namespace locic {
 		}
 		
 		llvm::DataLayout InternalContext::dataLayout() const {
-#if LOCIC_LLVM_VERSION >= 308
 			return targetMachine().createDataLayout();
-#elif LOCIC_LLVM_VERSION >= 307
-			return *(targetMachine().getDataLayout());
-#elif LOCIC_LLVM_VERSION >= 306
-			return *(targetMachine().getSubtargetImpl()->getDataLayout());
-#else
-			return *(targetMachine().getDataLayout());
-#endif
 		}
 		
 	}

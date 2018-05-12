@@ -2,9 +2,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#if !defined(NDEBUG) && LOCIC_LLVM_VERSION >= 305
-#include <iostream> // for std::cerr
-#endif
 
 #include <llvm-abi/ABI.hpp>
 #include <llvm-abi/ABITypeInfo.hpp>
@@ -31,10 +28,7 @@ namespace locic {
 			
 			module_->setDataLayout(context_.dataLayout().getStringRepresentation());
 			module_->setTargetTriple(context_.targetTriple().getTriple());
-			
-#if LOCIC_LLVM_VERSION >= 304
 			module_->addModuleFlag(llvm::Module::Warning, "Debug Info Version", llvm::DEBUG_METADATA_VERSION);
-#endif
 		}
 		
 		InternalContext& Module::context() {
@@ -200,17 +194,11 @@ namespace locic {
 		void Module::verify() const {
 			// Only verify modules when built in debug mode.
 #if !defined(NDEBUG)
-#if LOCIC_LLVM_VERSION >= 305
-			llvm::raw_os_ostream cerrStream(std::cerr);
-			const bool result = llvm::verifyModule(*module_, &cerrStream);
-			if (result)
-			{
+			const bool result = llvm::verifyModule(*module_, &(llvm::dbgs()));
+			if (result) {
 				dump();
 				throw std::runtime_error("Verification failed for module.");
 			}
-#else
-			(void) llvm::verifyModule(*module_, llvm::AbortProcessAction);
-#endif
 #endif
 		}
 		

@@ -177,41 +177,6 @@ message(STATUS "    LLVM library directories: ${LOCIC_LLVM_LIBRARY_DIRS}")
 message(STATUS "        (if this is wrong, specify LOCIC_LLVM_LIBRARY_DIRS)")
 link_directories(${LOCIC_LLVM_LIBRARY_DIRS})
 
-function(add_to_paths var extra)
-	foreach(oldpath ${ARGN})
-		list(APPEND newpaths "${oldpath}/${extra}")
-	endforeach()
-	set(${var} ${newpaths} PARENT_SCOPE)
-endfunction()
-
-# Workaround for Ubuntu LLVM 3.5 package putting DIBuilder.h
-# in 'llvm/' directory rather than 'llvm/IR/'.
-add_to_paths(LLVM_IR_INCLUDE_DIRS "llvm/IR" ${LOCIC_LLVM_INCLUDE_DIRS})
-find_file(LLVM_DIBUILDER_H
-	NAMES "DIBuilder.h"
-	PATHS ${LLVM_IR_INCLUDE_DIRS}
-	NO_DEFAULT_PATH
-)
-
-if(LLVM_DIBUILDER_H)
-	message(STATUS "    Found DIBuilder.h in llvm/IR.")
-	add_definitions(-DLLVM_DIBUILDER_IN_IR)
-endif(LLVM_DIBUILDER_H)
-
-# Workaround for Ubuntu LLVM 3.5 package putting Linker.h
-# in 'llvm/' directory rather than 'llvm/Linker/'.
-add_to_paths(LLVM_LINKER_INCLUDE_DIRS "llvm/Linker" ${LOCIC_LLVM_INCLUDE_DIRS})
-find_path(LLVM_LINKER_H
-	NAMES "Linker.h"
-	PATHS ${LLVM_LINKER_INCLUDE_DIRS}
-	NO_DEFAULT_PATH
-)
-
-if(LLVM_LINKER_H)
-	message(STATUS "    Found Linker.h in llvm/Linker.")
-	add_definitions(-DLLVM_LINKER_IN_LINKER)
-endif(LLVM_LINKER_H)
-
 # Build LLVM ABI
 include(LLVMABI)
 

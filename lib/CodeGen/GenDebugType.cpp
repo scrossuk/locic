@@ -29,9 +29,6 @@ namespace locic {
 	namespace CodeGen {
 		
 		DISubroutineType genDebugFunctionType(Module& module, AST::FunctionType type) {
-			// TODO!
-			const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
-			
 			std::vector<LLVMMetadataValue*> parameterTypes;
 			parameterTypes.push_back(genDebugType(module, type.returnType()));
 			
@@ -39,7 +36,7 @@ namespace locic {
 				parameterTypes.push_back(genDebugType(module, paramType));
 			}
 			
-			return module.debugBuilder().createFunctionType(file, parameterTypes);
+			return module.debugBuilder().createFunctionType(parameterTypes);
 		}
 		
 		DIType genObjectDebugType(Module& module, const AST::Type* const type) {
@@ -102,17 +99,7 @@ namespace locic {
 				CASE_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr):
 				CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr): {
 					const auto functionType = type->asFunctionType();
-					// TODO!
-					const auto file = module.debugBuilder().createFile("/object/dir/example_source_file.loci");
-					
-					std::vector<LLVMMetadataValue*> parameterTypes;
-					parameterTypes.push_back(genDebugType(module, functionType.returnType()));
-					
-					for (const auto paramType: functionType.parameterTypes()) {
-						parameterTypes.push_back(genDebugType(module, paramType));
-					}
-					
-					return module.debugBuilder().createFunctionType(file, parameterTypes);
+					return genDebugFunctionType(module, functionType);
 				}
 				CASE_CALLABLE_ID(PrimitiveMethod):
 				CASE_CALLABLE_ID(PrimitiveTemplatedMethod): {
