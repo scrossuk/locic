@@ -225,7 +225,6 @@ namespace locic {
 				templateBuilder.updateAllInstructions(module_);
 			}
 			
-			functionGenerator.verify();
 			
 			return llvmFunction;
 		}
@@ -270,9 +269,6 @@ namespace locic {
 			                                                      argList,
 			                                                      functionGenerator.getReturnVarOrNull());
 			irEmitter.emitReturn(result);
-			
-			// Check the generated function is correct.
-			functionGenerator.verify();
 			
 			return llvmFunction;
 		}

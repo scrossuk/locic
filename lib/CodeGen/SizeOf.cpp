@@ -270,8 +270,6 @@ namespace locic {
 			
 			irEmitter.emitUnreachable();
 			
-			function.verify();
-			
 			return llvmFunction;
 		}
 		
