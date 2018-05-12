@@ -34,7 +34,6 @@ documentation and/or software.
 #define BZF_MD5_H
 
 #include <string>
-#include <iostream>
 
 namespace locic {
 	
@@ -64,7 +63,6 @@ public:
   void update(const char *buf, size_type length);
   MD5& finalize();
   std::array<char, 32> hexdigest() const;
-  friend std::ostream& operator<<(std::ostream&, MD5 md5);
 
 private:
   void init();
