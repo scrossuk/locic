@@ -18,16 +18,9 @@ namespace locic {
 		class CastSequence {
 		public:
 			CastSequence(Context& context,
-			             const AST::Type* sourceType, bool isNoop,
-			             bool canBind);
-			
-			Context& context();
+			             const AST::Type* sourceType);
 			
 			const AST::Type* type() const;
-			
-			bool isNoop() const;
-			
-			bool canBind() const;
 			
 			void addBind();
 			
@@ -44,8 +37,6 @@ namespace locic {
 		private:
 			Context& context_;
 			const AST::Type* type_;
-			bool isNoop_;
-			bool canBind_;
 			
 		};
 		

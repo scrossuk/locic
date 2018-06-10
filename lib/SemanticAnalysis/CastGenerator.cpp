@@ -5,6 +5,7 @@
 
 #include <locic/Frontend/OptionalDiag.hpp>
 
+#include <locic/SemanticAnalysis/CastRules.hpp>
 #include <locic/SemanticAnalysis/CastSequence.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/SatisfyChecker.hpp>
@@ -27,10 +28,10 @@ namespace locic {
 			assert(sourceType->canBeUsedAsValue());
 			assert(destType->canBeUsedAsValue());
 			
-			CastSequence cast(context_, sourceType,
-			                   /*isNoop=*/false, canBind);
+			CastRules rules(/*isNoop=*/false, canBind);
+			CastSequence cast(context_, sourceType);
 			
-			auto result = implicitCastAnyToAny(cast, destType);
+			auto result = implicitCastAnyToAny(rules, cast, destType);
 			if (result.failed()) return result.extractDiag();
 			
 			return cast;
@@ -42,47 +43,47 @@ namespace locic {
 			assert(sourceType->canBeUsedAsValue());
 			assert(destType->canBeUsedAsValue());
 			
-			CastSequence cast(context_, sourceType,
-			                   /*isNoop=*/true, /*canBind=*/false);
+			CastRules rules(/*isNoop=*/true, /*canBind=*/false);
+			CastSequence cast(context_, sourceType);
 			
-			auto result = implicitCastAnyToAny(cast, destType);
+			auto result = implicitCastAnyToAny(rules, cast, destType);
 			if (result.failed()) return result.extractDiag();
 			
 			return cast;
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastAnyToAny(CastSequence& cast,
+		CastGenerator::implicitCastAnyToAny(const CastRules& rules, CastSequence& cast,
 		                                    const AST::Type* const destType) {
 			assert(destType->canBeUsedAsValue());
 			
 			// Keep removing references from source type until we
 			// reach depth of destination type.
 			while (cast.type()->refDepth() > destType->refDepth()) {
-				auto diag = implicitCopyRefToValue(cast);
+				auto diag = implicitCopyRefToValue(rules, cast);
 				if (diag.failed()) return diag;
 			}
 			
 			if (cast.type()->refDepth() == destType->refDepth()) {
 				if (cast.type()->isRef()) {
-					return implicitCastRefToRef(cast, destType);
+					return implicitCastRefToRef(rules, cast, destType);
 				} else {
-					return implicitCastValueToValue(cast, destType);
+					return implicitCastValueToValue(rules, cast, destType);
 				}
 			} else {
-				return implicitCastValueToRef(cast, destType);
+				return implicitCastValueToRef(rules, cast, destType);
 			}
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastRefToRef(CastSequence& cast,
+		CastGenerator::implicitCastRefToRef(const CastRules& rules, CastSequence& cast,
 		                                    const AST::Type* const destType) {
 			assert(cast.type()->isRef() && destType->isRef());
 			assert(cast.type()->refDepth() == destType->refDepth());
 			
 			// Try a polymorphic reference cast.
 			if (destType->refTarget()->isInterface()) {
-				return implicitCastPolyRefToRef(cast, destType);
+				return implicitCastPolyRefToRef(rules, cast, destType);
 			}
 			
 			auto noopDiag = implicitCastNoopOnly(cast, destType);
@@ -90,10 +91,10 @@ namespace locic {
 			
 			// Reference types aren't compatible so we can try to
 			// copy, cast and then bind.
-			auto diag = implicitCopyRefToValue(cast);
+			auto diag = implicitCopyRefToValue(rules, cast);
 			if (diag.failed()) return diag;
 			
-			if (implicitCastValueToRef(cast, destType).success()) {
+			if (implicitCastValueToRef(rules, cast, destType).success()) {
 				return SUCCESS;
 			}
 			
@@ -117,12 +118,12 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastValueToRef(CastSequence& cast,
+		CastGenerator::implicitCastValueToRef(const CastRules& rules, CastSequence& cast,
 		                                      const AST::Type* const destType) {
 			assert(destType->isRef());
 			assert(cast.type()->refDepth() < destType->refDepth());
 			
-			if (!cast.canBind()) {
+			if (!rules.canBind()) {
 				return CannotBindDiag(cast.type(), destType);
 			}
 			
@@ -132,12 +133,12 @@ namespace locic {
 			
 			if (destType->refTarget()->isInterface()) {
 				cast.addBind();
-				return implicitCastPolyRefToRef(cast, destType);
+				return implicitCastPolyRefToRef(rules, cast, destType);
 			}
 			
 			// Try to cast the source type to the destination type without
 			// the const tag; if this is successful we can then bind.
-			auto diag = implicitCastValueToValue(cast,
+			auto diag = implicitCastValueToValue(rules, cast,
 			                                     destType->refTarget()->stripConst());
 			if (diag.failed()) return diag;
 			
@@ -162,7 +163,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastPolyRefToRef(CastSequence& cast,
+		CastGenerator::implicitCastPolyRefToRef(const CastRules& rules, CastSequence& cast,
 		                                        const AST::Type* const destType) {
 			assert(cast.type()->isRef() && destType->isRef());
 			assert(cast.type()->refDepth() == destType->refDepth());
@@ -180,7 +181,7 @@ namespace locic {
 				return PolyCastFailedDiag(cast.type(), destType);
 			}
 			
-			if (cast.isNoop()) {
+			if (rules.isNoop()) {
 				return CannotPolyCastInNoopContextDiag(cast.type(),
 				                                       destType);
 			}
@@ -206,7 +207,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastValueToValue(CastSequence& cast,
+		CastGenerator::implicitCastValueToValue(const CastRules& rules, CastSequence& cast,
 		                                        const AST::Type* const destType) {
 			assert(!cast.type()->isRef() && !destType->isRef());
 			assert(destType->canBeUsedAsValue());
@@ -216,7 +217,7 @@ namespace locic {
 			
 			if (destType->isVariant()) {
 				if (cast.type()->getObjectType()->isMemberOfVariant(*(destType->getObjectType()))) {
-					if (cast.isNoop()) {
+					if (rules.isNoop()) {
 						return CannotVariantCastInNoopContextDiag(cast.type(),
 						                                          destType);
 					}
@@ -227,7 +228,7 @@ namespace locic {
 			} else {
 				TypeCapabilities capabilities(context_);
 				if (capabilities.supportsImplicitCast(cast.type(), destType)) {
-					if (cast.isNoop()) {
+					if (rules.isNoop()) {
 						return CannotUserCastInNoopContextDiag(cast.type(),
 						                                       destType);
 					}
@@ -264,7 +265,7 @@ namespace locic {
 				// No need to apply const to resolved type.
 				assert(!cast.type()->hasConst() && !destType->hasConst());
 				
-				TypeBuilder typeBuilder(cast.context());
+				TypeBuilder typeBuilder(context_);
 				const auto resolvedType = typeBuilder.getRefType(result.value());
 				cast.addNoopCast(resolvedType);
 				return SUCCESS;
@@ -277,7 +278,7 @@ namespace locic {
 				// No need to apply const to resolved type.
 				assert(!cast.type()->hasConst() && !destType->hasConst());
 				
-				TypeBuilder typeBuilder(cast.context());
+				TypeBuilder typeBuilder(context_);
 				const auto resolvedType = typeBuilder.getPointerType(result.value());
 				cast.addNoopCast(resolvedType);
 				return SUCCESS;
@@ -303,7 +304,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCopyRefToValue(CastSequence& cast) {
+		CastGenerator::implicitCopyRefToValue(const CastRules& rules, CastSequence& cast) {
 			assert(cast.type()->isRef());
 			
 			// We assume that copying gives the reference target without const.
@@ -314,7 +315,7 @@ namespace locic {
 				return CannotCopyDiag(copyType);
 			}
 			
-			if (cast.isNoop()) {
+			if (rules.isNoop()) {
 				return CannotCopyInNoopContext(copyType);
 			}
 			

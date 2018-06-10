@@ -15,6 +15,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
+		class CastRules;
 		class CastSequence;
 		class Context;
 		class SatisfyChecker;
@@ -32,23 +33,23 @@ namespace locic {
 			                 const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastAnyToAny(CastSequence& cast,
+			implicitCastAnyToAny(const CastRules& rules, CastSequence& cast,
 			                     const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastRefToRef(CastSequence& cast,
+			implicitCastRefToRef(const CastRules& rules, CastSequence& cast,
 			                     const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastValueToRef(CastSequence& cast,
+			implicitCastValueToRef(const CastRules& rules, CastSequence& cast,
 			                       const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastPolyRefToRef(CastSequence& cast,
+			implicitCastPolyRefToRef(const CastRules& rules, CastSequence& cast,
 			                         const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastValueToValue(CastSequence& cast,
+			implicitCastValueToValue(const CastRules& rules, CastSequence& cast,
 			                         const AST::Type* destType);
 			
 			OptionalDiag
@@ -64,7 +65,7 @@ namespace locic {
 			                     const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCopyRefToValue(CastSequence& cast);
+			implicitCopyRefToValue(const CastRules& rules, CastSequence& cast);
 			
 		private:
 			Context& context_;
