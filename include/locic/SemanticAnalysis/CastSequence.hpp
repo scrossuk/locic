@@ -1,5 +1,5 @@
-#ifndef LOCIC_SEMANTICANALYSIS_CASTOPERATION_HPP
-#define LOCIC_SEMANTICANALYSIS_CASTOPERATION_HPP
+#ifndef LOCIC_SEMANTICANALYSIS_CASTSEQUENCE_HPP
+#define LOCIC_SEMANTICANALYSIS_CASTSEQUENCE_HPP
 
 namespace locic {
 	
@@ -15,11 +15,11 @@ namespace locic {
 		
 		class Context;
 		
-		class CastOperation {
+		class CastSequence {
 		public:
-			CastOperation(Context& context,
-			              const AST::Type* sourceType, bool isNoop,
-			              bool canBind);
+			CastSequence(Context& context,
+			             const AST::Type* sourceType, bool isNoop,
+			             bool canBind);
 			
 			Context& context();
 			

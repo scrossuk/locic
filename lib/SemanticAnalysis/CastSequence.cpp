@@ -1,4 +1,4 @@
-#include <locic/SemanticAnalysis/CastOperation.hpp>
+#include <locic/SemanticAnalysis/CastSequence.hpp>
 
 #include <locic/AST/Type.hpp>
 
@@ -10,7 +10,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		CastOperation::CastOperation(Context& context,
+		CastSequence::CastSequence(Context& context,
 		                             const AST::Type* const sourceType,
 		                             const bool isNoop,
 		                             const bool canBind)
@@ -21,30 +21,30 @@ namespace locic {
 			assert(type_->canBeUsedAsValue());
 		}
 		
-		Context& CastOperation::context() {
+		Context& CastSequence::context() {
 			return context_;
 		}
 		
-		const AST::Type* CastOperation::type() const {
+		const AST::Type* CastSequence::type() const {
 			return type_;
 		}
 		
-		bool CastOperation::isNoop() const {
+		bool CastSequence::isNoop() const {
 			return isNoop_;
 		}
 		
-		bool CastOperation::canBind() const {
+		bool CastSequence::canBind() const {
 			return canBind_;
 		}
 		
-		void CastOperation::addBind() {
+		void CastSequence::addBind() {
 			assert(!isNoop() && canBind());
 			type_ = TypeBuilder(context_).getRefType(type_);
 			assert(type_->canBeUsedAsValue());
 		}
 		
 		void
-		CastOperation::addPolyCast(const AST::Type* const destType) {
+		CastSequence::addPolyCast(const AST::Type* const destType) {
 			assert(!isNoop());
 			assert(destType->canBeUsedAsValue());
 			assert(destType->isRef());
@@ -52,27 +52,27 @@ namespace locic {
 		}
 		
 		void
-		CastOperation::addNoopCast(const AST::Type* const destType) {
+		CastSequence::addNoopCast(const AST::Type* const destType) {
 			assert(destType->canBeUsedAsValue());
 			type_ = destType;
 		}
 		
 		void
-		CastOperation::addCopy(const AST::Type* const destType) {
+		CastSequence::addCopy(const AST::Type* const destType) {
 			assert(!isNoop());
 			assert(destType->canBeUsedAsValue());
 			type_ = destType;
 		}
 		
 		void
-		CastOperation::addUserCast(const AST::Type* const destType) {
+		CastSequence::addUserCast(const AST::Type* const destType) {
 			assert(!isNoop());
 			assert(destType->canBeUsedAsValue());
 			type_ = destType;
 		}
 		
 		void
-		CastOperation::addVariantCast(const AST::Type* const destType) {
+		CastSequence::addVariantCast(const AST::Type* const destType) {
 			assert(!isNoop());
 			assert(destType->canBeUsedAsValue());
 			assert(destType->isVariant());

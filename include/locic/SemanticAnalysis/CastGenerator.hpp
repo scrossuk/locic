@@ -15,7 +15,7 @@ namespace locic {
 	
 	namespace SemanticAnalysis {
 		
-		class CastOperation;
+		class CastSequence;
 		class Context;
 		class SatisfyChecker;
 		
@@ -23,48 +23,48 @@ namespace locic {
 		public:
 			CastGenerator(Context& context, SatisfyChecker& checker);
 			
-			ResultOrDiag<CastOperation>
+			ResultOrDiag<CastSequence>
 			implicitCast(const AST::Type* sourceType,
 			             const AST::Type* destType, bool canBind);
 			
-			ResultOrDiag<CastOperation>
+			ResultOrDiag<CastSequence>
 			implicitCastNoop(const AST::Type* sourceType,
 			                 const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastAnyToAny(CastOperation& cast,
+			implicitCastAnyToAny(CastSequence& cast,
 			                     const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastRefToRef(CastOperation& cast,
+			implicitCastRefToRef(CastSequence& cast,
 			                     const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastValueToRef(CastOperation& cast,
+			implicitCastValueToRef(CastSequence& cast,
 			                       const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastPolyRefToRef(CastOperation& cast,
+			implicitCastPolyRefToRef(CastSequence& cast,
 			                         const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastValueToValue(CastOperation& cast,
+			implicitCastValueToValue(CastSequence& cast,
 			                         const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastVariant(CastOperation& cast,
+			implicitCastVariant(CastSequence& cast,
 			                    const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastUser(CastOperation& cast,
+			implicitCastUser(CastSequence& cast,
 			                 const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCastNoopOnly(CastOperation& cast,
+			implicitCastNoopOnly(CastSequence& cast,
 			                     const AST::Type* destType);
 			
 			OptionalDiag
-			implicitCopyRefToValue(CastOperation& cast);
+			implicitCopyRefToValue(CastSequence& cast);
 			
 		private:
 			Context& context_;

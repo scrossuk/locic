@@ -11,7 +11,7 @@
 #include <locic/Frontend/OptionalDiag.hpp>
 
 #include <locic/SemanticAnalysis/CastGenerator.hpp>
-#include <locic/SemanticAnalysis/CastOperation.hpp>
+#include <locic/SemanticAnalysis/CastSequence.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/Unifier.hpp>
 

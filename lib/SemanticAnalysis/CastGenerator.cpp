@@ -5,7 +5,7 @@
 
 #include <locic/Frontend/OptionalDiag.hpp>
 
-#include <locic/SemanticAnalysis/CastOperation.hpp>
+#include <locic/SemanticAnalysis/CastSequence.hpp>
 #include <locic/SemanticAnalysis/GetMethodSet.hpp>
 #include <locic/SemanticAnalysis/SatisfyChecker.hpp>
 #include <locic/SemanticAnalysis/TypeBuilder.hpp>
@@ -20,14 +20,14 @@ namespace locic {
 		: context_(context),
 		checker_(checker) { }
 		
-		ResultOrDiag<CastOperation>
+		ResultOrDiag<CastSequence>
 		CastGenerator::implicitCast(const AST::Type* const sourceType,
 		                            const AST::Type* const destType,
 		                            const bool canBind) {
 			assert(sourceType->canBeUsedAsValue());
 			assert(destType->canBeUsedAsValue());
 			
-			CastOperation cast(context_, sourceType,
+			CastSequence cast(context_, sourceType,
 			                   /*isNoop=*/false, canBind);
 			
 			auto result = implicitCastAnyToAny(cast, destType);
@@ -36,13 +36,13 @@ namespace locic {
 			return cast;
 		}
 		
-		ResultOrDiag<CastOperation>
+		ResultOrDiag<CastSequence>
 		CastGenerator::implicitCastNoop(const AST::Type* const sourceType,
 		                                const AST::Type* const destType) {
 			assert(sourceType->canBeUsedAsValue());
 			assert(destType->canBeUsedAsValue());
 			
-			CastOperation cast(context_, sourceType,
+			CastSequence cast(context_, sourceType,
 			                   /*isNoop=*/true, /*canBind=*/false);
 			
 			auto result = implicitCastAnyToAny(cast, destType);
@@ -52,7 +52,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastAnyToAny(CastOperation& cast,
+		CastGenerator::implicitCastAnyToAny(CastSequence& cast,
 		                                    const AST::Type* const destType) {
 			assert(destType->canBeUsedAsValue());
 			
@@ -75,7 +75,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastRefToRef(CastOperation& cast,
+		CastGenerator::implicitCastRefToRef(CastSequence& cast,
 		                                    const AST::Type* const destType) {
 			assert(cast.type()->isRef() && destType->isRef());
 			assert(cast.type()->refDepth() == destType->refDepth());
@@ -117,7 +117,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastValueToRef(CastOperation& cast,
+		CastGenerator::implicitCastValueToRef(CastSequence& cast,
 		                                      const AST::Type* const destType) {
 			assert(destType->isRef());
 			assert(cast.type()->refDepth() < destType->refDepth());
@@ -162,7 +162,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastPolyRefToRef(CastOperation& cast,
+		CastGenerator::implicitCastPolyRefToRef(CastSequence& cast,
 		                                        const AST::Type* const destType) {
 			assert(cast.type()->isRef() && destType->isRef());
 			assert(cast.type()->refDepth() == destType->refDepth());
@@ -206,7 +206,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastValueToValue(CastOperation& cast,
+		CastGenerator::implicitCastValueToValue(CastSequence& cast,
 		                                        const AST::Type* const destType) {
 			assert(!cast.type()->isRef() && !destType->isRef());
 			assert(destType->canBeUsedAsValue());
@@ -241,7 +241,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCastNoopOnly(CastOperation& cast,
+		CastGenerator::implicitCastNoopOnly(CastSequence& cast,
 		                                    const AST::Type* const destType) {
 			assert(!cast.type()->isAuto());
 			assert(destType->canBeUsedAsValue());
@@ -303,7 +303,7 @@ namespace locic {
 		}
 		
 		OptionalDiag
-		CastGenerator::implicitCopyRefToValue(CastOperation& cast) {
+		CastGenerator::implicitCopyRefToValue(CastSequence& cast) {
 			assert(cast.type()->isRef());
 			
 			// We assume that copying gives the reference target without const.
