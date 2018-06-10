@@ -206,8 +206,14 @@ namespace locic {
 				return ConstNotImpliedDiag(checkType, requireType);
 			}
 			
-			return unifier_.unifyTypes(checkType->stripConst(),
-			                           requireType->stripConst());
+			
+			auto result = unifier_.unifyTypes(checkType->stripConst(),
+			                                  requireType->stripConst());
+			if (result.failed()) {
+				return result;
+			}
+			
+			return result.value()->applyConst(requireType->constPredicate().copy());
 		}
 		
 		OptionalDiag
