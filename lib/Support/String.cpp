@@ -9,7 +9,7 @@
 
 namespace locic {
 	
-	std::string makeString(const char* format, ...) {
+	std::string makeStringImpl(const char* format, ...) {
 		va_list varArgList;
 		
 		size_t bufferSize = 1024;

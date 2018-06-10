@@ -28,7 +28,7 @@ namespace locic {
 
 		const AST::Type*
 		ImplicitCastTypeFormatOnly(Context& context, const AST::Type* sourceType, const AST::Type* destType,
-		                           const Debug::SourceLocation& location) {
+		                           const Debug::SourceLocation& /*location*/) {
 			Unifier unifier;
 			SatisfyChecker satisfyChecker(context, unifier);
 			CastGenerator castGenerator(context, satisfyChecker);

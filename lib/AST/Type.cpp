@@ -460,6 +460,8 @@ namespace locic {
 				case ALIAS:
 					return alias().type()->isAbstractTypename();
 			}
+			
+			locic_unreachable("Unknown type kind");
 		}
 		
 		TemplateVarMap Type::generateTemplateVarMap() const {

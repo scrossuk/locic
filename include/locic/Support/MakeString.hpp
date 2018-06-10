@@ -8,8 +8,12 @@
 
 namespace locic{
 
-	std::string makeString(const char * format, ...)
-		__attribute__((format(printf, 1, 2)));
+	std::string makeStringImpl(const char * format, ...);
+	
+	template <typename... Args>
+	std::string makeString(const char * format, const Args&... args) {
+		return makeStringImpl(format, args...);
+	}
 	
 	template <typename T>
 	inline std::string typeToString(const T& value) {
