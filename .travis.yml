@@ -4,7 +4,7 @@
 # http://lint.travis-ci.org/
 
 language: cpp
-dist: trusty
+dist: bionic
 sudo: required
 
 compiler:
@@ -18,7 +18,7 @@ before_install:
   - sudo apt-get install python-software-properties
 
   # LLVM
-  - sudo sh -c "echo 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main' >> /etc/apt/sources.list"
+  - sudo sh -c "echo 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main' >> /etc/apt/sources.list"
   - wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 
   - sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
@@ -63,6 +63,6 @@ after_success:
     fi
 
 env:
-  - BUILD_TYPE=Debug LLVM_VERSION="6.0"
-  - BUILD_TYPE=Release LLVM_VERSION="6.0" LOCIC_UPLOAD_DOCS=1
+  - BUILD_TYPE=Debug LLVM_VERSION="9"
+  - BUILD_TYPE=Release LLVM_VERSION="9" LOCIC_UPLOAD_DOCS=1
 
