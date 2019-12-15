@@ -39,10 +39,10 @@ function(loci_link name binary_name flags primary_module)
 	add_custom_command(OUTPUT ${binary_name} ${binary_name}_optimised
 		COMMAND
 			# Create a file of all symbols in the primary module.
-			${LLVM_NM_EXECUTABLE} -extern-only -defined-only "${primary_module}" | cut -c12- > "${primary_module}.symbols.txt"
+			${LLVM_NM_EXECUTABLE} -extern-only -defined-only "${primary_module}" | cut -c20- > "${primary_module}.symbols.txt"
 		COMMAND
 			# Create a file of all symbols in the primary module.
-			${LLVM_NM_EXECUTABLE} -extern-only -defined-only "${primary_module}.unsafe.bc" | cut -c12- > "${primary_module}.unsafe.symbols.txt"
+			${LLVM_NM_EXECUTABLE} -extern-only -defined-only "${primary_module}.unsafe.bc" | cut -c20- > "${primary_module}.unsafe.symbols.txt"
 		COMMAND
 			# Link bitcode files together.
 			${LLVM_LINK_EXECUTABLE} "${primary_module}" ${${name}_Sources} "${RUNTIME_MODULE}" -o "${binary_name}_linked_raw.bc"
