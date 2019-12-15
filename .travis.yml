@@ -15,7 +15,7 @@ before_install:
   - sudo apt-get update
 
   # Ensure add-apt-repository is installed.
-  - sudo apt-get install python-software-properties
+  - sudo apt-get install software-properties-common
 
   # LLVM
   - sudo sh -c "echo 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main' >> /etc/apt/sources.list"
