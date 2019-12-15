@@ -13,8 +13,8 @@ Before building and using the Loci Compiler Tools, it's first necessary to build
 * Boost Program Options - *debian package: libboost-program-options-dev, arch package: extra/boost*
 * Boost Regex - *debian package: libboost-regex-dev, arch package: extra/boost*
 * Boost System - *debian package: libboost-system-dev, arch package: extra/boost*
-* LLVM 3.3 to 3.9 (development build) - *debian package: llvm-dev, arch package: extra/llvm*
-* Clang 3.3 to 3.9 - *debian package: clang, arch package: extra/clang*
+* LLVM 9 (development build) - *debian package: llvm-dev, arch package: extra/llvm*
+* Clang 9 - *debian package: clang, arch package: extra/clang*
 * Sphinx (documentation) - *debian package: python-sphinx, arch package: community/python-sphinx*
 * tinfo (ncurses library routines) - *debian package: libtinfo-dev, arch package: aur/libtinfo*
 
@@ -35,30 +35,7 @@ Once the dependencies have been installed, create a build directory alongside th
 
 	cmake ../locic-src
 
-CMake will output various information about the build configuration; make sure to check the paths it has discovered are correct. Here's an example output:
-
-::
-
-	-- Building Loci Compiler Tools version 1.4.0.0 using build type ''.
-	--     Source directory is '/home/user/locic/locic-src'.
-	--     Build directory is '/home/user/locic/build'.
-	-- LLVM_ROOT_DIR wasn't specified (you can use this to search for LLVM in a particular path).
-	-- CLANG_BINARY_NAME wasn't specified (you can use this to search for Clang by a particular name).
-	-- CLANG_ROOT_DIR wasn't specified (you can use this to search for Clang in a particular path).
-	-- Found LLVM: /usr/lib/llvm-3.5 (found version "3.5") 
-	-- Using LLVM 3.5 (name is '3_5').
-	--     LLVM binary directory: /usr/lib/llvm-3.5/bin
-	--         llc path: /usr/lib/llvm-3.5/bin/llc
-	--         llvm-dis path: /usr/lib/llvm-3.5/bin/llvm-dis
-	--         llvm-link path: /usr/lib/llvm-3.5/bin/llvm-link
-	--         llvm-nm path: /usr/lib/llvm-3.5/bin/llvm-nm
-	--         opt path: /usr/lib/llvm-3.5/bin/opt
-	--     LLVM include directories: /usr/lib/llvm-3.5/include;/usr/lib/llvm-3.5/build/include
-	--         (if this is wrong, specify LOCIC_LLVM_INCLUDE_DIRS)
-	--     LLVM library directories: /usr/lib/llvm-3.5/lib
-	--         (if this is wrong, specify LOCIC_LLVM_LIBRARY_DIRS)
-	-- Found Sphinx: /usr/bin/sphinx-build  
-	-- Found Clang: /usr/bin/clang  
+CMake will output various information about the build configuration; make sure to check the paths it has discovered are correct.
 
 You can then just run:
 
