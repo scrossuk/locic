@@ -99,7 +99,7 @@ namespace locic {
 				CASE_CALLABLE_ID(PrimitiveTemplatedMethodFunctionPtr):
 				CASE_CALLABLE_ID(PrimitiveVarArgFunctionPtr): {
 					const auto functionType = type->asFunctionType();
-					return genDebugFunctionType(module, functionType);
+					return module.debugBuilder().createPointerType(genDebugFunctionType(module, functionType));
 				}
 				CASE_CALLABLE_ID(PrimitiveMethod):
 				CASE_CALLABLE_ID(PrimitiveTemplatedMethod): {
