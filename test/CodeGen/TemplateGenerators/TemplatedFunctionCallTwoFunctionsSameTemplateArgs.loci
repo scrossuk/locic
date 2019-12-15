@@ -54,11 +54,11 @@ export void f() {
 // CHECK-NEXT:          i64 1, label %[[h_label:[0-9]+]]
 // CHECK-NEXT:      ]
 
-// CHECK:         ; <label>:[[g_label]]
+// CHECK:         [[g_label]]:
 // CHECK-NEXT:      call void @TPLGENg(i8* %0, i8* %1, i64 %2, i64 %[[pos]])
 // CHECK-NEXT:      ret void
 
-// CHECK:         ; <label>:[[h_label]]
+// CHECK:         [[h_label]]:
 // CHECK-NEXT:      call void @TPLGENh(i8* %0, i8* %1, i64 %2, i64 %[[pos]])
 // CHECK-NEXT:      ret void
 

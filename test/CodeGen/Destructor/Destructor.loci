@@ -18,7 +18,7 @@ void function() {
 	// CHECK-NEXT: store i8 0, i8* %unwindState
 	// CHECK-NEXT: br label %[[START:[0-9]+]]
 	
-	// CHECK: <label>:[[START]]
+	// CHECK: [[START]]:
 	// CHECK-NEXT: %[[OBJCAST:[0-9]+]] = bitcast {{.*}} %[[OBJ]] to i8*
 	// CHECK-NEXT: call void @MT1N9TestClassF1N6create(i8* %[[OBJCAST]])
 	unused TestClass value = TestClass();
@@ -26,10 +26,10 @@ void function() {
 	// CHECK-NEXT: store i8 1, i8* %unwindState
 	// CHECK-NEXT: br label %[[UNWIND:[0-9]+]]
 
-	// CHECK: <label>:[[RET:[0-9]+]]
+	// CHECK: [[RET:[0-9]+]]:
 	// CHECK-NEXT: ret void
 	
-	// CHECK: <label>:[[UNWIND]]
+	// CHECK: [[UNWIND]]:
 	// CHECK-NEXT: %[[OBJCAST2:[0-9]+]] = bitcast {{.*}} %[[OBJ]] to i8*
 	// CHECK-NEXT: call void @MT1N9TestClassF1N9__destroy(i8* %[[OBJCAST2]])
 	// CHECK-NEXT: br label %[[RET]]

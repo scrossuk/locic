@@ -136,7 +136,7 @@ endif(NOT "${CLANG_ROOT_DIR}" STREQUAL "")
 
 # --- Dependencies
 
-set(LLVM_SUPPORTED_VERSION "6.0")
+set(LLVM_SUPPORTED_VERSION "9.0")
 
 # Find LLVM (for code generation).
 set(LLVM_REQ_COMPONENTS all-targets bitreader bitwriter core irreader linker mcjit nativecodegen native ipo option)

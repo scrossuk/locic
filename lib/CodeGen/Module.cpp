@@ -56,7 +56,7 @@ namespace locic {
 		void Module::writeBitCodeToFile(const std::string& fileName) const {
 			std::ofstream file(fileName.c_str());
 			llvm::raw_os_ostream ostream(file);
-			llvm::WriteBitcodeToFile(module_.get(), ostream);
+			llvm::WriteBitcodeToFile(*module_, ostream);
 		}
 		
 		llvm_abi::ABI& Module::abi() {

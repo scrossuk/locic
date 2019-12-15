@@ -38,10 +38,10 @@ export {
 	// CHECK-NEXT:          i64 0, label %[[f_label:[0-9]+]]
 	// CHECK-NEXT:      ]
 	
-	// CHECK:         ; <label>:[[dead_label]]
+	// CHECK:         [[dead_label]]:
 	// CHECK-NEXT:      unreachable
 	
-	// CHECK:         ; <label>:[[f_label]]
+	// CHECK:         [[f_label]]:
 	
 	// We do a right shift here to pass in the parent's path for the template
 	// generator that computes the arguments of TestClass<T>, since this is

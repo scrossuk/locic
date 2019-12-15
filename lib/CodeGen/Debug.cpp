@@ -84,14 +84,24 @@ namespace locic {
 		                                          llvm::Function* const function) {
 			assert(function != nullptr);
 			const bool isLocalToUnit = isInternal;
+			const bool isOptimised = false;
 			const auto scopeLine = lineNumber;
 			const auto flags = DINode::FlagPrototyped;
-			const bool isOptimised = false;
+			
+			auto subprogramFlags = llvm::DISubprogram::SPFlagZero;
+			if (isLocalToUnit) {
+				subprogramFlags |= llvm::DISubprogram::SPFlagLocalToUnit;
+			}
+			if (isOptimised) {
+				subprogramFlags |= llvm::DISubprogram::SPFlagOptimized;
+			}
+			if (isDefinition) {
+				subprogramFlags |= llvm::DISubprogram::SPFlagDefinition;
+			}
 			
 			return builder_.createFunction(scope, name.toString(false), "",
 				scope->getFile(), lineNumber, functionType,
-				isLocalToUnit, isDefinition, scopeLine,
-				flags, isOptimised);
+				scopeLine, flags, subprogramFlags);
 		}
 		
 		DILocalVariable DebugBuilder::createVar(DIScope scope,

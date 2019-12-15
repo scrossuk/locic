@@ -222,7 +222,7 @@ namespace locic {
 			assert(src->getType()->isPointerTy());
 			const auto castDest = emitPointerCast(dest, typeGenerator().getPtrType());
 			const auto castSrc = emitPointerCast(src, typeGenerator().getPtrType());
-			builder().CreateMemCpy(castDest, castSrc, size, align);
+			builder().CreateMemCpy(castDest, align, castSrc, align, size);
 		}
 		
 		void
@@ -234,7 +234,7 @@ namespace locic {
 			assert(src->getType()->isPointerTy());
 			const auto castDest = emitPointerCast(dest, typeGenerator().getPtrType());
 			const auto castSrc = emitPointerCast(src, typeGenerator().getPtrType());
-			builder().CreateMemCpy(castDest, castSrc, sizeValue, align);
+			builder().CreateMemCpy(castDest, align, castSrc, align, sizeValue);
 		}
 		
 		llvm::CallInst*
