@@ -28,7 +28,7 @@ install:
   # (Re-run this command a few times to handle random failures.)
   -
     for i in {1..5}; do
-      if sudo apt-get update && sudo apt-get install -y --force-yes llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev clang-$LLVM_VERSION libconfig++8-dev python-sphinx libboost-program-options-dev libboost-regex-dev libboost-system-dev libboost-filesystem-dev libcsfml-dev texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra; then
+      if sudo apt-get update && sudo apt-get install -y --force-yes llvm-$LLVM_VERSION llvm-$LLVM_VERSION-dev clang-$LLVM_VERSION libconfig++-dev python-sphinx libboost-program-options-dev libboost-regex-dev libboost-system-dev libboost-filesystem-dev libcsfml-dev texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra; then
         break;
       fi;
       sleep 1;
